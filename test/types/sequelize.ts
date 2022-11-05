@@ -1,4 +1,4 @@
-import type { Config, ModelStatic, Utils } from '@sequelize/core';
+import type { Config, ConnectionOptions, ModelStatic, Utils } from '@sequelize/core';
 import { Sequelize, Model, QueryTypes, Op } from '@sequelize/core';
 
 Sequelize.useCLS({
@@ -10,7 +10,7 @@ Sequelize.useCLS({
 
 export const sequelize = new Sequelize({
   hooks: {
-    afterConnect: (connection: unknown, config: Config) => {
+    afterConnect: (connection: unknown, config: ConnectionOptions) => {
       // noop
     },
   },
@@ -60,22 +60,22 @@ sequelize.beforeCreate('test', () => {
 });
 
 sequelize
-  .addHook('beforeConnect', (config: Config) => {
+  .addHook('beforeConnect', (config: ConnectionOptions) => {
     // noop
   })
   .addHook('beforeBulkSync', () => {
     // noop
   });
 
-Sequelize.addHook('beforeCreate', () => {
+Sequelize.addHook('beforeInit', () => {
   // noop
-}).addHook('beforeBulkCreate', () => {
+}).addHook('afterInit', () => {
   // noop
 });
 
-Sequelize.beforeConnect(() => {});
+sequelize.beforeConnect(() => {});
 
-Sequelize.afterConnect(() => {});
+sequelize.afterConnect(() => {});
 
 const rnd: Utils.Fn = sequelize.random();
 

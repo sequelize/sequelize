@@ -25,6 +25,12 @@ export class MssqlDialect extends AbstractDialect {
       defaultValue: false,
       update: false,
     },
+    addColumn: {
+      ifNotExists: false,
+    },
+    removeColumn: {
+      ifExists: false,
+    },
     alterColumn: {
       unique: false,
     },
@@ -40,6 +46,8 @@ export class MssqlDialect extends AbstractDialect {
     },
     NUMERIC: true,
     tmpTableTrigger: true,
+    // TODO: add support for JSON queries https://learn.microsoft.com/en-us/sql/relational-databases/json/json-data-sql-server?view=sql-server-ver16
+    jsonOperations: false,
   });
 
   constructor(sequelize) {
@@ -47,7 +55,7 @@ export class MssqlDialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new MsSqlConnectionManager(this, sequelize);
     this.queryGenerator = new MsSqlQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new MsSqlQueryInterface(

@@ -4,6 +4,8 @@ import { rejectInvalidOptions } from '../../utils';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -22,13 +24,15 @@ function throwMethodUndefined(methodName) {
 
 const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['collate']);
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
     if (options) {
       rejectInvalidOptions(
         'createDatabaseQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
         CREATE_DATABASE_SUPPORTED_OPTIONS,
         options,
@@ -63,7 +67,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
         CREATE_SCHEMA_SUPPORTED_OPTIONS,
         options,
@@ -287,7 +291,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
     //       but instead we need to pass the key along as the field here
     dataType.field = key;
@@ -320,7 +334,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
         + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
@@ -666,7 +690,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
     }
 
-    if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
+    if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
       template += ' UNIQUE';
     }
 

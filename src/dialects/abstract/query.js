@@ -5,13 +5,13 @@ const SqlString = require('../../sql-string');
 const { QueryTypes } = require('../../query-types');
 const Dot = require('dottie');
 const deprecations = require('../../utils/deprecations');
-const uuid = require('uuid').v4;
+const crypto = require('crypto');
 const { safeStringifyJson } = require('../../utils');
 
 export class AbstractQuery {
 
   constructor(connection, sequelize, options) {
-    this.uuid = uuid();
+    this.uuid = crypto.randomUUID();
     this.connection = connection;
     this.instance = options.instance;
     this.model = options.model;
@@ -31,6 +31,31 @@ export class AbstractQuery {
       // implementations.
       this.formatError = AbstractQuery.prototype.formatError;
     }
+  }
+
+  async logWarnings(results) {
+    const warningResults = await this.run('SHOW WARNINGS');
+    const warningMessage = `${this.sequelize.dialect.name} warnings (${this.connection.uuid || 'default'}): `;
+    const messages = [];
+    for (const _warningRow of warningResults) {
+      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
+        continue;
+      }
+
+      for (const _warningResult of _warningRow) {
+        if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
+          messages.push(_warningResult.Message);
+        } else {
+          for (const _objectKey of _warningResult.keys()) {
+            messages.push([_objectKey, _warningResult[_objectKey]].join(': '));
+          }
+        }
+      }
+    }
+
+    this.sequelize.log(warningMessage + messages.join('; '), this.options);
+
+    return results;
   }
 
   /**

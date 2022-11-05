@@ -1,7 +1,11 @@
 'use strict';
 
 import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
-import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import {
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -11,6 +15,8 @@ const randomBytes = require('crypto').randomBytes;
 const { Op } = require('../../operators');
 
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
@@ -32,7 +38,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
         CREATE_SCHEMA_SUPPORTED_OPTIONS,
         options,
@@ -214,7 +220,17 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     return `SELECT name FROM sysibm.systables WHERE NAME = ${wrapSingleQuote(tableName)} AND CREATOR = ${wrapSingleQuote(schemaName)}`;
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     dataType.field = key;
 
     const query = 'ALTER TABLE <%= table %> ADD <%= attribute %>;';
@@ -231,7 +247,17 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     });
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const query = 'ALTER TABLE <%= tableName %> DROP COLUMN <%= attributeName %>;';
 
     return _.template(query, this._templateSettings)({
@@ -656,7 +682,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 
-    if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
+    if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
       template += ' UNIQUE';
     }
 
@@ -912,7 +938,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     for (const key in rawAttributes) {
       if (rawAttributes[key].unique && dataValues[key] === undefined) {
         if (rawAttributes[key].type instanceof DataTypes.DATE) {
-          dataValues[key] = Utils.now('db2');
+          dataValues[key] = Utils.now(this.dialect);
         } else if (rawAttributes[key].type instanceof DataTypes.STRING) {
           dataValues[key] = `unique${uniqno++}`;
         } else if (rawAttributes[key].type instanceof DataTypes.INTEGER) {

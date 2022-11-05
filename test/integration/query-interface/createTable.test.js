@@ -114,8 +114,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should work with enums (2)', async function () {
         await this.queryInterface.createTable('SomeTable', {
           someEnum: {
-            type: DataTypes.ENUM,
-            values: ['value1', 'value2', 'value3'],
+            type: DataTypes.ENUM(['value1', 'value2', 'value3']),
           },
         });
 
@@ -128,8 +127,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should work with enums (3)', async function () {
         await this.queryInterface.createTable('SomeTable', {
           someEnum: {
-            type: DataTypes.ENUM,
-            values: ['value1', 'value2', 'value3'],
+            type: DataTypes.ENUM(['value1', 'value2', 'value3']),
             field: 'otherName',
           },
         });
@@ -146,8 +144,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
           await this.queryInterface.createTable('SomeTable', {
             someEnum: {
-              type: DataTypes.ENUM,
-              values: ['value1', 'value2', 'value3'],
+              type: DataTypes.ENUM(['value1', 'value2', 'value3']),
               field: 'otherName',
             },
           }, { schema: 'archive' });

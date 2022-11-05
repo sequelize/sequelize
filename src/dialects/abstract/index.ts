@@ -23,6 +23,22 @@ export type DialectSupports = {
   skipLocked: boolean,
   finalTable: boolean,
 
+  addColumn: {
+    /**
+     * Does this dialect support checking `IF NOT EXISTS` before adding column
+     * For instance, in Postgres, "ADD COLUMN IF NOT EXISTS" only adds the column if it does not exist
+     */
+    ifNotExists: boolean,
+  },
+
+  dropColumn: {
+    /**
+     * Does this dialect support checking `IF EXISTS` before deleting/dropping column
+     * For instance, in Postgres, "DROP COLUMN IF EXISTS" only drops the column if it does exist
+     */
+    ifExists: boolean,
+  },
+
   /* does the dialect support returning values for inserted/updated fields */
   returnValues: false | {
     output: boolean,
@@ -112,6 +128,8 @@ export type DialectSupports = {
   IREGEXP: boolean,
   HSTORE: boolean,
   TSVECTOR: boolean,
+  /** Whether this dialect supports SQL JSON functions */
+  jsonOperations: boolean,
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
@@ -126,6 +144,11 @@ export type DialectSupports = {
    * enables the ability to use backslash escapes inside of the string.
    */
   escapeStringConstants: boolean,
+
+  /**
+   * Whether this dialect supports date & time values with a precision down to at least the millisecond.
+   */
+  milliseconds: boolean,
 };
 
 export abstract class AbstractDialect {
@@ -152,6 +175,12 @@ export abstract class AbstractDialect {
     lockOuterJoinFailure: false,
     skipLocked: false,
     finalTable: false,
+    addColumn: {
+      ifNotExists: false,
+    },
+    dropColumn: {
+      ifExists: false,
+    },
     returnValues: false,
     autoIncrement: {
       identityInsert: false,
@@ -212,11 +241,13 @@ export abstract class AbstractDialect {
     GEOGRAPHY: false,
     HSTORE: false,
     TSVECTOR: false,
+    jsonOperations: false,
     deferrableConstraints: false,
     tmpTableTrigger: false,
     indexHints: false,
     searchPath: false,
     escapeStringConstants: false,
+    milliseconds: true,
   };
 
   declare readonly defaultVersion: string;

@@ -3,7 +3,10 @@
 import { rejectInvalidOptions } from '../../utils';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION, LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -43,6 +46,8 @@ const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
 const LIST_SCHEMAS_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -59,7 +64,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createDatabaseQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
         CREATE_DATABASE_SUPPORTED_OPTIONS,
         options,
@@ -87,7 +92,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect,
+        this.dialect.name,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
         CREATE_SCHEMA_SUPPORTED_OPTIONS,
         options,
@@ -105,7 +110,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'listSchemasQuery',
-        this.dialect,
+        this.dialect.name,
         LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
         LIST_SCHEMAS_SUPPORTED_OPTIONS,
         options,
@@ -227,7 +232,17 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
@@ -242,7 +257,17 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),

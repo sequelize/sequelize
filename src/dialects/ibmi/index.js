@@ -26,6 +26,12 @@ export class IBMiDialect extends AbstractDialect {
         functionBased: true,
         collate: false,
       },
+      addColumn: {
+        ifNotExists: false,
+      },
+      removeColumn: {
+        ifExists: false,
+      },
       constraints: {
         onUpdate: false,
       },
@@ -41,7 +47,7 @@ export class IBMiDialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new IBMiConnectionManager(this, sequelize);
     this.queryGenerator = new IBMiQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new IBMiQueryInterface(this.sequelize, this.queryGenerator);

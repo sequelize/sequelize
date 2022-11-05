@@ -21,6 +21,12 @@ export class Db2Dialect extends AbstractDialect {
     alterColumn: {
       unique: false,
     },
+    addColumn: {
+      ifNotExists: false,
+    },
+    removeColumn: {
+      ifExists: false,
+    },
     index: {
       collate: false,
       using: false,
@@ -35,7 +41,7 @@ export class Db2Dialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new Db2ConnectionManager(this, sequelize);
     this.queryGenerator = new Db2QueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new Db2QueryInterface(sequelize, this.queryGenerator);

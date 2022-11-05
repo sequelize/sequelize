@@ -1,7 +1,8 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
+import type { DataType } from '../../data-types.js';
 import type {
-  BuiltModelAttributeColumOptions,
+  BuiltModelAttributeColumnOptions,
   FindOptions,
   Model,
   ModelAttributeColumnOptions,
@@ -86,8 +87,16 @@ export interface ListSchemasQueryOptions {
   skip?: string[];
 }
 
+export interface AddColumnQueryOptions {
+  ifNotExists?: boolean;
+}
+
+export interface RemoveColumnQueryOptions {
+  ifExists?: boolean;
+}
+
 export class AbstractQueryGenerator {
-  _dialect: AbstractDialect;
+  dialect: AbstractDialect;
 
   setImmediateQuery(constraints: string[]): string;
   setDeferredQuery(constraints: string[]): string;
@@ -110,14 +119,27 @@ export class AbstractQueryGenerator {
   insertQuery(
     table: TableName,
     valueHash: object,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
     options?: InsertOptions
   ): { query: string, bind?: unknown[] };
   bulkInsertQuery(
     tableName: TableName,
     newEntries: object[],
     options?: BulkInsertOptions,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions }
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions }
+  ): string;
+
+  addColumnQuery(
+    table: TableName,
+    columnName: string,
+    columnDefinition: ModelAttributeColumnOptions | DataType,
+    options?: AddColumnQueryOptions,
+  ): string;
+
+  removeColumnQuery(
+    table: TableName,
+    attributeName: string,
+    options?: RemoveColumnQueryOptions,
   ): string;
 
   updateQuery(
@@ -125,7 +147,7 @@ export class AbstractQueryGenerator {
     attrValueHash: object,
     where: WhereOptions,
     options?: UpdateOptions,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
   ): { query: string, bind?: unknown[] };
 
   deleteQuery(

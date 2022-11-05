@@ -27,7 +27,7 @@ export function checkNamingCollision(source: ModelStatic<any>, associationName: 
 
 export function addForeignKeyConstraints(
   newAttribute: ModelAttributeColumnOptions,
-  source: ModelStatic<Model>,
+  source: ModelStatic,
   options: AssociationOptions<string>,
   key: string,
 ): void {
@@ -239,7 +239,7 @@ export function defineAssociation<
   });
 
   if (normalizedOptions.hooks) {
-    source.runHooks('beforeAssociate', { source, target, type, sequelize }, normalizedOptions);
+    source.hooks.runSync('beforeAssociate', { source, target, type, sequelize }, normalizedOptions);
   }
 
   let association;
@@ -255,7 +255,7 @@ export function defineAssociation<
   }
 
   if (normalizedOptions.hooks) {
-    source.runHooks('afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
+    source.hooks.runSync('afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
   }
 
   checkNamingCollision(source, normalizedOptions.as);

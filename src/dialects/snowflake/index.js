@@ -30,6 +30,12 @@ export class SnowflakeDialect extends AbstractDialect {
       type: true,
       using: 1,
     },
+    addColumn: {
+      ifNotExists: false,
+    },
+    removeColumn: {
+      ifExists: false,
+    },
     constraints: {
       dropConstraint: false,
       check: false,
@@ -43,6 +49,7 @@ export class SnowflakeDialect extends AbstractDialect {
     REGEXP: true,
     schemas: true,
     databases: true,
+    milliseconds: false,
   });
 
   constructor(sequelize) {
@@ -50,7 +57,7 @@ export class SnowflakeDialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new SnowflakeConnectionManager(this, sequelize);
     this.queryGenerator = new SnowflakeQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new SnowflakeQueryInterface(sequelize, this.queryGenerator);

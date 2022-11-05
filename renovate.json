@@ -5,5 +5,13 @@
     ":semanticCommitTypeAll(meta)",
     ":semanticCommitScopeDisabled"
   ],
-  "ignorePaths": [ "dev/**/oldest/docker-compose.yml" ]
+  "automergeStrategy": "squash",
+  "semanticCommitType": "meta",
+  "ignorePaths": ["dev/**/oldest/docker-compose.yml"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest", "lockFileMaintenance"],
+      "automerge": true
+    }
+  ]
 }

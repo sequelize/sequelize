@@ -188,7 +188,9 @@ export class MariaDbQuery extends AbstractQuery {
       if (modelField.type instanceof DataTypes.JSON) {
         // Value is returned as String, not JSON
         rows = rows.map(row => {
-          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string') {
+          // JSON fields for MariaDB server 10.5.2+ already results in JSON format, skip JSON.parse
+          // this is due to this https://jira.mariadb.org/browse/MDEV-17832 and how mysql2 connector interacts with MariaDB and JSON fields
+          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string' && !this.connection.info.hasMinVersion(10, 5, 2)) {
             row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
           }
 
@@ -201,31 +203,6 @@ export class MariaDbQuery extends AbstractQuery {
         });
       }
     }
-  }
-
-  async logWarnings(results) {
-    const warningResults = await this.run('SHOW WARNINGS');
-    const warningMessage = `MariaDB Warnings (${this.connection.uuid || 'default'}): `;
-    const messages = [];
-    for (const _warningRow of warningResults) {
-      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
-        continue;
-      }
-
-      for (const _warningResult of _warningRow) {
-        if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
-          messages.push(_warningResult.Message);
-        } else {
-          for (const _objectKey of _warningResult.keys()) {
-            messages.push([_objectKey, _warningResult[_objectKey]].join(': '));
-          }
-        }
-      }
-    }
-
-    this.sequelize.log(warningMessage + messages.join('; '), this.options);
-
-    return results;
   }
 
   formatError(err, errStack) {

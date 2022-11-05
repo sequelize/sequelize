@@ -24,6 +24,12 @@ export class MysqlDialect extends AbstractDialect {
         ignoreDuplicates: ' IGNORE',
         updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
       },
+      addColumn: {
+        ifNotExists: false,
+      },
+      removeColumn: {
+        ifExists: false,
+      },
       index: {
         collate: false,
         length: true,
@@ -40,6 +46,7 @@ export class MysqlDialect extends AbstractDialect {
       NUMERIC: true,
       GEOMETRY: true,
       JSON: true,
+      jsonOperations: true,
       REGEXP: true,
     },
   );
@@ -49,7 +56,7 @@ export class MysqlDialect extends AbstractDialect {
     this.sequelize = sequelize;
     this.connectionManager = new MySqlConnectionManager(this, sequelize);
     this.queryGenerator = new MySqlQueryGenerator({
-      _dialect: this,
+      dialect: this,
       sequelize,
     });
     this.queryInterface = new MySqlQueryInterface(

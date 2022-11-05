@@ -16,7 +16,7 @@ type ReplicationPoolConfig<Resource> = {
   validate(connection: Resource): boolean,
 };
 
-const OwningPool = Symbol('owning-pool');
+const owningPools = new WeakMap<object, 'read' | 'write'>();
 
 export class ReplicationPool<Resource extends object> {
   /**
@@ -42,7 +42,7 @@ export class ReplicationPool<Resource extends object> {
           const nextRead = reads++ % readConfig.length;
           const connection = await connect(readConfig[nextRead]);
 
-          Reflect.set(connection, OwningPool, 'read');
+          owningPools.set(connection, 'read');
 
           return connection;
         },
@@ -62,7 +62,7 @@ export class ReplicationPool<Resource extends object> {
       create: async () => {
         const connection = await connect(writeConfig);
 
-        Reflect.set(connection, OwningPool, 'write');
+        owningPools.set(connection, 'write');
 
         return connection;
       },
@@ -90,13 +90,19 @@ export class ReplicationPool<Resource extends object> {
   }
 
   release(client: Resource): void {
-    const connectionType = Reflect.get(client, OwningPool);
+    const connectionType = owningPools.get(client);
+    if (!connectionType) {
+      throw new Error('Unable to determine to which pool the connection belongs');
+    }
 
     this.getPool(connectionType).release(client);
   }
 
   async destroy(client: Resource): Promise<void> {
-    const connectionType = Reflect.get(client, OwningPool);
+    const connectionType = owningPools.get(client);
+    if (!connectionType) {
+      throw new Error('Unable to determine to which pool the connection belongs');
+    }
 
     await this.getPool(connectionType).destroy(client);
     debug('connection destroy');
