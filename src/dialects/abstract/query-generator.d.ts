@@ -106,6 +106,11 @@ export class AbstractQueryGenerator {
     prepend?: boolean,
   ): string;
 
+  /**
+   * @private
+   */
+  jsonPathExtractionQuery(_column: string, _path?: string | string[], _isJson?: boolean): Error | string;
+
   selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
     table: TableName,

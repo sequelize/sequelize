@@ -1216,11 +1216,11 @@ export class AbstractQueryGenerator {
    * @param   {string}               _column   The JSON column
    * @param   {string|Array<string>} [_path]   The path to extract (optional)
    * @param   {boolean}              [_isJson] The value is JSON use alt symbols (optional)
-   * @returns {string}                        The generated sql query
+   * @returns {Error|string}                   The generated sql query
    * @private
    */
   jsonPathExtractionQuery(_column, _path, _isJson) {
-    throw new Error(`JSON operations are not supported in ${this.dialect.name}`);
+    throw new Error(`JSON operations are not supported in ${this.dialect.name}.`);
   }
 
   /*
