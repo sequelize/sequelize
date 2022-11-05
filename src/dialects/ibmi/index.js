@@ -26,6 +26,12 @@ export class IBMiDialect extends AbstractDialect {
         functionBased: true,
         collate: false,
       },
+      addColumn: {
+        ifNotExists: false,
+      },
+      removeColumn: {
+        ifExists: false,
+      },
       constraints: {
         onUpdate: false,
       },

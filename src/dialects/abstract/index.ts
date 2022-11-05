@@ -23,6 +23,22 @@ export type DialectSupports = {
   skipLocked: boolean,
   finalTable: boolean,
 
+  addColumn: {
+    /**
+     * Does this dialect support checking `IF NOT EXISTS` before adding column
+     * For instance, in Postgres, "ADD COLUMN IF NOT EXISTS" only adds the column if it does not exist
+     */
+    ifNotExists: boolean,
+  },
+
+  dropColumn: {
+    /**
+     * Does this dialect support checking `IF EXISTS` before deleting/dropping column
+     * For instance, in Postgres, "DROP COLUMN IF EXISTS" only drops the column if it does exist
+     */
+    ifExists: boolean,
+  },
+
   /* does the dialect support returning values for inserted/updated fields */
   returnValues: false | {
     output: boolean,
@@ -159,6 +175,12 @@ export abstract class AbstractDialect {
     lockOuterJoinFailure: false,
     skipLocked: false,
     finalTable: false,
+    addColumn: {
+      ifNotExists: false,
+    },
+    dropColumn: {
+      ifExists: false,
+    },
     returnValues: false,
     autoIncrement: {
       identityInsert: false,

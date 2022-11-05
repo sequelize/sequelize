@@ -21,6 +21,12 @@ export class Db2Dialect extends AbstractDialect {
     alterColumn: {
       unique: false,
     },
+    addColumn: {
+      ifNotExists: false,
+    },
+    removeColumn: {
+      ifExists: false,
+    },
     index: {
       collate: false,
       using: false,
