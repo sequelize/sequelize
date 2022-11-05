@@ -547,16 +547,6 @@ if (dialect === 'db2') {
         },
       ],
 
-      showIndexesQuery: [
-        {
-          arguments: ['User'],
-          expectation: 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = \'User\' ORDER BY NAME;',
-        }, {
-          arguments: ['User', { database: 'sequelize' }],
-          expectation: 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = \'User\' ORDER BY NAME;',
-        },
-      ],
-
       removeIndexQuery: [
         {
           arguments: ['User', 'user_foo_bar'],

@@ -595,34 +595,6 @@ if (dialect === 'mariadb') {
         },
       ],
 
-      showIndexesQuery: [
-        {
-          arguments: ['User'],
-          expectation: 'SHOW INDEX FROM `User`',
-        },
-        {
-          arguments: [{ tableName: 'User', schema: 'schema' }],
-          expectation: 'SHOW INDEX FROM `schema`.`User`',
-        },
-        // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
-        // {
-        //   sequelizeOptions: {
-        //     schema: 'schema',
-        //   },
-        //   arguments: ['User'],
-        //   expectation: 'SHOW INDEX FROM `schema`.`User`',
-        // },
-        {
-          arguments: ['User', { database: 'sequelize' }],
-          // Doing this:
-          //  SHOW INDEX FROM `User` FROM `sequelize`
-          // would be incorrect because the second from specifies the SCHEMA.
-          // The database name from the credentials is not equivalent to specifying the SCHEMA.
-          // Schema and Database are synonymous in MySQL/MariaDB, and not the same as what we call a 'database' in our credentials.
-          expectation: 'SHOW INDEX FROM `User`',
-        },
-      ],
-
       removeIndexQuery: [
         {
           arguments: ['User', 'user_foo_bar'],
