@@ -228,6 +228,11 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName, schema) {
+    if (typeof tableName === 'object') {
+      schema = tableName.schema || schema;
+      tableName = tableName.tableName;
+    }
+
     let sql = [
       'SELECT',
       'c.COLUMN_NAME AS \'Name\',',

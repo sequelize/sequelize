@@ -180,6 +180,11 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName, schema) {
+    if (typeof tableName === 'object') {
+      schema = tableName.schema || schema;
+      tableName = tableName.tableName;
+    }
+
     schema = schema || this.options.schema || 'public';
 
     return 'SELECT '

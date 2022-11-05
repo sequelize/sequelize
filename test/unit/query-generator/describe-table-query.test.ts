@@ -87,11 +87,6 @@ describe('QueryGenerator#describeTableQuery', () => {
   });
 
   it('produces a DESCRIBE TABLE query with schema in tableName object', () => {
-    // FIXME: enable this test for other dialects once fixed
-    if (['postgres', 'mssql', 'db2'].includes(dialectName)) {
-      return;
-    }
-
     expectsql(() => queryGenerator.describeTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: 'SHOW FULL COLUMNS FROM [mySchema].[myTable];',
       postgres: 'SELECT '

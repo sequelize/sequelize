@@ -179,6 +179,11 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName, schema) {
+    if (typeof tableName === 'object') {
+      schema = tableName.schema || schema;
+      tableName = tableName.tableName;
+    }
+
     let sql = [
       'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",',
       'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",',
