@@ -1,7 +1,8 @@
 'use strict';
 
-import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
-import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import { rejectInvalidOptions } from '../../utils/check';
+import { removeTrailingSemicolon } from '../../utils/string';
+import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -10,7 +11,7 @@ const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const randomBytes = require('crypto').randomBytes;
 const { Op } = require('../../operators');
 
-const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
@@ -33,8 +34,8 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createSchemaQuery',
         this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }

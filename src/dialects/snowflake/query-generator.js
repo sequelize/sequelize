@@ -1,9 +1,10 @@
 'use strict';
 
-import { rejectInvalidOptions } from '../../utils';
+import { rejectInvalidOptions } from '../../utils/check';
 import {
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION, LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -40,9 +41,9 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
-const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
-const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
-const LIST_SCHEMAS_SUPPORTED_OPTIONS = new Set();
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -60,8 +61,8 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createDatabaseQuery',
         this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -88,8 +89,8 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createSchemaQuery',
         this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -106,8 +107,8 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'listSchemasQuery',
         this.dialect.name,
-        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
-        LIST_SCHEMAS_SUPPORTED_OPTIONS,
+        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
+        LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }

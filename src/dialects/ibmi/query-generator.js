@@ -1,7 +1,11 @@
 'use strict';
 
-import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
-import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import { rejectInvalidOptions } from '../../utils/check';
+import { removeTrailingSemicolon } from '../../utils/string';
+import {
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const util = require('util');
@@ -12,7 +16,9 @@ const { Model } = require('../../model');
 const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);
-const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
@@ -27,8 +33,8 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createSchemaQuery',
         this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -130,17 +136,17 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   dropTableQuery(tableName, options) {
-    let table = tableName;
-    let schema;
-
-    if (typeof table === 'object') {
-      schema = table.schema || undefined;
-      table = table.table;
-    } else if (options.schema) {
-      schema = options.schema;
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
-    return `DROP TABLE IF EXISTS ${schema ? `"${schema}".` : ''}"${table}"`;
+    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}`;
   }
 
   describeTableQuery(tableName, schema) {

@@ -1,5 +1,6 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils/check';
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
 
@@ -26,9 +27,10 @@ const { _validateIncludedElements } = require('../../model-internals');
  * It is used to validate the options passed to {@link QueryGenerator#createDatabaseQuery},
  * as not all of them are supported by all dialects.
  */
-export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
-export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset']);
-export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION = new Set(['skip']);
+export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
+export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
+export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['cascade']);
+export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS = new Set(['skip']);
 
 /**
  * Abstract Query Generator
@@ -144,7 +146,19 @@ export class AbstractQueryGenerator {
     return `DESCRIBE ${table};`;
   }
 
-  dropTableQuery(tableName) {
+  dropTableQuery(tableName, options) {
+    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
+
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)};`;
   }
 

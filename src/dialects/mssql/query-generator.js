@@ -1,9 +1,10 @@
 'use strict';
 
-import { rejectInvalidOptions } from '../../utils';
+import { rejectInvalidOptions } from '../../utils/check';
 import {
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -20,8 +21,9 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['collate']);
-const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['collate']);
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
@@ -29,8 +31,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createDatabaseQuery',
         this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -64,8 +66,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createSchemaQuery',
         this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -276,7 +278,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     return `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(tableName)} AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
   }
 
-  dropTableQuery(tableName) {
+  dropTableQuery(tableName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const quoteTbl = this.quoteTable(tableName);
 
     return Utils.joinSQLFragments([
