@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../support');
-const { DataTypes, Op } = require('@sequelize/core');
+const { Op } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -13,14 +13,6 @@ const { SqliteQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-s
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] QueryGenerator', () => {
-    beforeEach(function () {
-      this.User = this.sequelize.define('User', {
-        username: DataTypes.STRING,
-      });
-
-      return this.User.sync({ force: true });
-    });
-
     const suites = {
       attributesToSQL: [
         {
