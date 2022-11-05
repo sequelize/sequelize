@@ -23,7 +23,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     expect(() => {
       // @ts-expect-error
       User.belongsToMany();
-    }).to.throw('User.belongsToMany was called with undefined as the target model, but it is not a subclass of Sequelize\'s Model class');
+    }).to.throw(`User.belongsToMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
 
   it('should not inherit scopes from parent to join table', () => {

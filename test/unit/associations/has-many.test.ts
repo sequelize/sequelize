@@ -13,7 +13,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
     expect(() => {
       // @ts-expect-error
       User.hasMany();
-    }).to.throw('User.hasMany was called with undefined as the target model, but it is not a subclass of Sequelize\'s Model class');
+    }).to.throw(`User.hasMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
 
   it('forbids alias inference in self-associations', () => {

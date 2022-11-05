@@ -12,7 +12,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
     expect(() => {
       // @ts-expect-error
       User.hasOne();
-    }).to.throw('User.hasOne was called with undefined as the target model, but it is not a subclass of Sequelize\'s Model class');
+    }).to.throw(`User.hasOne was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
 
   it('warn on invalid options', () => {
