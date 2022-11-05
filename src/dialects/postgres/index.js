@@ -57,6 +57,7 @@ export class PostgresDialect extends AbstractDialect {
     JSONB: true,
     HSTORE: true,
     TSVECTOR: true,
+    jsonOperations: true,
     deferrableConstraints: true,
     searchPath: true,
     escapeStringConstants: true,

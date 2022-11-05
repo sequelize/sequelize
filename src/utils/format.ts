@@ -7,7 +7,7 @@ import type {
   WhereOptions,
   ModelAttributeColumnOptions,
   Attributes,
-  BuiltModelAttributeColumOptions,
+  BuiltModelAttributeColumnOptions,
 } from '..';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { Op as operators } from '../operators';
@@ -260,7 +260,7 @@ export function generateEnumName(
   return `enum_${tableName}_${columnName}`;
 }
 
-export function getColumnName(attribute: BuiltModelAttributeColumOptions): string {
+export function getColumnName(attribute: BuiltModelAttributeColumnOptions): string {
   assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
 
   // field is the column name alias

@@ -46,6 +46,7 @@ export class MysqlDialect extends AbstractDialect {
       NUMERIC: true,
       GEOMETRY: true,
       JSON: true,
+      jsonOperations: true,
       REGEXP: true,
     },
   );

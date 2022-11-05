@@ -10,7 +10,7 @@ import type {
   ModelStatic,
   CreationAttributes,
   Attributes,
-  BuiltModelAttributeColumOptions,
+  BuiltModelAttributeColumnOptions,
 } from '../../model';
 import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { Transaction } from '../../transaction';
@@ -504,7 +504,7 @@ export class QueryInterface {
     values: object,
     where: WhereOptions<any>,
     options?: QiOptionsWithReplacements,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
   ): Promise<object>;
 
   /**

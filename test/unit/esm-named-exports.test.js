@@ -28,8 +28,9 @@ describe('ESM module', () => {
     const cjsKeys = Object.getOwnPropertyNames(sequelizeCjs);
 
     // require('@sequelize/core') returns the Sequelize class
-    // The typings do not reflect this as some properties of the Sequelize class are not declared as exported in types/index.d.ts.
-    // This array lists the properties that are present on the class, but should not be exported in the esm export file nor in types/index.d.ts.
+    // The typings do not reflect this as some properties of the Sequelize class are not declared as exported in
+    // types/index.d.ts. This array lists the properties that are present on the class, but should not be exported in the
+    // esm export file nor in types/index.d.ts.
     const ignoredCjsKeys = [
       // cannot be exported - not a valid identifier
       'DOUBLE PRECISION', // DataTypes['DOUBLE PRECISION']
@@ -41,7 +42,6 @@ describe('ESM module', () => {
       '_clsRun',
       'name',
       'version',
-      'options',
       'postgres',
       'mysql',
       'mariadb',
@@ -50,56 +50,6 @@ describe('ESM module', () => {
       'db2',
       'mssql',
       'ibmi',
-      '_setupHooks',
-      'runHooks',
-      'addHook',
-      'removeHook',
-      'hasHook',
-      'hasHooks',
-      'beforeValidate',
-      'afterValidate',
-      'validationFailed',
-      'beforeCreate',
-      'afterCreate',
-      'beforeDestroy',
-      'afterDestroy',
-      'beforeRestore',
-      'afterRestore',
-      'beforeUpdate',
-      'afterUpdate',
-      'beforeSave',
-      'afterSave',
-      'beforeUpsert',
-      'afterUpsert',
-      'beforeBulkCreate',
-      'afterBulkCreate',
-      'beforeBulkDestroy',
-      'afterBulkDestroy',
-      'beforeBulkRestore',
-      'afterBulkRestore',
-      'beforeBulkUpdate',
-      'afterBulkUpdate',
-      'beforeFind',
-      'beforeFindAfterExpandIncludeAll',
-      'beforeFindAfterOptions',
-      'afterFind',
-      'beforeCount',
-      'beforeDefine',
-      'afterDefine',
-      'beforeInit',
-      'afterInit',
-      'beforeAssociate',
-      'afterAssociate',
-      'beforeConnect',
-      'afterConnect',
-      'beforeDisconnect',
-      'afterDisconnect',
-      'beforeSync',
-      'afterSync',
-      'beforeBulkSync',
-      'afterBulkSync',
-      'beforeQuery',
-      'afterQuery',
     ];
 
     for (const key of ignoredCjsKeys) {

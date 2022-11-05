@@ -2,7 +2,7 @@
 
 import type { DataType } from '../../data-types.js';
 import type {
-  BuiltModelAttributeColumOptions,
+  BuiltModelAttributeColumnOptions,
   FindOptions,
   Model,
   ModelAttributeColumnOptions,
@@ -119,14 +119,14 @@ export class AbstractQueryGenerator {
   insertQuery(
     table: TableName,
     valueHash: object,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
     options?: InsertOptions
   ): { query: string, bind?: unknown[] };
   bulkInsertQuery(
     tableName: TableName,
     newEntries: object[],
     options?: BulkInsertOptions,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions }
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions }
   ): string;
 
   addColumnQuery(
@@ -147,7 +147,7 @@ export class AbstractQueryGenerator {
     attrValueHash: object,
     where: WhereOptions,
     options?: UpdateOptions,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
   ): { query: string, bind?: unknown[] };
 
   deleteQuery(

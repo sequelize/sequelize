@@ -47,6 +47,7 @@ export class MariaDbDialect extends AbstractDialect {
       GEOMETRY: true,
       JSON: true,
       REGEXP: true,
+      jsonOperations: true,
     },
   );
 

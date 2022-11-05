@@ -41,6 +41,8 @@ export class SqliteDialect extends AbstractDialect {
     },
     groupedLimit: false,
     JSON: true,
+    // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)
+    jsonOperations: false,
   });
 
   constructor(sequelize) {
