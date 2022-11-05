@@ -2,8 +2,8 @@
 
 import { rejectInvalidOptions } from '../../utils';
 import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -31,8 +31,8 @@ const FOREIGN_KEY_FIELDS = [
 ].join(',');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MySqlQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -201,7 +201,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'addColumnQuery',
         this.dialect.name,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -226,7 +226,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'removeColumnQuery',
         this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );

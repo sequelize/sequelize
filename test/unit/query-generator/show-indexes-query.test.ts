@@ -1,4 +1,6 @@
-import { createSequelizeInstance, expectsql, sequelize } from '../../support';
+import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '../../support';
+
+const dialectName = getTestDialect();
 
 describe('QueryGenerator#showIndexesQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -48,11 +50,13 @@ describe('QueryGenerator#showIndexesQuery', () => {
     });
   });
 
-  // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
-  it.skip('produces a SHOW INDEX query from a table and schema in options', () => {
-    const sequelizeSchema = createSequelizeInstance({
-      schema: 'mySchema',
-    });
+  it('produces a SHOW INDEX query from a table and schema in options', () => {
+    // FIXME: enable this test for other dialects once fixed (in https://github.com/sequelize/sequelize/pull/14687)
+    if (['mariadb', 'mysql', 'postgres', 'mssql', 'sqlite', 'db2', 'ibmi'].includes(dialectName)) {
+      return;
+    }
+
+    const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
     const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
 
     expectsql(() => queryGeneratorSchema.showIndexesQuery('myTable'), {

@@ -92,10 +92,12 @@ export interface ListSchemasQueryOptions {
   skip?: string[];
 }
 
+// keep ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface AddColumnQueryOptions {
   ifNotExists?: boolean;
 }
 
+// keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveColumnQueryOptions {
   ifExists?: boolean;
 }
@@ -174,6 +176,7 @@ export class AbstractQueryGenerator {
   showIndexesQuery(tableName: TableName): string;
 
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
+  describeTableQuery(tableName: TableName, schema?: string, schemaDelimiter?: string): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | { query: string, bind?: unknown[] };

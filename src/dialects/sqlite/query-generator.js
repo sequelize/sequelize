@@ -1,7 +1,10 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTION, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
@@ -9,8 +12,8 @@ const _ = require('lodash');
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class SqliteQueryGenerator extends MySqlQueryGenerator {
   createSchemaQuery() {
@@ -210,7 +213,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
       rejectInvalidOptions(
         'addColumnQuery',
         this.dialect.name,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -406,7 +409,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
       rejectInvalidOptions(
         'removeColumnQuery',
         this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );

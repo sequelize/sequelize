@@ -154,6 +154,10 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName, schema) {
+    if (typeof tableName === 'object') {
+      schema = tableName.schema || schema;
+      tableName = tableName.tableName;
+    }
 
     const sql
     = `SELECT
