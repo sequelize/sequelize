@@ -4,6 +4,8 @@ import { rejectInvalidOptions } from '../../utils';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -22,6 +24,8 @@ function throwMethodUndefined(methodName) {
 
 const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['collate']);
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
@@ -287,7 +291,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
     //       but instead we need to pass the key along as the field here
     dataType.field = key;
@@ -320,7 +334,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
         + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),

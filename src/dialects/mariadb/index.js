@@ -24,6 +24,12 @@ export class MariaDbDialect extends AbstractDialect {
         ignoreDuplicates: ' IGNORE',
         updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
       },
+      addColumn: {
+        ifNotExists: false,
+      },
+      removeColumn: {
+        ifExists: false,
+      },
       index: {
         collate: false,
         length: true,

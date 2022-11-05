@@ -21,6 +21,12 @@ export class SqliteDialect extends AbstractDialect {
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
       conflictFields: true,
     },
+    addColumn: {
+      ifNotExists: false,
+    },
+    removeColumn: {
+      ifExists: false,
+    },
     index: {
       using: false,
       where: true,

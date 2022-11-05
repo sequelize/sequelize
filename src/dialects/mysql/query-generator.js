@@ -1,5 +1,11 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
@@ -25,6 +31,8 @@ const FOREIGN_KEY_FIELDS = [
 ].join(',');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 export class MySqlQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -188,7 +196,17 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${tableName} AND TABLE_SCHEMA = ${this.escape(this.sequelize.config.database)}`;
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
@@ -203,7 +221,17 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),

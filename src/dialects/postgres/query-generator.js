@@ -295,14 +295,17 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return super.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
-  addColumnQuery(table, key, attribute) {
+  addColumnQuery(table, key, attribute, options) {
+    options = options || {};
+
     const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(this.extractTableDetails(table));
+    const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
 
-    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${quotedKey} ${definition};`;
+    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 
     if (dataType instanceof DataTypes.ENUM) {
       query = this.pgEnum(table, key, dataType) + query;
@@ -313,11 +316,14 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return query;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    options = options || {};
+
     const quotedTableName = this.quoteTable(this.extractTableDetails(tableName));
     const quotedAttributeName = this.quoteIdentifier(attributeName);
+    const ifExists = options.ifExists ? ' IF EXISTS' : '';
 
-    return `ALTER TABLE ${quotedTableName} DROP COLUMN ${quotedAttributeName};`;
+    return `ALTER TABLE ${quotedTableName} DROP COLUMN ${ifExists} ${quotedAttributeName};`;
   }
 
   changeColumnQuery(tableName, attributes) {
