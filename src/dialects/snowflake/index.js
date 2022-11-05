@@ -30,6 +30,12 @@ export class SnowflakeDialect extends AbstractDialect {
       type: true,
       using: 1,
     },
+    addColumn: {
+      ifNotExists: false,
+    },
+    removeColumn: {
+      ifExists: false,
+    },
     constraints: {
       dropConstraint: false,
       check: false,

@@ -217,7 +217,7 @@ export function defineAssociation<
   construct: (opts: CleanOptions) => T,
 ): T {
   if (!isModelStatic(target)) {
-    throw new Error(`${source.name}.${lowerFirst(type.name)} called with something that's not a subclass of Sequelize.Model`);
+    throw new Error(`${source.name}.${lowerFirst(type.name)} was called with ${NodeUtils.inspect(target)} as the target model, but it is not a subclass of Sequelize's Model class`);
   }
 
   assertAssociationModelIsDefined(source);

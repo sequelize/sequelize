@@ -1,5 +1,6 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
+import type { DataType } from '../../data-types.js';
 import type {
   BuiltModelAttributeColumnOptions,
   FindOptions,
@@ -91,6 +92,14 @@ export interface ListSchemasQueryOptions {
   skip?: string[];
 }
 
+export interface AddColumnQueryOptions {
+  ifNotExists?: boolean;
+}
+
+export interface RemoveColumnQueryOptions {
+  ifExists?: boolean;
+}
+
 export class AbstractQueryGenerator {
   dialect: AbstractDialect;
 
@@ -123,6 +132,19 @@ export class AbstractQueryGenerator {
     newEntries: object[],
     options?: BulkInsertOptions,
     columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions }
+  ): string;
+
+  addColumnQuery(
+    table: TableName,
+    columnName: string,
+    columnDefinition: ModelAttributeColumnOptions | DataType,
+    options?: AddColumnQueryOptions,
+  ): string;
+
+  removeColumnQuery(
+    table: TableName,
+    attributeName: string,
+    options?: RemoveColumnQueryOptions,
   ): string;
 
   updateQuery(

@@ -5,6 +5,8 @@ import { removeTrailingSemicolon } from '../../utils/string';
 import {
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const Utils = require('../../utils');
@@ -19,6 +21,8 @@ const typeWithoutDefault = new Set(['BLOB']);
 
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
@@ -179,7 +183,17 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     return `SELECT TABLE_NAME FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}`;
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     dataType.field = key;
     const definition = this.attributeToSQL(dataType, {
       context: 'addColumn',
@@ -190,7 +204,17 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     return `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition}`;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return `ALTER TABLE ${this.quoteTable(tableName)} DROP COLUMN ${this.quoteIdentifier(attributeName)}`;
   }
 
