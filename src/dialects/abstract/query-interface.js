@@ -277,7 +277,14 @@ export class QueryInterface {
     options = { ...options };
     options.cascade = options.cascade || options.force || false;
 
-    const sql = this.queryGenerator.dropTableQuery(tableName, options);
+    let sql;
+
+    // TODO: this should be refactored to probably use DialectSupports
+    if (this.queryGenerator.dialect.name === 'postgres') {
+      sql = this.queryGenerator.dropTableQuery(tableName, options);
+    } else {
+      sql = this.queryGenerator.dropTableQuery(tableName);
+    }
 
     await this.sequelize.queryRaw(sql, options);
   }
