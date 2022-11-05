@@ -149,6 +149,8 @@ export class AbstractQueryGenerator {
     options?: ArithmeticQueryOptions,
   ): string;
 
+  showIndexesQuery(tableName: TableName): string;
+
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
