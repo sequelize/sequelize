@@ -1,5 +1,6 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -481,7 +482,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attribute.type.toString({ dialect: this.dialect });
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -495,7 +496,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && Utils.defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
     }
 

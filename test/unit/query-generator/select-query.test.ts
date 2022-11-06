@@ -70,7 +70,7 @@ describe('QueryGenerator#selectQuery', () => {
       sqlite: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
       snowflake: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
       db2: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
-      ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = '9007199254740993'`,
+      ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993`,
       mssql: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
     });
   });

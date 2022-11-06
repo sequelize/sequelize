@@ -1,12 +1,8 @@
-import isPlainObject from 'lodash/isPlainObject';
-/* eslint-disable import/order -- caused by temporarily mixing require with import */
-import { v1 as uuidv1 } from 'uuid';
 import { randomUUID } from 'crypto';
-
+import isPlainObject from 'lodash/isPlainObject';
+import { v1 as uuidv1 } from 'uuid';
 import type { AbstractDialect } from '../dialects/abstract';
-/* eslint-enable import/order */
-
-const DataTypes = require('../data-types');
+import * as DataTypes from '../dialects/abstract/data-types.js';
 
 export function now(dialect: AbstractDialect): Date {
   const d = new Date();
@@ -20,8 +16,8 @@ export function now(dialect: AbstractDialect): Date {
 export function toDefaultValue(value: unknown, dialect: AbstractDialect): unknown {
   if (typeof value === 'function') {
     const tmp = value();
-    if (tmp instanceof DataTypes.ABSTRACT) {
-      return tmp.toSql();
+    if (tmp instanceof DataTypes.AbstractDataType) {
+      return tmp.toSql({ dialect });
     }
 
     return tmp;

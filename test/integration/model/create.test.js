@@ -1040,7 +1040,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    if (['postgres', 'sqlite'].includes(dialect)) {
+    if (dialect.supports.dataTypes.CITEXT) {
       it(`doesn't allow case-insensitive duplicated records using CITEXT`, async function () {
         const User = this.sequelize.define('UserWithUniqueCITEXT', {
           username: { type: DataTypes.CITEXT, unique: true },
@@ -1129,7 +1129,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const smth1 = error.get('smth')[0] || {};
 
         expect(smth1.path).to.equal('smth');
-        expect(smth1.type || smth1.origin).to.match(/notNull Violation/);
+        expect(smth1.type || smth1.origin).to.match(/notNull violation/);
       }
     });
 

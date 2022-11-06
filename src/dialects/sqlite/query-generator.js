@@ -1,10 +1,8 @@
 'use strict';
 
-import { rejectInvalidOptions } from '../../utils';
-import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { rejectInvalidOptions } from '../../utils/check';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
@@ -316,7 +314,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
           sql += ' NOT NULL';
         }
 
-        if (Utils.defaultValueSchemable(dataType.defaultValue)) {
+        if (defaultValueSchemable(dataType.defaultValue)) {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP

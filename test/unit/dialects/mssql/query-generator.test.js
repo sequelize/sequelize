@@ -1,6 +1,6 @@
 'use strict';
 
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;

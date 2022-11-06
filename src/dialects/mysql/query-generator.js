@@ -1,5 +1,7 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { rejectInvalidOptions } from '../../utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -207,6 +209,11 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       );
     }
 
+    dataType = {
+      ...dataType,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
@@ -406,7 +413,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attributeTypeToSql(attribute.type, { escape: this.escape.bind(this), dialect: this.dialect });
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -420,7 +427,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && Utils.defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
     }
 

@@ -1,5 +1,6 @@
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
+import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { QueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type {
   DestroyOptions,
@@ -352,12 +353,12 @@ export interface Options extends Logging {
   transactionType?: TRANSACTION_TYPES;
 
   /**
-   * Run built in type validators on insert and update, e.g. validate that arguments passed to integer
+   * Disable built in type validators on insert and update, e.g. don't validate that arguments passed to integer
    * fields are integer-like.
    *
    * @default false
    */
-  typeValidation?: boolean;
+  noTypeValidation?: boolean;
 
   /**
    * Sets available operator aliases.
@@ -413,9 +414,18 @@ export interface Options extends Logging {
    * If defined the connection will use the provided schema instead of the default ("public").
    */
   schema?: string;
+
+  /**
+   * SQLite only. If set to false, foreign keys will not be enforced by SQLite.
+   *
+   * @default true
+   */
+  // TODO: move to dialectOptions, rename to noForeignKeyEnforcement, and add integration tests with
+  //  query-interface methods that temporarily disable foreign keys.
+  foreignKeys?: boolean;
 }
 
-export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'dialectOptions' | 'dialect'> {
+export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone'> {
   readonly replication: NormalizedReplicationOptions;
 }
 
@@ -428,7 +438,7 @@ export interface DialectOptions {
   odbcConnectionString?: string;
   charset?: string;
   timeout?: number;
-  options?: Record<string, any>;
+  options?: string | Record<string, unknown>;
 }
 
 export interface QueryOptionsTransactionRequired { }
@@ -1035,6 +1045,9 @@ export class Sequelize extends SequelizeTypeScript {
    * instances, and want to garbage collect some of them.
    */
   close(): Promise<void>;
+
+  normalizeDataType(Type: string): string;
+  normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
 
   /**
    * Returns the database version

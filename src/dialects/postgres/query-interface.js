@@ -35,7 +35,7 @@ export class PostgresQueryInterface extends QueryInterface {
 
       if (
         type instanceof DataTypes.ENUM
-        || type instanceof DataTypes.ARRAY && type.type instanceof DataTypes.ENUM // ARRAY sub type is ENUM
+        || type instanceof DataTypes.ARRAY && type.options.type instanceof DataTypes.ENUM // ARRAY sub type is ENUM
       ) {
         sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], options);
         promises.push(this.sequelize.queryRaw(
@@ -75,7 +75,7 @@ export class PostgresQueryInterface extends QueryInterface {
     for (i = 0; i < keyLen; i++) {
       const attribute = attributes[keys[i]];
       const type = attribute.type;
-      const enumType = type.type || type;
+      const enumType = type instanceof DataTypes.ARRAY ? type.options.type : type;
       const field = attribute.field || keys[i];
 
       if (
@@ -89,7 +89,7 @@ export class PostgresQueryInterface extends QueryInterface {
           });
         } else if (Boolean(results[enumIdx]) && Boolean(model)) {
           const enumVals = this.queryGenerator.fromArray(results[enumIdx].enum_value);
-          const vals = enumType.values;
+          const vals = enumType.options.values;
 
           // Going through already existing values allows us to make queries that depend on those values
           // We will prepend all new values between the old ones, but keep in mind - we can't change order of already existing values
@@ -142,7 +142,7 @@ export class PostgresQueryInterface extends QueryInterface {
 
     // If ENUM processed, then refresh OIDs
     if (promises.length > 0) {
-      await this.sequelize.dialect.connectionManager._refreshDynamicOIDs();
+      await this.sequelize.dialect.connectionManager.refreshDynamicOids();
     }
 
     return result;

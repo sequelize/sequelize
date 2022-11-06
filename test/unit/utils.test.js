@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('./support');
+const Support = require('../support');
 const { DataTypes, Op, Utils } = require('@sequelize/core');
 
 const dialect = Support.sequelize.dialect;
@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   describe('toDefaultValue', () => {
     it('return plain data types', () => {
-      expect(Utils.toDefaultValue(DataTypes.UUIDV4, dialect)).to.equal('UUIDV4');
+      expect(() => Utils.toDefaultValue(DataTypes.UUIDV4, dialect)).to.throw();
     });
     it('return uuid v1', () => {
       expect(/^[\da-z-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1(), dialect))).to.be.equal(true);

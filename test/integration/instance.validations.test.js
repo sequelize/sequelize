@@ -370,7 +370,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           await this.Project.create({});
         } catch (error) {
           expect(error).to.have.property('name', 'SequelizeValidationError');
-          expect(error.message).equal('notNull Violation: Project.name cannot be null');
+          expect(error.message).equal('notNull violation: Project.name cannot be null');
           expect(error.errors).to.be.an('array').and.have.length(1);
           expect(error.errors[0]).to.have.property('message', 'Project.name cannot be null');
         }
@@ -509,8 +509,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     const failingBar = Bar.build({ field: 'value3' });
 
     const errors = await expect(failingBar.validate()).to.be.rejected;
-    expect(errors.get('field')).to.have.length(1);
-    expect(errors.get('field')[0].message).to.equal('Validation isIn on field failed');
+    expect(errors.get('field')).to.have.length(2);
+    expect(errors.get('field')[0].message).to.equal(`'value3' is not a valid choice for enum [ 'value1', 'value2' ]`);
+    expect(errors.get('field')[1].message).to.equal(`Validation isIn on field failed`);
   });
 
   it('skips validations for the given fields', async function () {
