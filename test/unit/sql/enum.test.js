@@ -17,6 +17,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         schema: 'foo',
       });
 
+      const FooUser2 = current.define('user', {
+        mood: DataTypes.ENUM('happy', 'sad'),
+      }, {});
+
       const PublicUser = current.define('user', {
         mood: {
           type: DataTypes.ENUM('happy', 'sad'),
@@ -45,6 +49,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expectsql(sql.pgEnum(FooUser.getTableName(), 'mood', FooUser.rawAttributes.mood.type), {
             postgres: 'CREATE TYPE "foo"."enum_users_mood" AS ENUM(\'happy\', \'sad\');',
           });
+        });
+
+        it('uses schema from Sequelize searchPath', () => {
+          current.options.searchPath = 'nonPublicSchema';
+          expectsql(sql.pgEnum(FooUser2.getTableName(), 'mood', FooUser.rawAttributes.mood.type), {
+            postgres: 'CREATE TYPE "nonPublicSchema"."enum_users_mood" AS ENUM(\'happy\', \'sad\');',
+          });
+          current.options.searchPath = null;
         });
 
         it('does add schema when public', () => {

@@ -86,9 +86,10 @@ export class AbstractQueryGenerator {
   extractTableDetails(tableName, options) {
     options = options || {};
     tableName = tableName || {};
+    const schema = tableName.schema || options.schema || this.options.schema || options.schema !== false && this.sequelize.options.searchPath || 'public';
 
     return {
-      schema: tableName.schema || options.schema || this.options.schema || 'public',
+      schema,
       tableName: _.isPlainObject(tableName) ? tableName.tableName : tableName,
       delimiter: tableName.delimiter || options.delimiter || '.',
     };
