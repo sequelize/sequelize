@@ -610,7 +610,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       const Tasks = {};
 
       await Promise.all(dataTypes.map(async dataType => {
-        const tableName = `TaskXYZ_${dataType.key}`;
+        const tableName = `TaskXYZ_${dataType.getDataTypeId()}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
 
         User.hasOne(Tasks[dataType], { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });

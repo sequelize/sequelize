@@ -12,7 +12,7 @@ const dialect = current.dialect;
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
-  if (!dialect.supports.JSON) {
+  if (!dialect.supports.dataTypes.JSON) {
     return;
   }
 
@@ -21,6 +21,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('plain string', () => {
         expectsql(sql.escape('string', { type: new DataTypes.JSON() }), {
           default: `'"string"'`,
+          mssql: `N'"string"'`,
           mariadb: `'\\"string\\"'`,
           mysql: `'\\"string\\"'`,
         });
@@ -29,18 +30,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('plain int', () => {
         expectsql(sql.escape(0, { type: new DataTypes.JSON() }), {
           default: `'0'`,
+          mssql: `N'0'`,
         });
         expectsql(sql.escape(123, { type: new DataTypes.JSON() }), {
           default: `'123'`,
+          mssql: `N'123'`,
         });
       });
 
       it('boolean', () => {
         expectsql(sql.escape(true, { type: new DataTypes.JSON() }), {
           default: `'true'`,
+          mssql: `N'true'`,
         });
         expectsql(sql.escape(false, { type: new DataTypes.JSON() }), {
           default: `'false'`,
+          mssql: `N'false'`,
         });
       });
 
@@ -53,12 +58,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('nested object', () => {
         expectsql(sql.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
           default: `'{"some":"nested","more":{"nested":true},"answer":42}'`,
+          mssql: `N'{"some":"nested","more":{"nested":true},"answer":42}'`,
           mariadb: `'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}'`,
           mysql: `'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}'`,
         });
       });
 
-      if (current.dialect.supports.ARRAY) {
+      if (current.dialect.supports.dataTypes.ARRAY) {
         it('array of JSON', () => {
           expectsql(sql.escape([
             { some: 'nested', more: { nested: true }, answer: 42 },
@@ -69,7 +75,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
 
-        if (current.dialect.supports.JSONB) {
+        if (current.dialect.supports.dataTypes.JSONB) {
           it('array of JSONB', () => {
             expectsql(
               sql.escape(

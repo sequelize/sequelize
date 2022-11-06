@@ -1,12 +1,13 @@
 'use strict';
 
+import NodeUtil from 'node:util';
+import { AbstractDataType } from './data-types';
+
 const _ = require('lodash');
-const SqlString = require('../../sql-string');
 const { QueryTypes } = require('../../query-types');
 const Dot = require('dottie');
 const deprecations = require('../../utils/deprecations');
 const crypto = require('crypto');
-const { safeStringifyJson } = require('../../utils');
 
 export class AbstractQuery {
 
@@ -249,7 +250,7 @@ export class AbstractQuery {
         checkExisting: this.options.hasMultiAssociation,
       });
 
-      result = this.model.bulkBuild(results, {
+      result = this.model.bulkBuild(this._parseDataArrayByType(results, this.model, this.options.includeMap), {
         isNewRecord: false,
         include: this.options.include,
         includeNames: this.options.includeNames,
@@ -257,12 +258,14 @@ export class AbstractQuery {
         includeValidated: true,
         attributes: this.options.originalAttributes || this.options.attributes,
         raw: true,
+        comesFromDatabase: true,
       });
     // Regular queries
     } else {
-      result = this.model.bulkBuild(results, {
+      result = this.model.bulkBuild(this._parseDataArrayByType(results, this.model, this.options.includeMap), {
         isNewRecord: false,
         raw: true,
+        comesFromDatabase: true,
         attributes: this.options.originalAttributes || this.options.attributes,
       });
     }
@@ -273,6 +276,56 @@ export class AbstractQuery {
     }
 
     return result;
+  }
+
+  /**
+   * Calls {@link AbstractDataType#parseDatabaseValue} on all attributes returned by the database, if a model is specified.
+   *
+   * This method mutates valueArrays.
+   *
+   * @param {Array} valueArrays The values to parse
+   * @param {Model} model The model these values belong to
+   * @param {object} includeMap The list of included associations
+   */
+  _parseDataArrayByType(valueArrays, model, includeMap) {
+    for (const values of valueArrays) {
+      this._parseDataByType(values, model, includeMap);
+    }
+
+    return valueArrays;
+  }
+
+  _parseDataByType(values, model, includeMap) {
+    for (const key of Object.keys(values)) {
+      // parse association values
+      // hasOwnProperty is very important here. An include could be called "toString"
+      if (includeMap && Object.hasOwnProperty.call(includeMap, key)) {
+        if (Array.isArray(values[key])) {
+          values[key] = this._parseDataArrayByType(values[key], includeMap[key].model, includeMap[key].includeMap);
+        } else {
+          values[key] = this._parseDataByType(values[key], includeMap[key].model, includeMap[key].includeMap);
+        }
+
+        continue;
+      }
+
+      const attribute = model?.rawAttributes[key];
+      values[key] = this._parseDatabaseValue(values[key], attribute?.type);
+    }
+
+    return values;
+  }
+
+  _parseDatabaseValue(value, attributeType) {
+    if (value == null) {
+      return value;
+    }
+
+    if (!attributeType || !(attributeType instanceof AbstractDataType)) {
+      return value;
+    }
+
+    return attributeType.parseDatabaseValue(value);
   }
 
   isShowOrDescribeQuery() {
@@ -304,14 +357,8 @@ export class AbstractQuery {
 
     if (logQueryParameters && parameters) {
       const delimiter = sql.endsWith(';') ? '' : ';';
-      let paramStr;
-      if (Array.isArray(parameters)) {
-        paramStr = parameters.map(p => safeStringifyJson(p)).join(', ');
-      } else {
-        paramStr = safeStringifyJson(parameters);
-      }
 
-      logParameter = `${delimiter} ${paramStr}`;
+      logParameter = `${delimiter} with parameters ${NodeUtil.inspect(parameters)}`;
     }
 
     const fmt = `(${connection.uuid || 'default'}): ${sql}${logParameter}`;

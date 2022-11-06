@@ -1,5 +1,7 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
 import {
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
@@ -190,7 +192,14 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       );
     }
 
-    dataType.field = key;
+    dataType = {
+      ...dataType,
+      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      //       but instead we need to pass the key along as the field here
+      field: key,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
+
     const definition = this.attributeToSQL(dataType, {
       context: 'addColumn',
       tableName: table,
@@ -320,37 +329,37 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   escape(value, field, options) {
-    options = options || {};
-
-    if (value !== null && value !== undefined) {
-      if (value instanceof Utils.SequelizeMethod) {
-        return this.handleSequelizeMethod(value, undefined, undefined, options);
-      }
-
-      if (field && field.type) {
-        this.validate(value, field, options);
-
-        if (field.type.stringify) {
-          // Users shouldn't have to worry about these args - just give them a function that takes a single arg
-          if (field.type._binary) {
-            field.type.escape = false;
-          }
-
-          const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this.dialect.name);
-
-          value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation });
-
-          if (field.type.escape === false) {
-            // The data-type already did the required escaping
-            return value;
-          }
-        }
-      }
+    if (value instanceof Utils.SequelizeMethod) {
+      return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
-    const format = (value === null && options.where);
+    if (value == null || field?.type == null || typeof field.type === 'string') {
+      const format = (value === null && options.where);
 
-    return SqlString.escape(value, this.options.timezone, this.dialect.name, format);
+      // use default escape mechanism instead of the DataType's.
+      return SqlString.escape(value, this.options.timezone, this.dialect, format);
+    }
+
+    field.type = field.type.toDialectDataType(this.dialect);
+
+    if (options.isList && Array.isArray(value)) {
+      const escapeOptions = { ...options, isList: false };
+
+      return `(${value.map(valueItem => {
+        return this.escape(valueItem, field, escapeOptions);
+      }).join(', ')})`;
+    }
+
+    this.validate(value, field);
+
+    return field.type.escape(value, {
+      // Users shouldn't have to worry about these args - just give them a function that takes a single arg
+      escape: this.simpleEscape,
+      field,
+      timezone: this.options.timezone,
+      operation: options.operation,
+      dialect: this.dialect,
+    });
   }
 
   /*
@@ -686,25 +695,21 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attribute.type.toString({ escape: this.escape.bind(this), dialect: this.dialect });
     let template = attributeString;
 
     if (attribute.type instanceof DataTypes.ENUM) {
-      if (attribute.type.values && !attribute.values) {
-        attribute.values = attribute.type.values;
-      }
-
       // enums are a special case
-      template = attribute.type.toSql();
+      template = attribute.type.toSql({ dialect: this.dialect });
       if (options && options.context) {
         template += options.context === 'changeColumn' ? ' ADD' : '';
       }
 
-      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
         return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {
-      template = attribute.type.toString(options);
+      template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
     }
 
     if (attribute.allowNull === false) {
@@ -720,7 +725,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     // BLOB cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && Utils.defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue)) {
       if (attribute.defaultValue === true) {
         attribute.defaultValue = 1;
       } else if (attribute.defaultValue === false) {

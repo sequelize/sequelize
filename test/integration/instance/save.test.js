@@ -472,8 +472,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(error).to.exist;
         expect(error).to.be.instanceof(ValidationError);
         expect(error.get('validateTest')).to.be.instanceof(Array);
-        expect(error.get('validateTest')[0]).to.exist;
-        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+        expect(error.get('validateTest')[1]).to.exist;
+        expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
@@ -484,8 +484,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(error).to.exist;
         expect(error).to.be.instanceof(Object);
         expect(error.get('validateTest')).to.be.instanceof(Array);
-        expect(error.get('validateTest')[0]).to.exist;
-        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+        expect(error.get('validateTest')[1]).to.exist;
+        expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
@@ -512,8 +512,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(error).to.be.instanceof(Object);
         expect(error.get('validateTest')).to.exist;
         expect(error.get('validateTest')).to.be.instanceof(Array);
-        expect(error.get('validateTest')[0]).to.exist;
-        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+        expect(error.get('validateTest')[1]).to.exist;
+        expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 

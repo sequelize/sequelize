@@ -84,7 +84,7 @@ describe('mapBindParameters', () => {
     });
   });
 
-  if (sequelize.dialect.supports.ARRAY) {
+  if (sequelize.dialect.supports.dataTypes.ARRAY) {
     it('does not parse bind parameters inside ARRAY[]', () => {
       const { sql } = mapBindParameters('SELECT * FROM users WHERE id = ARRAY[$id1]::int[];', dialect);
 
@@ -398,7 +398,7 @@ describe('injectReplacements (named replacements)', () => {
 
   // this is an officially supported workaround.
   // The right way to support ARRAY in replacement is https://github.com/sequelize/sequelize/issues/14410
-  if (sequelize.dialect.supports.ARRAY) {
+  if (sequelize.dialect.supports.dataTypes.ARRAY) {
     it('parses named replacements inside ARRAY[]', () => {
       const sql = injectReplacements('SELECT * FROM users WHERE id = ARRAY[:id1]::int[] OR id = ARRAY[:id1,:id2]::int[] OR id = ARRAY[:id1, :id2]::int[];', dialect, {
         id1: 1,
@@ -601,7 +601,7 @@ describe('injectReplacements (positional replacements)', () => {
 
   // this is an officially supported workaround.
   // The right way to support ARRAY in replacement is https://github.com/sequelize/sequelize/issues/14410
-  if (sequelize.dialect.supports.ARRAY) {
+  if (sequelize.dialect.supports.dataTypes.ARRAY) {
     it('parses positional replacements inside ARRAY[]', () => {
       const sql = injectReplacements('SELECT * FROM users WHERE id = ARRAY[?]::int[] OR ARRAY[?,?]::int[] OR ARRAY[?, ?]::int[];', dialect, [1, 1, 4, 1, 4]);
 

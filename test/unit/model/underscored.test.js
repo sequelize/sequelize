@@ -11,7 +11,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(function () {
       this.N = this.sequelize.define('N', {
         id: {
-          type: DataTypes.CHAR(10),
+          type: DataTypes.STRING(10),
           primaryKey: true,
           field: 'n_id',
         },
@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       this.M = this.sequelize.define('M', {
         id: {
-          type: DataTypes.CHAR(20),
+          type: DataTypes.STRING(20),
           primaryKey: true,
           field: 'm_id',
         },
@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('hasOne does not override already defined field', function () {
       this.N.rawAttributes.mId = {
-        type: DataTypes.CHAR(20),
+        type: DataTypes.STRING(20),
         field: 'n_m_id',
       };
       this.N.refreshAttributes();
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('belongsTo does not override already defined field', function () {
       this.N.rawAttributes.mId = {
-        type: DataTypes.CHAR(20),
+        type: DataTypes.STRING(20),
         field: 'n_m_id',
       };
       this.N.refreshAttributes();
@@ -62,7 +62,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('hasOne/belongsTo does not override already defined field', function () {
       this.N.rawAttributes.mId = {
-        type: DataTypes.CHAR(20),
+        type: DataTypes.STRING(20),
         field: 'n_m_id',
       };
       this.N.refreshAttributes();
@@ -75,7 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('hasMany does not override already defined field', function () {
       this.M.rawAttributes.nId = {
-        type: DataTypes.CHAR(20),
+        type: DataTypes.STRING(20),
         field: 'nana_id',
       };
       this.M.refreshAttributes();
@@ -91,11 +91,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('belongsToMany does not override already defined field', function () {
       this.NM = this.sequelize.define('NM', {
         n_id: {
-          type: DataTypes.CHAR(10),
+          type: DataTypes.STRING(10),
           field: 'nana_id',
         },
         m_id: {
-          type: DataTypes.CHAR(20),
+          type: DataTypes.STRING(20),
           field: 'mama_id',
         },
       }, {

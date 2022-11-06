@@ -160,7 +160,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (current.dialect.supports.JSONB) {
+    if (current.dialect.supports.dataTypes.JSONB) {
       it('operator', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],

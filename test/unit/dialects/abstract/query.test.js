@@ -535,8 +535,8 @@ describe('[ABSTRACT]', () => {
 
       complete();
 
-      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1; "1"');
-      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1; "1"');
+      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1; with parameters [ 1n ]');
+      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1; with parameters [ 1n ]');
     });
   });
 });

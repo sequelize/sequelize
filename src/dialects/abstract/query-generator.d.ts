@@ -1,6 +1,5 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
-import type { DataType } from '../../data-types.js';
 import type {
   BuiltModelAttributeColumnOptions,
   FindOptions,
@@ -11,13 +10,22 @@ import type {
   WhereOptions,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
+import type { Sequelize } from '../../sequelize.js';
 import type { Literal, SequelizeMethod } from '../../utils/index.js';
+import type { DataType } from './data-types.js';
 import type { TableName } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
 
 type ParameterOptions = {
   // only named replacements are allowed
   replacements?: { [key: string]: unknown },
+};
+
+type EscapeOptions = ParameterOptions & {
+  /**
+   * Set to true if the value to escape is in a list (e.g. used inside of Op.any or Op.all).
+   */
+  isList?: boolean,
 };
 
 type SelectOptions<M extends Model> = FindOptions<M> & {
@@ -66,6 +74,11 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 };
 
+interface QueryGeneratorOptions {
+  sequelize: Sequelize;
+  dialect: AbstractDialect;
+}
+
 // keep CREATE_DATABASE_QUERY_OPTION_NAMES updated when modifying this
 export interface CreateDatabaseQueryOptions {
   collate?: string;
@@ -98,13 +111,16 @@ export interface RemoveColumnQueryOptions {
 export class AbstractQueryGenerator {
   dialect: AbstractDialect;
 
+  constructor(options: QueryGeneratorOptions);
+
   setImmediateQuery(constraints: string[]): string;
   setDeferredQuery(constraints: string[]): string;
   generateTransactionId(): string;
   whereQuery(where: object, options?: ParameterOptions): string;
   whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
   quoteTable(param: TableName, alias?: string | boolean): string;
-  escape(value: unknown, field?: unknown, options?: ParameterOptions): string;
+  validate(value: unknown, field?: BuiltModelAttributeColumnOptions): void;
+  escape(value: unknown, field?: BuiltModelAttributeColumnOptions, options?: EscapeOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
   handleSequelizeMethod(
@@ -173,4 +189,11 @@ export class AbstractQueryGenerator {
   createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
   dropDatabaseQuery(databaseName: string): string;
   listDatabasesQuery(): string;
+
+  /**
+   * Creates a function that can be used to collect bind parameters.
+   *
+   * @param bind A mutable object to which bind parameters will be added.
+   */
+  bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
 }

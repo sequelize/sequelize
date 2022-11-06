@@ -1,7 +1,22 @@
-import DataTypes = require('./data-types');
-
-export { DataTypes };
-
+export * as DataTypes from './data-types';
+export type {
+  DataType,
+  DataTypeClassOrInstance,
+  DataTypeClass,
+  DataTypeInstance,
+} from './dialects/abstract/data-types.js';
+export type {
+  GeoJson,
+  GeoJsonPoint,
+  GeoJsonMultiPoint,
+  GeoJsonLineString,
+  GeoJsonMultiLineString,
+  GeoJsonPolygon,
+  GeoJsonMultiPolygon,
+  GeoJsonGeometryCollection,
+  PositionPosition,
+} from './geo-json.js';
+export { GeoJsonType } from './geo-json.js';
 export * as Utils from './utils';
 export { QueryTypes } from './query-types';
 export { IndexHints } from './index-hints';
@@ -11,7 +26,6 @@ export * from './transaction';
 
 export type { Connection } from './dialects/abstract/connection-manager';
 export * from './associations/index';
-export * from './data-types';
 export * from './errors';
 export { BaseError as Error } from './errors';
 export * from './model';
