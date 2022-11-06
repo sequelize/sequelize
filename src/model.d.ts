@@ -2102,6 +2102,34 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   _attributes: TModelAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in hooks.d.ts)
 
   /**
+   * Object that contains previous underlying model data. This is meant to
+   * represent the state of the DB, without the currently unsaved changes.
+   * `dataValues` is meant to include the unsaved `changes`. For that reason,
+   * `_previousDataValues` & `dataValues` will be equal just after a save or
+   * a select, or changing value manually with `instance.set` or `instance.value = '???'`.
+   *
+   * If you need to keep what the values looked like before persisting them,
+   * you need to store them separately (e.g. on a non-attribute property of
+   * your model). You could do that automically with our hooks or you can
+   * use `instance.previous` before using few trigger conditions as stated
+   * above.
+   *
+   * ```ts
+   * console.log(instance.qty)); // 5
+   * instance.qty = 10;
+   * console.log(instance.qty)); // 10
+   * // you can use `instance.previous` before some trigger conditions
+   * console.log(instance.previous('qty')); // 5
+   * // if you call some trigger conditions, e.g a save method like updateAttributes
+   * instance = await particular.updateAttributes({qty: 10});
+   * // it will return the current data value
+   * console.log(instance.previous('qty')); // 10
+   * ```
+   *
+   */
+  _previousDataValues: TModelAttributes;
+
+  /**
    * Object that contains underlying model data
    */
   dataValues: TModelAttributes;
