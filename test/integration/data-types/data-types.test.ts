@@ -1085,7 +1085,7 @@ describe('DataTypes', () => {
   describe('DATEONLY', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
-        declare dateAttr: string | null;
+        declare dateAttr: string | Date | null;
         declare id: CreationOptional<number>;
       }
 
@@ -1122,6 +1122,19 @@ describe('DataTypes', () => {
 
       const record = await record0.reload();
       expect(record.dateAttr).to.be.eql(null);
+    });
+
+    it('does not offset its input based on the system time zone (#10982)', async () => {
+      const tz = process.env.TZ;
+
+      process.env.TZ = 'GMT-24';
+
+      try {
+        await testSimpleInOut(vars.User, 'dateAttr', '2022-01-01', '2022-01-01');
+        await testSimpleInOut(vars.User, 'dateAttr', new Date('2022-01-01'), '2022-01-01');
+      } finally {
+        process.env.TZ = tz;
+      }
     });
 
     it(`is deserialized as a string when DataType is not specified`, async () => {

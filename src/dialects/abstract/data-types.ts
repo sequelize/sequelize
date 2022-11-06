@@ -1345,7 +1345,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
   }
 
   toBindableValue(date: AcceptedDate, _options: StringifyOptions) {
-    return dayjs(date).format('YYYY-MM-DD');
+    return dayjs.utc(date).format('YYYY-MM-DD');
   }
 
   sanitize(value: unknown): unknown {
@@ -1354,7 +1354,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     }
 
     if (value) {
-      return dayjs(value).format('YYYY-MM-DD');
+      return dayjs.utc(value).format('YYYY-MM-DD');
     }
 
     return value;
