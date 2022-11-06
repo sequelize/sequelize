@@ -2121,7 +2121,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * // you can use `instance.previous` before some trigger conditions
    * console.log(instance.previous('qty')); // 5
    * // if you call some trigger conditions, e.g a save method like updateAttributes
-   * instance = await particular.updateAttributes({qty: 10});
+   * instance = await instance.updateAttributes({qty: 10});
    * // it will return the current data value
    * console.log(instance.previous('qty')); // 10
    * ```
