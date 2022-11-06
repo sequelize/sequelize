@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const { Op } = require('@sequelize/core');
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
 const { AbstractQueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js');

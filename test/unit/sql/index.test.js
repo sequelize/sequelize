@@ -1,6 +1,6 @@
 'use strict';
 
-const Support = require('../support');
+const Support = require('../../support');
 const { Op } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;

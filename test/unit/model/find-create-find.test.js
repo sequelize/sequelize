@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const { EmptyResultError, UniqueConstraintError } = require('@sequelize/core');
-const Support = require('../support');
+const Support = require('../../support');
 
 const current = Support.sequelize;
 const sinon = require('sinon');

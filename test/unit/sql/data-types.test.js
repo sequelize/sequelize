@@ -1,6 +1,6 @@
 'use strict';
 
-const Support = require('../support');
+const Support = require('../../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const chai = require('chai');
