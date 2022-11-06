@@ -29,8 +29,6 @@ describe('connection manager', () => {
       sequelize.beforeConnect(config => {
         config.username = username;
         config.password = password;
-
-        return config;
       });
 
       // @ts-expect-error -- internal method, no typings

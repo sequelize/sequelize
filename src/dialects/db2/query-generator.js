@@ -1,9 +1,13 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { attributeTypeToSql } from '../abstract/data-types-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
-import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import {
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -13,6 +17,8 @@ const randomBytes = require('crypto').randomBytes;
 const { Op } = require('../../operators');
 
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
@@ -216,8 +222,24 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     return `SELECT name FROM sysibm.systables WHERE NAME = ${wrapSingleQuote(tableName)} AND CREATOR = ${wrapSingleQuote(schemaName)}`;
   }
 
-  addColumnQuery(table, key, dataType) {
-    dataType.field = key;
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    dataType = {
+      ...dataType,
+      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      //       but instead we need to pass the key along as the field here
+      field: key,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
 
     const query = 'ALTER TABLE <%= table %> ADD <%= attribute %>;';
     const attribute = _.template('<%= key %> <%= definition %>', this._templateSettings)({
@@ -233,7 +255,17 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     });
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const query = 'ALTER TABLE <%= tableName %> DROP COLUMN <%= attributeName %>;';
 
     return _.template(query, this._templateSettings)({

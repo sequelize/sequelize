@@ -81,7 +81,11 @@ export function attributeTypeToSql(type: AbstractDataType<any> | string, options
     return type;
   }
 
-  return type.toSql(options);
+  if (type instanceof AbstractDataType) {
+    return type.toSql(options);
+  }
+
+  throw new Error('attributeTypeToSql received a type that is neither a string or an instance of AbstractDataType');
 }
 
 export function getDataTypeParser(dialect: AbstractDialect, dataType: DataTypeClassOrInstance): (value: unknown) => unknown {

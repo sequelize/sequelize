@@ -458,7 +458,10 @@ export class QueryInterface {
       attribute.type.attachUsageContext({ tableName: table, columnName: key, sequelize: this.sequelize });
     }
 
-    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute), options);
+    const { ifNotExists, ...rawQueryOptions } = options;
+    const addColumnQueryOptions = ifNotExists ? { ifNotExists } : undefined;
+
+    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute, addColumnQueryOptions), rawQueryOptions);
   }
 
   /**
@@ -469,7 +472,12 @@ export class QueryInterface {
    * @param {object} [options]      Query options
    */
   async removeColumn(tableName, attributeName, options) {
-    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName), options);
+    options = options || {};
+
+    const { ifExists, ...rawQueryOptions } = options;
+    const removeColumnQueryOptions = ifExists ? { ifExists } : null;
+
+    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName, removeColumnQueryOptions), rawQueryOptions);
   }
 
   normalizeAttribute(dataTypeOrOptions) {

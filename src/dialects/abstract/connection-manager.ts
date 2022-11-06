@@ -263,9 +263,9 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    * @internal
    */
   async _connect(config: ConnectionOptions): Promise<TConnection> {
-    await this.sequelize.runHooks('beforeConnect', config);
+    await this.sequelize.hooks.runAsync('beforeConnect', config);
     const connection = await this.connect(config);
-    await this.sequelize.runHooks('afterConnect', connection, config);
+    await this.sequelize.hooks.runAsync('afterConnect', connection, config);
 
     return connection;
   }
@@ -278,8 +278,8 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    * @internal
    */
   async _disconnect(connection: TConnection) {
-    await this.sequelize.runHooks('beforeDisconnect', connection);
+    await this.sequelize.hooks.runAsync('beforeDisconnect', connection);
     await this.disconnect(connection);
-    await this.sequelize.runHooks('afterDisconnect', connection);
+    await this.sequelize.hooks.runAsync('afterDisconnect', connection);
   }
 }

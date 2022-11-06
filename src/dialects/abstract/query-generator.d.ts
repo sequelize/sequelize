@@ -1,7 +1,7 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
 import type {
-  BuiltModelAttributeColumOptions,
+  BuiltModelAttributeColumnOptions,
   FindOptions,
   Model,
   ModelAttributeColumnOptions,
@@ -12,6 +12,7 @@ import type {
 import type { QueryTypes } from '../../query-types.js';
 import type { Sequelize } from '../../sequelize.js';
 import type { Literal, SequelizeMethod } from '../../utils/index.js';
+import type { DataType } from './data-types.js';
 import type { TableName } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
 
@@ -99,6 +100,14 @@ export interface ListSchemasQueryOptions {
   skip?: string[];
 }
 
+export interface AddColumnQueryOptions {
+  ifNotExists?: boolean;
+}
+
+export interface RemoveColumnQueryOptions {
+  ifExists?: boolean;
+}
+
 export class AbstractQueryGenerator {
   dialect: AbstractDialect;
 
@@ -110,8 +119,8 @@ export class AbstractQueryGenerator {
   whereQuery(where: object, options?: ParameterOptions): string;
   whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
   quoteTable(param: TableName, alias?: string | boolean): string;
-  validate(value: unknown, field?: BuiltModelAttributeColumOptions): void;
-  escape(value: unknown, field?: BuiltModelAttributeColumOptions, options?: EscapeOptions): string;
+  validate(value: unknown, field?: BuiltModelAttributeColumnOptions): void;
+  escape(value: unknown, field?: BuiltModelAttributeColumnOptions, options?: EscapeOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
   handleSequelizeMethod(
@@ -126,14 +135,27 @@ export class AbstractQueryGenerator {
   insertQuery(
     table: TableName,
     valueHash: object,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
     options?: InsertOptions
   ): { query: string, bind?: unknown[] };
   bulkInsertQuery(
     tableName: TableName,
     newEntries: object[],
     options?: BulkInsertOptions,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions }
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions }
+  ): string;
+
+  addColumnQuery(
+    table: TableName,
+    columnName: string,
+    columnDefinition: ModelAttributeColumnOptions | DataType,
+    options?: AddColumnQueryOptions,
+  ): string;
+
+  removeColumnQuery(
+    table: TableName,
+    attributeName: string,
+    options?: RemoveColumnQueryOptions,
   ): string;
 
   updateQuery(
@@ -141,7 +163,7 @@ export class AbstractQueryGenerator {
     attrValueHash: object,
     where: WhereOptions,
     options?: UpdateOptions,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumOptions },
+    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
   ): { query: string, bind?: unknown[] };
 
   deleteQuery(

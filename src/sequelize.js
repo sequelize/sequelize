@@ -2,10 +2,11 @@
 
 import isPlainObject from 'lodash/isPlainObject';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
+import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { isString } from './utils';
 import { noSequelizeDataType } from './utils/deprecations';
-import { isSameInitialModel, isModelStatic } from './utils/model-utils';
+import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { parseConnectionString } from './utils/url';
 
@@ -21,7 +22,6 @@ const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
 const sequelizeErrors = require('./errors');
-const Hooks = require('./hooks');
 const { Association } = require('./associations/index');
 const Validator = require('./utils/validator-extras').validator;
 const { Op } = require('./operators');
@@ -36,7 +36,7 @@ require('./utils/dayjs');
 /**
  * This is the main class, the entry point to sequelize.
  */
-export class Sequelize {
+export class Sequelize extends SequelizeTypeScript {
   /**
    * Instantiate sequelize with name of database, username and password.
    *
@@ -194,6 +194,8 @@ export class Sequelize {
    * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
    */
   constructor(database, username, password, options) {
+    super();
+
     if (arguments.length === 1 && _.isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
@@ -213,7 +215,7 @@ export class Sequelize {
       });
     }
 
-    Sequelize.runHooks('beforeInit', options, options);
+    Sequelize.hooks.runSync('beforeInit', options);
 
     // @ts-expect-error
     if (options.pool === false) {
@@ -284,7 +286,9 @@ export class Sequelize {
       this.options.logging = console.debug;
     }
 
-    this._setupHooks(options.hooks);
+    if (options.hooks) {
+      this.hooks.addListeners(options.hooks);
+    }
 
     // ==========================================
     //  REPLICATION CONFIG NORMALIZATION
@@ -406,7 +410,7 @@ export class Sequelize {
     this.modelManager = new ModelManager(this);
     this.connectionManager = this.dialect.connectionManager;
 
-    Sequelize.runHooks('afterInit', this);
+    Sequelize.hooks.runSync('afterInit', this);
   }
 
   /**
@@ -693,12 +697,12 @@ Use Sequelize#query if you wish to use replacements.`);
       const query = new this.dialect.Query(connection, this, options);
 
       try {
-        await this.runHooks('beforeQuery', options, query);
+        await this.hooks.runAsync('beforeQuery', options, query);
         checkTransaction();
 
         return await query.run(sql, bindParameters);
       } finally {
-        await this.runHooks('afterQuery', options, query);
+        await this.hooks.runAsync('afterQuery', options, query);
         if (!options.transaction) {
           this.connectionManager.releaseConnection(connection);
         }
@@ -848,7 +852,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.hooks) {
-      await this.runHooks('beforeBulkSync', options);
+      await this.hooks.runAsync('beforeBulkSync', options);
     }
 
     if (options.force) {
@@ -875,7 +879,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.hooks) {
-      await this.runHooks('afterBulkSync', options);
+      await this.hooks.runAsync('afterBulkSync', options);
     }
 
     return this;
@@ -1305,8 +1309,6 @@ Object.defineProperty(Sequelize, 'version', {
   },
 });
 
-Sequelize.options = { hooks: {} };
-
 /**
  * @private
  */
@@ -1404,13 +1406,6 @@ Sequelize.prototype.Association = Sequelize.Association = Association;
  * @param {object} _inflection - `inflection` module
  */
 Sequelize.useInflection = Utils.useInflection;
-
-/**
- * Allow hooks to be defined on Sequelize + on sequelize instance as universal hooks to run on all models
- * and on Sequelize/sequelize methods e.g. Sequelize(), Sequelize#define()
- */
-Hooks.applyTo(Sequelize);
-Hooks.applyTo(Sequelize.prototype);
 
 /**
  * Expose various errors available

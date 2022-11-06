@@ -1,5 +1,5 @@
 import type { InferAttributes, Model } from '@sequelize/core';
-import { Op, literal, DataTypes, or, fn, where, cast } from '@sequelize/core';
+import { Op, literal, DataTypes, or, fn, where, cast, col } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expect } from 'chai';
 import { expectsql, sequelize } from '../../support';
@@ -13,7 +13,7 @@ describe('QueryGenerator#selectQuery', () => {
 
   const User = sequelize.define<TUser>('User', {
     username: DataTypes.STRING,
-  }, { timestamps: false });
+  }, { timestamps: true });
 
   interface TProject extends Model<InferAttributes<TProject>> {
     duration: bigint;
@@ -72,6 +72,20 @@ describe('QueryGenerator#selectQuery', () => {
       db2: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
       ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993`,
       mssql: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
+    });
+  });
+
+  it('supports cast in attributes', () => {
+    const sql = queryGenerator.selectQuery(User.tableName, {
+      model: User,
+      attributes: [
+        'id',
+        [cast(col('createdAt'), 'varchar'), 'createdAt'],
+      ],
+    }, User);
+
+    expectsql(sql, {
+      default: `SELECT [id], CAST([createdAt] AS VARCHAR) AS [createdAt] FROM [Users] AS [User];`,
     });
   });
 

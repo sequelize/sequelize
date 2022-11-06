@@ -46,7 +46,7 @@ export function isString(val: unknown): val is string {
  *
  * @param value The value to check
  */
-export function isPlainObject(value: unknown): value is Record<PropertyKey, any> {
+export function isPlainObject(value: unknown): value is object {
   if (value === null || typeof value !== 'object') {
     return false;
   }

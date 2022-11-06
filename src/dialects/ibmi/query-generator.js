@@ -1,9 +1,13 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { attributeTypeToSql } from '../abstract/data-types-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
-import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import {
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const util = require('util');
@@ -15,6 +19,8 @@ const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);
 const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
@@ -175,8 +181,25 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     return `SELECT TABLE_NAME FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}`;
   }
 
-  addColumnQuery(table, key, dataType) {
-    dataType.field = key;
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    dataType = {
+      ...dataType,
+      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      //       but instead we need to pass the key along as the field here
+      field: key,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
+
     const definition = this.attributeToSQL(dataType, {
       context: 'addColumn',
       tableName: table,
@@ -186,7 +209,17 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     return `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition}`;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return `ALTER TABLE ${this.quoteTable(tableName)} DROP COLUMN ${this.quoteIdentifier(attributeName)}`;
   }
 

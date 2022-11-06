@@ -7,7 +7,7 @@ import type {
   WhereOptions,
   ModelAttributeColumnOptions,
   Attributes,
-  BuiltModelAttributeColumOptions,
+  BuiltModelAttributeColumnOptions,
 } from '..';
 import * as DataTypes from '../data-types';
 import { Op as operators } from '../operators';
@@ -244,7 +244,7 @@ export function removeNullishValuesFromHash(
   return result;
 }
 
-export function getColumnName(attribute: BuiltModelAttributeColumOptions): string {
+export function getColumnName(attribute: BuiltModelAttributeColumnOptions): string {
   assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
 
   // field is the column name alias

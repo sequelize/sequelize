@@ -1,12 +1,17 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { rejectInvalidOptions } from '../../utils/check';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTION, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
+
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 export class SqliteQueryGenerator extends MySqlQueryGenerator {
   createSchemaQuery() {
@@ -201,7 +206,17 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     return AbstractQueryGenerator.prototype.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const attributes = {};
     attributes[key] = dataType;
     const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
@@ -387,7 +402,16 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
   }
 
-  removeColumnQuery(tableName, attributes) {
+  removeColumnQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
 
     attributes = this.attributesToSQL(attributes);
 

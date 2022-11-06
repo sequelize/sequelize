@@ -9,7 +9,7 @@ import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { GeoJson, GeoJsonType } from '../../geo-json.js';
 import { assertIsGeoJson } from '../../geo-json.js';
-import type { BuiltModelAttributeColumOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
+import type { BuiltModelAttributeColumnOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { makeBufferFromTypedArray } from '../../utils/buffer.js';
 import { isPlainObject, isString } from '../../utils/check.js';
@@ -70,7 +70,7 @@ export interface StringifyOptions {
   dialect: AbstractDialect;
   operation?: string;
   timezone?: string | undefined;
-  field?: BuiltModelAttributeColumOptions;
+  field?: BuiltModelAttributeColumnOptions;
 }
 
 export interface BindParamOptions extends StringifyOptions {
@@ -1395,9 +1395,11 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
       ValidationErrorItem.throwDataTypeValidationError(util.format('%O is not a valid hstore, it must be a plain object', value));
     }
 
-    for (const key of Object.keys(value)) {
-      if (!isString(value[key])) {
-        ValidationErrorItem.throwDataTypeValidationError(util.format(`%O is not a valid hstore, its values must be strings but ${key} is %O`, value, value[key]));
+    const hstore = value as Record<PropertyKey, unknown>;
+
+    for (const key of Object.keys(hstore)) {
+      if (!isString(hstore[key])) {
+        ValidationErrorItem.throwDataTypeValidationError(util.format(`%O is not a valid hstore, its values must be strings but ${key} is %O`, hstore, hstore[key]));
       }
     }
   }
