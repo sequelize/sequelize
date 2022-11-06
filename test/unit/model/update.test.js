@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         name: DataTypes.STRING,
       }, {
         tableName: 'model_table',
-        globalScope: {
+        defaultScope: {
           where: {
             isModel2: true,
           },
