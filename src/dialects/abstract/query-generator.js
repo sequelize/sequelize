@@ -2907,21 +2907,21 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       return this._joinKeyValue(key, this.escape(value, field, escapeOptions), this.OperatorMap[Op.not], options.prefix);
     }
 
-    if (prop === Op.contains && field?.type instanceof DataTypes.RANGE // In postgres, Op.contains has multiple signatures:
+    // In postgres, Op.contains has multiple signatures:
     // - RANGE<VALUE> Op.contains RANGE<VALUE> (both represented by fixed-size arrays in JS)
     // - RANGE<VALUE> Op.contains VALUE
     // - ARRAY<VALUE> Op.contains ARRAY<VALUE>
     // Since the left operand is a RANGE, the type validation must allow the right operand to be either RANGE or VALUE.
-
-      // 'VALUE' right operand - let's check against the subtype instead.
-      && !Array.isArray(value)) {
+    if (prop === Op.contains && field?.type instanceof DataTypes.RANGE && !Array.isArray(value)) {
+      // Since the right operand is not an array, it must be a value.
+      // We'll serialize using the range's subtype (i.e. if a range of integers, we'll serialize "value" as an integer).
       return this._joinKeyValue(key, this.escape(value, {
         ...field,
         type: field.type.options.subtype,
       }, escapeOptions), comparator, options.prefix);
-    }
 
-    // 'RANGE<VALUE>' right operand is handled after this if
+      // The case where "value" is a 'RANGE<VALUE>' is not a special case and is handled by the default case below.
+    }
 
     return this._joinKeyValue(key, this.escape(value, field, escapeOptions), comparator, options.prefix);
   }
