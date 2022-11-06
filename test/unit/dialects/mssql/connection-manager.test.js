@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const { Sequelize } = require('@sequelize/core');
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');

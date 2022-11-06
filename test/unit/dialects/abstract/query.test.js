@@ -1,10 +1,9 @@
 'use strict';
 
-const path = require('path');
 const { DataTypes } = require('@sequelize/core');
 const { AbstractQuery: Query } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js');
 
-const Support = require(path.join(__dirname, './../../support'));
+const Support = require('../../../support');
 const chai = require('chai');
 const { stub, match } = require('sinon');
 
