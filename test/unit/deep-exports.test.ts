@@ -1,4 +1,4 @@
-const { expect } = require('chai');
+import { expect } from 'chai';
 
 /**
  * Tests whether users can import files deeper than '@sequelize/core" (eg. "@sequelize/core/package.json').
@@ -16,6 +16,7 @@ describe('exports', () => {
   });
 
   it('blocks access to lib files', async () => {
+    // @ts-expect-error -- we're testing that this will be rejected
     await expect(import('@sequelize/core/lib/model')).to.be.rejectedWith('Package subpath \'./lib/model\' is not defined by "exports"');
   });
 
