@@ -1,5 +1,7 @@
 'use strict';
 
+import NodeUtil from 'node:util';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
@@ -265,20 +267,29 @@ export class MySqlQuery extends AbstractQuery {
       acc[item.Key_name].fields[item.Seq_in_index - 1] = {
         attribute: item.Column_name,
         length: item.Sub_part || undefined,
-        order: item.Collation === 'A' ? 'ASC' : undefined,
+        order: item.Collation === 'A' ? 'ASC'
+          : item.Collation === 'D' ? 'DESC'
+            // Not sorted
+          : item.Collation === null ? null
+          : (() => {
+            throw new Error(`Unknown index collation ${NodeUtil.inspect(item.Collation)}`);
+          })(),
       };
       delete item.column_name;
 
       return acc;
     }, {});
 
-    return _.map(data, item => ({
-      primary: item.Key_name === 'PRIMARY',
-      fields: item.fields,
-      name: item.Key_name,
-      tableName: item.Table,
-      unique: item.Non_unique !== 1,
-      type: item.Index_type,
-    }));
+    return _.map(data, item => {
+      return ({
+        primary: item.Key_name === 'PRIMARY',
+        fields: item.fields,
+        name: item.Key_name,
+        tableName: item.Table,
+        // MySQL 8 returns this as a number (Integer), MySQL 5 returns it as a string (BigInt)
+        unique: item.Non_unique !== '1' && item.Non_unique !== 1,
+        type: item.Index_type,
+      });
+    });
   }
 }

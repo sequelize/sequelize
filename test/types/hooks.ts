@@ -3,7 +3,6 @@ import type {
   QueryOptions,
   SaveOptions,
   UpsertOptions,
-  Utils,
   ConnectionOptions,
 } from '@sequelize/core';
 import { Model, Sequelize } from '@sequelize/core';
@@ -148,15 +147,15 @@ import type { SemiDeepWritable } from './type-helpers/deep-writable';
 const sequelize = new Sequelize();
 
 sequelize.beforeConnect('name', (config: ConnectionOptions) => {
-  expectTypeOf(config).toMatchTypeOf<Utils.DeepWriteable<ConnectionOptions>>();
+  expectTypeOf(config).toMatchTypeOf<ConnectionOptions>();
 });
 
 sequelize.beforeConnect((config: ConnectionOptions) => {
-  expectTypeOf(config).toMatchTypeOf<Utils.DeepWriteable<ConnectionOptions>>();
+  expectTypeOf(config).toMatchTypeOf<ConnectionOptions>();
 });
 
 sequelize.addHook('beforeConnect', (...args) => {
-  expectTypeOf(args).toMatchTypeOf<[Utils.DeepWriteable<ConnectionOptions>]>();
+  expectTypeOf(args).toMatchTypeOf<[ConnectionOptions]>();
 });
 
 sequelize.beforeQuery((options, query) => {

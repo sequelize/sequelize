@@ -12,7 +12,7 @@ const dialect = current.dialect;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('JSON', () => {
-    if (!dialect.supports.JSON) {
+    if (!dialect.supports.dataTypes.JSON) {
       return;
     }
 

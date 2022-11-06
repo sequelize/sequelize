@@ -1,6 +1,6 @@
 'use strict';
 
-const Support = require('../support');
+const Support = require('../../support');
 const { Op } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
@@ -160,7 +160,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (current.dialect.supports.JSONB) {
+    if (current.dialect.supports.dataTypes.JSONB) {
       it('operator', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],

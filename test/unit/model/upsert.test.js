@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../support');
+const Support = require('../../support');
 
 const current = Support.sequelize;
 const sinon = require('sinon');
@@ -62,7 +62,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User
           .upsert({
             name: 'Young Cat',
-            virtualValue: 999,
+            virtualValue: '999',
           });
 
         expect(Object.keys(this.stub.getCall(0).args[1])).to.deep.equal([
@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User
           .upsert({
             name: 'Old Cat',
-            virtualValue: 111,
+            virtualValue: '111',
           });
 
         expect(Object.keys(this.stub.getCall(0).args[2])).to.deep.equal([

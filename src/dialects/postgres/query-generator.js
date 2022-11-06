@@ -1,5 +1,7 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { ENUM } from './data-types';
 import { rejectInvalidOptions } from '../../utils';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
@@ -295,29 +297,35 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return super.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
-  addColumnQuery(table, key, attribute) {
+  addColumnQuery(table, key, attribute, options) {
+    options = options || {};
+
     const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(this.extractTableDetails(table));
+    const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
 
-    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${quotedKey} ${definition};`;
+    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 
     if (dataType instanceof DataTypes.ENUM) {
       query = this.pgEnum(table, key, dataType) + query;
-    } else if (dataType.type && dataType.type instanceof DataTypes.ENUM) {
-      query = this.pgEnum(table, key, dataType.type) + query;
+    } else if (dataType instanceof DataTypes.ARRAY && dataType.options.type instanceof DataTypes.ENUM) {
+      query = this.pgEnum(table, key, dataType.options.type) + query;
     }
 
     return query;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    options = options || {};
+
     const quotedTableName = this.quoteTable(this.extractTableDetails(tableName));
     const quotedAttributeName = this.quoteIdentifier(attributeName);
+    const ifExists = options.ifExists ? ' IF EXISTS' : '';
 
-    return `ALTER TABLE ${quotedTableName} DROP COLUMN ${quotedAttributeName};`;
+    return `ALTER TABLE ${quotedTableName} DROP COLUMN ${ifExists} ${quotedAttributeName};`;
   }
 
   changeColumnQuery(tableName, attributes) {
@@ -497,11 +505,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       || attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM
     ) {
       const enumType = attribute.type.type || attribute.type;
-      let values = attribute.values;
-
-      if (enumType.values && !attribute.values) {
-        values = enumType.values;
-      }
+      const values = enumType.options.values;
 
       if (Array.isArray(values) && values.length > 0) {
         type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
@@ -533,7 +537,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    if (Utils.defaultValueSchemable(attribute.defaultValue)) {
+    if (defaultValueSchemable(attribute.defaultValue)) {
       sql += ` DEFAULT ${this.escape(attribute.defaultValue, attribute)}`;
     }
 
@@ -797,11 +801,9 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     }).join(' OR ');
   }
 
-  pgEnumName(tableName, attr, options) {
-    options = options || {};
-
+  pgEnumName(tableName, columnName, options = {}) {
     const tableDetails = this.extractTableDetails(tableName, options);
-    let enumName = Utils.addTicks(Utils.generateEnumName(tableDetails.tableName, attr), '"');
+    let enumName = Utils.addTicks(`enum_${tableDetails.tableName}_${columnName}`, '"');
 
     // pgListEnums requires the enum name only, without the schema
     if (options.schema !== false && tableDetails.schema) {
@@ -829,8 +831,8 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     const enumName = this.pgEnumName(tableName, attr, options);
     let values;
 
-    if (dataType.values) {
-      values = `ENUM(${dataType.values.map(value => this.escape(value)).join(', ')})`;
+    if (dataType instanceof ENUM && dataType.options.values) {
+      values = `ENUM(${dataType.options.values.map(value => this.escape(value)).join(', ')})`;
     } else {
       values = dataType.toString().match(/^ENUM\(.+\)/)[0];
     }
@@ -869,6 +871,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   fromArray(text) {
+    if (Array.isArray(text)) {
+      return text;
+    }
+
     text = text.replace(/^{/, '').replace(/}$/, '');
     let matches = text.match(/("(?:\\.|[^"\\])*"|[^,]*)(?:\s*,\s*|\s*$)/gi);
 
