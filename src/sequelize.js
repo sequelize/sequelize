@@ -1,6 +1,7 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { isString } from './utils';
@@ -11,7 +12,6 @@ import { parseConnectionString } from './utils/url';
 
 const retry = require('retry-as-promised');
 const _ = require('lodash');
-
 const Utils = require('./utils');
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
@@ -187,7 +187,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {number}   [options.retry.backoffExponent=1.1] Exponent to increase backoff duration after each retry.
    * @param {Function} [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
    * @param {string}   [options.retry.name='unknown'] Name used when composing error/reporting messages.
-   * @param {boolean}  [options.typeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
+   * @param {boolean}  [options.noTypeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
    * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
    * @param {boolean}  [options.minifyAliases=false] A flag that defines if aliases should be minified (mostly useful to avoid Postgres alias character limit of 64)
@@ -251,7 +251,7 @@ export class Sequelize extends SequelizeTypeScript {
       transactionType: TRANSACTION_TYPES.DEFERRED,
       isolationLevel: null,
       databaseVersion: 0,
-      typeValidation: false,
+      noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
@@ -271,14 +271,6 @@ export class Sequelize extends SequelizeTypeScript {
 
     if (this.options.dialect === 'postgresql') {
       this.options.dialect = 'postgres';
-    }
-
-    if (this.options.dialect === 'sqlite' && this.options.timezone !== '+00:00') {
-      throw new Error('Setting a custom timezone is not supported by SQLite, dates are always returned as UTC. Please remove the custom timezone parameter.');
-    }
-
-    if (this.options.dialect === 'ibmi' && this.options.timezone !== '+00:00') {
-      throw new Error('Setting a custom timezone is not supported by Db2 for i, dates are always returned as UTC. Please remove the custom timezone parameter.');
     }
 
     if (this.options.logging === true) {
@@ -388,7 +380,15 @@ export class Sequelize extends SequelizeTypeScript {
     };
 
     this.dialect = new Dialect(this);
-    this.dialect.queryGenerator.typeValidation = options.typeValidation;
+    if ('typeValidation' in options) {
+      throw new Error('The typeValidation has been renamed to noTypeValidation, and is false by default');
+    }
+
+    if (!this.dialect.supports.globalTimeZoneConfig && this.options.timezone !== '+00:00') {
+      throw new Error(`Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`);
+    }
+
+    this.dialect.queryGenerator.noTypeValidation = options.noTypeValidation;
 
     if (_.isPlainObject(this.options.operatorsAliases)) {
       deprecations.noStringOperators();
@@ -407,15 +407,6 @@ export class Sequelize extends SequelizeTypeScript {
     this.connectionManager = this.dialect.connectionManager;
 
     Sequelize.hooks.runSync('afterInit', this);
-  }
-
-  /**
-   * Refresh data types and parsers.
-   *
-   * @private
-   */
-  refreshTypes() {
-    this.connectionManager.refreshTypeParser(DataTypes);
   }
 
   /**
@@ -1032,6 +1023,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
   }
 
+  // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
     return await this.getQueryInterface().databaseVersion(options);
   }
@@ -1242,24 +1234,7 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   normalizeDataType(Type) {
-    let type = typeof Type === 'function' ? new Type() : Type;
-    const dialectTypes = this.dialect.DataTypes || {};
-
-    if (dialectTypes[type.key]) {
-      type = dialectTypes[type.key].extend(type);
-    }
-
-    if (type instanceof DataTypes.ARRAY) {
-      if (!type.type) {
-        throw new Error('ARRAY is missing type definition for its values.');
-      }
-
-      if (dialectTypes[type.type.key]) {
-        type.type = dialectTypes[type.type.key].extend(type.type);
-      }
-    }
-
-    return type;
+    return normalizeDataType(Type, this.dialect);
   }
 
   normalizeAttribute(attribute) {
@@ -1271,25 +1246,35 @@ Use Sequelize#query if you wish to use replacements.`);
       return attribute;
     }
 
+    if (attribute.values) {
+      throw new TypeError(`
+The "values" property has been removed from column definitions. The following is no longer supported:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM,
+    values: ['admin', 'user'],
+  },
+});
+
+Instead, define enum values like this:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM(['admin', 'user']),
+  },
+});
+
+Remove the "values" property to resolve this issue.
+        `.trim());
+    }
+
     attribute.type = this.normalizeDataType(attribute.type);
 
     if (Object.prototype.hasOwnProperty.call(attribute, 'defaultValue') && typeof attribute.defaultValue === 'function'
         && [DataTypes.NOW, DataTypes.UUIDV1, DataTypes.UUIDV4].includes(attribute.defaultValue)
     ) {
       attribute.defaultValue = new attribute.defaultValue();
-    }
-
-    if (attribute.type instanceof DataTypes.ENUM) {
-      // The ENUM is a special case where the type is an object containing the values
-      if (attribute.values) {
-        attribute.type.values = attribute.type.options.values = attribute.values;
-      } else {
-        attribute.values = attribute.type.values;
-      }
-
-      if (attribute.values.length === 0) {
-        throw new Error('Values for ENUM have not been defined.');
-      }
     }
 
     return attribute;
@@ -1353,6 +1338,8 @@ Sequelize.IndexHints = IndexHints;
  * @see {@link Sequelize.transaction}
  */
 Sequelize.Transaction = Transaction;
+
+Sequelize.GeoJsonType = require('./geo-json').GeoJsonType;
 
 /**
  * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.

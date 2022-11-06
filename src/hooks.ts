@@ -15,7 +15,7 @@ type OnRunHook<HookConfig extends {}> = <HookName extends keyof HookConfig>(
 ) => AsyncHookReturn;
 
 /**
- * @internal
+ * @private
  */
 export class HookHandler<HookConfig extends {}> {
   #validHookNames: Array<keyof HookConfig>;

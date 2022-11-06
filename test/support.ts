@@ -4,7 +4,9 @@ import path from 'path';
 import { inspect, isDeepStrictEqual } from 'util';
 import type { Dialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import {
+  AbstractQueryGenerator,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
@@ -245,15 +247,13 @@ export function getSupportedDialects() {
     .filter(file => !file.includes('.js') && !file.includes('abstract'));
 }
 
-// TODO: type once QueryGenerator has been migrated to TS
-export function getAbstractQueryGenerator(sequelize: Sequelize): unknown {
+export function getAbstractQueryGenerator(sequelize: Sequelize): AbstractQueryGenerator {
   class ModdedQueryGenerator extends AbstractQueryGenerator {
     quoteIdentifier(x: string): string {
       return x;
     }
   }
 
-  // @ts-expect-error
   return new ModdedQueryGenerator({ sequelize, dialect: sequelize.dialect });
 }
 

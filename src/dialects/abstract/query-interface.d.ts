@@ -1,4 +1,3 @@
-import type { DataType } from '../../data-types';
 import type { Deferrable } from '../../deferrable';
 import type {
   Logging,
@@ -16,7 +15,8 @@ import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../..
 import type { Transaction } from '../../transaction';
 import type { Fn, Literal } from '../../utils';
 import type { SetRequired } from '../../utils/set-required';
-import type { AbstractQueryGenerator } from './query-generator.js';
+import type { DataType } from './data-types.js';
+import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
 
 interface Replaceable {
   /**
@@ -249,6 +249,10 @@ export interface DatabaseDescription {
   name: string;
 }
 
+export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable {}
+
+export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions, Replaceable {}
+
 /**
 * The interface that Sequelize uses to talk to all databases.
 *
@@ -268,7 +272,7 @@ export class QueryInterface {
    */
   sequelize: Sequelize;
 
-  constructor(sequelize: Sequelize);
+  constructor(sequelize: Sequelize, queryGenerator: AbstractQueryGenerator);
 
   /**
    * Queries the schema (table list).
@@ -369,7 +373,7 @@ export class QueryInterface {
     table: TableName,
     key: string,
     attribute: ModelAttributeColumnOptions | DataType,
-    options?: QiOptionsWithReplacements
+    options?: AddColumnOptions
   ): Promise<void>;
 
   /**
@@ -378,7 +382,7 @@ export class QueryInterface {
   removeColumn(
     table: TableName,
     attribute: string,
-    options?: QiOptionsWithReplacements
+    options?: RemoveColumnOptions,
   ): Promise<void>;
 
   /**

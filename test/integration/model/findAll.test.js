@@ -8,12 +8,13 @@ const Support = require('../support');
 
 const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const dayjs = require('dayjs');
+const promiseProps = require('p-props');
 
 const current = Support.sequelize;
-const promiseProps = require('p-props');
+const dialect = current.dialect;
+const dialectName = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
@@ -24,7 +25,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       intVal: DataTypes.INTEGER,
       theDate: DataTypes.DATE,
       aBool: DataTypes.BOOLEAN,
-      binary: DataTypes.STRING(16, true),
+      binary: DataTypes.BLOB,
     });
 
     await this.User.sync({ force: true });
@@ -157,7 +158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].intVal).to.equal(5);
       });
 
-      if (dialect === 'postgres') {
+      if (dialectName === 'postgres') {
         it('should be able to find a row using ilike', async function () {
           const users = await this.User.findAll({
             where: {
@@ -267,9 +268,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(theTruePassport[0].isActive).to.be.true;
       });
 
-      // On IBM i, can't have a primaryKey that is a *LOB data type
-      if (dialect !== 'ibmi') {
-        it('should be able to handle binary values through associations as well...', async function () {
+      // On IBM i, can't have a primaryKey that is a CLOB or BLOB data type
+      if (dialectName !== 'ibmi') {
+        // TODO: re-enable once we have DataTypes.BINARY: https://github.com/sequelize/sequelize/issues/14259
+        it.skip('should be able to handle binary values through associations as well', async function () {
           const User = this.User;
           const Binary = this.sequelize.define('Binary', {
             id: {
@@ -499,7 +501,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[1].intVal).to.equal(10);
       });
 
-      if (['postgres', 'sqlite'].includes(dialect)) {
+      if (dialect.supports.dataTypes.CITEXT) {
         it('should be able to find multiple users with case-insensitive on CITEXT type', async function () {
           const User = this.sequelize.define('UsersWithCaseInsensitiveName', {
             username: DataTypes.CITEXT,

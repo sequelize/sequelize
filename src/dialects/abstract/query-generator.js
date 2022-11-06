@@ -1,7 +1,11 @@
 'use strict';
 
+import { getTextDataTypeForDialect } from '../../sql-string';
+import { isNullish } from '../../utils';
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
+import { AbstractDataType } from './data-types';
+import { attributeTypeToSql, validateDataType } from './data-types-utils';
 
 const util = require('util');
 const _ = require('lodash');
@@ -29,6 +33,8 @@ const { _validateIncludedElements } = require('../../model-internals');
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
 export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset']);
 export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION = new Set(['skip']);
+export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTION = new Set(['ifNotExists']);
+export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION = new Set(['ifExists']);
 
 /**
  * Abstract Query Generator
@@ -1107,36 +1113,42 @@ export class AbstractQueryGenerator {
     return table;
   }
 
-  /*
-    Escape a value (e.g. a string, number or date)
-    @private
-  */
-  escape(value, field, options) {
-    options = options || {};
-
-    if (value !== null && value !== undefined) {
-      if (value instanceof Utils.SequelizeMethod) {
-        return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
-      }
-
-      if (field && field.type) {
-        this.validate(value, field, options);
-
-        if (field.type.stringify) {
-          // Users shouldn't have to worry about these args - just give them a function that takes a single arg
-          const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this.dialect.name);
-
-          value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation });
-
-          if (field.type.escape === false) {
-            // The data-type already did the required escaping
-            return value;
-          }
-        }
-      }
+  /**
+   * Escape a value (e.g. a string, number or date)
+   *
+   * @param {unknown} value
+   * @param {object} field
+   * @param {object} options
+   * @private
+   */
+  escape(value, field, options = {}) {
+    if (value instanceof Utils.SequelizeMethod) {
+      return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
-    return SqlString.escape(value, this.options.timezone, this.dialect.name);
+    if (value == null || field?.type == null || typeof field.type === 'string') {
+      // use default escape mechanism instead of the DataType's.
+      return SqlString.escape(value, this.options.timezone, this.dialect);
+    }
+
+    field.type = field.type.toDialectDataType(this.dialect);
+
+    if (options.isList && Array.isArray(value)) {
+      const escapeOptions = { ...options, isList: false };
+
+      return `(${value.map(valueItem => {
+        return this.escape(valueItem, field, escapeOptions);
+      }).join(', ')})`;
+    }
+
+    this.validate(value, field, options);
+
+    return field.type.escape(value, {
+      field,
+      timezone: this.options.timezone,
+      operation: options.operation,
+      dialect: this.dialect,
+    });
   }
 
   bindParam(bind) {
@@ -1158,51 +1170,39 @@ export class AbstractQueryGenerator {
   format(value, field, options, bindParam) {
     options = options || {};
 
-    if (value !== null && value !== undefined) {
-      if (value instanceof Utils.SequelizeMethod) {
-        throw new TypeError('Cannot pass SequelizeMethod as a bind parameter - use escape instead');
-      }
-
-      if (field && field.type) {
-        this.validate(value, field, options);
-
-        if (field.type.bindParam) {
-          return field.type.bindParam(value, { escape: _.identity, field, timezone: this.options.timezone, operation: options.operation, bindParam });
-        }
-      }
+    if (value instanceof Utils.SequelizeMethod) {
+      throw new TypeError('Cannot pass SequelizeMethod as a bind parameter - use escape instead');
     }
 
-    return bindParam(value);
+    if (value == null || !field?.type || typeof field.type === 'string') {
+      return bindParam(value);
+    }
+
+    this.validate(value, field, options);
+
+    return field.type.getBindParamSql(value, {
+      field,
+      timezone: this.options.timezone,
+      operation: options.operation,
+      bindParam,
+      dialect: this.dialect,
+    });
   }
 
   /*
     Validate a value against a field specification
     @private
   */
-  validate(value, field, options) {
-    if (this.typeValidation && field.type.validate && value) {
-      try {
-        if (options.isList && Array.isArray(value)) {
-          for (const item of value) {
-            field.type.validate(item, options);
-          }
-        } else {
-          field.type.validate(value, options);
-        }
-      } catch (error) {
-        if (error instanceof sequelizeError.ValidationError) {
-          error.errors.push(new sequelizeError.ValidationErrorItem(
-            error.message,
-            'Validation error',
-            field.fieldName,
-            value,
-            null,
-            `${field.type.key} validator`,
-          ));
-        }
+  validate(value, field) {
+    if (this.noTypeValidation || isNullish(value)) {
+      return;
+    }
 
-        throw error;
-      }
+    const error = field.type instanceof AbstractDataType
+      ? validateDataType(field.type, field.fieldName, null, value)
+      : null;
+    if (error) {
+      throw error;
     }
   }
 
@@ -1934,7 +1934,9 @@ export class AbstractQueryGenerator {
 
       // To capture output rows when there is a trigger on MSSQL DB
       if (options.hasTrigger && this.dialect.supports.tmpTableTrigger) {
-        const tmpColumns = returnFields.map((field, i) => `${field} ${returnTypes[i].toSql()}`);
+        const tmpColumns = returnFields.map((field, i) => {
+          return `${field} ${attributeTypeToSql(returnTypes[i], { dialect: this.dialect })}`;
+        });
 
         tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;
         outputFragment += ' INTO @tmp';
@@ -2864,9 +2866,20 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     }
 
     const escapeOptions = {
-      acceptStrings: comparator.includes(this.OperatorMap[Op.like]),
       replacements: options.replacements,
     };
+
+    // because UUID is implemented as CHAR() in most dialects (except postgres)
+    //  we accept comparing to non-uuid values when using LIKE and similar operators.
+    // TODO: https://github.com/sequelize/sequelize/issues/13828 - in postgres, automatically cast to CHAR(36)
+    //  to have the same behavior as the others dialects.
+    if (comparator.includes(this.OperatorMap[Op.like]) && field?.type) {
+      field = {
+        ...field,
+        // replace DataType with DataTypes.TEXT() to accept all string values.
+        type: getTextDataTypeForDialect(this.dialect),
+      };
+    }
 
     if (_.isPlainObject(value)) {
       if (value[Op.col]) {
@@ -2892,6 +2905,22 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
     if (value === null && comparator === this.OperatorMap[Op.ne]) {
       return this._joinKeyValue(key, this.escape(value, field, escapeOptions), this.OperatorMap[Op.not], options.prefix);
+    }
+
+    // In postgres, Op.contains has multiple signatures:
+    // - RANGE<VALUE> Op.contains RANGE<VALUE> (both represented by fixed-size arrays in JS)
+    // - RANGE<VALUE> Op.contains VALUE
+    // - ARRAY<VALUE> Op.contains ARRAY<VALUE>
+    // Since the left operand is a RANGE, the type validation must allow the right operand to be either RANGE or VALUE.
+    if (prop === Op.contains && field?.type instanceof DataTypes.RANGE && !Array.isArray(value)) {
+      // Since the right operand is not an array, it must be a value.
+      // We'll serialize using the range's subtype (i.e. if a range of integers, we'll serialize "value" as an integer).
+      return this._joinKeyValue(key, this.escape(value, {
+        ...field,
+        type: field.type.options.subtype,
+      }, escapeOptions), comparator, options.prefix);
+
+      // The case where "value" is a 'RANGE<VALUE>' is not a special case and is handled by the default case below.
     }
 
     return this._joinKeyValue(key, this.escape(value, field, escapeOptions), comparator, options.prefix);

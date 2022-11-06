@@ -1,20 +1,22 @@
 import type { Connection, Sequelize } from '@sequelize/core';
-import chai from 'chai';
+import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import { createSequelizeInstance } from '../support';
 
-const expect = chai.expect;
-
 describe('connection manager', () => {
+  let connection: Connection;
+  let sequelize: Sequelize;
+
+  beforeEach(() => {
+    connection = {};
+    sequelize = createSequelizeInstance();
+  });
+
   describe('_connect', () => {
-    let connection: Connection;
-    let sequelize: Sequelize;
     let connectStub: SinonStub;
 
     beforeEach(() => {
-      connection = {};
-      sequelize = createSequelizeInstance();
       connectStub = sinon.stub(sequelize.connectionManager, 'connect').resolves(connection);
     });
 
@@ -31,6 +33,7 @@ describe('connection manager', () => {
         config.password = password;
       });
 
+      // @ts-expect-error -- internal method, no typings
       await sequelize.connectionManager._connect({});
 
       expect(sequelize.connectionManager.connect).to.have.been.calledWith({
@@ -43,6 +46,7 @@ describe('connection manager', () => {
       const spy = sinon.spy();
       sequelize.afterConnect(spy);
 
+      // @ts-expect-error -- internal method, no typings
       await sequelize.connectionManager._connect({});
 
       expect(spy.callCount).to.equal(1);
@@ -52,14 +56,9 @@ describe('connection manager', () => {
   });
 
   describe('_disconnect', () => {
-    let connection: Connection;
-    let sequelize: Sequelize;
     let disconnectStub: SinonStub;
 
     beforeEach(() => {
-      connection = {};
-      sequelize = createSequelizeInstance();
-
       disconnectStub = sinon.stub(sequelize.connectionManager, 'disconnect');
     });
 
@@ -71,6 +70,7 @@ describe('connection manager', () => {
       const spy = sinon.spy();
       sequelize.beforeDisconnect(spy);
 
+      // @ts-expect-error -- internal method, no typings
       await sequelize.connectionManager._disconnect(connection);
       expect(spy.callCount).to.equal(1);
       expect(spy.firstCall.args[0]).to.equal(connection);
@@ -80,6 +80,7 @@ describe('connection manager', () => {
       const spy = sinon.spy();
       sequelize.afterDisconnect(spy);
 
+      // @ts-expect-error -- internal method, no typings
       await sequelize.connectionManager._disconnect(connection);
       expect(spy.callCount).to.equal(1);
       expect(spy.firstCall.args[0]).to.equal(connection);
