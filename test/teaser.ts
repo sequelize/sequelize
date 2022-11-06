@@ -7,4 +7,4 @@ if (!DIALECT) {
 const header = '#'.repeat(DIALECT.length + 22);
 const message = `${header}\n# Running tests for ${DIALECT} #\n${header}`;
 
-console.debug(message);
+console.info(message);
