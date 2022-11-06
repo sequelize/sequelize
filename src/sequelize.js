@@ -273,14 +273,6 @@ export class Sequelize extends SequelizeTypeScript {
       this.options.dialect = 'postgres';
     }
 
-    if (this.options.dialect === 'sqlite' && this.options.timezone !== '+00:00') {
-      throw new Error('Setting a custom timezone is not supported by SQLite, dates are always returned as UTC. Please remove the custom timezone parameter.');
-    }
-
-    if (this.options.dialect === 'ibmi' && this.options.timezone !== '+00:00') {
-      throw new Error('Setting a custom timezone is not supported by Db2 for i, dates are always returned as UTC. Please remove the custom timezone parameter.');
-    }
-
     if (this.options.logging === true) {
       deprecations.noTrueLogging();
       this.options.logging = console.debug;
@@ -390,6 +382,10 @@ export class Sequelize extends SequelizeTypeScript {
     this.dialect = new Dialect(this);
     if ('typeValidation' in options) {
       throw new Error('The typeValidation has been renamed to noTypeValidation, and is false by default');
+    }
+
+    if (!this.dialect.supports.globalTimeZoneConfig && this.options.timezone !== '+00:00') {
+      throw new Error(`Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`);
     }
 
     this.dialect.queryGenerator.noTypeValidation = options.noTypeValidation;

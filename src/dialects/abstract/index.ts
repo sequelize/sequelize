@@ -205,6 +205,9 @@ export type DialectSupports = {
    * Whether this dialect supports date & time values with a precision down to at least the millisecond.
    */
   milliseconds: boolean,
+
+  /** Whether this dialect supports changing the global timezone option */
+  globalTimeZoneConfig: boolean,
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -321,6 +324,7 @@ export abstract class AbstractDialect {
     searchPath: false,
     escapeStringConstants: false,
     milliseconds: true,
+    globalTimeZoneConfig: false,
   };
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {

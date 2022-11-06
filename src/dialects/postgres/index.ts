@@ -65,6 +65,7 @@ export class PostgresDialect extends AbstractDialect {
     searchPath: true,
     escapeStringConstants: true,
     milliseconds: true,
+    globalTimeZoneConfig: true,
   });
 
   readonly connectionManager: PostgresConnectionManager;

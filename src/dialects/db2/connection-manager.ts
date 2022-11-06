@@ -37,7 +37,6 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Connectio
   /**
    * Connect with DB2 database based on config, Handle any errors in connection
    * Set the pool handlers on connection.error
-   * Also set proper timezone once connection is connected.
    *
    * @param config
    * @returns

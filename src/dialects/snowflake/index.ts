@@ -40,6 +40,7 @@ export class SnowflakeDialect extends AbstractDialect {
     },
     REGEXP: true,
     milliseconds: true,
+    globalTimeZoneConfig: true,
   });
 
   readonly dataTypesDocumentationUrl = 'https://dev.snowflake.com/doc/refman/5.7/en/data-types.html';
