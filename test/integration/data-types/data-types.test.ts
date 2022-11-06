@@ -1265,38 +1265,6 @@ describe('DataTypes', () => {
     });
   });
 
-  describe('ENUM', () => {
-    const vars = beforeAll2(async () => {
-      class User extends Model<InferAttributes<User>> {
-        declare attr: TestEnum;
-      }
-
-      User.init({
-        attr: {
-          type: DataTypes.ENUM(Object.values(TestEnum)),
-          allowNull: false,
-        },
-      }, { sequelize });
-
-      await User.sync({ force: true });
-
-      return { User };
-    });
-
-    it('accepts values that are part of the enum', async () => {
-      await testSimpleInOut(vars.User, 'attr', TestEnum.A, TestEnum.A);
-    });
-
-    it('rejects values not part of the enum', async () => {
-      // @ts-expect-error -- 'fail' is not a valid value for this enum.
-      await expect(vars.User.create({ attr: 'fail' })).to.be.rejected;
-    });
-
-    it(`is deserialized as a string when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(vars.User, 'attr', TestEnum.A, TestEnum.A);
-    });
-  });
-
   for (const jsonTypeName of ['JSON', 'JSONB'] as const) {
     const JsonType = DataTypes[jsonTypeName];
     describe(`DataTypes.${jsonTypeName}`, () => {

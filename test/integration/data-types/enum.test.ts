@@ -2,7 +2,7 @@ import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeEach2, sequelize } from '../support';
-import { testSimpleInOut } from './data-types.test';
+import { testSimpleInOut, testSimpleInOutRaw } from './data-types.test';
 
 enum TestEnum {
   A = 'A',
@@ -49,5 +49,9 @@ describe('DataTypes.ENUM', () => {
   it('rejects values not part of the enum', async () => {
     // @ts-expect-error -- 'fail' is not a valid value for this enum.
     await expect(vars.User.create({ attr: 'fail' })).to.be.rejected;
+  });
+
+  it(`is deserialized as a string when DataType is not specified`, async () => {
+    await testSimpleInOutRaw(vars.User, 'attr', TestEnum.A, TestEnum.A);
   });
 });
