@@ -951,18 +951,30 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 
-    if (!this.options.zerofill) {
-      return;
-    }
-
     const typeId = this.getDataTypeId();
     if (typeId !== 'FLOAT' && typeId !== 'DOUBLE' && typeId !== 'DECIMAL' && typeId !== 'REAL') {
       return;
     }
 
     const supportTable = dialect.supports.dataTypes[typeId];
-    if (supportTable && !supportTable.zerofill) {
+    if (!supportTable) {
+      throwUnsupportedDataType(dialect, this.getDataTypeId());
+    }
+
+    if (!supportTable.zerofill && this.options.zerofill) {
       throwUnsupportedDataType(dialect, `${this.getDataTypeId()}.ZEROFILL`);
+    }
+
+    if (typeId === 'DECIMAL') {
+      return;
+    }
+
+    const supportTable2 = dialect.supports.dataTypes[typeId];
+    if (!supportTable2.scaleAndPrecision && (this.options.scale != null || this.options.precision != null)) {
+      dialect.warnDataTypeIssue(`${dialect.name} does not support ${this.getDataTypeId()} with scale or precision specified. These options are ignored.`);
+
+      delete this.options.scale;
+      delete this.options.precision;
     }
   }
 

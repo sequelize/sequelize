@@ -21,4 +21,4 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
   }
 }
 
-export { STRING, CHAR, TEXT, TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT, FLOAT, DOUBLE, REAL, BLOB, DECIMAL, DATE, ENUM } from '../db2/data-types.js';
+export { STRING, CHAR, TEXT, TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT, FLOAT, DOUBLE, BLOB, DECIMAL, DATE, ENUM } from '../db2/data-types.js';

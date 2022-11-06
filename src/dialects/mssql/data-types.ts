@@ -16,18 +16,6 @@ function removeUnsupportedIntegerOptions(
   }
 }
 
-function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberDataType, dialect: AbstractDialect) {
-  if (
-    dataType.options.scale != null
-    || dataType.options.precision != null
-  ) {
-    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with scale or precision specified. These options are ignored.`);
-
-    delete dataType.options.scale;
-    delete dataType.options.precision;
-  }
-}
-
 export class BLOB extends BaseTypes.BLOB {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
@@ -191,21 +179,7 @@ export class BIGINT extends BaseTypes.BIGINT {
   }
 }
 
-export class REAL extends BaseTypes.REAL {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-
-    removeUnsupportedFloatOptions(this, dialect);
-  }
-}
-
 export class FLOAT extends BaseTypes.FLOAT {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-
-    removeUnsupportedFloatOptions(this, dialect);
-  }
-
   // TODO: add check constraint >= 0 if unsigned is true
 
   protected getNumberSqlTypeName(): string {
@@ -214,12 +188,6 @@ export class FLOAT extends BaseTypes.FLOAT {
 }
 
 export class DOUBLE extends BaseTypes.DOUBLE {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-
-    removeUnsupportedFloatOptions(this, dialect);
-  }
-
   // TODO: add check constraint >= 0 if unsigned is true
 }
 

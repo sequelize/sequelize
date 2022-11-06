@@ -23,6 +23,11 @@ export interface SupportableDecimalNumberOptions extends SupportableNumericOptio
   infinity: boolean;
 }
 
+export interface SupportableFloatOptions extends SupportableDecimalNumberOptions {
+  /** Whether scale & precision can be specified as parameters */
+  scaleAndPrecision: boolean;
+}
+
 export interface SupportableExactDecimalOptions extends SupportableDecimalNumberOptions {
   /**
    * Whether this dialect supports unconstrained numeric/decimal columns. i.e. columns where numeric values of any length can be stored.
@@ -143,11 +148,11 @@ export type DialectSupports = {
     /** Options supportable by all int types (from tinyint to bigint) */
     INTS: SupportableNumericOptions,
     /** @deprecated */
-    REAL: SupportableDecimalNumberOptions,
+    REAL: SupportableFloatOptions,
     /** This dialect supports 4 byte long floating point numbers */
-    FLOAT: SupportableDecimalNumberOptions,
+    FLOAT: SupportableFloatOptions,
     /** This dialect supports 8 byte long floating point numbers */
-    DOUBLE: SupportableDecimalNumberOptions,
+    DOUBLE: SupportableFloatOptions,
     /** This dialect supports arbitrary precision numbers */
     DECIMAL: false | SupportableExactDecimalOptions,
     /**
@@ -290,9 +295,9 @@ export abstract class AbstractDialect {
       COLLATE_BINARY: false,
       CITEXT: false,
       INTS: { zerofill: false, unsigned: false },
-      FLOAT: { NaN: false, infinity: false, zerofill: false, unsigned: false },
-      REAL: { NaN: false, infinity: false, zerofill: false, unsigned: false },
-      DOUBLE: { NaN: false, infinity: false, zerofill: false, unsigned: false },
+      FLOAT: { NaN: false, infinity: false, zerofill: false, unsigned: false, scaleAndPrecision: false },
+      REAL: { NaN: false, infinity: false, zerofill: false, unsigned: false, scaleAndPrecision: false },
+      DOUBLE: { NaN: false, infinity: false, zerofill: false, unsigned: false, scaleAndPrecision: false },
       DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, zerofill: false, unsigned: false },
       CIDR: false,
       MACADDR: false,

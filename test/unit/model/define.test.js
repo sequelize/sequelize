@@ -195,11 +195,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('Invalid definition for "part.name", "notNull" validator is only allowed with "allowNull:false"');
     });
 
-    // TODO: once we have centralized logging, enable this again
-    //  right now this test does not work because the warning has already been logged by another test & this warning
-    //  is only logged once.
-    //  https://github.com/sequelize/sequelize/issues/11832
-    describe.skip('datatype warnings', () => {
+    describe('datatype warnings', () => {
       beforeEach(() => {
         sinon.spy(console, 'warn');
       });
@@ -208,18 +204,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         console.warn.restore();
       });
 
-      it('warn for unsupported INTEGER options', () => {
-        current.define('A', {
+      it('warns for unsupported FLOAT options', () => {
+        // must use a new sequelize instance because warnings are only logged once per instance.
+        const newSequelize = Support.createSequelizeInstance();
+
+        newSequelize.define('A', {
           age: {
-            type: DataTypes.INTEGER.UNSIGNED,
+            type: DataTypes.FLOAT(10, 2),
           },
         });
 
-        if (['postgres', 'sqlite', 'mssql', 'db2'].includes(dialect)) {
-          expect(console.warn.calledOnce).to.eq(true);
-          expect(console.warn.args[0][0]).to.contain(`does not support 'INTEGER' with LENGTH, UNSIGNED or ZEROFILL. Plain 'INTEGER' will be used instead.`);
+        if (!['mysql', 'mariadb'].includes(dialect)) {
+          expect(console.warn.called).to.eq(true, 'console.warn was not called');
+          expect(console.warn.args[0][0]).to.contain(`does not support FLOAT with scale or precision specified. These options are ignored.`);
         } else {
-          expect(console.warn.calledOnce).to.equal(false);
+          expect(console.warn.called).to.equal(false, 'console.warn was called but it should not have been');
         }
       });
     });

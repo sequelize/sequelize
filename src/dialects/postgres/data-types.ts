@@ -23,18 +23,6 @@ function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType
   }
 }
 
-function removeUnsupportedFloatOptions(dataType: BaseTypes.BaseDecimalNumberDataType, dialect: AbstractDialect) {
-  if (
-    dataType.options.scale != null
-    || dataType.options.precision != null
-  ) {
-    dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with scale or precision specified. These options are ignored.`);
-
-    delete dataType.options.scale;
-    delete dataType.options.precision;
-  }
-}
-
 export class DATEONLY extends BaseTypes.DATEONLY {
   toBindableValue(value: AcceptableTypeOf<BaseTypes.DATEONLY>, options: StringifyOptions) {
     if (value === Number.POSITIVE_INFINITY) {
@@ -219,31 +207,11 @@ export class BIGINT extends BaseTypes.BIGINT {
   }
 }
 
-/**
- * @deprecated Use {@link FLOAT} instead.
- */
-export class REAL extends BaseTypes.REAL {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-    removeUnsupportedFloatOptions(this, dialect);
-  }
-}
-
 export class DOUBLE extends BaseTypes.DOUBLE {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-    removeUnsupportedFloatOptions(this, dialect);
-  }
-
   // TODO: add check constraint >= 0 if unsigned is true
 }
 
 export class FLOAT extends BaseTypes.FLOAT {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-    removeUnsupportedFloatOptions(this, dialect);
-  }
-
   // TODO: add check constraint >= 0 if unsigned is true
 
   protected getNumberSqlTypeName(): string {
