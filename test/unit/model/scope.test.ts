@@ -5,7 +5,7 @@ import { expect } from 'chai';
 // eslint-disable-next-line import/order
 import { resetSequelizeInstance } from '../../support';
 
-const Support = require('../support');
+const Support = require('../../support');
 
 const sequelize = Support.sequelize;
 
