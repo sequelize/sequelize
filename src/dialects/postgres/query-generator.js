@@ -93,8 +93,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   createTableQuery(tableName, attributes, options) {
     options = { ...options };
 
-    // Postgres 9.0 does not support CREATE TABLE IF NOT EXISTS, 9.1 and above do
-    const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
     const attrStr = [];
     let comments = '';
     let columnComments = '';
@@ -149,7 +147,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       attributesClause += `, PRIMARY KEY (${pks})`;
     }
 
-    return `CREATE TABLE ${databaseVersion === 0 || semver.gte(databaseVersion, '9.1.0') ? 'IF NOT EXISTS ' : ''}${quotedTable} (${attributesClause})${comments}${columnComments};`;
+    return `CREATE TABLE IF NOT EXISTS ${quotedTable} (${attributesClause})${comments}${columnComments};`;
   }
 
   dropTableQuery(tableName, options) {
@@ -847,11 +845,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
   pgEnumAdd(tableName, attr, value, options) {
     const enumName = this.pgEnumName(tableName, attr);
-    let sql = `ALTER TYPE ${enumName} ADD VALUE `;
-
-    if (semver.gte(this.sequelize.options.databaseVersion, '9.3.0')) {
-      sql += 'IF NOT EXISTS ';
-    }
+    let sql = `ALTER TYPE ${enumName} ADD VALUE IF NOT EXISTS `;
 
     sql += this.escape(value);
 

@@ -55,17 +55,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       describe('pgEnumAdd', () => {
-        it('creates alter type with exists on 9.4', () => {
-          current.options.databaseVersion = '9.4.0';
+        it('creates alter type with exists', () => {
           expectsql(sql.pgEnumAdd(PublicUser.getTableName(), 'mood', 'neutral', { after: 'happy' }), {
             postgres: 'ALTER TYPE "public"."enum_users_mood" ADD VALUE IF NOT EXISTS \'neutral\' AFTER \'happy\'',
-          });
-        });
-
-        it('creates alter type without exists on 9.2 ', () => {
-          current.options.databaseVersion = '9.2.0';
-          expectsql(sql.pgEnumAdd(PublicUser.getTableName(), 'mood', 'neutral', { after: 'happy' }), {
-            postgres: 'ALTER TYPE "public"."enum_users_mood" ADD VALUE \'neutral\' AFTER \'happy\'',
           });
         });
       });
