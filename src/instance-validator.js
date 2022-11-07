@@ -329,7 +329,7 @@ export class InstanceValidator {
 
     if (!Array.isArray(validatorArgs)) {
       if (validatorType === 'isImmutable') {
-        validatorArgs = [field, this.modelInstance];
+        validatorArgs = [validatorArgs, field, this.modelInstance];
       } else if (isLocalizedValidator || validatorType === 'isIP') {
         validatorArgs = [];
       } else {
