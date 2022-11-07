@@ -34,7 +34,11 @@ export interface Extensions {
 }
 
 export interface Validator extends OrigValidator, Extensions {
-  isImmutable<M extends Model>(field: keyof Attributes<M>, modelInstance: Model<any>): boolean;
+  isImmutable<M extends Model>(
+    value: unknown,
+    validatorArgs: unknown[],
+    field: keyof Attributes<M>,
+    modelInstance: Model<any>): boolean;
   isNull: OrigValidator['isEmpty'];
   notNull(val: unknown): boolean;
 }
@@ -108,7 +112,7 @@ export const extensions: Extensions & OverrideExtensions = {
 };
 
 // instance based validators
-validator.isImmutable = (field, modelInstance) => {
+validator.isImmutable = (_value, _validatorArgs, field, modelInstance) => {
   return modelInstance.isNewRecord || modelInstance.dataValues[field] === modelInstance._previousDataValues[field];
 };
 
