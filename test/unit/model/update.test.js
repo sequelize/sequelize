@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     beforeEach(function () {
-      this.stubQuery = sinon.stub(current, 'queryRaw').resolves([]);
+      this.stubQuery = sinon.stub(current, 'query').resolves([]);
     });
 
     afterEach(function () {
