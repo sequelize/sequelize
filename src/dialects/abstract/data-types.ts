@@ -1846,7 +1846,7 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
 }
 
 export interface EnumOptions<Member extends string> {
-  values: Member[];
+  values: Member[] | Readonly<Member[]>;
 }
 
 /**
@@ -1870,20 +1870,20 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
    * @param options either array of values or options object with values array. It also supports variadic values.
    */
   constructor(options: EnumOptions<Member>);
-  constructor(members: Member[]);
-  constructor(...members: Member[]);
+  constructor(members: Member[] | Readonly<Member[]>);
+  constructor(...members: Member[] | Readonly<Member[]>);
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @internal */
   constructor(...args:
     | [options: EnumOptions<Member>]
-    | [members: Member[]]
-    | [...members: Member[]]
+    | [members: Member[] | Readonly<Member[]>]
+    | [...members: Member[] | Readonly<Member[]>]
   );
   constructor(...args: [Member[] | Member | EnumOptions<Member>, ...Member[]]) {
     super();
 
-    let values: Member[];
+    let values: Member[] | Readonly<Member[]>;
     if (isObject(args[0])) {
       if (args.length > 1) {
         throw new TypeError('DataTypes.ENUM has been constructed incorrectly: Its first parameter is the option bag or the array of values, but more than one parameter has been provided.');
