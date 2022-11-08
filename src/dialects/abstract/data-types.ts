@@ -1846,7 +1846,7 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
 }
 
 export interface EnumOptions<Member extends string> {
-  values: Member[] | Readonly<Member[]>;
+  values: Member[] | readonly Member[];
 }
 
 /**
