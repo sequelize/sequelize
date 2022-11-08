@@ -1,22 +1,19 @@
-'use strict';
-
 import dayjs from 'dayjs';
-import cloneDeep from 'lodash/cloneDeep';
 import forEach from 'lodash/forEach';
-import type origValidator from 'validator';
+import origValidator from 'validator';
 import type { Attributes, Model } from '../model.js';
 
 type OrigValidator = typeof origValidator;
 
-// override default validator methods
-export interface OverrideExtensions {
-  contains(str: string, elem: string): boolean;
-  isDecimal(str: string): boolean;
-}
-
 // extend validator methods
 export interface Extensions {
   extend(name: string, fn: (...args: unknown[]) => unknown): unknown;
+  // Blocked by: https://github.com/microsoft/TypeScript/issues/7765
+  // NEED_SUGGESTION: How to properly create a custom validation?
+  [name: string]: unknown;
+}
+
+export interface Validator extends OrigValidator {
   notEmpty(str: string): boolean;
   len(str: string, min: number, max: number): boolean;
   isUrl(str: string): boolean;
@@ -30,27 +27,21 @@ export interface Extensions {
   not(str: string, pattern: string, modifiers: string): boolean;
   notContains(str: string, elem: string): boolean;
   is(str: string, pattern: string, modifiers: string): boolean;
-  [key: string]: unknown;
-}
-
-export interface Validator extends OrigValidator, Extensions {
   isImmutable<M extends Model>(
     value: unknown,
     validatorArgs: unknown[],
     field: keyof Attributes<M>,
-    modelInstance: Model<any>): boolean;
+    modelInstance: Model<any>
+  ): boolean;
   isNull: OrigValidator['isEmpty'];
   notNull(val: unknown): boolean;
+  // Blocked by: https://github.com/microsoft/TypeScript/issues/7765
+  // NEED_SUGGESTION: How to properly implement the custom validations?
+  [name: string]: unknown;
 }
 
-const validator: Validator = cloneDeep(require('validator'));
-
-export const extensions: Extensions & OverrideExtensions = {
-  extend(name, fn) {
-    this[name] = fn;
-
-    return this;
-  },
+const validator: Validator = {
+  ...origValidator,
   notEmpty(str) {
     return !/^\s*$/.test(str);
   },
@@ -109,31 +100,34 @@ export const extensions: Extensions & OverrideExtensions = {
   is(str, pattern, modifiers) {
     return this.regex(str, pattern, modifiers);
   },
+  isImmutable(_value, _validatorArgs, field, modelInstance) {
+    // NEED_SUGGESTION: Property '_previousDataValues' is private and only accessible within class 'Model<TModelAttributes, TCreationAttributes>'.
+    return modelInstance.isNewRecord || modelInstance.dataValues[field] === modelInstance._previousDataValues[field];
+  },
+  isNull: origValidator.isEmpty,
+  // map isNull to isEmpty
+  // https://github.com/chriso/validator.js/commit/e33d38a26ee2f9666b319adb67c7fc0d3dea7125
+  notNull(val) {
+    return val !== null && val !== undefined;
+  },
+  // isDate removed in 7.0.0
+  // https://github.com/chriso/validator.js/commit/095509fc707a4dc0e99f85131df1176ad6389fc9
+  isDate(dateString) {
+    return dayjs(dateString).isValid();
+  },
 };
 
-// instance based validators
-validator.isImmutable = (_value, _validatorArgs, field, modelInstance) => {
-  return modelInstance.isNewRecord || modelInstance.dataValues[field] === modelInstance._previousDataValues[field];
-};
+export const extensions: Extensions = {
+  extend(name, fn) {
+    this[name] = fn;
 
-// extra validators
-validator.notNull = val => {
-  return val !== null && val !== undefined;
+    return this;
+  },
 };
 
 // https://github.com/chriso/validator.js/blob/6.2.0/validator.js
 forEach(extensions, (extend, key) => {
   validator[key] = extend;
 });
-
-// map isNull to isEmpty
-// https://github.com/chriso/validator.js/commit/e33d38a26ee2f9666b319adb67c7fc0d3dea7125
-validator.isNull = validator.isEmpty;
-
-// isDate removed in 7.0.0
-// https://github.com/chriso/validator.js/commit/095509fc707a4dc0e99f85131df1176ad6389fc9
-validator.isDate = dateString => {
-  return dayjs(dateString).isValid();
-};
 
 export { validator };
