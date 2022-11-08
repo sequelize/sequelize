@@ -1,16 +1,7 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
-import { sequelize } from '../../support';
 
 describe('DataTypes.ENUM', () => {
-  it('raises an error if no values are defined', () => {
-    expect(() => {
-      sequelize.define('omnomnom', {
-        bla: { type: DataTypes.ENUM },
-      });
-    }).to.throwWithCause(Error, 'DataTypes.ENUM cannot be used without specifying its possible enum values.');
-  });
-
   describe('setting values for enums', () => {
     it('should not throw if `values` is a readonly array', () => {
       const Array = ['A', 'B', 'C', 'D', 'E'] as const;
