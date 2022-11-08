@@ -2,13 +2,8 @@
 set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
-if which docker-compose > /dev/null; then
-  docker-compose -p sequelize-mysql-oldest down --remove-orphans
-  docker-compose -p sequelize-mysql-oldest up -d
-else
-  docker compose -p sequelize-mysql-oldest down --remove-orphans
-  docker compose -p sequelize-mysql-oldest up -d
-fi
+docker compose -p sequelize-mysql-oldest down --remove-orphans
+docker compose -p sequelize-mysql-oldest up -d
 
 ./../../wait-until-healthy.sh sequelize-mysql-oldest
 
