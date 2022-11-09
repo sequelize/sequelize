@@ -1845,9 +1845,15 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
   }
 }
 
+export type EnumValues<Value extends string> = Value[] | readonly Value[];
+
 export interface EnumOptions<Member extends string> {
-  values: Member[] | readonly Member[];
+  values: EnumValues<Member>;
 }
+
+export type NormalizedEnumOptions<Member extends string> = Omit<EnumOptions<Member>, 'values'> & {
+  readonly values: readonly Member[],
+};
 
 /**
  * An enumeration, Postgres Only
@@ -1864,26 +1870,26 @@ export interface EnumOptions<Member extends string> {
  */
 export class ENUM<Member extends string> extends AbstractDataType<Member> {
   static readonly [kDataTypeIdentifier]: string = 'ENUM';
-  readonly options: EnumOptions<Member>;
+  readonly options: NormalizedEnumOptions<Member>;
 
   /**
    * @param options either array of values or options object with values array. It also supports variadic values.
    */
   constructor(options: EnumOptions<Member>);
-  constructor(members: Member[] | readonly Member[]);
-  constructor(...members: Member[] | readonly Member[]);
+  constructor(members: EnumValues<Member>);
+  constructor(...members: EnumValues<Member>);
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @internal */
   constructor(...args:
     | [options: EnumOptions<Member>]
-    | [members: Member[] | readonly Member[]]
-    | [...members: Member[] | readonly Member[]]
+    | [members: EnumValues<Member>]
+    | [...members: EnumValues<Member>]
   );
   constructor(...args: [Member[] | Member | EnumOptions<Member>, ...Member[]]) {
     super();
 
-    let values: Member[] | readonly Member[];
+    let values: EnumValues<Member>;
     if (isObject(args[0])) {
       if (args.length > 1) {
         throw new TypeError('DataTypes.ENUM has been constructed incorrectly: Its first parameter is the option bag or the array of values, but more than one parameter has been provided.');
