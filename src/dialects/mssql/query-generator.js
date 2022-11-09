@@ -342,19 +342,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   removeColumnQuery(tableName, attributeName, options) {
     options = options || {};
 
-    const dbVersion = this.sequelize.options.databaseVersion;
-    const isGreaterThanSQLServer2016 = semver.valid(dbVersion) && semver.gte(dbVersion, '13.0.0');
-    if (options && !isGreaterThanSQLServer2016) {
-      rejectInvalidOptions(
-        'addColumnQuery',
-        this.dialect.name,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
-        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    const ifExists = options.ifExists ? ' IF EXISTS' : '';
+    const ifExists = options.ifExists ? 'IF EXISTS' : '';
 
     return Utils.joinSQLFragments([
       'ALTER TABLE',
