@@ -7,9 +7,13 @@ const notSupportedError = new Error(`JSON operations are not supported in ${dial
 describe('QueryGenerator#jsonPathExtractionQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 
+  // TODO: add tests that check that profile can start and end with ` or "
+  // TODO: add tests where id contains characters like ., $, ', ", ,, { or }
+
   it('should handle isJson parameter true', () => {
     expectsql(() => queryGenerator.jsonPathExtractionQuery('profile', 'id', true), {
       default: notSupportedError,
+      // TODO: mariadb should be consistent with mysql
       mariadb: 'json_unquote(json_extract(`profile`,\'$.id\'))',
       mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\'))',
       postgres: `("profile"#>'{id}')`,
