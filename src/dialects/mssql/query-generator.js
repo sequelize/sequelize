@@ -342,20 +342,15 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   removeColumnQuery(tableName, attributeName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    options = options || {};
+
+    const ifExists = options.ifExists ? ' IF EXISTS' : '';
 
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP COLUMN',
+      ifExists,
       this.quoteIdentifier(attributeName),
       ';',
     ]);
