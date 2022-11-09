@@ -140,6 +140,7 @@ export class AbstractQueryGenerator {
    * @returns {string}                        The generated sql query
    * @private
    */
+  // TODO: see how we can make the typings protected/private while still allowing it to be typed in tests
   jsonPathExtractionQuery(column: string, path?: string | string[], isJson?: boolean): string;
 
   selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;

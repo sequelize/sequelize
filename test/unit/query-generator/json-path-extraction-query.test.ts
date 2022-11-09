@@ -9,6 +9,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
 
   // TODO: add tests that check that profile can start and end with ` or "
   // TODO: add tests where id contains characters like ., $, ', ", ,, { or }
+  // TODO: throw if isJson is used but not supported by the dialect
 
   it('should handle isJson parameter true', () => {
     expectsql(() => queryGenerator.jsonPathExtractionQuery('profile', 'id', true), {
