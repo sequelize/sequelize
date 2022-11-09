@@ -125,7 +125,6 @@ export const extensions: Extensions = {
   },
 };
 
-// https://github.com/chriso/validator.js/blob/6.2.0/validator.js
 forEach(extensions, (extend, key) => {
   validator[key] = extend;
 });
