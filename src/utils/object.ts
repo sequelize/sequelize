@@ -174,8 +174,8 @@ type Flatten<T extends object> = object extends T ? object : {
  * @private
  */
 export function defaults(
-  objectIn: { [key: string | symbol]: any },
-  ...sources: Array<{ [key: string | symbol]: any }>
+  objectIn: { [key: PropertyKey]: any },
+  ...sources: Array<{ [key: PropertyKey]: any }>
 ): object {
   for (const source of sources) {
     if (!source) {
@@ -184,7 +184,7 @@ export function defaults(
 
     for (const key of getComplexKeys(source)) {
       const value = objectIn[key];
-      const objectPrototype: { [key: string | symbol]: any } = Object.prototype;
+      const objectPrototype: { [key: PropertyKey]: any } = Object.prototype;
 
       if (
         value === undefined
