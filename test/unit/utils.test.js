@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       expect(Utils.toDefaultValue('Test', dialect)).to.equal('Test');
     });
     it('return plain object', () => {
-      chai.assert.deepEqual({}, Utils.toDefaultValue({}, dialect));
+      expect(Utils.toDefaultValue({}, dialect)).to.deep.equal({});
     });
   });
 
