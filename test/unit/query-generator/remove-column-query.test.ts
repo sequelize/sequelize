@@ -26,6 +26,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
     expectsql(() => queryGenerator.removeColumnQuery(User.tableName, 'age', { ifExists: true }), {
       default: buildInvalidOptionReceivedError('removeColumnQuery', dialectName, ['ifExists']),
       mariadb: 'ALTER TABLE `Users` DROP IF EXISTS `age`;',
+      mssql: 'ALTER TABLE [Users] DROP COLUMN IF EXISTS [age];',
       postgres: `ALTER TABLE "public"."Users" DROP COLUMN IF EXISTS "age";`,
     });
   });
