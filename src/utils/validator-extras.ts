@@ -104,9 +104,9 @@ const validator: Validator = {
     // NEED_SUGGESTION: Property '_previousDataValues' is private and only accessible within class 'Model<TModelAttributes, TCreationAttributes>'.
     return modelInstance.isNewRecord || modelInstance.dataValues[field] === modelInstance._previousDataValues[field];
   },
+  // maps isNull to isEmpty, since validator v6.0.0 renamed it
+  // https://github.com/validatorjs/validator.js/commit/e33d38a26ee2f9666b319adb67c7fc0d3dea7125
   isNull: origValidator.isEmpty,
-  // map isNull to isEmpty
-  // https://github.com/chriso/validator.js/commit/e33d38a26ee2f9666b319adb67c7fc0d3dea7125
   notNull(val) {
     return val !== null && val !== undefined;
   },
