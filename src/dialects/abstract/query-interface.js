@@ -475,7 +475,7 @@ export class QueryInterface {
     options = options || {};
 
     const { ifExists, ...rawQueryOptions } = options;
-    const removeColumnQueryOptions = ifExists ? { ifExists } : null;
+    const removeColumnQueryOptions = ifExists ? { ifExists } : undefined;
 
     return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName, removeColumnQueryOptions), rawQueryOptions);
   }
