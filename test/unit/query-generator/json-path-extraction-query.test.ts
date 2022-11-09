@@ -36,4 +36,14 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
       sqlite: 'json_extract(`profile`,\'$.id\')',
     });
   });
+
+  it('should support passing a string array as path', () => {
+    expectsql(() => queryGenerator.jsonPathExtractionQuery('profile', ['id', 'username']), {
+      default: notSupportedError,
+      mariadb: 'json_unquote(json_extract(`profile`,\'$.id.username\'))',
+      mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\".\\"username\\"\'))',
+      postgres: `("profile"#>>'{id,username}')`,
+      sqlite: 'json_extract(`profile`,\'$.id.username\')',
+    });
+  });
 });
