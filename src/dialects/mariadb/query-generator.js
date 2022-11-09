@@ -12,9 +12,7 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
     return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema'];
   }
 
-  addColumnQuery(table, key, dataType, options) {
-    options = options || {};
-
+  addColumnQuery(table, key, dataType, options = {}) {
     const ifNotExists = options.ifNotExists ? 'IF NOT EXISTS' : '';
 
     dataType = {
@@ -37,9 +35,7 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
     ]);
   }
 
-  removeColumnQuery(tableName, attributeName, options) {
-    options = options || {};
-
+  removeColumnQuery(tableName, attributeName, options = {}) {
     const ifExists = options.ifExists ? 'IF EXISTS' : '';
 
     return joinSQLFragments([

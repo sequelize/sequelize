@@ -339,9 +339,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
         + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
-  removeColumnQuery(tableName, attributeName, options) {
-    options = options || {};
-
+  removeColumnQuery(tableName, attributeName, options = {}) {
     const ifExists = options.ifExists ? 'IF EXISTS' : '';
 
     return Utils.joinSQLFragments([
