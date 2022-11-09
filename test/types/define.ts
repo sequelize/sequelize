@@ -19,7 +19,7 @@ interface UserModel extends Model<UserAttributes, UserCreationAttributes>, UserA
 const User = sequelize.define<UserModel>(
   'User',
   {
-    id: { type: DataTypes.NUMBER, primaryKey: true },
+    id: { type: DataTypes.INTEGER, primaryKey: true },
     username: DataTypes.STRING,
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
@@ -51,7 +51,7 @@ type UntypedUserModelStatic = typeof Model & {
 const UntypedUser = sequelize.define<UntypedUserModel>(
   'User',
   {
-    id: { type: DataTypes.NUMBER, primaryKey: true },
+    id: { type: DataTypes.INTEGER, primaryKey: true },
     username: DataTypes.STRING,
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,

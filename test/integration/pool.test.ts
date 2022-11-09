@@ -251,6 +251,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
 
     it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', async () => {
 
+      // @ts-expect-error -- internal method, no typings
       sandbox.stub(testInstance.connectionManager, '_connect')
         .returns(new Promise(() => {}));
 
@@ -269,6 +270,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
         },
       });
 
+      // @ts-expect-error -- internal method, no typings
       sandbox.stub(testInstance.connectionManager, '_connect')
         .returns(new Promise(() => {}));
 

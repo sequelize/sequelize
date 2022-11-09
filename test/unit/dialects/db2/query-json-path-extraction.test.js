@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const { Db2QueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/db2/query-generator.js');

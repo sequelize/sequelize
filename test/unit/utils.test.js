@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('./support');
+const Support = require('../support');
 const { DataTypes, Op, Utils } = require('@sequelize/core');
 
 const dialect = Support.sequelize.dialect;
@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   describe('toDefaultValue', () => {
     it('return plain data types', () => {
-      expect(Utils.toDefaultValue(DataTypes.UUIDV4, dialect)).to.equal('UUIDV4');
+      expect(() => Utils.toDefaultValue(DataTypes.UUIDV4, dialect)).to.throw();
     });
     it('return uuid v1', () => {
       expect(/^[\da-z-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1(), dialect))).to.be.equal(true);
@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       expect(Utils.toDefaultValue('Test', dialect)).to.equal('Test');
     });
     it('return plain object', () => {
-      chai.assert.deepEqual({}, Utils.toDefaultValue({}, dialect));
+      expect(Utils.toDefaultValue({}, dialect)).to.deep.equal({});
     });
   });
 
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
 
     it('multiple calls', () => {
-      const Model = Support.sequelize.define('User', {
+      const User = Support.sequelize.define('User', {
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at',
@@ -122,14 +122,11 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
             attributes: [
               'active',
             ],
-          }, Model),
-          Model,
+          }, User),
+          User,
         ).attributes,
       ).to.eql([
-        [
-          'created_at',
-          'createdAt',
-        ],
+        ['created_at', 'createdAt'],
       ]);
     });
   });

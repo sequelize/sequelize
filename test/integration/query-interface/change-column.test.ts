@@ -30,9 +30,9 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
       const tableDescription = await queryInterface.describeTable(table);
 
       expect(tableDescription.currency).to.deep.equal({
-        type: dialectName === 'postgres' ? 'DOUBLE PRECISION'
-          : dialectName === 'db2' ? 'DOUBLE'
-            : 'FLOAT',
+        type: ['postgres', 'mssql', 'db2'].includes(dialectName)
+          ? 'REAL'
+          : 'FLOAT',
         allowNull: true,
         defaultValue: null,
         primaryKey: false,
@@ -59,9 +59,9 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
     const tableDescription = await queryInterface.describeTable('users');
 
     expect(tableDescription.currency).to.deep.equal({
-      type: dialectName === 'postgres' ? 'DOUBLE PRECISION'
-        : dialectName === 'db2' ? 'DOUBLE'
-          : 'FLOAT',
+      type: ['postgres', 'mssql', 'db2'].includes(dialectName)
+        ? 'REAL'
+        : 'FLOAT',
       allowNull: true,
       defaultValue: null,
       primaryKey: false,
@@ -539,7 +539,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
           autoIncrement: true,
         },
         name: {
-          type: DataTypes.CHAR,
+          type: DataTypes.STRING,
           allowNull: false,
         },
       });
@@ -567,7 +567,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
       });
 
       await queryInterface.changeColumn('users', 'name', {
-        type: DataTypes.CHAR,
+        type: DataTypes.STRING,
         allowNull: false,
       });
 
@@ -622,7 +622,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
           autoIncrement: true,
         },
         name: {
-          type: DataTypes.CHAR,
+          type: DataTypes.STRING,
           allowNull: false,
         },
       });

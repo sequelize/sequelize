@@ -7,13 +7,15 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const delay = require('delay');
 const assert = require('assert');
 
-const current = Support.sequelize;
 const pTimeout = require('p-timeout');
+
+const current = Support.sequelize;
+const dialect = current.dialect;
+const dialectName = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
@@ -158,7 +160,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       } catch (error) {
         expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-        if (dialect !== 'ibmi') {
+        if (dialectName !== 'ibmi') {
           expect(error.errors[0].path).to.be.a('string', 'username');
         }
       }
@@ -461,7 +463,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      (!['sqlite', 'mssql', 'db2', 'ibmi'].includes(dialect) ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
+      (!['sqlite', 'mssql', 'db2', 'ibmi'].includes(dialectName) ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
         const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
@@ -502,7 +504,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(spy).to.have.been.called;
       });
 
-      (dialect !== 'sqlite' ? it : it.skip)('should error correctly when defaults contain a unique key without a transaction', async function () {
+      (dialectName !== 'sqlite' ? it : it.skip)('should error correctly when defaults contain a unique key without a transaction', async function () {
         const User = this.sequelize.define('user', {
           objectId: {
             type: DataTypes.STRING,
@@ -556,7 +558,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
-      (dialect !== 'sqlite' ? it : it.skip)('works without a transaction', async function () {
+      (dialectName !== 'sqlite' ? it : it.skip)('works without a transaction', async function () {
         const [first, second] = await Promise.all([
           this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
           this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
@@ -579,7 +581,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('findCreateFind', () => {
-    if (dialect !== 'sqlite') {
+    if (dialectName !== 'sqlite') {
       it('[Flaky] should work with multiple concurrent calls', async function () {
         const [
           [instance1, created1],
@@ -738,12 +740,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         email: DataTypes.STRING,
         password: DataTypes.STRING,
         created_time: {
-          type: DataTypes.DATE,
+          type: DataTypes.DATE(3),
           allowNull: true,
           defaultValue: DataTypes.NOW,
         },
         updated_time: {
-          type: DataTypes.DATE,
+          type: DataTypes.DATE(3),
           allowNull: true,
           defaultValue: DataTypes.NOW,
         },
@@ -771,25 +773,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // Timestamps should have milliseconds. However, there is a small chance that
       // it really is 0 for one of them, by coincidence. So we check twice with two
       // users created almost at the same time.
-      if (dialect === 'db2') {
-        expect([
-          user1.created_time.getMilliseconds(),
-          user2.created_time.getMilliseconds(),
-        ]).not.to.equal([0, 0]);
-        expect([
-          user1.updated_time.getMilliseconds(),
-          user2.updated_time.getMilliseconds(),
-        ]).not.to.equal([0, 0]);
-      } else {
-        expect([
-          user1.created_time.getMilliseconds(),
-          user2.created_time.getMilliseconds(),
-        ]).not.to.deep.equal([0, 0]);
-        expect([
-          user1.updated_time.getMilliseconds(),
-          user2.updated_time.getMilliseconds(),
-        ]).not.to.deep.equal([0, 0]);
-      }
+      expect([
+        user1.created_time.getMilliseconds(),
+        user2.created_time.getMilliseconds(),
+      ]).not.to.deep.equal([0, 0]);
+
+      expect([
+        user1.updated_time.getMilliseconds(),
+        user2.updated_time.getMilliseconds(),
+      ]).not.to.deep.equal([0, 0]);
     });
 
     it('works with custom timestamps and underscored', async function () {
@@ -851,7 +843,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('is possible to use casting when creating an instance', async function () {
-      const type = ['mysql', 'mariadb'].includes(dialect) ? 'signed' : 'integer';
+      const type = ['mysql', 'mariadb'].includes(dialectName) ? 'signed' : 'integer';
       let match = false;
 
       const user = await this.User.create({
@@ -872,7 +864,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       let type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'integer'), 'integer');
       let match = false;
 
-      if (['mysql', 'mariadb'].includes(dialect)) {
+      if (['mysql', 'mariadb'].includes(dialectName)) {
         type = this.sequelize.cast(this.sequelize.cast(this.sequelize.literal('1-2'), 'unsigned'), 'signed');
       }
 
@@ -880,7 +872,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         intVal: type,
       }, {
         logging(sql) {
-          if (['mysql', 'mariadb'].includes(dialect)) {
+          if (['mysql', 'mariadb'].includes(dialectName)) {
             expect(sql).to.contain('CAST(CAST(1-2 AS UNSIGNED) AS SIGNED)');
           } else {
             expect(sql).to.contain('CAST(CAST(1-2 AS INTEGER) AS INTEGER)');
@@ -897,7 +889,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('is possible to just use .literal() to bypass escaping', async function () {
       const user = await this.User.create({
-        intVal: this.sequelize.literal(`CAST(1-2 AS ${dialect === 'mysql' ? 'SIGNED' : 'INTEGER'})`),
+        intVal: this.sequelize.literal(`CAST(1-2 AS ${dialectName === 'mysql' ? 'SIGNED' : 'INTEGER'})`),
       });
 
       const user0 = await this.User.findByPk(user.id);
@@ -935,7 +927,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('is possible to use functions as default values', async function () {
       let userWithDefaults;
 
-      if (dialect.startsWith('postgres')) {
+      if (dialectName.startsWith('postgres')) {
         await this.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
         userWithDefaults = this.sequelize.define('userWithDefaults', {
           uuid: {
@@ -952,7 +944,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return;
       }
 
-      if (dialect === 'sqlite') {
+      if (dialectName === 'sqlite') {
         // The definition here is a bit hacky. sqlite expects () around the expression for default values, so we call a function without a name
         // to enclose the date function in (). http://www.sqlite.org/syntaxdiagrams.html#column-constraint
         userWithDefaults = this.sequelize.define('userWithDefaults', {
@@ -974,7 +966,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
     });
 
-    if (dialect === 'postgres') {
+    if (dialectName === 'postgres') {
       it('does not cast arrays for postgresql insert', async function () {
         const User = this.sequelize.define('UserWithArray', {
           myvals: { type: DataTypes.ARRAY(DataTypes.INTEGER) },
@@ -1036,8 +1028,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    if (['postgres', 'sqlite'].includes(dialect)) {
-      it('doesn\'t allow case-insensitive duplicated records using CITEXT', async function () {
+    if (dialect.supports.dataTypes.CITEXT) {
+      it(`doesn't allow case-insensitive duplicated records using CITEXT`, async function () {
         const User = this.sequelize.define('UserWithUniqueCITEXT', {
           username: { type: DataTypes.CITEXT, unique: true },
         });
@@ -1056,7 +1048,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (dialect === 'postgres') {
+    if (dialectName === 'postgres') {
       it('allows the creation of a TSVECTOR field', async function () {
         const User = this.sequelize.define('UserWithTSVECTOR', {
           name: DataTypes.TSVECTOR,
@@ -1125,9 +1117,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const smth1 = error.get('smth')[0] || {};
 
         expect(smth1.path).to.equal('smth');
-        expect(smth1.type || smth1.origin).to.match(/notNull Violation/);
+        expect(smth1.type || smth1.origin).to.match(/notNull violation/);
       }
     });
+
     it('raises an error if created object breaks definition constraints', async function () {
       const UserNull = this.sequelize.define('UserWithNonNullSmth', {
         username: { type: DataTypes.STRING, unique: true },
@@ -1247,7 +1240,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should only store the values passed in the whitelist', async function () {
       // A unique column do not accept NULL in Db2. Unique column must have value in insert statement.
       const data = { username: 'Peter', secretValue: '42', uniqueName: 'name' };
-      const fields = dialect === 'db2' ? { fields: ['username', 'uniqueName'] } : { fields: ['username'] };
+      const fields = dialectName === 'db2' ? { fields: ['username', 'uniqueName'] } : { fields: ['username'] };
 
       const user = await this.User.create(data, fields);
       const _user = await this.User.findByPk(user.id);
@@ -1398,7 +1391,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('enums', () => {
       it('correctly restores enum values', async function () {
         const Item = this.sequelize.define('Item', {
-          state: { type: DataTypes.ENUM, values: ['available', 'in_cart', 'shipped'] },
+          state: { type: DataTypes.ENUM(['available', 'in_cart', 'shipped']) },
         });
 
         await Item.sync({ force: true });
@@ -1410,8 +1403,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('allows null values', async function () {
         const Enum = this.sequelize.define('Enum', {
           state: {
-            type: DataTypes.ENUM,
-            values: ['happy', 'sad'],
+            type: DataTypes.ENUM(['happy', 'sad']),
             allowNull: true,
           },
         });
@@ -1473,8 +1465,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('through the factory', async function () {
           const Enum = this.sequelize.define('Enum', {
             state: {
-              type: DataTypes.ENUM,
-              values: ['happy', 'sad'],
+              type: DataTypes.ENUM(['happy', 'sad']),
               allowNull: true,
             },
           });
@@ -1488,8 +1479,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('through sequelize', async function () {
           this.sequelize.define('Enum', {
             state: {
-              type: DataTypes.ENUM,
-              values: ['happy', 'sad'],
+              type: DataTypes.ENUM(['happy', 'sad']),
               allowNull: true,
             },
           });

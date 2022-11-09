@@ -1,6 +1,13 @@
 'use strict';
 
 import pick from 'lodash/pick';
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
+import { rejectInvalidOptions } from '../../utils';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -27,6 +34,8 @@ const FOREIGN_KEY_FIELDS = [
 ].join(',');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
 /**
  * When using changeColumnsQuery, these are the column properties that will use a 'CHANGE COLUMN' query in MySQL/MariaDB.
@@ -198,7 +207,22 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${tableName} AND TABLE_SCHEMA = ${this.escape(this.sequelize.config.database)}`;
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    dataType = {
+      ...dataType,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
@@ -213,7 +237,17 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
@@ -452,7 +486,7 @@ Column: ${this.quoteIdentifier(columnName)}`);
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attributeTypeToSql(attribute.type, { escape: this.escape.bind(this), dialect: this.dialect });
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -466,7 +500,7 @@ Column: ${this.quoteIdentifier(columnName)}`);
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && Utils.defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
     }
 

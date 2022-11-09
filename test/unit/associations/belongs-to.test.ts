@@ -14,7 +14,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     expect(() => {
       // @ts-expect-error
       User.belongsTo();
-    }).to.throw('User.belongsTo called with something that\'s not a subclass of Sequelize.Model');
+    }).to.throw(`User.belongsTo was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
 
   it('warn on invalid options', () => {
