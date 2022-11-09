@@ -1,12 +1,55 @@
 'use strict';
 
+import { normalizeDataType } from '../abstract/data-types-utils';
+
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const _ = require('lodash');
+const Utils = require('../../utils');
 
 export class MariaDbQueryGenerator extends MySqlQueryGenerator {
 
   _getTechnicalSchemaNames() {
     return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema'];
+  }
+
+  addColumnQuery(table, key, dataType, options) {
+    options = options || {};
+
+    const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
+
+    dataType = {
+      ...dataType,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
+
+    return Utils.joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(table),
+      'ADD',
+      ifNotExists,
+      this.quoteIdentifier(key),
+      this.attributeToSQL(dataType, {
+        context: 'addColumn',
+        tableName: table,
+        foreignKey: key,
+      }),
+      ';',
+    ]);
+  }
+
+  removeColumnQuery(tableName, attributeName, options) {
+    options = options || {};
+
+    const ifExists = options.ifExists ? ' IF EXISTS' : '';
+
+    return Utils.joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'DROP',
+      ifExists,
+      this.quoteIdentifier(attributeName),
+      ';',
+    ]);
   }
 
   /**
