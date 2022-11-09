@@ -62,7 +62,7 @@
   "devDependencies": {
     "@ephys/eslint-config-typescript": "17.0.0",
     "@rushstack/eslint-patch": "1.2.0",
-    "@types/chai": "4.3.3",
+    "@types/chai": "4.3.4",
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
     "@types/ibm_db": "2.0.11",
@@ -76,7 +76,7 @@
     "@types/snowflake-sdk": "1.6.9",
     "@types/tedious": "4.0.9",
     "@types/uuid": "8.3.4",
-    "chai": "4.3.6",
+    "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
     "cls-hooked": "4.2.2",
