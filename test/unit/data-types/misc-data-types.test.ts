@@ -1,12 +1,10 @@
-import assert from 'node:assert';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
-import { expectsql, sequelize, getTestDialect } from '../../support';
+import { sequelize, getTestDialect } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const dialectName = getTestDialect();
-const dialect = sequelize.dialect;
 
 describe('DataTypes.BOOLEAN', () => {
   testDataTypeSql('BOOLEAN', DataTypes.BOOLEAN, {
@@ -36,62 +34,6 @@ describe('DataTypes.BOOLEAN', () => {
       expect(() => type.validate('0')).to.throw();
       expect(() => type.validate('true')).to.throw();
       expect(() => type.validate('false')).to.throw();
-    });
-  });
-});
-
-describe('DataTypes.ENUM', () => {
-  it('produces an enum', () => {
-    const User = sequelize.define('User', {
-      anEnum: DataTypes.ENUM('value 1', 'value 2'),
-    });
-
-    const enumType = User.rawAttributes.anEnum.type;
-    assert(typeof enumType !== 'string');
-
-    expectsql(enumType.toSql({ dialect }), {
-      postgres: '"public"."enum_Users_anEnum"',
-      'mysql mariadb': `ENUM('value 1', 'value 2')`,
-      // SQL Server does not support enums, we use text + a check constraint instead
-      mssql: `NVARCHAR(255)`,
-      sqlite: 'TEXT',
-      'db2 ibmi snowflake': 'VARCHAR(255)',
-    });
-  });
-
-  it('raises an error if the legacy "values" property is specified', () => {
-    expect(() => {
-      sequelize.define('omnomnom', {
-        bla: {
-          type: DataTypes.ENUM('a', 'b'),
-          values: ['a', 'b'],
-        },
-      });
-    }).to.throwWithCause(Error, 'The "values" property has been removed from column definitions.');
-  });
-
-  it('raises an error if no values are defined', () => {
-    expect(() => {
-      sequelize.define('omnomnom', {
-        bla: { type: DataTypes.ENUM },
-      });
-    }).to.throwWithCause(Error, 'DataTypes.ENUM cannot be used without specifying its possible enum values.');
-  });
-
-  describe('validate', () => {
-    it('should throw an error if `value` is invalid', () => {
-      const type: DataTypeInstance = DataTypes.ENUM('foo');
-
-      expect(() => {
-        type.validate('foobar');
-      }).to.throw(ValidationErrorItem, `'foobar' is not a valid choice for enum [ 'foo' ]`);
-    });
-
-    it('should not throw if `value` is a valid choice', () => {
-      const type = DataTypes.ENUM('foobar', 'foobiz');
-
-      expect(() => type.validate('foobar')).not.to.throw();
-      expect(() => type.validate('foobiz')).not.to.throw();
     });
   });
 });
