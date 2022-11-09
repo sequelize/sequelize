@@ -1,10 +1,10 @@
 'use strict';
 
 import { normalizeDataType } from '../abstract/data-types-utils';
+import { joinSQLFragments } from '../../utils';
 
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const _ = require('lodash');
-const Utils = require('../../utils');
 
 export class MariaDbQueryGenerator extends MySqlQueryGenerator {
 
@@ -15,14 +15,14 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
   addColumnQuery(table, key, dataType, options) {
     options = options || {};
 
-    const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
+    const ifNotExists = options.ifNotExists ? 'IF NOT EXISTS' : '';
 
     dataType = {
       ...dataType,
       type: normalizeDataType(dataType.type, this.dialect),
     };
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
       'ADD',
@@ -40,9 +40,9 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
   removeColumnQuery(tableName, attributeName, options) {
     options = options || {};
 
-    const ifExists = options.ifExists ? ' IF EXISTS' : '';
+    const ifExists = options.ifExists ? 'IF EXISTS' : '';
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP',
