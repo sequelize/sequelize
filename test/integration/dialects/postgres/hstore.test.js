@@ -46,10 +46,6 @@ if (dialect.startsWith('postgres')) {
     });
 
     describe('parse', () => {
-      it('should handle a null object correctly', () => {
-        expect(hstore.parse(null)).to.deep.equal(null);
-      });
-
       it('should handle empty string correctly', () => {
         expect(hstore.parse('"foo"=>""')).to.deep.equal({ foo: '' });
       });

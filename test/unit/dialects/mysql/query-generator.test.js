@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -264,7 +264,7 @@ if (dialect === 'mysql') {
               ],
             };
           }],
-          expectation: 'SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, \'lalala\', \'2011-03-27 10:01:55\') ASC;',
+          expectation: 'SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, \'lalala\', \'2011-03-27 10:01:55.000\') ASC;',
           context: QueryGenerator,
           needsSequelize: true,
         }, {
@@ -559,7 +559,7 @@ if (dialect === 'mysql') {
           expectation: 'INSERT INTO `myTable` (`name`) VALUES (\'foo\\\';DROP TABLE myTable;\'),(\'bar\');',
         }, {
           arguments: ['myTable', [{ name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES (\'foo\',\'2011-03-27 10:01:55\'),(\'bar\',\'2012-03-27 10:01:55\');',
+          expectation: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES (\'foo\',\'2011-03-27 10:01:55.000\'),(\'bar\',\'2012-03-27 10:01:55.000\');',
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1 }, { name: 'bar', foo: 2 }]],
           expectation: 'INSERT INTO `myTable` (`name`,`foo`) VALUES (\'foo\',1),(\'bar\',2);',
@@ -788,7 +788,7 @@ if (dialect === 'mysql') {
 
             const queryGenerator = new QueryGenerator({
               sequelize,
-              _dialect: sequelize.dialect,
+              dialect: sequelize.dialect,
             });
 
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly

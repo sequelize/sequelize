@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -794,7 +794,7 @@ if (dialect === 'mariadb') {
 
             const queryGenerator = new QueryGenerator({
               sequelize,
-              _dialect: sequelize.dialect,
+              dialect: sequelize.dialect,
             });
 
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly

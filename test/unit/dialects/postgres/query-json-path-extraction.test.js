@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/query-generator.js');
@@ -14,7 +14,7 @@ if (dialect === 'postgres') {
     beforeEach(function () {
       queryGenerator = new QueryGenerator({
         sequelize: this.sequelize,
-        _dialect: this.sequelize.dialect,
+        dialect: this.sequelize.dialect,
       });
     });
 

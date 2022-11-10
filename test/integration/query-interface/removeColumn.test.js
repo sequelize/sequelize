@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               autoIncrement: true,
             },
             name: {
-              type: DataTypes.CHAR,
+              type: DataTypes.STRING,
               allowNull: false,
             },
           });
@@ -173,7 +173,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               autoIncrement: true,
             },
             name: {
-              type: DataTypes.CHAR,
+              type: DataTypes.STRING,
               allowNull: false,
             },
           });

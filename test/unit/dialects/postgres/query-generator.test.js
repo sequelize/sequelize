@@ -5,7 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const { Op, DataTypes } = require('@sequelize/core');
 const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/query-generator.js');
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const customSequelize = Support.createSequelizeInstance({
   schema: 'custom',
@@ -458,12 +458,12 @@ if (dialect.startsWith('postgres')) {
         }, {
           title: 'buffer as where argument',
           arguments: ['myTable', { where: { field: Buffer.from('Sequelize') } }],
-          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."field" = E\'\\\\x53657175656c697a65\';',
+          expectation: `SELECT * FROM "myTable" WHERE "myTable"."field" = '\\x53657175656c697a65';`,
           context: QueryGenerator,
         }, {
           title: 'string in array should escape \' as \'\'',
           arguments: ['myTable', { where: { aliases: { [Op.contains]: ['Queen\'s'] } } }],
-          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."aliases" @> ARRAY[\'Queen\'\'s\'];',
+          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."aliases" @> ARRAY[\'Queen\'\'s\']::VARCHAR(255)[];',
         },
 
         // Variants when quoteIdentifiers is false
@@ -1234,7 +1234,7 @@ if (dialect.startsWith('postgres')) {
         beforeEach(function () {
           this.queryGenerator = new QueryGenerator({
             sequelize: this.sequelize,
-            _dialect: this.sequelize.dialect,
+            dialect: this.sequelize.dialect,
           });
         });
 
@@ -1266,7 +1266,7 @@ if (dialect.startsWith('postgres')) {
       beforeEach(function () {
         this.queryGenerator = new QueryGenerator({
           sequelize: this.sequelize,
-          _dialect: this.sequelize.dialect,
+          dialect: this.sequelize.dialect,
         });
       });
 
@@ -1306,7 +1306,7 @@ if (dialect.startsWith('postgres')) {
       beforeEach(function () {
         this.queryGenerator = new QueryGenerator({
           sequelize: customSequelize,
-          _dialect: customSequelize.dialect,
+          dialect: customSequelize.dialect,
         });
       });
 
