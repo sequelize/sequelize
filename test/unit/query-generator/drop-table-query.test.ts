@@ -1,5 +1,5 @@
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
-import { expectsql, getTestDialect, sequelize } from '../../support';
+import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
 
@@ -22,6 +22,18 @@ describe('QueryGenerator#dropTableQuery', () => {
 
   it('produces a DROP TABLE query with schema', () => {
     expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
+      default: `DROP TABLE IF EXISTS [mySchema].[myTable];`,
+      mssql: `IF OBJECT_ID('[mySchema].[myTable]', 'U') IS NOT NULL DROP TABLE [mySchema].[myTable];`,
+      sqlite: 'DROP TABLE IF EXISTS `mySchema.myTable`;',
+    });
+  });
+
+  // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
+  it.skip('produces a DROP TABLE query from a table and globally set schema', () => {
+    const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
+    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+
+    expectsql(() => queryGeneratorSchema.dropTableQuery('myTable'), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable];`,
       mssql: `IF OBJECT_ID('[mySchema].[myTable]', 'U') IS NOT NULL DROP TABLE [mySchema].[myTable];`,
       sqlite: 'DROP TABLE IF EXISTS `mySchema.myTable`;',

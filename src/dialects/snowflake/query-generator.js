@@ -437,6 +437,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   showIndexesQuery() {
+    // TODO: check if this is the correct implementation
     return 'SELECT \'\' FROM DUAL';
   }
 

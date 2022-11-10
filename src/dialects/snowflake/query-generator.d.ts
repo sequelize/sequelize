@@ -1,5 +1,3 @@
 import { AbstractQueryGenerator } from '../abstract/query-generator.js';
 
-export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
-  showIndexesQuery(): string;
-}
+export class SnowflakeQueryGenerator extends AbstractQueryGenerator {}

@@ -8,7 +8,29 @@ describe('QueryGenerator#arithmeticQuery', () => {
     firstName: DataTypes.STRING,
   }, { timestamps: false });
 
-  it('should use the plus operator', async () => {
+  it('uses the specified operator', async () => {
+    const sqlPlus = queryGenerator.arithmeticQuery(
+      '+', 'myTable', {}, { foo: 3 }, {}, {},
+    );
+
+    const sqlMinus = queryGenerator.arithmeticQuery(
+      '-', 'myTable', {}, { foo: 3 }, {}, {},
+    );
+
+    expectsql(sqlPlus, {
+      default: `UPDATE [myTable] SET [foo]=[foo]+ 3`,
+      postgres: `UPDATE "myTable" SET "foo"="foo"+ 3 RETURNING *`,
+      mssql: `UPDATE [myTable] SET [foo]=[foo]+ 3 OUTPUT INSERTED.*`,
+    });
+
+    expectsql(sqlMinus, {
+      default: `UPDATE [myTable] SET [foo]=[foo]- 3`,
+      postgres: `UPDATE "myTable" SET "foo"="foo"- 3 RETURNING *`,
+      mssql: `UPDATE [myTable] SET [foo]=[foo]- 3 OUTPUT INSERTED.*`,
+    });
+  });
+
+  it('uses the specified operator with literal', async () => {
     const sql = queryGenerator.arithmeticQuery(
       '+', 'myTable', {}, { foo: literal('bar') }, {}, {},
     );
@@ -20,41 +42,29 @@ describe('QueryGenerator#arithmeticQuery', () => {
     });
   });
 
-  it('should use the plus operator with where clause', async () => {
+  it('supports specifying a WHERE clause', async () => {
     const sql = queryGenerator.arithmeticQuery(
-      '+', 'myTable', { bar: 'biz' }, { foo: literal('bar') }, {}, {},
+      '+', 'myTable', { bar: 'biz' }, { foo: 3 }, {}, {},
     );
 
     expectsql(sql, {
-      default: `UPDATE [myTable] SET [foo]=[foo]+ bar WHERE [bar] = 'biz'`,
-      postgres: `UPDATE "myTable" SET "foo"="foo"+ bar WHERE "bar" = 'biz' RETURNING *`,
-      mssql: `UPDATE [myTable] SET [foo]=[foo]+ bar OUTPUT INSERTED.* WHERE [bar] = N'biz'`,
+      default: `UPDATE [myTable] SET [foo]=[foo]+ 3 WHERE [bar] = 'biz'`,
+      postgres: `UPDATE "myTable" SET "foo"="foo"+ 3 WHERE "bar" = 'biz' RETURNING *`,
+      mssql: `UPDATE [myTable] SET [foo]=[foo]+ 3 OUTPUT INSERTED.* WHERE [bar] = N'biz'`,
     });
   });
 
-  it('should use the plus operator without returning clause', async () => {
+  it('supports omitting the RETURNING clause', async () => {
     const sql = queryGenerator.arithmeticQuery(
-      '+', 'myTable', {}, { foo: literal('bar') }, {}, { returning: false },
+      '+', 'myTable', {}, { foo: 3 }, {}, { returning: false },
     );
 
     expectsql(sql, {
-      default: `UPDATE [myTable] SET [foo]=[foo]+ bar`,
+      default: `UPDATE [myTable] SET [foo]=[foo]+ 3`,
     });
   });
 
-  it('should use the minus operator', async () => {
-    const sql = queryGenerator.arithmeticQuery(
-      '-', 'myTable', {}, { foo: literal('bar') }, {}, {},
-    );
-
-    expectsql(sql, {
-      default: `UPDATE [myTable] SET [foo]=[foo]- bar`,
-      postgres: `UPDATE "myTable" SET "foo"="foo"- bar RETURNING *`,
-      mssql: `UPDATE [myTable] SET [foo]=[foo]- bar OUTPUT INSERTED.*`,
-    });
-  });
-
-  it('should use the minus operator with negative value', async () => {
+  it('does not cause a syntax error when a minor operator is used with a negative value', async () => {
     const sql = queryGenerator.arithmeticQuery(
       '-', 'myTable', {}, { foo: -1 }, {}, {},
     );
@@ -63,28 +73,6 @@ describe('QueryGenerator#arithmeticQuery', () => {
       default: `UPDATE [myTable] SET [foo]=[foo]- -1`,
       postgres: `UPDATE "myTable" SET "foo"="foo"- -1 RETURNING *`,
       mssql: `UPDATE [myTable] SET [foo]=[foo]- -1 OUTPUT INSERTED.*`,
-    });
-  });
-
-  it('should use the minus operator with where clause', async () => {
-    const sql = queryGenerator.arithmeticQuery(
-      '-', 'myTable', { bar: 'biz' }, { foo: literal('bar') }, {}, {},
-    );
-
-    expectsql(sql, {
-      default: `UPDATE [myTable] SET [foo]=[foo]- bar WHERE [bar] = 'biz'`,
-      postgres: `UPDATE "myTable" SET "foo"="foo"- bar WHERE "bar" = 'biz' RETURNING *`,
-      mssql: `UPDATE [myTable] SET [foo]=[foo]- bar OUTPUT INSERTED.* WHERE [bar] = N'biz'`,
-    });
-  });
-
-  it('should use the minus operator without returning clause', async () => {
-    const sql = queryGenerator.arithmeticQuery(
-      '-', 'myTable', {}, { foo: literal('bar') }, {}, { returning: false },
-    );
-
-    expectsql(sql, {
-      default: `UPDATE [myTable] SET [foo]=[foo]- bar`,
     });
   });
 

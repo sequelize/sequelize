@@ -282,8 +282,7 @@ export class QueryInterface {
 
     let sql;
 
-    // TODO: this should be refactored to probably use DialectSupports
-    if (this.queryGenerator.dialect.name === 'postgres') {
+    if (this.queryGenerator.dialect.supports.drop.cascade) {
       sql = this.queryGenerator.dropTableQuery(tableName, options);
     } else {
       sql = this.queryGenerator.dropTableQuery(tableName);

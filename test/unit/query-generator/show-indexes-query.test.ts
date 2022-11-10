@@ -50,7 +50,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
     });
   });
 
-  it('produces a SHOW INDEX query from a table and schema in options', () => {
+  it('produces a SHOW INDEX query from a table and globally set schema', () => {
     // FIXME: enable this test for other dialects once fixed (in https://github.com/sequelize/sequelize/pull/14687)
     if (['mariadb', 'mysql', 'postgres', 'mssql', 'sqlite', 'db2', 'ibmi'].includes(dialectName)) {
       return;
