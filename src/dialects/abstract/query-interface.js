@@ -481,7 +481,7 @@ export class QueryInterface {
     options = options || {};
 
     const { ifExists, ...rawQueryOptions } = options;
-    const removeColumnQueryOptions = ifExists ? { ifExists } : null;
+    const removeColumnQueryOptions = ifExists ? { ifExists } : undefined;
 
     return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName, removeColumnQueryOptions), rawQueryOptions);
   }
@@ -1008,7 +1008,7 @@ export class QueryInterface {
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
     const table = _.isObject(tableName) ? tableName : { tableName };
-    const model = _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const model = options.model ? options.model : _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;

@@ -99,7 +99,7 @@ Most operating systems provide all the needed tools (including Windows, Linux an
 
 - Optional (recommended):
 
-  - [Docker](https://docs.docker.com/get-docker/)
+  - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose Plugin](https://docs.docker.com/compose/install/)
     - It is not mandatory because you can easily locally run tests against SQLite without it.
     - It is practically mandatory if you want to locally run tests against any other database engine (MySQL, MariaDB, Postgres,Db2 and MSSQL), unless you happen to have the engine installed and is willing to make some manual configuration.
   - [Visual Studio Code](https://code.visualstudio.com/)

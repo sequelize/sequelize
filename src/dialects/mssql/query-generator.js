@@ -373,6 +373,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP COLUMN',
+      options.ifExists,
       this.quoteIdentifier(attributeName),
       ';',
     ]);
