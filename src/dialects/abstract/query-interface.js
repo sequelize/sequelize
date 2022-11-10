@@ -1,5 +1,8 @@
 'use strict';
 
+import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+import { AbstractDataType } from './data-types';
+
 const _ = require('lodash');
 
 const Utils = require('../../utils');
@@ -10,7 +13,8 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk to all databases
  */
-class QueryInterface {
+// TODO: rename to AbstractQueryInterface
+export class QueryInterface {
   constructor(sequelize, queryGenerator) {
     this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
@@ -33,7 +37,7 @@ class QueryInterface {
     options = options || {};
     const sql = this.queryGenerator.createDatabaseQuery(database, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -45,10 +49,15 @@ class QueryInterface {
    * @returns {Promise}
    */
   async dropDatabase(database, options) {
-    options = options || {};
     const sql = this.queryGenerator.dropDatabaseQuery(database);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
+  }
+
+  async listDatabases(options) {
+    const sql = this.queryGenerator.listDatabasesQuery();
+
+    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SELECT });
   }
 
   /**
@@ -60,10 +69,9 @@ class QueryInterface {
    * @returns {Promise}
    */
   async createSchema(schema, options) {
-    options = options || {};
-    const sql = this.queryGenerator.createSchema(schema);
+    const sql = this.queryGenerator.createSchemaQuery(schema);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -75,10 +83,17 @@ class QueryInterface {
    * @returns {Promise}
    */
   async dropSchema(schema, options) {
-    options = options || {};
-    const sql = this.queryGenerator.dropSchema(schema);
+    const query = this.queryGenerator.dropSchemaQuery(schema);
 
-    return await this.sequelize.query(sql, options);
+    let sql;
+    if (typeof query === 'object') {
+      options = { ...options, bind: query.bind };
+      sql = query.query;
+    } else {
+      sql = query;
+    }
+
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -91,7 +106,7 @@ class QueryInterface {
   async dropAllSchemas(options) {
     options = options || {};
 
-    if (!this.queryGenerator._dialect.supports.schemas) {
+    if (!this.queryGenerator.dialect.supports.schemas) {
       return this.sequelize.drop(options);
     }
 
@@ -108,15 +123,13 @@ class QueryInterface {
    * @returns {Promise<Array>}
    */
   async showAllSchemas(options) {
-    options = {
+    const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
+
+    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, {
       ...options,
       raw: true,
       type: this.sequelize.QueryTypes.SELECT,
-    };
-
-    const showSchemasSql = this.queryGenerator.showSchemasQuery(options);
-
-    const schemaNames = await this.sequelize.query(showSchemasSql, options);
+    });
 
     return schemaNames.flatMap(value => (value.schema_name ? value.schema_name : value));
   }
@@ -130,8 +143,9 @@ class QueryInterface {
    * @returns {Promise}
    * @private
    */
+  // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
-    return await this.sequelize.query(
+    return await this.sequelize.queryRaw(
       this.queryGenerator.versionQuery(),
       { ...options, type: QueryTypes.VERSION },
     );
@@ -145,26 +159,26 @@ class QueryInterface {
    *   'nameOfTheNewTable',
    *   {
    *     id: {
-   *       type: Sequelize.INTEGER,
+   *       type: DataTypes.INTEGER,
    *       primaryKey: true,
    *       autoIncrement: true
    *     },
    *     createdAt: {
-   *       type: Sequelize.DATE
+   *       type: DataTypes.DATE
    *     },
    *     updatedAt: {
-   *       type: Sequelize.DATE
+   *       type: DataTypes.DATE
    *     },
-   *     attr1: Sequelize.STRING,
-   *     attr2: Sequelize.INTEGER,
+   *     attr1: DataTypes.STRING,
+   *     attr2: DataTypes.INTEGER,
    *     attr3: {
-   *       type: Sequelize.BOOLEAN,
+   *       type: DataTypes.BOOLEAN,
    *       defaultValue: false,
    *       allowNull: false
    *     },
    *     //foreign key usage
    *     attr4: {
-   *       type: Sequelize.INTEGER,
+   *       type: DataTypes.INTEGER,
    *       references: {
    *         model: 'another_table_name',
    *         key: 'id'
@@ -225,10 +239,32 @@ class QueryInterface {
       });
     }
 
-    attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable' });
+    attributes = this.queryGenerator.attributesToSQL(attributes, {
+      table: tableName,
+      context: 'createTable',
+      withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
+    });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Returns a promise that will resolve to true if the table exists in the database, false otherwise.
+   *
+   * @param {TableName} tableName - The name of the table
+   * @param {QueryOptions} options - Query options
+   * @returns {Promise<boolean>}
+   */
+  async tableExists(tableName, options) {
+    const sql = this.queryGenerator.tableExistsQuery(tableName);
+
+    const out = await this.sequelize.query(sql, {
+      ...options,
+      type: QueryTypes.SHOWTABLES,
+    });
+
+    return out.length === 1;
   }
 
   /**
@@ -246,7 +282,7 @@ class QueryInterface {
 
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
-    await this.sequelize.query(sql, options);
+    await this.sequelize.queryRaw(sql, options);
   }
 
   async _dropAllTables(tableNames, skip, options) {
@@ -280,7 +316,7 @@ class QueryInterface {
       }
 
       for (const foreignKey of foreignKeys[normalizedTableName]) {
-        await this.sequelize.query(this.queryGenerator.dropForeignKeyQuery(tableName, foreignKey));
+        await this.sequelize.queryRaw(this.queryGenerator.dropForeignKeyQuery(tableName, foreignKey));
       }
     }
 
@@ -300,7 +336,7 @@ class QueryInterface {
     options = options || {};
     const sql = this.queryGenerator.renameTableQuery(before, after);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -321,7 +357,7 @@ class QueryInterface {
     };
 
     const showTablesSql = this.queryGenerator.showTablesQuery(this.sequelize.config.database);
-    const tableNames = await this.sequelize.query(showTablesSql, options);
+    const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
 
     return tableNames.flat();
   }
@@ -371,7 +407,7 @@ class QueryInterface {
     options = { ...options, type: QueryTypes.DESCRIBE };
 
     try {
-      const data = await this.sequelize.query(sql, options);
+      const data = await this.sequelize.queryRaw(sql, options);
       /*
        * If no data is returned from the query, then the table name may be wrong.
        * Query generators that use information_schema for retrieving table info will just return an empty result set,
@@ -395,7 +431,7 @@ class QueryInterface {
    * Add a new column to a table
    *
    * ```js
-   * queryInterface.addColumn('tableA', 'columnC', Sequelize.STRING, {
+   * queryInterface.addColumn('tableA', 'columnC', DataTypes.STRING, {
    *    after: 'columnB' // after option is only supported by MySQL
    * });
    * ```
@@ -407,15 +443,25 @@ class QueryInterface {
    *
    * @returns {Promise}
    */
-  async addColumn(table, key, attribute, options) {
+  async addColumn(table, key, attribute, options = {}) {
     if (!table || !key || !attribute) {
       throw new Error('addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
     }
 
-    options = options || {};
     attribute = this.sequelize.normalizeAttribute(attribute);
 
-    return await this.sequelize.query(this.queryGenerator.addColumnQuery(table, key, attribute), options);
+    if (
+      attribute.type instanceof AbstractDataType
+      // we don't give a context if it already has one, because it could come from a Model.
+      && !attribute.type.usageContext
+    ) {
+      attribute.type.attachUsageContext({ tableName: table, columnName: key, sequelize: this.sequelize });
+    }
+
+    const { ifNotExists, ...rawQueryOptions } = options;
+    const addColumnQueryOptions = ifNotExists ? { ifNotExists } : undefined;
+
+    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute, addColumnQueryOptions), rawQueryOptions);
   }
 
   /**
@@ -426,7 +472,12 @@ class QueryInterface {
    * @param {object} [options]      Query options
    */
   async removeColumn(tableName, attributeName, options) {
-    return this.sequelize.query(this.queryGenerator.removeColumnQuery(tableName, attributeName), options);
+    options = options || {};
+
+    const { ifExists, ...rawQueryOptions } = options;
+    const removeColumnQueryOptions = ifExists ? { ifExists } : undefined;
+
+    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName, removeColumnQueryOptions), rawQueryOptions);
   }
 
   normalizeAttribute(dataTypeOrOptions) {
@@ -482,7 +533,7 @@ class QueryInterface {
     });
     const sql = this.queryGenerator.changeColumnQuery(tableName, query);
 
-    return this.sequelize.query(sql, options);
+    return this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -536,7 +587,7 @@ class QueryInterface {
       this.queryGenerator.attributesToSQL(_options),
     );
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -574,7 +625,7 @@ class QueryInterface {
     options.fields = attributes;
     const sql = this.queryGenerator.addIndexQuery(tableName, options, rawTablename);
 
-    return await this.sequelize.query(sql, { ...options, supportsSearchPath: false });
+    return await this.sequelize.queryRaw(sql, { ...options, supportsSearchPath: false });
   }
 
   /**
@@ -589,7 +640,7 @@ class QueryInterface {
   async showIndex(tableName, options) {
     const sql = this.queryGenerator.showIndexesQuery(tableName, options);
 
-    return await this.sequelize.query(sql, { ...options, type: QueryTypes.SHOWINDEXES });
+    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWINDEXES });
   }
 
   /**
@@ -607,7 +658,7 @@ class QueryInterface {
 
     options = { ...options, type: QueryTypes.FOREIGNKEYS };
 
-    const results = await Promise.all(tableNames.map(tableName => this.sequelize.query(this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database), options)));
+    const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database), options)));
 
     const result = {};
 
@@ -644,7 +695,7 @@ class QueryInterface {
     };
     const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database);
 
-    return this.sequelize.query(query, queryOptions);
+    return this.sequelize.queryRaw(query, queryOptions);
   }
 
   /**
@@ -661,7 +712,7 @@ class QueryInterface {
     options = options || {};
     const sql = this.queryGenerator.removeIndexQuery(tableName, indexNameOrAttributes, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -758,13 +809,13 @@ class QueryInterface {
 
     const sql = this.queryGenerator.addConstraintQuery(tableName, options);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async showConstraint(tableName, constraintName, options) {
     const sql = this.queryGenerator.showConstraintsQuery(tableName, constraintName);
 
-    return await this.sequelize.query(sql, { ...options, type: QueryTypes.SHOWCONSTRAINTS });
+    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWCONSTRAINTS });
   }
 
   /**
@@ -775,18 +826,26 @@ class QueryInterface {
    * @param {object} options         Query options
    */
   async removeConstraint(tableName, constraintName, options) {
-    return this.sequelize.query(this.queryGenerator.removeConstraintQuery(tableName, constraintName), options);
+    return this.sequelize.queryRaw(this.queryGenerator.removeConstraintQuery(tableName, constraintName), options);
   }
 
   async insert(instance, tableName, values, options) {
+    if (options?.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = Utils.cloneDeep(options);
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
-    const sql = this.queryGenerator.insertQuery(tableName, values, instance && instance.constructor.rawAttributes, options);
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, values, instance && instance.constructor.rawAttributes, options);
 
     options.type = QueryTypes.INSERT;
     options.instance = instance;
 
-    const results = await this.sequelize.query(sql, options);
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+    options.bind = combineBinds(options.bind, bind);
+
+    const results = await this.sequelize.queryRaw(query, options);
     if (instance) {
       results[0].isNewRecord = false;
     }
@@ -806,6 +865,10 @@ class QueryInterface {
    * @returns {Promise<boolean,?number>} Resolves an array with <created, primaryKey>
    */
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (options?.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = { ...options };
 
     const model = options.model;
@@ -817,7 +880,7 @@ class QueryInterface {
     if (options.upsertKeys.length === 0) {
       const primaryKeys = Object.values(model.primaryKeys).map(item => item.field);
       const uniqueKeys = Object.values(model.uniqueKeys).filter(c => c.fields.length > 0).map(c => c.fields);
-      const indexKeys = Object.values(model._indexes).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
+      const indexKeys = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
       // For fields in updateValues, try to find a constraint or unique index
       // that includes given field. Only first matching upsert key is used.
       for (const field of options.updateOnDuplicate) {
@@ -845,9 +908,13 @@ class QueryInterface {
       options.upsertKeys = _.uniq(options.upsertKeys);
     }
 
-    const sql = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const { bind, query } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
 
-    return await this.sequelize.query(sql, options);
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacement;
+    options.bind = combineBinds(options.bind, bind);
+
+    return await this.sequelize.queryRaw(query, options);
   }
 
   /**
@@ -872,28 +939,36 @@ class QueryInterface {
    * @returns {Promise}
    */
   async bulkInsert(tableName, records, options, attributes) {
-    options = { ...options };
-    options.type = QueryTypes.INSERT;
+    options = { ...options, type: QueryTypes.INSERT };
 
-    const results = await this.sequelize.query(
-      this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes),
-      options,
-    );
+    const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes);
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+
+    const results = await this.sequelize.queryRaw(sql, options);
 
     return results[0];
   }
 
-  async update(instance, tableName, values, identifier, options) {
+  async update(instance, tableName, values, where, options) {
+    if (options?.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = { ...options };
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
 
-    const sql = this.queryGenerator.updateQuery(tableName, values, identifier, options, instance.constructor.rawAttributes);
+    const { query, bind } = this.queryGenerator.updateQuery(tableName, values, where, options, instance.constructor.rawAttributes);
 
     options.type = QueryTypes.UPDATE;
-
     options.instance = instance;
 
-    return await this.sequelize.query(sql, options);
+    delete options.replacements;
+
+    options.bind = combineBinds(options.bind, bind);
+
+    return await this.sequelize.queryRaw(query, options);
   }
 
   /**
@@ -909,33 +984,42 @@ class QueryInterface {
    *
    * @param {string} tableName     Table name to update
    * @param {object} values        Values to be inserted, mapped to field name
-   * @param {object} identifier    A hash with conditions OR an ID as integer OR a string with conditions
+   * @param {object} where    A hash with conditions OR an ID as integer OR a string with conditions
    * @param {object} [options]     Various options, please see Model.bulkCreate options
-   * @param {object} [attributes]  Attributes on return objects if supported by SQL dialect
+   * @param {object} [columnDefinitions]  Attributes on return objects if supported by SQL dialect
    *
    * @returns {Promise}
    */
-  async bulkUpdate(tableName, values, identifier, options, attributes) {
-    options = Utils.cloneDeep(options);
-    if (typeof identifier === 'object') {
-      identifier = Utils.cloneDeep(identifier);
+  async bulkUpdate(tableName, values, where, options, columnDefinitions) {
+    if (options?.bind) {
+      assertNoReservedBind(options.bind);
     }
 
-    const sql = this.queryGenerator.updateQuery(tableName, values, identifier, options, attributes);
+    options = Utils.cloneDeep(options);
+    if (typeof where === 'object') {
+      where = Utils.cloneDeep(where);
+    }
+
+    const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
     const table = _.isObject(tableName) ? tableName : { tableName };
-    const model = _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const model = options.model ? options.model : _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;
+    options.bind = combineBinds(options.bind, bind);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(query, options);
   }
 
   async delete(instance, tableName, identifier, options) {
     const cascades = [];
+
     const sql = this.queryGenerator.deleteQuery(tableName, identifier, {}, instance.constructor);
 
     options = { ...options };
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
 
     // Check for a restrict field
     if (Boolean(instance.constructor) && Boolean(instance.constructor.associations)) {
@@ -947,7 +1031,7 @@ class QueryInterface {
         association = instance.constructor.associations[keys[i]];
         if (association.options && association.options.onDelete
           && association.options.onDelete.toLowerCase() === 'cascade'
-          && association.options.useHooks === true) {
+          && association.options.hooks === true) {
           cascades.push(association.accessors.get);
         }
       }
@@ -971,7 +1055,7 @@ class QueryInterface {
 
     options.instance = instance;
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -992,7 +1076,7 @@ class QueryInterface {
     options = _.defaults(options, { limit: null });
 
     if (options.truncate === true) {
-      return this.sequelize.query(
+      return this.sequelize.queryRaw(
         this.queryGenerator.truncateTableQuery(tableName, options),
         options,
       );
@@ -1002,8 +1086,13 @@ class QueryInterface {
       where = Utils.cloneDeep(where);
     }
 
-    return await this.sequelize.query(
-      this.queryGenerator.deleteQuery(tableName, where, options, model),
+    const sql = this.queryGenerator.deleteQuery(tableName, where, options, model);
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+
+    return await this.sequelize.queryRaw(
+      sql,
       options,
     );
   }
@@ -1011,32 +1100,34 @@ class QueryInterface {
   async select(model, tableName, optionsArg) {
     const options = { ...optionsArg, type: QueryTypes.SELECT, model };
 
-    return await this.sequelize.query(
-      this.queryGenerator.selectQuery(tableName, options, model),
-      options,
-    );
+    const sql = this.queryGenerator.selectQuery(tableName, options, model);
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async increment(model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
-    options = Utils.cloneDeep(options);
-
-    const sql = this.queryGenerator.arithmeticQuery('+', tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
-
-    options.type = QueryTypes.UPDATE;
-    options.model = model;
-
-    return await this.sequelize.query(sql, options);
+    return this.#arithmeticQuery('+', model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
   }
 
   async decrement(model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
+    return this.#arithmeticQuery('-', model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
+  }
+
+  async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
     options = Utils.cloneDeep(options);
-
-    const sql = this.queryGenerator.arithmeticQuery('-', tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
-
-    options.type = QueryTypes.UPDATE;
     options.model = model;
 
-    return await this.sequelize.query(sql, options);
+    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
+
+    options.type = QueryTypes.UPDATE;
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async rawSelect(tableName, options, attributeSelector, Model) {
@@ -1053,7 +1144,10 @@ class QueryInterface {
       throw new Error('Please pass an attribute selector!');
     }
 
-    const data = await this.sequelize.query(sql, options);
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+
+    const data = await this.sequelize.queryRaw(sql, options);
     if (!options.plain) {
       return data;
     }
@@ -1066,10 +1160,14 @@ class QueryInterface {
 
     const dataType = options.dataType;
 
+    // TODO: DECIMAL is not safely representable as a float!
+    //  Use the DataType's parse method instead.
     if ((dataType instanceof DataTypes.DECIMAL || dataType instanceof DataTypes.FLOAT) && result !== null) {
       return Number.parseFloat(result);
     }
 
+    // TODO: BIGINT is not safely representable as an int!
+    //  Use the DataType's parse method instead.
     if ((dataType instanceof DataTypes.INTEGER || dataType instanceof DataTypes.BIGINT) && result !== null) {
       return Number.parseInt(result, 10);
     }
@@ -1094,7 +1192,7 @@ class QueryInterface {
     const sql = this.queryGenerator.createTrigger(tableName, triggerName, timingType, fireOnArray, functionName, functionParams, optionsArray);
     options = options || {};
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1103,7 +1201,7 @@ class QueryInterface {
     options = options || {};
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1112,7 +1210,7 @@ class QueryInterface {
     options = options || {};
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1158,7 +1256,7 @@ class QueryInterface {
     options = options || {};
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1185,7 +1283,7 @@ class QueryInterface {
     options = options || {};
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1214,7 +1312,7 @@ class QueryInterface {
     options = options || {};
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1247,7 +1345,7 @@ class QueryInterface {
       return;
     }
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async startTransaction(transaction, options) {
@@ -1259,7 +1357,7 @@ class QueryInterface {
     options.transaction.name = transaction.parent ? transaction.name : undefined;
     const sql = this.queryGenerator.startTransactionQuery(transaction);
 
-    return await this.sequelize.query(sql, options);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async deferConstraints(transaction, options) {
@@ -1268,7 +1366,7 @@ class QueryInterface {
     const sql = this.queryGenerator.deferConstraintsQuery(options);
 
     if (sql) {
-      return await this.sequelize.query(sql, options);
+      return await this.sequelize.queryRaw(sql, options);
     }
   }
 
@@ -1290,7 +1388,7 @@ class QueryInterface {
     };
 
     const sql = this.queryGenerator.commitTransactionQuery(transaction);
-    const promise = this.sequelize.query(sql, options);
+    const promise = this.sequelize.queryRaw(sql, options);
 
     transaction.finished = 'commit';
 
@@ -1310,12 +1408,10 @@ class QueryInterface {
     };
     options.transaction.name = transaction.parent ? transaction.name : undefined;
     const sql = this.queryGenerator.rollbackTransactionQuery(transaction);
-    const promise = this.sequelize.query(sql, options);
+    const promise = this.sequelize.queryRaw(sql, options);
 
     transaction.finished = 'rollback';
 
     return await promise;
   }
 }
-
-exports.QueryInterface = QueryInterface;

@@ -4,12 +4,12 @@ const chai = require('chai');
 const sinon = require('sinon');
 
 const expect = chai.expect;
-const Sequelize = require('@sequelize/core');
+const { Sequelize, Op, DataTypes } = require('@sequelize/core');
 
-const Op = Sequelize.Op;
-const Support = require('../support');
+const Support = require('../../support');
 
 const current = Support.sequelize;
+const dialect = current.dialect;
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('validations', () => {
@@ -81,7 +81,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         pass: '9.2',
       },
       isNull: {
-        fail: 0,
+        fail: '0',
         pass: null,
       },
       notEmpty: {
@@ -191,7 +191,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         const UserFail = this.sequelize.define(`User${Support.rand()}`, {
           name: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             validate: validations,
           },
         });
@@ -236,7 +236,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         const UserSuccess = this.sequelize.define(`User${Support.rand()}`, {
           name: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             validate: validations,
           },
         });
@@ -271,22 +271,56 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     }
   });
 
-  describe('datatype validations', () => {
-    const current = Support.createSequelizeInstance({
-      typeValidation: true,
-    });
+  if (dialect.supports.dataTypes.DECIMAL) {
+    describe('DECIMAL validator', () => {
+      const User = current.define('user', {
+        decimal: DataTypes.DECIMAL(10, 2),
+      });
 
+      before(function () {
+        this.stub = sinon.stub(current, 'queryRaw').callsFake(async () => [User.build({}), 1]);
+      });
+
+      after(function () {
+        this.stub.restore();
+      });
+
+      it('should allow decimal as a string', async () => {
+        await expect(User.create({
+          decimal: '12.6',
+        })).not.to.be.rejected;
+      });
+
+      it('should allow decimal big numbers as a string', async () => {
+        await expect(User.create({
+          decimal: '2321312301230128391820831289123012',
+        })).not.to.be.rejected;
+      });
+
+      it('should allow decimal as scientific notation', async () => {
+        await Promise.all([
+          expect(User.create({
+            decimal: '2321312301230128391820e219',
+          })).not.to.be.rejected,
+          expect(User.create({
+            decimal: '2321312301230128391820e+219',
+          })).not.to.be.rejected,
+        ]);
+      });
+    });
+  }
+
+  describe('datatype validations', () => {
     const User = current.define('user', {
-      age: Sequelize.INTEGER,
-      name: Sequelize.STRING,
-      awesome: Sequelize.BOOLEAN,
-      number: Sequelize.DECIMAL,
-      uid: Sequelize.UUID,
-      date: Sequelize.DATE,
+      integer: DataTypes.INTEGER,
+      name: DataTypes.STRING,
+      awesome: DataTypes.BOOLEAN,
+      uid: DataTypes.UUID,
+      date: DataTypes.DATE,
     });
 
     before(function () {
-      this.stub = sinon.stub(current, 'query').callsFake(async () => [User.build({}), 1]);
+      this.stub = sinon.stub(current, 'queryRaw').callsFake(async () => [User.build({}), 1]);
     });
 
     after(function () {
@@ -297,13 +331,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       describe('create', () => {
         it('should allow number as a string', async () => {
           await expect(User.create({
-            age: '12',
-          })).not.to.be.rejected;
-        });
-
-        it('should allow decimal as a string', async () => {
-          await expect(User.create({
-            number: '12.6',
+            integer: '12',
           })).not.to.be.rejected;
         });
 
@@ -312,46 +340,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             where: {
               date: '2000-12-16',
             },
-          })).not.to.be.rejected;
-        });
-
-        it('should allow decimal big numbers as a string', async () => {
-          await expect(User.create({
-            number: '2321312301230128391820831289123012',
-          })).not.to.be.rejected;
-        });
-
-        it('should allow decimal as scientific notation', async () => {
-          await Promise.all([expect(User.create({
-            number: '2321312301230128391820e219',
-          })).not.to.be.rejected, expect(User.create({
-            number: '2321312301230128391820e+219',
-          })).not.to.be.rejected, expect(User.create({
-            number: '2321312301230128391820f219',
-          })).to.be.rejected]);
-        });
-
-        it('should allow string as a number', async () => {
-          await expect(User.create({
-            name: 12,
-          })).not.to.be.rejected;
-        });
-
-        it('should allow 0/1 as a boolean', async () => {
-          await expect(User.create({
-            awesome: 1,
-          })).not.to.be.rejected;
-        });
-
-        it('should allow 0/1 string as a boolean', async () => {
-          await expect(User.create({
-            awesome: '1',
-          })).not.to.be.rejected;
-        });
-
-        it('should allow true/false string as a boolean', async () => {
-          await expect(User.create({
-            awesome: 'true',
           })).not.to.be.rejected;
         });
       });
@@ -381,30 +369,30 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
     });
 
-    describe('should throw validationerror', () => {
+    describe('should throw validationError', () => {
 
       describe('create', () => {
         it('should throw when passing string', async () => {
-          await expect(User.create({
-            age: 'jan',
-          })).to.be.rejectedWith(Sequelize.ValidationError)
-            .which.eventually.have.property('errors')
+          const error = await expect(User.create({
+            integer: 'jan',
+          })).to.be.rejectedWith(Sequelize.ValidationError, `'jan' is not a valid integer`);
+
+          expect(error).to.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
             .and.with.property(0)
             .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
             .and.include({
               type: 'Validation error',
-              path: 'age',
+              path: 'integer',
               value: 'jan',
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
 
         it('should throw when passing decimal', async () => {
           await expect(User.create({
-            age: 4.5,
+            integer: 4.5,
           })).to.be.rejectedWith(Sequelize.ValidationError)
             .which.eventually.have.property('errors')
             .that.is.an('array')
@@ -413,9 +401,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
             .and.include({
               type: 'Validation error',
-              path: 'age',
+              path: 'integer',
               value: 4.5,
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
@@ -424,7 +411,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       describe('update', () => {
         it('should throw when passing string', async () => {
           await expect(User.update({
-            age: 'jan',
+            integer: 'jan',
           }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError)
             .which.eventually.have.property('errors')
             .that.is.an('array')
@@ -433,16 +420,15 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
             .and.include({
               type: 'Validation error',
-              path: 'age',
+              path: 'integer',
               value: 'jan',
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
 
         it('should throw when passing decimal', async () => {
           await expect(User.update({
-            age: 4.5,
+            integer: 4.5,
           }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError)
             .which.eventually.have.property('errors')
             .that.is.an('array')
@@ -451,9 +437,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
             .and.include({
               type: 'Validation error',
-              path: 'age',
+              path: 'integer',
               value: 4.5,
-              instance: null,
               validatorKey: 'INTEGER validator',
             });
         });
@@ -463,21 +448,20 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions', () => {
-
     const User = current.define('user', {
-      age: {
-        type: Sequelize.INTEGER,
+      integer: {
+        type: DataTypes.INTEGER,
         validate: {
           customFn(val, next) {
             if (val < 0) {
-              next('age must be greater or equal zero');
+              next('integer must be greater or equal zero');
             } else {
               next();
             }
           },
         },
       },
-      name: Sequelize.STRING,
+      name: DataTypes.STRING,
     }, {
       validate: {
         customFn() {
@@ -489,7 +473,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     before(function () {
-      this.stub = sinon.stub(current, 'query').resolves([User.build(), 1]);
+      this.stub = sinon.stub(current, 'queryRaw').resolves([User.build(), 1]);
     });
 
     after(function () {
@@ -500,7 +484,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       describe('create', () => {
         it('custom validation functions are successful', async () => {
           await expect(User.create({
-            age: 1,
+            integer: 1,
             name: 'noerror',
           })).not.to.be.rejected;
         });
@@ -509,7 +493,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       describe('update', () => {
         it('custom validation functions are successful', async () => {
           await expect(User.update({
-            age: 1,
+            integer: 1,
             name: 'noerror',
           }, { where: {} })).not.to.be.rejected;
         });
@@ -517,11 +501,10 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('should throw validationerror', () => {
-
       describe('create', () => {
         it('custom attribute validation function fails', async () => {
           await expect(User.create({
-            age: -1,
+            integer: -1,
           })).to.be.rejectedWith(Sequelize.ValidationError);
         });
 
@@ -535,7 +518,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       describe('update', () => {
         it('custom attribute validation function fails', async () => {
           await expect(User.update({
-            age: -1,
+            integer: -1,
           }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError);
         });
 
@@ -549,9 +532,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions returning promises', () => {
-
     const User = current.define('user', {
-      name: Sequelize.STRING,
+      name: DataTypes.STRING,
     }, {
       validate: {
         async customFn() {
@@ -563,7 +545,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     before(function () {
-      this.stub = sinon.stub(current, 'query').resolves([User.build(), 1]);
+      this.stub = sinon.stub(current, 'queryRaw').resolves([User.build(), 1]);
     });
 
     after(function () {
@@ -589,7 +571,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('should throw validationerror', () => {
-
       describe('create', () => {
         it('custom model validation function fails', async () => {
           await expect(User.create({
@@ -609,22 +590,20 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions and null values', () => {
-
     before(function () {
       this.customValidator = sinon.fake(function (value) {
-        if (value === null && this.age !== 10) {
-          throw new Error('name can\'t be null unless age is 10');
+        if (value === null && this.integer !== 10) {
+          throw new Error('name can\'t be null unless integer is 10');
         }
       });
     });
 
     describe('with allowNull set to true', () => {
-
       before(function () {
         this.User = current.define('user', {
-          age: Sequelize.INTEGER,
+          integer: DataTypes.INTEGER,
           name: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             allowNull: true,
             validate: {
               customValidator: this.customValidator,
@@ -632,7 +611,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           },
         });
 
-        this.stub = sinon.stub(current, 'query').resolves([this.User.build(), 1]);
+        this.stub = sinon.stub(current, 'queryRaw').resolves([this.User.build(), 1]);
       });
 
       after(function () {
@@ -646,15 +625,16 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         it('on create', async function () {
           await expect(this.User.create({
-            age: 10,
+            integer: 10,
             name: null,
           })).not.to.be.rejected;
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
-            age: 10,
+            integer: 10,
             name: null,
           }, { where: {} })).not.to.be.rejected;
 
@@ -669,15 +649,16 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         it('on create', async function () {
           await expect(this.User.create({
-            age: 11,
+            integer: 11,
             name: null,
           })).to.be.rejectedWith(Sequelize.ValidationError);
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
-            age: 11,
+            integer: 11,
             name: null,
           }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError);
 
@@ -688,12 +669,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('with allowNull set to false', () => {
-
       before(function () {
         this.User = current.define('user', {
-          age: Sequelize.INTEGER,
+          integer: DataTypes.INTEGER,
           name: {
-            type: Sequelize.STRING,
+            type: DataTypes.STRING,
             allowNull: false,
             validate: {
               customValidator: this.customValidator,
@@ -701,7 +681,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           },
         });
 
-        this.stub = sinon.stub(current, 'query').resolves([this.User.build(), 1]);
+        this.stub = sinon.stub(current, 'queryRaw').resolves([this.User.build(), 1]);
       });
 
       after(function () {
@@ -715,15 +695,16 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         it('on create', async function () {
           await expect(this.User.create({
-            age: 99,
+            integer: 99,
             name: null,
           })).to.be.rejectedWith(Sequelize.ValidationError);
 
           await expect(this.customValidator).to.have.not.been.called;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
-            age: 99,
+            integer: 99,
             name: null,
           }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError);
 
@@ -738,24 +719,22 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         it('on create', async function () {
           await expect(this.User.create({
-            age: 99,
+            integer: 99,
             name: 'foo',
           })).not.to.be.rejected;
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
+
         it('on update', async function () {
           await expect(this.User.update({
-            age: 99,
+            integer: 99,
             name: 'foo',
           }, { where: {} })).not.to.be.rejected;
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
       });
-
     });
-
   });
-
 });

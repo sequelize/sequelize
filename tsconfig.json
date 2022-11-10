@@ -16,7 +16,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "checkJs": false,
-    "removeComments": false
+    "stripInternal": true,
+    "exactOptionalPropertyTypes": true
   },
   "include": ["./src/**/*.ts"]
 }

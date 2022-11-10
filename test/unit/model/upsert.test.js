@@ -3,12 +3,11 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Sequelize = require('@sequelize/core');
-const Support = require('../support');
+const Support = require('../../support');
 
 const current = Support.sequelize;
 const sinon = require('sinon');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.upserts) {
@@ -44,7 +43,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       beforeEach(function () {
-        this.query = sinon.stub(current, 'query').resolves();
+        this.query = sinon.stub(current, 'queryRaw').resolves();
         this.stub = sinon.stub(current.getQueryInterface(), 'upsert').resolves([this.User.build(), true]);
       });
 
@@ -63,7 +62,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User
           .upsert({
             name: 'Young Cat',
-            virtualValue: 999,
+            virtualValue: '999',
           });
 
         expect(Object.keys(this.stub.getCall(0).args[1])).to.deep.equal([
@@ -86,7 +85,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User
           .upsert({
             name: 'Old Cat',
-            virtualValue: 111,
+            virtualValue: '111',
           });
 
         expect(Object.keys(this.stub.getCall(0).args[2])).to.deep.equal([

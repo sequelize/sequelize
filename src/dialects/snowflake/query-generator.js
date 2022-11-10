@@ -1,8 +1,18 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { rejectInvalidOptions } from '../../utils';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const util = require('util');
 const { Op } = require('../../operators');
 
@@ -34,7 +44,13 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
-class SnowflakeQueryGenerator extends AbstractQueryGenerator {
+const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const LIST_SCHEMAS_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+
+export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
     super(options);
 
@@ -46,17 +62,21 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   createDatabaseQuery(databaseName, options) {
-    options = {
-      charset: null,
-      collate: null,
-      ...options,
-    };
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect.name,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
 
     return Utils.joinSQLFragments([
       'CREATE DATABASE IF NOT EXISTS',
       this.quoteIdentifier(databaseName),
-      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
+      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
+      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
       ';',
     ]);
   }
@@ -65,12 +85,40 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
   }
 
-  createSchema() {
-    return 'SHOW TABLES';
+  listDatabasesQuery() {
+    return `SHOW DATABASES;`;
   }
 
-  showSchemasQuery() {
-    return 'SHOW TABLES';
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect.name,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
+  }
+
+  dropSchemaQuery(schema) {
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
+  }
+
+  listSchemasQuery(options) {
+    if (options) {
+      rejectInvalidOptions(
+        'listSchemasQuery',
+        this.dialect.name,
+        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
+        LIST_SCHEMAS_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `SHOW SCHEMAS;`;
   }
 
   versionQuery() {
@@ -145,7 +193,7 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       'CREATE TABLE IF NOT EXISTS',
       table,
       `(${attributesClause})`,
-      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
+      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment, undefined, options)}`,
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
@@ -165,15 +213,37 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     return `SHOW FULL COLUMNS FROM ${table};`;
   }
 
-  showTablesQuery(database) {
+  showTablesQuery(database, options) {
     return Utils.joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
+      database ? `AND TABLE_SCHEMA = ${this.escape(database, undefined, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
       ';',
     ]);
   }
 
-  addColumnQuery(table, key, dataType) {
+  tableExistsQuery(table) {
+    const tableName = table.tableName ?? table;
+    const schema = table.schema;
+
+    return Utils.joinSQLFragments([
+      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
+      `AND TABLE_SCHEMA = ${schema !== undefined ? this.escape(schema) : 'CURRENT_SCHEMA()'}`,
+      `AND TABLE_NAME = ${this.escape(tableName)}`,
+      ';',
+    ]);
+  }
+
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
@@ -188,7 +258,17 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
@@ -285,7 +365,7 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
         }
 
         if (attr.value) {
-          str += util.format(' = %s', this.escape(attr.value));
+          str += util.format(' = %s', this.escape(attr.value, undefined, options));
         }
 
         return str;
@@ -316,7 +396,7 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
     let whereClause = this.getWhereConditions(where, null, model, options);
-    const limit = options.limit && ` LIMIT ${this.escape(options.limit)}`;
+    const limit = options.limit && ` LIMIT ${this.escape(options.limit, undefined, options)}`;
     let primaryKeys = '';
     let primaryKeysSelection = '';
 
@@ -346,7 +426,6 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
         whereClause,
         limit,
         ')',
-        ';',
       ]);
     }
 
@@ -354,7 +433,6 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       'DELETE FROM',
       table,
       whereClause,
-      ';',
     ]);
   }
 
@@ -404,7 +482,7 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attribute.type.toString({ dialect: this.dialect });
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -418,8 +496,8 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && Utils.defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      && defaultValueSchemable(attribute.defaultValue)) {
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
     }
 
     if (attribute.unique === true) {
@@ -431,7 +509,7 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (attribute.comment) {
-      template += ` COMMENT ${this.escape(attribute.comment)}`;
+      template += ` COMMENT ${this.escape(attribute.comment, undefined, options)}`;
     }
 
     if (attribute.first) {
@@ -640,14 +718,15 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   addLimitAndOffset(options) {
-    let fragment = [];
-    if (options.offset !== null && options.offset !== undefined && options.offset !== 0) {
-      fragment = [...fragment, ' LIMIT ', this.escape(options.limit), ' OFFSET ', this.escape(options.offset)];
-    } else if (options.limit !== null && options.limit !== undefined) {
-      fragment = [' LIMIT ', this.escape(options.limit)];
+    if (options.offset) {
+      return ` LIMIT ${this.escape(options.limit ?? null, undefined, options)} OFFSET ${this.escape(options.offset, undefined, options)}`;
     }
 
-    return fragment.join('');
+    if (options.limit != null) {
+      return ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+    }
+
+    return '';
   }
 
   /**
@@ -686,5 +765,3 @@ class SnowflakeQueryGenerator extends AbstractQueryGenerator {
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }
-
-module.exports = SnowflakeQueryGenerator;

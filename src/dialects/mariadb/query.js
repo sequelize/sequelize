@@ -1,6 +1,8 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+import NodeUtil from 'node:util';
+
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
 const DataTypes = require('../../data-types');
@@ -13,25 +15,9 @@ const ER_NO_REFERENCED_ROW = 1452;
 
 const debug = logger.debugContext('sql:mariadb');
 
-class Query extends AbstractQuery {
+export class MariaDbQuery extends AbstractQuery {
   constructor(connection, sequelize, options) {
     super(connection, sequelize, { showWarnings: false, ...options });
-  }
-
-  static formatBindParameters(sql, values, dialect) {
-    const bindParam = [];
-    const replacementFunc = (match, key, values_) => {
-      if (values_[key] !== undefined) {
-        bindParam.push(values_[key]);
-
-        return '?';
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParam.length > 0 ? bindParam : undefined];
   }
 
   async run(sql, parameters) {
@@ -204,7 +190,9 @@ class Query extends AbstractQuery {
       if (modelField.type instanceof DataTypes.JSON) {
         // Value is returned as String, not JSON
         rows = rows.map(row => {
-          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string') {
+          // JSON fields for MariaDB server 10.5.2+ already results in JSON format, skip JSON.parse
+          // this is due to this https://jira.mariadb.org/browse/MDEV-17832 and how mysql2 connector interacts with MariaDB and JSON fields
+          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string' && !this.connection.info.hasMinVersion(10, 5, 2)) {
             row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
           }
 
@@ -217,31 +205,6 @@ class Query extends AbstractQuery {
         });
       }
     }
-  }
-
-  async logWarnings(results) {
-    const warningResults = await this.run('SHOW WARNINGS');
-    const warningMessage = `MariaDB Warnings (${this.connection.uuid || 'default'}): `;
-    const messages = [];
-    for (const _warningRow of warningResults) {
-      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
-        continue;
-      }
-
-      for (const _warningResult of _warningRow) {
-        if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
-          messages.push(_warningResult.Message);
-        } else {
-          for (const _objectKey of _warningResult.keys()) {
-            messages.push([_objectKey, _warningResult[_objectKey]].join(': '));
-          }
-        }
-      }
-    }
-
-    this.sequelize.log(warningMessage + messages.join('; '), this.options);
-
-    return results;
   }
 
   formatError(err, errStack) {
@@ -280,7 +243,7 @@ class Query extends AbstractQuery {
           ));
         });
 
-        return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
       }
 
       case ER_ROW_IS_REFERENCED:
@@ -298,7 +261,7 @@ class Query extends AbstractQuery {
           fields,
           value: fields && fields.length && this.instance && this.instance[fields[0]] || undefined,
           index: match ? match[2] : undefined,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
       }
@@ -327,7 +290,7 @@ class Query extends AbstractQuery {
           fields: [],
           name: item.Key_name,
           tableName: item.Table,
-          unique: item.Non_unique !== 1,
+          unique: item.Non_unique !== '1',
           type: item.Index_type,
         };
         result.push(currItem);
@@ -336,12 +299,16 @@ class Query extends AbstractQuery {
       currItem.fields[item.Seq_in_index - 1] = {
         attribute: item.Column_name,
         length: item.Sub_part || undefined,
-        order: item.Collation === 'A' ? 'ASC' : undefined,
+        order: item.Collation === 'A' ? 'ASC'
+          : item.Collation === 'D' ? 'DESC'
+          // Not sorted
+          : item.Collation === null ? null
+          : (() => {
+            throw new Error(`Unknown index collation ${NodeUtil.inspect(item.Collation)}`);
+          })(),
       };
     }
 
     return result;
   }
 }
-
-module.exports = Query;

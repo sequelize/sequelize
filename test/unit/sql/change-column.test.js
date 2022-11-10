@@ -1,8 +1,8 @@
 'use strict';
 
 const sinon = require('sinon');
-const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const Support = require('../../support');
+const { DataTypes } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -23,7 +23,7 @@ if (current.dialect.name !== 'sqlite') {
       }, { timestamps: false });
 
       before(function () {
-        this.stub = sinon.stub(current, 'query').resolvesArg(0);
+        this.stub = sinon.stub(current, 'queryRaw').resolvesArg(0);
       });
 
       beforeEach(function () {
@@ -40,12 +40,12 @@ if (current.dialect.name !== 'sqlite') {
           allowNull: false,
         }).then(sql => {
           expectsql(sql, {
-            ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE FLOAT NOT NULL',
-            mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] FLOAT NOT NULL;',
-            db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE FLOAT ALTER COLUMN "level_id" SET NOT NULL;',
+            ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL NOT NULL',
+            mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] REAL NOT NULL;',
+            db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL;',
             mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
             mysql: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
-            postgres: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
+            postgres: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE REAL;',
             snowflake: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
           });
         });

@@ -1,13 +1,12 @@
 'use strict';
 
-const Support   = require('../support');
-const { QueryTypes } = require('@sequelize/core/lib/query-types');
+const Support   = require('../../support');
+const { QueryTypes, DataTypes } = require('@sequelize/core');
 const util = require('util');
 const _ = require('lodash');
 
 const expectsql = Support.expectsql;
 const current   = Support.sequelize;
-const Sequelize = Support.Sequelize;
 const sql       = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
@@ -39,7 +38,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'TRUNCATE "public"."test_users" CASCADE',
             mssql: 'TRUNCATE TABLE [public].[test_users]',
             mariadb: 'TRUNCATE `public`.`test_users`',
-            mysql: 'TRUNCATE `public.test_users`',
+            mysql: 'TRUNCATE `public`.`test_users`',
             db2: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
             sqlite: 'DELETE FROM `public.test_users`',
             snowflake: 'TRUNCATE "public"."test_users"',
@@ -69,7 +68,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'TRUNCATE "public"."test_users" RESTART IDENTITY CASCADE',
             mssql: 'TRUNCATE TABLE [public].[test_users]',
             mariadb: 'TRUNCATE `public`.`test_users`',
-            mysql: 'TRUNCATE `public.test_users`',
+            mysql: 'TRUNCATE `public`.`test_users`',
             db2: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
             sqlite: 'DELETE FROM `public.test_users`; DELETE FROM `sqlite_sequence` WHERE `name` = \'public.test_users\';',
             snowflake: 'TRUNCATE "public"."test_users"',
@@ -94,13 +93,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             options,
             User,
           ), {
-            default: 'DELETE FROM [public.test_users] WHERE `name` = \'foo\'',
+            default: 'DELETE FROM [public].[test_users] WHERE [name] = \'foo\'',
             postgres: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
             mariadb: 'DELETE FROM `public`.`test_users` WHERE `name` = \'foo\'',
             sqlite: 'DELETE FROM `public.test_users` WHERE `name` = \'foo\'',
             db2: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
             mssql: 'DELETE FROM [public].[test_users] WHERE [name] = N\'foo\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
-            snowflake: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\';',
+            snowflake: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
             ibmi: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'',
           },
         );
@@ -123,14 +122,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             options,
             User,
           ), {
-            ibmi: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
-            postgres: 'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
-            mariadb: 'DELETE FROM `public`.`test_users` WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
+            default: `DELETE FROM [public].[test_users] WHERE [name] = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10`,
+            ibmi: `DELETE FROM "public"."test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' FETCH NEXT 10 ROWS ONLY`,
+            postgres: `DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)`,
             sqlite: 'DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
-            mssql: 'DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N\'foo\'\';DROP TABLE mySchema.myTable;\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
-            db2: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
-            snowflake: 'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10);',
-            default: 'DELETE FROM [public.test_users] WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
+            mssql: `DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+            db2: `DELETE FROM "public"."test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' FETCH NEXT 10 ROWS ONLY`,
+            snowflake: `DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)`,
           },
         );
       });
@@ -159,14 +157,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         return expectsql(
           query, {
+            default: `DELETE FROM [public].[test_users] WHERE [name] = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10`,
             ibmi: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
             postgres: new Error('Cannot LIMIT delete without a model.'),
-            mariadb: 'DELETE FROM `public`.`test_users` WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
             sqlite: 'DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
             mssql: 'DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N\'foo\'\';DROP TABLE mySchema.myTable;\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
             db2: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
             snowflake: new Error('Cannot LIMIT delete without a model.'),
-            default: 'DELETE FROM [public.test_users] WHERE `name` = \'foo\\\';DROP TABLE mySchema.myTable;\' LIMIT 10',
           },
         );
       });
@@ -175,7 +172,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('delete when the primary key has a different field name', () => {
       const User = current.define('test_user', {
         id: {
-          type: Sequelize.INTEGER,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           field: 'test_user_id',
         },
@@ -202,7 +199,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'DELETE FROM "test_user" WHERE "test_user_id" = 100',
             sqlite: 'DELETE FROM `test_user` WHERE `test_user_id` = 100',
             mssql: 'DELETE FROM [test_user] WHERE [test_user_id] = 100; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
-            snowflake: 'DELETE FROM "test_user" WHERE "test_user_id" = 100;',
+            snowflake: 'DELETE FROM "test_user" WHERE "test_user_id" = 100',
             default: 'DELETE FROM [test_user] WHERE [test_user_id] = 100',
           },
         );

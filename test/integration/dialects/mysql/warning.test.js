@@ -5,7 +5,8 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../../support');
 
-const Sequelize = Support.Sequelize;
+const { Sequelize } = require('@sequelize/core');
+
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
@@ -34,7 +35,7 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
         });
 
         // last log is warning message
-        expect(logger.args[logger.args.length - 1][0]).to.be.match(/^MySQL Warnings \(default\):.*/m);
+        expect(logger.args[logger.args.length - 1][0]).to.be.match(/^mysql warnings \(default\):.*/m);
         logger.restore();
       });
     });

@@ -3,49 +3,52 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const Support = require('../../support');
+const { DataTypes } = require('@sequelize/core');
 
 const current = Support.sequelize;
+const dialect = current.dialect;
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('set', () => {
-    it('sets nested keys in JSON objects', () => {
-      const User = current.define('User', {
-        meta: DataTypes.JSONB,
-      });
-      const user = User.build({
-        meta: {
-          location: 'Stockhollm',
-        },
-      }, {
-        isNewRecord: false,
-        raw: true,
+    if (dialect.supports.dataTypes.JSONB) {
+      it('sets nested keys in JSON objects', () => {
+        const User = current.define('User', {
+          meta: DataTypes.JSONB,
+        });
+        const user = User.build({
+          meta: {
+            location: 'Stockhollm',
+          },
+        }, {
+          isNewRecord: false,
+          raw: true,
+        });
+
+        const meta = user.get('meta');
+
+        user.set('meta.location', 'Copenhagen');
+        expect(user.dataValues['meta.location']).not.to.be.ok;
+        expect(user.get('meta').location).to.equal('Copenhagen');
+        expect(user.get('meta') === meta).to.equal(true);
+        expect(user.get('meta') === meta).to.equal(true);
       });
 
-      const meta = user.get('meta');
-
-      user.set('meta.location', 'Copenhagen');
-      expect(user.dataValues['meta.location']).not.to.be.ok;
-      expect(user.get('meta').location).to.equal('Copenhagen');
-      expect(user.get('meta') === meta).to.equal(true);
-      expect(user.get('meta') === meta).to.equal(true);
-    });
-
-    it('doesnt mutate the JSONB defaultValue', () => {
-      const User = current.define('User', {
-        meta: {
-          type: DataTypes.JSONB,
-          allowNull: false,
-          defaultValue: {},
-        },
+      it('doesnt mutate the JSONB defaultValue', () => {
+        const User = current.define('User', {
+          meta: {
+            type: DataTypes.JSONB,
+            allowNull: false,
+            defaultValue: {},
+          },
+        });
+        const user1 = User.build({});
+        user1.set('meta.location', 'Stockhollm');
+        const user2 = User.build({});
+        expect(user2.get('meta')).to.deep.equal({});
       });
-      const user1 = User.build({});
-      user1.set('meta.location', 'Stockhollm');
-      const user2 = User.build({});
-      expect(user2.get('meta')).to.deep.equal({});
-    });
+    }
 
     it('sets the date "1970-01-01" to previously null field', () => {
       const User = current.define('User', {

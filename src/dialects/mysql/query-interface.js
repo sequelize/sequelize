@@ -1,5 +1,7 @@
 'use strict';
 
+import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+
 const sequelizeErrors = require('../../errors');
 const { QueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
@@ -7,7 +9,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk with MySQL/MariaDB database
  */
-class MySQLQueryInterface extends QueryInterface {
+export class MySqlQueryInterface extends QueryInterface {
   /**
    * A wrapper that fixes MySQL's inability to cleanly remove columns from existing tables if they have a foreign key constraint.
    *
@@ -16,7 +18,7 @@ class MySQLQueryInterface extends QueryInterface {
   async removeColumn(tableName, columnName, options) {
     options = options || {};
 
-    const [results] = await this.sequelize.query(
+    const [results] = await this.sequelize.queryRaw(
       this.queryGenerator.getForeignKeyQuery(tableName.tableName ? tableName : {
         tableName,
         schema: this.sequelize.config.database,
@@ -26,13 +28,13 @@ class MySQLQueryInterface extends QueryInterface {
 
     // Exclude primary key constraint
     if (results.length > 0 && results[0].constraint_name !== 'PRIMARY') {
-      await Promise.all(results.map(constraint => this.sequelize.query(
+      await Promise.all(results.map(constraint => this.sequelize.queryRaw(
         this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraint_name),
         { raw: true, ...options },
       )));
     }
 
-    return await this.sequelize.query(
+    return await this.sequelize.queryRaw(
       this.queryGenerator.removeColumnQuery(tableName, columnName),
       { raw: true, ...options },
     );
@@ -42,6 +44,10 @@ class MySQLQueryInterface extends QueryInterface {
    * @override
    */
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = { ...options };
 
     options.type = QueryTypes.UPSERT;
@@ -49,9 +55,13 @@ class MySQLQueryInterface extends QueryInterface {
     options.upsertKeys = Object.values(options.model.primaryKeys).map(item => item.field);
 
     const model = options.model;
-    const sql = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
 
-    return await this.sequelize.query(sql, options);
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+    options.bind = combineBinds(options.bind, bind);
+
+    return await this.sequelize.queryRaw(query, options);
   }
 
   /**
@@ -65,7 +75,7 @@ class MySQLQueryInterface extends QueryInterface {
       }, constraintName,
     );
 
-    const constraints = await this.sequelize.query(sql, {
+    const constraints = await this.sequelize.queryRaw(sql, {
       ...options,
       type: this.sequelize.QueryTypes.SHOWCONSTRAINTS,
     });
@@ -88,8 +98,6 @@ class MySQLQueryInterface extends QueryInterface {
       query = this.queryGenerator.removeIndexQuery(constraint.tableName, constraint.constraintName);
     }
 
-    return await this.sequelize.query(query, options);
+    return await this.sequelize.queryRaw(query, options);
   }
 }
-
-exports.MySQLQueryInterface = MySQLQueryInterface;

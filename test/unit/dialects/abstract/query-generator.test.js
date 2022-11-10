@@ -4,10 +4,11 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const { Op } = require('@sequelize/core');
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
-const AbstractQueryGenerator = require('@sequelize/core/lib/dialects/abstract/query-generator');
+const { AbstractQueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js');
+const { expectsql } = require('../../../support');
 
 describe('QueryGenerator', () => {
   describe('whereItemQuery', () => {
@@ -26,25 +27,25 @@ describe('QueryGenerator', () => {
     it('should not parse any strings as aliases operators', function () {
       const QG = getAbstractQueryGenerator(this.sequelize);
       expect(() => QG.whereItemQuery('$or', [{ test: 5 }, { test: 3 }]))
-        .to.throw('Invalid value { test: 5 }');
+        .to.throw('Could not guess type of value { test: 5 }');
 
       expect(() => QG.whereItemQuery('$and', [{ test: 5 }, { test: 3 }]))
-        .to.throw('Invalid value { test: 5 }');
+        .to.throw('Could not guess type of value { test: 5 }');
 
       expect(() => QG.whereItemQuery('test', { $gt: 5 }))
-        .to.throw('Invalid value { \'$gt\': 5 }');
+        .to.throw('Could not guess type of value { \'$gt\': 5 }');
 
       expect(() => QG.whereItemQuery('test', { $between: [2, 5] }))
-        .to.throw('Invalid value { \'$between\': [ 2, 5 ] }');
+        .to.throw('Could not guess type of value { \'$between\': [ 2, 5 ] }');
 
       expect(() => QG.whereItemQuery('test', { $ne: 3 }))
-        .to.throw('Invalid value { \'$ne\': 3 }');
+        .to.throw('Could not guess type of value { \'$ne\': 3 }');
 
       expect(() => QG.whereItemQuery('test', { $not: 3 }))
-        .to.throw('Invalid value { \'$not\': 3 }');
+        .to.throw('Could not guess type of value { \'$not\': 3 }');
 
       expect(() => QG.whereItemQuery('test', { $in: [4] }))
-        .to.throw('Invalid value { \'$in\': [ 4 ] }');
+        .to.throw('Could not guess type of value { \'$in\': [ 4 ] }');
 
       // simulate transaction passed into where query argument
       class Sequelize {
@@ -62,7 +63,7 @@ describe('QueryGenerator', () => {
       }
 
       expect(() => QG.whereItemQuery('test', new Transaction())).to.throw(
-        'Invalid value Transaction { sequelize: Sequelize { config: [Object] } }',
+        'Could not guess type of value Transaction { sequelize: Sequelize { config: [Object] } }',
       );
     });
 
@@ -83,31 +84,31 @@ describe('QueryGenerator', () => {
         .should.be.equal('(test BETWEEN 2 AND 5 AND test != 3 AND test > 4)');
 
       expect(() => QG.whereItemQuery('OR', [{ test: { '^^': 5 } }, { test: { $not: 3 } }, { test: { [Op.in]: [4] } }]))
-        .to.throw('Invalid value { \'$not\': 3 }');
+        .to.throw('Could not guess type of value { \'$not\': 3 }');
 
       expect(() => QG.whereItemQuery('OR', [{ test: { $gt: 5 } }, { test: { '!': 3 } }, { test: { [Op.in]: [4] } }]))
-        .to.throw('Invalid value { \'$gt\': 5 }');
+        .to.throw('Could not guess type of value { \'$gt\': 5 }');
 
       expect(() => QG.whereItemQuery('$or', [{ test: 5 }, { test: 3 }]))
-        .to.throw('Invalid value { test: 5 }');
+        .to.throw('Could not guess type of value { test: 5 }');
 
       expect(() => QG.whereItemQuery('$and', [{ test: 5 }, { test: 3 }]))
-        .to.throw('Invalid value { test: 5 }');
+        .to.throw('Could not guess type of value { test: 5 }');
 
       expect(() => QG.whereItemQuery('test', { $gt: 5 }))
-        .to.throw('Invalid value { \'$gt\': 5 }');
+        .to.throw('Could not guess type of value { \'$gt\': 5 }');
 
       expect(() => QG.whereItemQuery('test', { $between: [2, 5] }))
-        .to.throw('Invalid value { \'$between\': [ 2, 5 ] }');
+        .to.throw('Could not guess type of value { \'$between\': [ 2, 5 ] }');
 
       expect(() => QG.whereItemQuery('test', { $ne: 3 }))
-        .to.throw('Invalid value { \'$ne\': 3 }');
+        .to.throw('Could not guess type of value { \'$ne\': 3 }');
 
       expect(() => QG.whereItemQuery('test', { $not: 3 }))
-        .to.throw('Invalid value { \'$not\': 3 }');
+        .to.throw('Could not guess type of value { \'$not\': 3 }');
 
       expect(() => QG.whereItemQuery('test', { $in: [4] }))
-        .to.throw('Invalid value { \'$in\': [ 4 ] }');
+        .to.throw('Could not guess type of value { \'$in\': [ 4 ] }');
     });
 
     it('should correctly parse sequelize.where with .fn as logic', function () {
@@ -122,10 +123,15 @@ describe('QueryGenerator', () => {
         .should.be.equal('foo IS NOT NULL');
     });
 
-    it('should correctly escape $ in sequelize.fn arguments', function () {
+    // this was a band-aid over a deeper problem ('$bind' being considered to be a bind parameter when it's a string), which has been fixed
+    it('should not escape $ in fn() arguments', function () {
       const QG = getAbstractQueryGenerator(this.sequelize);
-      QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'))
-        .should.include('$$user');
+      const out = QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'));
+
+      expectsql(out, {
+        default: `upper('$user')`,
+        mssql: `upper(N'$user')`,
+      });
     });
   });
 
@@ -139,7 +145,7 @@ describe('QueryGenerator', () => {
 
   describe('queryIdentifier', () => {
     it('should throw an error if call base quoteIdentifier', function () {
-      const QG = new AbstractQueryGenerator({ sequelize: this.sequelize, _dialect: this.sequelize.dialect });
+      const QG = new AbstractQueryGenerator({ sequelize: this.sequelize, dialect: this.sequelize.dialect });
       expect(() => QG.quoteIdentifier('test', true))
         .to.throw(`quoteIdentifier for Dialect "${this.sequelize.dialect.name}" is not implemented`);
     });

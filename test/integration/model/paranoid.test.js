@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -86,8 +86,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count).to.be.equal(1);
     });
 
-    if (current.dialect.supports.JSON) {
-      describe('JSON', () => {
+    if (current.dialect.supports.jsonOperations) {
+      describe('JSON Operations', () => {
         before(function () {
           this.Model = this.sequelize.define('Model', {
             name: {

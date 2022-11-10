@@ -3,10 +3,10 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support   = require('../support');
+const Support   = require('../../support');
 
 const current   = Support.sequelize;
-const Sequelize = Support.Sequelize;
+const { DataTypes } = require('@sequelize/core');
 const sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -15,14 +15,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       let stub; let instance;
       const Model = current.define('User', {
         id: {
-          type: Sequelize.BIGINT,
+          type: DataTypes.BIGINT,
           primaryKey: true,
           autoIncrement: true,
         },
       });
 
       before(() => {
-        stub = sinon.stub(current, 'query').resolves(
+        stub = sinon.stub(current, 'queryRaw').resolves(
           {
             _previousDataValues: { id: 1 },
             dataValues: { id: 3 },

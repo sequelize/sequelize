@@ -1,28 +1,18 @@
+import assert from 'assert';
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
-import type { Model, ModelStatic, WhereOptions, ModelAttributeColumnOptions, Attributes } from '..';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
+import type {
+  Model,
+  ModelStatic,
+  WhereOptions,
+  ModelAttributeColumnOptions,
+  Attributes,
+  BuiltModelAttributeColumnOptions,
+} from '..';
+import * as DataTypes from '../data-types';
 import { Op as operators } from '../operators';
 
-const DataTypes = require('../data-types');
-const SqlString = require('../sql-string');
-
 const operatorsSet = new Set(Object.values(operators));
-
-export function format(arr: unknown[], dialect: string): string {
-  const timeZone = null;
-
-  // Make a clone of the array because format modifies the passed args
-  return SqlString.format(arr[0], arr.slice(1), timeZone, dialect);
-}
-
-export function formatNamedParameters(
-  sql: string,
-  parameters: Record<string, unknown>,
-  dialect: string,
-): string {
-  return SqlString.formatNamedParameters(sql, parameters, null, dialect);
-}
 
 export type FinderOptions<TAttributes> = {
   attributes?: string[],
@@ -43,7 +33,7 @@ export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 
  */
 export function mapFinderOptions<M extends Model, T extends FinderOptions<Attributes<M>>>(
   options: T,
-  Model: ModelStatic<Model>,
+  Model: ModelStatic<M>,
 ): MappedFinderOptions<Attributes<M>> {
   if (Array.isArray(options.attributes)) {
     options.attributes = Model._injectDependentVirtualAttributes(
@@ -254,16 +244,14 @@ export function removeNullishValuesFromHash(
   return result;
 }
 
-/**
- * Returns ENUM name by joining table and column name
- *
- * @param tableName
- * @param columnName
- * @private
- */
-export function generateEnumName(
-  tableName: string,
-  columnName: string,
-): string {
-  return `enum_${tableName}_${columnName}`;
+export function getColumnName(attribute: BuiltModelAttributeColumnOptions): string {
+  assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
+
+  // field is the column name alias
+  // if no alias is set, fieldName (the JS name) will be used instead.
+  return attribute.field || attribute.fieldName;
+}
+
+export function getAttributeName(model: ModelStatic, columnName: string): string | null {
+  return Object.values(model.getAttributes()).find(attribute => attribute.field === columnName)?.fieldName ?? null;
 }

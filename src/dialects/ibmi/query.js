@@ -1,34 +1,15 @@
 'use strict';
 
 const _ = require('lodash');
-const AbstractQuery = require('../abstract/query');
-const parserStore = require('../parserStore')('ibmi');
-const SqlString = require('../../sql-string');
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:ibmi');
 
-class Query extends AbstractQuery {
+export class IBMiQuery extends AbstractQuery {
   getInsertIdField() {
     return 'id';
-  }
-
-  static formatBindParameters(sql, values, dialect) {
-    const bindParams = [];
-
-    const replacementFunc = (match, key, values_) => {
-
-      if (values_[key] !== undefined) {
-        bindParams.push(values_[key]);
-
-        return '?';
-      }
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParams];
   }
 
   async run(sql, parameters) {
@@ -51,10 +32,13 @@ class Query extends AbstractQuery {
         // parse the results to the format sequelize expects
         for (const result of results) {
           for (const column of results.columns) {
-            const typeId = column.dataType;
-            const parse = parserStore.get(typeId);
             const value = result[column.name];
-            if (value !== null && parse) {
+            if (value == null) {
+              continue;
+            }
+
+            const parse = this.sequelize.dialect.getParserForDatabaseDataType(column.dataType);
+            if (parse) {
               result[column.name] = parse(value);
             }
           }
@@ -244,7 +228,7 @@ class Query extends AbstractQuery {
 
       if (foreignKeyConstraintCodes.includes(odbcError.code)) {
         return new sequelizeErrors.ForeignKeyConstraintError({
-          parent: err,
+          cause: err,
           sql: {},
           fields: {},
           stack: stacktrace,
@@ -254,7 +238,7 @@ class Query extends AbstractQuery {
       if (uniqueConstraintCodes.includes(odbcError.code)) {
         return new sequelizeErrors.UniqueConstraintError({
           errors: err.odbcErrors,
-          parent: err,
+          cause: err,
           sql: {},
           fields: {},
           stack: stacktrace,
@@ -272,7 +256,7 @@ class Query extends AbstractQuery {
 
           if (type === '*N') {
             return new sequelizeErrors.UnknownConstraintError({
-              parent: err,
+              cause: err,
               constraint: constraintName,
             });
           }
@@ -285,7 +269,3 @@ class Query extends AbstractQuery {
     return err;
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

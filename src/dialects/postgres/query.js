@@ -1,6 +1,8 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+import { getAttributeName } from '../../utils';
+
+const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
@@ -8,47 +10,7 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:pg');
 
-class Query extends AbstractQuery {
-  /**
-   * Rewrite query with parameters.
-   *
-   * @param {string} sql
-   * @param {Array|object} values
-   * @param {string} dialect
-   * @private
-   */
-  static formatBindParameters(sql, values, dialect) {
-    const stringReplaceFunc = value => (typeof value === 'string' ? value.replace(/\0/g, '\\0') : value);
-
-    let bindParam;
-    if (Array.isArray(values)) {
-      bindParam = values.map(stringReplaceFunc);
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
-    } else {
-      bindParam = [];
-      let i = 0;
-      const seen = {};
-      const replacementFunc = (match, key, values) => {
-        if (seen[key] !== undefined) {
-          return seen[key];
-        }
-
-        if (values[key] !== undefined) {
-          i = i + 1;
-          bindParam.push(stringReplaceFunc(values[key]));
-          seen[key] = `$${i}`;
-
-          return `$${i}`;
-        }
-
-      };
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-    }
-
-    return [sql, bindParam];
-  }
-
+export class PostgresQuery extends AbstractQuery {
   async run(sql, parameters) {
     const { connection } = this;
 
@@ -91,6 +53,8 @@ class Query extends AbstractQuery {
         || /Unable to set non-blocking to true/i.test(error)
         || /SSL SYSCALL error: EOF detected/i.test(error)
         || /Local: Authentication failure/i.test(error)
+        // https://github.com/sequelize/sequelize/pull/15144
+        || error.message === 'Query read timeout'
       ) {
         connection._invalid = true;
       }
@@ -302,13 +266,19 @@ class Query extends AbstractQuery {
           throw new sequelizeErrors.EmptyResultError();
         }
 
-        for (const key in rows[0]) {
-          if (Object.prototype.hasOwnProperty.call(rows[0], key)) {
-            const record = rows[0][key];
+        if (rows[0]) {
+          for (const attributeOrColumnName of Object.keys(rows[0])) {
+            const attribute = _.find(this.model.rawAttributes, attribute => {
+              // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
+              return attribute.fieldName === attributeOrColumnName || attribute.field === attributeOrColumnName;
+            });
 
-            const attr = _.find(this.model.rawAttributes, attribute => attribute.fieldName === key || attribute.field === key);
+            const updatedValue = this._parseDatabaseValue(rows[0][attributeOrColumnName], attribute?.type);
 
-            this.instance.dataValues[attr && attr.fieldName || key] = record;
+            this.instance.set(attribute?.fieldName ?? attributeOrColumnName, updatedValue, {
+              raw: true,
+              comesFromDatabase: true,
+            });
           }
         }
       }
@@ -357,7 +327,7 @@ class Query extends AbstractQuery {
           fields: null,
           index,
           table,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
       case '23505':
@@ -389,12 +359,12 @@ class Query extends AbstractQuery {
             });
           }
 
-          return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+          return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
         }
 
         return new sequelizeErrors.UniqueConstraintError({
           message: errMessage,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
 
@@ -412,7 +382,7 @@ class Query extends AbstractQuery {
           constraint: err.constraint,
           fields,
           table: err.table,
-          parent: err,
+          cause: err,
           stack: errStack,
         });
 
@@ -429,7 +399,7 @@ class Query extends AbstractQuery {
             constraint: index,
             fields,
             table,
-            parent: err,
+            cause: err,
             stack: errStack,
           });
         }
@@ -448,7 +418,3 @@ class Query extends AbstractQuery {
     return 'id';
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

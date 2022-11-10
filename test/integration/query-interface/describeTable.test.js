@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -81,6 +81,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'mssql':
           assertVal = 'NVARCHAR(255)';
           break;
+        case 'sqlite':
+          assertVal = 'TEXT';
+          break;
         case 'ibmi':
         case 'db2':
           assertVal = 'VARCHAR';
@@ -109,6 +112,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'postgres':
         case 'db2':
           assertVal = 'BOOLEAN';
+          break;
+        case 'sqlite':
+          assertVal = 'INTEGER';
           break;
         case 'mssql':
           assertVal = 'BIT';

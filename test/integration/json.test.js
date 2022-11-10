@@ -5,87 +5,128 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('./support');
 
-const dialect = Support.getTestDialect();
-const Sequelize = Support.Sequelize;
+const { Sequelize, DataTypes } = require('@sequelize/core');
+
 const current = Support.sequelize;
-const DataTypes = Sequelize.DataTypes;
+const dialect = current.dialect;
+const dialectName = Support.getTestDialect();
 
 describe('model', () => {
-  if (current.dialect.supports.JSON) {
-    describe('json', () => {
-      beforeEach(async function () {
-        this.User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
-          emergency_contact: DataTypes.JSON,
-          emergencyContact: DataTypes.JSON,
-        });
-        this.Order = this.sequelize.define('Order');
-        this.Order.belongsTo(this.User);
+  describe('json', () => {
+    if (!current.dialect.supports.dataTypes.JSON) {
+      return;
+    }
 
-        await this.sequelize.sync({ force: true });
+    beforeEach(async function () {
+      this.User = this.sequelize.define('User', {
+        username: DataTypes.STRING,
+        emergency_contact: DataTypes.JSON,
+        emergencyContact: DataTypes.JSON,
       });
+      this.Order = this.sequelize.define('Order');
+      this.Order.belongsTo(this.User);
 
-      it('should tell me that a column is json', async function () {
-        const table = await this.sequelize.queryInterface.describeTable('Users');
-        // expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
-        if (dialect !== 'mariadb') {
+      await this.sequelize.sync({ force: true });
+    });
+
+    it('should tell me that a column is json', async function () {
+      const table = await this.sequelize.queryInterface.describeTable('Users');
+      switch (dialectName) {
+        // mssql & sqlite use text columns with CHECK constraints
+        case 'mssql':
+          expect(table.emergency_contact.type).to.equal('NVARCHAR(MAX)');
+          break;
+        case 'sqlite':
+          expect(table.emergency_contact.type).to.equal('TEXT');
+          break;
+        case 'mariadb':
+          // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
+          expect(table.emergency_contact.type).to.equal('LONGTEXT');
+          break;
+        default:
           expect(table.emergency_contact.type).to.equal('JSON');
-        }
+      }
+    });
+
+    it('should use a placeholder for json with insert', async function () {
+      await this.User.create({
+        username: 'bob',
+        emergency_contact: { name: 'joe', phones: [1337, 42] },
+      }, {
+        fields: ['id', 'username', 'document', 'emergency_contact'],
+        logging: sql => {
+          if (/^mysql|mariadb/.test(dialectName)) {
+            expect(sql).to.include('?');
+          } else if (dialectName === 'sqlite') {
+            expect(sql).to.include('$sequelize_1');
+          } else if (dialectName === 'mssql') {
+            expect(sql).to.include('@sequelize_1');
+          } else {
+            expect(sql).to.include('$1');
+          }
+        },
+      });
+    });
+
+    it('should insert json using a custom field name', async function () {
+      this.UserFields = this.sequelize.define('UserFields', {
+        emergencyContact: { type: DataTypes.JSON, field: 'emergency_contact' },
       });
 
-      it('should use a placeholder for json with insert', async function () {
+      await this.UserFields.sync({ force: true });
+
+      const user = await this.UserFields.create({
+        emergencyContact: { name: 'joe', phones: [1337, 42] },
+      });
+
+      expect(user.emergencyContact).to.deep.equal({ name: 'joe', phones: [1337, 42] });
+    });
+
+    it('should update json using a custom field name', async function () {
+      this.UserFields = this.sequelize.define('UserFields', {
+        emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' },
+      });
+      await this.UserFields.sync({ force: true });
+
+      const user0 = await this.UserFields.create({
+        emergencyContact: { name: 'joe', phones: [1337, 42] },
+      });
+
+      user0.emergencyContact = { name: 'larry' };
+      const user = await user0.save();
+      expect(user.emergencyContact.name).to.equal('larry');
+    });
+
+    it('should be able retrieve json value as object', async function () {
+      const emergencyContact = { name: 'kate', phone: 1337 };
+
+      const user0 = await this.User.create({ username: 'swen', emergency_contact: emergencyContact });
+      expect(user0.emergency_contact).to.deep.eq(emergencyContact);
+
+      const user1 = await this.User.findOne({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
+      expect(user1.emergency_contact).to.deep.eq(emergencyContact);
+    });
+
+    // TODO: enable on all dialects
+    // JSONB Supports this, but not JSON in postgres/mysql
+    if (current.dialect.name === 'sqlite') {
+      it('should be able to find with just string', async function () {
         await this.User.create({
-          username: 'bob',
-          emergency_contact: { name: 'joe', phones: [1337, 42] },
-        }, {
-          fields: ['id', 'username', 'document', 'emergency_contact'],
-          logging: sql => {
-            if (/^mysql|mariadb/.test(dialect)) {
-              expect(sql).to.include('?');
-            } else {
-              expect(sql).to.include('$1');
-            }
+          username: 'swen123',
+          emergency_contact: 'Unknown',
+        });
+
+        const user = await this.User.findOne({
+          where: {
+            emergency_contact: 'Unknown',
           },
         });
+
+        expect(user.username).to.equal('swen123');
       });
+    }
 
-      it('should insert json using a custom field name', async function () {
-        this.UserFields = this.sequelize.define('UserFields', {
-          emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' },
-        });
-        await this.UserFields.sync({ force: true });
-
-        const user = await this.UserFields.create({
-          emergencyContact: { name: 'joe', phones: [1337, 42] },
-        });
-
-        expect(user.emergencyContact.name).to.equal('joe');
-      });
-
-      it('should update json using a custom field name', async function () {
-        this.UserFields = this.sequelize.define('UserFields', {
-          emergencyContact: { type: DataTypes.JSON, field: 'emergy_contact' },
-        });
-        await this.UserFields.sync({ force: true });
-
-        const user0 = await this.UserFields.create({
-          emergencyContact: { name: 'joe', phones: [1337, 42] },
-        });
-
-        user0.emergencyContact = { name: 'larry' };
-        const user = await user0.save();
-        expect(user.emergencyContact.name).to.equal('larry');
-      });
-
-      it('should be able retrieve json value as object', async function () {
-        const emergencyContact = { name: 'kate', phone: 1337 };
-
-        const user0 = await this.User.create({ username: 'swen', emergency_contact: emergencyContact });
-        expect(user0.emergency_contact).to.eql(emergencyContact);
-        const user = await this.User.findOne({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
-        expect(user.emergency_contact).to.eql(emergencyContact);
-      });
-
+    if (dialect.supports.jsonOperations) {
       it('should be able to retrieve element of array by index', async function () {
         const emergencyContact = { name: 'kate', phones: [1337, 42] };
 
@@ -198,6 +239,12 @@ describe('model', () => {
         expect(user.username).to.equal('anna');
       });
 
+      it('should be able to store strings', async function () {
+        await this.User.create({ username: 'swen', emergency_contact: 'joe' });
+        const user = await this.User.findOne({ where: { username: 'swen' } });
+        expect(user.emergency_contact).to.equal('joe');
+      });
+
       it('should be able to store values that require JSON escaping', async function () {
         const text = 'Multi-line \'$string\' needing "escaping" for $$ and $1 type values';
 
@@ -226,24 +273,6 @@ describe('model', () => {
         expect(user.username).to.equal('swen');
       });
 
-      // JSONB Supports this, but not JSON in postgres/mysql
-      if (current.dialect.name === 'sqlite') {
-        it('should be able to find with just string', async function () {
-          await this.User.create({
-            username: 'swen123',
-            emergency_contact: 'Unknown',
-          });
-
-          const user = await this.User.findOne({
-            where: {
-              emergency_contact: 'Unknown',
-            },
-          });
-
-          expect(user.username).to.equal('swen123');
-        });
-      }
-
       it('should be able retrieve json value with nested include', async function () {
         const user = await this.User.create({
           emergency_contact: {
@@ -265,43 +294,45 @@ describe('model', () => {
 
         expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
       });
+    }
+  });
+
+  describe('jsonb', () => {
+    if (!current.dialect.supports.dataTypes.JSONB) {
+      return;
+    }
+
+    beforeEach(async function () {
+      this.User = this.sequelize.define('User', {
+        username: DataTypes.STRING,
+        emergency_contact: DataTypes.JSONB,
+      });
+      this.Order = this.sequelize.define('Order');
+      this.Order.belongsTo(this.User);
+
+      await this.sequelize.sync({ force: true });
     });
-  }
 
-  if (current.dialect.supports.JSONB) {
-    describe('jsonb', () => {
-      beforeEach(async function () {
-        this.User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
-          emergency_contact: DataTypes.JSONB,
-        });
-        this.Order = this.sequelize.define('Order');
-        this.Order.belongsTo(this.User);
-
-        await this.sequelize.sync({ force: true });
+    it('should be able retrieve json value with nested include', async function () {
+      const user = await this.User.create({
+        emergency_contact: {
+          name: 'kate',
+        },
       });
 
-      it('should be able retrieve json value with nested include', async function () {
-        const user = await this.User.create({
-          emergency_contact: {
-            name: 'kate',
-          },
-        });
+      await this.Order.create({ UserId: user.id });
 
-        await this.Order.create({ UserId: user.id });
-
-        const orders = await this.Order.findAll({
-          attributes: ['id'],
-          include: [{
-            model: this.User,
-            attributes: [
-              [this.sequelize.json('emergency_contact.name'), 'katesName'],
-            ],
-          }],
-        });
-
-        expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
+      const orders = await this.Order.findAll({
+        attributes: ['id'],
+        include: [{
+          model: this.User,
+          attributes: [
+            [this.sequelize.json('emergency_contact.name'), 'katesName'],
+          ],
+        }],
       });
+
+      expect(orders[0].User.getDataValue('katesName')).to.equal('kate');
     });
-  }
+  });
 });

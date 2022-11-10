@@ -4,14 +4,15 @@ const chai = require('chai');
 const sinon = require('sinon');
 
 const expect = chai.expect;
-const Support = require('./support');
+const Support = require('../support');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 const _ = require('lodash');
 
-const current = Support.sequelize;
+const sequelize = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function () {
-    this.Model = current.define('m');
+    this.Model = sequelize.define('m');
   });
 
   it('does not expose non-model hooks', function () {
@@ -34,14 +35,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('proxies', () => {
     beforeEach(() => {
-      sinon.stub(current, 'query').resolves([{
+      sinon.stub(sequelize, 'queryRaw').resolves([{
         _previousDataValues: {},
         dataValues: { id: 1, name: 'abc' },
       }]);
     });
 
     afterEach(() => {
-      current.query.restore();
+      sequelize.queryRaw.restore();
     });
 
     describe('defined by options.hooks', () => {
@@ -50,8 +51,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.afterSaveHook = sinon.spy();
         this.afterCreateHook = sinon.spy();
 
-        this.Model = current.define('m', {
-          name: Support.Sequelize.STRING,
+        this.Model = sequelize.define('m', {
+          name: DataTypes.STRING,
         }, {
           hooks: {
             beforeSave: this.beforeSaveHook,
@@ -74,8 +75,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.beforeSaveHook = sinon.spy();
         this.afterSaveHook = sinon.spy();
 
-        this.Model = current.define('m', {
-          name: Support.Sequelize.STRING,
+        this.Model = sequelize.define('m', {
+          name: DataTypes.STRING,
         });
 
         this.Model.addHook('beforeSave', this.beforeSaveHook);
@@ -94,8 +95,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.beforeSaveHook = sinon.spy();
         this.afterSaveHook = sinon.spy();
 
-        this.Model = current.define('m', {
-          name: Support.Sequelize.STRING,
+        this.Model = sequelize.define('m', {
+          name: DataTypes.STRING,
         });
 
         this.Model.addHook('beforeSave', this.beforeSaveHook);
@@ -141,7 +142,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('using define', async function () {
-        await current.define('M', {}, {
+        await sequelize.define('M', {}, {
           hooks: {
             beforeCreate: [this.hook1, this.hook2, this.hook3],
           },
@@ -149,7 +150,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('using a mixture', async function () {
-        const Model = current.define('M', {}, {
+        const Model = sequelize.define('M', {}, {
           hooks: {
             beforeCreate: this.hook1,
           },
@@ -194,7 +195,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('invokes the global hook', async function () {
         const globalHook = sinon.spy();
 
-        current.addHook('beforeUpdate', globalHook);
+        sequelize.addHook('beforeUpdate', globalHook);
 
         await this.Model.runHooks('beforeUpdate');
         expect(globalHook).to.have.been.calledOnce;
@@ -205,15 +206,15 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         const globalHookAfter = sinon.spy();
         const localHook = sinon.spy();
 
-        current.addHook('beforeUpdate', globalHookBefore);
+        sequelize.addHook('beforeUpdate', globalHookBefore);
 
-        const Model = current.define('m', {}, {
+        const Model = sequelize.define('m', {}, {
           hooks: {
             beforeUpdate: localHook,
           },
         });
 
-        current.addHook('beforeUpdate', globalHookAfter);
+        sequelize.addHook('beforeUpdate', globalHookAfter);
 
         await Model.runHooks('beforeUpdate');
         expect(globalHookBefore).to.have.been.calledOnce;
@@ -378,10 +379,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('runs all beforInit/afterInit hooks', function () {
-      Support.Sequelize.addHook('beforeInit', 'h1', this.hook1);
-      Support.Sequelize.addHook('beforeInit', 'h2', this.hook2);
-      Support.Sequelize.addHook('afterInit', 'h3', this.hook3);
-      Support.Sequelize.addHook('afterInit', 'h4', this.hook4);
+      Sequelize.addHook('beforeInit', 'h1', this.hook1);
+      Sequelize.addHook('beforeInit', 'h2', this.hook2);
+      Sequelize.addHook('afterInit', 'h3', this.hook3);
+      Sequelize.addHook('afterInit', 'h4', this.hook4);
 
       Support.createSequelizeInstance();
 
@@ -390,11 +391,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       expect(this.hook3).to.have.been.calledOnce;
       expect(this.hook4).to.have.been.calledOnce;
 
-      // cleanup hooks on Support.Sequelize
-      Support.Sequelize.removeHook('beforeInit', 'h1');
-      Support.Sequelize.removeHook('beforeInit', 'h2');
-      Support.Sequelize.removeHook('afterInit', 'h3');
-      Support.Sequelize.removeHook('afterInit', 'h4');
+      // cleanup hooks on Sequelize
+      Sequelize.removeHook('beforeInit', 'h1');
+      Sequelize.removeHook('beforeInit', 'h2');
+      Sequelize.removeHook('afterInit', 'h3');
+      Sequelize.removeHook('afterInit', 'h4');
 
       Support.createSequelizeInstance();
 
@@ -416,6 +417,55 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       expect(this.hook2).to.have.been.calledOnce;
       expect(this.hook3).to.have.been.calledOnce;
       expect(this.hook4).to.have.been.calledOnce;
+    });
+  });
+
+  describe('#removal', () => {
+    before(() => {
+      sinon.stub(sequelize, 'queryRaw').resolves([{
+        _previousDataValues: {},
+        dataValues: { id: 1, name: 'abc' },
+      }]);
+    });
+
+    after(() => {
+      sequelize.queryRaw.restore();
+    });
+
+    it('should be able to remove by name', async () => {
+      const User = sequelize.define('User');
+
+      const hook1 = sinon.spy();
+      const hook2 = sinon.spy();
+
+      User.addHook('beforeCreate', 'sasuke', hook1);
+      User.addHook('beforeCreate', 'naruto', hook2);
+
+      await User.create({ username: 'makunouchi' });
+      expect(hook1).to.have.been.calledOnce;
+      expect(hook2).to.have.been.calledOnce;
+      User.removeHook('beforeCreate', 'sasuke');
+      await User.create({ username: 'sendo' });
+      expect(hook1).to.have.been.calledOnce;
+      expect(hook2).to.have.been.calledTwice;
+    });
+
+    it('should be able to remove by reference', async () => {
+      const User = sequelize.define('User');
+
+      const hook1 = sinon.spy();
+      const hook2 = sinon.spy();
+
+      User.addHook('beforeCreate', hook1);
+      User.addHook('beforeCreate', hook2);
+
+      await User.create({ username: 'makunouchi' });
+      expect(hook1).to.have.been.calledOnce;
+      expect(hook2).to.have.been.calledOnce;
+      User.removeHook('beforeCreate', hook1);
+      await User.create({ username: 'sendo' });
+      expect(hook1).to.have.been.calledOnce;
+      expect(hook2).to.have.been.calledTwice;
     });
   });
 });

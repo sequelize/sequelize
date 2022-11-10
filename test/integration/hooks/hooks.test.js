@@ -4,11 +4,11 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
-const Sequelize = Support.Sequelize;
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
+const { createSequelizeInstance } = require('../../support');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(async function () {
@@ -18,16 +18,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         allowNull: false,
       },
       mood: {
-        type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
+        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
       },
     });
 
     this.ParanoidUser = this.sequelize.define('ParanoidUser', {
       username: DataTypes.STRING,
       mood: {
-        type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
+        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
       },
     }, {
       paranoid: true,
@@ -68,15 +66,15 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     after(function () {
-      this.sequelize.options.hooks = {};
+      this.sequelize.hooks.removeAllListeners();
       this.sequelize.modelManager.removeModel(this.model);
     });
   });
 
   describe('#init', () => {
     before(function () {
-      Sequelize.addHook('beforeInit', (config, options) => {
-        config.database = 'db2';
+      Sequelize.addHook('beforeInit', options => {
+        options.database = 'db2';
         options.host = 'server9';
       });
 
@@ -100,7 +98,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     after(() => {
-      Sequelize.options.hooks = {};
+      Sequelize.hooks.removeAllListeners();
     });
   });
 
@@ -313,96 +311,48 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       afterEach(function () {
-        this.sequelize.options.hooks = {};
+        this.sequelize.hooks.removeAllListeners();
       });
 
     });
 
     describe('on error', () => {
-
-      it('should return an error from before', async function () {
+      it('should return an error from before', async () => {
         const beforeHook = sinon.spy();
         const afterHook = sinon.spy();
-        this.sequelize.beforeBulkSync(() => {
+        const tmpSequelize = createSequelizeInstance();
+
+        tmpSequelize.beforeBulkSync(() => {
           beforeHook();
           throw new Error('Whoops!');
         });
-        this.sequelize.afterBulkSync(afterHook);
 
-        await expect(this.sequelize.sync()).to.be.rejected;
+        tmpSequelize.afterBulkSync(afterHook);
+
+        await expect(tmpSequelize.sync()).to.be.rejectedWith('Whoops!');
         expect(beforeHook).to.have.been.calledOnce;
         expect(afterHook).not.to.have.been.called;
       });
 
-      it('should return an error from after', async function () {
+      it('should return an error from after', async () => {
         const beforeHook = sinon.spy();
         const afterHook = sinon.spy();
+        const tmpSequelize = createSequelizeInstance();
 
-        this.sequelize.beforeBulkSync(beforeHook);
-        this.sequelize.afterBulkSync(() => {
+        tmpSequelize.beforeBulkSync(beforeHook);
+        tmpSequelize.afterBulkSync(() => {
           afterHook();
           throw new Error('Whoops!');
         });
 
-        await expect(this.sequelize.sync()).to.be.rejected;
+        await expect(tmpSequelize.sync()).to.be.rejectedWith('Whoops!');
         expect(beforeHook).to.have.been.calledOnce;
         expect(afterHook).to.have.been.calledOnce;
       });
 
       afterEach(function () {
-        this.sequelize.options.hooks = {};
+        this.sequelize.hooks.removeAllListeners();
       });
-
-    });
-  });
-
-  describe('#removal', () => {
-    it('should be able to remove by name', async function () {
-      const sasukeHook = sinon.spy();
-      const narutoHook = sinon.spy();
-
-      this.User.addHook('beforeCreate', 'sasuke', sasukeHook);
-      this.User.addHook('beforeCreate', 'naruto', narutoHook);
-
-      await this.User.create({ username: 'makunouchi' });
-      expect(sasukeHook).to.have.been.calledOnce;
-      expect(narutoHook).to.have.been.calledOnce;
-      this.User.removeHook('beforeCreate', 'sasuke');
-      await this.User.create({ username: 'sendo' });
-      expect(sasukeHook).to.have.been.calledOnce;
-      expect(narutoHook).to.have.been.calledTwice;
-    });
-
-    it('should be able to remove by reference', async function () {
-      const sasukeHook = sinon.spy();
-      const narutoHook = sinon.spy();
-
-      this.User.addHook('beforeCreate', sasukeHook);
-      this.User.addHook('beforeCreate', narutoHook);
-
-      await this.User.create({ username: 'makunouchi' });
-      expect(sasukeHook).to.have.been.calledOnce;
-      expect(narutoHook).to.have.been.calledOnce;
-      this.User.removeHook('beforeCreate', sasukeHook);
-      await this.User.create({ username: 'sendo' });
-      expect(sasukeHook).to.have.been.calledOnce;
-      expect(narutoHook).to.have.been.calledTwice;
-    });
-
-    it('should be able to remove proxies', async function () {
-      const sasukeHook = sinon.spy();
-      const narutoHook = sinon.spy();
-
-      this.User.addHook('beforeSave', sasukeHook);
-      this.User.addHook('beforeSave', narutoHook);
-
-      const user = await this.User.create({ username: 'makunouchi' });
-      expect(sasukeHook).to.have.been.calledOnce;
-      expect(narutoHook).to.have.been.calledOnce;
-      this.User.removeHook('beforeSave', sasukeHook);
-      await user.update({ username: 'sendo' });
-      expect(sasukeHook).to.have.been.calledOnce;
-      expect(narutoHook).to.have.been.calledTwice;
     });
   });
 });

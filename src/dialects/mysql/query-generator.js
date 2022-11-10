@@ -1,8 +1,16 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
+import { rejectInvalidOptions } from '../../utils';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const util = require('util');
 const { Op } = require('../../operators');
 
@@ -25,8 +33,10 @@ const FOREIGN_KEY_FIELDS = [
 ].join(',');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
 
-class MySQLQueryGenerator extends AbstractQueryGenerator {
+export class MySqlQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
     super(options);
 
@@ -37,32 +47,38 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
     };
   }
 
-  createDatabaseQuery(databaseName, options) {
-    options = {
-      charset: null,
-      collate: null,
-      ...options,
-    };
-
+  createSchemaQuery(schemaName, options) {
     return Utils.joinSQLFragments([
-      'CREATE DATABASE IF NOT EXISTS',
-      this.quoteIdentifier(databaseName),
-      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
+      'CREATE SCHEMA IF NOT EXISTS',
+      this.quoteIdentifier(schemaName),
+      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
+      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
       ';',
     ]);
   }
 
-  dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
+  dropSchemaQuery(schemaName) {
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
   }
 
-  createSchema() {
-    return 'SHOW TABLES';
+  // TODO: typescript - protected
+  _getTechnicalSchemaNames() {
+    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys'];
   }
 
-  showSchemasQuery() {
-    return 'SHOW TABLES';
+  listSchemasQuery(options) {
+    const schemasToSkip = this._getTechnicalSchemaNames();
+
+    if (Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return Utils.joinSQLFragments([
+      'SELECT SCHEMA_NAME as schema_name',
+      'FROM INFORMATION_SCHEMA.SCHEMATA',
+      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+      ';',
+    ]);
   }
 
   versionQuery() {
@@ -162,18 +178,42 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
     return `SHOW FULL COLUMNS FROM ${table};`;
   }
 
-  showTablesQuery(database) {
-    let query = 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
-    if (database) {
-      query += ` AND TABLE_SCHEMA = ${this.escape(database)}`;
+  showTablesQuery(schemaName) {
+    let query = 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
+    if (schemaName) {
+      query += ` AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
     } else {
-      query += ' AND TABLE_SCHEMA NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')';
+      const technicalSchemas = this._getTechnicalSchemaNames();
+
+      query += ` AND TABLE_SCHEMA NOT IN (${technicalSchemas.map(schema => this.escape(schema)).join(', ')})`;
     }
 
     return `${query};`;
   }
 
-  addColumnQuery(table, key, dataType) {
+  tableExistsQuery(table) {
+    // remove first & last `, then escape as SQL string
+    const tableName = this.escape(this.quoteTable(table).slice(1, -1));
+
+    return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${tableName} AND TABLE_SCHEMA = ${this.escape(this.sequelize.config.database)}`;
+  }
+
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    dataType = {
+      ...dataType,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
@@ -188,7 +228,17 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
@@ -262,7 +312,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
         }
 
         if (smth.value) {
-          str += util.format(' = %s', this.escape(smth.value));
+          str += ` = ${this.escape(smth.value, undefined, options)}`;
         }
 
         return str;
@@ -302,26 +352,23 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
   }
 
   deleteQuery(tableName, where, options = {}, model) {
-    let limit = '';
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 
-    if (options.limit) {
-      limit = ` LIMIT ${this.escape(options.limit)}`;
-    }
-
     where = this.getWhereConditions(where, null, model, options);
-
     if (where) {
       query += ` WHERE ${where}`;
     }
 
-    return query + limit;
+    if (options.limit) {
+      query += ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['bind', 'replacements']))}`;
+    }
+
+    return query;
   }
 
-  showIndexesQuery(tableName, options) {
+  showIndexesQuery(tableName) {
     return Utils.joinSQLFragments([
       `SHOW INDEX FROM ${this.quoteTable(tableName)}`,
-      options && options.database && `FROM \`${options.database}\``,
     ]);
   }
 
@@ -366,7 +413,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attributeTypeToSql(attribute.type, { escape: this.escape.bind(this), dialect: this.dialect });
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -380,7 +427,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && Utils.defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
     }
 
@@ -404,7 +451,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
       template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
     }
 
-    if (attribute.references) {
+    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
         const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
@@ -444,7 +491,7 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
   }
 
   /**
-   * Check whether the statmement is json function or simple path
+   * Check whether the statement is json function or simple path
    *
    * @param   {string}  stmt  The statement to validate
    * @returns {boolean}       true if the given statement is json function
@@ -510,13 +557,14 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
   /**
    * Generates an SQL query that returns all foreign keys of a table.
    *
-   * @param  {object} table  The table.
-   * @param  {string} schemaName The name of the schema.
-   * @returns {string}            The generated sql query.
+   * @param {object} table The table.
+   * @returns {string} The generated sql query.
    * @private
    */
-  getForeignKeysQuery(table, schemaName) {
+  getForeignKeysQuery(table) {
     const tableName = table.tableName || table;
+    // TODO (https://github.com/sequelize/sequelize/pull/14687): use dialect.getDefaultSchema() instead of this.sequelize.config.database
+    const schemaName = table.schema || this.sequelize.config.database;
 
     return Utils.joinSQLFragments([
       'SELECT',
@@ -630,5 +678,3 @@ class MySQLQueryGenerator extends AbstractQueryGenerator {
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }
-
-module.exports = MySQLQueryGenerator;

@@ -6,8 +6,7 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const Support = require('../support');
 
-const Op = Support.Sequelize.Op;
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Op } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   before(function () {
@@ -24,11 +23,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const Task = this.sequelize.define('Task', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
       const Employee = this.sequelize.define('Employee', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
 
-      Project.hasMany(Task, { foreignKey: 'fk', constraints: false  });
-      Project.hasMany(Employee, { foreignKey: 'fk', constraints: false  });
+      Project.hasMany(Task, { foreignKey: 'fk', foreignKeyConstraints: false  });
+      Project.hasMany(Employee, { foreignKey: 'fk', foreignKeyConstraints: false  });
 
-      Task.belongsTo(Project, { foreignKey: 'fk', constraints: false  });
-      Employee.belongsTo(Project, { foreignKey: 'fk', constraints: false  });
+      Task.belongsTo(Project, { foreignKey: 'fk', foreignKeyConstraints: false  });
+      Employee.belongsTo(Project, { foreignKey: 'fk', foreignKeyConstraints: false  });
 
       // Sync them
       await this.sequelize.sync({ force: true });
@@ -83,16 +82,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true });
 
       // Associate them
-      User.hasMany(SomeConnection, { foreignKey: 'u', constraints: false });
+      User.hasMany(SomeConnection, { foreignKey: 'u', foreignKeyConstraints: false });
 
-      SomeConnection.belongsTo(User, { foreignKey: 'u', constraints: false });
-      SomeConnection.belongsTo(A, { foreignKey: 'fk', constraints: false });
-      SomeConnection.belongsTo(B, { foreignKey: 'fk', constraints: false });
-      SomeConnection.belongsTo(C, { foreignKey: 'fk', constraints: false });
+      SomeConnection.belongsTo(User, { foreignKey: 'u', foreignKeyConstraints: false });
+      SomeConnection.belongsTo(A, { foreignKey: 'fk', foreignKeyConstraints: false });
+      SomeConnection.belongsTo(B, { foreignKey: 'fk', foreignKeyConstraints: false });
+      SomeConnection.belongsTo(C, { foreignKey: 'fk', foreignKeyConstraints: false });
 
-      A.hasMany(SomeConnection, { foreignKey: 'fk', constraints: false });
-      B.hasMany(SomeConnection, { foreignKey: 'fk', constraints: false });
-      C.hasMany(SomeConnection, { foreignKey: 'fk', constraints: false });
+      A.hasMany(SomeConnection, { foreignKey: 'fk', foreignKeyConstraints: false });
+      B.hasMany(SomeConnection, { foreignKey: 'fk', foreignKeyConstraints: false });
+      C.hasMany(SomeConnection, { foreignKey: 'fk', foreignKeyConstraints: false });
 
       // Sync them
       await this.sequelize.sync({ force: true });

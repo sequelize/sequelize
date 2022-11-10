@@ -3,10 +3,10 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const QueryGenerator = require('@sequelize/core/lib/dialects/mariadb/query-generator');
+const { MariaDbQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mariadb/query-generator.js');
 
 if (dialect === 'mariadb') {
   describe('[MARIADB Specific] jsonPathExtractionQuery', () => {
@@ -14,7 +14,7 @@ if (dialect === 'mariadb') {
     beforeEach(function () {
       queryGenerator = new QueryGenerator({
         sequelize: this.sequelize,
-        _dialect: this.sequelize.dialect,
+        dialect: this.sequelize.dialect,
       });
     });
 

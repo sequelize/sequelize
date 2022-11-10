@@ -1,18 +1,29 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { rejectInvalidOptions } from '../../utils/check';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTION, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
-const MySqlQueryGenerator = require('../mysql/query-generator');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { MySqlQueryGenerator } = require('../mysql/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
-class SQLiteQueryGenerator extends MySqlQueryGenerator {
-  createSchema() {
-    return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+
+export class SqliteQueryGenerator extends MySqlQueryGenerator {
+  createSchemaQuery() {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
-  showSchemasQuery() {
-    return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
+  dropSchemaQuery() {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
+  listSchemasQuery() {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
   versionQuery() {
@@ -60,13 +71,26 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     let attrStr = attrArray.join(', ');
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
-    if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, columns => {
-        if (columns.customIndex) {
-          attrStr += `, UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
-        }
-      });
-    }
+    // sqlite has a bug where using CONSTRAINT constraint_name UNIQUE during CREATE TABLE
+    //  does not respect the provided constraint name
+    //  and uses sqlite_autoindex_ as the name of the constraint instead.
+    //  CREATE UNIQUE INDEX does not have this issue, so we're using that instead
+    //
+    // if (options.uniqueKeys) {
+    //   _.each(options.uniqueKeys, (columns, indexName) => {
+    //     if (columns.customIndex) {
+    //       if (typeof indexName !== 'string') {
+    //         indexName = Utils.generateIndexName(tableName, columns);
+    //       }
+    //
+    //       attrStr += `, CONSTRAINT ${
+    //         this.quoteIdentifier(indexName)
+    //       } UNIQUE (${
+    //         columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
+    //       })`;
+    //     }
+    //   });
+    // }
 
     if (pkString.length > 0) {
       attrStr += `, PRIMARY KEY (${pkString})`;
@@ -75,6 +99,22 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     const sql = `CREATE TABLE IF NOT EXISTS ${table} (${attrStr});`;
 
     return this.replaceBooleanDefaults(sql);
+  }
+
+  addLimitAndOffset(options, model) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+    } else if (options.offset) {
+      // limit must be specified if offset is specified.
+      fragment += ` LIMIT -1`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
+    }
+
+    return fragment;
   }
 
   booleanValue(value) {
@@ -166,7 +206,17 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     return AbstractQueryGenerator.prototype.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const attributes = {};
     attributes[key] = dataType;
     const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
@@ -189,8 +239,8 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
 
     const modelAttributeMap = {};
     const values = [];
-    const bind = [];
-    const bindParam = options.bindParam || this.bindParam(bind);
+    const bind = Object.create(null);
+    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
     if (attributes) {
       _.each(attributes, (attribute, key) => {
@@ -205,9 +255,9 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
       const value = attrValueHash[key];
 
       if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
-        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' })}`);
+        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
-        values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' }, bindParam)}`);
+        values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
       }
     }
 
@@ -215,12 +265,17 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     const whereOptions = { ...options, bindParam };
 
     if (options.limit) {
-      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit)})`;
+      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})`.trim();
     } else {
-      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`;
+      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`.trim();
     }
 
-    return { query, bind };
+    const result = { query };
+    if (options.bindParam !== false) {
+      result.bind = bind;
+    }
+
+    return result;
   }
 
   truncateTableQuery(tableName, options = {}) {
@@ -240,13 +295,13 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     }
 
     if (options.limit) {
-      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit)})`;
+      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit, undefined, options)})`;
     }
 
-    return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`;
+    return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`.trim();
   }
 
-  attributesToSQL(attributes) {
+  attributesToSQL(attributes, options) {
     const result = {};
     for (const name in attributes) {
       const dataType = attributes[name];
@@ -255,15 +310,15 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
       if (_.isObject(dataType)) {
         let sql = dataType.type.toString();
 
-        if (Object.prototype.hasOwnProperty.call(dataType, 'allowNull') && !dataType.allowNull) {
+        if (dataType.allowNull === false) {
           sql += ' NOT NULL';
         }
 
-        if (Utils.defaultValueSchemable(dataType.defaultValue)) {
+        if (defaultValueSchemable(dataType.defaultValue)) {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
-          sql += ` DEFAULT ${this.escape(dataType.defaultValue, dataType)}`;
+          sql += ` DEFAULT ${this.escape(dataType.defaultValue, dataType, options)}`;
         }
 
         if (dataType.unique === true) {
@@ -347,7 +402,16 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
   }
 
-  removeColumnQuery(tableName, attributes) {
+  removeColumnQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
 
     attributes = this.attributesToSQL(attributes);
 
@@ -365,13 +429,10 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     const quotedBackupTableName = this.quoteTable(backupTableName);
     const attributeNames = Object.keys(attributes).map(attr => this.quoteIdentifier(attr)).join(', ');
 
-    // Temporary table cannot work for foreign keys.
-    return `${this.createTableQuery(backupTableName, attributes)
-    }INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
-      + `DROP TABLE ${quotedTableName};${
-        this.createTableQuery(tableName, attributes)
-      }INSERT INTO ${quotedTableName} SELECT ${attributeNames} FROM ${quotedBackupTableName};`
-      + `DROP TABLE ${quotedBackupTableName};`;
+    return `${this.createTableQuery(backupTableName, attributes)}`
+      + `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
+      + `DROP TABLE ${quotedTableName};`
+      + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
   }
 
   _alterConstraintQuery(tableName, attributes, createTableSql) {
@@ -459,12 +520,25 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
   /**
    * Generates an SQL query that returns all foreign keys of a table.
    *
-   * @param  {string} tableName  The name of the table.
+   * @param  {TableName} tableName  The name of the table.
    * @returns {string}            The generated sql query.
    * @private
    */
   getForeignKeysQuery(tableName) {
     return `PRAGMA foreign_key_list(${this.quoteTable(this.addSchema(tableName))})`;
+  }
+
+  tableExistsQuery(tableName) {
+    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.addSchema(tableName))};`;
+  }
+
+  /**
+   * Generates an SQL query to check if there are any foreign key violations in the db schema
+   *
+   * @param {string} tableName  The name of the table
+   */
+  foreignKeyCheckQuery(tableName) {
+    return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
   }
 
   /**
@@ -501,5 +575,3 @@ class SQLiteQueryGenerator extends MySqlQueryGenerator {
     return `json_extract(${quotedColumn},${pathStr})`;
   }
 }
-
-module.exports = SQLiteQueryGenerator;

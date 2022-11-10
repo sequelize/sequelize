@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
@@ -15,8 +15,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         allowNull: false,
       },
       mood: {
-        type: DataTypes.ENUM,
-        values: ['happy', 'sad', 'neutral'],
+        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
       },
     });
     await this.sequelize.sync({ force: true });
@@ -108,7 +107,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.mood = 'sad';
         });
 
-        const user0 = await this.User.create({ username: 'fireninja', mood: 'nuetral' });
+        const user0 = await this.User.create({ username: 'fireninja', mood: 'neutral' });
         const user = await user0.update({ username: 'spider' });
         expect(user.username).to.equal('spider');
         expect(user.mood).to.equal('sad');
@@ -122,7 +121,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           hookCalled++;
         });
 
-        const user0 = await this.User.create({ username: 'fireninja', mood: 'nuetral' });
+        const user0 = await this.User.create({ username: 'fireninja', mood: 'neutral' });
         const user = await user0.update({ username: 'spider', mood: 'sad' });
         expect(user.username).to.equal('spider');
         expect(user.mood).to.equal('happy');

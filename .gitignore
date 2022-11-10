@@ -5,6 +5,8 @@ npm-debug.log*
 *~
 test.sqlite
 *.sublime*
+package-lock.json
+pnpm-lock.yaml
 
 .nyc_output
 coverage-*
@@ -12,7 +14,7 @@ coverage
 test/tmp/*
 test/binary/tmp/*
 .vscode/
-esdoc
+.typedoc-build
 node_modules
 *.log
 /lib

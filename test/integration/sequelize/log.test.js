@@ -3,6 +3,7 @@
 const { expect } = require('chai');
 const { stub, spy } = require('sinon');
 const Support = require('../support');
+const { Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -18,7 +19,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describe('with disabled logging', () => {
       beforeEach(function () {
-        this.sequelize = new Support.Sequelize('db', 'user', 'pw', { dialect, logging: false });
+        this.sequelize = new Sequelize('db', 'user', 'pw', { dialect, logging: false });
       });
 
       it('does not call the log method of the logger', function () {
@@ -29,7 +30,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describe('with default logging options', () => {
       beforeEach(function () {
-        this.sequelize = new Support.Sequelize('db', 'user', 'pw', { dialect });
+        this.sequelize = new Sequelize('db', 'user', 'pw', { dialect });
       });
 
       describe('called with no arguments', () => {
@@ -62,7 +63,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     describe('with a custom function for logging', () => {
       beforeEach(function () {
         this.spy = spy();
-        this.sequelize = new Support.Sequelize('db', 'user', 'pw', { dialect, logging: this.spy });
+        this.sequelize = new Sequelize('db', 'user', 'pw', { dialect, logging: this.spy });
       });
 
       it('calls the custom logger method', function () {

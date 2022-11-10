@@ -1,49 +1,29 @@
 'use strict';
 
+import isPlainObject from 'lodash/isPlainObject';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
-const AbstractQuery = require('../abstract/query');
+const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
-const parserStore = require('../parserStore')('sqlite');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:sqlite');
 
-class Query extends AbstractQuery {
-  getInsertIdField() {
-    return 'lastID';
+// sqlite3 currently ignores bigint values, so we have to translate to string for now
+// There's a WIP here: https://github.com/TryGhost/node-sqlite3/pull/1501
+function stringifyIfBigint(value) {
+  if (typeof value === 'bigint') {
+    return value.toString();
   }
 
-  /**
-   * rewrite query with parameters.
-   *
-   * @param {string} sql
-   * @param {Array|object} values
-   * @param {string} dialect
-   * @private
-   */
-  static formatBindParameters(sql, values, dialect) {
-    let bindParam;
-    if (Array.isArray(values)) {
-      bindParam = {};
-      for (const [i, v] of values.entries()) {
-        bindParam[`$${i + 1}`] = v;
-      }
+  return value;
+}
 
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
-    } else {
-      bindParam = {};
-      if (typeof values === 'object') {
-        for (const k of Object.keys(values)) {
-          bindParam[`$${k}`] = values[k];
-        }
-      }
-
-      sql = AbstractQuery.formatBindParameters(sql, values, dialect, { skipValueReplace: true })[0];
-    }
-
-    return [sql, bindParam];
+export class SqliteQuery extends AbstractQuery {
+  getInsertIdField() {
+    return 'lastID';
   }
 
   _collectModels(include, prefix) {
@@ -148,9 +128,7 @@ class Query extends AbstractQuery {
             });
           }
 
-          return Object.prototype.hasOwnProperty.call(tableTypes, name)
-            ? this.applyParsers(tableTypes[name], value)
-            : value;
+          return value;
         });
       });
 
@@ -247,9 +225,14 @@ class Query extends AbstractQuery {
 
     return new Promise((resolve, reject) => {
       conn.serialize(async () => {
+        // TODO: remove sql type based parsing for SQLite.
+        //  It is extremely inefficient (requires a series of DESCRIBE TABLE query, which slows down all queries).
+        //  and is very unreliable.
+        //  Use Sequelize DataType parsing instead, until sqlite3 provides a clean API to know the DB type.
         const columnTypes = {};
         const errForStack = new Error();
         const executeSql = () => {
+          // TODO: remove this check. A query could start with a comment:
           if (sql.startsWith('-- ')) {
             return resolve();
           }
@@ -263,8 +246,6 @@ class Query extends AbstractQuery {
               // `this` is passed from sqlite, we have no control over this.
 
               resolve(query._handleQueryResponse(this, columnTypes, executionError, results, errForStack.stack));
-
-              return;
             } catch (error) {
               reject(error);
             }
@@ -272,6 +253,18 @@ class Query extends AbstractQuery {
 
           if (!parameters) {
             parameters = [];
+          }
+
+          if (isPlainObject(parameters)) {
+            const newParameters = Object.create(null);
+
+            for (const key of Object.keys(parameters)) {
+              newParameters[`$${key}`] = stringifyIfBigint(parameters[key]);
+            }
+
+            parameters = newParameters;
+          } else {
+            parameters = parameters.map(stringifyIfBigint);
           }
 
           conn[method](sql, parameters, afterExecute);
@@ -365,23 +358,6 @@ class Query extends AbstractQuery {
     return constraints;
   }
 
-  applyParsers(type, value) {
-    if (type.includes('(')) {
-      // Remove the length part
-      type = type.slice(0, Math.max(0, type.indexOf('(')));
-    }
-
-    type = type.replace('UNSIGNED', '').replace('ZEROFILL', '');
-    type = type.trim().toUpperCase();
-    const parse = parserStore.get(type);
-
-    if (value !== null && parse) {
-      return parse(value, { timezone: this.sequelize.options.timezone });
-    }
-
-    return value;
-  }
-
   formatError(err, errStack) {
 
     switch (err.code) {
@@ -392,7 +368,7 @@ class Query extends AbstractQuery {
       case 'SQLITE_CONSTRAINT': {
         if (err.message.includes('FOREIGN KEY constraint failed')) {
           return new sequelizeErrors.ForeignKeyConstraintError({
-            parent: err,
+            cause: err,
             stack: errStack,
           });
         }
@@ -436,7 +412,7 @@ class Query extends AbstractQuery {
           });
         }
 
-        return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
       }
 
       case 'SQLITE_BUSY':
@@ -475,7 +451,3 @@ class Query extends AbstractQuery {
     return 'all';
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

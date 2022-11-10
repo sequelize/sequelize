@@ -2,15 +2,15 @@
 
 const chai = require('chai');
 const sinon = require('sinon');
-const Sequelize = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
 
-const dialect = Support.getTestDialect();
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
+const dialect = current.dialect;
+const dialectName = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Sequelize.STRING });
+        const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
         const t = await sequelize.transaction();
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.user = user;
       });
 
-      if (dialect === 'mysql') {
+      if (dialectName === 'mysql') {
         // Bit fields interpreted as boolean need conversion from buffer / bool.
         // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
 
@@ -87,8 +87,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           await bitUser.bulkCreate([
-            { bool: 0 },
-            { bool: 1 },
+            { bool: false },
+            { bool: true },
           ]);
 
           const bitUsers = await bitUser.findAll();
@@ -148,7 +148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should not try to convert boolean values if they are not selected', async function () {
         const UserWithBoolean = this.sequelize.define('UserBoolean', {
-          active: Sequelize.BOOLEAN,
+          active: DataTypes.BOOLEAN,
         });
 
         await UserWithBoolean.sync({ force: true });
@@ -191,8 +191,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('finds entries via primary keys', async function () {
         const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
-          identifier: { type: Sequelize.STRING, primaryKey: true },
-          name: Sequelize.STRING,
+          identifier: { type: DataTypes.STRING, primaryKey: true },
+          name: DataTypes.STRING,
         });
 
         await UserPrimary.sync({ force: true });
@@ -210,8 +210,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('finds entries via a string primary key called id', async function () {
         const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
-          id: { type: Sequelize.STRING, primaryKey: true },
-          name: Sequelize.STRING,
+          id: { type: DataTypes.STRING, primaryKey: true },
+          name: DataTypes.STRING,
         });
 
         await UserPrimary.sync({ force: true });
@@ -224,6 +224,55 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const u2 = await UserPrimary.findByPk('a string based id');
         expect(u2.id).to.equal('a string based id');
         expect(u2.name).to.equal('Johnno');
+      });
+
+      it('finds entries via a bigint primary key called id', async function () {
+        const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
+          id: { type: DataTypes.BIGINT, primaryKey: true },
+          name: DataTypes.STRING,
+        });
+
+        await UserPrimary.sync({ force: true });
+
+        await UserPrimary.create({
+          id: 9_007_199_254_740_993n, // Number.MAX_SAFE_INTEGER + 2 (cannot be represented exactly as a number in JS)
+          name: 'Johnno',
+        });
+
+        // the rest of the test is disabled for now, because SQLite tries to return 9_007_199_254_740_993 as a JS number,
+        // which we reject due to being out of range.
+        if (dialectName === 'sqlite') {
+          // sqlite3 returns a number, so u2.id comes back as 9_007_199_254_740_992 here:
+          // https://github.com/TryGhost/node-sqlite3/issues/922
+          // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
+          const [[{ stringifiedId }]] = await this.sequelize.query(`select cast("id" as text) as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
+          expect(stringifiedId).to.equal('9007199254740993');
+
+          return;
+        }
+
+        const u2 = await UserPrimary.findByPk(9_007_199_254_740_993n);
+        expect(u2.name).to.equal('Johnno');
+
+        // Getting the value back as bigint is not supported yet: https://github.com/sequelize/sequelize/issues/14296
+        // With most dialects we'll receive a string, but in some cases we have to be a bit creative to prove that we did get hold of the right record:
+        if (dialectName === 'db2') {
+          // ibm_db 2.7.4+ returns BIGINT values as JS numbers, which leads to a loss of precision:
+          // https://github.com/ibmdb/node-ibm_db/issues/816
+          // It means that u2.id comes back as 9_007_199_254_740_992 here :(
+          // Hopefully this will be fixed soon.
+          // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
+          const [[{ stringifiedId }]] = await this.sequelize.query(`select "id"::varchar as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
+          expect(stringifiedId).to.equal('9007199254740993');
+        } else if (dialectName === 'mariadb') {
+          // With our current default config, the mariadb driver sends back a Long instance.
+          // Updating the mariadb dev dep and passing "supportBigInt: true" would get it back as a bigint,
+          // but that's potentially a big change.
+          // For now, we'll just stringify the Long and make the comparison:
+          expect(u2.id.toString()).to.equal('9007199254740993');
+        } else {
+          expect(u2.id).to.equal('9007199254740993');
+        }
       });
 
       it('always honors ZERO as primary key', async function () {
@@ -251,8 +300,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should allow us to find IDs using capital letters', async function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {
-          ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
-          Login: { type: Sequelize.STRING },
+          ID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          Login: { type: DataTypes.STRING },
         });
 
         await User.sync({ force: true });
@@ -262,10 +311,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user.ID).to.equal(1);
       });
 
-      if (['postgres', 'sqlite'].includes(dialect)) {
+      if (dialect.supports.dataTypes.CITEXT) {
         it('should allow case-insensitive find on CITEXT type', async function () {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
-            username: Sequelize.CITEXT,
+            username: DataTypes.CITEXT,
           });
 
           await User.sync({ force: true });
@@ -276,10 +325,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      if (dialect === 'postgres') {
+      if (dialectName === 'postgres') {
         it('should allow case-sensitive find on TSVECTOR type', async function () {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
-            username: Sequelize.TSVECTOR,
+            username: DataTypes.TSVECTOR,
           });
 
           await User.sync({ force: true });
@@ -295,8 +344,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('eager loading', () => {
       beforeEach(function () {
-        this.Task = this.sequelize.define('Task', { title: Sequelize.STRING });
-        this.Worker = this.sequelize.define('Worker', { name: Sequelize.STRING });
+        this.Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+        this.Worker = this.sequelize.define('Worker', { name: DataTypes.STRING });
 
         this.init = async function (callback) {
           await this.sequelize.sync({ force: true });
@@ -315,7 +364,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             try {
               await this.Worker.findOne({ include: [1] });
             } catch (error) {
-              expect(error.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
+              expect(error.message).to.equal(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
+Got { association: 1 } instead`);
             }
           });
 
@@ -323,7 +373,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             try {
               await this.Worker.findOne({ include: [this.Task] });
             } catch (error) {
-              expect(error.message).to.equal('Task is not associated to Worker!');
+              expect(error.message).to.equal('Invalid Include received: no associations exist between "Worker" and "Task"');
             }
           });
 
@@ -347,8 +397,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('returns the private and public ip', async function () {
           const ctx = Object.create(this);
-          ctx.Domain = ctx.sequelize.define('Domain', { ip: Sequelize.STRING });
-          ctx.Environment = ctx.sequelize.define('Environment', { name: Sequelize.STRING });
+          ctx.Domain = ctx.sequelize.define('Domain', { ip: DataTypes.STRING });
+          ctx.Environment = ctx.sequelize.define('Environment', { name: DataTypes.STRING });
           ctx.Environment.belongsTo(ctx.Domain, { as: 'PrivateDomain', foreignKey: 'privateDomainId' });
           ctx.Environment.belongsTo(ctx.Domain, { as: 'PublicDomain', foreignKey: 'publicDomainId' });
 
@@ -378,13 +428,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('eager loads with non-id primary keys', async function () {
           this.User = this.sequelize.define('UserPKeagerbelong', {
             username: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
           this.Group = this.sequelize.define('GroupPKeagerbelong', {
             name: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
@@ -408,18 +458,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('getting parent data in many to one relationship', async function () {
           const User = this.sequelize.define('User', {
-            id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
-            username: { type: Sequelize.STRING },
+            id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+            username: { type: DataTypes.STRING },
           });
 
           const Message = this.sequelize.define('Message', {
-            id: { type: Sequelize.INTEGER, autoIncrement: true, primaryKey: true },
-            user_id: { type: Sequelize.INTEGER },
-            message: { type: Sequelize.STRING },
+            id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+            user_id: { type: DataTypes.INTEGER },
+            message: { type: DataTypes.STRING },
           });
 
-          User.hasMany(Message);
-          Message.belongsTo(User, { foreignKey: 'user_id' });
+          User.hasMany(Message, { foreignKey: 'user_id' });
 
           await this.sequelize.sync({ force: true });
           const user = await User.create({ username: 'test_testerson' });
@@ -472,7 +521,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await this.Task.findOne({ include: [this.Worker] });
           } catch (error) {
-            expect(error.message).to.equal('Worker is not associated to Task!');
+            expect(error.message).to.equal('Invalid Include received: no associations exist between "Task" and "Worker"');
           }
         });
 
@@ -490,13 +539,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('eager loads with non-id primary keys', async function () {
           this.User = this.sequelize.define('UserPKeagerone', {
             username: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
           this.Group = this.sequelize.define('GroupPKeagerone', {
             name: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
@@ -524,7 +573,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await this.Worker.findOne({ include: [this.Task] });
           } catch (error) {
-            expect(error.message).to.equal('Task is not associated to Worker!');
+            expect(error.message).to.equal('Invalid Include received: no associations exist between "Worker" and "Task"');
           }
         });
 
@@ -541,7 +590,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             try {
               await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
             } catch (error) {
-              expect(error.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDo).');
+              expect(error.message).to.equal(`Association with alias "Work" does not exist on Worker.
+The following associations are defined on "Worker": "ToDo"`);
             }
           });
 
@@ -593,7 +643,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await this.Task.findOne({ include: [this.Worker] });
           } catch (error) {
-            expect(error.message).to.equal('Worker is not associated to Task!');
+            expect(error.message).to.equal('Invalid Include received: no associations exist between "Task" and "Worker"');
           }
         });
 
@@ -639,13 +689,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('eager loads with non-id primary keys', async function () {
           this.User = this.sequelize.define('UserPKeagerone', {
             username: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
           this.Group = this.sequelize.define('GroupPKeagerone', {
             name: {
-              type: Sequelize.STRING,
+              type: DataTypes.STRING,
               primaryKey: true,
             },
           });
@@ -675,7 +725,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           try {
             await this.Worker.findOne({ include: [this.Task] });
           } catch (error) {
-            expect(error.message).to.equal('Task is not associated to Worker!');
+            expect(error.message).to.equal('Invalid Include received: no associations exist between "Worker" and "Task"');
           }
         });
 
@@ -692,7 +742,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             try {
               await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
             } catch (error) {
-              expect(error.message).to.equal('Task is associated to Worker using an alias. You\'ve included an alias (Work), but it does not match the alias(es) defined in your association (ToDos).');
+              expect(error.message).to.equal(`Association with alias "Work" does not exist on Worker.
+The following associations are defined on "Worker": "ToDos"`);
             }
           });
 
@@ -733,8 +784,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('hasMany (N:M) with alias', () => {
         beforeEach(function () {
-          this.Product = this.sequelize.define('Product', { title: Sequelize.STRING });
-          this.Tag = this.sequelize.define('Tag', { name: Sequelize.STRING });
+          this.Product = this.sequelize.define('Product', { title: DataTypes.STRING });
+          this.Tag = this.sequelize.define('Tag', { name: DataTypes.STRING });
         });
 
         it('returns the associated models when using through as string and alias', async function () {
@@ -919,7 +970,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('throws error when record not found by findByPk', async function () {
-        await expect(this.User.findByPk(4_732_322_332_323_333_232_344_334_354_234, {
+        await expect(this.User.findByPk(2, {
           rejectOnEmpty: true,
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
@@ -935,7 +986,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works from model options', async () => {
         const Model = current.define('Test', {
-          username: Sequelize.STRING(100),
+          username: DataTypes.STRING(100),
         }, {
           rejectOnEmpty: true,
         });
@@ -951,7 +1002,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('override model options', async () => {
         const Model = current.define('Test', {
-          username: Sequelize.STRING(100),
+          username: DataTypes.STRING(100),
         }, {
           rejectOnEmpty: true,
         });
@@ -968,7 +1019,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('resolve null when disabled', async () => {
         const Model = current.define('Test', {
-          username: Sequelize.STRING(100),
+          username: DataTypes.STRING(100),
         });
 
         await Model.sync({ force: true });

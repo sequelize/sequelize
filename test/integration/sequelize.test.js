@@ -2,13 +2,11 @@
 
 const { expect, assert } = require('chai');
 const Support = require('./support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Transaction, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const Sequelize = require('@sequelize/core');
-const config = require('../config/config');
-const { Transaction } = require('@sequelize/core/lib/transaction');
+const { Config: config } = require('../config/config');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
@@ -127,7 +125,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               .sequelizeWithInvalidConnection
               .authenticate();
           } catch (error) {
-            console.log(error);
             expect(
               error.message.includes('connect ECONNREFUSED')
               || error.message.includes('invalid port number')
@@ -368,7 +365,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       await Photo.sync({ force: true });
       let tableNames = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialect)) {
         tableNames = tableNames.map(v => v.tableName);
       }
 
@@ -423,8 +420,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         dialect: this.sequelize.options.dialect,
       });
 
-      sequelize.define('Project', { title: Sequelize.STRING });
-      sequelize.define('Task', { title: Sequelize.STRING });
+      sequelize.define('Project', { title: DataTypes.STRING });
+      sequelize.define('Task', { title: DataTypes.STRING });
 
       await expect(sequelize.sync({ force: true, match: /$phoenix/ }))
         .to.be.rejectedWith('Database "cyber_bird" does not match sync match parameter "/$phoenix/"');
@@ -440,7 +437,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('fails with incorrect database credentials (1)', async function () {
-        this.sequelizeWithInvalidCredentials = new Sequelize('omg', 'bar', null, _.omit(this.sequelize.options, ['host']));
+        this.sequelizeWithInvalidCredentials = Support.createSequelizeInstance({
+          database: 'omg',
+          username: 'bar',
+          password: null,
+        });
 
         const User2 = this.sequelizeWithInvalidCredentials.define('User', { name: DataTypes.STRING, bio: DataTypes.TEXT });
 
@@ -456,7 +457,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               'password authentication failed for user "bar"',
             ].some(fragment => error.message.includes(fragment)));
           } else if (dialect === 'mssql') {
-            expect(error.message).to.equal('Login failed for user \'bar\'.');
+            expect(error.message).to.include('Login failed for user \'bar\'.');
           } else if (dialect === 'db2') {
             expect(error.message).to.include('A communication error has been detected');
           } else if (dialect === 'ibmi') {
@@ -473,8 +474,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           dialect: this.sequelize.options.dialect,
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -485,8 +486,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           port: 99_999,
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -498,8 +499,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           pool: {},
         });
 
-        sequelize.define('Project', { title: Sequelize.STRING });
-        sequelize.define('Task', { title: Sequelize.STRING });
+        sequelize.define('Project', { title: DataTypes.STRING });
+        sequelize.define('Task', { title: DataTypes.STRING });
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
       });
@@ -507,7 +508,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('returns an error correctly if unable to sync a foreign key referenced model', async function () {
         this.sequelize.define('Application', {
           authorID: {
-            type: Sequelize.BIGINT,
+            type: DataTypes.BIGINT,
             allowNull: false,
             references: {
               model: 'User',
@@ -517,34 +518,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         await expect(this.sequelize.sync()).to.be.rejected;
-      });
-
-      it('handles this dependant foreign key constraints', async function () {
-        const block = this.sequelize.define('block', {
-          id: { type: DataTypes.INTEGER, primaryKey: true },
-          name: DataTypes.STRING,
-        }, {
-          tableName: 'block',
-          timestamps: false,
-          paranoid: false,
-        });
-
-        block.hasMany(block, {
-          as: 'childBlocks',
-          foreignKey: 'parent',
-          joinTableName: 'link_block_block',
-          useJunctionTable: true,
-          foreignKeyConstraint: true,
-        });
-        block.belongsTo(block, {
-          as: 'parentBlocks',
-          foreignKey: 'child',
-          joinTableName: 'link_block_block',
-          useJunctionTable: true,
-          foreignKeyConstraint: true,
-        });
-
-        await this.sequelize.sync();
       });
     }
 
@@ -620,8 +593,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
-  describe('drop should work', () => {
-    it('correctly succeeds', async function () {
+  describe('Model.drop', () => {
+    it('drops the table corresponding to the model', async function () {
       const User = this.sequelize.define('Users', { username: DataTypes.STRING });
       await User.sync({ force: true });
       await User.drop();
@@ -629,60 +602,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('define', () => {
-    it('raises an error if no values are defined', function () {
-      expect(() => {
-        this.sequelize.define('omnomnom', {
-          bla: { type: DataTypes.ARRAY },
-        });
-      }).to.throw(Error, 'ARRAY is missing type definition for its values.');
-    });
-  });
-
-  describe('define', () => {
-    for (const status of [
-      { type: DataTypes.ENUM, values: ['scheduled', 'active', 'finished'] },
-      DataTypes.ENUM('scheduled', 'active', 'finished'),
-    ]) {
-      describe('enum', () => {
-        beforeEach(async function () {
-          this.sequelize = Support.createSequelizeInstance({
-            typeValidation: true,
-          });
-
-          this.Review = this.sequelize.define('review', { status });
-          await this.Review.sync({ force: true });
-        });
-
-        it('raises an error if no values are defined', function () {
-          expect(() => {
-            this.sequelize.define('omnomnom', {
-              bla: { type: DataTypes.ENUM },
-            });
-          }).to.throw(Error, 'Values for ENUM have not been defined.');
-        });
-
-        it('correctly stores values', async function () {
-          const review = await this.Review.create({ status: 'active' });
-          expect(review.status).to.equal('active');
-        });
-
-        it('correctly loads values', async function () {
-          await this.Review.create({ status: 'active' });
-          const reviews = await this.Review.findAll();
-          expect(reviews[0].status).to.equal('active');
-        });
-
-        it('doesn\'t save an instance if value is not in the range of enums', async function () {
-          try {
-            await this.Review.create({ status: 'fnord' });
-          } catch (error) {
-            expect(error).to.be.instanceOf(Error);
-            expect(error.message).to.equal('"fnord" is not a valid choice in ["scheduled","active","finished"]');
-          }
-        });
-      });
-    }
-
     describe('table', () => {
       for (const customAttributes of [
         { id: { type: DataTypes.BIGINT, primaryKey: true } },
@@ -716,7 +635,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         it('is a transaction method available', () => {
-          expect(Support.Sequelize).to.respondTo('transaction');
+          expect(Sequelize).to.respondTo('transaction');
         });
 
         it('passes a transaction object to the callback', async function () {

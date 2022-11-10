@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
+        const User = sequelize.define('User', { number: DataTypes.INTEGER });
 
         await User.sync({ force: true });
         const user = await User.create({ number: 3 });
@@ -167,10 +167,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await User.sync({ force: true });
       const user = await User.create({ aNumber: 1 });
       const oldDate = user.updatedAt;
+      expect(oldDate).to.be.instanceOf(Date);
       this.clock.tick(1000);
       await user.decrement('aNumber', { by: 1 });
 
-      await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
+      const reloadedUser = await User.findByPk(1);
+      expect(reloadedUser.updatedAt).to.be.instanceOf(Date);
+      expect(reloadedUser.updatedAt).to.be.afterTime(oldDate);
     });
 
     it('with timestamps set to true and options.silent set to true', async function () {

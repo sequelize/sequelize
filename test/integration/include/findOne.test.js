@@ -4,8 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const Sequelize = require('@sequelize/core');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
@@ -105,7 +104,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const User = this.sequelize.define('User', {
         id: {
           type: DataTypes.UUID,
-          defaultValue: Sequelize.UUIDV4,
+          defaultValue: DataTypes.UUIDV4,
           field: 'main_id',
           primaryKey: true,
         },
@@ -359,12 +358,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const Post = this.sequelize.define('Post', {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, unique: true },
         owner_id: { type: DataTypes.INTEGER, unique: 'combiIndex' },
-        owner_type: { type: DataTypes.ENUM, values: ['user', 'org'], defaultValue: 'user', unique: 'combiIndex' },
+        owner_type: { type: DataTypes.ENUM(['user', 'org']), defaultValue: 'user', unique: 'combiIndex' },
         private: { type: DataTypes.BOOLEAN, defaultValue: false },
       }, { underscored: true });
 
-      User.hasMany(Post, { foreignKey: 'owner_id', scope: { owner_type: 'user'  }, as: 'UserPosts', constraints: false });
-      Post.belongsTo(User, { foreignKey: 'owner_id', as: 'Owner', constraints: false });
+      User.hasMany(Post, { foreignKey: 'owner_id', scope: { owner_type: 'user'  }, as: 'UserPosts', foreignKeyConstraints: false });
+      Post.belongsTo(User, { foreignKey: 'owner_id', as: 'Owner', foreignKeyConstraints: false });
 
       await this.sequelize.sync({ force: true });
 

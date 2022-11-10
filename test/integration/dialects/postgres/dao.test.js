@@ -5,11 +5,8 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 
-const Sequelize = Support.Sequelize;
-const Op = Sequelize.Op;
 const dialect = Support.getTestDialect();
-const DataTypes = require('@sequelize/core/lib/data-types');
-const sequelize = require('@sequelize/core/lib/sequelize');
+const { DataTypes, Op, json } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] DAO', () => {
@@ -98,7 +95,7 @@ if (dialect.startsWith('postgres')) {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })]);
 
-        const user = await this.User.findOne({ where: sequelize.json('emergency_contact->>\'name\'', 'kate'), attributes: ['username', 'emergency_contact'] });
+        const user = await this.User.findOne({ where: json('emergency_contact->>\'name\'', 'kate'), attributes: ['username', 'emergency_contact'] });
         expect(user.emergency_contact.name).to.equal('kate');
       });
 
@@ -108,7 +105,7 @@ if (dialect.startsWith('postgres')) {
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })]);
 
         const user = await this.User.findOne({
-          where: sequelize.json({ emergency_contact: { name: 'kate' } }),
+          where: json({ emergency_contact: { name: 'kate' } }),
         });
 
         expect(user.emergency_contact.name).to.equal('kate');
@@ -119,7 +116,7 @@ if (dialect.startsWith('postgres')) {
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })]);
 
-        const user = await this.User.findOne({ where: sequelize.json('emergency_contact.name', 'joe') });
+        const user = await this.User.findOne({ where: json('emergency_contact.name', 'joe') });
         expect(user.emergency_contact.name).to.equal('joe');
       });
 
@@ -129,8 +126,8 @@ if (dialect.startsWith('postgres')) {
           this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })]);
 
         const user = await this.User.findOne({
-          attributes: [[sequelize.json('emergencyContact.name'), 'contactName']],
-          where: sequelize.json('emergencyContact.name', 'joe'),
+          attributes: [[json('emergencyContact.name'), 'contactName']],
+          where: json('emergencyContact.name', 'joe'),
         });
 
         expect(user.get('contactName')).to.equal('joe');
@@ -142,7 +139,7 @@ if (dialect.startsWith('postgres')) {
         const user0 = await this.User.create({ username: 'swen', emergency_contact: { value: text } });
         expect(user0.isNewRecord).to.equal(false);
         await this.User.findOne({ where: { username: 'swen' } });
-        const user = await this.User.findOne({ where: sequelize.json('emergency_contact.value', text) });
+        const user = await this.User.findOne({ where: json('emergency_contact.value', text) });
         expect(user.username).to.equal('swen');
       });
 
@@ -152,7 +149,7 @@ if (dialect.startsWith('postgres')) {
         const user0 = await this.User.findOrCreate({ where: { username: 'swen' }, defaults: { emergency_contact: { value: text } } });
         expect(!user0.isNewRecord).to.equal(true);
         await this.User.findOne({ where: { username: 'swen' } });
-        const user = await this.User.findOne({ where: sequelize.json('emergency_contact.value', text) });
+        const user = await this.User.findOne({ where: json('emergency_contact.value', text) });
         expect(user.username).to.equal('swen');
       });
     });
@@ -164,11 +161,12 @@ if (dialect.startsWith('postgres')) {
         expect(table.document.type).to.equal('HSTORE');
       });
 
+      // TODO: move to select QueryGenerator unit tests
       it('should NOT stringify hstore with insert', async function () {
         await this.User.create({
           username: 'bob',
           email: ['myemail@email.com'],
-          settings: { mailing: false, push: 'facebook', frequency: 3 },
+          settings: { mailing: 'false', push: 'facebook', frequency: '3' },
         }, {
           logging(sql) {
             const unexpected = '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
@@ -177,6 +175,7 @@ if (dialect.startsWith('postgres')) {
         });
       });
 
+      // TODO: move to select QueryGenerator unit tests
       it('should not rename hstore fields', async function () {
         const Equipment = this.sequelize.define('Equipment', {
           grapplingHook: {
@@ -193,7 +192,7 @@ if (dialect.startsWith('postgres')) {
         await Equipment.findAll({
           where: {
             utilityBelt: {
-              grapplingHook: true,
+              grapplingHook: 'true',
             },
           },
           logging(sql) {
@@ -202,6 +201,7 @@ if (dialect.startsWith('postgres')) {
         });
       });
 
+      // TODO: move to select QueryGenerator unit tests
       it('should not rename json fields', async function () {
         const Equipment = this.sequelize.define('Equipment', {
           grapplingHook: {
@@ -226,7 +226,6 @@ if (dialect.startsWith('postgres')) {
           },
         });
       });
-
     });
 
     describe('range', () => {
@@ -235,7 +234,6 @@ if (dialect.startsWith('postgres')) {
         expect(table.course_period.type).to.equal('TSTZRANGE');
         expect(table.available_amount.type).to.equal('INT4RANGE');
       });
-
     });
 
     describe('enums', () => {
@@ -271,20 +269,18 @@ if (dialect.startsWith('postgres')) {
         const DummyModel = this.sequelize.define('Dummy-pg', {
           username: DataTypes.STRING,
           theEnumOne: {
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'one',
               'two',
               'three',
-            ],
+            ]),
           },
           theEnumTwo: {
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'four',
               'five',
               'six',
-            ],
+            ]),
           },
         });
 
@@ -300,21 +296,19 @@ if (dialect.startsWith('postgres')) {
           username: DataTypes.STRING,
           theEnumOne: {
             field: 'oh_my_this_enum_one',
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'one',
               'two',
               'three',
-            ],
+            ]),
           },
           theEnumTwo: {
             field: 'oh_my_this_enum_two',
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'four',
               'five',
               'six',
-            ],
+            ]),
           },
         });
 
@@ -338,7 +332,7 @@ if (dialect.startsWith('postgres')) {
         await User.sync();
         const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
         expect(enums).to.have.length(1);
-        expect(enums[0].enum_value).to.equal('{neutral,happy,sad,ecstatic,meh,joyful}');
+        expect(enums[0].enum_value).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
       });
 
       it('should be able to add multiple values with different order', async function () {
@@ -354,7 +348,7 @@ if (dialect.startsWith('postgres')) {
         await User.sync();
         const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
         expect(enums).to.have.length(1);
-        expect(enums[0].enum_value).to.equal('{0,1,2,3,4,5,6,7}');
+        expect(enums[0].enum_value).to.deep.equal(['0', '1', '2', '3', '4', '5', '6', '7']);
       });
 
       describe('ARRAY(ENUM)', () => {
@@ -408,7 +402,7 @@ if (dialect.startsWith('postgres')) {
           await User.sync();
           const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
           expect(enums).to.have.length(1);
-          expect(enums[0].enum_value).to.equal('{view,access,edit,write,check,delete}');
+          expect(enums[0].enum_value).to.deep.equal(['view', 'access', 'edit', 'write', 'check', 'delete']);
         });
 
         it('should be able to insert new record', async function () {
@@ -467,9 +461,10 @@ if (dialect.startsWith('postgres')) {
           expect(user.length).to.equal(1);
         });
 
-        it('should be able to insert a new record even with an array of enums in a schema', async function () {
+        it('should be able to insert a new record with an array of enums in a schema', async function () {
           const schema = 'special_schema';
-          this.sequelize.createSchema(schema);
+          await this.sequelize.createSchema(schema);
+
           const User = this.sequelize.define('UserEnums', {
             name: DataTypes.STRING,
             type: DataTypes.ENUM('A', 'B', 'C'),
@@ -512,14 +507,14 @@ if (dialect.startsWith('postgres')) {
             ])),
           });
 
-          await expect(User.sync({ force: true }).then(() => {
-            return User.create({
-              name: 'file.exe',
-              type: 'C',
-              owners: ['userA', 'userB'],
-              permissions: ['cosmic_ray_disk_access'],
-            });
-          })).to.be.rejectedWith(/invalid input value for enum "enum_UserEnums_permissions": "cosmic_ray_disk_access"/);
+          await User.sync({ force: true });
+
+          await expect(User.create({
+            name: 'file.exe',
+            type: 'C',
+            owners: ['userA', 'userB'],
+            permissions: ['cosmic_ray_disk_access'],
+          })).to.be.rejectedWith(`'cosmic_ray_disk_access' is not a valid choice for enum [ 'access', 'write', 'check', 'delete' ]`);
         });
 
         it('should be able to find records', async function () {
@@ -689,7 +684,7 @@ if (dialect.startsWith('postgres')) {
         await this.User.bulkCreate([{
           username: 'bob',
           email: ['myemail@email.com'],
-          settings: { mailing: true, push: 'facebook', frequency: 3 },
+          settings: { mailing: 'true', push: 'facebook', frequency: '3' },
         }]);
 
         const user = await User.findByPk(1);
@@ -967,7 +962,7 @@ if (dialect.startsWith('postgres')) {
     it('should save geometry correctly', async function () {
       const point = { type: 'Point', coordinates: [39.807_222, -76.984_722] };
       const newUser = await this.User.create({ username: 'user', email: ['foo@bar.com'], location: point });
-      expect(newUser.location).to.deep.eql(point);
+      expect(newUser.location).to.deep.include(point);
     });
 
     it('should update geometry correctly', async function () {
@@ -976,7 +971,7 @@ if (dialect.startsWith('postgres')) {
       const point2 = { type: 'Point', coordinates: [39.828_333, -77.232_222] };
       const oldUser = await User.create({ username: 'user', email: ['foo@bar.com'], location: point1 });
       const [, updatedUsers] = await User.update({ location: point2 }, { where: { username: oldUser.username }, returning: true });
-      expect(updatedUsers[0].location).to.deep.eql(point2);
+      expect(updatedUsers[0].location).to.deep.include(point2);
     });
 
     it('should read geometry correctly', async function () {
@@ -985,7 +980,7 @@ if (dialect.startsWith('postgres')) {
 
       const user0 = await User.create({ username: 'user', email: ['foo@bar.com'], location: point });
       const user = await User.findOne({ where: { username: user0.username } });
-      expect(user.location).to.deep.eql(point);
+      expect(user.location).to.deep.include(point);
     });
 
     describe('[POSTGRES] Unquoted identifiers', () => {

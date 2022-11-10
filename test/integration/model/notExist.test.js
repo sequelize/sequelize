@@ -4,14 +4,14 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
     this.Order = this.sequelize.define('Order', {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       sequence: DataTypes.INTEGER,
-      amount: DataTypes.DECIMAL,
+      amount: DataTypes.FLOAT,
       type: DataTypes.STRING,
     });
 

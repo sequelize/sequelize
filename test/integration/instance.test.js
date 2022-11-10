@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
@@ -164,10 +164,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should store the current date in touchedAt', function () {
-        const clock = sinon.useFakeTimers();
-        clock.tick(5000);
+        this.clock.tick(5000);
         const user = this.User.build({ username: 'a user' });
-        clock.restore();
+        this.clock.restore();
         expect(Number(user.touchedAt)).to.be.equal(5000);
       });
     });
@@ -180,10 +179,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should be the same valid date when saving the date', async function () {
-        const date = new Date();
+        const date = new Date('2018-01-01T12:12:12.000Z');
         await this.User.build({ username: 'a user', dateAllowNullTrue: date }).save();
         const user = await this.User.findOne({ where: { username: 'a user' } });
-        expect(user.dateAllowNullTrue.toString()).to.equal(date.toString());
+        expect(user.dateAllowNullTrue.toISOString()).to.equal(date.toISOString());
       });
     });
 
@@ -207,38 +206,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         await this.User.build({
           username: 'a user',
           isSuperUser: true,
-        })
-          .save();
-
-        const user = await this.User.findOne({
-          where: {
-            username: 'a user',
-          },
-        });
-
-        expect(user.isSuperUser).to.be.true;
-      });
-
-      it('should override default when given truthy boolean-string ("true")', async function () {
-        await this.User.build({
-          username: 'a user',
-          isSuperUser: 'true',
-        })
-          .save();
-
-        const user = await this.User.findOne({
-          where: {
-            username: 'a user',
-          },
-        });
-
-        expect(user.isSuperUser).to.be.true;
-      });
-
-      it('should override default when given truthy boolean-int (1)', async function () {
-        await this.User.build({
-          username: 'a user',
-          isSuperUser: 1,
         })
           .save();
 
@@ -293,7 +260,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         username: { type: DataTypes.STRING },
       }, { paranoid: true });
 
-      this.ParanoidUser.hasOne(this.ParanoidUser);
+      this.ParanoidUser.hasOne(this.ParanoidUser, { as: 'paranoidParent', inverse: { as: 'paranoidChild' } });
       await this.ParanoidUser.sync({ force: true });
     });
 
@@ -428,7 +395,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await this.ParanoidUser.create({ username: 'fnord' });
       const users = await this.ParanoidUser.findAll();
       const linkedUser = await this.ParanoidUser.create({ username: 'linkedFnord' });
-      const user = await users[0].setParanoidUser(linkedUser);
+      const user = await users[0].setParanoidParent(linkedUser);
       expect(user.deletedAt).not.to.exist;
     });
 

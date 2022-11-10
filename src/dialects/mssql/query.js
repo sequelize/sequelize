@@ -1,12 +1,16 @@
 'use strict';
 
-const AbstractQuery = require('../abstract/query');
+import { getAttributeName } from '../../utils';
+
+const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const parserStore = require('../parserStore')('mssql');
 const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:mssql');
+
+const minSafeIntegerAsBigInt = BigInt(Number.MIN_SAFE_INTEGER);
+const maxSafeIntegerAsBigInt = BigInt(Number.MAX_SAFE_INTEGER);
 
 function getScale(aNum) {
   if (!Number.isFinite(aNum)) {
@@ -21,14 +25,13 @@ function getScale(aNum) {
   return Math.log10(e);
 }
 
-class Query extends AbstractQuery {
+export class MsSqlQuery extends AbstractQuery {
   getInsertIdField() {
     return 'id';
   }
 
   getSQLTypeFromJsType(value, TYPES) {
-    const paramType = { type: TYPES.VarChar, typeOptions: {} };
-    paramType.type = TYPES.NVarChar;
+    const paramType = { type: TYPES.NVarChar, typeOptions: {}, value };
     if (typeof value === 'number') {
       if (Number.isInteger(value)) {
         if (value >= -2_147_483_648 && value <= 2_147_483_647) {
@@ -40,6 +43,13 @@ class Query extends AbstractQuery {
         paramType.type = TYPES.Numeric;
         // Default to a reasonable numeric precision/scale pending more sophisticated logic
         paramType.typeOptions = { precision: 30, scale: getScale(value) };
+      }
+    } else if (typeof value === 'bigint') {
+      if (value < minSafeIntegerAsBigInt || value > maxSafeIntegerAsBigInt) {
+        paramType.type = TYPES.VarChar;
+        paramType.value = value.toString();
+      } else {
+        return this.getSQLTypeFromJsType(Number(value), TYPES);
       }
     } else if (typeof value === 'boolean') {
       paramType.type = TYPES.Bit;
@@ -88,10 +98,19 @@ class Query extends AbstractQuery {
       const request = new connection.lib.Request(sql, (err, rowCount) => (err ? reject(err) : resolve([rows, rowCount])));
 
       if (parameters) {
-        _.forOwn(parameters, (value, key) => {
-          const paramType = this.getSQLTypeFromJsType(value, connection.lib.TYPES);
-          request.addParameter(key, paramType.type, value, paramType.typeOptions);
-        });
+        if (Array.isArray(parameters)) {
+          // eslint-disable-next-line unicorn/no-for-loop
+          for (let i = 0; i < parameters.length; i++) {
+            const paramType = this.getSQLTypeFromJsType(parameters[i], connection.lib.TYPES);
+            request.addParameter(String(i + 1), paramType.type, paramType.value, paramType.typeOptions);
+          }
+        } else {
+          _.forOwn(parameters, (parameter, parameterName) => {
+            const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
+            request.addParameter(parameterName, paramType.type, paramType.value, paramType.typeOptions);
+          });
+        }
+
       }
 
       request.on('row', columns => {
@@ -116,15 +135,15 @@ class Query extends AbstractQuery {
     complete();
 
     if (Array.isArray(rows)) {
+      const dialect = this.sequelize.dialect;
       rows = rows.map(columns => {
         const row = {};
         for (const column of columns) {
-          const typeid = column.metadata.type.id;
-          const parse = parserStore.get(typeid);
+          const parser = dialect.getParserForDatabaseDataType(column.metadata.type.type);
           let value = column.value;
 
-          if (value !== null & Boolean(parse)) {
-            value = parse(value);
+          if (value != null && parser) {
+            value = parser(value);
           }
 
           row[column.metadata.colName] = value;
@@ -142,22 +161,6 @@ class Query extends AbstractQuery {
     const errForStack = new Error();
 
     return this.connection.queue.enqueue(() => this._run(this.connection, sql, parameters, errForStack.stack));
-  }
-
-  static formatBindParameters(sql, values, dialect) {
-    const bindParam = {};
-    const replacementFunc = (match, key, valuesIn) => {
-      if (valuesIn[key] !== undefined) {
-        bindParam[key] = valuesIn[key];
-
-        return `@${key}`;
-      }
-
-    };
-
-    sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
-
-    return [sql, bindParam];
   }
 
   /**
@@ -334,7 +337,7 @@ class Query extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, parent: err, fields, stack: errStack });
+      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
     }
 
     match = err.message.match(/Failed on step '(.*)'.Could not create constraint. See previous errors./)
@@ -344,9 +347,23 @@ class Query extends AbstractQuery {
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
         index: match[1],
-        parent: err,
+        cause: err,
         stack: errStack,
       });
+    }
+
+    if (err.errors) {
+      for (const error of err.errors) {
+        match = error.message.match(/Could not create constraint or index. See previous errors./);
+        if (match && match.length > 0) {
+          return new sequelizeErrors.ForeignKeyConstraintError({
+            fields: null,
+            index: match[1],
+            cause: error,
+            stack: errStack,
+          });
+        }
+      }
     }
 
     match = err.message.match(/Could not drop constraint. See previous errors./);
@@ -360,9 +377,29 @@ class Query extends AbstractQuery {
         message: match[1],
         constraint,
         table,
-        parent: err,
+        cause: err,
         stack: errStack,
       });
+    }
+
+    if (err.errors) {
+      for (const error of err.errors) {
+        match = error.message.match(/Could not drop constraint. See previous errors./);
+        if (match && match.length > 0) {
+          let constraint = err.sql.match(/(?:constraint|index) \[(.+?)]/i);
+          constraint = constraint ? constraint[1] : undefined;
+          let table = err.sql.match(/table \[(.+?)]/i);
+          table = table ? table[1] : undefined;
+
+          return new sequelizeErrors.UnknownConstraintError({
+            message: match[1],
+            constraint,
+            table,
+            cause: error,
+            stack: errStack,
+          });
+        }
+      }
     }
 
     return new sequelizeErrors.DatabaseError(err, { stack: errStack });
@@ -419,41 +456,37 @@ class Query extends AbstractQuery {
     }));
   }
 
-  handleInsertQuery(results, metaData) {
-    if (this.instance) {
-      // add the inserted row id to the instance
-      const autoIncrementAttribute = this.model.autoIncrementAttribute;
-      let id = null;
-      let autoIncrementAttributeAlias = null;
+  handleInsertQuery(insertedRows, metaData) {
+    if (!this.instance?.dataValues) {
+      return;
+    }
 
-      if (Object.prototype.hasOwnProperty.call(this.model.rawAttributes, autoIncrementAttribute)
-        && this.model.rawAttributes[autoIncrementAttribute].field !== undefined) {
-        autoIncrementAttributeAlias = this.model.rawAttributes[autoIncrementAttribute].field;
+    // map column names to attribute names
+    insertedRows = insertedRows.map(row => {
+      const attributes = Object.create(null);
+
+      for (const columnName of Object.keys(row)) {
+        const attributeName = getAttributeName(this.model, columnName) ?? columnName;
+
+        attributes[attributeName] = row[columnName];
       }
 
-      id = id || results && results[0][this.getInsertIdField()];
-      id = id || metaData && metaData[this.getInsertIdField()];
-      id = id || results && results[0][autoIncrementAttribute];
-      id = id || autoIncrementAttributeAlias && results && results[0][autoIncrementAttributeAlias];
+      return attributes;
+    });
 
-      this.instance[autoIncrementAttribute] = id;
+    insertedRows = this._parseDataArrayByType(insertedRows, this.model, this.options.includeMap);
 
-      if (this.instance.dataValues) {
-        for (const key in results[0]) {
-          if (Object.prototype.hasOwnProperty.call(results[0], key)) {
-            const record = results[0][key];
+    const autoIncrementAttributeName = this.model.autoIncrementAttribute;
+    let id = null;
 
-            const attr = _.find(this.model.rawAttributes, attribute => attribute.fieldName === key || attribute.field === key);
+    id = id || insertedRows && insertedRows[0][this.getInsertIdField()];
+    id = id || metaData && metaData[this.getInsertIdField()];
+    id = id || insertedRows && insertedRows[0][autoIncrementAttributeName];
 
-            this.instance.dataValues[attr && attr.fieldName || key] = record;
-          }
-        }
-      }
-
+    // assign values to existing instance
+    this.instance[autoIncrementAttributeName] = id;
+    for (const attributeName of Object.keys(insertedRows[0])) {
+      this.instance.dataValues[attributeName] = insertedRows[0][attributeName];
     }
   }
 }
-
-module.exports = Query;
-module.exports.Query = Query;
-module.exports.default = Query;

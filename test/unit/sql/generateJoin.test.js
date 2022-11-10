@@ -1,15 +1,14 @@
 'use strict';
 
-const Support = require('../support');
-const DataTypes = require('@sequelize/core/lib/data-types');
-const Sequelize = require('@sequelize/core/lib/sequelize');
+const Support = require('../../support');
+const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 const util = require('util');
 const _ = require('lodash');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
-const Op = Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -19,8 +18,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
 
-      Sequelize.Model._conformIncludes(options);
-      options = Sequelize.Model._validateIncludedElements(options);
+      Sequelize.Model._conformIncludes(options, options.model);
+      options = _validateIncludedElements(options);
 
       const include = _.at(options, path)[0];
 
@@ -51,7 +50,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       tableName: 'user',
     });
     const Task = current.define('Task', {
-      title: Sequelize.STRING,
+      title: DataTypes.STRING,
       userId: {
         type: DataTypes.INTEGER,
         field: 'user_id',
@@ -61,20 +60,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     const Company = current.define('Company', {
-      name: Sequelize.STRING,
+      name: DataTypes.STRING,
       ownerId: {
-        type: Sequelize.INTEGER,
+        type: DataTypes.INTEGER,
         field: 'owner_id',
       },
       public: {
-        type: Sequelize.BOOLEAN,
+        type: DataTypes.BOOLEAN,
       },
     }, {
       tableName: 'company',
     });
 
     const Profession = current.define('Profession', {
-      name: Sequelize.STRING,
+      name: DataTypes.STRING,
     }, {
       tableName: 'profession',
     });

@@ -1,13 +1,13 @@
 'use strict';
 
-const Support = require('../support');
+const Support = require('../../support');
 
 const current = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.queryGenerator;
-const Op = Support.Sequelize.Op;
 const expect = require('chai').expect;
 const sinon = require('sinon');
+const { Op } = require('@sequelize/core');
 
 if (current.dialect.supports.constraints.addConstraint) {
   describe(Support.getTestDialectTeaser('SQL'), () => {

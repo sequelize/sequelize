@@ -3,84 +3,17 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
-const { Op } = require('@sequelize/core/lib/operators');
-const { IndexHints } = require('@sequelize/core/lib/index-hints');
-const QueryGenerator = require('@sequelize/core/lib/dialects/mariadb/query-generator');
+const { Op, IndexHints } = require('@sequelize/core');
+const { MariaDbQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mariadb/query-generator.js');
+const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'mariadb') {
   describe('[MARIADB Specific] QueryGenerator', () => {
     const suites = {
-      createDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase`;',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET \'utf8mb4\';',
-        },
-        {
-          arguments: ['myDatabase', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-      ],
-      dropDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'DROP DATABASE IF EXISTS `myDatabase`;',
-        },
-      ],
-      createSchema: [
-        {
-          arguments: ['mySchema'],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema`;',
-        },
-        {
-          arguments: ['mySchema', { charset: 'utf8mb4' }],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema` DEFAULT CHARACTER SET \'utf8mb4\';',
-        },
-        {
-          arguments: ['mySchema', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema` DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-        {
-          arguments: ['mySchema', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema` DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-      ],
-      dropSchema: [
-        {
-          arguments: ['mySchema'],
-          expectation: 'DROP SCHEMA IF EXISTS `mySchema`;',
-        },
-      ],
-      showSchemasQuery: [
-        {
-          arguments: [{}],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\');',
-        },
-        {
-          arguments: [{ skip: [] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\');',
-        },
-        {
-          arguments: [{ skip: ['test'] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'test\');',
-        },
-        {
-          arguments: [{ skip: ['test', 'Te\'st2'] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'test\', \'Te\\\'st2\');',
-        },
-
-      ],
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',
@@ -424,12 +357,12 @@ if (dialect === 'mariadb') {
           context: QueryGenerator,
         }, {
           arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 2, 10;',
+          expectation: 'SELECT * FROM `myTable` LIMIT 10 OFFSET 2;',
           context: QueryGenerator,
         }, {
           title: 'uses default limit if only offset is specified',
           arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 2, 10000000000000;',
+          expectation: 'SELECT * FROM `myTable` LIMIT 18446744073709551615 OFFSET 2;',
           context: QueryGenerator,
         }, {
           title: 'uses limit 0',
@@ -439,7 +372,7 @@ if (dialect === 'mariadb') {
         }, {
           title: 'uses offset 0',
           arguments: ['myTable', { offset: 0 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 0, 10000000000000;',
+          expectation: 'SELECT * FROM `myTable`;',
           context: QueryGenerator,
         }, {
           title: 'multiple where arguments',
@@ -537,78 +470,78 @@ if (dialect === 'mariadb') {
         {
           arguments: ['myTable', { name: 'foo' }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`) VALUES ($1);',
-            bind: ['foo'],
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo' },
           },
         }, {
           arguments: ['myTable', { name: 'foo\';DROP TABLE myTable;' }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`) VALUES ($1);',
-            bind: ['foo\';DROP TABLE myTable;'],
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1);',
+            bind: { sequelize_1: 'foo\';DROP TABLE myTable;' },
           },
         }, {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($1,$2);',
-            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))],
+            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) },
           },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1 }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
-            bind: ['foo', 1],
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
         }, {
           arguments: ['myTable', { data: Buffer.from('Sequelize') }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`data`) VALUES ($1);',
-            bind: [Buffer.from('Sequelize')],
+            query: 'INSERT INTO `myTable` (`data`) VALUES ($sequelize_1);',
+            bind: { sequelize_1: Buffer.from('Sequelize') },
           },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
-            bind: ['foo', 1, null],
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1, sequelize_3: null },
           },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3);',
-            bind: ['foo', 1, null],
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1, sequelize_3: null },
           },
           context: { options: { omitNull: false } },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
-            bind: ['foo', 1],
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
-            query: 'INSERT INTO `mySchema`.`myTable` (`name`,`foo`) VALUES ($1,$2);',
-            bind: ['foo', 1],
+            query: 'INSERT INTO `mySchema`.`myTable` (`name`,`foo`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: undefined }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($1,$2);',
-            bind: ['foo', 1],
+            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($sequelize_1,$sequelize_2);',
+            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: ['myTable', { foo: false }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`foo`) VALUES ($1);',
-            bind: [false],
+            query: 'INSERT INTO `myTable` (`foo`) VALUES ($sequelize_1);',
+            bind: { sequelize_1: false },
           },
         }, {
           arguments: ['myTable', { foo: true }],
           expectation: {
-            query: 'INSERT INTO `myTable` (`foo`) VALUES ($1);',
-            bind: [true],
+            query: 'INSERT INTO `myTable` (`foo`) VALUES ($sequelize_1);',
+            bind: { sequelize_1: true },
           },
         }, {
           arguments: ['myTable', function (sequelize) {
@@ -618,7 +551,7 @@ if (dialect === 'mariadb') {
           }],
           expectation: {
             query: 'INSERT INTO `myTable` (`foo`) VALUES (NOW());',
-            bind: [],
+            bind: {},
           },
           needsSequelize: true,
         },
@@ -668,59 +601,59 @@ if (dialect === 'mariadb') {
         {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
-            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), 2],
+            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`birthday`=$sequelize_2 WHERE `id` = $sequelize_3',
+            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), sequelize_3: 2 },
           },
 
         }, {
           arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1,`birthday`=$2 WHERE `id` = $3',
-            bind: ['foo', new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), 2],
+            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`birthday`=$sequelize_2 WHERE `id` = $sequelize_3',
+            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), sequelize_3: 2 },
           },
         }, {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
-            bind: [2, 'foo'],
+            query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', { name: 'foo\';DROP TABLE myTable;' }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `name`=$1 WHERE `name` = $2',
-            bind: ['foo\';DROP TABLE myTable;', 'foo'],
+            query: 'UPDATE `myTable` SET `name`=$sequelize_1 WHERE `name` = $sequelize_2',
+            bind: { sequelize_1: 'foo\';DROP TABLE myTable;',  sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
-            bind: [2, null, 'foo'],
+            query: 'UPDATE `myTable` SET `bar`=$sequelize_1,`nullValue`=$sequelize_2 WHERE `name` = $sequelize_3',
+            bind: { sequelize_1: 2, sequelize_2: null, sequelize_3: 'foo' },
           },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1,`nullValue`=$2 WHERE `name` = $3',
-            bind: [2, null, 'foo'],
+            query: 'UPDATE `myTable` SET `bar`=$sequelize_1,`nullValue`=$sequelize_2 WHERE `name` = $sequelize_3',
+            bind: { sequelize_1: 2, sequelize_2: null, sequelize_3: 'foo' },
           },
           context: { options: { omitNull: false } },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
-            bind: [2, 'foo'],
+            query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
+            bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
           context: { options: { omitNull: true } },
         }, {
           arguments: ['myTable', { bar: false }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
-            bind: [false, 'foo'],
+            query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
+            bind: { sequelize_1: false, sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', { bar: true }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$1 WHERE `name` = $2',
-            bind: [true, 'foo'],
+            query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
+            bind: { sequelize_1: true, sequelize_2: 'foo' },
           },
         }, {
           arguments: ['myTable', function (sequelize) {
@@ -729,8 +662,8 @@ if (dialect === 'mariadb') {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=NOW() WHERE `name` = $1',
-            bind: ['foo'],
+            query: 'UPDATE `myTable` SET `bar`=NOW() WHERE `name` = $sequelize_1',
+            bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
         }, {
@@ -740,8 +673,8 @@ if (dialect === 'mariadb') {
             };
           }, { name: 'foo' }],
           expectation: {
-            query: 'UPDATE `myTable` SET `bar`=`foo` WHERE `name` = $1',
-            bind: ['foo'],
+            query: 'UPDATE `myTable` SET `bar`=`foo` WHERE `name` = $sequelize_1',
+            bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
         },
@@ -751,9 +684,27 @@ if (dialect === 'mariadb') {
         {
           arguments: ['User'],
           expectation: 'SHOW INDEX FROM `User`',
-        }, {
+        },
+        {
+          arguments: [{ tableName: 'User', schema: 'schema' }],
+          expectation: 'SHOW INDEX FROM `schema`.`User`',
+        },
+        // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
+        // {
+        //   sequelizeOptions: {
+        //     schema: 'schema',
+        //   },
+        //   arguments: ['User'],
+        //   expectation: 'SHOW INDEX FROM `schema`.`User`',
+        // },
+        {
           arguments: ['User', { database: 'sequelize' }],
-          expectation: 'SHOW INDEX FROM `User` FROM `sequelize`',
+          // Doing this:
+          //  SHOW INDEX FROM `User` FROM `sequelize`
+          // would be incorrect because the second from specifies the SCHEMA.
+          // The database name from the credentials is not equivalent to specifying the SCHEMA.
+          // Schema and Database are synonymous in MySQL/MariaDB, and not the same as what we call a 'database' in our credentials.
+          expectation: 'SHOW INDEX FROM `User`',
         },
       ],
 
@@ -823,31 +774,33 @@ if (dialect === 'mariadb') {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
-        beforeEach(function () {
-          this.queryGenerator = new QueryGenerator({
-            sequelize: this.sequelize,
-            _dialect: this.sequelize.dialect,
-          });
-        });
-
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
           const title = test.title || `MariaDB correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
           it(title, function () {
+            const sequelize = test.sequelizeOptions ? createSequelizeInstance({
+              ...test.sequelizeOptions,
+            }) : this.sequelize;
+
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {
-                test.arguments[1] = test.arguments[1](this.sequelize);
+                test.arguments[1] = test.arguments[1](sequelize);
               }
 
               if (typeof test.arguments[2] === 'function') {
-                test.arguments[2] = test.arguments[2](this.sequelize);
+                test.arguments[2] = test.arguments[2](sequelize);
               }
             }
 
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            this.queryGenerator.options = { ...this.queryGenerator.options, ...test.context && test.context.options };
+            const queryGenerator = new QueryGenerator({
+              sequelize,
+              dialect: sequelize.dialect,
+            });
 
-            const conditions = this.queryGenerator[suiteTitle](...test.arguments);
+            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
+            queryGenerator.options = { ...queryGenerator.options, ...test.context && test.context.options };
+
+            const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         }

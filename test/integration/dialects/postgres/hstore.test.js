@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const hstore = require('@sequelize/core/lib/dialects/postgres/hstore');
+const hstore = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/hstore.js');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] hstore', () => {
@@ -46,10 +46,6 @@ if (dialect.startsWith('postgres')) {
     });
 
     describe('parse', () => {
-      it('should handle a null object correctly', () => {
-        expect(hstore.parse(null)).to.deep.equal(null);
-      });
-
       it('should handle empty string correctly', () => {
         expect(hstore.parse('"foo"=>""')).to.deep.equal({ foo: '' });
       });

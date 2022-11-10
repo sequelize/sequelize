@@ -4,9 +4,15 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const DataTypes = require('@sequelize/core/lib/data-types');
+const { DataTypes } = require('@sequelize/core');
+
+const dialect = Support.sequelize.dialect;
 
 describe(Support.getTestDialectTeaser('Schema'), () => {
+  if (!dialect.supports.schemas) {
+    return false;
+  }
+
   beforeEach(async function () {
     await this.sequelize.createSchema('testschema');
   });

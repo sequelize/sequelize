@@ -111,12 +111,30 @@ if (current.dialect.supports.transactions) {
         expect(hook).to.not.have.been.called;
       });
 
+      it('does not run hooks when a transaction is rolled back from database', async function () {
+        this.sinon.stub(this.sequelize.queryInterface, 'commitTransaction').rejects(new Error('Oh no, an error!'));
+        const hook = sinon.spy();
+
+        await expect(
+          (async function () {
+            await this.sequelize.transaction(transaction => {
+              transaction.afterCommit(hook);
+            });
+          }()),
+        ).to.eventually.be.rejected;
+
+        expect(hook).to.not.have.been.called;
+      });
+
       if (dialect === 'postgres') {
         // See #3689, #3726 and #6972 (https://github.com/sequelize/sequelize/pull/6972/files#diff-533eac602d424db379c3d72af5089e9345fd9d3bbe0a26344503c22a0a5764f7L75)
         it('does not try to rollback a transaction that failed upon committing with SERIALIZABLE isolation level (#3689)', async function () {
           // See https://wiki.postgresql.org/wiki/SSI
 
-          const Dots = this.sequelize.define('dots', { color: Sequelize.STRING });
+          const hook1 = sinon.spy();
+          const hook2 = sinon.spy();
+
+          const Dots = this.sequelize.define('dots', { color: DataTypes.STRING });
           await Dots.sync({ force: true });
 
           const initialData = [
@@ -149,6 +167,7 @@ if (current.dialect.supports.transactions) {
 
           const firstTransaction = async () => {
             await this.sequelize.transaction({ isolationLevel }, async t => {
+              t.afterCommit(hook1);
               await Dots.update({ color: 'red' }, {
                 where: { color: 'green' },
                 transaction: t,
@@ -161,6 +180,7 @@ if (current.dialect.supports.transactions) {
           const secondTransaction = async () => {
             await delay(500);
             await this.sequelize.transaction({ isolationLevel }, async t => {
+              t.afterCommit(hook2);
               await Dots.update({ color: 'green' }, {
                 where: { color: 'red' },
                 transaction: t,
@@ -184,6 +204,9 @@ if (current.dialect.supports.transactions) {
           // Only the second transaction worked
           expect(await Dots.count({ where: { color: 'red' } })).to.equal(0);
           expect(await Dots.count({ where: { color: 'green' } })).to.equal(initialData.length);
+
+          expect(hook1).to.not.have.been.called;
+          expect(hook2).to.have.been.called;
         });
       }
 
@@ -300,6 +323,22 @@ if (current.dialect.supports.transactions) {
       ).to.eventually.be.fulfilled;
     });
 
+    it('should not run hooks if a non-auto callback transaction is rolled back in database', async function () {
+      const hook = sinon.spy();
+
+      this.sinon.stub(this.sequelize.queryInterface, 'commitTransaction').rejects(new Error('Oh no, an error!'));
+
+      await expect(
+        (async function () {
+          const t = await this.sequelize.transaction();
+          t.afterCommit(hook);
+          await t.commit();
+        }()),
+      ).to.eventually.be.rejected;
+
+      expect(hook).to.not.have.been.called;
+    });
+
     it('should throw an error if null is passed to afterCommit', async function () {
       const hook = null;
       let transaction;
@@ -406,32 +445,32 @@ if (current.dialect.supports.transactions) {
     });
 
     it('works even if a transaction: null option is passed', async function () {
-      this.sinon.spy(this.sequelize, 'query');
+      this.sinon.spy(this.sequelize, 'queryRaw');
 
       const t = await this.sequelize.transaction({
         transaction: null,
       });
 
       await t.commit();
-      expect(this.sequelize.query.callCount).to.be.greaterThan(0);
+      expect(this.sequelize.queryRaw.callCount).to.be.greaterThan(0);
 
-      for (let i = 0; i < this.sequelize.query.callCount; i++) {
-        expect(this.sequelize.query.getCall(i).args[1].transaction).to.equal(t);
+      for (let i = 0; i < this.sequelize.queryRaw.callCount; i++) {
+        expect(this.sequelize.queryRaw.getCall(i).args[1].transaction).to.equal(t);
       }
     });
 
     it('works even if a transaction: undefined option is passed', async function () {
-      this.sinon.spy(this.sequelize, 'query');
+      this.sinon.spy(this.sequelize, 'queryRaw');
 
       const t = await this.sequelize.transaction({
         transaction: undefined,
       });
 
       await t.commit();
-      expect(this.sequelize.query.callCount).to.be.greaterThan(0);
+      expect(this.sequelize.queryRaw.callCount).to.be.greaterThan(0);
 
-      for (let i = 0; i < this.sequelize.query.callCount; i++) {
-        expect(this.sequelize.query.getCall(i).args[1].transaction).to.equal(t);
+      for (let i = 0; i < this.sequelize.queryRaw.callCount; i++) {
+        expect(this.sequelize.queryRaw.getCall(i).args[1].transaction).to.equal(t);
       }
     });
 
@@ -441,7 +480,7 @@ if (current.dialect.supports.transactions) {
         const getAndInitializeTaskModel = async sequelize => {
           const Task = sequelize.define('task', {
             id: {
-              type: Sequelize.INTEGER,
+              type: DataTypes.INTEGER,
               primaryKey: true,
             },
           });
@@ -523,7 +562,7 @@ if (current.dialect.supports.transactions) {
           // back.
           // Otherwise, this READ_COMMITTED doesn't work as expected.
           const User = this.sequelize.define('user', {
-            username: Support.Sequelize.STRING,
+            username: DataTypes.STRING,
           });
           await this.sequelize.sync({ force: true });
           await this.sequelize.transaction(
@@ -538,7 +577,10 @@ if (current.dialect.supports.transactions) {
           );
         });
 
-        it('should release the connection for a deadlocked transaction (2/2)', async function () {
+        // The following code is supposed to cause a deadlock in MariaDB & MySQL
+        // but starting with MariaDB 10.5.15, this does not happen anymore.
+        // See https://github.com/sequelize/sequelize/issues/14174
+        it.skip('should release the connection for a deadlocked transaction (2/2)', async function () {
           const verifyDeadlock = async () => {
             const User = this.sequelize.define('user', {
               username: DataTypes.STRING,
@@ -611,8 +653,8 @@ if (current.dialect.supports.transactions) {
               })(),
             ]);
 
-            expect(t1AttemptData.isFulfilled).to.be.true;
-            expect(t2AttemptData.isRejected).to.be.true;
+            expect(t1AttemptData.isFulfilled).to.eq(true, 'T1 is not fullfilled, but should have been');
+            expect(t2AttemptData.isRejected).to.eq(true, 'T2 is not rejected, but should have been');
             expect(t2AttemptData.reason.message).to.include('Deadlock found when trying to get lock; try restarting transaction');
             expect(t1.finished).to.equal('commit');
             expect(t2.finished).to.equal('rollback');
@@ -663,10 +705,10 @@ if (current.dialect.supports.transactions) {
 
     if (dialect === 'sqlite') {
       it('provides persistent transactions', async () => {
-        const sequelize = new Support.Sequelize('database', 'username', 'password', { dialect: 'sqlite' });
+        const sequelize = new Sequelize('database', 'username', 'password', { dialect: 'sqlite' });
         const User = sequelize.define('user', {
-          username: Support.Sequelize.STRING,
-          awesome: Support.Sequelize.BOOLEAN,
+          username: DataTypes.STRING,
+          awesome: DataTypes.BOOLEAN,
         });
 
         const t1 = await sequelize.transaction();
@@ -709,10 +751,10 @@ if (current.dialect.supports.transactions) {
     if (dialect === 'sqlite') {
       it('automatically retries on SQLITE_BUSY failure', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        const User = sequelize.define('User', { username: DataTypes.STRING });
         await User.sync({ force: true });
         const newTransactionFunc = async function () {
-          const t = await sequelize.transaction({ type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE });
+          const t = await sequelize.transaction({ type: Transaction.TYPES.EXCLUSIVE });
           await User.create({}, { transaction: t });
 
           return t.commit();
@@ -725,10 +767,10 @@ if (current.dialect.supports.transactions) {
 
       it('fails with SQLITE_BUSY when retry.match is changed', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { id: { type: Support.Sequelize.INTEGER, primaryKey: true }, username: Support.Sequelize.STRING });
+        const User = sequelize.define('User', { id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
         await User.sync({ force: true });
         const newTransactionFunc = async function () {
-          const t = await sequelize.transaction({ type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE, retry: { match: ['NO_MATCH'] } });
+          const t = await sequelize.transaction({ type: Transaction.TYPES.EXCLUSIVE, retry: { match: ['NO_MATCH'] } });
           // introduce delay to force the busy state race condition to fail
           await delay(1000);
           await User.create({ id: null, username: `test ${t.id}` }, { transaction: t });
@@ -744,7 +786,7 @@ if (current.dialect.supports.transactions) {
     describe('isolation levels', () => {
       it('should read the most recent committed rows when using the READ COMMITTED isolation level', async function () {
         const User = this.sequelize.define('user', {
-          username: Support.Sequelize.STRING,
+          username: DataTypes.STRING,
         });
 
         await expect(
@@ -767,7 +809,7 @@ if (current.dialect.supports.transactions) {
       if (!['sqlite', 'mssql', 'db2'].includes(dialect)) {
         it('should not read newly committed rows when using the REPEATABLE READ isolation level', async function () {
           const User = this.sequelize.define('user', {
-            username: Support.Sequelize.STRING,
+            username: DataTypes.STRING,
           });
 
           await expect(
@@ -789,7 +831,7 @@ if (current.dialect.supports.transactions) {
       if (!['sqlite', 'postgres', 'postgres-native', 'db2'].includes(dialect)) {
         it('should block updates after reading a row using SERIALIZABLE', async function () {
           const User = this.sequelize.define('user', {
-            username: Support.Sequelize.STRING,
+            username: DataTypes.STRING,
           });
           const transactionSpy = sinon.spy();
 
@@ -822,8 +864,8 @@ if (current.dialect.supports.transactions) {
       describe('row locking', () => {
         it('supports for update', async function () {
           const User = this.sequelize.define('user', {
-            username: Support.Sequelize.STRING,
-            awesome: Support.Sequelize.BOOLEAN,
+            username: DataTypes.STRING,
+            awesome: DataTypes.BOOLEAN,
           });
           const t1Spy = sinon.spy();
           const t2Spy = sinon.spy();
@@ -873,8 +915,8 @@ if (current.dialect.supports.transactions) {
         if (current.dialect.supports.skipLocked) {
           it('supports for update with skip locked', async function () {
             const User = this.sequelize.define('user', {
-              username: Support.Sequelize.STRING,
-              awesome: Support.Sequelize.BOOLEAN,
+              username: DataTypes.STRING,
+              awesome: DataTypes.BOOLEAN,
             });
 
             await this.sequelize.sync({ force: true });
@@ -916,8 +958,8 @@ if (current.dialect.supports.transactions) {
         }
 
         it('fail locking with outer joins', async function () {
-          const User = this.sequelize.define('User', { username: Support.Sequelize.STRING });
-          const Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN });
+          const User = this.sequelize.define('User', { username: DataTypes.STRING });
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
 
           User.belongsToMany(Task, { through: 'UserTasks' });
           Task.belongsToMany(User, { through: 'UserTasks' });
@@ -958,8 +1000,8 @@ if (current.dialect.supports.transactions) {
 
         if (current.dialect.supports.lockOf) {
           it('supports for update of table', async function () {
-            const User = this.sequelize.define('User', { username: Support.Sequelize.STRING }, { tableName: 'Person' });
-            const Task = this.sequelize.define('Task', { title: Support.Sequelize.STRING, active: Support.Sequelize.BOOLEAN });
+            const User = this.sequelize.define('User', { username: DataTypes.STRING }, { tableName: 'Person' });
+            const Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
 
             User.belongsToMany(Task, { through: 'UserTasks' });
             Task.belongsToMany(User, { through: 'UserTasks' });
@@ -1009,8 +1051,8 @@ if (current.dialect.supports.transactions) {
         if (current.dialect.supports.lockKey) {
           it('supports for key share', async function () {
             const User = this.sequelize.define('user', {
-              username: Support.Sequelize.STRING,
-              awesome: Support.Sequelize.BOOLEAN,
+              username: DataTypes.STRING,
+              awesome: DataTypes.BOOLEAN,
             });
             const t1Spy = sinon.spy();
             const t2Spy = sinon.spy();

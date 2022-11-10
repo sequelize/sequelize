@@ -4,16 +4,17 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const sinon = require('sinon');
-const Support = require('./support');
+const Support = require('../support');
 
-const Sequelize = Support.Sequelize;
+const { Transaction } = require('@sequelize/core');
+
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
 if (dialect !== 'ibmi') {
   describe('Transaction', () => {
     before(function () {
-      this.stub = sinon.stub(current, 'query').resolves({});
+      this.stub = sinon.stub(current, 'queryRaw').resolves({});
 
       this.stubConnection = sinon.stub(current.connectionManager, 'getConnection')
         .resolves({
@@ -21,8 +22,7 @@ if (dialect !== 'ibmi') {
           close() {},
         });
 
-      this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection')
-        .resolves();
+      this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection');
     });
 
     beforeEach(function () {
@@ -79,7 +79,7 @@ if (dialect !== 'ibmi') {
         ],
       };
 
-      await current.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, async () => {
+      await current.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, async () => {
         expect(this.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
       });
     });

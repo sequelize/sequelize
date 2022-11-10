@@ -1,36 +1,42 @@
 'use strict';
 
-const url = require('url');
-const path = require('path');
-const pgConnectionString = require('pg-connection-string');
+import isPlainObject from 'lodash/isPlainObject';
+import { normalizeDataType } from './dialects/abstract/data-types-utils';
+import { SequelizeTypeScript } from './sequelize-typescript';
+import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
+import { isString } from './utils';
+import { noSequelizeDataType } from './utils/deprecations';
+import { isModelStatic, isSameInitialModel } from './utils/model-utils';
+import { injectReplacements, mapBindParameters } from './utils/sql';
+import { parseConnectionString } from './utils/url';
+
 const retry = require('retry-as-promised');
 const _ = require('lodash');
-
 const Utils = require('./utils');
-const Model = require('./model');
+const { Model } = require('./model');
 const DataTypes = require('./data-types');
-const Deferrable = require('./deferrable');
-const ModelManager = require('./model-manager');
+const { Deferrable } = require('./deferrable');
+const { ModelManager } = require('./model-manager');
 const { Transaction, TRANSACTION_TYPES } = require('./transaction');
 const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
 const sequelizeErrors = require('./errors');
-const Hooks = require('./hooks');
-const Association = require('./associations/index');
+const { Association } = require('./associations/index');
 const Validator = require('./utils/validator-extras').validator;
 const { Op } = require('./operators');
 const deprecations = require('./utils/deprecations');
 const { QueryInterface } = require('./dialects/abstract/query-interface');
 const { BelongsTo } = require('./associations/belongs-to');
-const HasOne = require('./associations/has-one');
+const { HasOne } = require('./associations/has-one');
 const { BelongsToMany } = require('./associations/belongs-to-many');
 const { HasMany } = require('./associations/has-many');
+require('./utils/dayjs');
 
 /**
  * This is the main class, the entry point to sequelize.
  */
-class Sequelize {
+export class Sequelize extends SequelizeTypeScript {
   /**
    * Instantiate sequelize with name of database, username and password.
    *
@@ -95,6 +101,10 @@ class Sequelize {
    *   // - default: false
    *   native: true,
    *
+   *   // A flag that defines if connection should be over ssl or not
+   *   // - default: undefined
+   *   ssl: true,
+   *
    *   // Specify options, which are used when sequelize.define is called.
    *   // The following example:
    *   //   define: { timestamps: false }
@@ -147,14 +157,17 @@ class Sequelize {
    * @param {string}   [options.schema=null] A schema to use
    * @param {object}   [options.set={}] Default options for sequelize.set
    * @param {object}   [options.sync={}] Default options for sequelize.sync
-   * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones used by moment.js (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
+   * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
+   * @param {boolean}  [options.keepDefaultTimezone=false] A flag that defines if the default timezone is used to convert dates from the database.
    * @param {string|boolean} [options.clientMinMessages='warning'] (Deprecated) The PostgreSQL `client_min_messages` session parameter. Set to `false` to not override the database's default.
    * @param {boolean}  [options.standardConformingStrings=true] The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option. WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    * @param {Function} [options.logging=console.log] A function that gets executed every time Sequelize would log something. Function may receive multiple parameters but only first one is printed by `console.log`. To print all values use `(...msg) => console.log(msg)`
    * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
+   * @param {string}   [options.queryLabel] A label to annotate queries in log output.
    * @param {boolean}  [options.omitNull=false] A flag that defines if null values should be passed as values to CREATE/UPDATE SQL queries or not.
    * @param {boolean}  [options.native=false] A flag that defines if native library shall be used or not. Currently only has an effect for postgres
-   * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`
+   * @param {boolean}  [options.ssl=undefined] A flag that defines if connection should be over ssl or not
+   * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`.  Connection strings can be used instead of objects.
    * @param {object}   [options.pool] sequelize connection pool configuration
    * @param {number}   [options.pool.max=5] Maximum number of connection in pool
    * @param {number}   [options.pool.min=0] Minimum number of connection in pool
@@ -169,107 +182,64 @@ class Sequelize {
    * @param {object}   [options.retry] Set of flags that control when a query is automatically retried. Accepts all options for [`retry-as-promised`](https://github.com/mickhansen/retry-as-promised).
    * @param {Array}    [options.retry.match] Only retry a query if the error matches one of these strings.
    * @param {number}   [options.retry.max] How many times a failing query is automatically retried.  Set to 0 to disable retrying on SQL_BUSY error.
-   * @param {boolean}  [options.typeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
+   * @param {number}   [options.retry.timeout] Maximum duration, in milliseconds, to retry until an error is thrown.
+   * @param {number}   [options.retry.backoffBase=100] Initial backoff duration, in milliseconds.
+   * @param {number}   [options.retry.backoffExponent=1.1] Exponent to increase backoff duration after each retry.
+   * @param {Function} [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
+   * @param {string}   [options.retry.name='unknown'] Name used when composing error/reporting messages.
+   * @param {boolean}  [options.noTypeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
    * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
    * @param {boolean}  [options.minifyAliases=false] A flag that defines if aliases should be minified (mostly useful to avoid Postgres alias character limit of 64)
    * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
    */
   constructor(database, username, password, options) {
-    let config;
+    super();
 
-    if (arguments.length === 1 && typeof database === 'object') {
+    if (arguments.length === 1 && _.isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
-      config = _.pick(options, 'host', 'port', 'database', 'username', 'password');
-    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && typeof username === 'object') {
+    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && _.isPlainObject(username)) {
       // new Sequelize(URI, { ... options })
+      options = username ? { ...username } : Object.create(null);
 
-      config = {};
-      options = username || {};
-
-      const urlParts = url.parse(arguments[0], true);
-
-      options.dialect = urlParts.protocol.replace(/:$/, '');
-      options.host = urlParts.hostname;
-
-      if (options.dialect === 'sqlite' && urlParts.pathname && !urlParts.pathname.startsWith('/:memory')) {
-        const storagePath = path.join(options.host, urlParts.pathname);
-        options.storage = path.resolve(options.storage || storagePath);
-      }
-
-      if (urlParts.pathname) {
-        config.database = urlParts.pathname.replace(/^\//, '');
-      }
-
-      if (urlParts.port) {
-        options.port = urlParts.port;
-      }
-
-      if (urlParts.auth) {
-        const authParts = urlParts.auth.split(':');
-
-        config.username = authParts[0];
-
-        if (authParts.length > 1) {
-          config.password = authParts.slice(1).join(':');
-        }
-      }
-
-      if (urlParts.query) {
-        // Allow host query argument to override the url host.
-        // Enables specifying domain socket hosts which cannot be specified via the typical
-        // host part of a url.
-        if (urlParts.query.host) {
-          options.host = urlParts.query.host;
-        }
-
-        if (options.dialectOptions) {
-          Object.assign(options.dialectOptions, urlParts.query);
-        } else {
-          options.dialectOptions = urlParts.query;
-          if (urlParts.query.options) {
-            try {
-              const o = JSON.parse(urlParts.query.options);
-              options.dialectOptions.options = o;
-            } catch {
-              // Nothing to do, string is not a valid JSON
-              // an thus does not need any further processing
-            }
-          }
-        }
-      }
-
-      // For postgres, we can use this helper to load certs directly from the
-      // connection string.
-      if (['postgres', 'postgresql'].includes(options.dialect)) {
-        Object.assign(options.dialectOptions, pgConnectionString.parse(arguments[0]));
-      }
+      _.defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
-      options = options || {};
-      config = { database, username, password };
+      options = options ? { ...options } : Object.create(null);
+
+      _.defaults(options, {
+        database,
+        username,
+        password,
+      });
     }
 
-    Sequelize.runHooks('beforeInit', config, options);
+    Sequelize.hooks.runSync('beforeInit', options);
+
+    // @ts-expect-error
+    if (options.pool === false) {
+      throw new Error('Support for pool:false was removed in v4.0');
+    }
 
     this.options = {
       dialect: null,
       dialectModule: null,
       dialectModulePath: null,
+      dialectOptions: Object.create(null),
       host: 'localhost',
       protocol: 'tcp',
       define: {},
       query: {},
       sync: {},
       timezone: '+00:00',
+      keepDefaultTimezone: false,
       standardConformingStrings: true,
       logging: console.debug,
       omitNull: false,
       native: false,
       replication: false,
       ssl: undefined,
-      pool: {},
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -281,11 +251,18 @@ class Sequelize {
       transactionType: TRANSACTION_TYPES.DEFERRED,
       isolationLevel: null,
       databaseVersion: 0,
-      typeValidation: false,
+      noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
       ...options,
+      pool: _.defaults(options.pool || {}, {
+        max: 5,
+        min: 0,
+        idle: 10_000,
+        acquire: 60_000,
+        evict: 1000,
+      }),
     };
 
     if (!this.options.dialect) {
@@ -296,72 +273,122 @@ class Sequelize {
       this.options.dialect = 'postgres';
     }
 
-    if (this.options.dialect === 'sqlite' && this.options.timezone !== '+00:00') {
-      throw new Error('Setting a custom timezone is not supported by SQLite, dates are always returned as UTC. Please remove the custom timezone parameter.');
-    }
-
-    if (this.options.dialect === 'ibmi' && this.options.timezone !== '+00:00') {
-      throw new Error('Setting a custom timezone is not supported by Db2 for i, dates are always returned as UTC. Please remove the custom timezone parameter.');
-    }
-
     if (this.options.logging === true) {
       deprecations.noTrueLogging();
       this.options.logging = console.debug;
     }
 
-    this._setupHooks(options.hooks);
+    if (options.hooks) {
+      this.hooks.addListeners(options.hooks);
+    }
 
-    this.config = {
-      database: config.database || this.options.database,
-      username: config.username || this.options.username,
-      password: config.password || this.options.password || null,
-      host: config.host || this.options.host,
-      port: config.port || this.options.port,
-      pool: this.options.pool,
-      protocol: this.options.protocol,
-      native: this.options.native,
-      ssl: this.options.ssl,
-      replication: this.options.replication,
-      dialectModule: this.options.dialectModule,
-      dialectModulePath: this.options.dialectModulePath,
-      keepDefaultTimezone: this.options.keepDefaultTimezone,
-      dialectOptions: this.options.dialectOptions,
-    };
+    // ==========================================
+    //  REPLICATION CONFIG NORMALIZATION
+    // ==========================================
 
     let Dialect;
     // Requiring the dialect in a switch-case to keep the
     // require calls static. (Browserify fix)
     switch (this.getDialect()) {
       case 'mariadb':
-        Dialect = require('./dialects/mariadb');
+        Dialect = require('./dialects/mariadb').MariaDbDialect;
         break;
       case 'mssql':
-        Dialect = require('./dialects/mssql');
+        Dialect = require('./dialects/mssql').MssqlDialect;
         break;
       case 'mysql':
-        Dialect = require('./dialects/mysql');
+        Dialect = require('./dialects/mysql').MysqlDialect;
         break;
       case 'postgres':
-        Dialect = require('./dialects/postgres');
+        Dialect = require('./dialects/postgres').PostgresDialect;
         break;
       case 'sqlite':
-        Dialect = require('./dialects/sqlite');
+        Dialect = require('./dialects/sqlite').SqliteDialect;
         break;
       case 'ibmi':
-        Dialect = require('./dialects/ibmi');
+        Dialect = require('./dialects/ibmi').IBMiDialect;
         break;
       case 'db2':
-        Dialect = require('./dialects/db2');
+        Dialect = require('./dialects/db2').Db2Dialect;
         break;
       case 'snowflake':
-        Dialect = require('./dialects/snowflake');
+        Dialect = require('./dialects/snowflake').SnowflakeDialect;
         break;
       default:
-        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mssql, mariadb, mysql, postgres, db2, ibmi and sqlite.`);
+        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
     }
 
+    if (!this.options.port) {
+      this.options.port = Dialect.getDefaultPort();
+    } else {
+      this.options.port = Number(this.options.port);
+    }
+
+    const connectionConfig = {
+      database: this.options.database,
+      username: this.options.username,
+      password: this.options.password || null,
+      host: this.options.host,
+      port: this.options.port,
+      protocol: this.options.protocol,
+      ssl: this.options.ssl,
+      dialectOptions: this.options.dialectOptions,
+    };
+
+    if (!this.options.replication) {
+      this.options.replication = Object.create(null);
+    }
+
+    // Convert replication connection strings to objects
+    if (isString(this.options.replication.write)) {
+      this.options.replication.write = parseConnectionString(this.options.replication.write);
+    }
+
+    // Map main connection config
+    this.options.replication.write = _.defaults(this.options.replication.write ?? {}, connectionConfig);
+    this.options.replication.write.port = Number(this.options.replication.write.port);
+
+    if (!this.options.replication.read) {
+      this.options.replication.read = [];
+    } else if (!Array.isArray(this.options.replication.read)) {
+      this.options.replication.read = [this.options.replication.read];
+    }
+
+    this.options.replication.read = this.options.replication.read.map(readEntry => {
+      if (isString(readEntry)) {
+        readEntry = parseConnectionString(readEntry);
+      }
+
+      readEntry.port = Number(readEntry.port);
+
+      // Apply defaults to each read config
+      return _.defaults(readEntry, connectionConfig);
+    });
+
+    // ==========================================
+    //  CONFIG
+    // ==========================================
+
+    this.config = {
+      ...connectionConfig,
+      pool: this.options.pool,
+      native: this.options.native,
+      replication: this.options.replication,
+      dialectModule: this.options.dialectModule,
+      dialectModulePath: this.options.dialectModulePath,
+      keepDefaultTimezone: this.options.keepDefaultTimezone,
+    };
+
     this.dialect = new Dialect(this);
-    this.dialect.queryGenerator.typeValidation = options.typeValidation;
+    if ('typeValidation' in options) {
+      throw new Error('The typeValidation has been renamed to noTypeValidation, and is false by default');
+    }
+
+    if (!this.dialect.supports.globalTimeZoneConfig && this.options.timezone !== '+00:00') {
+      throw new Error(`Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`);
+    }
+
+    this.dialect.queryGenerator.noTypeValidation = options.noTypeValidation;
 
     if (_.isPlainObject(this.options.operatorsAliases)) {
       deprecations.noStringOperators();
@@ -379,16 +406,7 @@ class Sequelize {
     this.modelManager = new ModelManager(this);
     this.connectionManager = this.dialect.connectionManager;
 
-    Sequelize.runHooks('afterInit', this);
-  }
-
-  /**
-   * Refresh data types and parsers.
-   *
-   * @private
-   */
-  refreshTypes() {
-    this.connectionManager.refreshTypeParser(DataTypes);
+    Sequelize.hooks.runSync('afterInit', this);
   }
 
   /**
@@ -437,7 +455,7 @@ class Sequelize {
    * @example
    * sequelize.define('modelName', {
    *   columnA: {
-   *       type: Sequelize.BOOLEAN,
+   *       type: DataTypes.BOOLEAN,
    *       validate: {
    *         is: ["[a-z]",'i'],        // will only allow letters
    *         max: 23,                  // only allow values <= 23
@@ -448,7 +466,7 @@ class Sequelize {
    *       },
    *       field: 'column_a'
    *   },
-   *   columnB: Sequelize.STRING,
+   *   columnB: DataTypes.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
    * });
    *
@@ -521,6 +539,11 @@ class Sequelize {
    * @param {object}          [options.retry] Set of flags that control when a query is automatically retried. Accepts all options for [`retry-as-promised`](https://github.com/mickhansen/retry-as-promised).
    * @param {Array}           [options.retry.match] Only retry a query if the error matches one of these strings.
    * @param {Integer}         [options.retry.max] How many times a failing query is automatically retried.
+   * @param {number}          [options.retry.timeout] Maximum duration, in milliseconds, to retry until an error is thrown.
+   * @param {number}          [options.retry.backoffBase=100] Initial backoff duration, in milliseconds.
+   * @param {number}          [options.retry.backoffExponent=1.1] Exponent to increase backoff duration after each retry.
+   * @param {Function}        [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
+   * @param {string}          [options.retry.name='unknown'] Name used when composing error/reporting messages.
    * @param {string}          [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
    * @param {boolean}         [options.supportsSearchPath] If false do not prepend the query with the search_path (Postgres only)
    * @param {boolean}         [options.mapToModel=false] Map returned fields to model's fields if `options.model` or `options.instance` is present. Mapping will occur before building the model instance.
@@ -531,9 +554,74 @@ class Sequelize {
    *
    * @see {@link Model.build} for more information about instance option.
    */
-
   async query(sql, options) {
     options = { ...this.options.query, ...options };
+
+    if (typeof sql === 'object') {
+      throw new TypeError('"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter');
+    }
+
+    sql = sql.trim();
+
+    if (options.replacements) {
+      sql = injectReplacements(sql, this.dialect, options.replacements);
+    }
+
+    // queryRaw will throw if 'replacements' is specified, as a way to warn users that they are miusing the method.
+    delete options.replacements;
+
+    return this.queryRaw(sql, options);
+  }
+
+  async queryRaw(sql, options) {
+    if (typeof sql !== 'string') {
+      throw new TypeError('Sequelize#rawQuery requires a string as the first parameter.');
+    }
+
+    if (options != null && 'replacements' in options) {
+      throw new TypeError(`Sequelize#rawQuery does not accept the "replacements" options.
+Only bind parameters can be provided, in the dialect-specific syntax.
+Use Sequelize#query if you wish to use replacements.`);
+    }
+
+    options = { ...this.options.query, ...options, bindParameterOrder: null };
+
+    let bindParameters;
+    let bindParameterOrder;
+    if (options.bind != null) {
+      const isBindArray = Array.isArray(options.bind);
+      if (!isPlainObject(options.bind) && !isBindArray) {
+        throw new TypeError('options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)');
+      }
+
+      const mappedResult = mapBindParameters(sql, this.dialect);
+
+      for (const parameterName of mappedResult.parameterSet) {
+        if (isBindArray) {
+          if (!/[1-9][0-9]*/.test(parameterName) || options.bind.length < Number(parameterName)) {
+            throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
+          }
+        } else if (!(parameterName in options.bind)) {
+          throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
+        }
+      }
+
+      sql = mappedResult.sql;
+
+      // used by dialects that support "INOUT" parameters to map the OUT parameters back the the name the dev used.
+      options.bindParameterOrder = mappedResult.bindOrder;
+      if (mappedResult.bindOrder == null) {
+        bindParameters = options.bind;
+      } else {
+        bindParameters = mappedResult.bindOrder.map(key => {
+          if (isBindArray) {
+            return options.bind[key - 1];
+          }
+
+          return options.bind[key];
+        });
+      }
+    }
 
     if (options.instance && !options.model) {
       options.model = options.instance.constructor;
@@ -576,48 +664,6 @@ class Sequelize {
       options.searchPath = 'DEFAULT';
     }
 
-    if (typeof sql === 'object') {
-      if (sql.values !== undefined) {
-        if (options.replacements !== undefined) {
-          throw new Error('Both `sql.values` and `options.replacements` cannot be set at the same time');
-        }
-
-        options.replacements = sql.values;
-      }
-
-      if (sql.bind !== undefined) {
-        if (options.bind !== undefined) {
-          throw new Error('Both `sql.bind` and `options.bind` cannot be set at the same time');
-        }
-
-        options.bind = sql.bind;
-      }
-
-      if (sql.query !== undefined) {
-        sql = sql.query;
-      }
-    }
-
-    sql = sql.trim();
-
-    if (options.replacements && options.bind) {
-      throw new Error('Both `replacements` and `bind` cannot be set at the same time');
-    }
-
-    if (options.replacements) {
-      if (Array.isArray(options.replacements)) {
-        sql = Utils.format([sql].concat(options.replacements), this.options.dialect);
-      } else {
-        sql = Utils.formatNamedParameters(sql, options.replacements, this.options.dialect);
-      }
-    }
-
-    let bindParameters;
-
-    if (options.bind) {
-      [sql, bindParameters] = this.dialect.Query.formatBindParameters(sql, options.bind, this.options.dialect);
-    }
-
     const checkTransaction = () => {
       if (options.transaction && options.transaction.finished && !options.completesTransaction) {
         const error = new Error(`${options.transaction.finished} has been called on this transaction(${options.transaction.id}), you can no longer use it. (The rejected query is attached as the 'sql' property of this error)`);
@@ -628,7 +674,7 @@ class Sequelize {
 
     const retryOptions = { ...this.options.retry, ...options.retry };
 
-    return retry(async () => {
+    return await retry(async () => {
       if (options.transaction === undefined && Sequelize._cls) {
         options.transaction = Sequelize._cls.get('transaction');
       }
@@ -647,14 +693,14 @@ class Sequelize {
       const query = new this.dialect.Query(connection, this, options);
 
       try {
-        await this.runHooks('beforeQuery', options, query);
+        await this.hooks.runAsync('beforeQuery', options, query);
         checkTransaction();
 
         return await query.run(sql, bindParameters);
       } finally {
-        await this.runHooks('afterQuery', options, query);
+        await this.hooks.runAsync('afterQuery', options, query);
         if (!options.transaction) {
-          await this.connectionManager.releaseConnection(connection);
+          this.connectionManager.releaseConnection(connection);
         }
       }
     }, retryOptions);
@@ -802,39 +848,66 @@ class Sequelize {
     }
 
     if (options.hooks) {
-      await this.runHooks('beforeBulkSync', options);
+      await this.hooks.runAsync('beforeBulkSync', options);
     }
 
     if (options.force) {
       await this.drop(options);
     }
 
-    const models = [];
-
-    // Topologically sort by foreign key constraints to give us an appropriate
-    // creation order
-    this.modelManager.forEachModel(model => {
-      if (model) {
-        models.push(model);
-      } else {
-        // DB should throw an SQL error if referencing non-existent table
-      }
-    });
-
     // no models defined, just authenticate
-    if (models.length === 0) {
+    if (this.modelManager.models.length === 0) {
       await this.authenticate(options);
     } else {
+      const models = this.modelManager.getModelsTopoSortedByForeignKey();
+      if (models == null) {
+        return this._syncModelsWithCyclicReferences(options);
+      }
+
+      // reverse to start with the one model that does not depend on anything
+      models.reverse();
+
+      // Topologically sort by foreign key constraints to give us an appropriate
+      // creation order
       for (const model of models) {
         await model.sync(options);
       }
     }
 
     if (options.hooks) {
-      await this.runHooks('afterBulkSync', options);
+      await this.hooks.runAsync('afterBulkSync', options);
     }
 
     return this;
+  }
+
+  /**
+   * Used instead of sync() when two models reference each-other, so their foreign keys cannot be created immediately.
+   *
+   * @param {object} options - sync options
+   * @private
+   */
+  async _syncModelsWithCyclicReferences(options) {
+    if (this.dialect.name === 'sqlite') {
+      // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
+      await withSqliteForeignKeysOff(this, options, async () => {
+        for (const model of this.modelManager.models) {
+          await model.sync(options);
+        }
+      });
+
+      return;
+    }
+
+    // create all tables, but don't create foreign key constraints
+    for (const model of this.modelManager.models) {
+      await model.sync({ ...options, withoutForeignKeyConstraints: true });
+    }
+
+    // add foreign key constraints
+    for (const model of this.modelManager.models) {
+      await model.sync({ ...options, force: false, alter: true });
+    }
   }
 
   /**
@@ -849,13 +922,23 @@ class Sequelize {
    * {@link Model.truncate} for more information
    */
   async truncate(options) {
-    const models = [];
+    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+    const models = sortedModels || this.modelManager.models;
+    const hasCyclicDependencies = sortedModels == null;
 
-    this.modelManager.forEachModel(model => {
-      if (model) {
-        models.push(model);
-      }
-    }, { reverse: false });
+    // we have cyclic dependencies, cascade must be enabled.
+    if (hasCyclicDependencies && (!options || !options.cascade)) {
+      throw new Error('Sequelize#truncate: Some of your models have cyclic references (foreign keys). You need to use the "cascade" option to be able to delete rows from models that have cyclic references.');
+    }
+
+    // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
+    if (hasCyclicDependencies && this.dialect.name === 'sqlite') {
+      // Workaround: SQLite does not support options.cascade, but we can disable its foreign key constraints while we
+      // truncate all tables.
+      return withSqliteForeignKeysOff(this, options, async () => {
+        await Promise.all(models.map(model => model.truncate(options)));
+      });
+    }
 
     if (options && options.cascade) {
       for (const model of models) {
@@ -879,15 +962,44 @@ class Sequelize {
    * @returns {Promise}
    */
   async drop(options) {
-    const models = [];
-
-    this.modelManager.forEachModel(model => {
-      if (model) {
-        models.push(model);
+    // if 'cascade' is specified, we don't have to worry about cyclic dependencies.
+    if (options && options.cascade) {
+      for (const model of this.modelManager.models) {
+        await model.drop(options);
       }
-    }, { reverse: false });
+    }
 
-    for (const model of models) {
+    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+
+    // no cyclic dependency between models, we can delete them in an order that will not cause an error.
+    if (sortedModels) {
+      for (const model of sortedModels) {
+        await model.drop(options);
+      }
+    }
+
+    if (this.dialect.name === 'sqlite') {
+      // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
+      await withSqliteForeignKeysOff(this, options, async () => {
+        for (const model of this.modelManager.models) {
+          await model.drop(options);
+        }
+      });
+
+      return;
+    }
+
+    // has cyclic dependency: we first remove each foreign key, then delete each model.
+    for (const model of this.modelManager.models) {
+      const tableName = model.getTableName();
+      const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable(tableName, options);
+
+      await Promise.all(foreignKeys.map(foreignKey => {
+        return this.queryInterface.removeConstraint(tableName, foreignKey.constraintName, options);
+      }));
+    }
+
+    for (const model of this.modelManager.models) {
       await model.drop(options);
     }
   }
@@ -911,6 +1023,7 @@ class Sequelize {
 
   }
 
+  // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
     return await this.getQueryInterface().databaseVersion(options);
   }
@@ -928,143 +1041,25 @@ class Sequelize {
     return this.fn('RAND');
   }
 
-  /**
-   * Creates an object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
-   * If you want to refer to columns in your function, you should use `sequelize.col`, so that the columns are properly interpreted as columns and not a strings.
-   *
-   * @see
-   * {@link Model.findAll}
-   * @see
-   * {@link Sequelize.define}
-   * @see
-   * {@link Sequelize.col}
-   *
-   * @param {string} fn The function you want to call
-   * @param {any} args All further arguments will be passed as arguments to the function
-   *
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   * @returns {Sequelize.fn}
-   *
-   * @example <caption>Convert a user's username to upper case</caption>
-   * instance.update({
-   *   username: sequelize.fn('upper', sequelize.col('username'))
-   * });
-   */
-  static fn(fn, ...args) {
-    return new Utils.Fn(fn, args);
-  }
+  static fn = fn;
 
-  /**
-   * Creates an object which represents a column in the DB, this allows referencing another column in your query. This is often useful in conjunction with `sequelize.fn`, since raw string arguments to fn will be escaped.
-   *
-   * @see
-   * {@link Sequelize#fn}
-   *
-   * @param {string} col The name of the column
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.col}
-   */
-  static col(col) {
-    return new Utils.Col(col);
-  }
+  static col = col;
 
-  /**
-   * Creates an object representing a call to the cast function.
-   *
-   * @param {any} val The value to cast
-   * @param {string} type The type to cast it to
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.cast}
-   */
-  static cast(val, type) {
-    return new Utils.Cast(val, type);
-  }
+  static cast = cast;
 
-  /**
-   * Creates an object representing a literal, i.e. something that will not be escaped.
-   *
-   * @param {any} val literal value
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.literal}
-   */
-  static literal(val) {
-    return new Utils.Literal(val);
-  }
+  static literal = literal;
 
-  /**
-   * An AND query
-   *
-   * @see
-   * {@link Model.findAll}
-   *
-   * @param {...string|object} args Each argument will be joined by AND
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.and}
-   */
-  static and(...args) {
-    return { [Op.and]: args };
-  }
+  static and = and;
 
-  /**
-   * An OR query
-   *
-   * @see
-   * {@link Model.findAll}
-   *
-   * @param {...string|object} args Each argument will be joined by OR
-   * @since v2.0.0-dev3
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.or}
-   */
-  static or(...args) {
-    return { [Op.or]: args };
-  }
+  static or = or;
 
-  /**
-   * Creates an object representing nested where conditions for postgres/sqlite/mysql json data-type.
-   *
-   * @see
-   * {@link Model.findAll}
-   *
-   * @param {string|object} conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot notation or a string using postgres/sqlite/mysql json syntax.
-   * @param {string|number|boolean} [value] An optional value to compare against. Produces a string of the form "<json path> = '<value>'".
-   * @memberof Sequelize
-   *
-   * @returns {Sequelize.json}
-   */
-  static json(conditionsOrPath, value) {
-    return new Utils.Json(conditionsOrPath, value);
-  }
+  static json = json;
 
-  /**
-   * A way of specifying attr = condition.
-   *
-   * The attr can either be an object taken from `Model.rawAttributes` (for example `Model.rawAttributes.id` or `Model.rawAttributes.name`). The
-   * attribute should be defined in your model definition. The attribute can also be an object from one of the sequelize utility functions (`sequelize.fn`, `sequelize.col` etc.)
-   *
-   * For string attributes, use the regular `{ where: { attr: something }}` syntax. If you don't want your string to be escaped, use `sequelize.literal`.
-   *
-   * @see
-   * {@link Model.findAll}
-   *
-   * @param {object} attr The attribute, which can be either an attribute object from `Model.rawAttributes` or a sequelize object, for example an instance of `sequelize.fn`. For simple string attributes, use the POJO syntax
-   * @param {symbol} [comparator='Op.eq'] operator
-   * @param {string|object} logic The condition. Can be both a simply type, or a further condition (`or`, `and`, `.literal` etc.)
-   * @since v2.0.0-dev3
-   */
-  static where(attr, comparator, logic) {
-    return new Utils.Where(attr, comparator, logic);
-  }
+  static where = where;
+
+  static isModelStatic = isModelStatic;
+
+  static isSameInitialModel = isSameInitialModel;
 
   /**
    * Start a transaction. When using transactions, you should pass the transaction in the options argument in order for the query to happen under that transaction @see {@link Transaction}
@@ -1085,7 +1080,7 @@ class Sequelize {
    * @example <caption>A syntax for automatically committing or rolling back based on the promise chain resolution is also supported</caption>
    *
    * try {
-   *   await sequelize.transaction(transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
+   *   await sequelize.transaction(async transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
    *     const user = await User.findOne(..., {transaction});
    *     await user.update(..., {transaction});
    *   });
@@ -1121,33 +1116,31 @@ class Sequelize {
     const transaction = new Transaction(this, options);
 
     if (!autoCallback) {
-      await transaction.prepareEnvironment(false);
+      await transaction.prepareEnvironment(/* cls */ false);
 
       return transaction;
     }
 
     // autoCallback provided
     return Sequelize._clsRun(async () => {
-      try {
-        await transaction.prepareEnvironment();
-        const result = await autoCallback(transaction);
-        await transaction.commit();
+      await transaction.prepareEnvironment(/* cls */ true);
 
-        return await result;
+      let result;
+      try {
+        result = await autoCallback(transaction);
       } catch (error) {
         try {
-          if (!transaction.finished) {
-            await transaction.rollback();
-          } else {
-            // release the connection, even if we don't need to rollback
-            await transaction.cleanup();
-          }
+          await transaction.rollback();
         } catch {
-          // ignore
+          // ignore, because 'rollback' will already print the error before killing the connection
         }
 
         throw error;
       }
+
+      await transaction.commit();
+
+      return result;
     });
   }
 
@@ -1241,24 +1234,7 @@ class Sequelize {
   }
 
   normalizeDataType(Type) {
-    let type = typeof Type === 'function' ? new Type() : Type;
-    const dialectTypes = this.dialect.DataTypes || {};
-
-    if (dialectTypes[type.key]) {
-      type = dialectTypes[type.key].extend(type);
-    }
-
-    if (type instanceof DataTypes.ARRAY) {
-      if (!type.type) {
-        throw new Error('ARRAY is missing type definition for its values.');
-      }
-
-      if (dialectTypes[type.type.key]) {
-        type.type = dialectTypes[type.type.key].extend(type.type);
-      }
-    }
-
-    return type;
+    return normalizeDataType(Type, this.dialect);
   }
 
   normalizeAttribute(attribute) {
@@ -1270,25 +1246,35 @@ class Sequelize {
       return attribute;
     }
 
+    if (attribute.values) {
+      throw new TypeError(`
+The "values" property has been removed from column definitions. The following is no longer supported:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM,
+    values: ['admin', 'user'],
+  },
+});
+
+Instead, define enum values like this:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM(['admin', 'user']),
+  },
+});
+
+Remove the "values" property to resolve this issue.
+        `.trim());
+    }
+
     attribute.type = this.normalizeDataType(attribute.type);
 
     if (Object.prototype.hasOwnProperty.call(attribute, 'defaultValue') && typeof attribute.defaultValue === 'function'
         && [DataTypes.NOW, DataTypes.UUIDV1, DataTypes.UUIDV4].includes(attribute.defaultValue)
     ) {
       attribute.defaultValue = new attribute.defaultValue();
-    }
-
-    if (attribute.type instanceof DataTypes.ENUM) {
-      // The ENUM is a special case where the type is an object containing the values
-      if (attribute.values) {
-        attribute.type.values = attribute.type.options.values = attribute.values;
-      } else {
-        attribute.values = attribute.type.values;
-      }
-
-      if (attribute.values.length === 0) {
-        throw new Error('Values for ENUM have not been defined.');
-      }
     }
 
     return attribute;
@@ -1318,8 +1304,6 @@ Object.defineProperty(Sequelize, 'version', {
     return require('../package.json').version;
   },
 });
-
-Sequelize.options = { hooks: {} };
 
 /**
  * @private
@@ -1355,6 +1339,8 @@ Sequelize.IndexHints = IndexHints;
  */
 Sequelize.Transaction = Transaction;
 
+Sequelize.GeoJsonType = require('./geo-json').GeoJsonType;
+
 /**
  * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
  *
@@ -1385,8 +1371,14 @@ Sequelize.HasMany = HasMany;
 Sequelize.BelongsToMany = BelongsToMany;
 
 Sequelize.DataTypes = DataTypes;
-for (const dataType in DataTypes) {
-  Sequelize[dataType] = DataTypes[dataType];
+for (const dataTypeName in DataTypes) {
+  Object.defineProperty(Sequelize, dataTypeName, {
+    get() {
+      noSequelizeDataType();
+
+      return DataTypes[dataTypeName];
+    },
+  });
 }
 
 /**
@@ -1412,13 +1404,6 @@ Sequelize.prototype.Association = Sequelize.Association = Association;
 Sequelize.useInflection = Utils.useInflection;
 
 /**
- * Allow hooks to be defined on Sequelize + on sequelize instance as universal hooks to run on all models
- * and on Sequelize/sequelize methods e.g. Sequelize(), Sequelize#define()
- */
-Hooks.applyTo(Sequelize);
-Hooks.applyTo(Sequelize.prototype);
-
-/**
  * Expose various errors available
  */
 
@@ -1429,6 +1414,133 @@ for (const error of Object.keys(sequelizeErrors)) {
   Sequelize[error] = sequelizeErrors[error];
 }
 
-module.exports = Sequelize;
-module.exports.Sequelize = Sequelize;
-module.exports.default = Sequelize;
+/**
+ * Creates an object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
+ * If you want to refer to columns in your function, you should use `sequelize.col`, so that the columns are properly interpreted as columns and not a strings.
+ *
+ * @see Model.findAll
+ * @see Sequelize.define
+ * @see Sequelize.col
+ *
+ * @param {string} fn The function you want to call
+ * @param {any} args All further arguments will be passed as arguments to the function
+ *
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ * @returns {Sequelize.fn}
+ *
+ * @example <caption>Convert a user's username to upper case</caption>
+ * instance.update({
+ *   username: sequelize.fn('upper', sequelize.col('username'))
+ * });
+ */
+export function fn(fn, ...args) {
+  return new Utils.Fn(fn, args);
+}
+
+/**
+ * Creates an object which represents a column in the DB, this allows referencing another column in your query. This is often useful in conjunction with `sequelize.fn`, since raw string arguments to fn will be escaped.
+ *
+ * @see Sequelize#fn
+ *
+ * @param {string} col The name of the column
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.col}
+ */
+export function col(col) {
+  return new Utils.Col(col);
+}
+
+/**
+ * Creates an object representing a call to the cast function.
+ *
+ * @param {any} val The value to cast
+ * @param {string} type The type to cast it to
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.cast}
+ */
+export function cast(val, type) {
+  return new Utils.Cast(val, type);
+}
+
+/**
+ * Creates an object representing a literal, i.e. something that will not be escaped.
+ *
+ * @param {any} val literal value
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.literal}
+ */
+export function literal(val) {
+  return new Utils.Literal(val);
+}
+
+/**
+ * An AND query
+ *
+ * @see Model.findAll
+ *
+ * @param {...string|object} args Each argument will be joined by AND
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.and}
+ */
+export function and(...args) {
+  return { [Op.and]: args };
+}
+
+/**
+ * An OR query
+ *
+ * @see
+ * {@link Model.findAll}
+ *
+ * @param {...string|object} args Each argument will be joined by OR
+ * @since v2.0.0-dev3
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.or}
+ */
+export function or(...args) {
+  return { [Op.or]: args };
+}
+
+/**
+ * Creates an object representing nested where conditions for postgres/sqlite/mysql json data-type.
+ *
+ * @see Model.findAll
+ *
+ * @param {string|object} conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot notation or a string using postgres/sqlite/mysql json syntax.
+ * @param {string|number|boolean} [value] An optional value to compare against. Produces a string of the form "<json path> = '<value>'".
+ * @memberof Sequelize
+ *
+ * @returns {Sequelize.json}
+ */
+export function json(conditionsOrPath, value) {
+  return new Utils.Json(conditionsOrPath, value);
+}
+
+/**
+ * A way of specifying attr = condition.
+ *
+ * The attr can either be an object taken from `Model.rawAttributes` (for example `Model.rawAttributes.id` or `Model.rawAttributes.name`). The
+ * attribute should be defined in your model definition. The attribute can also be an object from one of the sequelize utility functions (`sequelize.fn`, `sequelize.col` etc.)
+ *
+ * For string attributes, use the regular `{ where: { attr: something }}` syntax. If you don't want your string to be escaped, use `sequelize.literal`.
+ *
+ * @see Model.findAll
+ *
+ * @param {object} attr The attribute, which can be either an attribute object from `Model.rawAttributes` or a sequelize object, for example an instance of `sequelize.fn`. For simple string attributes, use the POJO syntax
+ * @param {symbol} [comparator='Op.eq'] operator
+ * @param {string|object} logic The condition. Can be both a simply type, or a further condition (`or`, `and`, `.literal` etc.)
+ * @since v2.0.0-dev3
+ */
+export function where(attr, comparator, logic) {
+  return new Utils.Where(attr, comparator, logic);
+}

@@ -1,9 +1,17 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { ENUM } from './data-types';
+import { rejectInvalidOptions } from '../../utils';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
+
 const Utils = require('../../utils');
 const util = require('util');
 const DataTypes = require('../../data-types');
-const AbstractQueryGenerator = require('../abstract/query-generator');
+const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const semver = require('semver');
 const _ = require('lodash');
 
@@ -15,49 +23,67 @@ const _ = require('lodash');
  */
 const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymmetric,authorization,binary,both,case,cast,check,collate,collation,column,concurrently,constraint,create,cross,current_catalog,current_date,current_role,current_schema,current_time,current_timestamp,current_user,default,deferrable,desc,distinct,do,else,end,except,false,fetch,for,foreign,freeze,from,full,grant,group,having,ilike,in,initially,inner,intersect,into,is,isnull,join,lateral,leading,left,like,limit,localtime,localtimestamp,natural,not,notnull,null,offset,on,only,or,order,outer,overlaps,placing,primary,references,returning,right,select,session_user,similar,some,symmetric,table,tablesample,then,to,trailing,true,union,unique,user,using,variadic,verbose,when,where,window,with'.split(',');
 
-class PostgresQueryGenerator extends AbstractQueryGenerator {
+const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['encoding', 'collate', 'ctype', 'template']);
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set([]);
+
+export class PostgresQueryGenerator extends AbstractQueryGenerator {
   setSearchPath(searchPath) {
     return `SET search_path to ${searchPath};`;
   }
 
   createDatabaseQuery(databaseName, options) {
-    options = {
-      encoding: null,
-      collate: null,
-      ...options,
-    };
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect.name,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
 
-    const values = {
-      database: this.quoteTable(databaseName),
-      encoding: options.encoding ? ` ENCODING = ${this.escape(options.encoding)}` : '',
-      collation: options.collate ? ` LC_COLLATE = ${this.escape(options.collate)}` : '',
-      ctype: options.ctype ? ` LC_CTYPE = ${this.escape(options.ctype)}` : '',
-      template: options.template ? ` TEMPLATE = ${this.escape(options.template)}` : '',
-    };
+    const quotedDatabaseName = this.quoteIdentifier(databaseName);
+    const encoding = options?.encoding ? ` ENCODING = ${this.escape(options.encoding)}` : '';
+    const collation = options?.collate ? ` LC_COLLATE = ${this.escape(options.collate)}` : '';
+    const ctype = options?.ctype ? ` LC_CTYPE = ${this.escape(options.ctype)}` : '';
+    const template = options?.template ? ` TEMPLATE = ${this.escape(options.template)}` : '';
 
-    return `CREATE DATABASE ${values.database}${values.encoding}${values.collation}${values.ctype}${values.template};`;
+    return `CREATE DATABASE ${quotedDatabaseName}${encoding}${collation}${ctype}${template};`;
   }
 
   dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteTable(databaseName)};`;
+    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
   }
 
-  createSchema(schema) {
-    const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
+  listDatabasesQuery() {
+    return `SELECT datname AS name FROM pg_database;`;
+  }
 
-    if (databaseVersion && semver.gte(databaseVersion, '9.2.0')) {
-      return `CREATE SCHEMA IF NOT EXISTS ${schema};`;
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect.name,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
-    return `CREATE SCHEMA ${schema};`;
+    return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
   }
 
-  dropSchema(schema) {
-    return `DROP SCHEMA IF EXISTS ${schema} CASCADE;`;
+  dropSchemaQuery(schema) {
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
-  showSchemasQuery() {
-    return 'SELECT schema_name FROM information_schema.schemata WHERE schema_name <> \'information_schema\' AND schema_name != \'public\' AND schema_name !~ E\'^pg_\';';
+  listSchemasQuery(options) {
+    const schemasToSkip = ['information_schema', 'public'];
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
   versionQuery() {
@@ -96,9 +122,17 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     let attributesClause = attrStr.join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, columns => {
+      _.each(options.uniqueKeys, (columns, indexName) => {
         if (columns.customIndex) {
-          attributesClause += `, UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+          if (typeof indexName !== 'string') {
+            indexName = Utils.generateIndexName(tableName, columns);
+          }
+
+          attributesClause += `, CONSTRAINT ${
+            this.quoteIdentifier(indexName)
+          } UNIQUE (${
+            columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
+          })`;
         }
       });
     }
@@ -125,13 +159,20 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   showTablesQuery() {
-    return 'SELECT table_name FROM information_schema.tables WHERE table_schema = \'public\' AND table_type LIKE \'%TABLE\' AND table_name != \'spatial_ref_sys\';';
+    const schema = this.options.schema || 'public';
+
+    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`;
+  }
+
+  tableExistsQuery(tableName) {
+    const table = tableName.tableName || tableName;
+    const schema = tableName.schema || 'public';
+
+    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
   }
 
   describeTableQuery(tableName, schema) {
-    if (!schema) {
-      schema = 'public';
-    }
+    schema = schema || this.options.schema || 'public';
 
     return 'SELECT '
       + 'pk.constraint_type as "Constraint",'
@@ -152,7 +193,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       + 'ON pk.table_schema=c.table_schema '
       + 'AND pk.table_name=c.table_name '
       + 'AND pk.column_name=c.column_name '
-      + `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)} `;
+      + `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)}`;
   }
 
   /**
@@ -256,29 +297,35 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     return super.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
-  addColumnQuery(table, key, attribute) {
+  addColumnQuery(table, key, attribute, options) {
+    options = options || {};
+
     const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(this.extractTableDetails(table));
+    const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
 
-    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${quotedKey} ${definition};`;
+    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 
     if (dataType instanceof DataTypes.ENUM) {
       query = this.pgEnum(table, key, dataType) + query;
-    } else if (dataType.type && dataType.type instanceof DataTypes.ENUM) {
-      query = this.pgEnum(table, key, dataType.type) + query;
+    } else if (dataType instanceof DataTypes.ARRAY && dataType.options.type instanceof DataTypes.ENUM) {
+      query = this.pgEnum(table, key, dataType.options.type) + query;
     }
 
     return query;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    options = options || {};
+
     const quotedTableName = this.quoteTable(this.extractTableDetails(tableName));
     const quotedAttributeName = this.quoteIdentifier(attributeName);
+    const ifExists = options.ifExists ? ' IF EXISTS' : '';
 
-    return `ALTER TABLE ${quotedTableName} DROP COLUMN ${quotedAttributeName};`;
+    return `ALTER TABLE ${quotedTableName} DROP COLUMN ${ifExists} ${quotedAttributeName};`;
   }
 
   changeColumnQuery(tableName, attributes) {
@@ -359,7 +406,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
     let whereClause = this.getWhereConditions(where, null, model, options);
-    const limit = options.limit ? ` LIMIT ${this.escape(options.limit)}` : '';
+    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['replacements', 'bind']))}` : '';
     let primaryKeys = '';
     let primaryKeysSelection = '';
 
@@ -422,7 +469,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
+      indexName = Utils.generateIndexName(tableName, { fields: indexNameOrAttributes });
     }
 
     return [
@@ -435,11 +482,11 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   addLimitAndOffset(options) {
     let fragment = '';
     if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit)}`;
+      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
     }
 
-    if (options.offset != null) {
-      fragment += ` OFFSET ${this.escape(options.offset)}`;
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
     }
 
     return fragment;
@@ -458,11 +505,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       || attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM
     ) {
       const enumType = attribute.type.type || attribute.type;
-      let values = attribute.values;
-
-      if (enumType.values && !attribute.values) {
-        values = enumType.values;
-      }
+      const values = enumType.options.values;
 
       if (Array.isArray(values) && values.length > 0) {
         type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
@@ -482,7 +525,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
 
     let sql = type.toString();
 
-    if (Object.prototype.hasOwnProperty.call(attribute, 'allowNull') && !attribute.allowNull) {
+    if (attribute.allowNull === false) {
       sql += ' NOT NULL';
     }
 
@@ -494,7 +537,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    if (Utils.defaultValueSchemable(attribute.defaultValue)) {
+    if (defaultValueSchemable(attribute.defaultValue)) {
       sql += ` DEFAULT ${this.escape(attribute.defaultValue, attribute)}`;
     }
 
@@ -529,24 +572,26 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
 
       let referencesKey;
 
-      if (attribute.references.key) {
-        referencesKey = this.quoteIdentifiers(attribute.references.key);
-      } else {
-        referencesKey = this.quoteIdentifier('id');
-      }
+      if (!options.withoutForeignKeyConstraints) {
+        if (attribute.references.key) {
+          referencesKey = this.quoteIdentifiers(attribute.references.key);
+        } else {
+          referencesKey = this.quoteIdentifier('id');
+        }
 
-      sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
+        sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
 
-      if (attribute.onDelete) {
-        sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-      }
+        if (attribute.onDelete) {
+          sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+        }
 
-      if (attribute.onUpdate) {
-        sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-      }
+        if (attribute.onUpdate) {
+          sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+        }
 
-      if (attribute.references.deferrable) {
-        sql += ` ${attribute.references.deferrable.toString(this)}`;
+        if (attribute.references.deferrable) {
+          sql += ` ${attribute.references.deferrable.toString(this)}`;
+        }
       }
     }
 
@@ -756,11 +801,9 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     }).join(' OR ');
   }
 
-  pgEnumName(tableName, attr, options) {
-    options = options || {};
-
+  pgEnumName(tableName, columnName, options = {}) {
     const tableDetails = this.extractTableDetails(tableName, options);
-    let enumName = Utils.addTicks(Utils.generateEnumName(tableDetails.tableName, attr), '"');
+    let enumName = Utils.addTicks(`enum_${tableDetails.tableName}_${columnName}`, '"');
 
     // pgListEnums requires the enum name only, without the schema
     if (options.schema !== false && tableDetails.schema) {
@@ -788,8 +831,8 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     const enumName = this.pgEnumName(tableName, attr, options);
     let values;
 
-    if (dataType.values) {
-      values = `ENUM(${dataType.values.map(value => this.escape(value)).join(', ')})`;
+    if (dataType instanceof ENUM && dataType.options.values) {
+      values = `ENUM(${dataType.options.values.map(value => this.escape(value)).join(', ')})`;
     } else {
       values = dataType.toString().match(/^ENUM\(.+\)/)[0];
     }
@@ -828,6 +871,10 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   fromArray(text) {
+    if (Array.isArray(text)) {
+      return text;
+    }
+
     text = text.replace(/^{/, '').replace(/}$/, '');
     let matches = text.match(/("(?:\\.|[^"\\])*"|[^,]*)(?:\s*,\s*|\s*$)/gi);
 
@@ -891,6 +938,8 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       + 'tc.table_name as table_name,'
       + 'tc.table_schema as table_schema,'
       + 'tc.table_catalog as table_catalog,'
+      + 'tc.initially_deferred as initially_deferred,'
+      + 'tc.is_deferrable as is_deferrable,'
       + 'kcu.column_name as column_name,'
       + 'ccu.table_schema  AS referenced_table_schema,'
       + 'ccu.table_catalog  AS referenced_table_catalog,'
@@ -991,5 +1040,3 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `(${quotedColumn}${join}${pathStr})`;
   }
 }
-
-module.exports = PostgresQueryGenerator;
