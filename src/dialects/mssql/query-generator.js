@@ -369,11 +369,13 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       );
     }
 
+    const ifExists = options.ifExists ? 'IF EXISTS' : '';
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP COLUMN',
-      options.ifExists,
+      ifExists,
       this.quoteIdentifier(attributeName),
       ';',
     ]);
