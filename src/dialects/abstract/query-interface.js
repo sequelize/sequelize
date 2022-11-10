@@ -275,18 +275,13 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
-  async dropTable(tableName, options) {
-    // if we're forcing we should be cascading unless explicitly stated otherwise
-    options = { ...options };
-    options.cascade = options.cascade || options.force || false;
+  async dropTable(tableName, options = {}) {
+    options.cascade = options.cascade != null ? options.cascade
+      // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
+      : (options.force && this.queryGenerator.dialect.supports.drop.cascade) ? true
+      : undefined;
 
-    let sql;
-
-    if (this.queryGenerator.dialect.supports.drop.cascade) {
-      sql = this.queryGenerator.dropTableQuery(tableName, options);
-    } else {
-      sql = this.queryGenerator.dropTableQuery(tableName);
-    }
+    const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
     await this.sequelize.queryRaw(sql, options);
   }
@@ -295,7 +290,7 @@ export class QueryInterface {
     for (const tableName of tableNames) {
       // if tableName is not in the Array of tables names then don't drop it
       if (!skip.includes(tableName.tableName || tableName)) {
-        await this.dropTable(tableName, { ...options, cascade: true });
+        await this.dropTable(tableName, options);
       }
     }
   }
