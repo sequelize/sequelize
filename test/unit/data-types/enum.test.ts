@@ -63,21 +63,37 @@ describe('DataTypes.ENUM', () => {
 
   it('accepts readonly arrays for `options.values`', () => {
     const values = ['A', 'B', 'C', 'D', 'E'] as const;
-    DataTypes.ENUM({ values });
+    const nonConstValues = ['A', 'B', 'C', 'D', 'E'];
+    const type = DataTypes.ENUM({ values });
+
+    expect(type.options.values).to.deep.equal(values);
+    expect(type.options.values).not.to.equal(nonConstValues);
   });
 
   it('accepts mutable arrays for `options.values`', () => {
     const values = ['A', 'B', 'C', 'D', 'E'];
-    DataTypes.ENUM({ values });
+    const constValues = ['A', 'B', 'C', 'D', 'E'] as const;
+    const type = DataTypes.ENUM({ values });
+
+    expect(type.options.values).to.deep.equal(values);
+    expect(type.options.values).not.to.equal(constValues);
   });
 
   it('accepts readonly arrays for `values`', () => {
     const values = ['A', 'B', 'C', 'D', 'E'] as const;
-    DataTypes.ENUM(values);
+    const nonConstValues = ['A', 'B', 'C', 'D', 'E'];
+    const type = DataTypes.ENUM({ values });
+
+    expect(type.options.values).to.deep.equal(values);
+    expect(type.options.values).not.to.equal(nonConstValues);
   });
 
   it('accepts mutable arrays for `values`', () => {
     const values = ['A', 'B', 'C', 'D', 'E'];
-    DataTypes.ENUM(values);
+    const constValues = ['A', 'B', 'C', 'D', 'E'] as const;
+    const type = DataTypes.ENUM({ values });
+
+    expect(type.options.values).to.deep.equal(values);
+    expect(type.options.values).not.to.equal(constValues);
   });
 });
