@@ -1,82 +1,51 @@
 'use strict';
 
+import { normalizeDataType } from '../abstract/data-types-utils';
+import { joinSQLFragments } from '../../utils';
+
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
-const Utils = require('./../../utils');
 const _ = require('lodash');
 
 export class MariaDbQueryGenerator extends MySqlQueryGenerator {
-  createSchema(schema, options) {
-    options = {
-      charset: null,
-      collate: null,
-      ...options,
+
+  _getTechnicalSchemaNames() {
+    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema'];
+  }
+
+  addColumnQuery(table, key, dataType, options = {}) {
+    const ifNotExists = options.ifNotExists ? 'IF NOT EXISTS' : '';
+
+    dataType = {
+      ...dataType,
+      type: normalizeDataType(dataType.type, this.dialect),
     };
 
-    return Utils.joinSQLFragments([
-      'CREATE SCHEMA IF NOT EXISTS',
-      this.quoteIdentifier(schema),
-      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(table),
+      'ADD',
+      ifNotExists,
+      this.quoteIdentifier(key),
+      this.attributeToSQL(dataType, {
+        context: 'addColumn',
+        tableName: table,
+        foreignKey: key,
+      }),
       ';',
     ]);
   }
 
-  dropSchema(schema) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)};`;
-  }
+  removeColumnQuery(tableName, attributeName, options = {}) {
+    const ifExists = options.ifExists ? 'IF EXISTS' : '';
 
-  showSchemasQuery(options) {
-    const schemasToSkip = [
-      '\'MYSQL\'',
-      '\'INFORMATION_SCHEMA\'',
-      '\'PERFORMANCE_SCHEMA\'',
-    ];
-    if (options.skip && Array.isArray(options.skip) && options.skip.length > 0) {
-      for (const schemaName of options.skip) {
-        schemasToSkip.push(this.escape(schemaName));
-      }
-    }
-
-    return Utils.joinSQLFragments([
-      'SELECT SCHEMA_NAME as schema_name',
-      'FROM INFORMATION_SCHEMA.SCHEMATA',
-      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.join(', ')})`,
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'DROP',
+      ifExists,
+      this.quoteIdentifier(attributeName),
       ';',
     ]);
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {object} table  The table.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(table) {
-    return super.getForeignKeysQuery(table, table.schema || this.sequelize.config.database);
-  }
-
-  showTablesQuery(database) {
-    let query = 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
-    if (database) {
-      query += ` AND TABLE_SCHEMA = ${this.escape(database)}`;
-    } else {
-      query += ' AND TABLE_SCHEMA NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\')';
-    }
-
-    return `${query};`;
-  }
-
-  /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '`'), '`');
   }
 
   /**

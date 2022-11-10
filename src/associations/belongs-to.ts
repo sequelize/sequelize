@@ -1,6 +1,7 @@
 import assert from 'assert';
 import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
+import { cloneDataType } from '../dialects/abstract/data-types-utils.js';
 import { AssociationError } from '../errors/index.js';
 import type {
   ModelStatic,
@@ -137,7 +138,7 @@ export class BelongsTo<
     this.foreignKey = foreignKey as SourceKey;
 
     const newForeignKeyAttribute = removeUndefined({
-      type: this.target.rawAttributes[this.targetKey].type,
+      type: cloneDataType(this.target.rawAttributes[this.targetKey].type),
       ...foreignKeyAttributeOptions,
       allowNull: this.source.rawAttributes[this.foreignKey]?.allowNull ?? foreignKeyAttributeOptions?.allowNull,
     });

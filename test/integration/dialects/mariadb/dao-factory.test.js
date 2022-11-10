@@ -78,8 +78,8 @@ if (dialect === 'mariadb') {
           ),
         ).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
-          updatedAt: 'DATETIME NOT NULL',
-          createdAt: 'DATETIME NOT NULL',
+          updatedAt: 'DATETIME(6) NOT NULL',
+          createdAt: 'DATETIME(6) NOT NULL',
         });
         expect(
           this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
@@ -87,8 +87,8 @@ if (dialect === 'mariadb') {
           ),
         ).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
-          updatedAt: 'DATETIME NOT NULL',
-          createdAt: 'DATETIME NOT NULL',
+          updatedAt: 'DATETIME(6) NOT NULL',
+          createdAt: 'DATETIME(6) NOT NULL',
         });
       });
 
@@ -101,9 +101,9 @@ if (dialect === 'mariadb') {
           ),
         ).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
-          deletedAt: 'DATETIME',
-          updatedAt: 'DATETIME NOT NULL',
-          createdAt: 'DATETIME NOT NULL',
+          deletedAt: 'DATETIME(6)',
+          updatedAt: 'DATETIME(6) NOT NULL',
+          createdAt: 'DATETIME(6) NOT NULL',
         });
       });
 
@@ -116,9 +116,9 @@ if (dialect === 'mariadb') {
           ),
         ).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
-          deleted_at: 'DATETIME',
-          updated_at: 'DATETIME NOT NULL',
-          created_at: 'DATETIME NOT NULL',
+          deleted_at: 'DATETIME(6)',
+          updated_at: 'DATETIME(6) NOT NULL',
+          created_at: 'DATETIME(6) NOT NULL',
         });
       });
 

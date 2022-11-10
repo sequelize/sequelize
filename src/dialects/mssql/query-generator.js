@@ -1,5 +1,14 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
+import { rejectInvalidOptions } from '../../utils';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+} from '../abstract/query-generator';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
@@ -14,11 +23,23 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
+const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['collate']);
+const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
-    options = { collate: null, ...options };
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect.name,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
+        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
 
-    const collation = options.collate ? `COLLATE ${this.escape(options.collate)}` : '';
+    const collation = options?.collate ? `COLLATE ${this.escape(options.collate)}` : '';
 
     return [
       'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name =', wrapSingleQuote(databaseName), ')',
@@ -38,7 +59,21 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  createSchema(schema) {
+  listDatabasesQuery() {
+    return `SELECT name FROM sys.databases;`;
+  }
+
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect.name,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return [
       'IF NOT EXISTS (SELECT schema_name',
       'FROM information_schema.schemata',
@@ -51,7 +86,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  dropSchema(schema) {
+  dropSchemaQuery(schema) {
     // Mimics Postgres CASCADE, will drop objects belonging to the schema
     const quotedSchema = wrapSingleQuote(schema);
 
@@ -87,12 +122,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  showSchemasQuery() {
+  listSchemasQuery(options) {
+    const schemasToSkip = ['INFORMATION_SCHEMA', 'dbo', 'guest', 'sys', 'archive'];
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
     return [
       'SELECT "name" as "schema_name" FROM sys.schemas as s',
       'WHERE "s"."name" NOT IN (',
-      '\'INFORMATION_SCHEMA\', \'dbo\', \'guest\', \'sys\', \'archive\'',
-      ')', 'AND', '"s"."name" NOT LIKE', '\'db_%\'',
+      schemasToSkip.map(schema => this.escape(schema)).join(', '),
+      `) AND "s"."name" NOT LIKE 'db_%'`,
     ].join(' ');
   }
 
@@ -251,10 +291,25 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  addColumnQuery(table, key, dataType) {
-    // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
-    //       but instead we need to pass the key along as the field here
-    dataType.field = key;
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    dataType = {
+      ...dataType,
+      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      //       but instead we need to pass the key along as the field here
+      field: key,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
+
     let commentStr = '';
 
     if (dataType.comment && _.isString(dataType.comment)) {
@@ -284,11 +339,14 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
         + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options = {}) {
+    const ifExists = options.ifExists ? 'IF EXISTS' : '';
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP COLUMN',
+      ifExists,
       this.quoteIdentifier(attributeName),
       ';',
     ]);
@@ -599,24 +657,20 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     let template;
 
     if (attribute.type instanceof DataTypes.ENUM) {
-      if (attribute.type.values && !attribute.values) {
-        attribute.values = attribute.type.values;
-      }
-
       // enums are a special case
-      template = attribute.type.toSql();
-      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
+      template = attribute.type.toSql({ dialect: this.dialect });
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
         return this.escape(value, undefined, options);
       }).join(', ')}))`;
 
       return template;
     }
 
-    template = attribute.type.toString();
+    template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
-    } else if (!attribute.primaryKey && !Utils.defaultValueSchemable(attribute.defaultValue)) {
+    } else if (!attribute.primaryKey && !defaultValueSchemable(attribute.defaultValue)) {
       template += ' NULL';
     }
 
@@ -626,11 +680,11 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
 
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
-        && Utils.defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
+        && defaultValueSchemable(attribute.defaultValue)) {
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, attribute, options)}`;
     }
 
-    if (attribute.unique === true && (options?.context !== 'changeColumn' || this._dialect.supports.alterColumn.unique)) {
+    if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
       template += ' UNIQUE';
     }
 

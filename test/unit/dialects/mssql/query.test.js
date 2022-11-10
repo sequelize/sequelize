@@ -1,7 +1,7 @@
 'use strict';
 
 const { MsSqlQuery: Query } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mssql/query.js');
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const sequelize = Support.sequelize;

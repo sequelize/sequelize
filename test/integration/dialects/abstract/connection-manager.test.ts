@@ -76,7 +76,9 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
 
     const res: Connection = {};
 
+    // @ts-expect-error -- internal method, no typings
     const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
+    // @ts-expect-error -- internal method, no typings
     sandbox.stub(connectionManager, '_disconnect').resolves();
     sandbox.stub(sequelize, 'databaseVersion').resolves(sequelize.dialect.defaultVersion);
 
@@ -113,7 +115,9 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
 
       const res: Connection = {};
 
+      // @ts-expect-error -- internal method, no typings
       sandbox.stub(connectionManager, '_connect').resolves(res);
+      // @ts-expect-error -- internal method, no typings
       sandbox.stub(connectionManager, '_disconnect').resolves();
 
       const queryOptions: GetConnectionOptions = {
@@ -150,9 +154,13 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       const res: Connection = {};
 
       const connectStub = sandbox
+        // @ts-expect-error -- internal method, no typings
         .stub(connectionManager, '_connect')
         .resolves(res);
+
+      // @ts-expect-error -- internal method, no typings
       sandbox.stub(connectionManager, '_disconnect').resolves();
+
       sandbox
         .stub(sequelize, 'databaseVersion')
         .resolves(sequelize.dialect.defaultVersion);

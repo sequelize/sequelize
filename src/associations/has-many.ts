@@ -1,4 +1,3 @@
-import isPlainObject from 'lodash/isPlainObject';
 import upperFirst from 'lodash/upperFirst';
 import { AssociationError } from '../errors/index.js';
 import type {
@@ -15,7 +14,7 @@ import type {
 import { Op } from '../operators';
 import { col, fn } from '../sequelize';
 import type { AllowArray } from '../utils';
-import { removeUndefined } from '../utils';
+import { isPlainObject, removeUndefined } from '../utils';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';
