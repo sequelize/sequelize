@@ -179,10 +179,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should be the same valid date when saving the date', async function () {
-        const date = new Date();
+        const date = new Date('2018-01-01T12:12:12.000Z');
         await this.User.build({ username: 'a user', dateAllowNullTrue: date }).save();
         const user = await this.User.findOne({ where: { username: 'a user' } });
-        expect(user.dateAllowNullTrue.toString()).to.equal(date.toString());
+        expect(user.dateAllowNullTrue.toISOString()).to.equal(date.toISOString());
       });
     });
 
@@ -206,38 +206,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         await this.User.build({
           username: 'a user',
           isSuperUser: true,
-        })
-          .save();
-
-        const user = await this.User.findOne({
-          where: {
-            username: 'a user',
-          },
-        });
-
-        expect(user.isSuperUser).to.be.true;
-      });
-
-      it('should override default when given truthy boolean-string ("true")', async function () {
-        await this.User.build({
-          username: 'a user',
-          isSuperUser: 'true',
-        })
-          .save();
-
-        const user = await this.User.findOne({
-          where: {
-            username: 'a user',
-          },
-        });
-
-        expect(user.isSuperUser).to.be.true;
-      });
-
-      it('should override default when given truthy boolean-int (1)', async function () {
-        await this.User.build({
-          username: 'a user',
-          isSuperUser: 1,
         })
           .save();
 

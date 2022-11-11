@@ -5,7 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const { Op, DataTypes } = require('@sequelize/core');
 const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/query-generator.js');
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const customSequelize = Support.createSequelizeInstance({
   schema: 'custom',
@@ -20,44 +20,6 @@ const _ = require('lodash');
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
     const suites = {
-      createDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'CREATE DATABASE "myDatabase";',
-        },
-        {
-          arguments: ['myDatabase', { encoding: 'UTF8' }],
-          expectation: 'CREATE DATABASE "myDatabase" ENCODING = \'UTF8\';',
-        },
-        {
-          arguments: ['myDatabase', { collate: 'en_US.UTF-8' }],
-          expectation: 'CREATE DATABASE "myDatabase" LC_COLLATE = \'en_US.UTF-8\';',
-        },
-        {
-          arguments: ['myDatabase', { encoding: 'UTF8' }],
-          expectation: 'CREATE DATABASE "myDatabase" ENCODING = \'UTF8\';',
-        },
-        {
-          arguments: ['myDatabase', { ctype: 'zh_TW.UTF-8' }],
-          expectation: 'CREATE DATABASE "myDatabase" LC_CTYPE = \'zh_TW.UTF-8\';',
-        },
-        {
-          arguments: ['myDatabase', { template: 'template0' }],
-          expectation: 'CREATE DATABASE "myDatabase" TEMPLATE = \'template0\';',
-        },
-        {
-          arguments: ['myDatabase', { encoding: 'UTF8', collate: 'en_US.UTF-8', ctype: 'zh_TW.UTF-8', template: 'template0' }],
-          expectation: 'CREATE DATABASE "myDatabase" ENCODING = \'UTF8\' LC_COLLATE = \'en_US.UTF-8\' LC_CTYPE = \'zh_TW.UTF-8\' TEMPLATE = \'template0\';',
-        },
-      ],
-
-      dropDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'DROP DATABASE IF EXISTS "myDatabase";',
-        },
-      ],
-
       arithmeticQuery: [
         {
           title: 'Should use the plus operator',
@@ -496,12 +458,12 @@ if (dialect.startsWith('postgres')) {
         }, {
           title: 'buffer as where argument',
           arguments: ['myTable', { where: { field: Buffer.from('Sequelize') } }],
-          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."field" = E\'\\\\x53657175656c697a65\';',
+          expectation: `SELECT * FROM "myTable" WHERE "myTable"."field" = '\\x53657175656c697a65';`,
           context: QueryGenerator,
         }, {
           title: 'string in array should escape \' as \'\'',
           arguments: ['myTable', { where: { aliases: { [Op.contains]: ['Queen\'s'] } } }],
-          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."aliases" @> ARRAY[\'Queen\'\'s\'];',
+          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."aliases" @> ARRAY[\'Queen\'\'s\']::VARCHAR(255)[];',
         },
 
         // Variants when quoteIdentifiers is false
@@ -1272,7 +1234,7 @@ if (dialect.startsWith('postgres')) {
         beforeEach(function () {
           this.queryGenerator = new QueryGenerator({
             sequelize: this.sequelize,
-            _dialect: this.sequelize.dialect,
+            dialect: this.sequelize.dialect,
           });
         });
 
@@ -1304,7 +1266,7 @@ if (dialect.startsWith('postgres')) {
       beforeEach(function () {
         this.queryGenerator = new QueryGenerator({
           sequelize: this.sequelize,
-          _dialect: this.sequelize.dialect,
+          dialect: this.sequelize.dialect,
         });
       });
 
@@ -1344,7 +1306,7 @@ if (dialect.startsWith('postgres')) {
       beforeEach(function () {
         this.queryGenerator = new QueryGenerator({
           sequelize: customSequelize,
-          _dialect: customSequelize.dialect,
+          dialect: customSequelize.dialect,
         });
       });
 

@@ -1,5 +1,5 @@
 import type { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
-import { classToInvokable } from './utils/index.js';
+import { classToInvokable } from './utils/class-to-invokable.js';
 
 /**
  * Can be used to

@@ -4,7 +4,9 @@ import path from 'path';
 import { inspect, isDeepStrictEqual } from 'util';
 import type { Dialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import {
+  AbstractQueryGenerator,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
@@ -21,13 +23,6 @@ const distDir = path.resolve(__dirname, '../lib');
 chai.use(chaiDatetime);
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
-
-// Using util.inspect to correctly assert objects with symbols
-// Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
-chai.Assertion.addMethod('deepEqual', function deepEqual(expected, depth = 5) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
-  expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
-});
 
 /**
  * `expect(fn).to.throwWithCause()` works like `expect(fn).to.throw()`, except
@@ -58,7 +53,7 @@ function inlineErrorCause(error: Error) {
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
   // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
   const cause = error.cause;
-  if (cause) {
+  if (cause instanceof Error) {
     message += `\nCaused by: ${inlineErrorCause(cause)}`;
   }
 
@@ -212,7 +207,7 @@ export async function clearDatabase(sequelize: Sequelize) {
 export async function dropTestSchemas(sequelize: Sequelize) {
   const queryInterface = sequelize.getQueryInterface();
 
-  if (!queryInterface.queryGenerator._dialect.supports.schemas) {
+  if (!queryInterface.queryGenerator.dialect.supports.schemas) {
     await sequelize.drop({});
 
     return;
@@ -245,16 +240,14 @@ export function getSupportedDialects() {
     .filter(file => !file.includes('.js') && !file.includes('abstract'));
 }
 
-// TODO: type once QueryGenerator has been migrated to TS
-export function getAbstractQueryGenerator(sequelize: Sequelize): unknown {
+export function getAbstractQueryGenerator(sequelize: Sequelize): AbstractQueryGenerator {
   class ModdedQueryGenerator extends AbstractQueryGenerator {
     quoteIdentifier(x: string): string {
       return x;
     }
   }
 
-  // @ts-expect-error
-  return new ModdedQueryGenerator({ sequelize, _dialect: sequelize.dialect });
+  return new ModdedQueryGenerator({ sequelize, dialect: sequelize.dialect });
 }
 
 export function getTestDialect(): Dialect {
@@ -388,16 +381,18 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(properties
   return new HasPropertiesExpectation<Obj>(properties);
 }
 
+type MaybeLazy<T> = T | (() => T);
+
 export function expectsql(
-  query: { query: string, bind: unknown } | Error,
+  query: MaybeLazy<{ query: string, bind: unknown } | Error>,
   assertions: { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> },
 ): void;
 export function expectsql(
-  query: string | Error,
+  query: MaybeLazy<string | Error>,
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: string | Error | { query: string, bind: unknown },
+  query: MaybeLazy<string | Error | { query: string, bind: unknown }>,
   assertions:
     | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
     | PartialRecord<ExpectationKey, string | Error>,
@@ -438,6 +433,18 @@ export function expectsql(
       }
     } else {
       throw new Error(`Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
+    }
+  }
+
+  if (typeof query === 'function') {
+    try {
+      query = query();
+    } catch (error: unknown) {
+      if (!(error instanceof Error)) {
+        throw new TypeError('expectsql: function threw something that is not an instance of Error.');
+      }
+
+      query = error;
     }
   }
 

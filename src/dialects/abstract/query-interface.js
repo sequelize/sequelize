@@ -1,6 +1,7 @@
 'use strict';
 
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+import { AbstractDataType } from './data-types';
 
 const _ = require('lodash');
 
@@ -12,6 +13,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk to all databases
  */
+// TODO: rename to AbstractQueryInterface
 export class QueryInterface {
   constructor(sequelize, queryGenerator) {
     this.sequelize = sequelize;
@@ -47,10 +49,15 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async dropDatabase(database, options) {
-    options = options || {};
     const sql = this.queryGenerator.dropDatabaseQuery(database);
 
     return await this.sequelize.queryRaw(sql, options);
+  }
+
+  async listDatabases(options) {
+    const sql = this.queryGenerator.listDatabasesQuery();
+
+    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SELECT });
   }
 
   /**
@@ -62,8 +69,7 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async createSchema(schema, options) {
-    options = options || {};
-    const sql = this.queryGenerator.createSchema(schema);
+    const sql = this.queryGenerator.createSchemaQuery(schema);
 
     return await this.sequelize.queryRaw(sql, options);
   }
@@ -77,12 +83,11 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async dropSchema(schema, options) {
-    options = options || {};
-    const query = this.queryGenerator.dropSchema(schema);
+    const query = this.queryGenerator.dropSchemaQuery(schema);
 
     let sql;
     if (typeof query === 'object') {
-      options.bind = query.bind;
+      options = { ...options, bind: query.bind };
       sql = query.query;
     } else {
       sql = query;
@@ -101,7 +106,7 @@ export class QueryInterface {
   async dropAllSchemas(options) {
     options = options || {};
 
-    if (!this.queryGenerator._dialect.supports.schemas) {
+    if (!this.queryGenerator.dialect.supports.schemas) {
       return this.sequelize.drop(options);
     }
 
@@ -118,15 +123,13 @@ export class QueryInterface {
    * @returns {Promise<Array>}
    */
   async showAllSchemas(options) {
-    options = {
+    const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
+
+    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, {
       ...options,
       raw: true,
       type: this.sequelize.QueryTypes.SELECT,
-    };
-
-    const showSchemasSql = this.queryGenerator.showSchemasQuery(options);
-
-    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, options);
+    });
 
     return schemaNames.flatMap(value => (value.schema_name ? value.schema_name : value));
   }
@@ -140,6 +143,7 @@ export class QueryInterface {
    * @returns {Promise}
    * @private
    */
+  // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
     return await this.sequelize.queryRaw(
       this.queryGenerator.versionQuery(),
@@ -439,15 +443,25 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
-  async addColumn(table, key, attribute, options) {
+  async addColumn(table, key, attribute, options = {}) {
     if (!table || !key || !attribute) {
       throw new Error('addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
     }
 
-    options = options || {};
     attribute = this.sequelize.normalizeAttribute(attribute);
 
-    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute), options);
+    if (
+      attribute.type instanceof AbstractDataType
+      // we don't give a context if it already has one, because it could come from a Model.
+      && !attribute.type.usageContext
+    ) {
+      attribute.type.attachUsageContext({ tableName: table, columnName: key, sequelize: this.sequelize });
+    }
+
+    const { ifNotExists, ...rawQueryOptions } = options;
+    const addColumnQueryOptions = ifNotExists ? { ifNotExists } : undefined;
+
+    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute, addColumnQueryOptions), rawQueryOptions);
   }
 
   /**
@@ -458,7 +472,12 @@ export class QueryInterface {
    * @param {object} [options]      Query options
    */
   async removeColumn(tableName, attributeName, options) {
-    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName), options);
+    options = options || {};
+
+    const { ifExists, ...rawQueryOptions } = options;
+    const removeColumnQueryOptions = ifExists ? { ifExists } : undefined;
+
+    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName, removeColumnQueryOptions), rawQueryOptions);
   }
 
   normalizeAttribute(dataTypeOrOptions) {
@@ -983,7 +1002,7 @@ export class QueryInterface {
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
     const table = _.isObject(tableName) ? tableName : { tableName };
-    const model = _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const model = options.model ? options.model : _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;

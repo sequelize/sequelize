@@ -3,7 +3,7 @@ import { literal } from '@sequelize/core';
 // eslint-disable-next-line import/order
 import { expect } from 'chai';
 
-const Support = require('../support');
+const Support = require('../../support');
 
 const current = Support.sequelize;
 
