@@ -41,16 +41,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         this.Team = this.sequelize.define('Team', {
-          team_id: {
-            type: DataTypes.INTEGER,
-          },
           name: DataTypes.STRING,
         });
 
         this.Player = this.sequelize.define('Player', {
-          player_id: {
-            type: DataTypes.INTEGER,
-          },
           name: DataTypes.STRING,
           team: {
             type: DataTypes.INTEGER,
@@ -79,8 +73,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ];
 
         const teamRecords = [
-          { team_id: 1, name: 'Team Red' },
-          { team_id: 2, name: 'Team Blue' },
+          { name: 'Team Red' },
+          { name: 'Team Blue' },
         ];
 
         const playerRecords = [
