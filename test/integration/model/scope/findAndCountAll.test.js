@@ -43,7 +43,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Team = this.sequelize.define('Team', {
           team_id: {
             type: DataTypes.INTEGER,
-            primaryKey: true,
           },
           name: DataTypes.STRING,
         });
@@ -51,14 +50,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Player = this.sequelize.define('Player', {
           player_id: {
             type: DataTypes.INTEGER,
-            primaryKey: true,
           },
           name: DataTypes.STRING,
           team: {
             type: DataTypes.INTEGER,
             references: {
               model: this.Team,
-              key: 'team_id',
+              key: 'id',
             },
           },
         }, {
