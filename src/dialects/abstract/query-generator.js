@@ -394,16 +394,12 @@ export class AbstractQueryGenerator {
 
         let whereClause = false;
         if (options.conflictWhere) {
-          if (!this._dialect.supports.inserts.onConflictWhere) {
+          if (!this.dialect.supports.inserts.onConflictWhere) {
             throw new Error(`conflictWhere not supported for dialect ${this._dialect.name}`);
           }
 
           whereClause = this.whereQuery(options.conflictWhere, options);
         }
-
-        const hasConflictWhere
-          = this._dialect.supports.inserts.onConflictWhere
-          && options.conflictWhere;
 
         // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
         onDuplicateKeyUpdate = [
