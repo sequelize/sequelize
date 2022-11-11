@@ -1163,7 +1163,12 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * (note: `ON CONFLICT WHERE` not `ON CONFLICT DO UPDATE WHERE`).
    * Only supported in Postgres >= 9.5 and squlite >= 9.5
    */
-   conflictWhere?: WhereOptions<TAttributes>;
+  conflictWhere?: WhereOptions<TAttributes>;
+  /**
+   * Optional override for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+  */
+   conflictFields?: Array<keyof TAttributes>;
 }
 
 /**

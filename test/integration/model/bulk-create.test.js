@@ -880,6 +880,102 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               expect(count).to.eq(15);
             });
           });
+
+          it('should respect the conflictFields option', async function () {
+            const Permissions = this.sequelize.define(
+              'permissions',
+              {
+                userId: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  field: 'user_id',
+                },
+                permissions: {
+                  type: new DataTypes.ENUM('owner', 'admin', 'member'),
+                  allowNull: false,
+                  default: 'member',
+                },
+              },
+              {
+                timestamps: false,
+              },
+            );
+
+            await Permissions.sync({ force: true });
+
+            // We don't want to create this index with the table, since we don't want our sequelize instance
+            // to know it exists.  This prevents it from being inferred.
+            await this.sequelize.queryInterface.addIndex(
+              'permissions',
+              ['user_id'],
+              {
+                unique: true,
+              },
+            );
+
+            const initialPermissions = [
+              {
+                userId: 1,
+                permissions: 'member',
+              },
+              {
+                userId: 2,
+                permissions: 'admin',
+              },
+              {
+                userId: 3,
+                permissions: 'owner',
+              },
+            ];
+
+            const initialResults = await Permissions.bulkCreate(initialPermissions, {
+              conflictFields: ['userId'],
+              updateOnDuplicate: ['permissions'],
+            });
+
+            expect(initialResults.length).to.eql(3);
+
+            for (let i = 0; i < 3; i++) {
+              const result = initialResults[i];
+              const exp = initialPermissions[i];
+
+              expect(result).to.not.eql(null);
+              expect(result.userId).to.eql(exp.userId);
+              expect(result.permissions).to.eql(exp.permissions);
+            }
+
+            const newPermissions = [
+              {
+                userId: 1,
+                permissions: 'owner',
+              },
+              {
+                userId: 2,
+                permissions: 'member',
+              },
+              {
+                userId: 3,
+                permissions: 'admin',
+              },
+            ];
+
+            const newResults = await Permissions.bulkCreate(newPermissions, {
+              conflictFields: ['userId'],
+              updateOnDuplicate: ['permissions'],
+            });
+
+            expect(newResults.length).to.eql(3);
+
+            for (let i = 0; i < 3; i++) {
+              const result = newResults[i];
+              const exp = newPermissions[i];
+
+              expect(result).to.not.eql(null);
+              expect(result.id).to.eql(initialResults[i].id);
+              expect(result.userId).to.eql(exp.userId);
+              expect(result.permissions).to.eql(exp.permissions);
+            }
+          });
         }
       });
     }
