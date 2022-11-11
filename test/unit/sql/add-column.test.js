@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         allowNull: false,
       })), {
         'mariadb mysql': 'ALTER TABLE `custom`.`Users` ADD `level_id` FLOAT NOT NULL;',
-        postgres: 'ALTER TABLE "custom"."Users" ADD COLUMN "level_id" FLOAT NOT NULL;',
+        postgres: 'ALTER TABLE "custom"."Users" ADD COLUMN "level_id" REAL NOT NULL;',
         mssql: 'ALTER TABLE [custom].[Users] ADD [level_id] REAL NOT NULL;',
         db2: 'ALTER TABLE "custom"."Users" ADD "level_id" REAL NOT NULL;',
         snowflake: 'ALTER TABLE "custom"."Users" ADD "level_id" FLOAT NOT NULL;',

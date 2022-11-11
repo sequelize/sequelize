@@ -16,7 +16,8 @@ import type { Transaction } from '../../transaction';
 import type { Fn, Literal } from '../../utils';
 import type { SetRequired } from '../../utils/set-required';
 import type { DataType } from './data-types.js';
-import type { AbstractQueryGenerator, ChangeColumnAttributes, ChangeColumnAttribute, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
+import type { ChangeColumnDefinition, ChangeColumnDefinitions } from './query-generator-typescript.js';
+import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
 
 interface Replaceable {
   /**
@@ -401,7 +402,7 @@ export class QueryInterface {
   changeColumn(
     tableOrModel: TableName | ModelStatic,
     columnName: string,
-    dataTypeOrColumnOption?: DataType | ChangeColumnAttribute,
+    dataTypeOrColumnOption?: DataType | ChangeColumnDefinition,
     options?: QiOptionsWithReplacements
   ): Promise<void>;
 
@@ -414,7 +415,7 @@ export class QueryInterface {
    */
   changeColumns(
     tableOrModel: TableName | ModelStatic,
-    columnDefinitions: ChangeColumnAttributes,
+    columnDefinitions: ChangeColumnDefinitions,
     options?: QueryRawOptions
   ): Promise<void>;
 

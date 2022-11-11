@@ -11,6 +11,7 @@ import type {
 } from '..';
 import * as DataTypes from '../data-types';
 import { Op as operators } from '../operators';
+import { isModelStatic } from './model-utils.js';
 
 const operatorsSet = new Set(Object.values(operators));
 
@@ -267,12 +268,26 @@ export function generateEnumName(
   return out;
 }
 
-export function getColumnName(attribute: BuiltModelAttributeColumnOptions): string {
-  assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
+export function getColumnName(model: ModelStatic, attributeName: string): string | null;
+export function getColumnName(attribute: BuiltModelAttributeColumnOptions): string;
+export function getColumnName(
+  attributeOrModel: BuiltModelAttributeColumnOptions | ModelStatic,
+  attributeName?: string,
+): string | null {
+  if (isModelStatic(attributeOrModel)) {
+    const attribute = attributeOrModel.rawAttributes[attributeName!];
+    if (attribute == null) {
+      return null;
+    }
+
+    return attribute.field || attribute.fieldName;
+  }
+
+  assert(attributeOrModel.fieldName != null, 'getColumnName expects a normalized attribute meta');
 
   // field is the column name alias
   // if no alias is set, fieldName (the JS name) will be used instead.
-  return attribute.field || attribute.fieldName;
+  return attributeOrModel.field || attributeOrModel.fieldName;
 }
 
 export function getAttributeName(model: ModelStatic, columnName: string): string | null {

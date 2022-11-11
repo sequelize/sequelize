@@ -28,7 +28,7 @@ import type {
   Json,
   Literal,
   MakeNullishOptional,
-  Nullish,
+  MakeNullish,
   OmitConstructors,
   Where,
 } from './utils';
@@ -741,7 +741,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
    *
    * Only available when setting {@link IncludeOptions.separate} to true.
    */
-  limit?: Nullish<number | Literal>;
+  limit?: MakeNullish<number | Literal>;
 
   /**
    * If true, runs a separate query to fetch the associated instances.
@@ -883,7 +883,7 @@ export interface FindOptions<TAttributes = any>
    * });
    * ```
    */
-  limit?: Nullish<number | Literal>;
+  limit?: MakeNullish<number | Literal>;
 
   // TODO: document this - this is an undocumented property but it exists and there are tests for it.
   groupedLimit?: unknown;
@@ -1182,7 +1182,7 @@ export interface TruncateOptions<TAttributes = any> extends Logging, Transaction
   /**
    * How many rows to delete
    */
-  limit?: Nullish<number | Literal>;
+  limit?: MakeNullish<number | Literal>;
 
   /**
    * Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
@@ -1227,7 +1227,7 @@ export interface RestoreOptions<TAttributes = any> extends Logging, Transactiona
   /**
    * How many rows to undelete
    */
-  limit?: Nullish<number | Literal>;
+  limit?: MakeNullish<number | Literal>;
 }
 
 /**
@@ -1280,7 +1280,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    * Only for mysql and mariadb,
    * Implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present
    */
-  limit?: Nullish<number | Literal>;
+  limit?: MakeNullish<number | Literal>;
 
   /**
    * If true, the updatedAt timestamp will not be updated.
@@ -1676,7 +1676,7 @@ export interface ColumnOptions {
   /**
    * Comment to add on the column in the database.
    */
-  comment?: Nullish<string>;
+  comment?: MakeNullish<string>;
 
   /**
    * Makes this attribute a foreign key.

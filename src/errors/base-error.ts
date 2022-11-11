@@ -1,8 +1,8 @@
 import { useErrorCause } from '../utils/deprecations.js';
-import type { Nullish } from '../utils/index.js';
+import type { MakeNullish } from '../utils/index.js';
 
 export interface SequelizeErrorOptions {
-  stack?: Nullish<string>;
+  stack?: MakeNullish<string>;
 }
 
 export interface CommonErrorProperties {

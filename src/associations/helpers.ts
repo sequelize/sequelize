@@ -10,8 +10,7 @@ import type { Model, ModelAttributeColumnOptions, ModelStatic } from '../model';
 import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
 import type { OmitConstructors } from '../utils/index.js';
-import * as Utils from '../utils/index.js';
-import { removeUndefined } from '../utils/index.js';
+import { pluralize, removeUndefined, singularize } from '../utils/index.js';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAssociationOptions } from './base';
 
@@ -302,8 +301,8 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
       assert(typeof options.as === 'string');
       as = options.as;
       name = {
-        plural: isMultiAssociation ? options.as : Utils.pluralize(options.as),
-        singular: isMultiAssociation ? Utils.singularize(options.as) : options.as,
+        plural: isMultiAssociation ? options.as : pluralize(options.as),
+        singular: isMultiAssociation ? singularize(options.as) : options.as,
       };
     }
   } else {

@@ -1,6 +1,6 @@
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
-import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
+import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { QueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type {
   DestroyOptions,
@@ -1048,6 +1048,7 @@ export class Sequelize extends SequelizeTypeScript {
 
   normalizeDataType(Type: string): string;
   normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
+  normalizeDataType(Type: DataType): string | AbstractDataType<any>;
 
   /**
    * Returns the database version

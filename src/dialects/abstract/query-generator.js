@@ -1,13 +1,12 @@
 'use strict';
 
-import isPlainObject from 'lodash/isPlainObject';
-import NodeUtil from 'node:util';
-import { isString, isNullish } from '../../utils';
+import { isNullish } from '../../utils';
 import { getTextDataTypeForDialect } from '../../sql-string';
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
 import { attributeTypeToSql, validateDataType } from './data-types-utils';
+import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 
 const util = require('util');
 const _ = require('lodash');
@@ -40,22 +39,10 @@ export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION = new Set(['ifExists']);
 
 /**
  * Abstract Query Generator
- *
- * @private
  */
-export class AbstractQueryGenerator {
+export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   constructor(options) {
-    if (!options.sequelize) {
-      throw new Error('QueryGenerator initialized without options.sequelize');
-    }
-
-    if (!options.dialect) {
-      throw new Error('QueryGenerator initialized without options.dialect');
-    }
-
-    this.sequelize = options.sequelize;
-    this.options = options.sequelize.options;
-    this.dialect = options.dialect;
+    super(options);
 
     // wrap quoteIdentifier with common logic
     this._initQuoteIdentifier();
@@ -83,22 +70,6 @@ export class AbstractQueryGenerator {
     }
 
     throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
-  extractTableDetails(tableNameOrModel, options) {
-    const tableNameObject = isModelStatic(tableNameOrModel) ? tableNameOrModel.getTableName()
-      : isString(tableNameOrModel) ? { tableName: tableNameOrModel }
-      : tableNameOrModel;
-
-    if (!isPlainObject(tableNameObject)) {
-      throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableNameOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
-    }
-
-    return {
-      ...tableNameObject,
-      schema: options?.schema || tableNameObject.schema || this.options.schema || this.dialect.getDefaultSchema(),
-      delimiter: options?.delimiter || tableNameObject.delimiter || '.',
-    };
   }
 
   /**
@@ -845,51 +816,6 @@ export class AbstractQueryGenerator {
     ]);
   }
 
-  changeColumnsQuery(tableOrModel, columnDefinitions) {
-    if (Object.keys(columnDefinitions).length === 0) {
-      throw new Error('changeColumnsQuery requires at least one column to be provided.');
-    }
-
-    const tableName = this.extractTableDetails(tableOrModel);
-    columnDefinitions = _.mapValues(columnDefinitions, attribute => this.sequelize.normalizeAttribute(attribute));
-
-    const columnsSql = [];
-
-    for (const [columnName, columnDefinition] of Object.entries(columnDefinitions)) {
-      if ('primaryKey' in columnDefinition) {
-        throw new Error('changeColumnsQuery does not support adding or removing a column from the primary key because it would need to drop and recreate the constraint but it does not know whether other columns are already part of the primary key. Use dropConstraint and addConstraint instead.');
-      }
-
-      if ('unique' in columnDefinition && columnDefinition.unique !== true) {
-        throw new Error('changeColumnsQuery does not support adding or removing a column from a unique index because it would need to drop and recreate the index but it does not know whether other columns are already part of the index. Use dropIndex and addIndex instead.');
-      }
-
-      if (('onUpdate' in columnDefinition || 'onDelete' in columnDefinition) && !('references' in columnDefinition)) {
-        throw new Error('changeColumnsQuery does not support changing onUpdate or onDelete on their own. Use dropConstraint and addConstraint instead.');
-      }
-
-      if (columnDefinition.dropDefaultValue && columnDefinition.defaultValue !== undefined) {
-        throw new Error('Cannot use both dropDefaultValue and defaultValue on the same column.');
-      }
-
-      const columnSql = this._attributeToChangeColumn(tableName, columnName, columnDefinition);
-
-      if (columnSql) {
-        columnsSql.push(columnSql);
-      }
-    }
-
-    // it is possible for this query to be empty but still valid if the dialect overrides this method.
-    // for instance, postgres set comments without using ALTER TABLE,
-    // so if the only change is a comment change, this will be empty,
-    // but the postgres dialect will add the necessary SET COMMENT statement.
-    if (columnsSql.length === 0) {
-      return '';
-    }
-
-    return `ALTER TABLE ${this.quoteTable(tableName)} ${columnsSql.join(', ')};`;
-  }
-
   /*
     Quote an object based on its type. This is a more general version of quoteIdentifiers
     Strings: should proxy to quoteIdentifiers
@@ -1089,18 +1015,6 @@ export class AbstractQueryGenerator {
   }
 
   /**
-   * Adds quotes to identifier
-   *
-   * @param {string} _identifier
-   * @param {boolean} _force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(_identifier, _force) {
-    throw new Error(`quoteIdentifier for Dialect "${this.dialect.name}" is not implemented`);
-  }
-
-  /**
    * Split a list of identifiers by "." and quote each part.
    *
    * @param {string} identifiers
@@ -1126,44 +1040,6 @@ export class AbstractQueryGenerator {
     }
 
     return this.quoteIdentifiers(attribute);
-  }
-
-  /**
-   * Quote table name with optional alias and schema attribution
-   *
-   * @param {string|object}  param table string or object
-   * @param {string|boolean} alias alias name
-   *
-   * @returns {string}
-   */
-  quoteTable(param, alias = false) {
-    const tableName = this.extractTableDetails(param);
-
-    if (alias === true) {
-      alias = param.as || param.name || param;
-    }
-
-    let sql = '';
-
-    if (this.dialect.supports.schemas) {
-      if (tableName.schema && tableName.schema !== this.dialect.getDefaultSchema()) {
-        sql += `${this.quoteIdentifier(tableName.schema)}.`;
-      }
-
-      sql += this.quoteIdentifier(tableName.tableName);
-    } else {
-      if (tableName.schema && tableName.schema !== this.dialect.getDefaultSchema()) {
-        sql += tableName.schema + (tableName.delimiter || '.');
-      }
-
-      sql += tableName.tableName;
-    }
-
-    if (alias) {
-      sql += ` AS ${this.quoteIdentifier(alias)}`;
-    }
-
-    return sql;
   }
 
   /**

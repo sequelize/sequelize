@@ -11,8 +11,7 @@ import type {
   Attributes,
 } from '../model';
 import { Op } from '../operators';
-import * as Utils from '../utils';
-import { removeUndefined } from '../utils';
+import { cloneDeep, removeUndefined } from '../utils';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
@@ -176,7 +175,7 @@ If having two associations does not make sense (for instance a "spouse" associat
     instances: S | S[],
     options?: HasOneGetAssociationMixinOptions<T>,
   ): Promise<Map<any, T | null> | T | null> {
-    options = options ? Utils.cloneDeep(options) : {};
+    options = options ? cloneDeep(options) : {};
 
     let Target = this.target;
     if (options.scope != null) {

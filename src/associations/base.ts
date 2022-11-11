@@ -1,7 +1,7 @@
 import type { Optional } from '../index.js';
 import type { Model, ModelStatic, Hookable, AttributeNames, ModelAttributeColumnOptions } from '../model';
 import type { AllowArray } from '../utils';
-import * as Utils from '../utils';
+import { cloneDeep } from '../utils/object.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 import { AssociationSecret } from './helpers';
 
@@ -162,7 +162,7 @@ export abstract class Association<
 
     this.isAliased = Boolean(options?.as);
 
-    this.options = Utils.cloneDeep(options);
+    this.options = cloneDeep(options);
 
     source.associations[this.as] = this;
   }

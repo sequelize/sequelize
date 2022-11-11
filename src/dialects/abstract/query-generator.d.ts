@@ -6,14 +6,12 @@ import type {
   ModelStatic,
   SearchPathable,
   WhereOptions,
-  ColumnOptions,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
-import type { QueryRawOptions, Sequelize } from '../../sequelize.js';
-import type { Literal, Nullish, SequelizeMethod } from '../../utils/index.js';
+import type { Literal, SequelizeMethod } from '../../utils/index.js';
 import type { DataType } from './data-types.js';
+import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { TableName } from './query-interface.js';
-import type { AbstractDialect } from './index.js';
 
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
@@ -75,30 +73,6 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 };
 
-export type ChangeColumnAttribute = Partial<Omit<ColumnOptions, 'primaryKey' | 'unique'>> & {
-  /**
-   * Only 'true' is allowed, because changeColumns can add a single-column unique, but does not have access to enough information
-   * to add a multi-column unique, or removing a column from a unique index.
-   */
-  unique?: Nullish<true>,
-
-  /**
-   * Set to true to remove the defaultValue.
-   *
-   * Cannot be used in conjunction with defaultValue.
-   */
-  dropDefaultValue?: boolean,
-};
-
-export type ChangeColumnAttributes = {
-  [attributeName: string]: DataType | ChangeColumnAttribute,
-};
-
-interface QueryGeneratorOptions {
-  sequelize: Sequelize;
-  dialect: AbstractDialect;
-}
-
 // keep CREATE_DATABASE_QUERY_OPTION_NAMES updated when modifying this
 export interface CreateDatabaseQueryOptions {
   collate?: string;
@@ -128,17 +102,12 @@ export interface RemoveColumnQueryOptions {
   ifExists?: boolean;
 }
 
-export class AbstractQueryGenerator {
-  dialect: AbstractDialect;
-
-  constructor(options: QueryGeneratorOptions);
-
+export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   setImmediateQuery(constraints: string[]): string;
   setDeferredQuery(constraints: string[]): string;
   generateTransactionId(): string;
   whereQuery(where: object, options?: ParameterOptions): string;
   whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
-  quoteTable(param: TableName, alias?: string | boolean): string;
   validate(value: unknown, field?: BuiltModelAttributeColumnOptions): void;
   escape(value: unknown, field?: BuiltModelAttributeColumnOptions, options?: EscapeOptions): string;
   quoteIdentifier(identifier: string, force?: boolean): string;
@@ -202,12 +171,6 @@ export class AbstractQueryGenerator {
     options?: ArithmeticQueryOptions,
   ): string;
 
-  changeColumnsQuery(
-    tableOrModel: TableName | ModelStatic,
-    columnDefinitions: ChangeColumnAttributes,
-    options?: QueryRawOptions
-  ): string;
-
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | { query: string, bind?: unknown[] };
   listSchemasQuery(options?: ListSchemasQueryOptions): string;
@@ -215,6 +178,8 @@ export class AbstractQueryGenerator {
   createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
   dropDatabaseQuery(databaseName: string): string;
   listDatabasesQuery(): string;
+
+  showConstraintsQuery(tableName: TableName | ModelStatic, constraintName?: string): string;
 
   /**
    * Creates a function that can be used to collect bind parameters.

@@ -130,6 +130,26 @@ Column: \`name\``),
     });
   });
 
+  it('throws when modifying an attribute that has not been declared', () => {
+    class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+      declare firstName: string;
+    }
+
+    User.init({
+      firstName: {
+        type: DataTypes.STRING,
+        field: 'first_name',
+      },
+    }, { sequelize });
+
+    expect(() => queryGenerator.changeColumnsQuery(User, {
+      first_name: {
+        ...defaultOptions,
+        type: DataTypes.CHAR(100),
+      },
+    })).to.throw(`changeColumnsQuery: Attribute first_name does not exist on model User.`);
+  });
+
   it('supports passing a TableNameWithSchema as the tableName', () => {
     const sql = queryGenerator.changeColumnsQuery({
       schema: 'custom_schema',
