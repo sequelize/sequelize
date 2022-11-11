@@ -6,6 +6,7 @@ import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
 import { attributeTypeToSql, validateDataType } from './data-types-utils';
+import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 
 const util = require('util');
 const _ = require('lodash');
@@ -41,19 +42,9 @@ export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION = new Set(['ifExists']);
  *
  * @private
  */
-export class AbstractQueryGenerator {
+export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   constructor(options) {
-    if (!options.sequelize) {
-      throw new Error('QueryGenerator initialized without options.sequelize');
-    }
-
-    if (!options.dialect) {
-      throw new Error('QueryGenerator initialized without options.dialect');
-    }
-
-    this.sequelize = options.sequelize;
-    this.options = options.sequelize.options;
-    this.dialect = options.dialect;
+    super(options);
 
     // wrap quoteIdentifier with common logic
     this._initQuoteIdentifier();
@@ -83,18 +74,12 @@ export class AbstractQueryGenerator {
     throw new Error(`Databases are not supported in ${this.dialect.name}.`);
   }
 
-  extractTableDetails(tableName, options) {
-    options = options || {};
-    tableName = tableName || {};
-
-    return {
-      schema: tableName.schema || options.schema || this.options.schema || 'public',
-      tableName: _.isPlainObject(tableName) ? tableName.tableName : tableName,
-      delimiter: tableName.delimiter || options.delimiter || '.',
-    };
-  }
-
   // TODO: always return an object, instead of sometimes an object, sometimes a string
+  /**
+   * @deprecated use extractTableDetails instead
+   *
+   * @param {unknown} param
+   */
   addSchema(param) {
     if (!param._schema) {
       return param.tableName || param;
@@ -109,7 +94,7 @@ export class AbstractQueryGenerator {
       schema: param._schema,
       delimiter: param._schemaDelimiter || '.',
       toString() {
-        return self.quoteTable(this);
+        throw new Error('toString should not be called on TableNameWithSchema, you are escaping the table identifier incorrectly');
       },
     };
   }
@@ -669,7 +654,7 @@ export class AbstractQueryGenerator {
       options.where = this.whereQuery(options.where);
     }
 
-    const escapedTableName = typeof tableName === 'string' ? this.quoteIdentifiers(tableName) : this.quoteTable(tableName);
+    const escapedTableName = this.quoteTable(tableName);
 
     const concurrently = this.dialect.supports.index.concurrently && options.concurrently ? 'CONCURRENTLY' : undefined;
     let ind;
@@ -1033,18 +1018,6 @@ export class AbstractQueryGenerator {
   }
 
   /**
-   * Adds quotes to identifier
-   *
-   * @param {string} _identifier
-   * @param {boolean} _force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(_identifier, _force) {
-    throw new Error(`quoteIdentifier for Dialect "${this.dialect.name}" is not implemented`);
-  }
-
-  /**
    * Split a list of identifiers by "." and quote each part.
    *
    * @param {string} identifiers
@@ -1070,47 +1043,6 @@ export class AbstractQueryGenerator {
     }
 
     return this.quoteIdentifiers(attribute);
-  }
-
-  /**
-   * Quote table name with optional alias and schema attribution
-   *
-   * @param {string|object}  param table string or object
-   * @param {string|boolean} alias alias name
-   *
-   * @returns {string}
-   */
-  quoteTable(param, alias = false) {
-    let table = '';
-
-    if (alias === true) {
-      alias = param.as || param.name || param;
-    }
-
-    if (_.isObject(param)) {
-      if (this.dialect.supports.schemas) {
-        if (param.schema) {
-          table += `${this.quoteIdentifier(param.schema)}.`;
-        }
-
-        table += this.quoteIdentifier(param.tableName);
-      } else {
-        if (param.schema) {
-          table += param.schema + (param.delimiter || '.');
-        }
-
-        table += param.tableName;
-        table = this.quoteIdentifier(table);
-      }
-    } else {
-      table = this.quoteIdentifier(param);
-    }
-
-    if (alias) {
-      table += ` AS ${this.quoteIdentifier(alias)}`;
-    }
-
-    return table;
   }
 
   /**

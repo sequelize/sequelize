@@ -1,7 +1,9 @@
+import assert from 'node:assert';
 import type { ModelStatic } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
+import omit from 'lodash/omit';
 import sinon from 'sinon';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
@@ -79,7 +81,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
   });
 
   describe('allows the user to provide an attribute definition object as foreignKey', () => {
-    it('works with a column that hasn\'t been defined before', () => {
+    it(`works with a column that hasn't been defined before`, () => {
       const User = sequelize.define('user', {});
       const Profile = sequelize.define('project', {});
 
@@ -91,7 +93,12 @@ describe(getTestDialectTeaser('hasOne'), () => {
       });
 
       expect(Profile.rawAttributes.uid).to.be.ok;
-      expect(Profile.rawAttributes.uid.references?.model).to.equal(User.getTableName());
+
+      const model = Profile.rawAttributes.uid.references?.model;
+      assert(typeof model === 'object');
+
+      expect(omit(model, ['toString'])).to.deep.equal(omit(User.getTableName(), ['toString']));
+
       expect(Profile.rawAttributes.uid.references?.key).to.equal('id');
       expect(Profile.rawAttributes.uid.allowNull).to.be.false;
     });
@@ -113,7 +120,10 @@ describe(getTestDialectTeaser('hasOne'), () => {
       User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id });
 
       expect(Profile.rawAttributes.user_id).to.be.ok;
-      expect(Profile.rawAttributes.user_id.references?.model).to.equal(User.getTableName());
+      const targetTable = Profile.rawAttributes.user_id.references?.model;
+      assert(typeof targetTable === 'object');
+
+      expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
       expect(Profile.rawAttributes.user_id.references?.key).to.equal('uid');
       expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
     });
@@ -136,7 +146,10 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
       expect(Project.rawAttributes.userUid).to.be.ok;
       expect(Project.rawAttributes.userUid.allowNull).to.be.false;
-      expect(Project.rawAttributes.userUid.references?.model).to.equal(User.getTableName());
+      const targetTable = Project.rawAttributes.userUid.references?.model;
+      assert(typeof targetTable === 'object');
+
+      expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
       expect(Project.rawAttributes.userUid.references?.key).to.equal('uid');
       expect(Project.rawAttributes.userUid.defaultValue).to.equal(42);
     });

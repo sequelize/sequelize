@@ -124,6 +124,10 @@ export class PostgresDialect extends AbstractDialect {
     return !this.sequelize.options.standardConformingStrings;
   }
 
+  getDefaultSchema() {
+    return 'public';
+  }
+
   static getDefaultPort() {
     return 5432;
   }

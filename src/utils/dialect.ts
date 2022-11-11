@@ -46,14 +46,43 @@ export function toDefaultValue(value: unknown, dialect: AbstractDialect): unknow
   return value;
 }
 
-// Note: Use the `quoteIdentifier()` and `escape()` methods on the
-// `QueryInterface` instead for more portable code.
+/**
+ * @deprecated use {@link AbstractDialect#TICK_CHAR_LEFT} and {@link AbstractDialect#TICK_CHAR_RIGHT},
+ * or {@link AbstractQueryGenerator#quoteIdentifier}
+ */
 export const TICK_CHAR = '`';
 
+/**
+ * @deprecated this is a bad way to quote identifiers and it should not be used anymore.
+ * it mangles the input if the input contains identifier quotes, which should not happen.
+ * Use {@link quoteIdentifier} instead
+ *
+ * @param s
+ * @param tickChar
+ * @returns
+ */
 export function addTicks(s: string, tickChar: string = TICK_CHAR): string {
   return tickChar + removeTicks(s, tickChar) + tickChar;
 }
 
+/**
+ * @deprecated this is a bad way to quote identifiers and it should not be used anymore.
+ * Use {@link quoteIdentifier} instead
+ *
+ * @param s
+ * @param tickChar
+ * @returns
+ */
 export function removeTicks(s: string, tickChar: string = TICK_CHAR): string {
   return s.replace(new RegExp(tickChar, 'g'), '');
+}
+
+export function quoteIdentifier(identifier: string, leftTick: string, rightTick: string): string {
+  if (leftTick === rightTick) {
+    return leftTick + identifier.replaceAll(leftTick, leftTick + leftTick) + rightTick;
+  }
+
+  return leftTick
+    + identifier.replaceAll(leftTick, leftTick + leftTick).replaceAll(rightTick, rightTick + rightTick)
+    + rightTick;
 }

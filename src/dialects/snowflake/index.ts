@@ -67,6 +67,11 @@ export class SnowflakeDialect extends AbstractDialect {
     return createUnspecifiedOrderedBindCollector();
   }
 
+  getDefaultSchema(): string {
+    // TODO: what is the default schema in Snowflake?
+    return '';
+  }
+
   static getDefaultPort() {
     return 3306;
   }

@@ -2,7 +2,7 @@
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { ENUM } from './data-types';
-import { rejectInvalidOptions } from '../../utils';
+import { quoteIdentifier, rejectInvalidOptions } from '../../utils';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
@@ -550,7 +550,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     }
 
     if (attribute.references) {
-      let referencesTable = this.quoteTable(attribute.references.model);
       let schema;
 
       if (options.schema) {
@@ -563,12 +562,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
         schema = options.table.schema;
       }
 
-      if (schema) {
-        referencesTable = this.quoteTable(this.addSchema({
-          tableName: referencesTable,
-          _schema: schema,
-        }));
-      }
+      const referencesTable = this.extractTableDetails(attribute.references.model, { schema });
 
       let referencesKey;
 
@@ -579,7 +573,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
           referencesKey = this.quoteIdentifier('id');
         }
 
-        sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
+        sql += ` REFERENCES ${this.quoteTable(referencesTable)} (${referencesKey})`;
 
         if (attribute.onDelete) {
           sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
@@ -803,28 +797,36 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
 
   pgEnumName(tableName, columnName, options = {}) {
     const tableDetails = this.extractTableDetails(tableName, options);
-    let enumName = Utils.addTicks(`enum_${tableDetails.tableName}_${columnName}`, '"');
 
-    // pgListEnums requires the enum name only, without the schema
-    if (options.schema !== false && tableDetails.schema) {
-      enumName = this.quoteIdentifier(tableDetails.schema) + tableDetails.delimiter + enumName;
+    const enumName = `enum_${tableDetails.tableName}_${columnName}`;
+    if (options.noEscape) {
+      return enumName;
     }
 
-    return enumName;
+    const escapedEnumName = this.quoteIdentifier(enumName);
+
+    if (options.schema !== false && tableDetails.schema) {
+      return this.quoteIdentifier(tableDetails.schema) + tableDetails.delimiter + escapedEnumName;
+    }
+
+    return escapedEnumName;
   }
 
   pgListEnums(tableName, attrName, options) {
     let enumName = '';
-    const tableDetails = this.extractTableDetails(tableName, options);
+    const tableDetails = tableName != null
+      ? this.extractTableDetails(tableName, options)
+      : { schema: this.options.schema || this.dialect.getDefaultSchema() };
 
     if (tableDetails.tableName && attrName) {
-      enumName = ` AND t.typname=${this.pgEnumName(tableDetails.tableName, attrName, { schema: false }).replace(/"/g, '\'')}`;
+      // pgEnumName escapes as an identifier, we want to escape it as a string
+      enumName = ` AND t.typname=${this.escape(this.pgEnumName(tableDetails.tableName, attrName, { noEscape: true }))}`;
     }
 
     return 'SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t '
       + 'JOIN pg_enum e ON t.oid = e.enumtypid '
       + 'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace '
-      + `WHERE n.nspname = '${tableDetails.schema}'${enumName} GROUP BY 1`;
+      + `WHERE n.nspname = ${this.escape(tableDetails.schema)}${enumName} GROUP BY 1`;
   }
 
   pgEnum(tableName, attr, dataType, options) {
@@ -1000,24 +1002,24 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   quoteIdentifier(identifier, force) {
     const optForceQuote = force || false;
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
-    const rawIdentifier = Utils.removeTicks(identifier, '"');
 
     if (
       optForceQuote === true
+      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers.
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')
-      || POSTGRES_RESERVED_WORDS.includes(rawIdentifier.toLowerCase())
+      || POSTGRES_RESERVED_WORDS.includes(identifier.toLowerCase())
     ) {
       // In Postgres if tables or attributes are created double-quoted,
       // they are also case sensitive. If they contain any uppercase
       // characters, they must always be double-quoted. This makes it
       // impossible to write queries in portable SQL if tables are created in
       // this way. Hence, we strip quotes if we don't want case sensitivity.
-      return Utils.addTicks(rawIdentifier, '"');
+      return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
     }
 
-    return rawIdentifier;
+    return identifier;
   }
 
   /**
