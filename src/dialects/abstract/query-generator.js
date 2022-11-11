@@ -395,7 +395,7 @@ export class AbstractQueryGenerator {
         let whereClause = false;
         if (options.conflictWhere) {
           if (!this.dialect.supports.inserts.onConflictWhere) {
-            throw new Error(`conflictWhere not supported for dialect ${this._dialect.name}`);
+            throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
           }
 
           whereClause = this.whereQuery(options.conflictWhere, options);
@@ -413,7 +413,7 @@ export class AbstractQueryGenerator {
         ];
       } else { // mysql / maria
         if (options.conflictWhere) {
-          throw new Error(`conflictWhere not supported for dialect ${this._dialect.name}`);
+          throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
         }
 
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
