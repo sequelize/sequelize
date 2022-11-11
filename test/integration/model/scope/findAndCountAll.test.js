@@ -46,13 +46,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         this.Player = this.sequelize.define('Player', {
           name: DataTypes.STRING,
-          team: {
-            type: DataTypes.INTEGER,
-            references: {
-              model: this.Team,
-              key: 'id',
-            },
-          },
         }, {
           scopes: {
             includeTeam: {
@@ -72,20 +65,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7 },
         ];
 
-        const teamRecords = [
-          { name: 'Team Red' },
-          { name: 'Team Blue' },
-        ];
+        const teamRed = await this.Team.create({ name: 'Team Red' });
+        const teamBlue = await this.Team.create({ name: 'Team Blue' });
 
-        const playerRecords = [
-          { player_id: 1, name: 'bubby', team: 1 },
-          { player_id: 2, name: 'lisa', team: 2 },
-          { player_id: 3, name: 'anna', team: 1 },
-          { player_id: 4, name: 'riko', team: 2 },
-        ];
+        const bubby = await this.Player.create({ name: 'bubby' });
+        const lisa = await this.Player.create({ name: 'lisa' });
+        const anna = await this.Player.create({ name: 'anna' });
+        const riko = await this.Player.create({ name: 'riko' });
 
-        await this.Team.bulkCreate(teamRecords);
-        await this.Player.bulkCreate(playerRecords);
+        await bubby.setTeam(teamBlue);
+        await lisa.setTeam(teamBlue);
+        await anna.setTeam(teamRed);
+        await riko.setTeam(teamRed);
+
         await this.ScopeMe.bulkCreate(records);
       });
 
