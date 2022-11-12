@@ -104,7 +104,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
           if (commentMatch && commentMatch.length > 2) {
             const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
             commentStr += _.template(commentTemplate, this._templateSettings)({
-              table: this.quoteIdentifier(tableName),
+              table: this.quoteTable(tableName),
               comment: this.escape(commentText, undefined, { replacements: options.replacements }),
               column: this.quoteIdentifier(attr),
             });

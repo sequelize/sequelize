@@ -168,7 +168,7 @@ export class Db2QueryInterface extends QueryInterface {
       !tableName.schema
       && (options.schema || Boolean(model) && model._schema)
     ) {
-      tableName = this.extractTableDetails(tableName);
+      tableName = this.queryGenerator.extractTableDetails(tableName);
       tableName.schema = Boolean(model) && model._schema || options.schema || tableName.schema;
     }
 
