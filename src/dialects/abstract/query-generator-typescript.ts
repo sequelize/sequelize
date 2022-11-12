@@ -4,7 +4,7 @@ import type { ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { isPlainObject, isString, quoteIdentifier } from '../../utils/index.js';
 import { isModelStatic } from '../../utils/model-utils.js';
-import type { TableName } from './query-interface.js';
+import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
 
 export type TableNameOrModel = TableName | ModelStatic;
@@ -39,7 +39,10 @@ export class AbstractQueryGeneratorTypeScript {
     return this.sequelize.options;
   }
 
-  extractTableDetails(tableNameOrModel: TableNameOrModel, options?: { schema?: string, delimiter?: string }) {
+  extractTableDetails(
+    tableNameOrModel: TableNameOrModel,
+    options?: { schema?: string, delimiter?: string },
+  ): TableNameWithSchema {
     const tableNameObject = isModelStatic(tableNameOrModel) ? tableNameOrModel.getTableName()
       : isString(tableNameOrModel) ? { tableName: tableNameOrModel }
       : tableNameOrModel;
@@ -111,5 +114,16 @@ export class AbstractQueryGeneratorTypeScript {
    */
   quoteIdentifier(identifier: string, _force?: boolean) {
     return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
+  }
+
+  isSameTable(tableA: TableNameOrModel, tableB: TableNameOrModel) {
+    if (tableA === tableB) {
+      return true;
+    }
+
+    tableA = this.extractTableDetails(tableA);
+    tableB = this.extractTableDetails(tableB);
+
+    return tableA.tableName === tableB.tableName && tableA.schema === tableB.schema;
   }
 }

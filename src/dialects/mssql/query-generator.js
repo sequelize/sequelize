@@ -218,7 +218,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     const quotedTableName = this.quoteTable(tableName);
 
     return Utils.joinSQLFragments([
-      `IF OBJECT_ID('${quotedTableName}', 'U') IS NULL`,
+      `IF OBJECT_ID(${this.escape(quotedTableName)}, 'U') IS NULL`,
       `CREATE TABLE ${quotedTableName} (${attributesClauseParts.join(', ')})`,
       ';',
       commentStr,
@@ -646,9 +646,9 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    // handle self referential constraints
-    if (attribute.references && attribute.Model && attribute.Model.tableName === attribute.references.model) {
-      this.sequelize.log('MSSQL does not support self referencial constraints, '
+    // handle self-referential constraints
+    if (attribute.references && attribute.Model && this.isSameTable(attribute.Model.tableName, attribute.references.model)) {
+      this.sequelize.log('MSSQL does not support self-referential constraints, '
           + 'we will remove it but we recommend restructuring your query');
       attribute.onDelete = '';
       attribute.onUpdate = '';
