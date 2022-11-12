@@ -461,7 +461,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       }, User);
 
       expectsql(sql, {
-        default: `SELECT 1 AS "_0" FROM "Users" AS "User" GROUP BY "_0" ORDER BY "_0";`,
+        default: `SELECT 1 AS [_0] FROM [Users] AS [User] GROUP BY [_0] ORDER BY [_0];`,
       });
     });
   });
