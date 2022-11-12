@@ -543,18 +543,6 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   }
 
   /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, force) {
-    return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
-  }
-
-  /**
    * Generates an SQL query that extract JSON property of given path.
    *
    * @param   {string}               column  The JSON column

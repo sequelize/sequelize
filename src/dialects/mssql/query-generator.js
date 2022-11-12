@@ -1105,18 +1105,6 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   booleanValue(value) {
     return value ? 1 : 0;
   }
-
-  /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, force) {
-    return `[${identifier.replace(/['[\]]+/g, '')}]`;
-  }
 }
 
 /**

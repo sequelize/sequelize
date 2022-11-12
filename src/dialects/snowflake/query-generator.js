@@ -1,7 +1,7 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { rejectInvalidOptions } from '../../utils';
+import { quoteIdentifier, rejectInvalidOptions } from '../../utils';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
@@ -741,24 +741,24 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   quoteIdentifier(identifier, force) {
     const optForceQuote = force || false;
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
-    const rawIdentifier = Utils.removeTicks(identifier, '"');
 
     if (
       optForceQuote === true
+      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers.
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')
-      || SNOWFLAKE_RESERVED_WORDS.includes(rawIdentifier.toLowerCase())
+      || SNOWFLAKE_RESERVED_WORDS.includes(identifier.toLowerCase())
     ) {
       // In Snowflake if tables or attributes are created double-quoted,
       // they are also case sensitive. If they contain any uppercase
       // characters, they must always be double-quoted. This makes it
       // impossible to write queries in portable SQL if tables are created in
       // this way. Hence, we strip quotes if we don't want case sensitivity.
-      return Utils.addTicks(rawIdentifier, '"');
+      return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
     }
 
-    return rawIdentifier;
+    return identifier;
   }
 }
 

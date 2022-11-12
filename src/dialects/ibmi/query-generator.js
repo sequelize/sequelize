@@ -881,10 +881,6 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     return 0;
   }
-
-  quoteIdentifier(identifier, _force) {
-    return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
-  }
 }
 
 /**

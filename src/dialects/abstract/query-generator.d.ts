@@ -113,7 +113,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
   validate(value: unknown, field?: BuiltModelAttributeColumnOptions): void;
   escape(value: unknown, field?: BuiltModelAttributeColumnOptions, options?: EscapeOptions): string;
-  quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
   handleSequelizeMethod(
     smth: SequelizeMethod,

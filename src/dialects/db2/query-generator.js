@@ -955,19 +955,6 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     return uniqno;
   }
-
-  /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} _force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, _force) {
-    return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
-  }
-
 }
 
 /**

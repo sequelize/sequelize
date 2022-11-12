@@ -2,7 +2,7 @@
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import { rejectInvalidOptions } from '../../utils';
+import { quoteIdentifier, rejectInvalidOptions } from '../../utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
@@ -627,18 +627,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       this.quoteIdentifier(foreignKey),
       ';',
     ]);
-  }
-
-  /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '`'), '`');
   }
 
   /**

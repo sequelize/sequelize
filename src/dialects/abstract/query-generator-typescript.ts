@@ -2,7 +2,7 @@ import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
 import type { ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
-import { isPlainObject, isString } from '../../utils/index.js';
+import { isPlainObject, isString, quoteIdentifier } from '../../utils/index.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import type { TableName } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
@@ -35,7 +35,7 @@ export class AbstractQueryGeneratorTypeScript {
     this.dialect = options.dialect;
   }
 
-  get options() {
+  protected get options() {
     return this.sequelize.options;
   }
 
@@ -102,10 +102,10 @@ export class AbstractQueryGeneratorTypeScript {
   /**
    * Adds quotes to identifier
    *
-   * @param _identifier
+   * @param identifier
    * @param _force
    */
-  quoteIdentifier(_identifier: string, _force?: boolean): string {
-    throw new Error(`quoteIdentifier for Dialect "${this.dialect.name}" is not implemented`);
+  quoteIdentifier(identifier: string, _force?: boolean) {
+    return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
   }
 }
