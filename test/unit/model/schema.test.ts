@@ -19,9 +19,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
 
     describe('schema', () => {
       it('should work with no default schema', () => {
-        Support.expectsql(Project._schema, {
-          postgres: 'public',
-        });
+        expect(Project._schema).to.equal(current.dialect.getDefaultSchema());
       });
 
       it('should apply default schema from define', () => {
@@ -47,9 +45,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able nullify schema', () => {
-        Support.expectsql(Company.schema(null)._schema, {
-          postgres: 'public',
-        });
+        expect(Company.schema(null)._schema).to.equal(current.dialect.getDefaultSchema());
       });
 
       it('should support multiple, coexistent schema models', () => {

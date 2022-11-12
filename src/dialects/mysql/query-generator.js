@@ -454,10 +454,9 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
 
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
-        const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
+        const fkName = this.quoteIdentifier(`${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`);
 
-        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
+        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
       }
 
       template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
