@@ -78,11 +78,16 @@ export function removeTicks(s: string, tickChar: string = TICK_CHAR): string {
 }
 
 export function quoteIdentifier(identifier: string, leftTick: string, rightTick: string): string {
+  // TODO: node 15+ : drop regexp, use replaceAll with a string instead.
+  const leftTickRegExp = new RegExp(`\\${leftTick}`, 'g');
+
   if (leftTick === rightTick) {
-    return leftTick + identifier.replaceAll(leftTick, leftTick + leftTick) + rightTick;
+    return leftTick + identifier.replace(leftTickRegExp, leftTick + leftTick) + rightTick;
   }
 
+  const rightTickRegExp = new RegExp(`\\${rightTick}`, 'g');
+
   return leftTick
-    + identifier.replaceAll(leftTick, leftTick + leftTick).replaceAll(rightTick, rightTick + rightTick)
+    + identifier.replace(leftTickRegExp, leftTick + leftTick).replaceAll(rightTickRegExp, rightTick + rightTick)
     + rightTick;
 }
