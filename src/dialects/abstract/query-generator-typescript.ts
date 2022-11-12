@@ -79,6 +79,10 @@ export class AbstractQueryGeneratorTypeScript {
     let sql = '';
 
     if (this.dialect.supports.schemas) {
+      // Some users sync the same set of tables in different schemas for various reasons
+      // They then set `searchPath` when running a query to use different schemas.
+      // See https://github.com/sequelize/sequelize/pull/15274#discussion_r1020770364
+      // For this reason, we treat the default schema as equivalent to "no schema specified"
       if (tableName.schema && tableName.schema !== this.dialect.getDefaultSchema()) {
         sql += `${this.quoteIdentifier(tableName.schema)}.`;
       }
