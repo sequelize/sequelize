@@ -1375,7 +1375,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Add GROUP BY to sub or main query
     if (options.group) {
-      options.group = Array.isArray(options.group) ? options.group.map(t => this.aliasGrouping(t, model, mainTable.quotedAs, options)).join(', ') : this.aliasGrouping(options.group, model, mainTable.quotedAs, options);
+      options.group = Array.isArray(options.group)
+        ? options.group.map(t => this.aliasGrouping(t, model, mainTable.as, options)).join(', ')
+        : this.aliasGrouping(options.group, model, mainTable.as, options);
 
       if (subQuery && options.group) {
         subQueryItems.push(` GROUP BY ${options.group}`);
@@ -1754,13 +1756,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     if (topLevelInfo.options.groupedLimit && parentIsTop || topLevelInfo.subQuery && include.parent.subQuery && !include.subQuery) {
       if (parentIsTop) {
         // The main model attributes is not aliased to a prefix
-        const tableName = this.quoteTable(parent.as || parent.model.name);
+        const tableName = parent.as || parent.model.name;
+        const quotedTableName = this.quoteTable(tableName);
 
         // Check for potential aliased JOIN condition
-        joinOn = this._getAliasForField(tableName, attrLeft, topLevelInfo.options) || `${tableName}.${this.quoteIdentifier(attrLeft)}`;
+        joinOn = this._getAliasForField(tableName, attrLeft, topLevelInfo.options) || `${quotedTableName}.${this.quoteIdentifier(attrLeft)}`;
 
         if (topLevelInfo.subQuery) {
-          const dbIdentifier = `${tableName}.${this.quoteIdentifier(fieldLeft)}`;
+          const dbIdentifier = `${quotedTableName}.${this.quoteIdentifier(fieldLeft)}`;
           subqueryAttributes.push(dbIdentifier !== joinOn ? `${dbIdentifier} AS ${this.quoteIdentifier(attrLeft)}` : dbIdentifier);
         }
       } else {
@@ -2119,7 +2122,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         ) {
           // TODO - refactor this.quote() to not change the first argument
           const field = model.rawAttributes[order[0]]?.field || order[0];
-          const subQueryAlias = this._getAliasForField(this.quoteIdentifier(model.name), field, options);
+          const subQueryAlias = this._getAliasForField(model.name, field, options);
 
           let parent = null;
           let orderToQuote = [];
@@ -2145,8 +2148,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           const aliasedAttribute = this._getAliasForFieldFromQueryOptions(order[0], options);
 
           if (aliasedAttribute) {
-            const modelName = this.quoteIdentifier(model.name);
-            const alias = this._getAliasForField(modelName, aliasedAttribute[1], options);
+            const alias = this._getAliasForField(model.name, aliasedAttribute[1], options);
 
             order[0] = new Utils.Col(alias || aliasedAttribute[1]);
           }
