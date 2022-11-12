@@ -1458,7 +1458,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   escapeAttributes(attributes, options, mainTableAs) {
-    const quotedMainTableAs = this.quoteIdentifier(mainTableAs);
+    const quotedMainTableAs = mainTableAs && this.quoteIdentifier(mainTableAs);
 
     return attributes && attributes.map(attr => {
       let addTable = true;
@@ -1491,6 +1491,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         attr = [attr[0], this.quoteIdentifier(alias)].join(' AS ');
       } else {
+        // TODO: attributes should always be escaped as identifiers, not escaped as strings
         attr = !attr.includes(Utils.TICK_CHAR) && !attr.includes('"')
           ? this.quoteAttribute(attr, options.model)
           : this.escape(attr, undefined, options);
