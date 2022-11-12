@@ -168,15 +168,11 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
 
   // TODO: remove schema, schemaDelimiter options
   describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = this.quoteTable(
-      this.addSchema({
-        tableName,
-        _schema: schema,
-        _schemaDelimiter: schemaDelimiter,
-      }),
-    );
+    tableName = this.extractTableDetails(tableName);
+    tableName.schema = schema || tableName.schema;
+    tableName.schemaDelimiter = schemaDelimiter || tableName.schemaDelimiter;
 
-    return `SHOW FULL COLUMNS FROM ${table};`;
+    return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
   showTablesQuery(schemaName) {

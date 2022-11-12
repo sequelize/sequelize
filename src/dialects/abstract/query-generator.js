@@ -74,31 +74,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     throw new Error(`Databases are not supported in ${this.dialect.name}.`);
   }
 
-  // TODO: always return an object, instead of sometimes an object, sometimes a string
-  /**
-   * @deprecated use extractTableDetails instead
-   *
-   * @param {unknown} param
-   */
-  addSchema(param) {
-    if (!param._schema) {
-      return param.tableName || param;
-    }
-
-    const self = this;
-
-    return {
-      tableName: param.tableName || param,
-      table: param.tableName || param,
-      name: param.name || param,
-      schema: param._schema,
-      delimiter: param._schemaDelimiter || '.',
-      toString() {
-        throw new Error('toString should not be called on TableNameWithSchema, you are escaping the table identifier incorrectly');
-      },
-    };
-  }
-
   createSchemaQuery() {
     if (this.dialect.supports.schemas) {
       throw new Error(`${this.dialect.name} declares supporting schema but createSchemaQuery is not implemented.`);
@@ -125,15 +100,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   // TODO: remove schema, schemaDelimiter
   describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = this.quoteTable(
-      this.addSchema({
-        tableName,
-        _schema: schema,
-        _schemaDelimiter: schemaDelimiter,
-      }),
-    );
+    tableName = this.extractTableDetails(tableName);
+    tableName.schema = schema || tableName.schema;
+    tableName.schemaDelimiter = schemaDelimiter || tableName.schemaDelimiter;
 
-    return `DESCRIBE ${table};`;
+    return `DESCRIBE ${this.quoteTable(tableName)};`;
   }
 
   dropTableQuery(tableName) {
