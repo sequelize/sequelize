@@ -88,6 +88,6 @@ export function quoteIdentifier(identifier: string, leftTick: string, rightTick:
   const rightTickRegExp = new RegExp(`\\${rightTick}`, 'g');
 
   return leftTick
-    + identifier.replace(leftTickRegExp, leftTick + leftTick).replaceAll(rightTickRegExp, rightTick + rightTick)
+    + identifier.replace(leftTickRegExp, leftTick + leftTick).replace(rightTickRegExp, rightTick + rightTick)
     + rightTick;
 }
