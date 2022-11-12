@@ -2,7 +2,7 @@
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
+import { quoteIdentifier, rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
 import {
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
@@ -965,12 +965,15 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
    * @returns {string}
    */
   quoteIdentifier(identifier, _force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '"'), '"');
+    return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
   }
 
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   if (identifier) {
     return `'${identifier}'`;

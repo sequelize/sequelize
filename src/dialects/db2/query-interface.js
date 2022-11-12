@@ -141,6 +141,7 @@ export class Db2QueryInterface extends QueryInterface {
     return response;
   }
 
+  // TODO: drop "schema" options from the option bag, it must be passed through tableName instead.
   async createTable(tableName, attributes, options, model) {
     let sql = '';
 

@@ -166,6 +166,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
+  // TODO: remove schema, schemaDelimiter options
   describeTableQuery(tableName, schema, schemaDelimiter) {
     const table = this.quoteTable(
       this.addSchema({
@@ -674,7 +675,10 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
   }
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }

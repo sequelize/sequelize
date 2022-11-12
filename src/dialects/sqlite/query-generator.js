@@ -1,5 +1,6 @@
 'use strict';
 
+import { quoteIdentifier } from '../../utils';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTION, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
@@ -395,7 +396,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
       tableName,
     };
 
-    return `PRAGMA TABLE_INFO(${this.quoteTable(this.addSchema(table))});`;
+    return `PRAGMA TABLE_INFO(${this.quoteTable(table)});`;
   }
 
   describeCreateTableQuery(tableName) {
@@ -525,11 +526,11 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
    * @private
    */
   getForeignKeysQuery(tableName) {
-    return `PRAGMA foreign_key_list(${this.quoteTable(this.addSchema(tableName))})`;
+    return `PRAGMA foreign_key_list(${this.quoteTable(tableName)})`;
   }
 
   tableExistsQuery(tableName) {
-    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.addSchema(tableName))};`;
+    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.extractTableDetails(tableName).tableName)};`;
   }
 
   /**
@@ -550,7 +551,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
    * @returns {string}
    */
   quoteIdentifier(identifier, force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '`'), '`');
+    return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
   }
 
   /**

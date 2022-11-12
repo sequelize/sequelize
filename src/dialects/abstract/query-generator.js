@@ -123,6 +123,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
+  // TODO: remove schema, schemaDelimiter
   describeTableQuery(tableName, schema, schemaDelimiter) {
     const table = this.quoteTable(
       this.addSchema({
@@ -697,15 +698,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   addConstraintQuery(tableName, options) {
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
-
     return Utils.joinSQLFragments([
       'ALTER TABLE',
-      tableName,
+      this.quoteTable(tableName),
       'ADD',
       this.getConstraintSnippet(tableName, options || {}),
       ';',
@@ -716,7 +711,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let constraintSnippet;
     let constraintName;
 
-    const fieldsSql = options.fields.map(field => {
+    const quotedFields = options.fields.map(field => {
       if (typeof field === 'string') {
         return this.quoteIdentifier(field);
       }
@@ -736,8 +731,24 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       return this.quoteIdentifier(field.name);
     });
 
-    const fieldsSqlQuotedString = fieldsSql.join(', ');
-    const fieldsSqlString = fieldsSql.join('_');
+    const constraintNameParts = options.name ? null : options.fields.map(field => {
+      if (typeof field === 'string') {
+        return field;
+      }
+
+      if (field instanceof Utils.SequelizeMethod) {
+        throw new TypeError(`The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`);
+      }
+
+      if (field.attribute) {
+        return field.attribute;
+      }
+
+      return field.name;
+    });
+
+    const fieldsSqlQuotedString = quotedFields.join(', ');
+    const fieldsSqlString = constraintNameParts?.join('_');
 
     switch (options.type.toUpperCase()) {
       case 'UNIQUE':
@@ -759,7 +770,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
 
         constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_df`);
-        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, undefined, options)}) FOR ${fieldsSql[0]}`;
+        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, undefined, options)}) FOR ${quotedFields[0]}`;
         break;
       case 'PRIMARY KEY':
         constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_pk`);
@@ -805,15 +816,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   removeConstraintQuery(tableName, constraintName) {
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
-
     return Utils.joinSQLFragments([
       'ALTER TABLE',
-      tableName,
+      this.quoteTable(tableName),
       'DROP CONSTRAINT',
       this.quoteIdentifiers(constraintName),
     ]);
@@ -1181,6 +1186,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       name: tableName,
       quotedName: null,
       as: null,
+      quotedAa: null,
       model,
     };
     const topLevelInfo = {
@@ -1201,10 +1207,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // resolve table name options
     if (options.tableAs) {
-      mainTable.as = this.quoteIdentifier(options.tableAs);
+      mainTable.as = options.tableAs;
     } else if (!Array.isArray(mainTable.name) && mainTable.model) {
-      mainTable.as = this.quoteIdentifier(mainTable.model.name);
+      mainTable.as = mainTable.model.name;
     }
+
+    mainTable.quotedAs = mainTable.as && this.quoteIdentifier(mainTable.as);
 
     mainTable.quotedName = !Array.isArray(mainTable.name) ? this.quoteTable(mainTable.name) : tableName.map(t => {
       return Array.isArray(t) ? this.quoteTable(t[0], t[1]) : this.quoteTable(t, true);
@@ -1219,14 +1227,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    attributes.main = this.escapeAttributes(attributes.main, options, mainTable.as);
-    attributes.main = attributes.main || (options.include ? [`${mainTable.as}.*`] : ['*']);
+    attributes.main = this.escapeAttributes(attributes.main, options, mainTable.quotedAs);
+    attributes.main = attributes.main || (options.include ? [`${mainTable.quotedAs}.*`] : ['*']);
 
     // If subquery, we add the mainAttributes to the subQuery and set the mainAttributes to select * from subquery
     if (subQuery || options.groupedLimit) {
       // We need primary keys
       attributes.subQuery = attributes.main;
-      attributes.main = [`${mainTable.as || mainTable.quotedName}.*`];
+      attributes.main = [`${mainTable.quotedAs || mainTable.quotedName}.*`];
     }
 
     if (options.include) {
@@ -1252,13 +1260,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (subQuery) {
       subQueryItems.push(
-        this.selectFromTableFragment(options, mainTable.model, attributes.subQuery, mainTable.quotedName, mainTable.as),
+        this.selectFromTableFragment(options, mainTable.model, attributes.subQuery, mainTable.quotedName, mainTable.quotedAs),
         subJoinQueries.join(''),
       );
     } else {
       if (options.groupedLimit) {
+        if (!mainTable.quotedAs) {
+          mainTable.quotedAs = mainTable.quotedName;
+        }
+
         if (!mainTable.as) {
-          mainTable.as = mainTable.quotedName;
+          mainTable.as = mainTable.name;
         }
 
         const where = { ...options.where };
@@ -1365,9 +1377,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           }).join(
             this.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ',
           )
-        })`, mainTable.as));
+        })`, mainTable.quotedAs));
       } else {
-        mainQueryItems.push(this.selectFromTableFragment(options, mainTable.model, attributes.main, mainTable.quotedName, mainTable.as));
+        mainQueryItems.push(this.selectFromTableFragment(options, mainTable.model, attributes.main, mainTable.quotedName, mainTable.quotedAs));
       }
 
       mainQueryItems.push(mainJoinQueries.join(''));
@@ -1384,7 +1396,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           // Walk the main query to update all selects
           for (const [key, value] of mainQueryItems.entries()) {
             if (value.startsWith('SELECT')) {
-              mainQueryItems[key] = this.selectFromTableFragment(options, model, attributes.main, mainTable.quotedName, mainTable.as, options.where);
+              mainQueryItems[key] = this.selectFromTableFragment(options, model, attributes.main, mainTable.quotedName, mainTable.quotedAs, options.where);
             }
           }
         }
@@ -1393,7 +1405,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Add GROUP BY to sub or main query
     if (options.group) {
-      options.group = Array.isArray(options.group) ? options.group.map(t => this.aliasGrouping(t, model, mainTable.as, options)).join(', ') : this.aliasGrouping(options.group, model, mainTable.as, options);
+      options.group = Array.isArray(options.group) ? options.group.map(t => this.aliasGrouping(t, model, mainTable.quotedAs, options)).join(', ') : this.aliasGrouping(options.group, model, mainTable.quotedAs, options);
 
       if (subQuery && options.group) {
         subQueryItems.push(` GROUP BY ${options.group}`);
@@ -1437,8 +1449,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (subQuery) {
-      this._throwOnEmptyAttributes(attributes.main, { modelName: model && model.name, as: mainTable.as });
-      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${mainTable.as}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+      this._throwOnEmptyAttributes(attributes.main, { modelName: model && model.name, as: mainTable.quotedAs });
+      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${mainTable.quotedAs}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
     } else {
       query = mainQueryItems.join('');
     }

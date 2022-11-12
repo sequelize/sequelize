@@ -1119,7 +1119,10 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   }
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(Utils.removeTicks(identifier, '\''), '\'');
 }
