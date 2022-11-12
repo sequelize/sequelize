@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ['column1', 'column2'], {},
         ), {
           // using TICK variables directly because it's impossible for expectsql to know whether the TICK inside ticks is meant to be a tick or just part of the string
-          default: `CREATE INDEX [schema_table_column1_column2] ON ${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}schema${TICK_RIGHT}${TICK_RIGHT}.${TICK_LEFT}${TICK_LEFT}table${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ([column1], [column2])`,
+          default: `CREATE INDEX ${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}schema${TICK_RIGHT}${TICK_RIGHT}_${TICK_LEFT}${TICK_LEFT}table${TICK_RIGHT}${TICK_RIGHT}_column1_column2${TICK_RIGHT} ON ${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}schema${TICK_RIGHT}${TICK_RIGHT}.${TICK_LEFT}${TICK_LEFT}table${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ([column1], [column2])`,
           'mariadb mysql': 'ALTER TABLE ```schema``.``table``` ADD INDEX ```schema``_``table``_column1_column2` (`column1`, `column2`)',
         });
       }

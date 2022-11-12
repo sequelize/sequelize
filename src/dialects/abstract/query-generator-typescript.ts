@@ -85,11 +85,11 @@ export class AbstractQueryGeneratorTypeScript {
 
       sql += this.quoteIdentifier(tableName.tableName);
     } else {
-      if (tableName.schema && tableName.schema !== this.dialect.getDefaultSchema()) {
-        sql += tableName.schema + (tableName.delimiter || '.');
-      }
+      const fakeSchemaPrefix = (tableName.schema && tableName.schema !== this.dialect.getDefaultSchema())
+        ? tableName.schema + (tableName.delimiter || '.')
+        : '';
 
-      sql += tableName.tableName;
+      sql += this.quoteIdentifier(fakeSchemaPrefix + tableName.tableName);
     }
 
     if (alias) {

@@ -393,7 +393,6 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     options.prefix = options.prefix || rawTablename || tableName;
     if (options.prefix && typeof options.prefix === 'string') {
       options.prefix = options.prefix.replace(/\./g, '_');
-      options.prefix = options.prefix.replace(/("|')/g, '');
     }
 
     const fieldsSql = options.fields.map(field => {
@@ -444,13 +443,10 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       options.where = this.whereQuery(options.where);
     }
 
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
+    tableName = this.quoteTable(tableName);
 
     let schema;
+    // TODO: drop this option in favor of passing the schema through tableName
     if (typeof options.schema === 'string') {
       schema = this.quoteIdentifiers(options.schema);
     }

@@ -274,8 +274,8 @@ if (current.dialect.name === 'mssql') {
     });
 
     it('quoteIdentifier', function () {
-      expectsql(this.queryGenerator.quoteIdentifier('\'myTable\'.\'Test\''), {
-        mssql: '[myTable.Test]',
+      expectsql(this.queryGenerator.quoteIdentifier(`'myTable'.'Test'`), {
+        mssql: `['myTable'.'Test']`,
       });
     });
 

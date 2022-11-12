@@ -353,7 +353,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             offset: 10,
             order: [['`user`.`last_name`', 'ASC']],
           })
-        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_LEFT}${TICK_RIGHT}${TICK_RIGHT} ASC;`,
+        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC;`,
         ibmi: `${`SELECT "user".*, "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title" FROM (SELECT "user"."id_user" AS "id", "user"."email", "user"."first_name" AS "firstName", "user"."last_name" AS "lastName" FROM "users" AS "user" ORDER BY "user"."""last_name""" ASC`}${
           sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['`user`.`last_name`', 'ASC']] })
         }) AS "user" LEFT OUTER JOIN "post" AS "POSTS" ON "user"."id_user" = "POSTS"."user_id" ORDER BY "user"."""last_name""" ASC`,
@@ -715,11 +715,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
           ],
         }), {
-          default: 'SELECT \'* FROM [User]; DELETE FROM [User];SELECT [id]\' FROM [User];',
-          ibmi: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User"',
-          db2: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
-          snowflake: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
-          mssql: 'SELECT [* FROM User; DELETE FROM User;SELECT id] FROM [User];',
+          // TODO: the attribute should be escaped as an identifier, not a string
+          default: `SELECT '* FROM [User]; DELETE FROM [User];SELECT [id]' FROM [User];`,
+          ibmi: `SELECT '* FROM "User"; DELETE FROM "User";SELECT "id"' FROM "User"`,
+          db2: `SELECT '* FROM "User"; DELETE FROM "User";SELECT "id"' FROM "User";`,
+          snowflake: `SELECT '* FROM "User"; DELETE FROM "User";SELECT "id"' FROM "User";`,
+          mssql: 'SELECT [* FROM [[User]]; DELETE FROM [[User]];SELECT [[id]]] FROM [User];',
         });
       });
 
@@ -734,11 +735,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('plain attributes (3)', () => {
         expectsql(sql.selectQuery('User', {
-          attributes: ['a\', * FROM User; DELETE FROM User;SELECT id'],
+          attributes: [`a', * FROM User; DELETE FROM User;SELECT id`],
         }), {
-          default: 'SELECT [a\', * FROM User; DELETE FROM User;SELECT id] FROM [User];',
-          mssql: 'SELECT [a, * FROM User; DELETE FROM User;SELECT id] FROM [User];',
-          ibmi: 'SELECT "a\', * FROM User; DELETE FROM User;SELECT id" FROM "User"',
+          default: `SELECT [a', * FROM User; DELETE FROM User;SELECT id] FROM [User];`,
+          mssql: `SELECT [a', * FROM User; DELETE FROM User;SELECT id] FROM [User];`,
+          ibmi: `SELECT "a', * FROM User; DELETE FROM User;SELECT id" FROM "User"`,
         });
       });
 
