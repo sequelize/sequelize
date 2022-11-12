@@ -1197,7 +1197,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    attributes.main = this.escapeAttributes(attributes.main, options, mainTable.quotedAs);
+    attributes.main = this.escapeAttributes(attributes.main, options, mainTable.as);
     attributes.main = attributes.main || (options.include ? [`${mainTable.quotedAs}.*`] : ['*']);
 
     // If subquery, we add the mainAttributes to the subQuery and set the mainAttributes to select * from subquery
@@ -1458,6 +1458,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   escapeAttributes(attributes, options, mainTableAs) {
+    const quotedMainTableAs = this.quoteIdentifier(mainTableAs);
+
     return attributes && attributes.map(attr => {
       let addTable = true;
 
@@ -1495,7 +1497,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
 
       if (!_.isEmpty(options.include) && (!attr.includes('.') || options.dotNotation) && addTable) {
-        attr = `${mainTableAs}.${attr}`;
+        attr = `${quotedMainTableAs}.${attr}`;
       }
 
       return attr;
@@ -1518,7 +1520,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       main: [],
       subQuery: [],
     };
-    let joinQuery;
 
     topLevelInfo.options.keysEscaped = true;
 
@@ -1597,7 +1598,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    // through
+    let joinQuery;
     if (include.through) {
       joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, topLevelInfo);
     } else {
