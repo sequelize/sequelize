@@ -38,8 +38,7 @@ export class MsSqlQuery extends AbstractQuery {
           paramType.type = TYPES.Int;
         } else if (value >= -9007199254740991 && value <= 9007199254740991) {
           paramType.type = TYPES.BigInt;
-        }
-        else {
+        } else {
           paramType.type = TYPES.Float;
         }
       } else {
