@@ -36,8 +36,11 @@ export class MsSqlQuery extends AbstractQuery {
       if (Number.isInteger(value)) {
         if (value >= -2_147_483_648 && value <= 2_147_483_647) {
           paramType.type = TYPES.Int;
-        } else {
+        } else if (value >= -9007199254740991 && value <= 9007199254740991) {
           paramType.type = TYPES.BigInt;
+        }
+        else {
+          paramType.type = TYPES.Float;
         }
       } else {
         paramType.type = TYPES.Numeric;
