@@ -1,5 +1,6 @@
 'use strict';
 
+import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
 const _ = require('lodash');
@@ -63,7 +64,7 @@ export class MsSqlQueryInterface extends QueryInterface {
 
     options = { ...options };
 
-    if (!Utils.isWhereEmpty(where)) {
+    if (!isWhereEmpty(where)) {
       wheres.push(where);
     }
 

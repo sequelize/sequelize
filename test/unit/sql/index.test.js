@@ -1,6 +1,6 @@
 'use strict';
 
-const Support = require('../support');
+const Support = require('../../support');
 const { Op } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
@@ -18,14 +18,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     it('naming', () => {
       expectsql(sql.addIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
         default: 'CREATE INDEX [table_column1_column2] ON [table] ([column1], [column2])',
-        mariadb: 'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`)',
-        mysql: 'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`)',
+        'mariadb mysql': 'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`)',
       });
 
       if (current.dialect.supports.schemas) {
         expectsql(sql.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
+          'mariadb mysql': 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
         });
 
         expectsql(sql.addIndexQuery({
@@ -34,7 +33,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, ['column1', 'column2'], {}, 'schema_table'), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
           db2: 'CREATE INDEX "schema"."schema_table_column1_column2" ON "schema"."table" ("column1", "column2")',
-          mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
+          'mariadb mysql': 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
         });
 
         expectsql(sql.addIndexQuery(sql.quoteTable(sql.addSchema({
@@ -42,7 +41,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           tableName: 'table',
         })), ['column1', 'column2'], {}), {
           default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          mariadb: 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
+          'mariadb mysql': 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
         });
       }
     });
@@ -161,7 +160,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (current.dialect.supports.JSONB) {
+    if (current.dialect.supports.dataTypes.JSONB) {
       it('operator', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],

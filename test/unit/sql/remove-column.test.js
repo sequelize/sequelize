@@ -1,6 +1,6 @@
 'use strict';
 
-const Support   = require('../support');
+const Support   = require('../../support');
 
 const expectsql = Support.expectsql;
 const current   = Support.sequelize;
@@ -21,12 +21,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           schema: 'archive',
           tableName: 'user',
         }, 'email'), {
-          ibmi: 'ALTER TABLE "archive"."user" DROP COLUMN "email"',
-          mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
-          db2: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
-          mariadb: 'ALTER TABLE `archive`.`user` DROP `email`;',
-          mysql: 'ALTER TABLE `archive.user` DROP `email`;',
-          postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";',
+          default: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
+          'mariadb mysql': 'ALTER TABLE `archive`.`user` DROP `email`;',
           snowflake: 'ALTER TABLE "archive"."user" DROP "email";',
         });
       });
