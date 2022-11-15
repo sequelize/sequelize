@@ -53,12 +53,10 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
    *
    * @param   {string}               column  The JSON column
    * @param   {string|Array<string>} [path]  The path to extract (optional)
-   * @param   {boolean}              [isJson] The value is JSON use alt symbols (optional)
    * @returns {string}                       The generated sql query
    * @private
    */
-  jsonPathExtractionQuery(column, path, isJson) {
-
+  jsonPathExtractionQuery(column, path) {
     const quotedColumn = this.isIdentifierQuoted(column)
       ? column
       : this.quoteIdentifier(column);

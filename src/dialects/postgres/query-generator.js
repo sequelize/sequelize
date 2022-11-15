@@ -1023,10 +1023,10 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   /**
    * Generates an SQL query that extract JSON property of given path.
    *
-   * @param   {string}               column  The JSON column
-   * @param   {string|Array<string>} [path]  The path to extract (optional)
+   * @param   {string}               column   The JSON column
+   * @param   {string|Array<string>} [path]   The path to extract (optional)
    * @param   {boolean}              [isJson] The value is JSON use alt symbols (optional)
-   * @returns {string}                       The generated sql query
+   * @returns {string}                        The generated sql query
    * @private
    */
   jsonPathExtractionQuery(column, path, isJson) {
@@ -1035,6 +1035,8 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       : this.quoteIdentifier(column);
 
     const join = isJson ? '#>' : '#>>';
+
+    // TODO: drop this custom array building and use the stringifier of the Array DataType
     const pathStr = this.escape(`{${_.toPath(path).join(',')}}`);
 
     return `(${quotedColumn}${join}${pathStr})`;
