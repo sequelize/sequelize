@@ -204,7 +204,7 @@ if (dialect.match(/^postgres/)) {
           },
           pool: {
             max: 1, // having only one helps us know whether the connection was invalidated
-            idle: 60_000
+            idle: 60000
           }
         });
 
