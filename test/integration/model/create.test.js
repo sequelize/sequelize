@@ -1085,7 +1085,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         try {
           await User.sync({ force: true });
-          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON ${this.sequelize.queryInterface.queryGenerator.quoteTable(User)} ((lower("username")))`, { logging: console.log });
+          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON ${this.sequelize.queryInterface.queryGenerator.quoteTable(User)} ((lower("username")))`);
           await User.create({ username: 'foo' });
           await User.create({ username: 'foo' });
         } catch (error) {

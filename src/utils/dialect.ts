@@ -78,7 +78,7 @@ export function removeTicks(s: string, tickChar: string = TICK_CHAR): string {
 }
 
 export function quoteIdentifier(identifier: string, leftTick: string, rightTick: string): string {
-  // TODO: node 15+ : drop regexp, use replaceAll with a string instead.
+  // TODO [engine:node@>14]: drop regexp, use replaceAll with a string instead.
   const leftTickRegExp = new RegExp(`\\${leftTick}`, 'g');
 
   if (leftTick === rightTick) {

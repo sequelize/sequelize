@@ -2,7 +2,7 @@
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import { quoteIdentifier, rejectInvalidOptions } from '../../utils';
+import { rejectInvalidOptions } from '../../utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,

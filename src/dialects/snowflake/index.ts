@@ -68,8 +68,7 @@ export class SnowflakeDialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    // TODO: what is the default schema in Snowflake?
-    return '';
+    return 'PUBLIC';
   }
 
   static getDefaultPort() {

@@ -1156,7 +1156,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       name: tableName,
       quotedName: null,
       as: null,
-      quotedAa: null,
+      quotedAs: null,
       model,
     };
     const topLevelInfo = {
