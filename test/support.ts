@@ -24,13 +24,6 @@ chai.use(chaiDatetime);
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
-// Using util.inspect to correctly assert objects with symbols
-// Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
-chai.Assertion.addMethod('deepEqual', function deepEqual(expected, depth = 5) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
-  expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
-});
-
 /**
  * `expect(fn).to.throwWithCause()` works like `expect(fn).to.throw()`, except
  * that is also checks whether the message is present in the error cause.

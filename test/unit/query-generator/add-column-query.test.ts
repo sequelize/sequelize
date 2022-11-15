@@ -26,6 +26,7 @@ describe('QueryGenerator#addColumnQuery', () => {
       type: DataTypes.INTEGER,
     }, { ifNotExists: true }), {
       default: buildInvalidOptionReceivedError('addColumnQuery', dialectName, ['ifNotExists']),
+      mariadb: 'ALTER TABLE `Users` ADD IF NOT EXISTS `age` INTEGER;',
       postgres: `ALTER TABLE "public"."Users" ADD COLUMN IF NOT EXISTS "age" INTEGER;`,
     });
   });
