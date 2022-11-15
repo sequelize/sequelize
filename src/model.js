@@ -2521,6 +2521,8 @@ Specify a different name for either index to resolve this issue.`);
     // Db2 does not allow NULL values for unique columns.
     // Add dummy values if not provided by test case or user.
     if (this.sequelize.options.dialect === 'db2') {
+      // TODO: remove. This is fishy and is going to be a source of bugs (because it replaces null values with arbitrary values that could be actual data).
+      //  If DB2 doesn't support NULL in unique columns, then it should error if the user tries to insert NULL in one.
       this.uniqno = this.sequelize.dialect.queryGenerator.addUniqueFields(
         insertValues, this.rawAttributes, this.uniqno,
       );
@@ -2537,15 +2539,23 @@ Specify a different name for either index to resolve this issue.`);
       await this.runHooks('beforeUpsert', values, options);
     }
 
-    const result = await this.queryInterface.upsert(this.getTableName(options), insertValues, updateValues, instance.where(), options);
+    const result = await this.queryInterface.upsert(
+      this.getTableName(options),
+      insertValues,
+      updateValues,
+      // TODO: this is only used by DB2 & MSSQL, as these dialects require a WHERE clause in their UPSERT implementation.
+      //  but the user should be able to specify a WHERE clause themselves (because we can't perfectly include all UNIQUE constraints in our implementation)
+      //  there is also some incoherence in our implementation: This "where" returns the Primary Key constraint, but all other unique constraints
+      //  are added inside of QueryInterface. Everything should be done inside of QueryInterface instead.
+      instance.where(false, true),
+      options,
+    );
 
     const [record] = result;
     record.isNewRecord = false;
 
     if (options.hooks) {
       await this.runHooks('afterUpsert', result, options);
-
-      return result;
     }
 
     return result;
@@ -3502,17 +3512,22 @@ Instead of specifying a Model, either:
   }
 
   /**
-   * Returns an object representing the query for this instance, use with `options.where`
+   * Returns a Where Object that can be used to uniquely select this instance, using the instance's primary keys.
    *
    * @param {boolean} [checkVersion=false] include version attribute in where hash
+   * @param {boolean} [nullIfImpossible=false] return null instead of throwing an error if the instance is missing its primary keys and therefore no Where object can be built.
    *
    * @returns {object}
    */
-  where(checkVersion) {
+  where(checkVersion, nullIfImpossible) {
     if (this.constructor.primaryKeyAttributes.length === 0) {
+      if (nullIfImpossible) {
+        return null;
+      }
+
       throw new Error(
         `This model instance method needs to be able to identify the entity in a stable way, but the model does not have a primary key attribute definition. Either add a primary key to this model, or use one of the following alternatives:
-  
+
 - instance methods "save", "update", "decrement", "increment": Use the static "update" method instead.
 - instance method "reload": Use the static "findOne" method instead.
 - instance methods "destroy" and "restore": use the static "destroy" and "restore" methods instead.
@@ -3520,15 +3535,20 @@ Instead of specifying a Model, either:
       );
     }
 
-    const where = this.constructor.primaryKeyAttributes.reduce((result, attribute) => {
-      if (_.isNil(this.get(attribute, { raw: true }))) {
+    const where = {};
+
+    for (const attribute of this.constructor.primaryKeyAttributes) {
+      const attrVal = this.get(attribute, { raw: true });
+      if (attrVal == null) {
+        if (nullIfImpossible) {
+          return null;
+        }
+
         throw new TypeError(`This model instance method needs to be able to identify the entity in a stable way, but this model instance is missing the value of its primary key "${attribute}". Make sure that attribute was not excluded when retrieving the model from the database.`);
       }
 
-      result[attribute] = this.get(attribute, { raw: true });
-
-      return result;
-    }, {});
+      where[attribute] = attrVal;
+    }
 
     const versionAttr = this.constructor._versionAttribute;
     if (checkVersion && versionAttr) {

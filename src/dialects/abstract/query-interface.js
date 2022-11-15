@@ -846,6 +846,10 @@ export class QueryInterface {
    *
    * @returns {Promise<boolean,?number>} Resolves an array with <created, primaryKey>
    */
+  // Note: "where" is only used by DB2 and MSSQL. This is because these dialects do not propose any "ON CONFLICT UPDATE" mechanisms
+  // The UPSERT pattern in SQL server requires providing a WHERE clause
+  // TODO: the user should be able to configure the WHERE clause for upsert instead of the current default which
+  //  is using the primary keys.
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options?.bind) {
       assertNoReservedBind(options.bind);
