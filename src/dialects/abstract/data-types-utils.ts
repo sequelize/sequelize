@@ -42,9 +42,6 @@ export function normalizeDataType(
 
 export function dataTypeClassOrInstanceToInstance(Type: DataTypeClassOrInstance): DataTypeInstance {
   return typeof Type === 'function'
-    // TODO [2022-12-01]: Remove this eslint-disable once we drop support for TypeScript 4.5
-    // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- typescript 4.5 narrows Class to "never" here, but typescript 4.6 handles it correctly
-    // @ts-ignore
     ? new Type()
     : Type;
 }
