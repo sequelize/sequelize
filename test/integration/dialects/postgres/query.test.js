@@ -5,7 +5,7 @@ const chai = require('chai'),
   Support = require('../../support'),
   dialect = Support.getTestDialect(),
   DataTypes = require('sequelize/lib/data-types'),
-  DatabaseError = require('@sequelize/core');
+  DatabaseError = require('sequelize/lib/errors/database-error');
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES] Query', () => {
