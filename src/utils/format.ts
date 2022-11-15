@@ -151,7 +151,7 @@ export function mapWhereFieldNames(where: Record<PropertyKey, any>, Model: Model
  * @returns All keys including operators
  * @private
  */
-export function getComplexKeys(obj: object): PropertyKey[] {
+export function getComplexKeys(obj: object): Array<string | symbol> {
   return [
     ...getOperators(obj),
     ...Object.keys(obj),
