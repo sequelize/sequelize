@@ -1,6 +1,7 @@
 'use strict';
 
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+import { AbstractDataType } from './data-types';
 
 const _ = require('lodash');
 
@@ -12,6 +13,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk to all databases
  */
+// TODO: rename to AbstractQueryInterface
 export class QueryInterface {
   constructor(sequelize, queryGenerator) {
     this.sequelize = sequelize;
@@ -141,6 +143,7 @@ export class QueryInterface {
    * @returns {Promise}
    * @private
    */
+  // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
     return await this.sequelize.queryRaw(
       this.queryGenerator.versionQuery(),
@@ -440,15 +443,25 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
-  async addColumn(table, key, attribute, options) {
+  async addColumn(table, key, attribute, options = {}) {
     if (!table || !key || !attribute) {
       throw new Error('addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
     }
 
-    options = options || {};
     attribute = this.sequelize.normalizeAttribute(attribute);
 
-    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute), options);
+    if (
+      attribute.type instanceof AbstractDataType
+      // we don't give a context if it already has one, because it could come from a Model.
+      && !attribute.type.usageContext
+    ) {
+      attribute.type.attachUsageContext({ tableName: table, columnName: key, sequelize: this.sequelize });
+    }
+
+    const { ifNotExists, ...rawQueryOptions } = options;
+    const addColumnQueryOptions = ifNotExists ? { ifNotExists } : undefined;
+
+    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute, addColumnQueryOptions), rawQueryOptions);
   }
 
   /**
@@ -459,7 +472,12 @@ export class QueryInterface {
    * @param {object} [options]      Query options
    */
   async removeColumn(tableName, attributeName, options) {
-    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName), options);
+    options = options || {};
+
+    const { ifExists, ...rawQueryOptions } = options;
+    const removeColumnQueryOptions = ifExists ? { ifExists } : undefined;
+
+    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName, removeColumnQueryOptions), rawQueryOptions);
   }
 
   normalizeAttribute(dataTypeOrOptions) {
@@ -988,7 +1006,7 @@ export class QueryInterface {
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
     const table = _.isObject(tableName) ? tableName : { tableName };
-    const model = _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const model = options.model ? options.model : _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;

@@ -332,12 +332,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('delete a record of multiple primary keys table', async function () {
       const MultiPrimary = this.sequelize.define('MultiPrimary', {
         bilibili: {
-          type: DataTypes.CHAR(2),
+          type: DataTypes.STRING,
           primaryKey: true,
         },
-
         guruguru: {
-          type: DataTypes.CHAR(2),
+          type: DataTypes.STRING,
           primaryKey: true,
         },
       });

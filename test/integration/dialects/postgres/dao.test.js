@@ -161,11 +161,12 @@ if (dialect.startsWith('postgres')) {
         expect(table.document.type).to.equal('HSTORE');
       });
 
+      // TODO: move to select QueryGenerator unit tests
       it('should NOT stringify hstore with insert', async function () {
         await this.User.create({
           username: 'bob',
           email: ['myemail@email.com'],
-          settings: { mailing: false, push: 'facebook', frequency: 3 },
+          settings: { mailing: 'false', push: 'facebook', frequency: '3' },
         }, {
           logging(sql) {
             const unexpected = '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
@@ -174,6 +175,7 @@ if (dialect.startsWith('postgres')) {
         });
       });
 
+      // TODO: move to select QueryGenerator unit tests
       it('should not rename hstore fields', async function () {
         const Equipment = this.sequelize.define('Equipment', {
           grapplingHook: {
@@ -190,7 +192,7 @@ if (dialect.startsWith('postgres')) {
         await Equipment.findAll({
           where: {
             utilityBelt: {
-              grapplingHook: true,
+              grapplingHook: 'true',
             },
           },
           logging(sql) {
@@ -199,6 +201,7 @@ if (dialect.startsWith('postgres')) {
         });
       });
 
+      // TODO: move to select QueryGenerator unit tests
       it('should not rename json fields', async function () {
         const Equipment = this.sequelize.define('Equipment', {
           grapplingHook: {
@@ -223,7 +226,6 @@ if (dialect.startsWith('postgres')) {
           },
         });
       });
-
     });
 
     describe('range', () => {
@@ -232,7 +234,6 @@ if (dialect.startsWith('postgres')) {
         expect(table.course_period.type).to.equal('TSTZRANGE');
         expect(table.available_amount.type).to.equal('INT4RANGE');
       });
-
     });
 
     describe('enums', () => {
@@ -268,20 +269,18 @@ if (dialect.startsWith('postgres')) {
         const DummyModel = this.sequelize.define('Dummy-pg', {
           username: DataTypes.STRING,
           theEnumOne: {
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'one',
               'two',
               'three',
-            ],
+            ]),
           },
           theEnumTwo: {
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'four',
               'five',
               'six',
-            ],
+            ]),
           },
         });
 
@@ -297,21 +296,19 @@ if (dialect.startsWith('postgres')) {
           username: DataTypes.STRING,
           theEnumOne: {
             field: 'oh_my_this_enum_one',
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'one',
               'two',
               'three',
-            ],
+            ]),
           },
           theEnumTwo: {
             field: 'oh_my_this_enum_two',
-            type: DataTypes.ENUM,
-            values: [
+            type: DataTypes.ENUM([
               'four',
               'five',
               'six',
-            ],
+            ]),
           },
         });
 
@@ -335,7 +332,7 @@ if (dialect.startsWith('postgres')) {
         await User.sync();
         const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
         expect(enums).to.have.length(1);
-        expect(enums[0].enum_value).to.equal('{neutral,happy,sad,ecstatic,meh,joyful}');
+        expect(enums[0].enum_value).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
       });
 
       it('should be able to add multiple values with different order', async function () {
@@ -351,7 +348,7 @@ if (dialect.startsWith('postgres')) {
         await User.sync();
         const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
         expect(enums).to.have.length(1);
-        expect(enums[0].enum_value).to.equal('{0,1,2,3,4,5,6,7}');
+        expect(enums[0].enum_value).to.deep.equal(['0', '1', '2', '3', '4', '5', '6', '7']);
       });
 
       describe('ARRAY(ENUM)', () => {
@@ -405,7 +402,7 @@ if (dialect.startsWith('postgres')) {
           await User.sync();
           const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
           expect(enums).to.have.length(1);
-          expect(enums[0].enum_value).to.equal('{view,access,edit,write,check,delete}');
+          expect(enums[0].enum_value).to.deep.equal(['view', 'access', 'edit', 'write', 'check', 'delete']);
         });
 
         it('should be able to insert new record', async function () {
@@ -510,14 +507,14 @@ if (dialect.startsWith('postgres')) {
             ])),
           });
 
-          await expect(User.sync({ force: true }).then(() => {
-            return User.create({
-              name: 'file.exe',
-              type: 'C',
-              owners: ['userA', 'userB'],
-              permissions: ['cosmic_ray_disk_access'],
-            });
-          })).to.be.rejectedWith(/invalid input value for enum "enum_UserEnums_permissions": "cosmic_ray_disk_access"/);
+          await User.sync({ force: true });
+
+          await expect(User.create({
+            name: 'file.exe',
+            type: 'C',
+            owners: ['userA', 'userB'],
+            permissions: ['cosmic_ray_disk_access'],
+          })).to.be.rejectedWith(`'cosmic_ray_disk_access' is not a valid choice for enum [ 'access', 'write', 'check', 'delete' ]`);
         });
 
         it('should be able to find records', async function () {
@@ -687,7 +684,7 @@ if (dialect.startsWith('postgres')) {
         await this.User.bulkCreate([{
           username: 'bob',
           email: ['myemail@email.com'],
-          settings: { mailing: true, push: 'facebook', frequency: 3 },
+          settings: { mailing: 'true', push: 'facebook', frequency: '3' },
         }]);
 
         const user = await User.findByPk(1);

@@ -1,5 +1,7 @@
 'use strict';
 
+import { getAttributeName } from '../../utils';
+
 const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
@@ -51,6 +53,8 @@ export class PostgresQuery extends AbstractQuery {
         || /Unable to set non-blocking to true/i.test(error)
         || /SSL SYSCALL error: EOF detected/i.test(error)
         || /Local: Authentication failure/i.test(error)
+        // https://github.com/sequelize/sequelize/pull/15144
+        || error.message === 'Query read timeout'
       ) {
         connection._invalid = true;
       }
@@ -262,13 +266,19 @@ export class PostgresQuery extends AbstractQuery {
           throw new sequelizeErrors.EmptyResultError();
         }
 
-        for (const key in rows[0]) {
-          if (Object.prototype.hasOwnProperty.call(rows[0], key)) {
-            const record = rows[0][key];
+        if (rows[0]) {
+          for (const attributeOrColumnName of Object.keys(rows[0])) {
+            const attribute = _.find(this.model.rawAttributes, attribute => {
+              // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
+              return attribute.fieldName === attributeOrColumnName || attribute.field === attributeOrColumnName;
+            });
 
-            const attr = _.find(this.model.rawAttributes, attribute => attribute.fieldName === key || attribute.field === key);
+            const updatedValue = this._parseDatabaseValue(rows[0][attributeOrColumnName], attribute?.type);
 
-            this.instance.dataValues[attr && attr.fieldName || key] = record;
+            this.instance.set(attribute?.fieldName ?? attributeOrColumnName, updatedValue, {
+              raw: true,
+              comesFromDatabase: true,
+            });
           }
         }
       }

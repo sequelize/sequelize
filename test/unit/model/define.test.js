@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../support');
+const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 const sinon = require('sinon');
 
@@ -204,18 +204,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         console.warn.restore();
       });
 
-      it('warn for unsupported INTEGER options', () => {
-        current.define('A', {
+      it('warns for unsupported FLOAT options', () => {
+        // must use a new sequelize instance because warnings are only logged once per instance.
+        const newSequelize = Support.createSequelizeInstance();
+
+        newSequelize.define('A', {
           age: {
-            type: DataTypes.TINYINT.UNSIGNED,
+            type: DataTypes.FLOAT(10, 2),
           },
         });
 
-        if (['postgres', 'sqlite', 'mssql', 'db2'].includes(dialect)) {
-          expect(true).to.equal(console.warn.calledOnce);
-          expect(console.warn.args[0][0]).to.contain('does not support \'TINYINT\'');
+        if (!['mysql', 'mariadb'].includes(dialect)) {
+          expect(console.warn.called).to.eq(true, 'console.warn was not called');
+          expect(console.warn.args[0][0]).to.contain(`does not support FLOAT with scale or precision specified. These options are ignored.`);
         } else {
-          expect(false).to.equal(console.warn.calledOnce);
+          expect(console.warn.called).to.equal(false, 'console.warn was called but it should not have been');
         }
       });
     });

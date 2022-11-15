@@ -125,7 +125,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               .sequelizeWithInvalidConnection
               .authenticate();
           } catch (error) {
-            console.log(error);
             expect(
               error.message.includes('connect ECONNREFUSED')
               || error.message.includes('invalid port number')
@@ -594,8 +593,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
-  describe('drop should work', () => {
-    it('correctly succeeds', async function () {
+  describe('Model.drop', () => {
+    it('drops the table corresponding to the model', async function () {
       const User = this.sequelize.define('Users', { username: DataTypes.STRING });
       await User.sync({ force: true });
       await User.drop();
@@ -603,60 +602,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('define', () => {
-    it('raises an error if no values are defined', function () {
-      expect(() => {
-        this.sequelize.define('omnomnom', {
-          bla: { type: DataTypes.ARRAY },
-        });
-      }).to.throw(Error, 'ARRAY is missing type definition for its values.');
-    });
-  });
-
-  describe('define', () => {
-    for (const status of [
-      { type: DataTypes.ENUM, values: ['scheduled', 'active', 'finished'] },
-      DataTypes.ENUM('scheduled', 'active', 'finished'),
-    ]) {
-      describe('enum', () => {
-        beforeEach(async function () {
-          this.sequelize = Support.createSequelizeInstance({
-            typeValidation: true,
-          });
-
-          this.Review = this.sequelize.define('review', { status });
-          await this.Review.sync({ force: true });
-        });
-
-        it('raises an error if no values are defined', function () {
-          expect(() => {
-            this.sequelize.define('omnomnom', {
-              bla: { type: DataTypes.ENUM },
-            });
-          }).to.throw(Error, 'Values for ENUM have not been defined.');
-        });
-
-        it('correctly stores values', async function () {
-          const review = await this.Review.create({ status: 'active' });
-          expect(review.status).to.equal('active');
-        });
-
-        it('correctly loads values', async function () {
-          await this.Review.create({ status: 'active' });
-          const reviews = await this.Review.findAll();
-          expect(reviews[0].status).to.equal('active');
-        });
-
-        it('doesn\'t save an instance if value is not in the range of enums', async function () {
-          try {
-            await this.Review.create({ status: 'fnord' });
-          } catch (error) {
-            expect(error).to.be.instanceOf(Error);
-            expect(error.message).to.equal('"fnord" is not a valid choice in ["scheduled","active","finished"]');
-          }
-        });
-      });
-    }
-
     describe('table', () => {
       for (const customAttributes of [
         { id: { type: DataTypes.BIGINT, primaryKey: true } },
