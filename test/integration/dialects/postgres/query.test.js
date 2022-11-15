@@ -221,7 +221,7 @@ if (dialect.match(/^postgres/)) {
 
       it('reuses connection after statement timeout', async () => {
         // client timeout > statement timeout means that the query should fail with a statement timeout
-        const { sequelize, originalPid } = await setUp(10_000);
+        const { sequelize, originalPid } = await setUp(10000);
         await expect(sequelize.query('select pg_sleep(1)')).to.eventually.be.rejectedWith(DatabaseError, 'canceling statement due to statement timeout');
         expect(await getConnectionPid(sequelize)).to.equal(originalPid);
       });
