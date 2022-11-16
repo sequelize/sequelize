@@ -14,33 +14,6 @@ const { createSequelizeInstance } = require('../../../support');
 if (dialect === 'db2') {
   describe('[DB2 Specific] QueryGenerator', () => {
     const suites = {
-      arithmeticQuery: [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\'',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' WHERE "bar" = \'biz\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\'',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- -1',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' WHERE "bar" = \'biz\'',
-        },
-      ],
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
@@ -161,13 +134,6 @@ if (dialect === 'db2') {
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'], customIndex: true }] }],
           expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255) NOT NULL, "name" VARCHAR(255) NOT NULL, CONSTRAINT "uniq_myTable_title_name" UNIQUE ("title", "name"));',
-        },
-      ],
-
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS "myTable";',
         },
       ],
 
@@ -626,16 +592,6 @@ if (dialect === 'db2') {
             bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
-        },
-      ],
-
-      showIndexesQuery: [
-        {
-          arguments: ['User'],
-          expectation: 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = \'User\' ORDER BY NAME;',
-        }, {
-          arguments: ['User', { database: 'sequelize' }],
-          expectation: 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = \'User\' ORDER BY NAME;',
         },
       ],
 

@@ -14,65 +14,6 @@ const { createSequelizeInstance } = require('../../../support');
 if (dialect === 'snowflake') {
   describe('[SNOWFLAKE Specific] QueryGenerator', () => {
     const suites = {
-      arithmeticQuery: [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\'',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' WHERE "bar" = \'biz\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\'',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- -1',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' WHERE "bar" = \'biz\'',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE myTable SET foo=foo+ \'bar\'',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE myTable SET foo=foo+ \'bar\' WHERE bar = \'biz\'',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE myTable SET foo=foo- \'bar\'',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE myTable SET foo=foo- -1',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE myTable SET foo=foo- \'bar\' WHERE bar = \'biz\'',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
@@ -285,20 +226,6 @@ if (dialect === 'snowflake') {
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'], customIndex: true }] }],
           expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255), UNIQUE uniq_myTable_title_name (title, name));',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS "myTable";',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS myTable;',
           context: { options: { quoteIdentifiers: false } },
         },
       ],
