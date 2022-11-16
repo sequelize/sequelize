@@ -445,14 +445,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `DELETE FROM ${table}${whereClause}`;
   }
 
-  addIndexQuery(tableName, attributes, options, rawTablename) {
-    if (semver.lt(this.sequelize.options.databaseVersion, '11.0.0') && 'include' in attributes) {
-      throw new Error('Postgres 11.0.0 or higher is required to use INCLUDE syntax for indexes.');
-    }
-
-    return super.addIndexQuery(tableName, attributes, options, rawTablename);
-  }
-
   showIndexesQuery(tableName) {
     let schemaJoin = '';
     let schemaWhere = '';

@@ -34,15 +34,6 @@ describe(Support.getTestDialectTeaser('Indexes'), () => {
         });
       }
 
-      // Include columns are only supported by PostgreSQL version 11.0.0 and higher
-      if (dialect === 'postgres' && semver.lt(current.options.databaseVersion, '11.0.0')) {
-        return this.User.sync({ force: true }).then(() => {
-          expect.fail('This should have failed');
-        }).catch(error => {
-          expect(error.message).to.equal('Postgres 11.0.0 or higher is required to use INCLUDE syntax for indexes.');
-        });
-      }
-
       await this.sequelize.sync({ force: true });
       const indexes = await this.sequelize.queryInterface.showIndex(this.User.tableName);
       const indexCheck = indexes.filter(index => index.name === 'user_username');
@@ -67,15 +58,6 @@ describe(Support.getTestDialectTeaser('Indexes'), () => {
       }, {
         indexes: [{ name: 'user_username', fields: ['username'], include: ['first_name', 'last_name'], unique: true }],
       });
-
-      // Include columns are only supported by PostgreSQL version 11.0.0 and higher
-      if (dialect === 'postgres' && semver.lt(current.options.databaseVersion, '11.0.0')) {
-        return this.User.sync({ force: true }).then(() => {
-          expect.fail('This should have failed');
-        }).catch(error => {
-          expect(error.message).to.equal('Postgres 11.0.0 or higher is required to use INCLUDE syntax for indexes.');
-        });
-      }
 
       await this.sequelize.sync({ force: true });
       const indexes = await this.sequelize.queryInterface.showIndex(this.User.tableName);
@@ -104,15 +86,6 @@ describe(Support.getTestDialectTeaser('Indexes'), () => {
         indexes: [{ name: 'user_username', fields: ['username'], include: ['username', 'first_name', 'last_name'], unique: true }],
       });
 
-      // Include columns are only supported by PostgreSQL version 11.0.0 and higher
-      if (dialect === 'postgres' && semver.lt(current.options.databaseVersion, '11.0.0')) {
-        return this.User.sync({ force: true }).then(() => {
-          expect.fail('This should have failed');
-        }).catch(error => {
-          expect(error.message).to.equal('Postgres 11.0.0 or higher is required to use INCLUDE syntax for indexes.');
-        });
-      }
-
       return this.sequelize.sync({ force: true })
         .then(() => {
           if (dialect !== 'postgres') {
@@ -136,15 +109,6 @@ describe(Support.getTestDialectTeaser('Indexes'), () => {
         indexes: [{ name: 'user_username', fields: ['username'], include: ['first_name', 'last_name', 'email'], unique: true }],
       });
 
-      // Include columns are only supported by PostgreSQL version 11.0.0 and higher
-      if (dialect === 'postgres' && semver.lt(current.options.databaseVersion, '11.0.0')) {
-        return this.User.sync({ force: true }).then(() => {
-          expect.fail('This should have failed');
-        }).catch(error => {
-          expect(error.message).to.equal('Postgres 11.0.0 or higher is required to use INCLUDE syntax for indexes.');
-        });
-      }
-
       return this.sequelize.sync({ force: true })
         .then(() => expect.fail('This should have failed'))
         .catch(error => {
@@ -163,15 +127,6 @@ describe(Support.getTestDialectTeaser('Indexes'), () => {
       }, {
         indexes: [{ name: 'user_username', fields: ['username'], include: ['first_name', 'last_name', 'email'], unique: true }],
       });
-
-      // Include columns are only supported by PostgreSQL version 11.0.0 and higher
-      if (dialect === 'postgres' && semver.lt(current.options.databaseVersion, '11.0.0')) {
-        return this.User.sync({ force: true }).then(() => {
-          expect.fail('This should have failed');
-        }).catch(error => {
-          expect(error.message).to.equal('Postgres 11.0.0 or higher is required to use INCLUDE syntax for indexes.');
-        });
-      }
 
       return this.sequelize.sync({ force: true })
         .then(() => expect.fail('This should have failed'))
