@@ -20,44 +20,6 @@ const _ = require('lodash');
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
     const suites = {
-      arithmeticQuery: [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' RETURNING *',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' WHERE "bar" = \'biz\' RETURNING *',
-        },
-        {
-          title: 'Should use the plus operator without returning clause',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' RETURNING *',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- -1 RETURNING *',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' WHERE "bar" = \'biz\' RETURNING *',
-        },
-        {
-          title: 'Should use the minus operator without returning clause',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\'',
-        },
-      ],
-
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
@@ -219,47 +181,6 @@ if (dialect.startsWith('postgres')) {
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION' }],
           expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255), otherId INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS "myTable";',
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
-          expectation: 'DROP TABLE IF EXISTS "mySchema"."myTable";',
-        },
-        {
-          arguments: ['myTable', { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS "myTable" CASCADE;',
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS "mySchema"."myTable" CASCADE;',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS myTable;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
-          expectation: 'DROP TABLE IF EXISTS mySchema.myTable;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: ['myTable', { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS myTable CASCADE;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS mySchema.myTable CASCADE;',
           context: { options: { quoteIdentifiers: false } },
         },
       ],
@@ -1316,13 +1237,6 @@ if (dialect.startsWith('postgres')) {
             title: 'showTablesQuery defaults to the schema set in Sequelize options',
             arguments: [],
             expectation: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'custom' AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`,
-          },
-        ],
-        describeTableQuery: [
-          {
-            title: 'describeTableQuery defaults to the schema set in Sequelize options',
-            arguments: ['myTable', null],
-            expectation: `SELECT pk.constraint_type as "Constraint",c.column_name as "Field", c.column_default as "Default",c.is_nullable as "Null", (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type", (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment" FROM information_schema.columns c LEFT JOIN (SELECT tc.table_schema, tc.table_name, cu.column_name, tc.constraint_type FROM information_schema.TABLE_CONSTRAINTS tc JOIN information_schema.KEY_COLUMN_USAGE  cu ON tc.table_schema=cu.table_schema and tc.table_name=cu.table_name and tc.constraint_name=cu.constraint_name and tc.constraint_type='PRIMARY KEY') pk ON pk.table_schema=c.table_schema AND pk.table_name=c.table_name AND pk.column_name=c.column_name WHERE c.table_name = 'myTable' AND c.table_schema = 'custom'`,
           },
         ],
       };
