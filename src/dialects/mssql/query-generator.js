@@ -1,13 +1,13 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils/check';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import { rejectInvalidOptions } from '../../utils';
 import {
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -24,10 +24,10 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['collate']);
-const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['collate']);
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
@@ -35,8 +35,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createDatabaseQuery',
         this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -70,8 +70,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createSchemaQuery',
         this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -228,6 +228,11 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName, schema) {
+    if (typeof tableName === 'object') {
+      schema = tableName.schema || schema;
+      tableName = tableName.tableName;
+    }
+
     let sql = [
       'SELECT',
       'c.COLUMN_NAME AS \'Name\',',
@@ -282,7 +287,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     return `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(tableName)} AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
   }
 
-  dropTableQuery(tableName) {
+  dropTableQuery(tableName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const quoteTbl = this.quoteTable(tableName);
 
     return Utils.joinSQLFragments([
@@ -298,7 +313,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'addColumnQuery',
         this.dialect.name,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -341,21 +356,14 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
         + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
-  removeColumnQuery(tableName, attributeName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+  removeColumnQuery(tableName, attributeName, options = {}) {
+    const ifExists = options.ifExists ? 'IF EXISTS' : '';
 
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP COLUMN',
+      ifExists,
       this.quoteIdentifier(attributeName),
       ';',
     ]);

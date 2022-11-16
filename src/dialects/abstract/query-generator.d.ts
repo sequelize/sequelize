@@ -79,7 +79,7 @@ interface QueryGeneratorOptions {
   dialect: AbstractDialect;
 }
 
-// keep CREATE_DATABASE_QUERY_OPTION_NAMES updated when modifying this
+// keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateDatabaseQueryOptions {
   collate?: string;
   charset?: string;
@@ -88,22 +88,29 @@ export interface CreateDatabaseQueryOptions {
   template?: string;
 }
 
-// keep CREATE_SCHEMA_QUERY_OPTION_NAMES updated when modifying this
+// keep CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateSchemaQueryOptions {
   collate?: string;
   charset?: string;
 }
 
-// keep LIST_SCHEMAS_QUERY_OPTION_NAMES updated when modifying this
+// keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface DropTableQueryOptions {
+  cascade?: boolean;
+}
+
+// keep LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface ListSchemasQueryOptions {
   /** List of schemas to exclude from output */
   skip?: string[];
 }
 
+// keep ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface AddColumnQueryOptions {
   ifNotExists?: boolean;
 }
 
+// keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveColumnQueryOptions {
   ifExists?: boolean;
 }
@@ -130,6 +137,18 @@ export class AbstractQueryGenerator {
     options?: HandleSequelizeMethodOptions,
     prepend?: boolean,
   ): string;
+
+  /**
+   * Generates an SQL query that extract JSON property of given path.
+   *
+   * @param   {string}               column   The JSON column
+   * @param   {string|Array<string>} [path]   The path to extract (optional)
+   * @param   {boolean}              [isJson] The value is JSON use alt symbols (optional)
+   * @returns {string}                        The generated sql query
+   * @private
+   */
+  // TODO: see how we can make the typings protected/private while still allowing it to be typed in tests
+  jsonPathExtractionQuery(column: string, path?: string | string[], isJson?: boolean): string;
 
   selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
@@ -181,6 +200,12 @@ export class AbstractQueryGenerator {
     extraAttributesToBeUpdated: { [key: string]: unknown },
     options?: ArithmeticQueryOptions,
   ): string;
+
+  showIndexesQuery(tableName: TableName): string;
+
+  dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
+  // TODO: this should become `describeTableQuery(tableName: TableName): string`
+  describeTableQuery(tableName: TableName, schema?: string, schemaDelimiter?: string): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | { query: string, bind?: unknown[] };

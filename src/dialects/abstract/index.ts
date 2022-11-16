@@ -214,6 +214,9 @@ export type DialectSupports = {
 
   /** Whether this dialect supports changing the global timezone option */
   globalTimeZoneConfig: boolean,
+  dropTable: {
+    cascade: boolean,
+  },
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -332,6 +335,9 @@ export abstract class AbstractDialect {
     escapeStringConstants: false,
     milliseconds: true,
     globalTimeZoneConfig: false,
+    dropTable: {
+      cascade: false,
+    },
   };
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {

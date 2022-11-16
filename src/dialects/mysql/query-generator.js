@@ -4,8 +4,8 @@ import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { rejectInvalidOptions } from '../../utils';
 import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -33,8 +33,8 @@ const FOREIGN_KEY_FIELDS = [
 ].join(',');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MySqlQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -203,7 +203,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'addColumnQuery',
         this.dialect.name,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -233,7 +233,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'removeColumnQuery',
         this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -645,11 +645,10 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
    *
    * @param   {string}               column  The JSON column
    * @param   {string|Array<string>} [path]  The path to extract (optional)
-   * @param   {boolean}              [isJson] The value is JSON use alt symbols (optional)
    * @returns {string}                       The generated sql query
    * @private
    */
-  jsonPathExtractionQuery(column, path, isJson) {
+  jsonPathExtractionQuery(column, path) {
     let paths = _.toPath(path);
     const quotedColumn = this.isIdentifierQuoted(column)
       ? column

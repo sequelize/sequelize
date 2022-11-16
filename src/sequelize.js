@@ -240,6 +240,7 @@ export class Sequelize extends SequelizeTypeScript {
       native: false,
       replication: false,
       ssl: undefined,
+      // TODO [=7]: print a deprecation warning if quoteIdentifiers is set to false
       quoteIdentifiers: true,
       hooks: {},
       retry: {

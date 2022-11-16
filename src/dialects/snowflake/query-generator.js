@@ -1,13 +1,13 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { rejectInvalidOptions } from '../../utils';
+import { rejectInvalidOptions } from '../../utils/check';
 import {
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -44,11 +44,11 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
-const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
-const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
-const LIST_SCHEMAS_SUPPORTED_OPTIONS = new Set();
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -66,8 +66,8 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createDatabaseQuery',
         this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -94,8 +94,8 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createSchemaQuery',
         this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -112,8 +112,8 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'listSchemasQuery',
         this.dialect.name,
-        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION,
-        LIST_SCHEMAS_SUPPORTED_OPTIONS,
+        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
+        LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -238,7 +238,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'addColumnQuery',
         this.dialect.name,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -263,7 +263,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'removeColumnQuery',
         this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -437,6 +437,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   showIndexesQuery() {
+    // TODO: check if this is the correct implementation
     return 'SELECT \'\' FROM DUAL';
   }
 

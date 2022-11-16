@@ -1,5 +1,6 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils/check';
 import { getTextDataTypeForDialect } from '../../sql-string';
 import { isNullish } from '../../utils';
 import { isModelStatic } from '../../utils/model-utils';
@@ -30,11 +31,12 @@ const { _validateIncludedElements } = require('../../model-internals');
  * It is used to validate the options passed to {@link QueryGenerator#createDatabaseQuery},
  * as not all of them are supported by all dialects.
  */
-export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
-export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION = new Set(['collate', 'charset']);
-export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTION = new Set(['skip']);
-export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTION = new Set(['ifNotExists']);
-export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION = new Set(['ifExists']);
+export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
+export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
+export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS = new Set(['skip']);
+export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['cascade']);
+export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
+export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
 
 /**
  * Abstract Query Generator
@@ -150,7 +152,19 @@ export class AbstractQueryGenerator {
     return `DESCRIBE ${table};`;
   }
 
-  dropTableQuery(tableName) {
+  dropTableQuery(tableName, options) {
+    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
+
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)};`;
   }
 
@@ -1223,11 +1237,11 @@ export class AbstractQueryGenerator {
    * @param   {string}               _column   The JSON column
    * @param   {string|Array<string>} [_path]   The path to extract (optional)
    * @param   {boolean}              [_isJson] The value is JSON use alt symbols (optional)
-   * @returns {string}                        The generated sql query
+   * @returns {string}                         The generated sql query
    * @private
    */
   jsonPathExtractionQuery(_column, _path, _isJson) {
-    throw new Error(`JSON operations are not supported in ${this.dialect.name}`);
+    throw new Error(`JSON operations are not supported in ${this.dialect.name}.`);
   }
 
   /*
