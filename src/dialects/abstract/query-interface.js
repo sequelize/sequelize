@@ -276,9 +276,9 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async dropTable(tableName, options = {}) {
-    options.cascade = options.cascade != null ? options.cascade
+    options.cascade = (options.cascade && this.queryGenerator.dialect.supports.dropTable.cascade) ? options.cascade
       // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
-      : (options.force && this.queryGenerator.dialect.supports.drop.cascade) ? true
+      : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
       : undefined;
 
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
@@ -290,7 +290,7 @@ export class QueryInterface {
     for (const tableName of tableNames) {
       // if tableName is not in the Array of tables names then don't drop it
       if (!skip.includes(tableName.tableName || tableName)) {
-        await this.dropTable(tableName, options);
+        await this.dropTable(tableName, { ...options, cascade: true });
       }
     }
   }

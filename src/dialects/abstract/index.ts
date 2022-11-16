@@ -213,7 +213,7 @@ export type DialectSupports = {
 
   /** Whether this dialect supports changing the global timezone option */
   globalTimeZoneConfig: boolean,
-  drop: {
+  dropTable: {
     cascade: boolean,
   },
 };
@@ -333,7 +333,7 @@ export abstract class AbstractDialect {
     escapeStringConstants: false,
     milliseconds: true,
     globalTimeZoneConfig: false,
-    drop: {
+    dropTable: {
       cascade: false,
     },
   };
