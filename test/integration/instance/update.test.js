@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should save attributes affected by setters', async function () {
-      const user = this.User.build();
+      const user = await this.User.create();
       await user.update({ validateSideEffect: 5 });
       expect(user.validateSideEffect).to.be.equal(5);
       await user.reload();

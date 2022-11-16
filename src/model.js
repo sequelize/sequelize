@@ -2580,7 +2580,7 @@ Specify a different name for either index to resolve this issue.`);
       //  but the user should be able to specify a WHERE clause themselves (because we can't perfectly include all UNIQUE constraints in our implementation)
       //  there is also some incoherence in our implementation: This "where" returns the Primary Key constraint, but all other unique constraints
       //  are added inside of QueryInterface. Everything should be done inside of QueryInterface instead.
-      instance.where(false, true),
+      instance.where(false, true) ?? {},
       options,
     );
 
