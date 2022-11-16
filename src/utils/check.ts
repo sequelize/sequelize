@@ -1,3 +1,4 @@
+import pickBy from 'lodash/pickBy';
 import { BaseError } from '../errors/index.js';
 import { Where } from './sequelize-method';
 
@@ -97,7 +98,7 @@ export function rejectInvalidOptions(
   supportedOptions: Set<string>,
   receivedOptions: Record<string, unknown>,
 ): void {
-  const receivedOptionNames = Object.keys(receivedOptions);
+  const receivedOptionNames = Object.keys(pickBy(receivedOptions));
   const unsupportedOptions = receivedOptionNames.filter(optionName => {
     return allSupportableOptions.has(optionName) && !supportedOptions.has(optionName);
   });
