@@ -64,7 +64,7 @@ describe('QueryGenerator#arithmeticQuery', () => {
     });
   });
 
-  it('does not cause a syntax error when a minor operator is used with a negative value', async () => {
+  it('does not cause a syntax error when the minus operator is used with a negative value', async () => {
     const sql = queryGenerator.arithmeticQuery(
       '-', 'myTable', {}, { foo: -1 }, {}, {},
     );
