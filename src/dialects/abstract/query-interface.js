@@ -276,7 +276,7 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async dropTable(tableName, options = {}) {
-    options.cascade = options.cascade !== null ? options.cascade
+    options.cascade = options.cascade != null ? options.cascade
       // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
       : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
       : undefined;
