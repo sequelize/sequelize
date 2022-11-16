@@ -41,28 +41,4 @@ describe('Sequelize#drop', () => {
     // drop both tables
     await sequelize.drop();
   });
-
-  it('supports truncating cyclic associations with { cascade: true }', async () => {
-    const A = sequelize.define('A', {
-      BId: {
-        type: DataTypes.INTEGER,
-      },
-    });
-
-    const B = sequelize.define('B', {
-      AId: {
-        type: DataTypes.INTEGER,
-      },
-    });
-
-    // These models both have a foreign key that references the other model.
-    // Sequelize should be able to create them.
-    A.belongsTo(B, { foreignKey: { allowNull: false } });
-    B.belongsTo(A, { foreignKey: { allowNull: false } });
-
-    await sequelize.sync();
-
-    // drop both tables
-    await sequelize.drop({ cascade: true });
-  });
 });
