@@ -35,7 +35,7 @@ if (current.dialect.supports.transactions) {
     describe('context', () => {
       it('does not use continuation storage on manually managed transactions', async function () {
         await Sequelize._clsRun(async () => {
-          const transaction = await this.sequelize.transaction();
+          const transaction = await this.sequelize.startUnmanagedTransaction();
           expect(this.ns.get('transaction')).not.to.be.ok;
           await transaction.rollback();
         });

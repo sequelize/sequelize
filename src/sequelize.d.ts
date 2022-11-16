@@ -23,7 +23,7 @@ import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
 import type { Cast, Col, Fn, Json, Literal, Where } from './utils';
-import type { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
+import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
 
 /**
  * Additional options for table altering during sync
@@ -423,9 +423,15 @@ export interface Options extends Logging {
   // TODO: move to dialectOptions, rename to noForeignKeyEnforcement, and add integration tests with
   //  query-interface methods that temporarily disable foreign keys.
   foreignKeys?: boolean;
+
+  /**
+   * Disable the use of AsyncLocalStorage to automatically pass transactions started by {@link Sequelize#transaction}.
+   * You will need to pass transactions around manually if you disable this.
+   */
+  disableAlsTransactions?: boolean;
 }
 
-export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone'> {
+export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone' | 'disableAlsTransactions'> {
   readonly replication: NormalizedReplicationOptions;
 }
 
@@ -656,15 +662,6 @@ export class Sequelize extends SequelizeTypeScript {
   static DataTypes: typeof DataTypes;
 
   /**
-   * Use CLS with Sequelize.
-   * CLS namespace provided is stored as `Sequelize._cls`
-   * and Promise is patched to use the namespace, using `cls-hooked` module.
-   *
-   * @param namespace
-   */
-  static useCLS(namespace: ContinuationLocalStorageNamespace): typeof Sequelize;
-
-  /**
    * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
    */
   Sequelize: typeof Sequelize;
@@ -681,13 +678,6 @@ export class Sequelize extends SequelizeTypeScript {
   readonly modelManager: ModelManager;
 
   readonly connectionManager: AbstractConnectionManager;
-
-  /**
-   * For internal use only.
-   *
-   * @type {ContinuationLocalStorageNamespace | undefined}
-   */
-  static readonly _cls: ContinuationLocalStorageNamespace | undefined;
 
   /**
    * Dictionary of all models linked with this instance.
@@ -985,57 +975,6 @@ export class Sequelize extends SequelizeTypeScript {
    */
   authenticate(options?: QueryOptions): Promise<void>;
   validate(options?: QueryOptions): Promise<void>;
-
-  /**
-   * Start a transaction. When using transactions, you should pass the transaction in the options argument
-   * in order for the query to happen under that transaction
-   *
-   * ```js
-   *   try {
-   *     const transaction = await sequelize.transaction();
-   *     const user = await User.findOne(..., { transaction });
-   *     await user.update(..., { transaction });
-   *     await transaction.commit();
-   *   } catch(err) {
-   *     await transaction.rollback();
-   *   }
-   * })
-   * ```
-   *
-   * A syntax for automatically committing or rolling back based on the promise chain resolution is also
-   * supported:
-   *
-   * ```js
-   * try {
-   *   await sequelize.transaction(transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
-   *     const user = await User.findOne(..., {transaction});
-   *     await user.update(..., {transaction});
-   *   });
-   *   // Committed
-   * } catch(err) {
-   *   // Rolled back
-   *   console.error(err);
-   * }
-   * ```
-   *
-   * If you have [CLS](https://github.com/Jeff-Lewis/cls-hooked) enabled, the transaction
-   * will automatically be passed to any query that runs witin the callback. To enable CLS, add it do your
-   * project, create a namespace and set it on the sequelize constructor:
-   *
-   * ```js
-   * const cls = require('cls-hooked');
-   * const namespace = cls.createNamespace('....');
-   * const { Sequelize } = require('@sequelize/core');
-   * Sequelize.useCLS(namespace);
-   * ```
-   * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
-   *
-   * @param options Transaction Options
-   * @param autoCallback Callback for the transaction
-   */
-  transaction<T>(options: TransactionOptions, autoCallback: (t: Transaction) => PromiseLike<T> | T): Promise<T>;
-  transaction<T>(autoCallback: (t: Transaction) => PromiseLike<T> | T): Promise<T>;
-  transaction(options?: TransactionOptions): Promise<Transaction>;
 
   /**
    * Close all connections used by this sequelize instance, and free all references so the instance can be

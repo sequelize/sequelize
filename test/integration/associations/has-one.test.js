@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const fakeUser = await User.create({ username: 'foo' });
         const user = await User.create({ username: 'foo' });
         const group = await Group.create({ name: 'bar' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
         const groups = await Group.findAll();
         const associatedUser = await groups[0].getUser();
@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         await sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
         const group = await Group.create({ name: 'bar' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
         const groups = await Group.findAll();
         const associatedUser = await groups[0].getUser();
@@ -279,7 +279,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         await sequelize.sync({ force: true });
         const user = await User.create({ username: 'bob' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await user.createGroup({ name: 'testgroup' }, { transaction: t });
         const users = await User.findAll();
         const group = await users[0].getGroup();
