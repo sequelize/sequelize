@@ -122,6 +122,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     prepend?: boolean,
   ): string;
 
+  /**
+   * Generates an SQL query that extract JSON property of given path.
+   *
+   * @param   {string}               column   The JSON column
+   * @param   {string|Array<string>} [path]   The path to extract (optional)
+   * @param   {boolean}              [isJson] The value is JSON use alt symbols (optional)
+   * @returns {string}                        The generated sql query
+   * @private
+   */
+  // TODO: see how we can make the typings protected/private while still allowing it to be typed in tests
+  jsonPathExtractionQuery(column: string, path?: string | string[], isJson?: boolean): string;
+
   selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
     table: TableName,

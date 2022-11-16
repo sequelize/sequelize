@@ -62,11 +62,11 @@
   "devDependencies": {
     "@ephys/eslint-config-typescript": "17.0.0",
     "@rushstack/eslint-patch": "1.2.0",
-    "@types/chai": "4.3.3",
+    "@types/chai": "4.3.4",
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
     "@types/ibm_db": "2.0.11",
-    "@types/lodash": "4.14.188",
+    "@types/lodash": "4.14.189",
     "@types/mocha": "10.0.0",
     "@types/node": "18.11.9",
     "@types/pg": "8.6.5",
@@ -76,7 +76,7 @@
     "@types/snowflake-sdk": "1.6.9",
     "@types/tedious": "4.0.9",
     "@types/uuid": "8.3.4",
-    "chai": "4.3.6",
+    "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
     "cls-hooked": "4.2.2",
@@ -84,7 +84,7 @@
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.15.13",
+    "esbuild": "0.15.14",
     "eslint": "8.27.0",
     "eslint-plugin-jsdoc": "39.6.2",
     "eslint-plugin-mocha": "10.1.0",
@@ -119,8 +119,8 @@
     "sqlite3": "5.1.2",
     "tedious": "15.1.1",
     "ts-node": "10.9.1",
-    "typedoc": "0.23.20",
-    "typescript": "4.8.4"
+    "typedoc": "0.23.21",
+    "typescript": "4.9.3"
   },
   "peerDependenciesMeta": {
     "pg": {
