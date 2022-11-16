@@ -3,9 +3,15 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { beforeAll2, getTestDialect, sequelize } from '../support';
 
-const dialect = getTestDialect();
+const dialectName = getTestDialect();
 
 describe('Transaction', () => {
+  // IBMiQueryInterface#startTransaction does not pass "START TRANSACTION" queries to queryRaw.
+  // Instead, it calls beginTransaction directly on the transaction (as it should be done).
+  if (dialectName === 'ibmi') {
+    return;
+  }
+
   const vars = beforeAll2(() => {
     return {
       stub: sinon.stub(sequelize, 'queryRaw').resolves([[], {}]),
@@ -47,7 +53,7 @@ describe('Transaction', () => {
     };
 
     await sequelize.transaction(async () => {
-      expect(vars.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
+      expect(vars.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialectName] || expectations.all);
     });
   });
 
@@ -74,7 +80,7 @@ describe('Transaction', () => {
     };
 
     await sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, async () => {
-      expect(vars.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
+      expect(vars.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialectName] || expectations.all);
     });
   });
 });
