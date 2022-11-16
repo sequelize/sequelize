@@ -80,8 +80,8 @@ describe('Transaction', () => {
 });
 
 describe('Sequelize#transaction', () => {
-  it('throws if the callback is not provided', () => {
-    // @ts-expect-error -- this test ensures an helpful error is thrown to ease migration.
+  it('throws if the callback is not provided', async () => {
+    // @ts-expect-error -- this test ensures a helpful error is thrown to ease migration.
     await expect(sequelize.transaction()).to.be.rejectedWith('sequelize.transaction requires a callback. If you wish to start an unmanaged transaction, please use sequelize.startUnmanagedTransaction instead');
   });
 });

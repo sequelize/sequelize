@@ -2357,7 +2357,8 @@ Specify a different name for either index to resolve this issue.`);
     let transaction;
 
     try {
-      const t = await this.sequelize.transaction(options);
+      // TODO: use managed sequelize.transaction() instead
+      const t = await this.sequelize.startUnmanagedTransaction(options);
       transaction = t;
       options.transaction = t;
 

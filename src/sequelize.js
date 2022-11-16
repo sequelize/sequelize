@@ -256,6 +256,7 @@ export class Sequelize extends SequelizeTypeScript {
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
+      disableAlsTransactions: false,
       ...options,
       pool: _.defaults(options.pool || {}, {
         max: 5,
@@ -265,6 +266,11 @@ export class Sequelize extends SequelizeTypeScript {
         evict: 1000,
       }),
     };
+
+    // TODO: remove & assign property directly once this constructor has been migrated to the SequelizeTypeScript class
+    if (!this.options.disableAlsTransactions) {
+      this._setupTransactionAls();
+    }
 
     if (!this.options.dialect) {
       throw new Error('Dialect needs to be explicitly supplied as of v4.0.0');

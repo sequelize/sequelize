@@ -1,4 +1,4 @@
-import type { AsyncLocalStorage } from 'async_hooks';
+import { AsyncLocalStorage } from 'async_hooks';
 import type { AbstractQuery } from './dialects/abstract/query.js';
 import {
   legacyBuildHasHook,
@@ -177,6 +177,10 @@ export class SequelizeTypeScript {
   afterAssociate = legacyBuildAddHook(instanceSequelizeHooks, 'afterAssociate');
 
   #transactionAls: AsyncLocalStorage<Transaction> | undefined;
+
+  private _setupTransactionAls() {
+    this.#transactionAls = new AsyncLocalStorage<Transaction>();
+  }
 
   /**
    * Returns the transaction that is associated to the current asynchronous operation.
