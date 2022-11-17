@@ -10,10 +10,6 @@ const sequelize = Support.sequelize;
 const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 const sinon = require('sinon');
 const dayjs = require('dayjs');
-const {
-  createSequelizeInstance,
-  prepareTransactionTest,
-} = require('../../support');
 
 const qq = str => {
   if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
@@ -252,6 +248,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('executes select queries correctly', async function () {
+      await this.sequelize.query(this.insertQuery);
+      const [users] = await this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
+      expect(users.map(u => {
+        return u.username;
+      })).to.include('john');
+    });
+
+    it('executes select queries correctly when quoteIdentifiers is false', async function () {
+      this.sequelize.options.quoteIdentifiers = false;
       await this.sequelize.query(this.insertQuery);
       const [users] = await this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
       expect(users.map(u => {
