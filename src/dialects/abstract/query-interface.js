@@ -242,6 +242,8 @@ export class QueryInterface {
       table: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
+      // schema override for multi-tenancy
+      schema: options.schema,
     });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
