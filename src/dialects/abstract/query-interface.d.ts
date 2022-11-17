@@ -254,6 +254,22 @@ export interface DatabaseDescription {
   name: string;
 }
 
+export interface IndexFieldDescription {
+  attribute: string;
+  length: number | undefined;
+  order: 'DESC' | 'ASC';
+  collate: string | undefined;
+}
+
+export interface IndexDescription {
+  primary: boolean;
+  fields: IndexFieldDescription[];
+  name: string;
+  tableName: string | undefined;
+  unique: boolean;
+  type: string | undefined;
+}
+
 export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable {}
 
 export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions, Replaceable {}
@@ -447,7 +463,7 @@ export class QueryInterface {
   /**
    * Shows the index of a table
    */
-  showIndex(tableName: string | object, options?: QueryRawOptions): Promise<object>;
+  showIndex(tableName: string | object, options?: QueryRawOptions): Promise<IndexDescription[]>;
 
   /**
    * Put a name to an index
