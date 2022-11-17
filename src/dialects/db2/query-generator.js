@@ -105,7 +105,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
           if (commentMatch && commentMatch.length > 2) {
             const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
             commentStr += _.template(commentTemplate, this._templateSettings)({
-              table: this.quoteIdentifier(tableName),
+              table: this.quoteTable(tableName),
               comment: this.escape(commentText, undefined, { replacements: options.replacements }),
               column: this.quoteIdentifier(attr),
             });
@@ -969,22 +969,12 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     return uniqno;
   }
-
-  /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} _force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, _force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '"'), '"');
-  }
-
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   if (identifier) {
     return `'${identifier}'`;

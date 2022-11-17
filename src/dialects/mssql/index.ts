@@ -101,6 +101,10 @@ export class MssqlDialect extends AbstractDialect {
     return `N'${value}'`;
   }
 
+  getDefaultSchema(): string {
+    return 'dbo';
+  }
+
   static getDefaultPort() {
     return 1433;
   }

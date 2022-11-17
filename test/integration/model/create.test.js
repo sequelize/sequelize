@@ -1089,7 +1089,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     if (current.dialect.supports.index.functionBased) {
-      it('doesn\'t allow duplicated records with unique function based indexes', async function () {
+      it(`doesn't allow duplicated records with unique function based indexes`, async function () {
         const User = this.sequelize.define('UserWithUniqueUsernameFunctionIndex', {
           username: DataTypes.STRING,
           email: { type: DataTypes.STRING, unique: true },
@@ -1097,8 +1097,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         try {
           await User.sync({ force: true });
-          const tableName = User.getTableName();
-          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower("username")))`);
+          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON ${this.sequelize.queryInterface.queryGenerator.quoteTable(User)} ((lower("username")))`);
           await User.create({ username: 'foo' });
           await User.create({ username: 'foo' });
         } catch (error) {

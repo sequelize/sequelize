@@ -86,9 +86,8 @@ export interface TableNameWithSchema {
   tableName: string;
   schema?: string;
   delimiter?: string;
-  as?: string;
-  name?: string;
 }
+
 export type TableName = string | TableNameWithSchema;
 
 export type IndexType = 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';

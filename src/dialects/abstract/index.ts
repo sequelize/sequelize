@@ -513,6 +513,8 @@ export abstract class AbstractDialect {
     return this.#dataTypeParsers.get(databaseDataType);
   }
 
+  abstract getDefaultSchema(): string;
+
   static getDefaultPort(): number {
     throw new Error(`getDefaultPort not implemented in ${this.name}`);
   }

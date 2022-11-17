@@ -65,6 +65,11 @@ export class IBMiDialect extends AbstractDialect {
     return `BLOB(X'${buffer.toString('hex')}')`;
   }
 
+  getDefaultSchema(): string {
+    // TODO: what is the default schema in IBMi?
+    return '';
+  }
+
   static getDefaultPort() {
     return 25_000;
   }
