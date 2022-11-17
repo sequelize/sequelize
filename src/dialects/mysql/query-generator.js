@@ -170,7 +170,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
   describeTableQuery(tableName, schema, schemaDelimiter) {
     tableName = this.extractTableDetails(tableName);
     tableName.schema = schema || tableName.schema;
-    tableName.schemaDelimiter = schemaDelimiter || tableName.schemaDelimiter;
+    tableName.delimiter = schemaDelimiter || tableName.delimiter;
 
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }

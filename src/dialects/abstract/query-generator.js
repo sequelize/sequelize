@@ -104,7 +104,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   describeTableQuery(tableName, schema, schemaDelimiter) {
     tableName = this.extractTableDetails(tableName);
     tableName.schema = schema || tableName.schema;
-    tableName.schemaDelimiter = schemaDelimiter || tableName.schemaDelimiter;
+    tableName.delimiter = schemaDelimiter || tableName.delimiter;
 
     return `DESCRIBE ${this.quoteTable(tableName)};`;
   }

@@ -390,13 +390,11 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   }
 
   describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = {
-      _schema: schema,
-      _schemaDelimiter: schemaDelimiter,
-      tableName,
-    };
+    tableName = this.extractTableDetails(tableName);
+    tableName.schema = schema || tableName.schema;
+    tableName.delimiter = schemaDelimiter || tableName.delimiter;
 
-    return `PRAGMA TABLE_INFO(${this.quoteTable(table)});`;
+    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)});`;
   }
 
   describeCreateTableQuery(tableName) {
