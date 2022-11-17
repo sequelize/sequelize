@@ -115,6 +115,11 @@ export interface RemoveColumnQueryOptions {
   ifExists?: boolean;
 }
 
+// keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface RemoveIndexQueryOptions {
+  concurrently?: boolean;
+}
+
 export class AbstractQueryGenerator {
   dialect: AbstractDialect;
 
@@ -202,6 +207,12 @@ export class AbstractQueryGenerator {
   ): string;
 
   showIndexesQuery(tableName: TableName): string;
+
+  removeIndexQuery(
+    tableName: TableName,
+    indexNameOrAttributes: string | string[],
+    options?: RemoveIndexQueryOptions,
+  ): string;
 
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
   // TODO: this should become `describeTableQuery(tableName: TableName): string`
