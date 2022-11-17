@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 const Support = require('../../support');
-const { Op } = require('@sequelize/core');
+const { Op, literal } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -234,37 +234,60 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (current.dialect.supports.index.include) {
-      it('include columns with unique index', () => {
-        expectsql(sql.addIndexQuery('User',  {
-          name: 'email_include_name',
-          fields: ['email'],
-          include: ['first_name', 'last_name'],
-          unique: true,
-        }), {
-          default: 'CREATE UNIQUE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
-        });
+    it('include columns with unique index', () => {
+      expectsql(() => sql.addIndexQuery('User',  {
+        name: 'email_include_name',
+        fields: ['email'],
+        include: ['first_name', 'last_name'],
+        unique: true,
+      }), {
+        default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
+        mssql: 'CREATE UNIQUE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
+        'db2 postgres': 'CREATE UNIQUE INDEX "email_include_name" ON "User" ("email") INCLUDE ("first_name", "last_name")',
       });
+    });
 
-      it('include columns with non-unique index', () => {
-        if (current.dialect.name === 'db2') {
-          // DB2 does not support non-unique indexes with include columns
-          expect(() => sql.addIndexQuery('User',  {
-            name: 'email_include_name',
-            fields: ['email'],
-            include: ['first_name', 'last_name'],
-          })).to.throw('DB2 does not support non-unique indexes with INCLUDE syntax.');
-        } else {
-          expectsql(sql.addIndexQuery('User',  {
-            name: 'email_include_name',
-            fields: ['email'],
-            include: ['first_name', 'last_name'],
-          }), {
-            default: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
-          });
-        }
+    it('include columns with non-unique index', () => {
+      expectsql(() => sql.addIndexQuery('User',  {
+        name: 'email_include_name',
+        fields: ['email'],
+        include: ['first_name', 'last_name'],
+      }), {
+        // DB2 does not support non-unique indexes with include columns
+        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
+        default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
+        mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
+        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE ("first_name", "last_name")',
       });
-    }
+    });
+
+    it('include columns using a liternal with non-unique index', () => {
+      expectsql(() => sql.addIndexQuery('User',  {
+        name: 'email_include_name',
+        fields: ['email'],
+        include: literal('(first_name, last_name)'),
+      }), {
+        // DB2 does not support non-unique indexes with include columns
+        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
+        default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
+        mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
+        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE (first_name, last_name)',
+      });
+    });
+
+    it('include columns using an array of liternals with non-unique index', () => {
+      expectsql(() => sql.addIndexQuery('User',  {
+        name: 'email_include_name',
+        fields: ['email'],
+        include: [literal('first_name'), literal('last_name')],
+      }), {
+        // DB2 does not support non-unique indexes with include columns
+        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
+        default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
+        mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
+        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE (first_name, last_name)',
+      });
+    });
   });
 
   describe('removeIndex', () => {

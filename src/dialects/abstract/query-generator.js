@@ -669,8 +669,18 @@ export class AbstractQueryGenerator {
     });
 
     let includeSql;
-    if (this.dialect.supports.index.include && options.include) {
-      includeSql = options.include.map(column => this.quoteIdentifier(column));
+    if (options.include) {
+      if (!this.dialect.supports.index.include) {
+        throw new Error(`The include attribute for indexes is not supported by ${this.dialect.name} dialect`);
+      }
+
+      if (options.include instanceof Utils.Literal) {
+        includeSql = `INCLUDE ${options.include.val}`;
+      } else if (Array.isArray(options.include)) {
+        includeSql = `INCLUDE (${options.include.map(field => (field instanceof Utils.Literal ? field.val : this.quoteIdentifier(field))).join(', ')})`;
+      } else {
+        throw new TypeError('The include attribute for indexes must be an array or a literal.');
+      }
     }
 
     if (!options.name) {
@@ -725,7 +735,7 @@ export class AbstractQueryGenerator {
       this.dialect.supports.index.using === 2 && options.using ? `USING ${options.using}` : '',
       `(${fieldsSql.join(', ')})`,
       this.dialect.supports.index.parser && options.parser ? `WITH PARSER ${options.parser}` : undefined,
-      this.dialect.supports.index.include && options.include ? `INCLUDE (${includeSql.join(', ')})` : undefined,
+      this.dialect.supports.index.include && options.include ? includeSql : undefined,
       this.dialect.supports.index.where && options.where ? options.where : undefined,
     );
 

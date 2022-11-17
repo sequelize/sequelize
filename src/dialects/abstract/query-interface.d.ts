@@ -179,7 +179,7 @@ export interface IndexOptions {
   /**
    * Non-key columns to be added to the lead level of the nonclustered index.
    */
-  include?: string[];
+  include?: Literal | Array<string | Literal>;
 }
 
 export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}
