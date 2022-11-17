@@ -72,6 +72,11 @@ export class Db2Dialect extends AbstractDialect {
     return `BLOB(${this.queryGenerator.escape(buffer.toString())})`;
   }
 
+  getDefaultSchema(): string {
+    // TODO: what is the default schema in DB2?
+    return '';
+  }
+
   static getDefaultPort() {
     return 3306;
   }

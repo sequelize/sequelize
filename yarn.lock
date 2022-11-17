@@ -1126,13 +1126,6 @@
   dependencies:
     "@types/ms" "*"
 
-"@types/es-aggregate-error@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@types/es-aggregate-error/-/es-aggregate-error-1.0.2.tgz#a970b4a5bbee95d87aebaa2aa317c846c18429df"
-  integrity sha512-erqUpFXksaeR2kejKnhnjZjbFxUpGZx4Z7ydNL9ie8tEhXPiZTsLeUDJ6aR1F8j5wWUAtOAQWUqkc7givBJbBA==
-  dependencies:
-    "@types/node" "*"
-
 "@types/generic-pool@*":
   version "3.1.11"
   resolved "https://registry.yarnpkg.com/@types/generic-pool/-/generic-pool-3.1.11.tgz#853f7c6f939fd7d782452999cafac791f70c1cf1"
@@ -8348,15 +8341,14 @@ targz@^1.0.1:
   dependencies:
     tar-fs "^1.8.1"
 
-tedious@15.1.1:
-  version "15.1.1"
-  resolved "https://registry.yarnpkg.com/tedious/-/tedious-15.1.1.tgz#139c0ff14b800be4710b8fe499bcbe3ada7e0e53"
-  integrity sha512-GPnitBfhB7WMVMGuu/FipfOKDL0+r1VKyoTKQeHO/BFDFERkhaqFrcK5705da1Ze2gAvIpd/ep2y4xrvfoXXbw==
+tedious@15.1.2:
+  version "15.1.2"
+  resolved "https://registry.yarnpkg.com/tedious/-/tedious-15.1.2.tgz#4dd3c33134be01d64520475e911ca83e276fcfeb"
+  integrity sha512-94slmnggCX8zG6iLNnM3k6PplTguP0p7R2RWOKTXdPmK1VmTpWk4+e0J4koIMXm1jjG7sGlZ1/JlaGVAdF1OOg==
   dependencies:
     "@azure/identity" "^2.0.4"
     "@azure/keyvault-keys" "^4.4.0"
     "@js-joda/core" "^5.2.0"
-    "@types/es-aggregate-error" "^1.0.2"
     bl "^5.0.0"
     es-aggregate-error "^1.0.8"
     iconv-lite "^0.6.3"

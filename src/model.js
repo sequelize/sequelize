@@ -929,7 +929,7 @@ Specify a different name for either index to resolve this issue.`);
       this.tableName = this.options.tableName;
     }
 
-    this._schema = this.options.schema || '';
+    this._schema = this.options.schema || this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
     this._schemaDelimiter = this.options.schemaDelimiter || '';
 
     // error check options
@@ -1311,6 +1311,19 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     const tableName = this.getTableName(options);
+    if (options.schema && options.schema !== tableName.schema) {
+      // Some users sync the same set of tables in different schemas for various reasons
+      // They then set `searchPath` when running a query to use different schemas.
+      // See https://github.com/sequelize/sequelize/pull/15274#discussion_r1020770364
+      // We only allow this if the tables are in the default schema, because we need to ensure that
+      // all tables are in the same schema to prevent collisions and `searchPath` only works if we don't specify the schema
+      // (which we don't for the default schema)
+      if (tableName.schema !== this.sequelize.dialect.getDefaultSchema()) {
+        throw new Error(`The "schema" option in sync can only be used on models that do not already specify a schema, or that are using the default schema. Model ${this.name} already specifies schema ${tableName.schema}`);
+      }
+
+      tableName.schema = options.schema;
+    }
 
     let tableExists;
     if (options.force) {
@@ -1476,6 +1489,8 @@ Specify a different name for either index to resolve this issue.`);
 
     const schemaOptions = typeof schema === 'string' ? { schema } : schema;
 
+    schemaOptions.schema ||= this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
+
     return this.getInitialModel()
       ._withScopeAndSchema(schemaOptions, this._scope, this._scopeNames);
   }
@@ -1506,7 +1521,18 @@ Specify a different name for either index to resolve this issue.`);
    * @returns {string|object}
    */
   static getTableName() {
-    return this.queryGenerator.addSchema(this);
+    const self = this;
+
+    return {
+      tableName: this.tableName,
+      schema: this._schema,
+      delimiter: this._schemaDelimiter || '.',
+      // TODO: remove, it should not be relied on
+      //  once this is removed, also remove the various omit(..., 'toString') that are used in tests when deep-equaling table names.
+      toString() {
+        return self.sequelize.queryInterface.queryGenerator.quoteTable(this);
+      },
+    };
   }
 
   /**

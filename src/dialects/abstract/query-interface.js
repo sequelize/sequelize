@@ -204,6 +204,7 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
+  // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
     let sql = '';
 
@@ -233,16 +234,16 @@ export class QueryInterface {
       !tableName.schema
       && (options.schema || Boolean(model) && model._schema)
     ) {
-      tableName = this.queryGenerator.addSchema({
-        tableName,
-        _schema: Boolean(model) && model._schema || options.schema,
-      });
+      tableName = this.queryGenerator.extractTableDetails(tableName);
+      tableName.schema = model?._schema || options.schema;
     }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
+      // schema override for multi-tenancy
+      schema: options.schema,
     });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 

@@ -170,7 +170,7 @@ if (dialect.startsWith('postgres')) {
         },
         {
           arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title public."enum_myTable_title", name VARCHAR(255));',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title public.enum_myTable_title, name VARCHAR(255));',
           context: { options: { quoteIdentifiers: false } },
         },
         {
@@ -1152,31 +1152,27 @@ if (dialect.startsWith('postgres')) {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
-        beforeEach(function () {
-          this.queryGenerator = new QueryGenerator({
-            sequelize: this.sequelize,
-            dialect: this.sequelize.dialect,
-          });
-        });
-
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
           const title = test.title || `Postgres correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
-          it(title, function () {
+          it(title, () => {
+            const newSequelize = Support.createSequelizeInstance({
+              ...test.context?.options,
+            });
+
+            const queryGenerator = newSequelize.queryInterface.queryGenerator;
+
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {
-                test.arguments[1] = test.arguments[1](this.sequelize);
+                test.arguments[1] = test.arguments[1](newSequelize);
               }
 
               if (typeof test.arguments[2] === 'function') {
-                test.arguments[2] = test.arguments[2](this.sequelize);
+                test.arguments[2] = test.arguments[2](newSequelize);
               }
             }
 
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            this.queryGenerator.options = { ...this.queryGenerator.options, ...test.context && test.context.options };
-
-            const conditions = this.queryGenerator[suiteTitle](...test.arguments);
+            const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         }
