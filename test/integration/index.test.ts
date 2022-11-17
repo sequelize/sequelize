@@ -21,7 +21,6 @@ describe(getTestDialectTeaser('Indexes'), () => {
         indexes: [{ name: 'user_username', fields: ['username'], include: ['first_name', 'last_name'], unique: false }],
       });
 
-      // DB2 does not support non-unique indexes with include columns
       if (dialect === 'db2') {
         try {
           await sequelize.sync({ force: true });

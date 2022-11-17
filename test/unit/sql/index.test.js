@@ -264,7 +264,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         fields: ['email'],
         include: ['first_name', 'last_name'],
       }), {
-        // DB2 does not support non-unique indexes with include columns
         db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
         mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
@@ -278,7 +277,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         fields: ['email'],
         include: literal('(first_name, last_name)'),
       }), {
-        // DB2 does not support non-unique indexes with include columns
         db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
         mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
@@ -292,7 +290,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         fields: ['email'],
         include: [literal('first_name'), literal('last_name')],
       }), {
-        // DB2 does not support non-unique indexes with include columns
         db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
         mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
