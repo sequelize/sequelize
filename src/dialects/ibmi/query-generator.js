@@ -435,6 +435,10 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       return result;
     });
 
+    if (options.include) {
+      throw new Error(`The include attribute for indexes is not supported by ${this.dialect.name} dialect`);
+    }
+
     if (!options.name) {
       // Mostly for cases where addIndex is called directly by the user without an options object (for example in migrations)
       // All calls that go through sequelize should already have a name

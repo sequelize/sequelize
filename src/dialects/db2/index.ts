@@ -22,6 +22,7 @@ export class Db2Dialect extends AbstractDialect {
       collate: false,
       using: false,
       where: true,
+      include: true,
     },
     tmpTableTrigger: true,
     dataTypes: {
