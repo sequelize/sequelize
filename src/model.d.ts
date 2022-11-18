@@ -752,7 +752,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   through?: IncludeThroughOptions;
 
   /**
-   * A list of associations to eagerly load using a left join (a single association is also supported).
+   * The list of associations to eagerly load.
    *
    * See {@link Includeable} to see how to specify the association, and its eager-loading options.
    */
