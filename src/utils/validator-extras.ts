@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import origValidator from 'validator';
 import type { Attributes, Model } from '../model.js';
 
-const validator = {
+export const validator = {
   ...origValidator,
   extend(name: string, fn: (...args: unknown[]) => unknown): unknown {
     Object.assign(this, { [name]: fn });
@@ -90,4 +90,4 @@ const validator = {
   },
 };
 
-export { validator };
+export const Validator = typeof validator;
