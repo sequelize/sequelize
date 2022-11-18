@@ -2105,7 +2105,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Contains the data values as they were when they were last retrieved or last saved.
    * It is meant to represent the state of the database, without the currently unsaved changes.
    */
-  _previousDataValues: TModelAttributes;
+  private readonly _previousDataValues: TModelAttributes;
 
   /**
    * Object that contains underlying model data
