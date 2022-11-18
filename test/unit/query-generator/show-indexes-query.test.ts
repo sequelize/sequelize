@@ -10,13 +10,14 @@ describe('QueryGenerator#showIndexesQuery', () => {
       default: `SHOW INDEX FROM [myTable]`,
       postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, `
         + `array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) `
-        + `AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a `
+        + `AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s `
         + `WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND `
-        + `t.relkind = 'r' and t.relname = 'myTable' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
+        + `t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public' `
+        + 'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;',
       mssql: `EXEC sys.sp_helpindex @objname = N'[myTable]';`,
       sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
-      db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'myTable' ORDER BY NAME;`,
+      db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'myTable' AND TBCREATOR = USER ORDER BY NAME;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA, `
         + `QSYS2.SYSCST.TABLE_NAME from QSYS2.SYSCSTCOL left outer join QSYS2.SYSCST on QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA and `
         + `QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME and QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME where `
@@ -55,13 +56,14 @@ describe('QueryGenerator#showIndexesQuery', () => {
       default: `SHOW INDEX FROM [myTable]`,
       postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, `
         + `array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) `
-        + `AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a `
+        + `AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s `
         + `WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND `
-        + `t.relkind = 'r' and t.relname = 'myTable' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
+        + `t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public' `
+        + 'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;',
       mssql: `EXEC sys.sp_helpindex @objname = N'[myTable]';`,
       sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
-      db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'myTable' ORDER BY NAME;`,
+      db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'myTable' AND TBCREATOR = USER ORDER BY NAME;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA, `
         + `QSYS2.SYSCST.TABLE_NAME from QSYS2.SYSCSTCOL left outer join QSYS2.SYSCST on QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA and `
         + `QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME and QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME where `

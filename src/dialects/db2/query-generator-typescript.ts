@@ -36,7 +36,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType",',
       'COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES',
       `WHERE TBNAME = ${this.escape(table.tableName)}`,
-      table.schema !== this.dialect.getDefaultSchema() ? `AND TBCREATOR = ${this.escape(table.schema)}` : '',
+      table.schema !== this.dialect.getDefaultSchema() ? `AND TBCREATOR = ${this.escape(table.schema)}` : 'AND TBCREATOR = USER',
       'ORDER BY NAME;',
     ]);
   }
