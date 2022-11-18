@@ -5,7 +5,8 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
-const _ = require('lodash');
+const omit = require('lodash/omit');
+const assert = require('node:assert');
 const sinon = require('sinon');
 const { resetSequelizeInstance } = require('../../support');
 
@@ -1381,7 +1382,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           autoIncrement: true,
         },
         relevance: {
-          type: DataTypes.DECIMAL,
+          type: DataTypes.FLOAT,
           validate: {
             min: 0,
             max: 1,
@@ -1428,13 +1429,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           autoIncrement: true,
         },
         relevance: {
-          type: DataTypes.DECIMAL,
+          type: DataTypes.FLOAT,
           validate: {
             min: 0,
             max: 1,
           },
         },
       });
+
       this.Article.belongsToMany(this.Label, { through: { model: this.ArticleLabel, unique: false } });
       this.Label.belongsToMany(this.Article, { through: { model: this.ArticleLabel, unique: false } });
 
@@ -3372,7 +3374,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           through: 'UserProjects',
         });
         expect(UserProjects.through.model.rawAttributes.user_id).to.be.ok;
-        expect(UserProjects.through.model.rawAttributes.user_id.references.model).to.equal(User.getTableName());
+        const targetTable = UserProjects.through.model.rawAttributes.user_id.references.model;
+        assert(typeof targetTable === 'object');
+
+        expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
         expect(UserProjects.through.model.rawAttributes.user_id.references.key).to.equal('uid');
         expect(UserProjects.through.model.rawAttributes.user_id.defaultValue).to.equal(42);
       });

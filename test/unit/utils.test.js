@@ -3,8 +3,10 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('./support');
+const Support = require('../support');
 const { DataTypes, Op, Utils } = require('@sequelize/core');
+
+const dialect = Support.sequelize.dialect;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('merge', () => {
@@ -34,22 +36,22 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   describe('toDefaultValue', () => {
     it('return plain data types', () => {
-      expect(Utils.toDefaultValue(DataTypes.UUIDV4)).to.equal('UUIDV4');
+      expect(() => Utils.toDefaultValue(DataTypes.UUIDV4, dialect)).to.throw();
     });
     it('return uuid v1', () => {
-      expect(/^[\da-z-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);
+      expect(/^[\da-z-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1(), dialect))).to.be.equal(true);
     });
     it('return uuid v4', () => {
-      expect(/^[\da-z-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))).to.be.equal(true);
+      expect(/^[\da-z-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4(), dialect))).to.be.equal(true);
     });
     it('return now', () => {
-      expect(Object.prototype.toString.call(Utils.toDefaultValue(DataTypes.NOW()))).to.be.equal('[object Date]');
+      expect(Object.prototype.toString.call(Utils.toDefaultValue(DataTypes.NOW(), dialect))).to.be.equal('[object Date]');
     });
     it('return plain string', () => {
-      expect(Utils.toDefaultValue('Test')).to.equal('Test');
+      expect(Utils.toDefaultValue('Test', dialect)).to.equal('Test');
     });
     it('return plain object', () => {
-      chai.assert.deepEqual({}, Utils.toDefaultValue({}));
+      expect(Utils.toDefaultValue({}, dialect)).to.deep.equal({});
     });
   });
 
@@ -69,14 +71,14 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     it('defaults symbol keys', () => {
       expect(Utils.defaults(
-        { a: 1, [Symbol.for('c')]: 3 },
+        { a: 1, [Symbol.for('eq')]: 3 },
         { b: 2 },
-        { [Symbol.for('c')]: 4, [Symbol.for('d')]: 4 },
+        { [Symbol.for('eq')]: 4, [Symbol.for('ne')]: 4 },
       )).to.eql({
         a: 1,
         b: 2,
-        [Symbol.for('c')]: 3,
-        [Symbol.for('d')]: 4,
+        [Symbol.for('eq')]: 3,
+        [Symbol.for('ne')]: 4,
       });
     });
   });
@@ -104,7 +106,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
 
     it('multiple calls', () => {
-      const Model = Support.sequelize.define('User', {
+      const User = Support.sequelize.define('User', {
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at',
@@ -120,14 +122,11 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
             attributes: [
               'active',
             ],
-          }, Model),
-          Model,
+          }, User),
+          User,
         ).attributes,
       ).to.eql([
-        [
-          'created_at',
-          'createdAt',
-        ],
+        ['created_at', 'createdAt'],
       ]);
     });
   });

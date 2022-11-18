@@ -1,6 +1,7 @@
 'use strict';
 
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+import { AbstractDataType } from './data-types';
 
 const _ = require('lodash');
 
@@ -12,6 +13,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk to all databases
  */
+// TODO: rename to AbstractQueryInterface
 export class QueryInterface {
   constructor(sequelize, queryGenerator) {
     this.sequelize = sequelize;
@@ -104,7 +106,7 @@ export class QueryInterface {
   async dropAllSchemas(options) {
     options = options || {};
 
-    if (!this.queryGenerator._dialect.supports.schemas) {
+    if (!this.queryGenerator.dialect.supports.schemas) {
       return this.sequelize.drop(options);
     }
 
@@ -141,6 +143,7 @@ export class QueryInterface {
    * @returns {Promise}
    * @private
    */
+  // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
     return await this.sequelize.queryRaw(
       this.queryGenerator.versionQuery(),
@@ -201,6 +204,7 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
+  // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
     let sql = '';
 
@@ -230,16 +234,16 @@ export class QueryInterface {
       !tableName.schema
       && (options.schema || Boolean(model) && model._schema)
     ) {
-      tableName = this.queryGenerator.addSchema({
-        tableName,
-        _schema: Boolean(model) && model._schema || options.schema,
-      });
+      tableName = this.queryGenerator.extractTableDetails(tableName);
+      tableName.schema = model?._schema || options.schema;
     }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
+      // schema override for multi-tenancy
+      schema: options.schema,
     });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
@@ -272,10 +276,11 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
-  async dropTable(tableName, options) {
-    // if we're forcing we should be cascading unless explicitly stated otherwise
-    options = { ...options };
-    options.cascade = options.cascade || options.force || false;
+  async dropTable(tableName, options = {}) {
+    options.cascade = options.cascade != null ? options.cascade
+      // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
+      : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
+      : undefined;
 
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
@@ -286,7 +291,12 @@ export class QueryInterface {
     for (const tableName of tableNames) {
       // if tableName is not in the Array of tables names then don't drop it
       if (!skip.includes(tableName.tableName || tableName)) {
-        await this.dropTable(tableName, { ...options, cascade: true });
+        await this.dropTable(tableName, {
+          // enable "cascade" by default if supported by this dialect,
+          // but let the user override the default
+          cascade: this.queryGenerator.dialect.supports.dropTable.cascade ? true : undefined,
+          ...options,
+        });
       }
     }
   }
@@ -440,15 +450,25 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
-  async addColumn(table, key, attribute, options) {
+  async addColumn(table, key, attribute, options = {}) {
     if (!table || !key || !attribute) {
       throw new Error('addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
     }
 
-    options = options || {};
     attribute = this.sequelize.normalizeAttribute(attribute);
 
-    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute), options);
+    if (
+      attribute.type instanceof AbstractDataType
+      // we don't give a context if it already has one, because it could come from a Model.
+      && !attribute.type.usageContext
+    ) {
+      attribute.type.attachUsageContext({ tableName: table, columnName: key, sequelize: this.sequelize });
+    }
+
+    const { ifNotExists, ...rawQueryOptions } = options;
+    const addColumnQueryOptions = ifNotExists ? { ifNotExists } : undefined;
+
+    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute, addColumnQueryOptions), rawQueryOptions);
   }
 
   /**
@@ -459,7 +479,12 @@ export class QueryInterface {
    * @param {object} [options]      Query options
    */
   async removeColumn(tableName, attributeName, options) {
-    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName), options);
+    options = options || {};
+
+    const { ifExists, ...rawQueryOptions } = options;
+    const removeColumnQueryOptions = ifExists ? { ifExists } : undefined;
+
+    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName, removeColumnQueryOptions), rawQueryOptions);
   }
 
   normalizeAttribute(dataTypeOrOptions) {
@@ -984,7 +1009,7 @@ export class QueryInterface {
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
     const table = _.isObject(tableName) ? tableName : { tableName };
-    const model = _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const model = options.model ? options.model : _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;

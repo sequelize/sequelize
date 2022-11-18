@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('./support');
+const Support = require('../support');
 const { InstanceValidator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator.js');
 const sinon = require('sinon');
 const { ValidationError: SequelizeValidationError, DataTypes } = require('@sequelize/core');

@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support   = require('../support');
+const Support   = require('../../support');
 
 const current   = Support.sequelize;
 const { DataTypes } = require('@sequelize/core');
@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         name: DataTypes.STRING,
         birthdate: DataTypes.DATE,
-        meta: DataTypes.JSON,
+        meta: DataTypes.TEXT,
         deletedAt: {
           type: DataTypes.DATE,
         },
@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const ParanoidUser = current.define('User', {
         name: DataTypes.STRING,
         birthdate: DataTypes.DATE,
-        meta: DataTypes.JSON,
+        meta: DataTypes.TEXT,
         deletedAt: {
           type: DataTypes.DATE,
         },

@@ -1,13 +1,17 @@
 'use strict';
 
-const Support = require('../support');
-const { Op } = require('@sequelize/core');
+const { expect } = require('chai');
+const Support = require('../../support');
+const { Op, literal } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
+
+const TICK_LEFT = Support.sequelize.dialect.TICK_CHAR_LEFT;
+const TICK_RIGHT = Support.sequelize.dialect.TICK_CHAR_RIGHT;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   if (current.dialect.name === 'snowflake') {
@@ -23,8 +27,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       if (current.dialect.supports.schemas) {
         expectsql(sql.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
-          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          'mariadb mysql': 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
+          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema.table] ([column1], [column2])',
+          'mariadb mysql': 'ALTER TABLE `schema.table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
         });
 
         expectsql(sql.addIndexQuery({
@@ -36,12 +40,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           'mariadb mysql': 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
         });
 
-        expectsql(sql.addIndexQuery(sql.quoteTable(sql.addSchema({
-          _schema: 'schema',
-          tableName: 'table',
-        })), ['column1', 'column2'], {}), {
-          default: 'CREATE INDEX [schema_table_column1_column2] ON [schema].[table] ([column1], [column2])',
-          'mariadb mysql': 'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
+        expectsql(sql.addIndexQuery(
+          // quoteTable will produce '"schema"."table"'
+          // that is a perfectly valid table name, so passing it to quoteTable again (through addIndexQuery) must produce this:
+          // '"""schema"".""table"""'
+          // the double-quotes are duplicated because they are escaped
+          sql.quoteTable({
+            schema: 'schema',
+            tableName: 'table',
+          }),
+          ['column1', 'column2'], {},
+        ), {
+          // using TICK variables directly because it's impossible for expectsql to know whether the TICK inside ticks is meant to be a tick or just part of the string
+          default: `CREATE INDEX ${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}schema${TICK_RIGHT}${TICK_RIGHT}_${TICK_LEFT}${TICK_LEFT}table${TICK_RIGHT}${TICK_RIGHT}_column1_column2${TICK_RIGHT} ON ${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}schema${TICK_RIGHT}${TICK_RIGHT}.${TICK_LEFT}${TICK_LEFT}table${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ([column1], [column2])`,
+          'mariadb mysql': 'ALTER TABLE ```schema``.``table``` ADD INDEX ```schema``_``table``_column1_column2` (`column1`, `column2`)',
         });
       }
     });
@@ -160,7 +172,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
-    if (current.dialect.supports.JSONB) {
+    if (current.dialect.supports.dataTypes.JSONB) {
       it('operator', () => {
         expectsql(sql.addIndexQuery('table', {
           fields: ['event'],
@@ -168,27 +180,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           operator: 'jsonb_path_ops',
         }), {
           postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)',
-        });
-      });
-    }
-
-    if (current.dialect.name === 'postgres') {
-      it('show indexes', () => {
-        expectsql(sql.showIndexesQuery('table'), {
-          postgres: 'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, '
-            + 'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) '
-            + 'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a '
-            + 'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND '
-            + 't.relkind = \'r\' and t.relname = \'table\' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;',
-        });
-
-        expectsql(sql.showIndexesQuery({ tableName: 'table', schema: 'schema' }), {
-          postgres: 'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, '
-            + 'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) '
-            + 'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s '
-            + 'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND '
-            + 't.relkind = \'r\' and t.relname = \'table\' AND s.oid = t.relnamespace AND s.nspname = \'schema\' '
-            + 'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;',
         });
       });
     }
@@ -253,6 +244,58 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
     }
+
+    it('include columns with unique index', () => {
+      expectsql(() => sql.addIndexQuery('User',  {
+        name: 'email_include_name',
+        fields: ['email'],
+        include: ['first_name', 'last_name'],
+        unique: true,
+      }), {
+        default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
+        mssql: 'CREATE UNIQUE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
+        'db2 postgres': 'CREATE UNIQUE INDEX "email_include_name" ON "User" ("email") INCLUDE ("first_name", "last_name")',
+      });
+    });
+
+    it('include columns with non-unique index', () => {
+      expectsql(() => sql.addIndexQuery('User',  {
+        name: 'email_include_name',
+        fields: ['email'],
+        include: ['first_name', 'last_name'],
+      }), {
+        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
+        default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
+        mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
+        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE ("first_name", "last_name")',
+      });
+    });
+
+    it('include columns using a liternal with non-unique index', () => {
+      expectsql(() => sql.addIndexQuery('User',  {
+        name: 'email_include_name',
+        fields: ['email'],
+        include: literal('(first_name, last_name)'),
+      }), {
+        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
+        default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
+        mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
+        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE (first_name, last_name)',
+      });
+    });
+
+    it('include columns using an array of liternals with non-unique index', () => {
+      expectsql(() => sql.addIndexQuery('User',  {
+        name: 'email_include_name',
+        fields: ['email'],
+        include: [literal('first_name'), literal('last_name')],
+      }), {
+        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
+        default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
+        mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
+        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE (first_name, last_name)',
+      });
+    });
   });
 
   describe('removeIndex', () => {

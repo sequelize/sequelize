@@ -2,13 +2,12 @@
 
 import assert from 'node:assert';
 import util from 'node:util';
+import { AbstractQuery } from '../abstract/query';
+import { logger } from '../../utils/logger';
+import dayjs from 'dayjs';
 
-const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const parserStore = require('../parserStore')('db2');
 const _ = require('lodash');
-const { logger } = require('../../utils/logger');
-const dayjs = require('dayjs');
 
 const debug = logger.debugContext('sql:db2');
 
@@ -34,14 +33,8 @@ export class Db2Query extends AbstractQuery {
     assert(typeof sql === 'string', `sql parameter must be a string`);
 
     this.sql = sql;
-    const benchmark = this.sequelize.options.benchmark || this.options.benchmark;
-    const queryLabel = this.options.queryLabel ? `${this.options.queryLabel}\n` : '';
-    let queryBegin;
-    if (benchmark) {
-      queryBegin = Date.now();
-    } else {
-      this.sequelize.log(`${queryLabel}Executing (${this.connection.uuid || 'default'}): ${this.sql}`, this.options);
-    }
+
+    const complete = this._logQuery(sql, debug, parameters);
 
     const errStack = new Error().stack;
 
@@ -113,7 +106,7 @@ export class Db2Query extends AbstractQuery {
           }
 
           stmt.execute(params, (err, result, outparams) => {
-            debug(`executed(${this.connection.uuid || 'default'}):${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`);
+            complete();
 
             // map the INOUT parameters to the name provided by the dev
             // this is an internal API, not yet ready for dev consumption, hence the _unsafe_ prefix.
@@ -124,10 +117,6 @@ export class Db2Query extends AbstractQuery {
 
                 this.options._unsafe_db2Outparams.set(paramName, paramValue);
               }
-            }
-
-            if (benchmark) {
-              this.sequelize.log(`${queryLabel}Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`, Date.now() - queryBegin, this.options);
             }
 
             if (err && err.message) {
@@ -168,18 +157,14 @@ export class Db2Query extends AbstractQuery {
 
                 for (let i = 0; i < datalen; i++) {
                   for (const column in data[i]) {
-                    const parse = parserStore.get(coltypes[column]);
                     const value = data[i][column];
-                    if (value !== null) {
-                      if (parse) {
-                        data[i][column] = parse(value);
-                      } else if (coltypes[column] === 'TIMESTAMP') {
-                        data[i][column] = new Date(dayjs.utc(value));
-                      } else if (coltypes[column] === 'BLOB') {
-                        data[i][column] = new Buffer.from(value);
-                      } else if (coltypes[column].indexOf('FOR BIT DATA') > 0) {
-                        data[i][column] = new Buffer.from(value, 'hex');
-                      }
+                    if (value === null) {
+                      continue;
+                    }
+
+                    const parse = this.sequelize.dialect.getParserForDatabaseDataType(coltypes[column]);
+                    if (parse) {
+                      data[i][column] = parse(value);
                     }
                   }
                 }
