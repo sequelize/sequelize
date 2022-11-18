@@ -11,49 +11,39 @@ import {
   CreationAttributes,
   Attributes,
 } from '../../model';
-import { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
+import { Sequelize, QueryOptions, QueryOptionsWithModel, Replaceable } from '../../sequelize';
 import { Transaction } from '../../transaction';
 import { SetRequired } from '../../utils/set-required';
 import { Fn, Literal } from '../../utils';
 import { Deferrable } from '../../deferrable';
 
-type BindOrReplacements = { [key: string]: unknown } | unknown[];
-type FieldMap = { [key: string]: string };
+interface QiOptionsWithReplacements extends QueryOptions {}
 
-interface Replaceable {
-  /**
-   * Only named replacements are allowed in query interface methods.
-   */
-  replacements?: { [key: string]: unknown };
-}
-
-interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
-
-export interface QiInsertOptions extends QueryRawOptions, Replaceable {
+export interface QiInsertOptions extends QueryOptions, Replaceable {
   returning?: boolean | string[];
 }
 
-export interface QiSelectOptions extends QueryRawOptions, Replaceable, Filterable<any> {
+export interface QiSelectOptions extends QueryOptions, Replaceable, Filterable<any> {
 
 }
 
-export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
+export interface QiUpdateOptions extends QueryOptions, Replaceable {
   returning?: boolean | string[];
 }
 
-export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
+export interface QiDeleteOptions extends QueryOptions, Replaceable {
   limit?: number | Literal | null | undefined;
 }
 
-export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
+export interface QiArithmeticOptions extends QueryOptions, Replaceable {
   returning?: boolean | string[];
 }
 
-export interface QiUpsertOptions<M extends Model> extends QueryRawOptionsWithModel<M>, Replaceable {
+export interface QiUpsertOptions<M extends Model> extends QueryOptionsWithModel<M>, Replaceable {
 
 }
 
-export interface CreateFunctionOptions extends QueryRawOptions {
+export interface CreateFunctionOptions extends QueryOptions {
   force?: boolean;
 }
 
@@ -62,7 +52,7 @@ export interface CollateCharsetOptions {
   charset?: string;
 }
 
-export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, CollateCharsetOptions {
+export interface QueryInterfaceCreateTableOptions extends QueryOptions, CollateCharsetOptions {
   engine?: string;
   /**
    * Used for compound unique keys.
@@ -75,12 +65,12 @@ export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, Colla
   };
 }
 
-export interface QueryInterfaceDropTableOptions extends QueryRawOptions {
+export interface QueryInterfaceDropTableOptions extends QueryOptions {
   cascade?: boolean;
   force?: boolean;
 }
 
-export interface QueryInterfaceDropAllTablesOptions extends QueryRawOptions {
+export interface QueryInterfaceDropAllTablesOptions extends QueryOptions {
   skip?: string[];
 }
 
@@ -199,7 +189,7 @@ export type AddConstraintOptions =
 | AddPrimaryKeyConstraintOptions
 | AddForeignKeyConstraintOptions;
 
-export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOptions {
+export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryOptions {
   encoding?: string;
 }
 
@@ -248,14 +238,14 @@ export class QueryInterface {
    *
    * @param schema The schema to query. Applies only to Postgres.
    */
-  public createSchema(schema?: string, options?: QueryRawOptions): Promise<void>;
+  public createSchema(schema?: string, options?: QueryOptions): Promise<void>;
 
   /**
    * Drops the specified schema (table).
    *
    * @param schema The schema to query. Applies only to Postgres.
    */
-  public dropSchema(schema?: string, options?: QueryRawOptions): Promise<void>;
+  public dropSchema(schema?: string, options?: QueryOptions): Promise<void>;
 
   /**
    * Drops all tables.
@@ -267,12 +257,12 @@ export class QueryInterface {
    *
    * @param options
    */
-  public showAllSchemas(options?: QueryRawOptions): Promise<object>;
+  public showAllSchemas(options?: QueryOptions): Promise<object>;
 
   /**
    * Return database version
    */
-  public databaseVersion(options?: QueryRawOptions): Promise<string>;
+  public databaseVersion(options?: QueryOptions): Promise<string>;
 
   /**
    * Creates a table with specified attributes.
@@ -307,17 +297,17 @@ export class QueryInterface {
    *
    * @param options
    */
-  public dropAllEnums(options?: QueryRawOptions): Promise<void>;
+  public dropAllEnums(options?: QueryOptions): Promise<void>;
 
   /**
    * Renames a table
    */
-  public renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;
+  public renameTable(before: TableName, after: TableName, options?: QueryOptions): Promise<void>;
 
   /**
    * Returns all tables
    */
-  public showAllTables(options?: QueryRawOptions): Promise<string[]>;
+  public showAllTables(options?: QueryOptions): Promise<string[]>;
 
   /**
    * Returns a promise that resolves to true if the table exists in the database, false otherwise.
@@ -325,7 +315,7 @@ export class QueryInterface {
    * @param tableName The name of the table
    * @param options Options passed to {@link Sequelize#query}
    */
-  public tableExists(tableName: TableName, options?: QueryRawOptions): Promise<boolean>;
+  public tableExists(tableName: TableName, options?: QueryOptions): Promise<boolean>;
 
   /**
    * Describe a table
@@ -400,18 +390,18 @@ export class QueryInterface {
    */
   public addConstraint(
     tableName: TableName,
-    options?: AddConstraintOptions & QueryRawOptions
+    options?: AddConstraintOptions & QueryOptions
   ): Promise<void>;
 
   /**
    * Removes constraints from a table
    */
-  public removeConstraint(tableName: TableName, constraintName: string, options?: QueryRawOptions): Promise<void>;
+  public removeConstraint(tableName: TableName, constraintName: string, options?: QueryOptions): Promise<void>;
 
   /**
    * Shows the index of a table
    */
-  public showIndex(tableName: string | object, options?: QueryRawOptions): Promise<object>;
+  public showIndex(tableName: string | object, options?: QueryOptions): Promise<object>;
 
   /**
    * Put a name to an index
@@ -421,12 +411,12 @@ export class QueryInterface {
   /**
    * Returns all foreign key constraints of requested tables
    */
-  public getForeignKeysForTables(tableNames: string[], options?: QueryRawOptions): Promise<object>;
+  public getForeignKeysForTables(tableNames: string[], options?: QueryOptions): Promise<object>;
 
   /**
    * Get foreign key references details for the table
    */
-  public getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<object>;
+  public getForeignKeyReferencesForTable(tableName: TableName, options?: QueryOptions): Promise<object>;
 
   /**
    * Inserts a new record
@@ -616,32 +606,32 @@ export class QueryInterface {
   /**
    * Set option for autocommit of a transaction
    */
-  public setAutocommit(transaction: Transaction, value: boolean, options?: QueryRawOptions): Promise<void>;
+  public setAutocommit(transaction: Transaction, value: boolean, options?: QueryOptions): Promise<void>;
 
   /**
    * Set the isolation level of a transaction
    */
-  public setIsolationLevel(transaction: Transaction, value: string, options?: QueryRawOptions): Promise<void>;
+  public setIsolationLevel(transaction: Transaction, value: string, options?: QueryOptions): Promise<void>;
 
   /**
    * Begin a new transaction
    */
-  public startTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
+  public startTransaction(transaction: Transaction, options?: QueryOptions): Promise<void>;
 
   /**
    * Defer constraints
    */
-  public deferConstraints(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
+  public deferConstraints(transaction: Transaction, options?: QueryOptions): Promise<void>;
 
   /**
    * Commit an already started transaction
    */
-  public commitTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
+  public commitTransaction(transaction: Transaction, options?: QueryOptions): Promise<void>;
 
   /**
    * Rollback ( revert ) a transaction that has'nt been commited
    */
-  public rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
+  public rollbackTransaction(transaction: Transaction, options?: QueryOptions): Promise<void>;
 
   /**
    * Creates a database
@@ -651,5 +641,5 @@ export class QueryInterface {
   /**
    * Creates a database
    */
-  public dropDatabase(name: string, options?: QueryRawOptions): Promise<void>;
+  public dropDatabase(name: string, options?: QueryOptions): Promise<void>;
 }
