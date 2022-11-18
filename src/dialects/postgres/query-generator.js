@@ -13,7 +13,7 @@ import {
 const Utils = require('../../utils');
 const util = require('util');
 const DataTypes = require('../../data-types');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const semver = require('semver');
 const _ = require('lodash');
 
@@ -29,7 +29,7 @@ const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['encoding', 'collate', 
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['cascade']);
 
-export class PostgresQueryGenerator extends AbstractQueryGenerator {
+export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   setSearchPath(searchPath) {
     return `SET search_path to ${searchPath};`;
   }
@@ -180,36 +180,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     const schema = tableName.schema || 'public';
 
     return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
-  }
-
-  describeTableQuery(tableName, schema) {
-    if (typeof tableName === 'object') {
-      schema = tableName.schema || schema;
-      tableName = tableName.tableName;
-    }
-
-    schema = schema || this.options.schema || 'public';
-
-    return 'SELECT '
-      + 'pk.constraint_type as "Constraint",'
-      + 'c.column_name as "Field", '
-      + 'c.column_default as "Default",'
-      + 'c.is_nullable as "Null", '
-      + '(CASE WHEN c.udt_name = \'hstore\' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN \'(\' || c.character_maximum_length || \')\' ELSE \'\' END) as "Type", '
-      + '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", '
-      + '(SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment" '
-      + 'FROM information_schema.columns c '
-      + 'LEFT JOIN (SELECT tc.table_schema, tc.table_name, '
-      + 'cu.column_name, tc.constraint_type '
-      + 'FROM information_schema.TABLE_CONSTRAINTS tc '
-      + 'JOIN information_schema.KEY_COLUMN_USAGE  cu '
-      + 'ON tc.table_schema=cu.table_schema and tc.table_name=cu.table_name '
-      + 'and tc.constraint_name=cu.constraint_name '
-      + 'and tc.constraint_type=\'PRIMARY KEY\') pk '
-      + 'ON pk.table_schema=c.table_schema '
-      + 'AND pk.table_name=c.table_name '
-      + 'AND pk.column_name=c.column_name '
-      + `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)}`;
   }
 
   /**

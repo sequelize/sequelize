@@ -14,7 +14,7 @@ import {
 const Utils = require('../../utils');
 const util = require('util');
 const _ = require('lodash');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { IBMiQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const DataTypes = require('../../data-types');
 const { Model } = require('../../model');
 const SqlString = require('../../sql-string');
@@ -26,7 +26,7 @@ const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
-export class IBMiQueryGenerator extends AbstractQueryGenerator {
+export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
   // Version queries
   versionQuery() {
@@ -153,36 +153,6 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     }
 
     return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}`;
-  }
-
-  describeTableQuery(tableName, schema) {
-    if (typeof tableName === 'object') {
-      schema = tableName.schema || schema;
-      tableName = tableName.tableName;
-    }
-
-    const sql
-    = `SELECT
-    QSYS2.SYSCOLUMNS.*,
-    QSYS2.SYSCST.CONSTRAINT_NAME,
-    QSYS2.SYSCST.CONSTRAINT_TYPE
-    FROM
-    QSYS2.SYSCOLUMNS
-    LEFT OUTER JOIN
-      QSYS2.SYSCSTCOL
-    ON
-      QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA
-      AND
-      QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME
-      AND
-      QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME
-    LEFT JOIN
-      QSYS2.SYSCST
-    ON
-      QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-    WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'} AND QSYS2.SYSCOLUMNS.TABLE_NAME = '${tableName}'`;
-
-    return sql;
   }
 
   showTablesQuery(schema) {

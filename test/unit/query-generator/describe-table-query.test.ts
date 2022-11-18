@@ -1,7 +1,6 @@
-import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '../../support';
+import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
-const dialectName = getTestDialect();
 
 describe('QueryGenerator#describeTableQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -10,9 +9,9 @@ describe('QueryGenerator#describeTableQuery', () => {
     expectsql(() => queryGenerator.describeTableQuery('myTable'), {
       default: 'SHOW FULL COLUMNS FROM [myTable];',
       postgres: 'SELECT '
-        + 'pk.constraint_type as "Constraint",'
+        + 'pk.constraint_type as "Constraint", '
         + 'c.column_name as "Field", '
-        + 'c.column_default as "Default",'
+        + 'c.column_default as "Default", '
         + 'c.is_nullable as "Null", '
         + `(CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type", `
         + '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", '
@@ -28,7 +27,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         + 'ON pk.table_schema=c.table_schema '
         + 'AND pk.table_name=c.table_name '
         + 'AND pk.column_name=c.column_name '
-        + `WHERE c.table_name = 'myTable' AND c.table_schema = 'public'`,
+        + `WHERE c.table_name = 'myTable'`,
       mssql: 'SELECT '
         + `c.COLUMN_NAME AS 'Name', `
         + `c.DATA_TYPE AS 'Type', `
@@ -57,7 +56,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         + 'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id '
         + 'AND prop.minor_id = sc.column_id '
         + `AND prop.name = 'MS_Description' `
-        + `WHERE t.TABLE_NAME = 'myTable'`,
+        + `WHERE t.TABLE_NAME = N'myTable'`,
       sqlite: 'PRAGMA TABLE_INFO(`myTable`);',
       db2: 'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema", '
         + 'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale", '
@@ -65,25 +64,19 @@ describe('QueryGenerator#describeTableQuery', () => {
         + 'IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment" '
         + 'FROM SYSIBM.SYSCOLUMNS '
         + `WHERE TBNAME = 'myTable' AND TBCREATOR = USER;`,
-      ibmi: `SELECT
-        QSYS2.SYSCOLUMNS.*,
-        QSYS2.SYSCST.CONSTRAINT_NAME,
-        QSYS2.SYSCST.CONSTRAINT_TYPE
-        FROM
-        QSYS2.SYSCOLUMNS
-        LEFT OUTER JOIN
-          QSYS2.SYSCSTCOL
-        ON
-          QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA
-          AND
-          QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME
-          AND
-          QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME
-        LEFT JOIN
-          QSYS2.SYSCST
-        ON
-          QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-        WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
+      ibmi: 'SELECT '
+        + 'QSYS2.SYSCOLUMNS.*, '
+        + 'QSYS2.SYSCST.CONSTRAINT_NAME, '
+        + 'QSYS2.SYSCST.CONSTRAINT_TYPE '
+        + 'FROM QSYS2.SYSCOLUMNS '
+        + 'LEFT OUTER JOIN QSYS2.SYSCSTCOL '
+        + 'ON QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA '
+        + 'AND QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME '
+        + 'AND QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME '
+        + 'LEFT JOIN QSYS2.SYSCST '
+        + 'ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME '
+        + 'WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA '
+        + `AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
     });
   });
 
@@ -91,9 +84,9 @@ describe('QueryGenerator#describeTableQuery', () => {
     expectsql(() => queryGenerator.describeTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: 'SHOW FULL COLUMNS FROM [mySchema].[myTable];',
       postgres: 'SELECT '
-          + 'pk.constraint_type as "Constraint",'
+          + 'pk.constraint_type as "Constraint", '
           + 'c.column_name as "Field", '
-          + 'c.column_default as "Default",'
+          + 'c.column_default as "Default", '
           + 'c.is_nullable as "Null", '
           + `(CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type", `
           + '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", '
@@ -138,33 +131,102 @@ describe('QueryGenerator#describeTableQuery', () => {
           + 'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id '
           + 'AND prop.minor_id = sc.column_id '
           + `AND prop.name = 'MS_Description' `
-          + `WHERE t.TABLE_NAME = 'myTable'AND t.TABLE_SCHEMA ='mySchema'`,
+          + `WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
       sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`);',
       db2: 'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema", '
           + 'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale", '
           + 'NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno", '
           + 'IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment" '
           + 'FROM SYSIBM.SYSCOLUMNS '
-          + `WHERE TBNAME = 'myTable' AND TBCREATOR ='mySchema';`,
-      ibmi: `SELECT
-          QSYS2.SYSCOLUMNS.*,
-          QSYS2.SYSCST.CONSTRAINT_NAME,
-          QSYS2.SYSCST.CONSTRAINT_TYPE
-          FROM
-          QSYS2.SYSCOLUMNS
-          LEFT OUTER JOIN
-            QSYS2.SYSCSTCOL
-          ON
-            QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA
-            AND
-            QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME
-            AND
-            QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME
-          LEFT JOIN
-            QSYS2.SYSCST
-          ON
-            QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-          WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema' AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
+          + `WHERE TBNAME = 'myTable' AND TBCREATOR = 'mySchema';`,
+      ibmi: 'SELECT '
+          + 'QSYS2.SYSCOLUMNS.*, '
+          + 'QSYS2.SYSCST.CONSTRAINT_NAME, '
+          + 'QSYS2.SYSCST.CONSTRAINT_TYPE '
+          + 'FROM QSYS2.SYSCOLUMNS '
+          + 'LEFT OUTER JOIN QSYS2.SYSCSTCOL '
+          + 'ON QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA '
+          + 'AND QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME '
+          + 'AND QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME '
+          + 'LEFT JOIN QSYS2.SYSCST '
+          + 'ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME '
+          + `WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema' `
+          + `AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
+    });
+  });
+
+  it('produces a query to describe a table with default schema in tableName object', () => {
+    expectsql(() => queryGenerator.describeTableQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }), {
+      default: 'SHOW FULL COLUMNS FROM [myTable];',
+      postgres: 'SELECT '
+        + 'pk.constraint_type as "Constraint", '
+        + 'c.column_name as "Field", '
+        + 'c.column_default as "Default", '
+        + 'c.is_nullable as "Null", '
+        + `(CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type", `
+        + '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", '
+        + '(SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment" '
+        + 'FROM information_schema.columns c '
+        + 'LEFT JOIN (SELECT tc.table_schema, tc.table_name, '
+        + 'cu.column_name, tc.constraint_type '
+        + 'FROM information_schema.TABLE_CONSTRAINTS tc '
+        + 'JOIN information_schema.KEY_COLUMN_USAGE  cu '
+        + 'ON tc.table_schema=cu.table_schema and tc.table_name=cu.table_name '
+        + 'and tc.constraint_name=cu.constraint_name '
+        + `and tc.constraint_type='PRIMARY KEY') pk `
+        + 'ON pk.table_schema=c.table_schema '
+        + 'AND pk.table_name=c.table_name '
+        + 'AND pk.column_name=c.column_name '
+        + `WHERE c.table_name = 'myTable'`,
+      mssql: 'SELECT '
+        + `c.COLUMN_NAME AS 'Name', `
+        + `c.DATA_TYPE AS 'Type', `
+        + `c.CHARACTER_MAXIMUM_LENGTH AS 'Length', `
+        + `c.IS_NULLABLE as 'IsNull', `
+        + `COLUMN_DEFAULT AS 'Default', `
+        + `pk.CONSTRAINT_TYPE AS 'Constraint', `
+        + `COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA+'.'+c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity', `
+        + `CAST(prop.value AS NVARCHAR) AS 'Comment' `
+        + 'FROM '
+        + 'INFORMATION_SCHEMA.TABLES t '
+        + 'INNER JOIN '
+        + 'INFORMATION_SCHEMA.COLUMNS c ON t.TABLE_NAME = c.TABLE_NAME AND t.TABLE_SCHEMA = c.TABLE_SCHEMA '
+        + 'LEFT JOIN (SELECT tc.table_schema, tc.table_name, '
+        + 'cu.column_name, tc.CONSTRAINT_TYPE '
+        + 'FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc '
+        + 'JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE  cu '
+        + 'ON tc.table_schema=cu.table_schema and tc.table_name=cu.table_name '
+        + 'and tc.constraint_name=cu.constraint_name '
+        + `and tc.CONSTRAINT_TYPE='PRIMARY KEY') pk `
+        + 'ON pk.table_schema=c.table_schema '
+        + 'AND pk.table_name=c.table_name '
+        + 'AND pk.column_name=c.column_name '
+        + 'INNER JOIN sys.columns AS sc '
+        + `ON sc.object_id = object_id(t.table_schema + '.' + t.table_name) AND sc.name = c.column_name `
+        + 'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id '
+        + 'AND prop.minor_id = sc.column_id '
+        + `AND prop.name = 'MS_Description' `
+        + `WHERE t.TABLE_NAME = N'myTable'`,
+      sqlite: 'PRAGMA TABLE_INFO(`myTable`);',
+      db2: 'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema", '
+        + 'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale", '
+        + 'NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno", '
+        + 'IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment" '
+        + 'FROM SYSIBM.SYSCOLUMNS '
+        + `WHERE TBNAME = 'myTable' AND TBCREATOR = USER;`,
+      ibmi: 'SELECT '
+        + 'QSYS2.SYSCOLUMNS.*, '
+        + 'QSYS2.SYSCST.CONSTRAINT_NAME, '
+        + 'QSYS2.SYSCST.CONSTRAINT_TYPE '
+        + 'FROM QSYS2.SYSCOLUMNS '
+        + 'LEFT OUTER JOIN QSYS2.SYSCSTCOL '
+        + 'ON QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA '
+        + 'AND QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME '
+        + 'AND QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME '
+        + 'LEFT JOIN QSYS2.SYSCST '
+        + 'ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME '
+        + 'WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA '
+        + `AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
     });
   });
 
@@ -172,9 +234,9 @@ describe('QueryGenerator#describeTableQuery', () => {
     expectsql(() => queryGenerator.describeTableQuery('myTable', 'mySchema'), {
       default: 'SHOW FULL COLUMNS FROM [mySchema].[myTable];',
       postgres: 'SELECT '
-        + 'pk.constraint_type as "Constraint",'
+        + 'pk.constraint_type as "Constraint", '
         + 'c.column_name as "Field", '
-        + 'c.column_default as "Default",'
+        + 'c.column_default as "Default", '
         + 'c.is_nullable as "Null", '
         + `(CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type", `
         + '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", '
@@ -219,51 +281,40 @@ describe('QueryGenerator#describeTableQuery', () => {
         + 'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id '
         + 'AND prop.minor_id = sc.column_id '
         + `AND prop.name = 'MS_Description' `
-        + `WHERE t.TABLE_NAME = 'myTable'AND t.TABLE_SCHEMA ='mySchema'`,
+        + `WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
       sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`);',
       db2: 'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema", '
         + 'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale", '
         + 'NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno", '
         + 'IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment" '
         + 'FROM SYSIBM.SYSCOLUMNS '
-        + `WHERE TBNAME = 'myTable' AND TBCREATOR ='mySchema';`,
-      ibmi: `SELECT
-        QSYS2.SYSCOLUMNS.*,
-        QSYS2.SYSCST.CONSTRAINT_NAME,
-        QSYS2.SYSCST.CONSTRAINT_TYPE
-        FROM
-        QSYS2.SYSCOLUMNS
-        LEFT OUTER JOIN
-          QSYS2.SYSCSTCOL
-        ON
-          QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA
-          AND
-          QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME
-          AND
-          QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME
-        LEFT JOIN
-          QSYS2.SYSCST
-        ON
-          QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-        WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema' AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
+        + `WHERE TBNAME = 'myTable' AND TBCREATOR = 'mySchema';`,
+      ibmi: 'SELECT '
+        + 'QSYS2.SYSCOLUMNS.*, '
+        + 'QSYS2.SYSCST.CONSTRAINT_NAME, '
+        + 'QSYS2.SYSCST.CONSTRAINT_TYPE '
+        + 'FROM QSYS2.SYSCOLUMNS '
+        + 'LEFT OUTER JOIN QSYS2.SYSCSTCOL '
+        + 'ON QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA '
+        + 'AND QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME '
+        + 'AND QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME '
+        + 'LEFT JOIN QSYS2.SYSCST '
+        + 'ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME '
+        + `WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema' `
+        + `AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
     });
   });
 
   it('produces a query to describe a table from a table and globally set schema', () => {
-    // FIXME: enable this test for other dialects once fixed (in https://github.com/sequelize/sequelize/pull/14687)
-    if (['mariadb', 'mysql', 'mssql', 'sqlite', 'snowflake', 'db2', 'ibmi'].includes(dialectName)) {
-      return;
-    }
-
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
     const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
 
     expectsql(() => queryGeneratorSchema.describeTableQuery('myTable'), {
       default: 'SHOW FULL COLUMNS FROM [mySchema].[myTable];',
       postgres: 'SELECT '
-        + 'pk.constraint_type as "Constraint",'
+        + 'pk.constraint_type as "Constraint", '
         + 'c.column_name as "Field", '
-        + 'c.column_default as "Default",'
+        + 'c.column_default as "Default", '
         + 'c.is_nullable as "Null", '
         + `(CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type", `
         + '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", '
@@ -308,33 +359,27 @@ describe('QueryGenerator#describeTableQuery', () => {
         + 'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id '
         + 'AND prop.minor_id = sc.column_id '
         + `AND prop.name = 'MS_Description' `
-        + `WHERE t.TABLE_NAME = 'myTable'AND t.TABLE_SCHEMA ='mySchema'`,
+        + `WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
       sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`);',
       db2: 'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema", '
         + 'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale", '
         + 'NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno", '
         + 'IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment" '
         + 'FROM SYSIBM.SYSCOLUMNS '
-        + `WHERE TBNAME = 'myTable' AND TBCREATOR ='mySchema';`,
-      ibmi: `SELECT
-        QSYS2.SYSCOLUMNS.*,
-        QSYS2.SYSCST.CONSTRAINT_NAME,
-        QSYS2.SYSCST.CONSTRAINT_TYPE
-        FROM
-        QSYS2.SYSCOLUMNS
-        LEFT OUTER JOIN
-          QSYS2.SYSCSTCOL
-        ON
-          QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA
-          AND
-          QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME
-          AND
-          QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME
-        LEFT JOIN
-          QSYS2.SYSCST
-        ON
-          QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-        WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema' AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
+        + `WHERE TBNAME = 'myTable' AND TBCREATOR = 'mySchema';`,
+      ibmi: 'SELECT '
+        + 'QSYS2.SYSCOLUMNS.*, '
+        + 'QSYS2.SYSCST.CONSTRAINT_NAME, '
+        + 'QSYS2.SYSCST.CONSTRAINT_TYPE '
+        + 'FROM QSYS2.SYSCOLUMNS '
+        + 'LEFT OUTER JOIN QSYS2.SYSCSTCOL '
+        + 'ON QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA '
+        + 'AND QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME '
+        + 'AND QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME '
+        + 'LEFT JOIN QSYS2.SYSCST '
+        + 'ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME '
+        + `WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema' `
+        + `AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
     });
   });
 

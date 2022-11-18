@@ -195,8 +195,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   showIndexesQuery(tableName: TableName): string;
 
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
-  // TODO: this should become `describeTableQuery(tableName: TableName): string`
-  describeTableQuery(tableName: TableName, schema?: string, schemaDelimiter?: string): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | { query: string, bind?: unknown[] };

@@ -10,7 +10,7 @@ import {
 
 const _ = require('lodash');
 const Utils = require('../../utils');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const util = require('util');
 const { Op } = require('../../operators');
 
@@ -36,7 +36,7 @@ const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
-export class MySqlQueryGenerator extends AbstractQueryGenerator {
+export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
@@ -164,15 +164,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
       ';',
     ]);
-  }
-
-  // TODO: remove schema, schemaDelimiter options
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    tableName = this.extractTableDetails(tableName);
-    tableName.schema = schema || tableName.schema;
-    tableName.delimiter = schemaDelimiter || tableName.delimiter;
-
-    return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
   showTablesQuery(schemaName) {

@@ -1,3 +1,3 @@
-import { AbstractQueryGenerator } from '../abstract/query-generator.js';
+import { SnowflakeQueryGeneratorTypeScript } from './query-generator-typescript.js';
 
-export class SnowflakeQueryGenerator extends AbstractQueryGenerator {}
+export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {}
