@@ -586,7 +586,7 @@ export interface WhereOperators<AttributeType = any> {
    * https://www.postgresql.org/docs/current/functions-json.html
    */
   [Op.anyKeyExists]?: Array<string>
-    | DynamicValues<NonNullable<AttributeType>>;
+    | DynamicValues<string>;
 
   /**
    * PG only
