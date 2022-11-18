@@ -27,7 +27,7 @@ export function checkNamingCollision(source: ModelStatic<any>, associationName: 
 
 export function addForeignKeyConstraints(
   newAttribute: ModelAttributeColumnOptions,
-  source: ModelStatic<Model>,
+  source: ModelStatic,
   options: AssociationOptions<string>,
   key: string,
 ): void {
@@ -217,7 +217,7 @@ export function defineAssociation<
   construct: (opts: CleanOptions) => T,
 ): T {
   if (!isModelStatic(target)) {
-    throw new Error(`${source.name}.${lowerFirst(type.name)} called with something that's not a subclass of Sequelize.Model`);
+    throw new Error(`${source.name}.${lowerFirst(type.name)} was called with ${NodeUtils.inspect(target)} as the target model, but it is not a subclass of Sequelize's Model class`);
   }
 
   assertAssociationModelIsDefined(source);
@@ -239,7 +239,7 @@ export function defineAssociation<
   });
 
   if (normalizedOptions.hooks) {
-    source.runHooks('beforeAssociate', { source, target, type, sequelize }, normalizedOptions);
+    source.hooks.runSync('beforeAssociate', { source, target, type, sequelize }, normalizedOptions);
   }
 
   let association;
@@ -255,7 +255,7 @@ export function defineAssociation<
   }
 
   if (normalizedOptions.hooks) {
-    source.runHooks('afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
+    source.hooks.runSync('afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
   }
 
   checkNamingCollision(source, normalizedOptions.as);

@@ -1,7 +1,14 @@
 'use strict';
 
-import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
-import { CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import { rejectInvalidOptions } from '../../utils/check';
+import { removeTrailingSemicolon } from '../../utils/string';
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
+import {
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
@@ -10,7 +17,9 @@ const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const randomBytes = require('crypto').randomBytes;
 const { Op } = require('../../operators');
 
-const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
@@ -33,8 +42,8 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createSchemaQuery',
         this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -96,7 +105,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
           if (commentMatch && commentMatch.length > 2) {
             const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
             commentStr += _.template(commentTemplate, this._templateSettings)({
-              table: this.quoteIdentifier(tableName),
+              table: this.quoteTable(tableName),
               comment: this.escape(commentText, undefined, { replacements: options.replacements }),
               column: this.quoteIdentifier(attr),
             });
@@ -172,6 +181,11 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName, schema) {
+    if (typeof tableName === 'object') {
+      schema = tableName.schema || schema;
+      tableName = tableName.tableName;
+    }
+
     let sql = [
       'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",',
       'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",',
@@ -214,8 +228,24 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     return `SELECT name FROM sysibm.systables WHERE NAME = ${wrapSingleQuote(tableName)} AND CREATOR = ${wrapSingleQuote(schemaName)}`;
   }
 
-  addColumnQuery(table, key, dataType) {
-    dataType.field = key;
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    dataType = {
+      ...dataType,
+      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      //       but instead we need to pass the key along as the field here
+      field: key,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
 
     const query = 'ALTER TABLE <%= table %> ADD <%= attribute %>;';
     const attribute = _.template('<%= key %> <%= definition %>', this._templateSettings)({
@@ -231,7 +261,17 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     });
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const query = 'ALTER TABLE <%= tableName %> DROP COLUMN <%= attributeName %>;';
 
     return _.template(query, this._templateSettings)({
@@ -564,6 +604,14 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     return query.trim();
   }
 
+  addIndexQuery(tableName, attributes, options, rawTablename) {
+    if ('include' in attributes && !attributes.unique) {
+      throw new Error('DB2 does not support non-unique indexes with INCLUDE syntax.');
+    }
+
+    return super.addIndexQuery(tableName, attributes, options, rawTablename);
+  }
+
   showIndexesQuery(tableName) {
     let sql = 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = <%= tableName %>';
     let schema;
@@ -621,17 +669,13 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     let changeNull = 1;
 
     if (attribute.type instanceof DataTypes.ENUM) {
-      if (attribute.type.values && !attribute.values) {
-        attribute.values = attribute.type.values;
-      }
-
       // enums are a special case
-      template = attribute.type.toSql();
-      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
+      template = attribute.type.toSql({ dialect: this.dialect });
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
         return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {
-      template = attribute.type.toString();
+      template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
     }
 
     if (options && options.context === 'changeColumn' && attribute.type) {
@@ -652,7 +696,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
-        && Utils.defaultValueSchemable(attribute.defaultValue)) {
+        && defaultValueSchemable(attribute.defaultValue)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
     }
 
@@ -925,22 +969,12 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     return uniqno;
   }
-
-  /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} _force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, _force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '"'), '"');
-  }
-
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   if (identifier) {
     return `'${identifier}'`;

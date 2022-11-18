@@ -8,6 +8,7 @@ const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const { Config: config } = require('../config/config');
 const sinon = require('sinon');
+const semver = require('semver');
 
 const current = Support.sequelize;
 
@@ -437,6 +438,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('fails with incorrect database credentials (1)', async function () {
+        // TODO: remove this once fixed in https://github.com/brianc/node-postgres/issues/1927 or when password is not allowed to be null in our postgres implementation
+        if (dialect === 'postgres' && semver.gte(this.sequelize.options.databaseVersion, '12.0.0')) {
+          return;
+        }
+
         this.sequelizeWithInvalidCredentials = Support.createSequelizeInstance({
           database: 'omg',
           username: 'bar',
@@ -602,60 +608,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('define', () => {
-    it('raises an error if no values are defined', function () {
-      expect(() => {
-        this.sequelize.define('omnomnom', {
-          bla: { type: DataTypes.ARRAY },
-        });
-      }).to.throw(Error, 'ARRAY is missing type definition for its values.');
-    });
-  });
-
-  describe('define', () => {
-    for (const status of [
-      { type: DataTypes.ENUM, values: ['scheduled', 'active', 'finished'] },
-      DataTypes.ENUM('scheduled', 'active', 'finished'),
-    ]) {
-      describe('enum', () => {
-        beforeEach(async function () {
-          this.sequelize = Support.createSequelizeInstance({
-            typeValidation: true,
-          });
-
-          this.Review = this.sequelize.define('review', { status });
-          await this.Review.sync({ force: true });
-        });
-
-        it('raises an error if no values are defined', function () {
-          expect(() => {
-            this.sequelize.define('omnomnom', {
-              bla: { type: DataTypes.ENUM },
-            });
-          }).to.throw(Error, 'Values for ENUM have not been defined.');
-        });
-
-        it('correctly stores values', async function () {
-          const review = await this.Review.create({ status: 'active' });
-          expect(review.status).to.equal('active');
-        });
-
-        it('correctly loads values', async function () {
-          await this.Review.create({ status: 'active' });
-          const reviews = await this.Review.findAll();
-          expect(reviews[0].status).to.equal('active');
-        });
-
-        it('doesn\'t save an instance if value is not in the range of enums', async function () {
-          try {
-            await this.Review.create({ status: 'fnord' });
-          } catch (error) {
-            expect(error).to.be.instanceOf(Error);
-            expect(error.message).to.equal('"fnord" is not a valid choice in ["scheduled","active","finished"]');
-          }
-        });
-      });
-    }
-
     describe('table', () => {
       for (const customAttributes of [
         { id: { type: DataTypes.BIGINT, primaryKey: true } },

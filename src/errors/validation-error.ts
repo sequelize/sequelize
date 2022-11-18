@@ -8,10 +8,9 @@ import BaseError from './base-error';
  * our new `origin` values.
  */
 export enum ValidationErrorItemType {
-  'notnull violation' = 'CORE',
-  'string violation' = 'CORE',
+  'notNull violation' = 'CORE',
   'unique violation' = 'DB',
-  'validation error' = 'FUNCTION',
+  'Validation error' = 'FUNCTION',
 }
 
 /**
@@ -32,13 +31,18 @@ export enum ValidationErrorItemOrigin {
    * specifies validation errors that originate from validator functions (both built-in and custom) defined for a given attribute
    */
   FUNCTION = 'FUNCTION',
+
+  /**
+   * specifies validation errors that originate from {@link AbstractDataType#validate} constraint validation.
+   */
+  DATATYPE = 'DATATYPE',
 }
 
 /**
  * Validation Error Item
  * Instances of this class are included in the `ValidationError.errors` property.
  */
-export class ValidationErrorItem {
+export class ValidationErrorItem extends Error {
   /**
    * @deprecated Will be removed in v7
    */
@@ -50,11 +54,6 @@ export class ValidationErrorItem {
   static Origins = ValidationErrorItemOrigin;
 
   /**
-   * An error message
-   */
-  readonly message: string;
-
-  /**
    * The type/origin of the validation error
    */
   readonly type: keyof typeof ValidationErrorItemType | null;
@@ -62,34 +61,40 @@ export class ValidationErrorItem {
   /**
    * The field that triggered the validation error
    */
-  readonly path: string | null;
+  path: string | null;
 
   /**
    * The value that generated the error
    */
-  readonly value: string | null;
+  value: unknown;
 
   readonly origin: keyof typeof ValidationErrorItemOrigin | null;
 
   /**
    * The DAO instance that caused the validation error
    */
-  readonly instance: Model | null;
+  instance: Model | null;
 
   /**
    * A validation "key", used for identification
    */
-  readonly validatorKey: string | null;
+  validatorKey: string | null;
 
   /**
    * Property name of the BUILT-IN validator function that caused the validation error (e.g. "in" or "len"), if applicable
    */
-  readonly validatorName: string | null;
+  validatorName: string | null;
 
   /**
    * Parameters used with the BUILT-IN validator function, if applicable
    */
   readonly validatorArgs: unknown[];
+
+  static throwDataTypeValidationError(
+    message: string,
+  ): never {
+    throw new ValidationErrorItem(message, 'Validation error', ValidationErrorItemOrigin.DATATYPE);
+  }
 
   /**
    * Creates a new ValidationError item. Instances of this class are included in the `ValidationError.errors` property.
@@ -108,18 +113,19 @@ export class ValidationErrorItem {
     type:
       | keyof typeof ValidationErrorItemType
       | keyof typeof ValidationErrorItemOrigin,
-    path: string,
-    value: string,
-    instance: Model,
-    validatorKey: string,
-    fnName: string,
-    fnArgs: unknown[],
+    path?: string,
+    value?: string,
+    instance?: Model,
+    validatorKey?: string,
+    fnName?: string,
+    fnArgs?: unknown[],
   ) {
-    this.message = message || '';
+    super(message);
+
     this.type = null;
     this.path = path || null;
 
-    this.value = value !== undefined ? value : null;
+    this.value = value ?? null;
 
     this.origin = null;
 
@@ -135,8 +141,7 @@ export class ValidationErrorItem {
       if (this.isValidationErrorItemOrigin(type)) {
         this.origin = type;
       } else {
-        const lowercaseType = this.normalizeString(type);
-        const realType = ValidationErrorItemType[lowercaseType];
+        const realType = ValidationErrorItemType[type];
 
         if (realType && ValidationErrorItemOrigin[realType]) {
           this.origin = realType;
@@ -158,10 +163,6 @@ export class ValidationErrorItem {
         origin as keyof typeof ValidationErrorItemOrigin
       ] !== undefined
     );
-  }
-
-  private normalizeString<T extends string>(str: T): T {
-    return str.toLowerCase().trim() as T;
   }
 
   /**
@@ -208,7 +209,7 @@ class ValidationError extends BaseError {
 
   constructor(
     message: string,
-    errors: ValidationErrorItem[],
+    errors: ValidationErrorItem[] = [],
     options: SequelizeErrorOptions & ErrorOptions = {},
   ) {
     const { stack, ...passUp } = options;
@@ -216,7 +217,7 @@ class ValidationError extends BaseError {
     super(message, passUp);
 
     this.name = 'SequelizeValidationError';
-    this.errors = errors || [];
+    this.errors = errors;
 
     // Use provided error message if available...
     if (message) {

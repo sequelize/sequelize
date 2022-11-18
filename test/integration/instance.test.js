@@ -218,38 +218,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(user.isSuperUser).to.be.true;
       });
 
-      it('should override default when given truthy boolean-string ("true")', async function () {
-        await this.User.build({
-          username: 'a user',
-          isSuperUser: 'true',
-        })
-          .save();
-
-        const user = await this.User.findOne({
-          where: {
-            username: 'a user',
-          },
-        });
-
-        expect(user.isSuperUser).to.be.true;
-      });
-
-      it('should override default when given truthy boolean-int (1)', async function () {
-        await this.User.build({
-          username: 'a user',
-          isSuperUser: 1,
-        })
-          .save();
-
-        const user = await this.User.findOne({
-          where: {
-            username: 'a user',
-          },
-        });
-
-        expect(user.isSuperUser).to.be.true;
-      });
-
       it('should throw error when given value of incorrect type', async function () {
         let callCount = 0;
 

@@ -1,9 +1,13 @@
 'use strict';
 
-import { rejectInvalidOptions } from '../../utils';
+import { rejectInvalidOptions } from '../../utils/check';
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -20,8 +24,10 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-const CREATE_DATABASE_SUPPORTED_OPTIONS = new Set(['collate']);
-const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['collate']);
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   createDatabaseQuery(databaseName, options) {
@@ -29,8 +35,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createDatabaseQuery',
         this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTION,
-        CREATE_DATABASE_SUPPORTED_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -64,8 +70,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createSchemaQuery',
         this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -214,7 +220,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     const quotedTableName = this.quoteTable(tableName);
 
     return Utils.joinSQLFragments([
-      `IF OBJECT_ID('${quotedTableName}', 'U') IS NULL`,
+      `IF OBJECT_ID(${this.escape(quotedTableName)}, 'U') IS NULL`,
       `CREATE TABLE ${quotedTableName} (${attributesClauseParts.join(', ')})`,
       ';',
       commentStr,
@@ -222,6 +228,11 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName, schema) {
+    if (typeof tableName === 'object') {
+      schema = tableName.schema || schema;
+      tableName = tableName.tableName;
+    }
+
     let sql = [
       'SELECT',
       'c.COLUMN_NAME AS \'Name\',',
@@ -276,7 +287,17 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     return `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(tableName)} AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
   }
 
-  dropTableQuery(tableName) {
+  dropTableQuery(tableName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const quoteTbl = this.quoteTable(tableName);
 
     return Utils.joinSQLFragments([
@@ -287,10 +308,25 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  addColumnQuery(table, key, dataType) {
-    // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
-    //       but instead we need to pass the key along as the field here
-    dataType.field = key;
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    dataType = {
+      ...dataType,
+      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      //       but instead we need to pass the key along as the field here
+      field: key,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
+
     let commentStr = '';
 
     if (dataType.comment && _.isString(dataType.comment)) {
@@ -320,11 +356,14 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
         + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options = {}) {
+    const ifExists = options.ifExists ? 'IF EXISTS' : '';
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP COLUMN',
+      ifExists,
       this.quoteIdentifier(attributeName),
       ';',
     ]);
@@ -624,9 +663,9 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    // handle self referential constraints
-    if (attribute.references && attribute.Model && attribute.Model.tableName === attribute.references.model) {
-      this.sequelize.log('MSSQL does not support self referencial constraints, '
+    // handle self-referential constraints
+    if (attribute.references && attribute.Model && this.isSameTable(attribute.Model.tableName, attribute.references.model)) {
+      this.sequelize.log('MSSQL does not support self-referential constraints, '
           + 'we will remove it but we recommend restructuring your query');
       attribute.onDelete = '';
       attribute.onUpdate = '';
@@ -635,24 +674,20 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     let template;
 
     if (attribute.type instanceof DataTypes.ENUM) {
-      if (attribute.type.values && !attribute.values) {
-        attribute.values = attribute.type.values;
-      }
-
       // enums are a special case
-      template = attribute.type.toSql();
-      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
+      template = attribute.type.toSql({ dialect: this.dialect });
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
         return this.escape(value, undefined, options);
       }).join(', ')}))`;
 
       return template;
     }
 
-    template = attribute.type.toString();
+    template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
-    } else if (!attribute.primaryKey && !Utils.defaultValueSchemable(attribute.defaultValue)) {
+    } else if (!attribute.primaryKey && !defaultValueSchemable(attribute.defaultValue)) {
       template += ' NULL';
     }
 
@@ -662,8 +697,8 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
 
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
-        && Utils.defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
+        && defaultValueSchemable(attribute.defaultValue)) {
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, attribute, options)}`;
     }
 
     if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
@@ -1087,21 +1122,12 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   booleanValue(value) {
     return value ? 1 : 0;
   }
-
-  /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, force) {
-    return `[${identifier.replace(/['[\]]+/g, '')}]`;
-  }
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(Utils.removeTicks(identifier, '\''), '\'');
 }

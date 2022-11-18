@@ -1,6 +1,6 @@
 'use strict';
 
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -69,21 +69,21 @@ if (current.dialect.name === 'mssql') {
 
     it('createTableQuery', function () {
       expectsql(this.queryGenerator.createTableQuery('myTable', { int: 'INTEGER' }, {}), {
-        mssql: 'IF OBJECT_ID(\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([int] INTEGER);',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER);`,
       });
     });
 
     it('createTableQuery with comments', function () {
-      expectsql(this.queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: 'IF OBJECT_ID(\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Foo Bar\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [int]; EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Bar Foo\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [varchar];' });
+      expectsql(this.queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [int]; EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Bar Foo', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [varchar];` });
     });
 
     it('createTableQuery with comments and table object', function () {
-      expectsql(this.queryGenerator.createTableQuery({ tableName: 'myTable' }, { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: 'IF OBJECT_ID(\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Foo Bar\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [int]; EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Bar Foo\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [varchar];' });
+      expectsql(this.queryGenerator.createTableQuery({ tableName: 'myTable' }, { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [int]; EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Bar Foo', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [varchar];` });
     });
 
     it('getDefaultConstraintQuery', function () {
       expectsql(this.queryGenerator.getDefaultConstraintQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myColumn'), {
-        mssql: 'SELECT name FROM sys.default_constraints WHERE PARENT_OBJECT_ID = OBJECT_ID(\'[mySchema].[myTable]\', \'U\') AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = (\'myColumn\') AND object_id = OBJECT_ID(\'[mySchema].[myTable]\', \'U\'));',
+        mssql: `SELECT name FROM sys.default_constraints WHERE PARENT_OBJECT_ID = OBJECT_ID('[mySchema].[myTable]', 'U') AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('myColumn') AND object_id = OBJECT_ID('[mySchema].[myTable]', 'U'));`,
       });
     });
 
@@ -245,12 +245,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('dropTableQuery', function () {
-      expectsql(this.queryGenerator.dropTableQuery('dirtyTable'), {
-        mssql: 'IF OBJECT_ID(\'[dirtyTable]\', \'U\') IS NOT NULL DROP TABLE [dirtyTable];',
-      });
-    });
-
     it('addColumnQuery', function () {
       expectsql(this.queryGenerator.addColumnQuery('myTable', 'myColumn', { type: 'VARCHAR(255)' }), {
         mssql: 'ALTER TABLE [myTable] ADD [myColumn] VARCHAR(255) NULL;',
@@ -270,12 +264,6 @@ if (current.dialect.name === 'mssql') {
     it('removeColumnQuery', function () {
       expectsql(this.queryGenerator.removeColumnQuery('myTable', 'myColumn'), {
         mssql: 'ALTER TABLE [myTable] DROP COLUMN [myColumn];',
-      });
-    });
-
-    it('quoteIdentifier', function () {
-      expectsql(this.queryGenerator.quoteIdentifier('\'myTable\'.\'Test\''), {
-        mssql: '[myTable.Test]',
       });
     });
 
@@ -314,50 +302,5 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    describe('arithmeticQuery', () => {
-      for (const test of [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]+ N\'bar\' OUTPUT INSERTED.*',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]+ N\'bar\' OUTPUT INSERTED.* WHERE [bar] = N\'biz\'',
-        },
-        {
-          title: 'Should use the plus operator without returning clause',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]+ N\'bar\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- N\'bar\' OUTPUT INSERTED.*',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- -1 OUTPUT INSERTED.*',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- N\'bar\' OUTPUT INSERTED.* WHERE [bar] = N\'biz\'',
-        },
-        {
-          title: 'Should use the minus operator without returning clause',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- N\'bar\'',
-        },
-      ]) {
-        it(test.title, function () {
-          expectsql(this.queryGenerator.arithmeticQuery(...test.arguments), {
-            mssql: test.expectation,
-          });
-        });
-      }
-    });
   });
 }
