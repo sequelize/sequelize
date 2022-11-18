@@ -1,5 +1,7 @@
 'use strict';
 
+import NodeUtil from 'node:util';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
@@ -205,31 +207,6 @@ export class MariaDbQuery extends AbstractQuery {
     }
   }
 
-  async logWarnings(results) {
-    const warningResults = await this.run('SHOW WARNINGS');
-    const warningMessage = `MariaDB Warnings (${this.connection.uuid || 'default'}): `;
-    const messages = [];
-    for (const _warningRow of warningResults) {
-      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
-        continue;
-      }
-
-      for (const _warningResult of _warningRow) {
-        if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
-          messages.push(_warningResult.Message);
-        } else {
-          for (const _objectKey of _warningResult.keys()) {
-            messages.push([_objectKey, _warningResult[_objectKey]].join(': '));
-          }
-        }
-      }
-    }
-
-    this.sequelize.log(warningMessage + messages.join('; '), this.options);
-
-    return results;
-  }
-
   formatError(err, errStack) {
     switch (err.errno) {
       case ER_DUP_ENTRY: {
@@ -313,7 +290,7 @@ export class MariaDbQuery extends AbstractQuery {
           fields: [],
           name: item.Key_name,
           tableName: item.Table,
-          unique: item.Non_unique !== 1,
+          unique: item.Non_unique !== '1',
           type: item.Index_type,
         };
         result.push(currItem);
@@ -322,7 +299,13 @@ export class MariaDbQuery extends AbstractQuery {
       currItem.fields[item.Seq_in_index - 1] = {
         attribute: item.Column_name,
         length: item.Sub_part || undefined,
-        order: item.Collation === 'A' ? 'ASC' : undefined,
+        order: item.Collation === 'A' ? 'ASC'
+          : item.Collation === 'D' ? 'DESC'
+          // Not sorted
+          : item.Collation === null ? null
+          : (() => {
+            throw new Error(`Unknown index collation ${NodeUtil.inspect(item.Collation)}`);
+          })(),
       };
     }
 

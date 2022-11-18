@@ -1,6 +1,6 @@
 'use strict';
 
-const Support   = require('../support');
+const Support   = require('../../support');
 const util = require('util');
 
 const expectsql = Support.expectsql;

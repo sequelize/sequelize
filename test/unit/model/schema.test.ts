@@ -3,7 +3,7 @@ import { literal } from '@sequelize/core';
 // eslint-disable-next-line import/order
 import { expect } from 'chai';
 
-const Support = require('../support');
+const Support = require('../../support');
 
 const current = Support.sequelize;
 
@@ -19,7 +19,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
 
     describe('schema', () => {
       it('should work with no default schema', () => {
-        expect(Project._schema).to.eq('');
+        expect(Project._schema).to.equal(current.dialect.getDefaultSchema());
       });
 
       it('should apply default schema from define', () => {
@@ -45,7 +45,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able nullify schema', () => {
-        expect(Company.schema(null)._schema).to.eq('');
+        expect(Company.schema(null)._schema).to.equal(current.dialect.getDefaultSchema());
       });
 
       it('should support multiple, coexistent schema models', () => {

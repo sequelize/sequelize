@@ -51,18 +51,18 @@ if (dialect === 'mysql') {
         const User1 = this.sequelize.define(`User${Support.rand()}`, {});
         const User2 = this.sequelize.define(`User${Support.rand()}`, {}, { timestamps: true });
 
-        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User1.rawAttributes)).to.deep.equal({ id: 'INTEGER NOT NULL auto_increment PRIMARY KEY', updatedAt: 'DATETIME NOT NULL', createdAt: 'DATETIME NOT NULL' });
-        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User2.rawAttributes)).to.deep.equal({ id: 'INTEGER NOT NULL auto_increment PRIMARY KEY', updatedAt: 'DATETIME NOT NULL', createdAt: 'DATETIME NOT NULL' });
+        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User1.rawAttributes)).to.deep.equal({ id: 'INTEGER NOT NULL auto_increment PRIMARY KEY', updatedAt: 'DATETIME(6) NOT NULL', createdAt: 'DATETIME(6) NOT NULL' });
+        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User2.rawAttributes)).to.deep.equal({ id: 'INTEGER NOT NULL auto_increment PRIMARY KEY', updatedAt: 'DATETIME(6) NOT NULL', createdAt: 'DATETIME(6) NOT NULL' });
       });
 
       it('adds deletedAt if paranoid', function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {}, { paranoid: true });
-        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({ id: 'INTEGER NOT NULL auto_increment PRIMARY KEY', deletedAt: 'DATETIME', updatedAt: 'DATETIME NOT NULL', createdAt: 'DATETIME NOT NULL' });
+        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({ id: 'INTEGER NOT NULL auto_increment PRIMARY KEY', deletedAt: 'DATETIME(6)', updatedAt: 'DATETIME(6) NOT NULL', createdAt: 'DATETIME(6) NOT NULL' });
       });
 
       it('underscores timestamps if underscored', function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {}, { paranoid: true, underscored: true });
-        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({ id: 'INTEGER NOT NULL auto_increment PRIMARY KEY', deleted_at: 'DATETIME', updated_at: 'DATETIME NOT NULL', created_at: 'DATETIME NOT NULL' });
+        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({ id: 'INTEGER NOT NULL auto_increment PRIMARY KEY', deleted_at: 'DATETIME(6)', updated_at: 'DATETIME(6) NOT NULL', created_at: 'DATETIME(6) NOT NULL' });
       });
 
       it('omits text fields with defaultValues', function () {

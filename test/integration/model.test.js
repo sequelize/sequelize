@@ -462,7 +462,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             attribute: 'fieldA',
             collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
-            order: dialectName === 'ibmi' ? '' : `${isMySQL8 ? 'ASC' : 'DESC'}`,
+            order: dialectName === 'ibmi' ? ''
+              // MySQL doesn't support DESC indexes (will throw)
+              // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
+              : (dialectName === 'mysql' || dialectName === 'mariadb') ? 'ASC'
+              : `DESC`,
             length: 5,
           },
         ],
@@ -499,7 +503,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       switch (dialectName) {
         case 'sqlite': {
-        // PRAGMA index_info does not return the primary index
+          // PRAGMA index_info does not return the primary index
           idx1 = args[0];
           idx2 = args[1];
 
@@ -549,7 +553,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         case 'postgres': {
-        // Postgres returns indexes in alphabetical order
+          // Postgres returns indexes in alphabetical order
           primary = args[2];
           idx1 = args[0];
           idx2 = args[1];
@@ -572,7 +576,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         default: {
-        // And finally mysql returns the primary first, and then the rest in the order they were defined
+          // And finally mysql returns the primary first, and then the rest in the order they were defined
           primary = args[0];
           idx1 = args[1];
           idx2 = args[2];
@@ -584,11 +588,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: 'ASC' },
-            { attribute: 'fieldA', length: 5, order: 'ASC' },
+            // length is a bigint, which is why it's returned as a string
+            {
+              attribute: 'fieldA',
+              length: '5',
+              // mysql & mariadb don't support DESC indexes
+              order: 'ASC',
+            },
           ]);
 
           expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: undefined },
+            { attribute: 'fieldC', length: undefined, order: null },
           ]);
         }
       }
@@ -1967,12 +1977,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           order: DataTypes.INTEGER,
         });
 
-        this.UserWithDec = this.sequelize.define('UserWithDec', {
-          value: DataTypes.DECIMAL(10, 3),
-        });
-
         await this.UserWithAge.sync({ force: true });
-        await this.UserWithDec.sync({ force: true });
       });
 
       if (current.dialect.supports.transactions) {
@@ -2008,10 +2013,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(test).to.be.true;
       });
 
-      it('should allow decimals', async function () {
-        await this.UserWithDec.bulkCreate([{ value: 5.5 }, { value: 3.5 }]);
-        expect(await this.UserWithDec[methodName]('value')).to.equal(methodName === 'min' ? 3.5 : 5.5);
-      });
+      if (dialect.supports.dataTypes.DECIMAL) {
+        it('should allow decimals', async function () {
+          const UserWithDec = this.sequelize.define('UserWithDec', {
+            value: DataTypes.DECIMAL(10, 3),
+          });
+
+          await UserWithDec.sync({ force: true });
+
+          await UserWithDec.bulkCreate([{ value: 5.5 }, { value: 3.5 }]);
+          expect(await UserWithDec[methodName]('value')).to.equal(methodName === 'min' ? 3.5 : 5.5);
+        });
+      }
 
       it('should allow strings', async function () {
         await this.User.bulkCreate([{ username: 'bbb' }, { username: 'yyy' }]);
@@ -2043,10 +2056,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         gender: DataTypes.ENUM('male', 'female'),
       });
 
-      this.UserWithDec = this.sequelize.define('UserWithDec', {
-        value: DataTypes.DECIMAL(10, 3),
-      });
-
       this.UserWithFields = this.sequelize.define('UserWithFields', {
         age: {
           type: DataTypes.INTEGER,
@@ -2061,7 +2070,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await Promise.all([
         this.UserWithAge.sync({ force: true }),
-        this.UserWithDec.sync({ force: true }),
         this.UserWithFields.sync({ force: true }),
       ]);
     });
@@ -2076,10 +2084,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await this.UserWithAge.sum('order')).to.equal(8);
     });
 
-    it('should allow decimals in sum', async function () {
-      await this.UserWithDec.bulkCreate([{ value: 3.5 }, { value: 5.25 }]);
-      expect(await this.UserWithDec.sum('value')).to.equal(8.75);
-    });
+    if (dialect.supports.dataTypes.DECIMAL) {
+      it('should allow decimals in sum', async function () {
+        const UserWithDec = this.sequelize.define('UserWithDec', {
+          value: DataTypes.DECIMAL(10, 3),
+        });
+
+        await UserWithDec.sync({ force: true });
+
+        await UserWithDec.bulkCreate([{ value: 3.5 }, { value: 5.25 }]);
+        expect(await UserWithDec.sum('value')).to.equal(8.75);
+      });
+    }
 
     it('should accept a where clause', async function () {
       const options = { where: { gender: 'male' } };
@@ -2484,7 +2500,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           case 'sqlite': {
-          // the parser should not end up here ... see above
+            // the parser should not end up here ... see above
             expect(1).to.equal(2);
 
             break;

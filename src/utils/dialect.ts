@@ -1,12 +1,8 @@
-import isPlainObject from 'lodash/isPlainObject';
-/* eslint-disable import/order -- caused by temporarily mixing require with import */
-import { v1 as uuidv1 } from 'uuid';
 import { randomUUID } from 'crypto';
-
+import isPlainObject from 'lodash/isPlainObject';
+import { v1 as uuidv1 } from 'uuid';
 import type { AbstractDialect } from '../dialects/abstract';
-/* eslint-enable import/order */
-
-const DataTypes = require('../data-types');
+import * as DataTypes from '../dialects/abstract/data-types.js';
 
 export function now(dialect: AbstractDialect): Date {
   const d = new Date();
@@ -20,8 +16,8 @@ export function now(dialect: AbstractDialect): Date {
 export function toDefaultValue(value: unknown, dialect: AbstractDialect): unknown {
   if (typeof value === 'function') {
     const tmp = value();
-    if (tmp instanceof DataTypes.ABSTRACT) {
-      return tmp.toSql();
+    if (tmp instanceof DataTypes.AbstractDataType) {
+      return tmp.toSql({ dialect });
     }
 
     return tmp;
@@ -50,14 +46,48 @@ export function toDefaultValue(value: unknown, dialect: AbstractDialect): unknow
   return value;
 }
 
-// Note: Use the `quoteIdentifier()` and `escape()` methods on the
-// `QueryInterface` instead for more portable code.
+/**
+ * @deprecated use {@link AbstractDialect#TICK_CHAR_LEFT} and {@link AbstractDialect#TICK_CHAR_RIGHT},
+ * or {@link AbstractQueryGenerator#quoteIdentifier}
+ */
 export const TICK_CHAR = '`';
 
+/**
+ * @deprecated this is a bad way to quote identifiers and it should not be used anymore.
+ * it mangles the input if the input contains identifier quotes, which should not happen.
+ * Use {@link quoteIdentifier} instead
+ *
+ * @param s
+ * @param tickChar
+ * @returns
+ */
 export function addTicks(s: string, tickChar: string = TICK_CHAR): string {
   return tickChar + removeTicks(s, tickChar) + tickChar;
 }
 
+/**
+ * @deprecated this is a bad way to quote identifiers and it should not be used anymore.
+ * Use {@link quoteIdentifier} instead
+ *
+ * @param s
+ * @param tickChar
+ * @returns
+ */
 export function removeTicks(s: string, tickChar: string = TICK_CHAR): string {
   return s.replace(new RegExp(tickChar, 'g'), '');
+}
+
+export function quoteIdentifier(identifier: string, leftTick: string, rightTick: string): string {
+  // TODO [engine:node@>14]: drop regexp, use replaceAll with a string instead.
+  const leftTickRegExp = new RegExp(`\\${leftTick}`, 'g');
+
+  if (leftTick === rightTick) {
+    return leftTick + identifier.replace(leftTickRegExp, leftTick + leftTick) + rightTick;
+  }
+
+  const rightTickRegExp = new RegExp(`\\${rightTick}`, 'g');
+
+  return leftTick
+    + identifier.replace(leftTickRegExp, leftTick + leftTick).replace(rightTickRegExp, rightTick + rightTick)
+    + rightTick;
 }
