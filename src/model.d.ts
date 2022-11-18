@@ -922,8 +922,6 @@ export interface FindOptions<TAttributes = any>
    * );
    * ```
    *
-   * Since not every dialect supports lateral joins, this is currently implemented as a union.
-   *
    * Currently groupedLimit is used by include.separate for hasMany includes (where we first load the main table, getting matching project ids, and then fetch a limited amount of users for each).
    *
    * Note: Using this option is not recommended. See https://github.com/sequelize/sequelize/issues/6899#issuecomment-262550213.
