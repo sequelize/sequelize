@@ -923,7 +923,7 @@ class QueryInterface {
 
     const sql = this.queryGenerator.updateQuery(tableName, values, identifier, options, attributes);
     const table = _.isObject(tableName) ? tableName : { tableName };
-    const model = _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const model = options.model ? options.model : _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;

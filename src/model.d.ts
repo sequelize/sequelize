@@ -1867,6 +1867,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   _attributes: TModelAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in hooks.d.ts)
 
   /**
+   * Object that contains underlying model data
+   */
+  dataValues: TModelAttributes;
+
+  /**
    * A similar dummy variable that doesn't exist on the real object. Do not
    * try to access this in real code.
    *
