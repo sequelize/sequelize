@@ -17,7 +17,7 @@ describe('QueryGenerator#addColumnQuery', () => {
     }), {
       default: `ALTER TABLE [Users] ADD [age] INTEGER;`,
       mssql: `ALTER TABLE [Users] ADD [age] INTEGER NULL;`,
-      postgres: `ALTER TABLE "public"."Users" ADD COLUMN "age" INTEGER;`,
+      postgres: `ALTER TABLE "Users" ADD COLUMN "age" INTEGER;`,
     });
   });
 
@@ -26,7 +26,8 @@ describe('QueryGenerator#addColumnQuery', () => {
       type: DataTypes.INTEGER,
     }, { ifNotExists: true }), {
       default: buildInvalidOptionReceivedError('addColumnQuery', dialectName, ['ifNotExists']),
-      postgres: `ALTER TABLE "public"."Users" ADD COLUMN IF NOT EXISTS "age" INTEGER;`,
+      mariadb: 'ALTER TABLE `Users` ADD IF NOT EXISTS `age` INTEGER;',
+      postgres: `ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "age" INTEGER;`,
     });
   });
 });
