@@ -80,7 +80,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
       let transactionSetup = false;
       let transactionEnded = false;
 
-      const clsTask = vars.alsSequelize.transaction(async () => {
+      const alsTask = vars.alsSequelize.transaction(async () => {
         transactionSetup = true;
         await delay(500);
         expect(vars.alsSequelize.getCurrentAlsTransaction()).to.be.ok;
@@ -102,7 +102,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
 
       // Just to make sure it didn't change between our last check and the assertion
       expect(transactionEnded).not.to.be.ok;
-      await clsTask; // ensure we don't leak the promise
+      await alsTask; // ensure we don't leak the promise
     });
 
     it('does not leak variables to the following promise chain', async () => {
@@ -199,7 +199,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
           for (const [hookName, spy] of Object.entries(hooks)) {
             expect(
               spy,
-              `hook ${hookName} did not receive the transaction from CLS.`,
+              `hook ${hookName} did not receive the transaction from ALS.`,
             ).to.have.been.calledWith(...spyMatcher);
           }
         });

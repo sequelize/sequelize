@@ -79,7 +79,6 @@
     "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
-    "cls-hooked": "4.2.2",
     "concurrently": "7.5.0",
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",

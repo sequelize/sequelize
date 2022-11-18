@@ -297,7 +297,7 @@ export class SequelizeTypeScript {
    * @example
    * ```ts
    * try {
-   *   const transaction = await sequelize.unsafeStartManualTransaction();
+   *   const transaction = await sequelize.startUnmanagedTransaction();
    *   const user = await User.findOne(..., { transaction });
    *   await user.update(..., { transaction });
    *   await transaction.commit();
