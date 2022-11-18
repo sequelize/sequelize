@@ -44,10 +44,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           schema: 'archive',
         });
 
-        if (['postgres', 'postgres-native'].includes(dialect)) {
-          expect(table.currency.type).to.equal('DOUBLE PRECISION');
-        } else if (dialect === 'db2') {
-          expect(table.currency.type).to.equal('DOUBLE');
+        if (['postgres', 'postgres-native', 'mssql', 'db2'].includes(dialect)) {
+          expect(table.currency.type).to.equal('REAL');
         } else {
           expect(table.currency.type).to.equal('FLOAT');
         }
@@ -80,10 +78,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         tableName: 'users',
       });
 
-      if (['postgres', 'postgres-native'].includes(dialect)) {
-        expect(table.currency.type).to.equal('DOUBLE PRECISION');
-      } else if (dialect === 'db2') {
-        expect(table.currency.type).to.equal('DOUBLE');
+      if (['postgres', 'postgres-native', 'mssql', 'sqlite', 'db2'].includes(dialect)) {
+        expect(table.currency.type).to.equal('REAL');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }

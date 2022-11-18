@@ -126,7 +126,12 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       await sequelize.sync({ alter: true });
       const data = await testSync.describe();
       expect(data).to.have.ownProperty('age');
-      expect(data.age.type).to.have.string('VAR'); // CHARACTER VARYING, VARCHAR(n)
+      if (dialect === 'sqlite') {
+        // sqlite does not have a text type with a configurable max width. It uses TEXT which is unlimited.
+        expect(data.age.type).to.have.string('TEXT');
+      } else {
+        expect(data.age.type).to.have.string('VAR'); // CHARACTER VARYING, VARCHAR(n)
+      }
     });
   }
 
@@ -487,7 +492,6 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   }
 
   // TODO: this should work with MSSQL / MariaDB too
-  // Need to fix addSchema return type
   if (dialect.startsWith('postgres')) {
     it('defaults to schema provided to sync() for references #11276', async function () {
       await Promise.all([

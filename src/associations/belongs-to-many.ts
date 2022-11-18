@@ -262,7 +262,7 @@ export class BelongsToMany<
 
     Do this:
     A.belongsToMany(B, { as: 'b', through: 'AB', inverse: { as: 'a' } });
-          `, { cause: error as Error });
+          `, { cause: error });
     }
 
     // we'll need to access their foreign key (through .otherKey) in this constructor.

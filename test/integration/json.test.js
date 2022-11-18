@@ -13,7 +13,7 @@ const dialectName = Support.getTestDialect();
 
 describe('model', () => {
   describe('json', () => {
-    if (!current.dialect.supports.JSON) {
+    if (!current.dialect.supports.dataTypes.JSON) {
       return;
     }
 
@@ -31,9 +31,20 @@ describe('model', () => {
 
     it('should tell me that a column is json', async function () {
       const table = await this.sequelize.queryInterface.describeTable('Users');
-      // expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
-      if (dialectName !== 'mariadb') {
-        expect(table.emergency_contact.type).to.equal('JSON');
+      switch (dialectName) {
+        // mssql & sqlite use text columns with CHECK constraints
+        case 'mssql':
+          expect(table.emergency_contact.type).to.equal('NVARCHAR(MAX)');
+          break;
+        case 'sqlite':
+          expect(table.emergency_contact.type).to.equal('TEXT');
+          break;
+        case 'mariadb':
+          // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
+          expect(table.emergency_contact.type).to.equal('LONGTEXT');
+          break;
+        default:
+          expect(table.emergency_contact.type).to.equal('JSON');
       }
     });
 
@@ -287,7 +298,7 @@ describe('model', () => {
   });
 
   describe('jsonb', () => {
-    if (!current.dialect.supports.JSONB) {
+    if (!current.dialect.supports.dataTypes.JSONB) {
       return;
     }
 

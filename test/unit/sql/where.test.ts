@@ -30,9 +30,10 @@ type Expectations = {
   [dialectName: string]: string | Error,
 };
 
-const dialectSupportsArray = () => sequelize.dialect.supports.ARRAY;
-const dialectSupportsRange = () => sequelize.dialect.supports.RANGE;
-const dialectSupportsJsonB = () => sequelize.dialect.supports.JSONB;
+const dialectSupportsArray = () => sequelize.dialect.supports.dataTypes.ARRAY;
+const dialectSupportsRange = () => sequelize.dialect.supports.dataTypes.RANGE;
+const dialectSupportsJsonB = () => sequelize.dialect.supports.dataTypes.JSONB;
+const dialectSupportsJson = () => sequelize.dialect.supports.dataTypes.JSON;
 
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
@@ -60,14 +61,17 @@ class TestModel extends Model<InferAttributes<TestModel>> {
 
 type TestModelWhere = WhereOptions<Attributes<TestModel>>;
 
+// @ts-expect-error - we only init a subset of datatypes based on feature support
 TestModel.init({
   intAttr1: DataTypes.INTEGER,
   intAttr2: DataTypes.INTEGER,
   nullableIntAttr: DataTypes.INTEGER,
 
-  intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
-  intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER),
-  dateRangeAttr: DataTypes.RANGE(DataTypes.DATE),
+  ...(dialectSupportsArray() && {
+    intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
+    intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER),
+    dateRangeAttr: DataTypes.RANGE(DataTypes.DATE),
+  }),
 
   stringAttr: DataTypes.STRING,
   binaryAttr: DataTypes.BLOB,
@@ -75,12 +79,17 @@ TestModel.init({
   booleanAttr: DataTypes.BOOLEAN,
   bigIntAttr: DataTypes.BIGINT,
 
-  jsonAttr: { type: DataTypes.JSON },
-  jsonbAttr: { type: DataTypes.JSONB },
-
   aliasedInt: { type: DataTypes.INTEGER, field: 'aliased_int' },
-  aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
-  aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
+
+  ...(dialectSupportsJson() && {
+    jsonAttr: { type: DataTypes.JSON },
+    aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
+  }),
+
+  ...(dialectSupportsJsonB() && {
+    jsonbAttr: { type: DataTypes.JSONB },
+    aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
+  }),
 }, { sequelize });
 
 describe(getTestDialectTeaser('SQL'), () => {
@@ -339,29 +348,27 @@ describe(getTestDialectTeaser('SQL'), () => {
         dateAttr: 1_356_998_400_000,
       }, {
         default: `[dateAttr] = '2013-01-01 00:00:00.000 +00:00'`,
-        mariadb: `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
-        mysql: `\`dateAttr\` = '2013-01-01 00:00:00'`,
+        'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
         mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
-        'db2 snowflake': `"dateAttr" = '2013-01-01 00:00:00'`,
-        ibmi: `"dateAttr" = '2013-01-01 00:00:00.000'`,
+        'db2 snowflake ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
       });
 
       describe('Buffer', () => {
         testSql({ binaryAttr: Buffer.from('Sequelize') }, {
-          ibmi: `"binaryAttr" = BLOB('Sequelize')`,
-          postgres: `"binaryAttr" = E'\\\\x53657175656c697a65'`,
+          ibmi: `"binaryAttr" = BLOB(X'53657175656c697a65')`,
+          postgres: `"binaryAttr" = '\\x53657175656c697a65'`,
           'sqlite mariadb mysql': '`binaryAttr` = X\'53657175656c697a65\'',
-          db2: `"binaryAttr" = 'BLOB(''Sequelize'')'`,
+          db2: `"binaryAttr" = BLOB('Sequelize')`,
           snowflake: `"binaryAttr" = X'53657175656c697a65'`,
           mssql: '[binaryAttr] = 0x53657175656c697a65',
         });
 
         // Including a quote (') to ensure dialects that don't convert to hex are safe from SQL injection.
         testSql({ binaryAttr: [Buffer.from(`Seque'lize1`), Buffer.from('Sequelize2')] }, {
-          ibmi: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
-          postgres: `"binaryAttr" IN (E'\\\\x5365717565276c697a6531', E'\\\\x53657175656c697a6532')`,
+          ibmi: `"binaryAttr" IN (BLOB(X'5365717565276c697a6531'), BLOB(X'53657175656c697a6532'))`,
+          postgres: `"binaryAttr" IN ('\\x5365717565276c697a6531', '\\x53657175656c697a6532')`,
           'sqlite mariadb mysql': '`binaryAttr` IN (X\'5365717565276c697a6531\', X\'53657175656c697a6532\')',
-          db2: `"binaryAttr" IN ('BLOB(''Seque''''lize1'')', 'BLOB(''Sequelize2'')')`,
+          db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
           snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
           mssql: '[binaryAttr] IN (0x5365717565276c697a6531, 0x53657175656c697a6532)',
         });
@@ -385,6 +392,10 @@ describe(getTestDialectTeaser('SQL'), () => {
       testSql({ stringAttr: ['1', '2'] }, {
         default: `[stringAttr] IN ('1', '2')`,
         mssql: `[stringAttr] IN (N'1', N'2')`,
+      });
+
+      testSql({ intAttr1: ['not-an-int'] }, {
+        default: new Error(`'not-an-int' is not a valid integer`),
       });
 
       testSql.skip({ 'stringAttr::integer': 1 }, {
@@ -434,10 +445,8 @@ describe(getTestDialectTeaser('SQL'), () => {
       testSql({ dateAttr: new Date('2021-01-01T00:00:00Z') }, {
         default: `[dateAttr] = '2021-01-01 00:00:00.000 +00:00'`,
         mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
-        mariadb: `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
-        mysql: `\`dateAttr\` = '2021-01-01 00:00:00'`,
-        'db2 snowflake': `"dateAttr" = '2021-01-01 00:00:00'`,
-        ibmi: `"dateAttr" = '2021-01-01 00:00:00.000'`,
+        'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
+        'db2 ibmi snowflake': `"dateAttr" = '2021-01-01 00:00:00.000'`,
       });
 
       testSql({ intAttr1: { [Op.col]: 'intAttr2' } }, {
@@ -838,16 +847,18 @@ describe(getTestDialectTeaser('SQL'), () => {
           const ignoreWrong3: TestModelWhere = { intAttr1: { [Op.between]: [] } };
         }
 
-        {
-          const ignoreRight: TestModelWhere = { intArrayAttr: { [Op.between]: [[1, 2], [3, 4]] } };
-          testSql({ intArrayAttr: { [operator]: [[1, 2], [3, 4]] } }, {
-            default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2]::INTEGER[] AND ARRAY[3,4]::INTEGER[]`,
-          });
-        }
+        if (dialectSupportsArray()) {
+          {
+            const ignoreRight: TestModelWhere = { intArrayAttr: { [Op.between]: [[1, 2], [3, 4]] } };
+            testSql({ intArrayAttr: { [operator]: [[1, 2], [3, 4]] } }, {
+              default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2]::INTEGER[] AND ARRAY[3,4]::INTEGER[]`,
+            });
+          }
 
-        {
-          // @ts-expect-error - this is not valid because intAttr1 is not an array and cannot be compared to arrays
-          const ignore: TestModelWhere = { intAttr1: { [Op.between]: [[1, 2], [3, 4]] } };
+          {
+            // @ts-expect-error - this is not valid because intAttr1 is not an array and cannot be compared to arrays
+            const ignore: TestModelWhere = { intAttr1: { [Op.between]: [[1, 2], [3, 4]] } };
+          }
         }
 
         {
@@ -1236,7 +1247,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         testSql({
           intRangeAttr: { [Op.contains]: 1 },
         }, {
-          postgres: `"intRangeAttr" @> '1'::int4`,
+          postgres: `"intRangeAttr" @> 1`,
         });
 
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
@@ -1992,7 +2003,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       describeRegexpSuite(Op.notIRegexp, '!~*');
     }
 
-    if (sequelize.dialect.supports.TSVECTOR) {
+    if (sequelize.dialect.supports.dataTypes.TSVECTOR) {
       describe('Op.match', () => {
         testSql({ stringAttr: { [Op.match]: fn('to_tsvector', 'swagger') } }, {
           default: `[stringAttr] @@ to_tsvector('swagger')`,
@@ -2121,7 +2132,7 @@ describe(getTestDialectTeaser('SQL'), () => {
     describeAdjacentRangeSuite(Op.noExtendRight, '&<');
 
     if (sequelize.dialect.supports.jsonOperations) {
-      describe('JSON', () => {
+      describe('JSON Operations', () => {
         {
           // @ts-expect-error -- attribute 'doesNotExist' does not exist.
           const ignore: TestModelWhere = { 'doesNotExist.nested': 'value' };

@@ -325,7 +325,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ], { validate: true });
       } catch (error) {
         const expectedValidationError = 'Validation len on code failed';
-        const expectedNotNullError = 'notNull Violation: Task.name cannot be null';
+        const expectedNotNullError = 'notNull violation: Task.name cannot be null';
 
         expect(error.toString()).to.include(expectedValidationError)
           .and.to.include(expectedNotNullError);
@@ -335,7 +335,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const e0name0 = errors[0].errors.get('name')[0];
 
         expect(errors[0].record.code).to.equal('1234');
-        expect(e0name0.type || e0name0.origin).to.equal('notNull Violation');
+        expect(e0name0.type || e0name0.origin).to.equal('notNull violation');
 
         expect(errors[1].record.name).to.equal('bar');
         expect(errors[1].record.code).to.equal('1');

@@ -1,8 +1,8 @@
 import type { InferAttributes, Model } from '@sequelize/core';
-import { Op, literal, DataTypes, or, fn, where, cast } from '@sequelize/core';
+import { Op, literal, DataTypes, or, fn, where, cast, col } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expect } from 'chai';
-import { expectsql, sequelize } from '../../support';
+import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -13,7 +13,7 @@ describe('QueryGenerator#selectQuery', () => {
 
   const User = sequelize.define<TUser>('User', {
     username: DataTypes.STRING,
-  }, { timestamps: false });
+  }, { timestamps: true });
 
   interface TProject extends Model<InferAttributes<TProject>> {
     duration: bigint;
@@ -70,8 +70,22 @@ describe('QueryGenerator#selectQuery', () => {
       sqlite: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
       snowflake: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
       db2: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
-      ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = '9007199254740993'`,
+      ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993`,
       mssql: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
+    });
+  });
+
+  it('supports cast in attributes', () => {
+    const sql = queryGenerator.selectQuery(User.tableName, {
+      model: User,
+      attributes: [
+        'id',
+        [cast(col('createdAt'), 'varchar'), 'createdAt'],
+      ],
+    }, User);
+
+    expectsql(sql, {
+      default: `SELECT [id], CAST([createdAt] AS VARCHAR) AS [createdAt] FROM [Users] AS [User];`,
     });
   });
 
@@ -426,6 +440,29 @@ describe('QueryGenerator#selectQuery', () => {
       ).to.throw(`The following literal includes positional replacements (?).
 Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal("?")`);
+    });
+  });
+
+  describe('minifyAliases', () => {
+    const minifyAliasesSequelize = createSequelizeInstance({
+      minifyAliases: true,
+    });
+
+    const minifyQueryGenerator = minifyAliasesSequelize.queryInterface.queryGenerator;
+
+    it('minifies custom attributes', () => {
+      const sql = minifyQueryGenerator.selectQuery(User.tableName, {
+        model: User,
+        attributes: [
+          [literal('1'), 'customAttr'],
+        ],
+        order: ['customAttr'],
+        group: ['customAttr'],
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT 1 AS [_0] FROM [Users] AS [User] GROUP BY [_0] ORDER BY [_0];`,
+      });
     });
   });
 });

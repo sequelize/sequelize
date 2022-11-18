@@ -9,7 +9,7 @@ We are happy to see that you might be interested in contributing to Sequelize! T
 - Reviewing (i.e. commenting on) open Pull Requests, to help their creators improve it if needed and allow maintainers to take less time looking into them
 - Helping to clarify issues opened by others, commenting and asking for clarification
 - Answering [questions tagged with `sequelize.js` on StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js)
-- Helping people in our [public Slack channel](https://sequelize.slack.com/) (note: if you don't have access, get yourself an invite automatically via [this link](http://sequelize-slack.herokuapp.com/))
+- Helping people in our [public Slack channel](https://sequelize.slack.com/) (note: if you don't have access, get yourself an invite automatically via [this link](https://join.slack.com/t/sequelize/shared_invite/zt-1igt9hx8h-tGWU4AI1bRPvkRdEK5wnuQ))
 
 Sequelize is strongly moved by contributions from people like you. All maintainers also work on their free time here.
 
@@ -99,7 +99,7 @@ Most operating systems provide all the needed tools (including Windows, Linux an
 
 - Optional (recommended):
 
-  - [Docker](https://docs.docker.com/get-docker/)
+  - [Docker](https://docs.docker.com/get-docker/) and [Docker Compose Plugin](https://docs.docker.com/compose/install/)
     - It is not mandatory because you can easily locally run tests against SQLite without it.
     - It is practically mandatory if you want to locally run tests against any other database engine (MySQL, MariaDB, Postgres,Db2 and MSSQL), unless you happen to have the engine installed and is willing to make some manual configuration.
   - [Visual Studio Code](https://code.visualstudio.com/)
@@ -129,7 +129,7 @@ If you have Docker installed, use any of the following commands to start fresh l
 
 - `yarn start-mariadb-oldest` (for MariaDB 10.3) or `yarn start-mariadb-latest` (for MariaDB 10.9)
 - `yarn start-mysql-oldest` (for MySQL 5.7) or `yarn start-mysql-latest` (for MySQL 8.0)
-- `yarn start-postgres-oldest` (for Postgres 10) or `yarn start-postgres-latest` (for Postgres 12)
+- `yarn start-postgres-oldest` (for Postgres 11) or `yarn start-postgres-latest` (for Postgres 15)
 - `yarn start-mssql-oldest` (for MSSQL 2017) or `yarn start-mssql-latest` (for MSSQL 2022)
 - `yarn start-db2-oldest`
 

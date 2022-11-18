@@ -1,17 +1,17 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import { normalizeDataType } from './dialects/abstract/data-types-utils';
+import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
-import { AggregateError } from './errors';
 import { isString } from './utils';
 import { noSequelizeDataType } from './utils/deprecations';
-import { isSameInitialModel, isModelStatic } from './utils/model-utils';
+import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { parseConnectionString } from './utils/url';
 
 const retry = require('retry-as-promised');
 const _ = require('lodash');
-
 const Utils = require('./utils');
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
@@ -22,7 +22,6 @@ const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
 const sequelizeErrors = require('./errors');
-const Hooks = require('./hooks');
 const { Association } = require('./associations/index');
 const Validator = require('./utils/validator-extras').validator;
 const { Op } = require('./operators');
@@ -37,7 +36,7 @@ require('./utils/dayjs');
 /**
  * This is the main class, the entry point to sequelize.
  */
-export class Sequelize {
+export class Sequelize extends SequelizeTypeScript {
   /**
    * Instantiate sequelize with name of database, username and password.
    *
@@ -188,13 +187,15 @@ export class Sequelize {
    * @param {number}   [options.retry.backoffExponent=1.1] Exponent to increase backoff duration after each retry.
    * @param {Function} [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
    * @param {string}   [options.retry.name='unknown'] Name used when composing error/reporting messages.
-   * @param {boolean}  [options.typeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
+   * @param {boolean}  [options.noTypeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
    * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
    * @param {boolean}  [options.minifyAliases=false] A flag that defines if aliases should be minified (mostly useful to avoid Postgres alias character limit of 64)
    * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
    */
   constructor(database, username, password, options) {
+    super();
+
     if (arguments.length === 1 && _.isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
@@ -214,7 +215,7 @@ export class Sequelize {
       });
     }
 
-    Sequelize.runHooks('beforeInit', options, options);
+    Sequelize.hooks.runSync('beforeInit', options);
 
     // @ts-expect-error
     if (options.pool === false) {
@@ -239,6 +240,7 @@ export class Sequelize {
       native: false,
       replication: false,
       ssl: undefined,
+      // TODO [=7]: print a deprecation warning if quoteIdentifiers is set to false
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -250,7 +252,7 @@ export class Sequelize {
       transactionType: TRANSACTION_TYPES.DEFERRED,
       isolationLevel: null,
       databaseVersion: 0,
-      typeValidation: false,
+      noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
@@ -272,20 +274,14 @@ export class Sequelize {
       this.options.dialect = 'postgres';
     }
 
-    if (this.options.dialect === 'sqlite' && this.options.timezone !== '+00:00') {
-      throw new Error('Setting a custom timezone is not supported by SQLite, dates are always returned as UTC. Please remove the custom timezone parameter.');
-    }
-
-    if (this.options.dialect === 'ibmi' && this.options.timezone !== '+00:00') {
-      throw new Error('Setting a custom timezone is not supported by Db2 for i, dates are always returned as UTC. Please remove the custom timezone parameter.');
-    }
-
     if (this.options.logging === true) {
       deprecations.noTrueLogging();
       this.options.logging = console.debug;
     }
 
-    this._setupHooks(options.hooks);
+    if (options.hooks) {
+      this.hooks.addListeners(options.hooks);
+    }
 
     // ==========================================
     //  REPLICATION CONFIG NORMALIZATION
@@ -385,7 +381,15 @@ export class Sequelize {
     };
 
     this.dialect = new Dialect(this);
-    this.dialect.queryGenerator.typeValidation = options.typeValidation;
+    if ('typeValidation' in options) {
+      throw new Error('The typeValidation has been renamed to noTypeValidation, and is false by default');
+    }
+
+    if (!this.dialect.supports.globalTimeZoneConfig && this.options.timezone !== '+00:00') {
+      throw new Error(`Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`);
+    }
+
+    this.dialect.queryGenerator.noTypeValidation = options.noTypeValidation;
 
     if (_.isPlainObject(this.options.operatorsAliases)) {
       deprecations.noStringOperators();
@@ -403,16 +407,7 @@ export class Sequelize {
     this.modelManager = new ModelManager(this);
     this.connectionManager = this.dialect.connectionManager;
 
-    Sequelize.runHooks('afterInit', this);
-  }
-
-  /**
-   * Refresh data types and parsers.
-   *
-   * @private
-   */
-  refreshTypes() {
-    this.connectionManager.refreshTypeParser(DataTypes);
+    Sequelize.hooks.runSync('afterInit', this);
   }
 
   /**
@@ -699,12 +694,12 @@ Use Sequelize#query if you wish to use replacements.`);
       const query = new this.dialect.Query(connection, this, options);
 
       try {
-        await this.runHooks('beforeQuery', options, query);
+        await this.hooks.runAsync('beforeQuery', options, query);
         checkTransaction();
 
         return await query.run(sql, bindParameters);
       } finally {
-        await this.runHooks('afterQuery', options, query);
+        await this.hooks.runAsync('afterQuery', options, query);
         if (!options.transaction) {
           this.connectionManager.releaseConnection(connection);
         }
@@ -854,7 +849,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.hooks) {
-      await this.runHooks('beforeBulkSync', options);
+      await this.hooks.runAsync('beforeBulkSync', options);
     }
 
     if (options.force) {
@@ -881,7 +876,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.hooks) {
-      await this.runHooks('afterBulkSync', options);
+      await this.hooks.runAsync('afterBulkSync', options);
     }
 
     return this;
@@ -1029,6 +1024,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
   }
 
+  // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
     return await this.getQueryInterface().databaseVersion(options);
   }
@@ -1239,24 +1235,7 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   normalizeDataType(Type) {
-    let type = typeof Type === 'function' ? new Type() : Type;
-    const dialectTypes = this.dialect.DataTypes || {};
-
-    if (dialectTypes[type.key]) {
-      type = dialectTypes[type.key].extend(type);
-    }
-
-    if (type instanceof DataTypes.ARRAY) {
-      if (!type.type) {
-        throw new Error('ARRAY is missing type definition for its values.');
-      }
-
-      if (dialectTypes[type.type.key]) {
-        type.type = dialectTypes[type.type.key].extend(type.type);
-      }
-    }
-
-    return type;
+    return normalizeDataType(Type, this.dialect);
   }
 
   normalizeAttribute(attribute) {
@@ -1268,25 +1247,35 @@ Use Sequelize#query if you wish to use replacements.`);
       return attribute;
     }
 
+    if (attribute.values) {
+      throw new TypeError(`
+The "values" property has been removed from column definitions. The following is no longer supported:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM,
+    values: ['admin', 'user'],
+  },
+});
+
+Instead, define enum values like this:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM(['admin', 'user']),
+  },
+});
+
+Remove the "values" property to resolve this issue.
+        `.trim());
+    }
+
     attribute.type = this.normalizeDataType(attribute.type);
 
     if (Object.prototype.hasOwnProperty.call(attribute, 'defaultValue') && typeof attribute.defaultValue === 'function'
         && [DataTypes.NOW, DataTypes.UUIDV1, DataTypes.UUIDV4].includes(attribute.defaultValue)
     ) {
       attribute.defaultValue = new attribute.defaultValue();
-    }
-
-    if (attribute.type instanceof DataTypes.ENUM) {
-      // The ENUM is a special case where the type is an object containing the values
-      if (attribute.values) {
-        attribute.type.values = attribute.type.options.values = attribute.values;
-      } else {
-        attribute.values = attribute.type.values;
-      }
-
-      if (attribute.values.length === 0) {
-        throw new Error('Values for ENUM have not been defined.');
-      }
     }
 
     return attribute;
@@ -1316,8 +1305,6 @@ Object.defineProperty(Sequelize, 'version', {
     return require('../package.json').version;
   },
 });
-
-Sequelize.options = { hooks: {} };
 
 /**
  * @private
@@ -1352,6 +1339,8 @@ Sequelize.IndexHints = IndexHints;
  * @see {@link Sequelize.transaction}
  */
 Sequelize.Transaction = Transaction;
+
+Sequelize.GeoJsonType = require('./geo-json').GeoJsonType;
 
 /**
  * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
@@ -1414,13 +1403,6 @@ Sequelize.prototype.Association = Sequelize.Association = Association;
  * @param {object} _inflection - `inflection` module
  */
 Sequelize.useInflection = Utils.useInflection;
-
-/**
- * Allow hooks to be defined on Sequelize + on sequelize instance as universal hooks to run on all models
- * and on Sequelize/sequelize methods e.g. Sequelize(), Sequelize#define()
- */
-Hooks.applyTo(Sequelize);
-Hooks.applyTo(Sequelize.prototype);
 
 /**
  * Expose various errors available
