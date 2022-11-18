@@ -2198,7 +2198,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         if (dialectName === 'postgres') {
           test++;
-          expect(table.id.defaultValue).to.not.contain('special');
+          expect(table.id.defaultValue).to.contain('special');
         }
 
         table = await this.sequelize.queryInterface.describeTable('Publics', {
