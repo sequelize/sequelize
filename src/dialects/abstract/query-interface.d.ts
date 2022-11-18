@@ -11,7 +11,7 @@ import {
   CreationAttributes,
   Attributes,
 } from '../../model';
-import { Sequelize, QueryOptions, QueryOptionsWithModel, Replaceable } from '../../sequelize';
+import { Sequelize, QueryOptions, QueryOptionsWithModel } from '../../sequelize';
 import { Transaction } from '../../transaction';
 import { SetRequired } from '../../utils/set-required';
 import { Fn, Literal } from '../../utils';
@@ -19,27 +19,27 @@ import { Deferrable } from '../../deferrable';
 
 interface QiOptionsWithReplacements extends QueryOptions {}
 
-export interface QiInsertOptions extends QueryOptions, Replaceable {
+export interface QiInsertOptions extends QueryOptions {
   returning?: boolean | string[];
 }
 
-export interface QiSelectOptions extends QueryOptions, Replaceable, Filterable<any> {
+export interface QiSelectOptions extends QueryOptions, Filterable<any> {
 
 }
 
-export interface QiUpdateOptions extends QueryOptions, Replaceable {
+export interface QiUpdateOptions extends QueryOptions {
   returning?: boolean | string[];
 }
 
-export interface QiDeleteOptions extends QueryOptions, Replaceable {
+export interface QiDeleteOptions extends QueryOptions {
   limit?: number | Literal | null | undefined;
 }
 
-export interface QiArithmeticOptions extends QueryOptions, Replaceable {
+export interface QiArithmeticOptions extends QueryOptions {
   returning?: boolean | string[];
 }
 
-export interface QiUpsertOptions<M extends Model> extends QueryOptionsWithModel<M>, Replaceable {
+export interface QiUpsertOptions<M extends Model> extends QueryOptionsWithModel<M> {
 
 }
 

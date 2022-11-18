@@ -185,14 +185,6 @@ export interface QueryOptionsTransactionRequired { }
 type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
 
-export interface Replaceable {
-  /**
-   * Either an object of named parameter replacements in the format `:param` or an array of unnamed
-   * replacements to replace `?` in your SQL.
-   */
-  replacements?: BindOrReplacements;
-}
-
 /**
  * Options for {@link Sequelize#query}.
  */
@@ -223,6 +215,12 @@ export interface QueryOptions extends Logging, Transactionable, Poolable {
    * Sets the query type to `SELECT` and return a single row
    */
   plain?: boolean;
+
+  /**
+   * Either an object of named parameter replacements in the format `:param` or an array of unnamed
+   * replacements to replace `?` in your SQL.
+   */
+  replacements?: BindOrReplacements;
 
   /**
    * Either an object of named parameter bindings in the format `$param` or an array of unnamed
@@ -262,14 +260,6 @@ export interface QueryOptionsWithModel<M extends Model> extends QueryOptions {
    * A sequelize model used to build the returned model instances (used to be called callee)
    */
   model: ModelStatic<M>;
-}
-
-export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {
-  /**
-   * The type of query you are executing. The query type affects how results are formatted before they are
-   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
-   */
-  type: T;
 }
 
 export interface QueryOptionsWithModel<M extends Model> extends QueryOptions {
