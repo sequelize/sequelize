@@ -81,8 +81,8 @@ export const validator = {
   notNull(val: unknown): boolean {
     return val !== null && val !== undefined;
   },
-  // isDate removed in 7.0.0
-  // https://github.com/chriso/validator.js/commit/095509fc707a4dc0e99f85131df1176ad6389fc9
+  // isDate removed in validator v7.0.0
+  // https://github.com/validatorjs/validator.js/commit/095509fc707a4dc0e99f85131df1176ad6389fc9
   isDate(dateString: string | number | Date | dayjs.Dayjs | null | undefined): boolean {
     return dayjs(dateString).isValid();
   },
