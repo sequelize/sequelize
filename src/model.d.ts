@@ -753,8 +753,6 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
 
   /**
    * The list of associations to eagerly load.
-   *
-   * See {@link Includeable} to see how to specify the association, and its eager-loading options.
    */
   include?: AllowArray<Includeable>;
 
@@ -899,7 +897,7 @@ export interface FindOptions<TAttributes = any>
   limit?: Nullish<number | Literal>;
 
   /**
-   * groupedLimit allows you to do a limit for each key in groupedLimit.values, similar to what LATERAL JOIN / CROSS APPLY does. e.g:
+   * Currently groupedLimit is used by include.separate for hasMany includes (where we first load the main table, getting matching project ids, and then fetch a limited amount of users for each).
    *
    * ```js
    * const projects = await Project.findAll();
@@ -921,8 +919,6 @@ export interface FindOptions<TAttributes = any>
    *    SELECT * FROM "user" WHERE project_id = 3 LIMIT 3
    * );
    * ```
-   *
-   * Currently groupedLimit is used by include.separate for hasMany includes (where we first load the main table, getting matching project ids, and then fetch a limited amount of users for each).
    *
    * Note: Using this option is not recommended. See https://github.com/sequelize/sequelize/issues/6899#issuecomment-262550213.
    */
@@ -1042,9 +1038,7 @@ export interface BuildOptions {
   isNewRecord?: boolean;
 
   /**
-   * A list of associations to eagerly load using a left join (a single association is also supported).
-   *
-   * See {@link Includeable} to see how to specify the association, and its eager-loading options.
+   * An array of include options. A single option is also supported - Used to build prefetched/included model instances. See `set`
    */
   include?: AllowArray<Includeable>;
 }
@@ -1077,23 +1071,6 @@ export interface CreateOptions<TAttributes = any>
    * Return the affected rows (only for postgres)
    */
   returning?: boolean | Array<keyof TAttributes>;
-
-  /**
-   * A list of associations to eagerly load using a left join (a single association is also supported).
-   *
-   * See {@link Includeable} to see how to specify the association, and its eager-loading options.
-   */
-  include?: AllowArray<Includeable>;
-
-  /**
-   * If set to true, field and virtual setters will be ignored
-   */
-  raw?: boolean;
-
-  /**
-   * If true, the updatedAt timestamp will not be updated.
-   */
-  silent?: boolean;
 
   /**
    * If false, validations won't be run.
@@ -1169,7 +1146,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
 /**
  * Options for Model.bulkCreate method
  */
-export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable, SearchPathable {
+export interface BulkCreateOptions<TAttributes = any> extends Logging, Silent, Transactionable, Hookable, SearchPathable {
   /**
    * Fields to insert (defaults to all fields)
    */
@@ -1205,9 +1182,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   updateOnDuplicate?: Array<keyof TAttributes>;
 
   /**
-   * A list of associations to eagerly load using a left join (a single association is also supported).
-   *
-   * See {@link Includeable} to see how to specify the association, and its eager-loading options.
+   * An array of include options. A single option is also supported - Used to build prefetched/included model instances. See `set`
    */
   include?: AllowArray<Includeable>;
 
@@ -1215,11 +1190,6 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * If set to true, field and virtual setters will be ignored
    */
   raw?: boolean;
-
-  /**
-   * If true, the updatedAt timestamp will not be updated.
-   */
-  silent?: boolean;
 
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
