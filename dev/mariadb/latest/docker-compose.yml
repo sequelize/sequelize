@@ -1,7 +1,7 @@
 services:
   mariadb-latest:
     container_name: sequelize-mariadb-latest
-    image: mariadb:10.9.4
+    image: mariadb:10.10.2
     environment:
       MYSQL_DATABASE: sequelize_test
       MYSQL_USER: sequelize_test

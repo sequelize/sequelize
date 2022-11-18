@@ -12,7 +12,7 @@ import type {
 } from './associations/index';
 import type { Deferrable } from './deferrable';
 import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
-import type { IndexOptions, TableName } from './dialects/abstract/query-interface';
+import type { IndexOptions, TableName, TableNameWithSchema } from './dialects/abstract/query-interface';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-typescript.js';
@@ -2386,11 +2386,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * The method will return The name as a string if the model has no schema,
    * or an object with `tableName`, `schema` and `delimiter` properties.
    */
-  static getTableName(): string | {
-    tableName: string,
-    schema: string,
-    delimiter: string,
-  };
+  static getTableName(): TableNameWithSchema;
 
   /**
    * Creates a copy of this model, with one or more scopes applied.

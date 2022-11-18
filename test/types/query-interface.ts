@@ -64,13 +64,13 @@ async function test() {
 
   await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
 
-  const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo', as: 'bar', name: 'as' }, [{}], {});
+  const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo' }, [{}], {});
 
   const bulkInsertResWithAttrs: Promise<number | object> = queryInterface.bulkInsert('foo', [{}], {}, { bar: { type: DataTypes.JSON } });
 
-  await queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar', as: 'baz', name: 'quz' }, {}, {});
+  await queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar' }, {}, {});
 
-  await queryInterface.dropTrigger({ tableName: 'foo', as: 'bar', name: 'baz' }, 'foo', {});
+  await queryInterface.dropTrigger({ tableName: 'foo' }, 'foo', {});
 
   queryInterface.quoteIdentifier('foo');
   queryInterface.quoteIdentifier('foo', true);
@@ -186,8 +186,36 @@ async function test() {
     ],
   });
 
+  await queryInterface.addIndex('Foo', {
+    name: 'foo_include_a',
+    fields: ['foo_a'],
+    include: ['foo_b'],
+  });
+
+  await queryInterface.addIndex('Foo', {
+    name: 'foo_include_literal_b',
+    fields: ['foo_a'],
+    include: literal('(foo_b)'),
+  });
+
+  await queryInterface.addIndex('Foo', {
+    name: 'foo_include_literal_b',
+    fields: ['foo_a'],
+    include: [literal('foo_b')],
+  });
+
   await queryInterface.removeIndex('Person', 'SuperDuperIndex');
   await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex');
+
+  const indexes = await queryInterface.showIndex('Person');
+  indexes.map(index => ({
+    name: index.name,
+    table: index.tableName,
+    unique: index.unique,
+    primary: index.primary,
+    fields: index.fields.map(field => field.attribute),
+    type: index.type,
+  }));
 
   // or
 

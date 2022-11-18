@@ -4,8 +4,8 @@ import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { rejectInvalidOptions } from '../../utils';
 import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
@@ -33,8 +33,8 @@ const FOREIGN_KEY_FIELDS = [
 ].join(',');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MySqlQueryGenerator extends AbstractQueryGenerator {
   constructor(options) {
@@ -166,16 +166,13 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
+  // TODO: remove schema, schemaDelimiter options
   describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = this.quoteTable(
-      this.addSchema({
-        tableName,
-        _schema: schema,
-        _schemaDelimiter: schemaDelimiter,
-      }),
-    );
+    tableName = this.extractTableDetails(tableName);
+    tableName.schema = schema || tableName.schema;
+    tableName.delimiter = schemaDelimiter || tableName.delimiter;
 
-    return `SHOW FULL COLUMNS FROM ${table};`;
+    return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
   showTablesQuery(schemaName) {
@@ -203,7 +200,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'addColumnQuery',
         this.dialect.name,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -233,7 +230,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'removeColumnQuery',
         this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -453,10 +450,9 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
 
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
-        const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
+        const fkName = this.quoteIdentifier(`${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`);
 
-        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
+        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
       }
 
       template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
@@ -629,18 +625,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '`'), '`');
-  }
-
-  /**
    * Generates an SQL query that extract JSON property of given path.
    *
    * @param   {string}               column  The JSON column
@@ -673,7 +657,10 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
   }
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }

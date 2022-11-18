@@ -10,11 +10,11 @@ import type {
   WhereOptions,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
-import type { Sequelize } from '../../sequelize.js';
 import type { Literal, SequelizeMethod } from '../../utils/index.js';
 import type { DataType } from './data-types.js';
+import type { QueryGeneratorOptions } from './query-generator-typescript.js';
+import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { TableName } from './query-interface.js';
-import type { AbstractDialect } from './index.js';
 
 type ParameterOptions = {
   // only named replacements are allowed
@@ -74,12 +74,7 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 };
 
-interface QueryGeneratorOptions {
-  sequelize: Sequelize;
-  dialect: AbstractDialect;
-}
-
-// keep CREATE_DATABASE_QUERY_OPTION_NAMES updated when modifying this
+// keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateDatabaseQueryOptions {
   collate?: string;
   charset?: string;
@@ -88,29 +83,34 @@ export interface CreateDatabaseQueryOptions {
   template?: string;
 }
 
-// keep CREATE_SCHEMA_QUERY_OPTION_NAMES updated when modifying this
+// keep CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateSchemaQueryOptions {
   collate?: string;
   charset?: string;
 }
 
-// keep LIST_SCHEMAS_QUERY_OPTION_NAMES updated when modifying this
+// keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface DropTableQueryOptions {
+  cascade?: boolean;
+}
+
+// keep LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface ListSchemasQueryOptions {
   /** List of schemas to exclude from output */
   skip?: string[];
 }
 
+// keep ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface AddColumnQueryOptions {
   ifNotExists?: boolean;
 }
 
+// keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveColumnQueryOptions {
   ifExists?: boolean;
 }
 
-export class AbstractQueryGenerator {
-  dialect: AbstractDialect;
-
+export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   constructor(options: QueryGeneratorOptions);
 
   setImmediateQuery(constraints: string[]): string;
@@ -118,10 +118,8 @@ export class AbstractQueryGenerator {
   generateTransactionId(): string;
   whereQuery(where: object, options?: ParameterOptions): string;
   whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
-  quoteTable(param: TableName, alias?: string | boolean): string;
   validate(value: unknown, field?: BuiltModelAttributeColumnOptions): void;
   escape(value: unknown, field?: BuiltModelAttributeColumnOptions, options?: EscapeOptions): string;
-  quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
   handleSequelizeMethod(
     smth: SequelizeMethod,
@@ -193,6 +191,12 @@ export class AbstractQueryGenerator {
     extraAttributesToBeUpdated: { [key: string]: unknown },
     options?: ArithmeticQueryOptions,
   ): string;
+
+  showIndexesQuery(tableName: TableName): string;
+
+  dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
+  // TODO: this should become `describeTableQuery(tableName: TableName): string`
+  describeTableQuery(tableName: TableName, schema?: string, schemaDelimiter?: string): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | { query: string, bind?: unknown[] };
