@@ -902,9 +902,9 @@ export interface FindOptions<TAttributes = any>
    * groupedLimit allows you to do a limit for each key in groupedLimit.values, similar to what LATERAL JOIN / CROSS APPLY does. e.g:
    *
    * ```js
-   * this.projects = this.Project.findAll();
+   * const projects = await Project.findAll();
    *
-   * this.User.findAll({
+   * await User.findAll({
    *    groupedLimit: {
    *      limit: 3,
    *      on: this.User.Projects,
