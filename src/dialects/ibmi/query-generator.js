@@ -1,12 +1,14 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils/check';
+import { removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
 import {
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const Utils = require('../../utils');
@@ -18,9 +20,11 @@ const { Model } = require('../../model');
 const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);
-const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
@@ -35,8 +39,8 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createSchemaQuery',
         this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -138,20 +142,24 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   dropTableQuery(tableName, options) {
-    let table = tableName;
-    let schema;
-
-    if (typeof table === 'object') {
-      schema = table.schema || undefined;
-      table = table.table;
-    } else if (options.schema) {
-      schema = options.schema;
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
-    return `DROP TABLE IF EXISTS ${schema ? `"${schema}".` : ''}"${table}"`;
+    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}`;
   }
 
   describeTableQuery(tableName, schema) {
+    if (typeof tableName === 'object') {
+      schema = tableName.schema || schema;
+      tableName = tableName.tableName;
+    }
 
     const sql
     = `SELECT
@@ -186,7 +194,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'addColumnQuery',
         this.dialect.name,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -214,7 +222,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'removeColumnQuery',
         this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -393,7 +401,6 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     options.prefix = options.prefix || rawTablename || tableName;
     if (options.prefix && typeof options.prefix === 'string') {
       options.prefix = options.prefix.replace(/\./g, '_');
-      options.prefix = options.prefix.replace(/("|')/g, '');
     }
 
     const fieldsSql = options.fields.map(field => {
@@ -428,6 +435,10 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       return result;
     });
 
+    if (options.include) {
+      throw new Error(`The include attribute for indexes is not supported by ${this.dialect.name} dialect`);
+    }
+
     if (!options.name) {
       // Mostly for cases where addIndex is called directly by the user without an options object (for example in migrations)
       // All calls that go through sequelize should already have a name
@@ -444,13 +455,10 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       options.where = this.whereQuery(options.where);
     }
 
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
+    tableName = this.quoteTable(tableName);
 
     let schema;
+    // TODO: drop this option in favor of passing the schema through tableName
     if (typeof options.schema === 'string') {
       schema = this.quoteIdentifiers(options.schema);
     }
@@ -881,13 +889,12 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     return 0;
   }
-
-  quoteIdentifier(identifier, _force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '"'), '"');
-  }
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }
