@@ -27,7 +27,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         + 'ON pk.table_schema=c.table_schema '
         + 'AND pk.table_name=c.table_name '
         + 'AND pk.column_name=c.column_name '
-        + `WHERE c.table_name = 'myTable'`,
+        + `WHERE c.table_name = 'myTable' AND c.table_schema = 'public'`,
       mssql: 'SELECT '
         + `c.COLUMN_NAME AS 'Name', `
         + `c.DATA_TYPE AS 'Type', `
@@ -56,7 +56,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         + 'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id '
         + 'AND prop.minor_id = sc.column_id '
         + `AND prop.name = 'MS_Description' `
-        + `WHERE t.TABLE_NAME = N'myTable'`,
+        + `WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
       sqlite: 'PRAGMA TABLE_INFO(`myTable`);',
       db2: 'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema", '
         + 'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale", '
@@ -177,7 +177,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         + 'ON pk.table_schema=c.table_schema '
         + 'AND pk.table_name=c.table_name '
         + 'AND pk.column_name=c.column_name '
-        + `WHERE c.table_name = 'myTable'`,
+        + `WHERE c.table_name = 'myTable' AND c.table_schema = 'public'`,
       mssql: 'SELECT '
         + `c.COLUMN_NAME AS 'Name', `
         + `c.DATA_TYPE AS 'Type', `
@@ -206,7 +206,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         + 'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id '
         + 'AND prop.minor_id = sc.column_id '
         + `AND prop.name = 'MS_Description' `
-        + `WHERE t.TABLE_NAME = N'myTable'`,
+        + `WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
       sqlite: 'PRAGMA TABLE_INFO(`myTable`);',
       db2: 'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema", '
         + 'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale", '

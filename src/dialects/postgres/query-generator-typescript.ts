@@ -37,7 +37,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.table_name=c.table_name',
       'AND pk.column_name=c.column_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
-      table.schema !== this.dialect.getDefaultSchema() ? `AND c.table_schema = ${this.escape(table.schema)}` : '',
+      `AND c.table_schema = ${this.escape(table.schema)}`,
     ]);
   }
 

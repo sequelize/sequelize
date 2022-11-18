@@ -46,7 +46,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND prop.minor_id = sc.column_id',
       `AND prop.name = 'MS_Description'`,
       `WHERE t.TABLE_NAME = ${this.escape(table.tableName)}`,
-      table.schema !== this.dialect.getDefaultSchema() ? `AND t.TABLE_SCHEMA = ${this.escape(table.schema)}` : '',
+      `AND t.TABLE_SCHEMA = ${this.escape(table.schema)}`,
     ]);
   }
 
