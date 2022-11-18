@@ -379,43 +379,5 @@ describe('model', () => {
 
       expect(users.length).to.equal(1);
     });
-
-    it('should be able to check any of these array strings exist as top-level keys (with literal)', async function () {
-      await this.User.create({
-        emergency_contact: {
-          name: 'kate',
-          gamer: true,
-          grade: 'A',
-        },
-      });
-
-      await this.User.create({
-        emergency_contact: {
-          name: 'richard',
-          programmer: true,
-          grade: 'S',
-        },
-      });
-
-      const users = await this.User.findAll({
-        where: {
-          emergency_contact: {
-            [Op.anyKeyExists]: literal(`ARRAY(SELECT jsonb_array_elements_text('["gamer","something"]'))`),
-          },
-        },
-      });
-
-      expect(users.length).to.equal(1);
-
-      const users2 = await this.User.findAll({
-        where: {
-          emergency_contact: {
-            [Op.anyKeyExists]: [literal(`'gamer'`)],
-          },
-        },
-      });
-
-      expect(users2.length).to.equal(1);
-    });
   });
 });
