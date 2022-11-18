@@ -5909,7 +5909,7 @@ moment-timezone@^0.5.15, moment-timezone@^0.5.34:
   dependencies:
     moment ">= 2.9.0"
 
-moment@2.29.4, "moment@>= 2.9.0", moment@^2.29.3:
+moment@2.29.4, "moment@>= 2.9.0", moment@^2.29.4:
   version "2.29.4"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
   integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
@@ -7872,10 +7872,10 @@ smart-buffer@^4.2.0:
   resolved "https://registry.yarnpkg.com/smart-buffer/-/smart-buffer-4.2.0.tgz#6e1d71fa4f18c05f7d0ff216dd16a481d0e8d9ae"
   integrity sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==
 
-snowflake-sdk@1.6.15:
-  version "1.6.15"
-  resolved "https://registry.yarnpkg.com/snowflake-sdk/-/snowflake-sdk-1.6.15.tgz#a2d6a74e61b114b37cf5b73d80c0934173453d6e"
-  integrity sha512-78cExfNX9R/47R3d3b88oSAXSyerHX0LByBtbLlBC15AJAiYpRb1pPE7RMOfhSeTJTps7VLVSHxQ/1tObpsUXQ==
+snowflake-sdk@1.6.16:
+  version "1.6.16"
+  resolved "https://registry.yarnpkg.com/snowflake-sdk/-/snowflake-sdk-1.6.16.tgz#f4fe36534b1958c4e6b5eb35d930bcabe8ff436f"
+  integrity sha512-3D/gJzpKZOgG06sCLaBnSze8/q5l4aBhiaI+MSN6poCX6BvMFubO53ilRKoNaiOCa0JluP6SWYYhRZ90Dz8H2Q==
   dependencies:
     "@azure/storage-blob" "^12.11.0"
     "@techteamer/ocsp" "1.0.0"
@@ -7897,7 +7897,7 @@ snowflake-sdk@1.6.15:
     mime-types "^2.1.29"
     mkdirp "^1.0.3"
     mock-require "^3.0.3"
-    moment "^2.29.3"
+    moment "^2.29.4"
     moment-timezone "^0.5.15"
     open "^7.3.1"
     python-struct "^1.1.3"
