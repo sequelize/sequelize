@@ -365,10 +365,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
-  showIndexesQuery(tableName) {
-    return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
-  }
-
   showConstraintsQuery(tableName, constraintName) {
     let sql = `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}'`;
 

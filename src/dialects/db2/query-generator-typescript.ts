@@ -28,4 +28,16 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       ';',
     ]);
   }
+
+  showIndexesQuery(tableName: TableName) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType",',
+      'COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES',
+      `WHERE TBNAME = ${this.escape(table.tableName)}`,
+      table.schema !== this.dialect.getDefaultSchema() ? `AND TBCREATOR = ${this.escape(table.schema)}` : '',
+      'ORDER BY NAME;',
+    ]);
+  }
 }

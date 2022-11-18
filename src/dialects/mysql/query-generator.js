@@ -354,12 +354,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     return query;
   }
 
-  showIndexesQuery(tableName) {
-    return Utils.joinSQLFragments([
-      `SHOW INDEX FROM ${this.quoteTable(tableName)}`,
-    ]);
-  }
-
   showConstraintsQuery(table, constraintName) {
     const tableName = table.tableName || table;
     const schemaName = table.schema;

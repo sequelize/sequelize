@@ -593,10 +593,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ]);
   }
 
-  showIndexesQuery(tableName) {
-    return `EXEC sys.sp_helpindex @objname = N'${this.quoteTable(tableName)}';`;
-  }
-
   showConstraintsQuery(tableName) {
     return `EXEC sp_helpconstraint @objname = ${this.escape(this.quoteTable(tableName))};`;
   }

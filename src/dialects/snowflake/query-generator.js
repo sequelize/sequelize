@@ -425,11 +425,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  showIndexesQuery() {
-    // TODO: check if this is the correct implementation
-    return 'SELECT \'\' FROM DUAL';
-  }
-
   showConstraintsQuery(table, constraintName) {
     const tableName = table.tableName || table;
     const schemaName = table.schema;

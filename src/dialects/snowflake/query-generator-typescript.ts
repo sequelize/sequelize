@@ -22,4 +22,9 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(table)};`;
   }
+
+  showIndexesQuery() {
+    // TODO [+snowflake-sdk]: check if this is the correct implementation
+    return `SELECT '' FROM DUAL`;
+  }
 }

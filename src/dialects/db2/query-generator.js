@@ -587,26 +587,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return super.addIndexQuery(tableName, attributes, options, rawTablename);
   }
 
-  showIndexesQuery(tableName) {
-    let sql = 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = <%= tableName %>';
-    let schema;
-    if (_.isObject(tableName)) {
-      schema = tableName.schema;
-      tableName = tableName.tableName;
-    }
-
-    if (schema) {
-      sql = `${sql} AND TBCREATOR = <%= schemaName %>`;
-    }
-
-    sql = `${sql} ORDER BY NAME;`;
-
-    return _.template(sql, this._templateSettings)({
-      tableName: wrapSingleQuote(tableName),
-      schemaName: wrapSingleQuote(schema),
-    });
-  }
-
   showConstraintsQuery(tableName, constraintName) {
     let sql = `SELECT CONSTNAME AS "constraintName", TRIM(TABSCHEMA) AS "schemaName", TABNAME AS "tableName" FROM SYSCAT.TABCONST WHERE TABNAME = '${tableName}'`;
 

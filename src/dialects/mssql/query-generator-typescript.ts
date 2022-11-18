@@ -49,4 +49,8 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       table.schema !== this.dialect.getDefaultSchema() ? `AND t.TABLE_SCHEMA = ${this.escape(table.schema)}` : '',
     ]);
   }
+
+  showIndexesQuery(tableName: TableName) {
+    return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(tableName))};`;
+  }
 }

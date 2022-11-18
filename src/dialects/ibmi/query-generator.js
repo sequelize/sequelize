@@ -571,58 +571,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
   // Indexes and constraints
 
-  showIndexesQuery(tableName) {
-    let table;
-    let schema;
-    if (typeof tableName === 'string') {
-      table = tableName;
-    } else {
-      table = tableName.tableName || tableName.table;
-      schema = tableName.schema;
-    }
-
-    const sql
-    = `select
-      QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME,
-      QSYS2.SYSCSTCOL.COLUMN_NAME,
-      QSYS2.SYSCST.CONSTRAINT_TYPE,
-      QSYS2.SYSCST.TABLE_SCHEMA,
-      QSYS2.SYSCST.TABLE_NAME
-    from
-      QSYS2.SYSCSTCOL
-    left outer join
-      QSYS2.SYSCST
-    on
-      QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA
-      and
-      QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME
-      and
-      QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-    where
-      QSYS2.SYSCSTCOL.TABLE_SCHEMA = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}
-      and
-      QSYS2.SYSCSTCOL.TABLE_NAME = '${table}'
-    union
-    select
-      QSYS2.SYSKEYS.INDEX_NAME AS NAME,
-      QSYS2.SYSKEYS.COLUMN_NAME,
-      CAST('INDEX' AS VARCHAR(11)),
-      QSYS2.SYSINDEXES.TABLE_SCHEMA,
-      QSYS2.SYSINDEXES.TABLE_NAME
-    from
-      QSYS2.SYSKEYS
-    left outer join
-      QSYS2.SYSINDEXES
-    on
-      QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME
-    where
-      QSYS2.SYSINDEXES.TABLE_SCHEMA = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}
-      and
-      QSYS2.SYSINDEXES.TABLE_NAME = '${table}'`;
-
-    return sql;
-  }
-
   showConstraintsQuery(table, constraintName) {
     const tableName = table.tableName || table;
     const schemaName = table.schema;

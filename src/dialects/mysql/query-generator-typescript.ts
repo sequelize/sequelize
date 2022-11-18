@@ -22,4 +22,8 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(table)};`;
   }
+
+  showIndexesQuery(tableName: TableName) {
+    return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
+  }
 }

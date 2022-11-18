@@ -416,24 +416,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `DELETE FROM ${table}${whereClause}`;
   }
 
-  showIndexesQuery(tableName) {
-    let schemaJoin = '';
-    let schemaWhere = '';
-    if (typeof tableName !== 'string') {
-      schemaJoin = ', pg_namespace s';
-      schemaWhere = ` AND s.oid = t.relnamespace AND s.nspname = '${tableName.schema}'`;
-      tableName = tableName.tableName;
-    }
-
-    // This is ARCANE!
-    return 'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, '
-      + 'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) '
-      + `AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a${schemaJoin} `
-      + 'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND '
-      + `t.relkind = 'r' and t.relname = '${tableName}'${schemaWhere} `
-      + 'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;';
-  }
-
   showConstraintsQuery(tableName) {
     // Postgres converts camelCased alias to lowercase unless quoted
     return [

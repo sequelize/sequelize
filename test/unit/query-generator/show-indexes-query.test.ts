@@ -1,6 +1,6 @@
-import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '../../support';
+import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
-const dialectName = getTestDialect();
+const dialect = sequelize.dialect;
 
 describe('QueryGenerator#showIndexesQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -50,12 +50,29 @@ describe('QueryGenerator#showIndexesQuery', () => {
     });
   });
 
-  it('produces a SHOW INDEX query from a table and globally set schema', () => {
-    // FIXME: enable this test for other dialects once fixed (in https://github.com/sequelize/sequelize/pull/14687)
-    if (['mariadb', 'mysql', 'postgres', 'mssql', 'sqlite', 'db2', 'ibmi'].includes(dialectName)) {
-      return;
-    }
+  it('produces a SHOW INDEX query from a table and default schema', () => {
+    expectsql(() => queryGenerator.showIndexesQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }), {
+      default: `SHOW INDEX FROM [myTable]`,
+      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, `
+        + `array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) `
+        + `AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a `
+        + `WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND `
+        + `t.relkind = 'r' and t.relname = 'myTable' GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
+      mssql: `EXEC sys.sp_helpindex @objname = N'[myTable]';`,
+      sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
+      snowflake: `SELECT '' FROM DUAL`,
+      db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'myTable' ORDER BY NAME;`,
+      ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA, `
+        + `QSYS2.SYSCST.TABLE_NAME from QSYS2.SYSCSTCOL left outer join QSYS2.SYSCST on QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA and `
+        + `QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME and QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME where `
+        + `QSYS2.SYSCSTCOL.TABLE_SCHEMA = CURRENT SCHEMA and QSYS2.SYSCSTCOL.TABLE_NAME = 'myTable' union select QSYS2.SYSKEYS.INDEX_NAME AS NAME, `
+        + `QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS `
+        + `left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA `
+        + `and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+    });
+  });
 
+  it('produces a SHOW INDEX query from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
     const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
 
