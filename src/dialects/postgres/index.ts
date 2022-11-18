@@ -32,6 +32,7 @@ export class PostgresDialect extends AbstractDialect {
       where: true,
       functionBased: true,
       operator: true,
+      include: true,
     },
     inserts: {
       onConflictDoNothing: ' ON CONFLICT DO NOTHING',

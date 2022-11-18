@@ -118,7 +118,14 @@ export class PostgresQuery extends AbstractQuery {
 
     if (this.isShowIndexesQuery()) {
       for (const row of rows) {
-        const attributes = /on .*? (?:using .*?\s)?\(([^]*)\)/gi.exec(row.definition)[1].split(',');
+        let attributes;
+        let includeColumns = [];
+        if (/include \(([^]*)\)/gi.test(row.definition)) {
+          attributes = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi.exec(row.definition)[1].split(',');
+          includeColumns = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi.exec(row.definition)[2].split(',');
+        } else {
+          attributes = /on .*? (?:using .*?\s)?\(([^]*)\)/gi.exec(row.definition)[1].split(',');
+        }
 
         // Map column index in table to column name
         const columns = _.zipObject(
@@ -132,7 +139,8 @@ export class PostgresQuery extends AbstractQuery {
         let attribute;
 
         // Indkey is the order of attributes in the index, specified by a string of attribute indexes
-        row.fields = row.indkey.split(' ').map((indKey, index) => {
+        const indkeys = row.indkey.split(' ');
+        row.fields = indkeys.slice(0, indkeys.length - includeColumns.length).map((indKey, index) => {
           field = columns[indKey];
           // for functional indices indKey = 0
           if (!field) {

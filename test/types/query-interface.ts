@@ -186,8 +186,36 @@ async function test() {
     ],
   });
 
+  await queryInterface.addIndex('Foo', {
+    name: 'foo_include_a',
+    fields: ['foo_a'],
+    include: ['foo_b'],
+  });
+
+  await queryInterface.addIndex('Foo', {
+    name: 'foo_include_literal_b',
+    fields: ['foo_a'],
+    include: literal('(foo_b)'),
+  });
+
+  await queryInterface.addIndex('Foo', {
+    name: 'foo_include_literal_b',
+    fields: ['foo_a'],
+    include: [literal('foo_b')],
+  });
+
   await queryInterface.removeIndex('Person', 'SuperDuperIndex');
   await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex');
+
+  const indexes = await queryInterface.showIndex('Person');
+  indexes.map(index => ({
+    name: index.name,
+    table: index.tableName,
+    unique: index.unique,
+    primary: index.primary,
+    fields: index.fields.map(field => field.attribute),
+    type: index.type,
+  }));
 
   // or
 
