@@ -4451,10 +4451,10 @@ infer-owner@^1.0.4:
   resolved "https://registry.yarnpkg.com/infer-owner/-/infer-owner-1.0.4.tgz#c4cefcaa8e51051c2a40ba2ce8a3d27295af9467"
   integrity sha512-IClj+Xz94+d7irH5qRyfJonOdfTzuDaifE6ZPWfx0N0+/ATZCbuTPq2prFl526urkQd90WyUKIh1DfBQ2hMz9A==
 
-inflection@^1.13.2:
-  version "1.13.4"
-  resolved "https://registry.yarnpkg.com/inflection/-/inflection-1.13.4.tgz#65aa696c4e2da6225b148d7a154c449366633a32"
-  integrity sha512-6I/HUDeYFfuNCVS3td055BaXBwKYuzw7K3ExVMStBowKo9oOAMJIXIHvdyR3iboTCp1b+1i5DSkIZTcwIktuDw==
+inflection@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/inflection/-/inflection-2.0.0.tgz#a118c7a75b152b946e230996f3f0b140bab04039"
+  integrity sha512-omnh6uoxorVM2tC8hDAjs2gUAqP2riJO8ZZc/TIgXIMZjR7a+/HMU+KtuAZYkMb5S6oqsZilr9du3r72eFdgjA==
 
 inflight@^1.0.4:
   version "1.0.6"
