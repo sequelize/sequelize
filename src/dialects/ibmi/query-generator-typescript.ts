@@ -1,21 +1,12 @@
-import { noSchemaParameter } from '../../utils/deprecations';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableName } from '../abstract/query-interface';
+import type { TableName, TableNameWithSchema } from '../abstract/query-interface';
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  // TODO [>7]: remove schema and schemaDelimiter parameter
-  describeTableQuery(tableName: TableName, schema?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    if (schema) {
-      noSchemaParameter();
-      table.schema = schema;
-    }
-
+  describeTableQuery(table: TableNameWithSchema) {
     return joinSQLFragments([
       'SELECT',
       'QSYS2.SYSCOLUMNS.*,',

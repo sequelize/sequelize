@@ -1,5 +1,6 @@
 'use strict';
 
+import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
 
@@ -389,28 +390,32 @@ export class QueryInterface {
    * }
    * ```
    *
-   * @param {string} tableName table name
+   * @param {TableName} tableName Table name, possibly with schema and/or delimiter
    * @param {object} [options] Query options
    *
    * @returns {Promise<object>}
    */
   async describeTable(tableName, options) {
-    let schema = null;
-    let schemaDelimiter = null;
+    const table = this.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
-      schema = options;
-    } else if (typeof options === 'object' && options !== null) {
-      schema = options.schema || null;
-      schemaDelimiter = options.schemaDelimiter || null;
+      noSchemaParameter();
+      table.schema = options;
     }
 
-    if (typeof tableName === 'object' && tableName !== null) {
-      schema = tableName.schema;
-      tableName = tableName.tableName;
+    if (typeof options === 'object' && options !== null) {
+      if (options.schema) {
+        noSchemaParameter();
+        table.schema = options.schema;
+      }
+
+      if (options.schemaDelimiter) {
+        noSchemaDelimiterParameter();
+        table.delimiter = options.schemaDelimiter;
+      }
     }
 
-    const sql = this.queryGenerator.describeTableQuery(tableName, schema, schemaDelimiter);
+    const sql = this.queryGenerator.describeTableQuery(table);
     options = { ...options, type: QueryTypes.DESCRIBE };
 
     try {
@@ -421,13 +426,13 @@ export class QueryInterface {
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
       if (_.isEmpty(data)) {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for "${table.tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       return data;
     } catch (error) {
       if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for "${table.tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       throw error;

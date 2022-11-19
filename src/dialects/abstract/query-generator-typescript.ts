@@ -2,7 +2,6 @@ import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
 import type { ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
-import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations.js';
 import { isPlainObject, isString, quoteIdentifier } from '../../utils/index.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
@@ -40,20 +39,7 @@ export class AbstractQueryGeneratorTypeScript {
     return this.sequelize.options;
   }
 
-  // TODO [>7]: remove schema and schemaDelimiter parameter
-  describeTableQuery(tableName: TableName, schema?: string, schemaDelimiter?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    if (schema) {
-      noSchemaParameter();
-      table.schema = schema;
-    }
-
-    if (schemaDelimiter) {
-      noSchemaDelimiterParameter();
-      table.delimiter = schemaDelimiter;
-    }
-
+  describeTableQuery(table: TableNameWithSchema) {
     return `DESCRIBE ${this.quoteTable(table)};`;
   }
 
