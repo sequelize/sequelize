@@ -518,7 +518,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             Label.create({ text: 'bar' }),
           ]);
 
-          const t = await sequelize.transaction();
+          const t = await sequelize.startUnmanagedTransaction();
           await article.setLabels([label], { transaction: t });
           const articles0 = await Article.findAll({ transaction: t });
           const hasLabel0 = await articles0[0].hasLabel(label);
@@ -623,7 +623,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             Label.create({ text: 'bar' }),
           ]);
 
-          const t = await sequelize.transaction();
+          const t = await sequelize.startUnmanagedTransaction();
           await article.setLabels([label], { transaction: t });
           const articles = await Article.findAll({ transaction: t });
 
@@ -712,7 +712,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const [article, label, t] = await Promise.all([
             Article.create({ title: 'foo' }),
             Label.create({ text: 'bar' }),
-            sequelize.transaction(),
+            sequelize.startUnmanagedTransaction(),
           ]);
 
           await article.setLabels([label], { transaction: t });
@@ -784,7 +784,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             Label.create({ text: 'bar' }),
           ]);
 
-          const t = await sequelize.transaction();
+          const t = await sequelize.startUnmanagedTransaction();
           await article.addLabel(label, { transaction: t });
           const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
           expect(labels0.length).to.equal(0);
@@ -918,7 +918,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           await sequelize.sync({ force: true });
           const article = await Article.create({ title: 'foo' });
-          const t = await sequelize.transaction();
+          const t = await sequelize.startUnmanagedTransaction();
           await article.createLabel({ text: 'bar' }, { transaction: t });
           const labels1 = await Label.findAll();
           expect(labels1.length).to.equal(0);
