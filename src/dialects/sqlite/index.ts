@@ -72,7 +72,8 @@ export class SqliteDialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    throw new Error('SQLites does not support schemas');
+    // Our SQLite implementation doesn't support schemas
+    return '';
   }
 
   static getDefaultPort() {

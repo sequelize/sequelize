@@ -1,8 +1,9 @@
 'use strict';
 
+import { quoteIdentifier } from '../../utils';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTION, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION } from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
@@ -10,8 +11,8 @@ const _ = require('lodash');
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class SqliteQueryGenerator extends MySqlQueryGenerator {
   createSchemaQuery() {
@@ -211,7 +212,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
       rejectInvalidOptions(
         'addColumnQuery',
         this.dialect.name,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -389,13 +390,11 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   }
 
   describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = {
-      _schema: schema,
-      _schemaDelimiter: schemaDelimiter,
-      tableName,
-    };
+    tableName = this.extractTableDetails(tableName);
+    tableName.schema = schema || tableName.schema;
+    tableName.delimiter = schemaDelimiter || tableName.delimiter;
 
-    return `PRAGMA TABLE_INFO(${this.quoteTable(this.addSchema(table))});`;
+    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)});`;
   }
 
   describeCreateTableQuery(tableName) {
@@ -407,7 +406,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
       rejectInvalidOptions(
         'removeColumnQuery',
         this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -525,11 +524,11 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
    * @private
    */
   getForeignKeysQuery(tableName) {
-    return `PRAGMA foreign_key_list(${this.quoteTable(this.addSchema(tableName))})`;
+    return `PRAGMA foreign_key_list(${this.quoteTable(tableName)})`;
   }
 
   tableExistsQuery(tableName) {
-    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.addSchema(tableName))};`;
+    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.extractTableDetails(tableName).tableName)};`;
   }
 
   /**
@@ -542,27 +541,14 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   }
 
   /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '`'), '`');
-  }
-
-  /**
    * Generates an SQL query that extract JSON property of given path.
    *
    * @param   {string}               column  The JSON column
    * @param   {string|Array<string>} [path]  The path to extract (optional)
-   * @param   {boolean}              [isJson] The value is JSON use alt symbols (optional)
    * @returns {string}                       The generated sql query
    * @private
    */
-  jsonPathExtractionQuery(column, path, isJson) {
+  jsonPathExtractionQuery(column, path) {
     const quotedColumn = this.isIdentifierQuoted(column)
       ? column
       : this.quoteIdentifier(column);

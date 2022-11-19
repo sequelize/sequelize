@@ -68,7 +68,7 @@ export class SnowflakeDialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    throw new Error('NYI');
+    return 'PUBLIC';
   }
 
   static getDefaultPort() {

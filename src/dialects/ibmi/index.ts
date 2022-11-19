@@ -20,6 +20,7 @@ export class IBMiDialect extends AbstractDialect {
         where: true,
         functionBased: true,
         collate: false,
+        include: false,
       },
       constraints: {
         onUpdate: false,
@@ -65,7 +66,8 @@ export class IBMiDialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    throw new Error('NYI');
+    // TODO: set default DB2 schema
+    return '';
   }
 
   static getDefaultPort() {

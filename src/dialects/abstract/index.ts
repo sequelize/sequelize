@@ -128,6 +128,7 @@ export type DialectSupports = {
     functionBased: boolean,
     operator: boolean,
     where: boolean,
+    include: boolean,
   },
   groupedLimit: boolean,
   indexViaAlter: boolean,
@@ -213,6 +214,9 @@ export type DialectSupports = {
 
   /** Whether this dialect supports changing the global timezone option */
   globalTimeZoneConfig: boolean,
+  dropTable: {
+    cascade: boolean,
+  },
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -284,6 +288,7 @@ export abstract class AbstractDialect {
       functionBased: false,
       operator: false,
       where: false,
+      include: false,
     },
     groupedLimit: true,
     indexViaAlter: false,
@@ -330,6 +335,9 @@ export abstract class AbstractDialect {
     escapeStringConstants: false,
     milliseconds: true,
     globalTimeZoneConfig: false,
+    dropTable: {
+      cascade: false,
+    },
   };
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {
@@ -504,6 +512,8 @@ export abstract class AbstractDialect {
   getParserForDatabaseDataType(databaseDataType: unknown): TypeParser | undefined {
     return this.#dataTypeParsers.get(databaseDataType);
   }
+
+  abstract getDefaultSchema(): string;
 
   static getDefaultPort(): number {
     throw new Error(`getDefaultPort not implemented in ${this.name}`);

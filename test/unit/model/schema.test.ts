@@ -7,16 +7,6 @@ const Support = require('../../support');
 
 const current = Support.sequelize;
 
-const expectedDefaultSchemaPerDialect: Record<string, string> = {
-  postgres: 'public',
-  // mariadb/mysql use the 'database' name as the default schema
-  mariadb: 'sequelize_test',
-};
-
-const expectedDefaultSchema = expectedDefaultSchemaPerDialect[current.dialect.name];
-
-assert(expectedDefaultSchema != null, `Expected default schema has not been set for dialect ${current.dialect.name}`);
-
 describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
   if (current.dialect.supports.schemas) {
     const Project = current.define('project');
@@ -29,7 +19,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
 
     describe('schema', () => {
       it('should work with no default schema', () => {
-        expect(Project._schema).to.eq(expectedDefaultSchema);
+        expect(Project._schema).to.equal(current.dialect.getDefaultSchema());
       });
 
       it('should apply default schema from define', () => {
@@ -55,7 +45,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able nullify schema', () => {
-        expect(Company.schema(null)._schema).to.eq(expectedDefaultSchema);
+        expect(Company.schema(null)._schema).to.equal(current.dialect.getDefaultSchema());
       });
 
       it('should support multiple, coexistent schema models', () => {

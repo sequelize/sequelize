@@ -35,6 +35,7 @@ export class MssqlDialect extends AbstractDialect {
       type: true,
       using: false,
       where: true,
+      include: true,
     },
     tmpTableTrigger: true,
     dataTypes: {
@@ -101,7 +102,7 @@ export class MssqlDialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    throw new Error('NYI');
+    return 'dbo';
   }
 
   static getDefaultPort() {

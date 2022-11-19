@@ -22,6 +22,7 @@ export class Db2Dialect extends AbstractDialect {
       collate: false,
       using: false,
       where: true,
+      include: true,
     },
     tmpTableTrigger: true,
     dataTypes: {
@@ -73,7 +74,8 @@ export class Db2Dialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    throw new Error('NYI');
+    // TODO: set default DB2 schema
+    return '';
   }
 
   static getDefaultPort() {

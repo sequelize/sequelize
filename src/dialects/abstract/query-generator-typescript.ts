@@ -3,7 +3,7 @@ import isObject from 'lodash/isObject';
 import type { ModelStatic, ColumnOptions } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import type { MakeNullish, Nullish } from '../../utils/index.js';
-import { getColumnName, isPlainObject, isString } from '../../utils/index.js';
+import { getColumnName, isPlainObject, isString, quoteIdentifier } from '../../utils/index.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { isDataType } from './data-types-utils.js';
 import type { DataType, DataTypeInstance } from './data-types.js';
@@ -61,14 +61,17 @@ export class AbstractQueryGeneratorTypeScript {
     this.dialect = options.dialect;
   }
 
-  get options() {
+  protected get options() {
     return this.sequelize.options;
   }
 
-  extractTableDetails(tableNameOrModel: TableNameOrModel, options?: { schema?: string, delimiter?: string }) {
+  extractTableDetails(
+    tableNameOrModel: TableNameOrModel,
+    options?: { schema?: string, delimiter?: string },
+  ): TableNameWithSchema {
     const tableNameObject = isModelStatic(tableNameOrModel) ? tableNameOrModel.getTableName()
       : isString(tableNameOrModel) ? { tableName: tableNameOrModel }
-        : tableNameOrModel;
+      : tableNameOrModel;
 
     if (!isPlainObject(tableNameObject)) {
       throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableNameOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
@@ -174,7 +177,11 @@ If you want to change a column that is not defined on the model, pass a TableNam
    * @param param table string or object
    * @param alias alias name
    */
-  quoteTable(param: TableName, alias: boolean | string = false): string {
+  quoteTable(param: TableNameOrModel, alias: boolean | string = false): string {
+    if (isModelStatic(param)) {
+      param = param.getTableName();
+    }
+
     const tableName = this.extractTableDetails(param);
 
     if (isObject(param) && ('as' in param || 'name' in param)) {
@@ -188,17 +195,21 @@ If you want to change a column that is not defined on the model, pass a TableNam
     let sql = '';
 
     if (this.dialect.supports.schemas) {
+      // Some users sync the same set of tables in different schemas for various reasons
+      // They then set `searchPath` when running a query to use different schemas.
+      // See https://github.com/sequelize/sequelize/pull/15274#discussion_r1020770364
+      // For this reason, we treat the default schema as equivalent to "no schema specified"
       if (tableName.schema && tableName.schema !== this.dialect.getDefaultSchema()) {
         sql += `${this.quoteIdentifier(tableName.schema)}.`;
       }
 
       sql += this.quoteIdentifier(tableName.tableName);
     } else {
-      if (tableName.schema && tableName.schema !== this.dialect.getDefaultSchema()) {
-        sql += tableName.schema + (tableName.delimiter || '.');
-      }
+      const fakeSchemaPrefix = (tableName.schema && tableName.schema !== this.dialect.getDefaultSchema())
+        ? tableName.schema + (tableName.delimiter || '.')
+        : '';
 
-      sql += tableName.tableName;
+      sql += this.quoteIdentifier(fakeSchemaPrefix + tableName.tableName);
     }
 
     if (alias) {
@@ -211,10 +222,21 @@ If you want to change a column that is not defined on the model, pass a TableNam
   /**
    * Adds quotes to identifier
    *
-   * @param _identifier
+   * @param identifier
    * @param _force
    */
-  quoteIdentifier(_identifier: string, _force?: boolean): string {
-    throw new Error(`quoteIdentifier for Dialect "${this.dialect.name}" is not implemented`);
+  quoteIdentifier(identifier: string, _force?: boolean) {
+    return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
+  }
+
+  isSameTable(tableA: TableNameOrModel, tableB: TableNameOrModel) {
+    if (tableA === tableB) {
+      return true;
+    }
+
+    tableA = this.extractTableDetails(tableA);
+    tableB = this.extractTableDetails(tableB);
+
+    return tableA.tableName === tableB.tableName && tableA.schema === tableB.schema;
   }
 }

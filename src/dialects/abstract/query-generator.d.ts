@@ -10,6 +10,7 @@ import type {
 import type { QueryTypes } from '../../query-types.js';
 import type { Literal, SequelizeMethod } from '../../utils/index.js';
 import type { DataType } from './data-types.js';
+import type { QueryGeneratorOptions } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { TableName } from './query-interface.js';
 
@@ -73,7 +74,7 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 };
 
-// keep CREATE_DATABASE_QUERY_OPTION_NAMES updated when modifying this
+// keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateDatabaseQueryOptions {
   collate?: string;
   charset?: string;
@@ -82,27 +83,36 @@ export interface CreateDatabaseQueryOptions {
   template?: string;
 }
 
-// keep CREATE_SCHEMA_QUERY_OPTION_NAMES updated when modifying this
+// keep CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateSchemaQueryOptions {
   collate?: string;
   charset?: string;
 }
 
-// keep LIST_SCHEMAS_QUERY_OPTION_NAMES updated when modifying this
+// keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface DropTableQueryOptions {
+  cascade?: boolean;
+}
+
+// keep LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface ListSchemasQueryOptions {
   /** List of schemas to exclude from output */
   skip?: string[];
 }
 
+// keep ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface AddColumnQueryOptions {
   ifNotExists?: boolean;
 }
 
+// keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveColumnQueryOptions {
   ifExists?: boolean;
 }
 
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
+  constructor(options: QueryGeneratorOptions);
+
   setImmediateQuery(constraints: string[]): string;
   setDeferredQuery(constraints: string[]): string;
   generateTransactionId(): string;
@@ -110,7 +120,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
   validate(value: unknown, field?: BuiltModelAttributeColumnOptions): void;
   escape(value: unknown, field?: BuiltModelAttributeColumnOptions, options?: EscapeOptions): string;
-  quoteIdentifier(identifier: string, force?: boolean): string;
   quoteIdentifiers(identifiers: string): string;
   handleSequelizeMethod(
     smth: SequelizeMethod,
@@ -119,6 +128,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: HandleSequelizeMethodOptions,
     prepend?: boolean,
   ): string;
+
+  /**
+   * Generates an SQL query that extract JSON property of given path.
+   *
+   * @param   {string}               column   The JSON column
+   * @param   {string|Array<string>} [path]   The path to extract (optional)
+   * @param   {boolean}              [isJson] The value is JSON use alt symbols (optional)
+   * @returns {string}                        The generated sql query
+   * @private
+   */
+  // TODO: see how we can make the typings protected/private while still allowing it to be typed in tests
+  jsonPathExtractionQuery(column: string, path?: string | string[], isJson?: boolean): string;
 
   selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
@@ -170,6 +191,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     extraAttributesToBeUpdated: { [key: string]: unknown },
     options?: ArithmeticQueryOptions,
   ): string;
+
+  showIndexesQuery(tableName: TableName): string;
+
+  dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
+  // TODO: this should become `describeTableQuery(tableName: TableName): string`
+  describeTableQuery(tableName: TableName, schema?: string, schemaDelimiter?: string): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | { query: string, bind?: unknown[] };

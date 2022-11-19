@@ -61,6 +61,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('Add data via model.create, retrieve via model.findOne', () => {
+        it('should be able to sync model without schema option', function () {
+          expect(this.RestaurantOne._schema).to.eq(current.dialect.getDefaultSchema());
+          expect(this.RestaurantTwo._schema).to.equal(SCHEMA_TWO);
+        });
+
         it('should be able to insert data into default table using create', async function () {
           await this.RestaurantOne.create({
             foo: 'one',

@@ -87,9 +87,8 @@ export interface TableNameWithSchema {
   tableName: string;
   schema?: string;
   delimiter?: string;
-  as?: string;
-  name?: string;
 }
+
 export type TableName = string | TableNameWithSchema;
 
 export type IndexType = 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
@@ -176,6 +175,11 @@ export interface IndexOptions {
    * Prefix to append to the index name.
    */
   prefix?: string;
+
+  /**
+   * Non-key columns to be added to the lead level of the nonclustered index.
+   */
+  include?: Literal | Array<string | Literal>;
 }
 
 export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}
@@ -258,6 +262,22 @@ export interface ForeignKeyReference {
 
 export interface DatabaseDescription {
   name: string;
+}
+
+export interface IndexFieldDescription {
+  attribute: string;
+  length: number | undefined;
+  order: 'DESC' | 'ASC';
+  collate: string | undefined;
+}
+
+export interface IndexDescription {
+  primary: boolean;
+  fields: IndexFieldDescription[];
+  name: string;
+  tableName: string | undefined;
+  unique: boolean;
+  type: string | undefined;
 }
 
 export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable {}
@@ -466,7 +486,7 @@ export class QueryInterface {
   /**
    * Shows the index of a table
    */
-  showIndex(tableName: string | object, options?: QueryRawOptions): Promise<object>;
+  showIndex(tableName: string | object, options?: QueryRawOptions): Promise<IndexDescription[]>;
 
   /**
    * Put a name to an index

@@ -204,6 +204,7 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
+  // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
     options = { ...options };
     tableName = this.queryGenerator.extractTableDetails(tableName, options);
@@ -227,6 +228,14 @@ export class QueryInterface {
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
+
+    if (
+      !tableName.schema
+      && (options.schema || Boolean(model) && model._schema)
+    ) {
+      tableName = this.queryGenerator.extractTableDetails(tableName);
+      tableName.schema = model?._schema || options.schema;
+    }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
@@ -267,10 +276,11 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
-  async dropTable(tableName, options) {
-    // if we're forcing we should be cascading unless explicitly stated otherwise
-    options = { ...options };
-    options.cascade = options.cascade || options.force || false;
+  async dropTable(tableName, options = {}) {
+    options.cascade = options.cascade != null ? options.cascade
+      // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
+      : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
+      : undefined;
 
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
@@ -281,7 +291,12 @@ export class QueryInterface {
     for (const tableName of tableNames) {
       // if tableName is not in the Array of tables names then don't drop it
       if (!skip.includes(tableName.tableName || tableName)) {
-        await this.dropTable(tableName, { ...options, cascade: true });
+        await this.dropTable(tableName, {
+          // enable "cascade" by default if supported by this dialect,
+          // but let the user override the default
+          cascade: this.queryGenerator.dialect.supports.dropTable.cascade ? true : undefined,
+          ...options,
+        });
       }
     }
   }

@@ -32,6 +32,7 @@ export class PostgresDialect extends AbstractDialect {
       where: true,
       functionBased: true,
       operator: true,
+      include: true,
     },
     inserts: {
       onConflictDoNothing: ' ON CONFLICT DO NOTHING',
@@ -66,6 +67,9 @@ export class PostgresDialect extends AbstractDialect {
     escapeStringConstants: true,
     milliseconds: true,
     globalTimeZoneConfig: true,
+    dropTable: {
+      cascade: true,
+    },
   });
 
   readonly connectionManager: PostgresConnectionManager;
@@ -75,7 +79,7 @@ export class PostgresDialect extends AbstractDialect {
   readonly dataTypesDocumentationUrl = 'https://www.postgresql.org/docs/current/datatype.html';
 
   // minimum supported version
-  readonly defaultVersion = '9.5.0';
+  readonly defaultVersion = '11.0.0';
   readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';

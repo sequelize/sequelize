@@ -511,7 +511,6 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   }
 
   // TODO: this should work with MSSQL / MariaDB too
-  // Need to fix addSchema return type
   if (dialect.startsWith('postgres')) {
     it('defaults to schema provided to sync() for references #11276', async function () {
       await Promise.all([

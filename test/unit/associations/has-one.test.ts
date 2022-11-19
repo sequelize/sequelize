@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import type { ModelStatic } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
@@ -98,6 +98,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
       assert(typeof model === 'object');
 
       expect(omit(model, ['toString'])).to.deep.equal(omit(User.getTableName(), ['toString']));
+
       expect(Profile.rawAttributes.uid.references?.key).to.equal('id');
       expect(Profile.rawAttributes.uid.allowNull).to.be.false;
     });

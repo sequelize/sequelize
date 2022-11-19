@@ -463,7 +463,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      (!['sqlite', 'mssql', 'db2', 'ibmi'].includes(dialectName) ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
+      it('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
+        if (['sqlite', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
+          return;
+        }
+
         const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
@@ -504,7 +508,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(spy).to.have.been.called;
       });
 
-      (dialectName !== 'sqlite' ? it : it.skip)('should error correctly when defaults contain a unique key without a transaction', async function () {
+      it('should error correctly when defaults contain a unique key without a transaction', async function () {
+        if (dialectName === 'sqlite') {
+          return;
+        }
+
         const User = this.sequelize.define('user', {
           objectId: {
             type: DataTypes.STRING,
@@ -557,8 +565,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })()]);
       });
 
-      // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
-      (dialectName !== 'sqlite' ? it : it.skip)('works without a transaction', async function () {
+      it('works without a transaction', async function () {
+        // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
+        if (dialectName === 'sqlite') {
+          return;
+        }
+
         const [first, second] = await Promise.all([
           this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
           this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
@@ -1085,8 +1097,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         try {
           await User.sync({ force: true });
-          const tableName = User.getTableName().tableName;
-          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower("username")))`);
+          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON ${this.sequelize.queryInterface.queryGenerator.quoteTable(User)} ((lower("username")))`);
           await User.create({ username: 'foo' });
           await User.create({ username: 'foo' });
         } catch (error) {

@@ -14,16 +14,8 @@ const customSql = customSequelize.dialect.queryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('addColumn', () => {
-    const User = current.define('User', {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-      },
-    }, { timestamps: false });
-
     if (['mysql', 'mariadb'].includes(current.dialect.name)) {
-
+      const User = current.define('User', {}, { timestamps: false });
       it('properly generate alter queries', () => {
         return expectsql(sql.addColumnQuery(User.getTableName(), 'level_id', current.normalizeAttribute({
           type: DataTypes.FLOAT,
@@ -71,20 +63,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }
 
     it('defaults the schema to the one set in the Sequelize options', () => {
-      const CustomUser = customSequelize.define('User', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-      }, { timestamps: false });
+      const User = customSequelize.define('User', {}, { timestamps: false });
 
-      return expectsql(customSql.addColumnQuery(CustomUser.getTableName(), 'level_id', customSequelize.normalizeAttribute({
+      return expectsql(customSql.addColumnQuery(User.getTableName(), 'level_id', customSequelize.normalizeAttribute({
         type: DataTypes.FLOAT,
         allowNull: false,
       })), {
         'mariadb mysql': 'ALTER TABLE `custom`.`Users` ADD `level_id` FLOAT NOT NULL;',
         postgres: 'ALTER TABLE "custom"."Users" ADD COLUMN "level_id" REAL NOT NULL;',
+        sqlite: 'ALTER TABLE `custom.Users` ADD `level_id` REAL NOT NULL;',
         mssql: 'ALTER TABLE [custom].[Users] ADD [level_id] REAL NOT NULL;',
         db2: 'ALTER TABLE "custom"."Users" ADD "level_id" REAL NOT NULL;',
         snowflake: 'ALTER TABLE "custom"."Users" ADD "level_id" FLOAT NOT NULL;',
