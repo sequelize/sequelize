@@ -3,7 +3,6 @@ import { EagerLoadingError } from './errors';
 import type { Transactionable } from './model';
 import type { Sequelize } from './sequelize';
 import { isModelStatic } from './utils/model-utils.js';
-import type { Transaction } from './index';
 // TODO: strictly type this file during the TS migration of model.js
 
 // The goal of this file is to include the different private methods that are currently present on the Model class.
@@ -148,11 +147,8 @@ export function throwInvalidInclude(include: any): never {
 Got ${NodeUtil.inspect(include)} instead`);
 }
 
-export function setTransactionFromCls(options: Transactionable, sequelize: Sequelize): void {
-  if (options.transaction === undefined && sequelize.Sequelize._cls) {
-    const t = sequelize.Sequelize._cls.get('transaction');
-    if (t) {
-      options.transaction = t as Transaction;
-    }
+export function setTransactionFromAls(options: Transactionable, sequelize: Sequelize): void {
+  if (options.transaction === undefined) {
+    options.transaction = sequelize.getCurrentAlsTransaction();
   }
 }

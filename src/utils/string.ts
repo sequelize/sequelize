@@ -1,5 +1,5 @@
 import NodeUtil from 'node:util';
-import _inflection from 'inflection';
+import * as _inflection from 'inflection';
 import type { IndexOptions, TableName } from '../dialects/abstract/query-interface.js';
 import { SequelizeMethod } from './sequelize-method.js';
 
