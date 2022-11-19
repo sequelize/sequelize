@@ -643,16 +643,14 @@ export class QueryInterface {
   /**
    * Show indexes on a table
    *
-   * @param {TableName} tableName Table name, possibly with schema and/or delimiter
+   * @param {TableNameOrModel} tableName
    * @param {object}    [options] Query options
    *
    * @returns {Promise<Array>}
    * @private
    */
   async showIndex(tableName, options) {
-    const table = this.queryGenerator.extractTableDetails(tableName);
-
-    const sql = this.queryGenerator.showIndexesQuery(table, options);
+    const sql = this.queryGenerator.showIndexesQuery(tableName, options);
 
     return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWINDEXES });
   }

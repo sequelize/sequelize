@@ -1,5 +1,6 @@
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
+import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { TableNameWithSchema } from '../abstract/query-interface';
 
 /**
@@ -32,7 +33,9 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(table: TableNameWithSchema) {
+  showIndexesQuery(tableName: TableNameOrModel) {
+    const table = this.extractTableDetails(tableName);
+
     // TODO [>=6]: refactor the query to use pg_indexes
     return joinSQLFragments([
       'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey,',

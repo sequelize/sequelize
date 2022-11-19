@@ -1,5 +1,6 @@
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
+import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { TableNameWithSchema } from '../abstract/query-interface';
 
 /**
@@ -41,7 +42,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(table: TableNameWithSchema) {
-    return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(table))};`;
+  showIndexesQuery(tableName: TableNameOrModel) {
+    return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(tableName))};`;
   }
 }
