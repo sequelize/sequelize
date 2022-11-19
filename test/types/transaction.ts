@@ -65,7 +65,7 @@ async function trans4() {
 }
 
 async function transact() {
-  const t = await sequelize.transaction({
+  const t = await sequelize.startUnmanagedTransaction({
     deferrable: Deferrable.SET_DEFERRED(['test']),
     isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
     type: Transaction.TYPES.DEFERRED,
@@ -77,8 +77,8 @@ async function transact() {
 transact();
 
 async function nestedTransact() {
-  const tr = await sequelize.transaction({
-    transaction: await sequelize.transaction(),
+  const tr = await sequelize.startUnmanagedTransaction({
+    transaction: await sequelize.startUnmanagedTransaction(),
   });
   await tr.commit();
 }
