@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'foo' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await user.destroy({ transaction: t });
         const count1 = await User.count();
         const count2 = await User.count({ transaction: t });
