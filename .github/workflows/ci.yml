@@ -166,7 +166,7 @@ jobs:
             minify-aliases: true
           - dialect: postgres
             native: true
-    name: ${{ matrix.dialect }} ${{ matrix.database-version }}${{ matrix.dialect == 'postgres' && matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.dialect == 'postgres' && matrix.minify-aliases) && ' (minified aliases)' || '' }
+    name: ${{ matrix.dialect }} ${{ matrix.database-version }}${{ matrix.dialect == 'postgres' && matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.dialect == 'postgres' && matrix.minify-aliases) && ' (minified aliases)' || '' }}
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
