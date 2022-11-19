@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findOrCreate', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
 
         await this.User.findOrCreate({
           where: {
@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('supports more than one models per transaction', async function () {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
         await this.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }, transaction: t });
         await this.Account.findOrCreate({ where: { accountName: 'accountName' }, transaction: t });
         await t.commit();
@@ -439,7 +439,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('several concurrent calls', () => {
       if (current.dialect.supports.transactions) {
         it('works with a transaction', async function () {
-          const transaction = await this.sequelize.transaction();
+          const transaction = await this.sequelize.startUnmanagedTransaction();
 
           const [first, second] = await Promise.all([
             this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
@@ -617,7 +617,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (current.dialect.supports.transactions) {
         it('should work with multiple concurrent calls within a transaction', async function () {
-          const t = await this.sequelize.transaction();
+          const t = await this.sequelize.startUnmanagedTransaction();
           const [
             [instance1, created1],
             [instance2, created2],
@@ -815,7 +815,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
         await this.User.create({ username: 'user' }, { transaction: t });
         const count = await this.User.count();
         expect(count).to.equal(0);

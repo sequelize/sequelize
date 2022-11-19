@@ -60,10 +60,10 @@ export interface Transactionable {
   /**
    * The transaction in which this query must be run.
    *
-   * If CLS is enabled and a transaction is running in the current CLS context,
+   * If {@link Options.disableAlsTransactions} has not been set to true, and a transaction is running in the current ALS context,
    * that transaction will be used, unless null or a Transaction is manually specified here.
    */
-  transaction?: Transaction | null;
+  transaction?: Transaction | null | undefined;
 }
 
 export interface SearchPathable {

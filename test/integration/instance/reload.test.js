@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'foo' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t });
         const user1 = await user.reload();
         expect(user1.username).to.equal('foo');
