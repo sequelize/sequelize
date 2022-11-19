@@ -5,7 +5,6 @@ import { assertNoReservedBind } from '../../utils/sql';
 
 const _ = require('lodash');
 
-const Utils = require('../../utils');
 const { QueryTypes } = require('../../query-types');
 const { Op } = require('../../operators');
 const { QueryInterface } = require('../abstract/query-interface');

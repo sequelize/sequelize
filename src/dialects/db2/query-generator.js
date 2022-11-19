@@ -1,7 +1,10 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils/check';
-import { removeTrailingSemicolon } from '../../utils/string';
+import { now } from '../../utils/dialect';
+import { removeNullishValuesFromHash } from '../../utils/format';
+import { SequelizeMethod } from '../../utils/sequelize-method';
+import { removeTrailingSemicolon, underscore } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
@@ -11,7 +14,6 @@ import {
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
-const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const randomBytes = require('crypto').randomBytes;
@@ -433,7 +435,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       return sql;
     }
 
-    attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
+    attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = {};
     const values = [];
@@ -452,7 +454,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     for (const key in attrValueHash) {
       const value = attrValueHash[key];
 
-      if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
+      if (value instanceof SequelizeMethod || options.bindParam === false) {
         values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
         values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
@@ -647,7 +649,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
+      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
     const values = {
@@ -956,7 +958,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     for (const key in rawAttributes) {
       if (rawAttributes[key].unique && dataValues[key] === undefined) {
         if (rawAttributes[key].type instanceof DataTypes.DATE) {
-          dataValues[key] = Utils.now(this.dialect);
+          dataValues[key] = new Date();
         } else if (rawAttributes[key].type instanceof DataTypes.STRING) {
           dataValues[key] = `unique${uniqno++}`;
         } else if (rawAttributes[key].type instanceof DataTypes.INTEGER) {
@@ -978,7 +980,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 function wrapSingleQuote(identifier) {
   if (identifier) {
     return `'${identifier}'`;
-    // return Utils.addTicks("'"); // It removes quote from center too.
+    // return addTicks("'"); // It removes quote from center too.
   }
 
   return '';

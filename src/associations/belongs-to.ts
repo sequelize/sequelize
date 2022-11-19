@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
 import { cloneDataType } from '../dialects/abstract/data-types-utils.js';
@@ -14,9 +14,10 @@ import type {
   Attributes,
 } from '../model';
 import { Op } from '../operators';
-import * as Utils from '../utils';
-import { removeUndefined } from '../utils';
+import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
+import { cloneDeep, removeUndefined } from '../utils/object.js';
+import { camelize, singularize } from '../utils/string.js';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import { HasMany } from './has-many.js';
@@ -143,7 +144,7 @@ export class BelongsTo<
       allowNull: this.source.rawAttributes[this.foreignKey]?.allowNull ?? foreignKeyAttributeOptions?.allowNull,
     });
 
-    this.targetKeyField = Utils.getColumnName(this.target.getAttributes()[this.targetKey]);
+    this.targetKeyField = getColumnName(this.target.getAttributes()[this.targetKey]);
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
 
     addForeignKeyConstraints(newForeignKeyAttribute, this.target, this.options, this.targetKeyField);
@@ -152,7 +153,7 @@ export class BelongsTo<
       [this.foreignKey]: newForeignKeyAttribute,
     });
 
-    this.identifierField = Utils.getColumnName(this.source.getAttributes()[this.foreignKey]);
+    this.identifierField = getColumnName(this.source.getAttributes()[this.foreignKey]);
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
     const singular = upperFirst(this.options.name.singular);
@@ -224,12 +225,12 @@ export class BelongsTo<
   }
 
   protected inferForeignKey(): string {
-    const associationName = Utils.singularize(this.options.as);
+    const associationName = singularize(this.options.as);
     if (!associationName) {
       throw new Error('Sanity check: Could not guess the name of the association');
     }
 
-    return Utils.camelize(`${associationName}_${this.targetKey}`);
+    return camelize(`${associationName}_${this.targetKey}`);
   }
 
   /**
@@ -247,7 +248,7 @@ export class BelongsTo<
     instances: S | S[],
     options: BelongsToGetAssociationMixinOptions<T>,
   ): Promise<Map<any, T | null> | T | null> {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
 
     let Target = this.target;
     if (options.scope != null) {

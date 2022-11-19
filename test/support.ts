@@ -1,7 +1,7 @@
-import assert from 'assert';
-import fs from 'fs';
-import path from 'path';
-import { inspect, isDeepStrictEqual } from 'util';
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { inspect, isDeepStrictEqual } from 'node:util';
 import type { Dialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import {

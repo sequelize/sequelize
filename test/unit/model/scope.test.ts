@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import type { FindOptions } from '@sequelize/core';
 import { DataTypes, Op, Sequelize, col, where, literal } from '@sequelize/core';
 import { expect } from 'chai';

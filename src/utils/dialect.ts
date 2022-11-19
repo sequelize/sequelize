@@ -1,17 +1,8 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import isPlainObject from 'lodash/isPlainObject';
 import { v1 as uuidv1 } from 'uuid';
 import type { AbstractDialect } from '../dialects/abstract';
 import * as DataTypes from '../dialects/abstract/data-types.js';
-
-export function now(dialect: AbstractDialect): Date {
-  const d = new Date();
-  if (!dialect.supports.milliseconds) {
-    d.setMilliseconds(0);
-  }
-
-  return d;
-}
 
 export function toDefaultValue(value: unknown, dialect: AbstractDialect): unknown {
   if (typeof value === 'function') {
@@ -32,7 +23,7 @@ export function toDefaultValue(value: unknown, dialect: AbstractDialect): unknow
   }
 
   if (value instanceof DataTypes.NOW) {
-    return now(dialect);
+    return new Date();
   }
 
   if (Array.isArray(value)) {

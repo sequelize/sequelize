@@ -1,4 +1,4 @@
-import util from 'util';
+import util from 'node:util';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
 import { v1 as uuidV1, v4 as uuidV4 } from 'uuid';

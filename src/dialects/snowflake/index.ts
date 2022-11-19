@@ -39,7 +39,6 @@ export class SnowflakeDialect extends AbstractDialect {
       COLLATE_BINARY: true,
     },
     REGEXP: true,
-    milliseconds: true,
     globalTimeZoneConfig: true,
   });
 

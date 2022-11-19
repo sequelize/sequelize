@@ -27,9 +27,10 @@ import type {
 import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
 import { col, fn } from '../sequelize';
-import type { AllowArray } from '../utils';
-import { camelize, removeUndefined } from '../utils';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
+import { removeUndefined } from '../utils/object.js';
+import { camelize } from '../utils/string.js';
+import type { AllowArray } from '../utils/types.js';
 import type {
   AssociationScope,
   ForeignKeyOptions,
@@ -833,16 +834,16 @@ function normalizeThroughOptions<M extends Model>(
 ): NormalizedThroughOptions<M> {
   const timestamps = through.timestamps ?? sequelize.options.define?.timestamps;
 
-  let model;
+  let model: ModelStatic<M>;
 
-  if (!through || (typeof through.model !== 'string' && !isModelStatic(through.model))) {
+  if (!through || (typeof through.model !== 'string' && !isModelStatic<M>(through.model))) {
     throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires a through model, set the "through", or "through.model" options to either a string or a model`);
   }
 
   if (isModelStatic<M>(through.model)) {
     model = through.model;
   } else if (sequelize.isDefined(through.model)) {
-    model = sequelize.model(through.model) as ModelStatic<M>;
+    model = sequelize.model<M>(through.model);
   } else {
     model = sequelize.define(through.model, {} as ModelAttributes<M>, removeUndefined({
       tableName: through.model,

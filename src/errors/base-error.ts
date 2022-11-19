@@ -1,5 +1,5 @@
 import { useErrorCause } from '../utils/deprecations.js';
-import type { Nullish } from '../utils/index.js';
+import type { Nullish } from '../utils/types.js';
 
 export interface SequelizeErrorOptions {
   stack?: Nullish<string>;

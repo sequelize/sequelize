@@ -1,11 +1,13 @@
 'use strict';
 
-import { quoteIdentifier } from '../../utils';
+import { addTicks, removeTicks } from '../../utils/dialect';
+import { removeNullishValuesFromHash } from '../../utils/format';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
+import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
+import { underscore } from '../../utils/string';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
-const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
@@ -81,7 +83,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     //   _.each(options.uniqueKeys, (columns, indexName) => {
     //     if (columns.customIndex) {
     //       if (typeof indexName !== 'string') {
-    //         indexName = Utils.generateIndexName(tableName, columns);
+    //         indexName = generateIndexName(tableName, columns);
     //       }
     //
     //       attrStr += `, CONSTRAINT ${
@@ -196,11 +198,11 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Utils.Json) {
+    if (smth instanceof Json) {
       return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
     }
 
-    if (smth instanceof Utils.Cast && /timestamp/i.test(smth.type)) {
+    if (smth instanceof Cast && /timestamp/i.test(smth.type)) {
       smth.type = 'datetime';
     }
 
@@ -236,7 +238,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     options = options || {};
     _.defaults(options, this.options);
 
-    attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
+    attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = {};
     const values = [];
@@ -255,7 +257,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     for (const key in attrValueHash) {
       const value = attrValueHash[key];
 
-      if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
+      if (value instanceof SequelizeMethod || options.bindParam === false) {
         values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
         values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
@@ -282,7 +284,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   truncateTableQuery(tableName, options = {}) {
     return [
       `DELETE FROM ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${Utils.addTicks(Utils.removeTicks(this.quoteTable(tableName), '`'), '\'')};` : '',
+      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${addTicks(removeTicks(this.quoteTable(tableName), '`'), '\'')};` : '',
     ].join('');
   }
 
@@ -383,7 +385,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
+      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
     return `DROP INDEX IF EXISTS ${this.quoteIdentifier(indexName)}`;

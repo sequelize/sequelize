@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support   = require('../../support');
-const { Sequelize, Op, Utils, DataTypes } = require('@sequelize/core');
+const { Sequelize, Op, DataTypes } = require('@sequelize/core');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
 const current   = Support.sequelize;

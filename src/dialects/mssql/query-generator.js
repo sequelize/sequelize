@@ -1,7 +1,11 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils/check';
+import { addTicks, removeTicks } from '../../utils/dialect';
+import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { Col, Literal } from '../../utils/sequelize-method';
+import { generateIndexName, underscore } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -11,7 +15,6 @@ import {
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
-const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
 const { TableHints } = require('../../table-hints');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
@@ -195,7 +198,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       _.each(options.uniqueKeys, (columns, indexName) => {
         if (columns.customIndex) {
           if (typeof indexName !== 'string') {
-            indexName = Utils.generateIndexName(tableName, columns);
+            indexName = generateIndexName(tableName, columns);
           }
 
           attributesClauseParts.push(`CONSTRAINT ${
@@ -219,7 +222,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
 
     const quotedTableName = this.quoteTable(tableName);
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       `IF OBJECT_ID(${this.escape(quotedTableName)}, 'U') IS NULL`,
       `CREATE TABLE ${quotedTableName} (${attributesClauseParts.join(', ')})`,
       ';',
@@ -300,7 +303,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
 
     const quoteTbl = this.quoteTable(tableName);
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       `IF OBJECT_ID('${quoteTbl}', 'U') IS NOT NULL`,
       'DROP TABLE',
       quoteTbl,
@@ -337,7 +340,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       delete dataType.comment;
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
       'ADD',
@@ -359,7 +362,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   removeColumnQuery(tableName, attributeName, options = {}) {
     const ifExists = options.ifExists ? 'IF EXISTS' : '';
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP COLUMN',
@@ -392,7 +395,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       attrString.length && `ALTER COLUMN ${attrString.join(', ')}`,
@@ -405,7 +408,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   renameColumnQuery(tableName, attrBefore, attributes) {
     const newName = Object.keys(attributes)[0];
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'EXEC sp_rename',
       `'${this.quoteTable(tableName)}.${attrBefore}',`,
       `'${newName}',`,
@@ -626,7 +629,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     const table = this.quoteTable(tableName);
     const whereClause = this.getWhereConditions(where, null, model, options);
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'DELETE',
       options.limit && `TOP(${this.escape(options.limit, undefined, options)})`,
       'FROM',
@@ -650,7 +653,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
+      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
     return `DROP INDEX ${this.quoteIdentifiers(indexName)} ON ${this.quoteIdentifiers(tableName)}`;
@@ -841,7 +844,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   getForeignKeyQuery(table, attributeName) {
     const tableName = table.tableName || table;
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       this._getForeignKeysQueryPrefix(),
       'WHERE',
       `TB.NAME =${wrapSingleQuote(tableName)}`,
@@ -854,7 +857,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   getPrimaryKeyConstraintQuery(table, attributeName) {
     const tableName = wrapSingleQuote(table.tableName || table);
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT K.TABLE_NAME AS tableName,',
       'K.COLUMN_NAME AS columnName,',
       'K.CONSTRAINT_NAME AS constraintName',
@@ -872,7 +875,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   dropForeignKeyQuery(tableName, foreignKey) {
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP',
@@ -883,7 +886,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   getDefaultConstraintQuery(tableName, attributeName) {
     const quotedTable = this.quoteTable(tableName);
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT name FROM sys.default_constraints',
       `WHERE PARENT_OBJECT_ID = OBJECT_ID('${quotedTable}', 'U')`,
       `AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('${attributeName}')`,
@@ -893,7 +896,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   dropConstraintQuery(tableName, constraintName) {
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP CONSTRAINT',
@@ -986,7 +989,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
           mainJoinQueries = mainJoinQueries.concat(joinQueries.mainQuery);
         }
 
-        return Utils.joinSQLFragments([
+        return joinSQLFragments([
           'SELECT TOP 100 PERCENT',
           attributes.join(', '),
           'FROM (',
@@ -1015,7 +1018,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
         ]);
       }
 
-      return Utils.joinSQLFragments([
+      return joinSQLFragments([
         'SELECT TOP 100 PERCENT',
         attributes.join(', '),
         'FROM (',
@@ -1038,7 +1041,7 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
       ]);
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT',
       isSQLServer2008 && options.limit && `TOP ${options.limit}`,
       attributes.join(', '),
@@ -1086,11 +1089,11 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
           const orderFieldNames = (options.order || []).map(order => {
             const value = Array.isArray(order) ? order[0] : order;
 
-            if (value instanceof Utils.Col) {
+            if (value instanceof Col) {
               return value.col;
             }
 
-            if (value instanceof Utils.Literal) {
+            if (value instanceof Literal) {
               return value.val;
             }
 
@@ -1129,5 +1132,5 @@ export class MsSqlQueryGenerator extends AbstractQueryGenerator {
  * @deprecated use "escape" or "escapeString" on QueryGenerator
  */
 function wrapSingleQuote(identifier) {
-  return Utils.addTicks(Utils.removeTicks(identifier, '\''), '\'');
+  return addTicks(removeTicks(identifier, '\''), '\'');
 }

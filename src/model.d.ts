@@ -19,20 +19,21 @@ import type { ModelHooks } from './model-typescript.js';
 import { ModelTypeScript } from './model-typescript.js';
 import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import type {
-  AllowArray,
-  AllowReadonlyArray,
-  AnyFunction,
   Cast,
   Col,
   Fn,
   Json,
   Literal,
+  Where,
+} from './utils/sequelize-method.js';
+import type {
+  AllowArray,
+  AllowReadonlyArray,
+  AnyFunction,
   MakeNullishOptional,
   Nullish,
-  OmitConstructors,
-  Where,
-} from './utils';
-import type { SetRequired } from './utils/set-required';
+  OmitConstructors, SetRequired,
+} from './utils/types.js';
 import type { LOCK, Op, Optional, Transaction, TableHints } from './index';
 
 export interface Logging {

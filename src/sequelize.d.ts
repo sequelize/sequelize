@@ -22,7 +22,7 @@ import type {
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
-import type { Cast, Col, Fn, Json, Literal, Where } from './utils';
+import type { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method.js';
 import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
 
 /**
@@ -812,7 +812,7 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @param modelName The name of a model defined with Sequelize.define
    */
-  model(modelName: string): ModelStatic<Model>;
+  model<M extends Model = Model>(modelName: string): ModelStatic<M>;
 
   /**
    * Checks whether a model with the given name is defined
