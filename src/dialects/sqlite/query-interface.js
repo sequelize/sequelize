@@ -183,7 +183,15 @@ export class SqliteQueryInterface extends QueryInterface {
    * @override
    */
   async describeTable(tableName, options) {
-    const table = this.queryGenerator.extractTableDetails(tableName);
+    let table = {};
+
+    if (typeof tableName === 'string') {
+      table.tableName = tableName;
+    }
+
+    if (typeof tableName === 'object' && tableName !== null) {
+      table = tableName;
+    }
 
     if (typeof options === 'string') {
       noSchemaParameter();
@@ -204,7 +212,7 @@ export class SqliteQueryInterface extends QueryInterface {
 
     const sql = this.queryGenerator.describeTableQuery(table);
     options = { ...options, type: QueryTypes.DESCRIBE };
-    const sqlIndexes = this.queryGenerator.showIndexesQuery(tableName);
+    const sqlIndexes = this.queryGenerator.showIndexesQuery(table);
 
     try {
       const data = await this.sequelize.queryRaw(sql, options);
@@ -214,7 +222,7 @@ export class SqliteQueryInterface extends QueryInterface {
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
       if (_.isEmpty(data)) {
-        throw new Error(`No description found for "${table.tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       const indexes = await this.sequelize.queryRaw(sqlIndexes, options);
@@ -247,7 +255,7 @@ export class SqliteQueryInterface extends QueryInterface {
       return data;
     } catch (error) {
       if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for "${table.tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       throw error;

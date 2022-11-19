@@ -1,13 +1,14 @@
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { TableNameWithSchema } from '../abstract/query-interface';
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  describeTableQuery(table: TableNameWithSchema) {
+  describeTableQuery(tableName: TableNameOrModel) {
+    const table = this.extractTableDetails(tableName);
+
     return joinSQLFragments([
       'SELECT',
       `c.COLUMN_NAME AS 'Name',`,

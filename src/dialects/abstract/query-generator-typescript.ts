@@ -39,8 +39,8 @@ export class AbstractQueryGeneratorTypeScript {
     return this.sequelize.options;
   }
 
-  describeTableQuery(table: TableNameWithSchema) {
-    return `DESCRIBE ${this.quoteTable(table)};`;
+  describeTableQuery(tableName: TableNameOrModel) {
+    return `DESCRIBE ${this.quoteTable(tableName)};`;
   }
 
   showIndexesQuery(_tableName: TableNameOrModel): string {

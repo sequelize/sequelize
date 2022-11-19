@@ -1,18 +1,15 @@
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { TableNameWithSchema } from '../abstract/query-interface';
 import { MySqlQueryGenerator } from '../mysql/query-generator';
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
-  describeTableQuery(table: TableNameWithSchema) {
-    return `PRAGMA TABLE_INFO(${this.quoteTable(table)});`;
+  describeTableQuery(tableName: TableNameOrModel) {
+    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)});`;
   }
 
   showIndexesQuery(tableName: TableNameOrModel) {
-    const table = this.extractTableDetails(tableName);
-
-    return `PRAGMA INDEX_LIST(${this.quoteTable(table)})`;
+    return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
   }
 }

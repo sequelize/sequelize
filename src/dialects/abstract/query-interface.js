@@ -390,13 +390,22 @@ export class QueryInterface {
    * }
    * ```
    *
-   * @param {TableName} tableName Table name, possibly with schema and/or delimiter
+   * @param {TableName} tableName
    * @param {object} [options] Query options
    *
    * @returns {Promise<object>}
    */
+  // TODO: allow TableNameOrModel for tableName
   async describeTable(tableName, options) {
-    const table = this.queryGenerator.extractTableDetails(tableName);
+    let table = {};
+
+    if (typeof tableName === 'string') {
+      table.tableName = tableName;
+    }
+
+    if (typeof tableName === 'object' && tableName !== null) {
+      table = tableName;
+    }
 
     if (typeof options === 'string') {
       noSchemaParameter();
@@ -426,13 +435,13 @@ export class QueryInterface {
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
       if (_.isEmpty(data)) {
-        throw new Error(`No description found for "${table.tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       return data;
     } catch (error) {
       if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for "${table.tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       throw error;
