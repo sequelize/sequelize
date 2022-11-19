@@ -29,7 +29,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
     expectsql(sql, {
       // changes to the nullability of a column should not be present in these queries!
       postgres: 'ALTER TABLE "users" ALTER COLUMN "name" TYPE CHAR(100);',
-      mariadb: 'ALTER TABLE `users` MODIFY `name` CHAR(100) DEFAULT NULL;',
+      'mariadb mysql': 'ALTER TABLE `users` MODIFY `name` CHAR(100) DEFAULT NULL;',
     });
   });
 
@@ -44,7 +44,7 @@ describe('QueryGenerator#changeColumnsQuery', () => {
       name: DataTypes.INTEGER,
     }), {
       postgres: 'ALTER TABLE "users" ALTER COLUMN "name" TYPE INTEGER;',
-      mariadb: new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+      'mariadb mysql': new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
 To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
 > type, allowNull, autoIncrement, comment
 Then all of the following properties must be specified too (set to a non-undefined value):
@@ -65,7 +65,7 @@ Column: \`name\``),
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "users" ALTER COLUMN "name" TYPE VARCHAR(5);',
-      mariadb: 'ALTER TABLE `users` MODIFY `name` VARCHAR(5) DEFAULT NULL;',
+      'mariadb mysql': 'ALTER TABLE `users` MODIFY `name` VARCHAR(5) DEFAULT NULL;',
     });
   });
 
@@ -83,7 +83,7 @@ Column: \`name\``),
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "custom_schema"."users" ALTER COLUMN "name" TYPE CHAR(100);',
-      mariadb: 'ALTER TABLE `custom_schema`.`users` MODIFY `name` CHAR(100) DEFAULT NULL;',
+      'mariadb mysql': 'ALTER TABLE `custom_schema`.`users` MODIFY `name` CHAR(100) DEFAULT NULL;',
     });
   });
 
@@ -103,7 +103,7 @@ Column: \`name\``),
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "custom_schema"."custom_users" ALTER COLUMN "name" TYPE CHAR(100);',
-      mariadb: 'ALTER TABLE `custom_schema`.`custom_users` MODIFY `name` CHAR(100) DEFAULT NULL;',
+      'mariadb mysql': 'ALTER TABLE `custom_schema`.`custom_users` MODIFY `name` CHAR(100) DEFAULT NULL;',
     });
   });
 
@@ -128,7 +128,7 @@ Column: \`name\``),
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "Users" ALTER COLUMN "first_name" TYPE CHAR(100);',
-      mariadb: 'ALTER TABLE `Users` MODIFY `first_name` CHAR(100) DEFAULT NULL;',
+      'mariadb mysql': 'ALTER TABLE `Users` MODIFY `first_name` CHAR(100) DEFAULT NULL;',
     });
   });
 
@@ -165,7 +165,7 @@ Column: \`name\``),
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "custom_schema"."custom_users" ALTER COLUMN "name" TYPE CHAR(100);',
-      mariadb: 'ALTER TABLE `custom_schema`.`custom_users` MODIFY `name` CHAR(100) DEFAULT NULL;',
+      'mariadb mysql': 'ALTER TABLE `custom_schema`.`custom_users` MODIFY `name` CHAR(100) DEFAULT NULL;',
     });
   });
 
@@ -183,7 +183,7 @@ Column: \`name\``),
 
     expectsql(sql, {
       postgres: 'ALTER TABLE "users" ALTER COLUMN "firstName" TYPE CHAR(100), ALTER COLUMN "lastName" TYPE CHAR(100);',
-      mariadb: 'ALTER TABLE `users` MODIFY `firstName` CHAR(100) DEFAULT NULL, MODIFY `lastName` CHAR(100) DEFAULT NULL;',
+      'mariadb mysql': 'ALTER TABLE `users` MODIFY `firstName` CHAR(100) DEFAULT NULL, MODIFY `lastName` CHAR(100) DEFAULT NULL;',
     });
   });
 
@@ -202,7 +202,7 @@ Column: \`name\``),
         DROP TYPE IF EXISTS "public"."enum_users_name";
         ALTER TYPE "public"."tmp_enum_users_name" RENAME TO "enum_users_name";
       `,
-      mariadb: `ALTER TABLE \`users\` MODIFY \`name\` ENUM('A', 'B', 'C') DEFAULT NULL;`,
+      'mariadb mysql': `ALTER TABLE \`users\` MODIFY \`name\` ENUM('A', 'B', 'C') DEFAULT NULL;`,
     });
   });
 
@@ -221,7 +221,7 @@ Column: \`name\``),
         DROP TYPE IF EXISTS "custom_schema"."enum_users_name";
         ALTER TYPE "custom_schema"."tmp_enum_users_name" RENAME TO "enum_users_name";
       `,
-      mariadb: `ALTER TABLE \`custom_schema\`.\`users\` MODIFY \`name\` ENUM('A', 'B', 'C') DEFAULT NULL;`,
+      'mariadb mysql': `ALTER TABLE \`custom_schema\`.\`users\` MODIFY \`name\` ENUM('A', 'B', 'C') DEFAULT NULL;`,
     });
   });
 
@@ -255,7 +255,7 @@ Column: \`name\``),
           ALTER COLUMN "lastName" SET DEFAULT NULL;
         COMMENT ON COLUMN "users"."firstName" IS 'First name of the user';
         COMMENT ON COLUMN "users"."lastName" IS 'Last name of the user';`,
-      mariadb: `
+      'mariadb mysql': `
         ALTER TABLE \`users\`
           MODIFY \`firstName\` CHAR(100) NOT NULL DEFAULT 'John' COMMENT 'First name of the user',
           MODIFY \`lastName\` CHAR(100) DEFAULT NULL COMMENT 'Last name of the user';`,
@@ -274,7 +274,7 @@ Column: \`name\``),
       });
     }, {
       postgres: 'ALTER TABLE "users" ALTER COLUMN "firstName" SET NOT NULL, ALTER COLUMN "lastName" DROP NOT NULL;',
-      mariadb: new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+      'mariadb mysql': new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
 To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
 > type, allowNull, autoIncrement, comment
 Then all of the following properties must be specified too (set to a non-undefined value):
@@ -332,7 +332,7 @@ Column: \`firstName\``),
 
     expectsql(sql, {
       postgres: `ALTER TABLE "users" ALTER COLUMN "firstName" TYPE CHAR(100), ALTER COLUMN "firstName" DROP DEFAULT;`,
-      mariadb: `ALTER TABLE \`users\` MODIFY \`firstName\` CHAR(100);`,
+      'mariadb mysql': `ALTER TABLE \`users\` MODIFY \`firstName\` CHAR(100);`,
     });
   });
 
@@ -345,7 +345,7 @@ Column: \`firstName\``),
       });
     }, {
       postgres: `COMMENT ON COLUMN "users"."firstName" IS 'First name of the user';`,
-      mariadb: new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+      'mariadb mysql': new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
 To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
 > type, allowNull, autoIncrement, comment
 Then all of the following properties must be specified too (set to a non-undefined value):
@@ -369,7 +369,7 @@ Column: \`firstName\``),
 
     expectsql(sql, {
       postgres: `ALTER TABLE "users" ALTER COLUMN "firstName" TYPE CHAR(100), ALTER COLUMN "firstName" SET DEFAULT 'NOT NULL REFERENCES DEFAULT ENUM( UNIQUE; PRIMARY KEY SERIAL BIGINT SMALLINT';`,
-      mariadb: `ALTER TABLE \`users\` MODIFY \`firstName\` CHAR(100) DEFAULT 'NOT NULL REFERENCES DEFAULT ENUM( UNIQUE; PRIMARY KEY SERIAL BIGINT SMALLINT';`,
+      'mariadb mysql': `ALTER TABLE \`users\` MODIFY \`firstName\` CHAR(100) DEFAULT 'NOT NULL REFERENCES DEFAULT ENUM( UNIQUE; PRIMARY KEY SERIAL BIGINT SMALLINT';`,
     });
   });
 
@@ -384,7 +384,7 @@ Column: \`firstName\``),
       postgres: `
         CREATE SEQUENCE IF NOT EXISTS "users_int_seq" OWNED BY "users"."int";
         ALTER TABLE "users" ALTER COLUMN "int" SET DEFAULT nextval('users_int_seq'::regclass);`,
-      mariadb: new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+      'mariadb mysql': new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
 To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
 > type, allowNull, autoIncrement, comment
 Then all of the following properties must be specified too (set to a non-undefined value):
@@ -405,7 +405,7 @@ Column: \`int\``),
     }, {
       postgres: `
         ALTER TABLE "users" ALTER COLUMN "int" DROP DEFAULT;`,
-      mariadb: new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+      'mariadb mysql': new Error(`In ${dialectName}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
 To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
 > type, allowNull, autoIncrement, comment
 Then all of the following properties must be specified too (set to a non-undefined value):
@@ -429,7 +429,7 @@ Column: \`int\``),
     expectsql(sql, {
       postgres: `
         ALTER TABLE "users" ALTER COLUMN "int" TYPE INTEGER, ALTER COLUMN "int" SET DEFAULT 14;`,
-      mariadb: 'ALTER TABLE `users` MODIFY `int` INTEGER DEFAULT 14;',
+      'mariadb mysql': 'ALTER TABLE `users` MODIFY `int` INTEGER DEFAULT 14;',
     });
   });
 
@@ -448,7 +448,7 @@ Column: \`int\``),
         ALTER TABLE "users"
           ALTER COLUMN "int" TYPE INTEGER,
           ALTER COLUMN "int" SET DEFAULT nextval('users_int_seq'::regclass);`,
-      mariadb: 'ALTER TABLE `users` MODIFY `int` INTEGER AUTO_INCREMENT DEFAULT NULL;',
+      'mariadb mysql': 'ALTER TABLE `users` MODIFY `int` INTEGER AUTO_INCREMENT DEFAULT NULL;',
     });
   });
 
@@ -466,7 +466,7 @@ Column: \`int\``),
         ALTER TABLE "users"
           ALTER COLUMN "int" TYPE INTEGER,
           ALTER COLUMN "int" DROP DEFAULT;`,
-      mariadb: 'ALTER TABLE `users` MODIFY `int` INTEGER DEFAULT NULL;',
+      'mariadb mysql': 'ALTER TABLE `users` MODIFY `int` INTEGER DEFAULT NULL;',
     });
   });
 
@@ -481,7 +481,7 @@ Column: \`int\``),
     }, {
       // nullability must be changed first, because 'generated by default as identity' is not allowed on nullable columns
       postgres: `ALTER TABLE "users" ALTER COLUMN "int" SET NOT NULL, ALTER COLUMN "int" ADD GENERATED BY DEFAULT AS IDENTITY;`,
-      mariadb: new Error(`${dialectName} does not support autoIncrementIdentity`),
+      'mariadb mysql': new Error(`${dialectName} does not support autoIncrementIdentity`),
     });
   });
 

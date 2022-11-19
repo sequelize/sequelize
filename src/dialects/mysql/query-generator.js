@@ -264,7 +264,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     } = columnDefinition;
 
     if (autoIncrementIdentity !== undefined) {
-      throw new Error(`${this.dialect} does not support autoIncrementIdentity`);
+      throw new Error(`${this.dialect.name} does not support autoIncrementIdentity`);
     }
 
     const sql = [];
@@ -275,7 +275,7 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     if (fieldsForChangeColumn.some(val => val !== undefined)) {
       // eslint-disable-next-line unicorn/no-useless-undefined
       if (fieldsForChangeColumn.includes(undefined) || (defaultValue === undefined && dropDefaultValue !== true)) {
-        throw new Error(`In ${this.dialect}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+        throw new Error(`In ${this.dialect.name}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
 To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
 > type, allowNull, autoIncrement, comment
 Then all of the following properties must be specified too (set to a non-undefined value):
@@ -301,8 +301,6 @@ Column: ${this.quoteIdentifier(columnName)}`);
         sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} DROP DEFAULT`);
       }
     }
-
-    // !TODO: dedupe 'unique' et foreign key with postgres
 
     // only 'true' is accepted for unique in changeColumns, because they're single column uniques.
     // more complex uniques use addIndex and removing a unique uses removeIndex
