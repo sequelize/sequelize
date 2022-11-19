@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const users1 = await User.findAll({ where: { username: 'foo' } });
         const users2 = await User.findAll({ transaction: t });
@@ -1470,7 +1470,7 @@ The following associations are defined on "Worker": "ToDos"`);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const info1 = await User.findAndCountAll();
         const info2 = await User.findAndCountAll({ transaction: t });
@@ -1575,7 +1575,7 @@ The following associations are defined on "Worker": "ToDos"`);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const users1 = await User.findAll();
         const users2 = await User.findAll({ transaction: t });
