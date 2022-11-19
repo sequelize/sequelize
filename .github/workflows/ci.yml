@@ -223,58 +223,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: MySQL 5.7
-            image: mysql:5.7.37
-            dialect: mysql
-            node-version: 14
-          - name: MySQL 5.7
-            image: mysql:5.7.37
-            dialect: mysql
-            node-version: 18
-          - name: MySQL 8.0
-            image: mysql:8.0.28
-            dialect: mysql
-            node-version: 14
-          - name: MySQL 8.0
-            image: mysql:8.0.28
-            dialect: mysql
-            node-version: 18
-          - name: MariaDB 10.3
-            image: mariadb:10.3.34
-            dialect: mariadb
-            node-version: 14
-          - name: MariaDB 10.3
-            image: mariadb:10.3.34
-            dialect: mariadb
-            node-version: 18
-          - name: MariaDB 10.5
-            image: mariadb:10.5
-            dialect: mariadb
-            node-version: 14
-          - name: MariaDB 10.5
-            image: mariadb:10.5
-            dialect: mariadb
-            node-version: 18
-    name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
+        node-version: [14, 18]
+        database-version: [oldest, latest]
+        dialect: [mysql, mariadb]
+    name: ${{ matrix.dialect }} ${{ matrix.database-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
-    services:
-      mysql:
-        image: ${{ matrix.image }}
-        env:
-          MYSQL_DATABASE: sequelize_test
-          MYSQL_USER: sequelize_test
-          MYSQL_PASSWORD: sequelize_test
-          MYSQL_ROOT_PASSWORD: sequelize_test
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin -usequelize_test -psequelize_test status" --health-interval 10s --health-timeout 5s --health-retries 5 --tmpfs /var/lib/mysql:rw
     env:
-      SEQ_PORT: 3306
       DIALECT: ${{ matrix.dialect }}
     steps:
-      - run: mysql --host 127.0.0.1 --port 3306 -uroot -psequelize_test -e "GRANT ALL ON *.* TO 'sequelize_test'@'%' with grant option; FLUSH PRIVILEGES;"
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
@@ -285,6 +242,7 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - run: yarn start-${{ matrix.dialect }}-${{ matrix.database-version }}
       - name: Integration Tests
         run: yarn test-integration
   test-mssql:
