@@ -256,11 +256,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('executes select queries correctly when quoteIdentifiers is false', async function () {
-      const seq = Object.create(this.sequelize);
-
-      seq.options.quoteIdentifiers = false;
-      await seq.query(this.insertQuery);
-      const [users] = await seq.query(`select * from ${qq(this.User.tableName)}`);
+      this.sequelize.options.quoteIdentifiers = false;
+      await this.sequelize.query(this.insertQuery);
+      const [users] = await this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
       expect(users.map(u => {
         return u.username;
       })).to.include('john');
