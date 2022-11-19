@@ -324,9 +324,9 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 
     if (dataType instanceof DataTypes.ENUM) {
-      query = this.pgEnum(table, key, dataType) + query;
+      query = this.createEnumQuery(table, key, dataType) + query;
     } else if (dataType instanceof DataTypes.ARRAY && dataType.options.type instanceof DataTypes.ENUM) {
-      query = this.pgEnum(table, key, dataType.options.type) + query;
+      query = this.createEnumQuery(table, key, dataType.options.type) + query;
     }
 
     return query;
@@ -487,16 +487,16 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
         columnDef.type instanceof DataTypes.ENUM
         || columnDef.type instanceof DataTypes.ARRAY && columnDef.type.type instanceof DataTypes.ENUM
       ) {
-        const existingEnumName = Utils.addTicks(Utils.generateEnumName(tableName.tableName, columnName), '"');
-        const tmpEnumName = Utils.addTicks(Utils.generateEnumName(tableName.tableName, columnName, { replacement: true }), '"');
+        const existingEnumName = Utils.generateEnumName(tableName.tableName, columnName);
+        const tmpEnumName = Utils.generateEnumName(tableName.tableName, columnName, { replacement: true });
 
         // create enum under a temporary name
-        out.unshift(this.pgEnum(tableName, columnName, columnDef, { enumName: tmpEnumName }));
+        out.unshift(this.createEnumQuery(tableName, columnName, columnDef.type, { enumName: tmpEnumName }));
 
         // rename new enum & drop old one
         out.push(
           this.pgEnumDrop(tableName, columnName),
-          `ALTER TYPE ${this.quoteIdentifier(tableName.schema)}.${tmpEnumName} RENAME TO ${existingEnumName};`,
+          `ALTER TYPE ${this.quoteIdentifier(tableName.schema)}.${this.quoteIdentifier(tmpEnumName)} RENAME TO ${this.quoteIdentifier(existingEnumName)};`,
         );
       }
     }
@@ -945,17 +945,16 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       + `WHERE n.nspname = ${this.escape(tableDetails.schema)}${enumName} GROUP BY 1`;
   }
 
-  pgEnum(tableName, attr, dataType, options) {
-    const enumName = options?.enumName || this.pgEnumName(tableName, attr, { ...options, schema: false });
-    let values;
-
-    if (dataType instanceof ENUM && dataType.options.values) {
-      values = `ENUM(${dataType.options.values.map(value => this.escape(value)).join(', ')})`;
-    } else {
-      values = dataType.toString().match(/^ENUM\(.+\)/)[0];
+  createEnumQuery(tableName, attr, dataType, options) {
+    if (!(dataType instanceof ENUM)) {
+      throw new TypeError('createEnumQuery expects an instance of the ENUM DataType');
     }
 
-    let sql = `CREATE TYPE ${this.quoteIdentifier(tableName.schema)}.${enumName} AS ${values};`;
+    const enumName = options?.enumName || this.pgEnumName(tableName, attr, { ...options, noEscape: true, schema: false });
+    const values = `ENUM(${dataType.options.values.map(value => this.escape(value))
+      .join(', ')})`;
+
+    let sql = `CREATE TYPE ${this.quoteIdentifier(tableName.schema)}.${this.quoteIdentifier(enumName)} AS ${values};`;
     if (options?.force === true) {
       sql = this.pgEnumDrop(tableName, attr) + sql;
     }

@@ -90,7 +90,9 @@ Column: \`name\``),
   it('supports passing a Model class as the tableName', () => {
     class User extends Model {}
 
-    User.init({}, { sequelize, tableName: 'custom_users', schema: 'custom_schema' });
+    User.init({
+      name: DataTypes.STRING,
+    }, { sequelize, tableName: 'custom_users', schema: 'custom_schema' });
 
     const sql = queryGenerator.changeColumnsQuery(User, {
       name: {

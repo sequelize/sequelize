@@ -518,8 +518,6 @@ export abstract class AbstractDialect {
   static getDefaultPort(): number {
     throw new Error(`getDefaultPort not implemented in ${this.name}`);
   }
-
-  abstract getDefaultSchema(): string;
 }
 
 export type BindCollector = {
