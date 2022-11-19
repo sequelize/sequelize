@@ -131,42 +131,12 @@ jobs:
         run: npm install --no-save --no-audit typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
         run: yarn test-typings
-  test-db2:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [14, 18]
-    name: DB2 (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [ unit-test, test-typings ]
-    env:
-      DIALECT: db2
-      SEQ_DB: testdb
-      SEQ_USER: db2inst1
-      SEQ_PW: password
-      SEQ_TEST_CLEANUP_TIMEOUT: 1200000
-      SEQ_PORT: 50000
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
-      - uses: actions/download-artifact@v3
-        with:
-          name: install-build-artifact-node-${{ matrix.node-version }}
-      - name: Extract artifact
-        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Install Local DB2 Copy
-        run: yarn start-db2-oldest
-      - name: Integration Tests
-        run: yarn test-integration
   test-sqlite:
     strategy:
       fail-fast: false
       matrix:
         node-version: [14, 18]
-    name: SQLite (Node ${{ matrix.node-version }})
+    name: sqlite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
@@ -184,20 +154,24 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
         run: yarn test-integration
-  test-postgres:
+  test-oldest-latest:
     strategy:
       fail-fast: false
       matrix:
         node-version: [14, 18]
-        postgres-version: [oldest, latest]
-        minify-aliases: [true, false]
-        native: [true, false]
-    name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
+        database-version: [oldest, latest]
+        dialect: [mysql, mariadb, mssql, postgres, db2]
+        include:
+          - dialect: postgres
+            minify-aliases: true
+          - dialect: postgres
+            native: true
+    name: ${{ matrix.dialect }} ${{ matrix.database-version }}${{ matrix.dialect == 'postgres' && matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.dialect == 'postgres' && matrix.minify-aliases) && ' (minified aliases)' || '' }
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
-      DIALECT: ${{ matrix.native && 'postgres-native' || 'postgres' }}
-      SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
+      DIALECT: ${{ matrix.dialect == 'postgres' && matrix.native && 'postgres-native' || matrix.dialect }}
+      SEQ_PG_MINIFY_ALIASES: ${{ matrix.dialect == 'postgres' && matrix.minify-aliases && '1' || '' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -211,80 +185,12 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install pg-native (Node 14)
         run: yarn add pg-native --ignore-engines
-        if: matrix.native && matrix.node-version == 14
+        if: matrix.dialect == 'postgres' && matrix.native && matrix.node-version == 14
       # This step uses npm instead of yarn to minimize the time needed. See #14171
       - name: Install pg-native (Node 18)
         run: npm install --no-save --no-audit pg-native
-        if: matrix.native && matrix.node-version == 18
-      - run: yarn start-postgres-${{ matrix.postgres-version }}
-      - name: Integration Tests
-        run: yarn test-integration
-  test-mysql-mariadb:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [14, 18]
-        database-version: [oldest, latest]
-        dialect: [mysql, mariadb]
-    name: ${{ matrix.dialect }} ${{ matrix.database-version }} (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [ unit-test, test-typings ]
-    env:
-      DIALECT: ${{ matrix.dialect }}
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
-      - uses: actions/download-artifact@v3
-        with:
-          name: install-build-artifact-node-${{ matrix.node-version }}
-      - name: Extract artifact
-        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+        if: matrix.dialect == 'postgres' && matrix.native && matrix.node-version == 18
       - run: yarn start-${{ matrix.dialect }}-${{ matrix.database-version }}
-      - name: Integration Tests
-        run: yarn test-integration
-  test-mssql:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [14, 18]
-        mssql-version: [2017, 2022]
-    name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [ unit-test, test-typings ]
-    services:
-      mssql:
-        image: mcr.microsoft.com/mssql/server:${{ matrix.mssql-version }}-latest
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: Password12!
-        ports:
-          - 1433:1433
-        options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P \"Password12!\" -l 30 -Q \"SELECT 1\""
-          --health-start-period 10s
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DIALECT: mssql
-      SEQ_USER: SA
-      SEQ_PW: Password12!
-      SEQ_PORT: 1433
-    steps:
-      - run: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
-      - uses: actions/download-artifact@v3
-        with:
-          name: install-build-artifact-node-${{ matrix.node-version }}
-      - name: Extract artifact
-        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
         run: yarn test-integration
   release:
@@ -294,9 +200,7 @@ jobs:
       [
         docs,
         test-sqlite,
-        test-postgres,
-        test-mysql-mariadb,
-        test-mssql,
+        test-oldest-latest
       ]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v7')
     env:
