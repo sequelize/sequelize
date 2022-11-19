@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [article, label, t] = await Promise.all([
           Article.create({ title: 'foo' }),
           Label.create({ text: 'bar' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await article.setLabels([label], { transaction: t });
@@ -1282,7 +1282,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [article, label, t] = await Promise.all([
           Article.create({ title: 'foo' }),
           Label.create({ text: 'bar' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await article.setLabels([label], { transaction: t });
@@ -1881,7 +1881,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         const [task, t] = await Promise.all([
           Task.create({ title: 'task' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await task.createUser({ username: 'foo' }, { transaction: t });
@@ -1981,7 +1981,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [user, task, t] = await Promise.all([
           User.create({ username: 'foo' }),
           Task.create({ title: 'task' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await task.addUser(user, { transaction: t });
@@ -2008,7 +2008,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [user, task, t] = await Promise.all([
           User.create({ username: 'foo' }),
           Task.create({ title: 'task' }),
-          sequelize.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED }),
+          sequelize.startUnmanagedTransaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED }),
         ]);
 
         await task.addUser(user, { through: { status: 'pending' } }); // Create without transaction, so the old value is
