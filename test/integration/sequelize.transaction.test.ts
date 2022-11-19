@@ -25,7 +25,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
   describe('Transaction#commit', () => {
     it('returns a promise that resolves once the transaction has been committed', async () => {
-      const t = await sequelize.transaction();
+      const t = await sequelize.startUnmanagedTransaction();
 
       await expect(t.commit()).to.eventually.equal(undefined);
     });
@@ -38,7 +38,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
         stubs.push(sinon.stub(sequelize.queryInterface, 'commitTransaction').rejects(new Error('Oh no, an error!')));
 
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
 
         await expect(t.commit()).to.be.rejectedWith('Oh no, an error!');
 
@@ -50,7 +50,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
   describe('Transaction#rollback', () => {
     it('returns a promise that resolves once the transaction has been rolled back', async () => {
-      const t = await sequelize.transaction();
+      const t = await sequelize.startUnmanagedTransaction();
 
       await expect(t.rollback()).to.eventually.equal(undefined);
     });
@@ -63,7 +63,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
         stubs.push(sinon.stub(sequelize.queryInterface, 'rollbackTransaction').rejects(new Error('Oh no, an error!')));
 
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
 
         await expect(t.rollback()).to.be.rejectedWith('Oh no, an error!');
 
@@ -86,7 +86,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       }, { timestamps: false });
 
       await sequelize2.sync({ force: true });
-      const t = await sequelize2.transaction();
+      const t = await sequelize2.startUnmanagedTransaction();
 
       let query: string;
       switch (getTestDialect()) {
@@ -123,7 +123,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       });
 
       await sequelize2.sync({ force: true });
-      const transaction = await sequelize2.transaction();
+      const transaction = await sequelize2.startUnmanagedTransaction();
       expect(transaction).to.be.instanceOf(Transaction);
 
       await Test.create({ name: 'Peter' }, { transaction });
@@ -149,8 +149,8 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
       await Model.sync({ force: true });
 
-      const t1 = await sequelize2.transaction();
-      const t2 = await sequelize2.transaction();
+      const t1 = await sequelize2.startUnmanagedTransaction();
+      const t2 = await sequelize2.startUnmanagedTransaction();
       await Model.create({ name: 'omnom' }, { transaction: t1 });
 
       await Promise.all([

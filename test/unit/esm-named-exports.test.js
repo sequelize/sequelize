@@ -35,8 +35,6 @@ describe('ESM module', () => {
       // make no sense to export
       'length',
       'prototype',
-      'useCLS',
-      '_clsRun',
       'name',
       'version',
 

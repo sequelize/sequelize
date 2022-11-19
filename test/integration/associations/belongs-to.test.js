@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         await sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
         const group = await Group.create({ name: 'bar' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
         const groups = await Group.findAll();
         const associatedUser = await groups[0].getUser();
@@ -178,7 +178,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         await sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
         const group = await Group.create({ name: 'bar' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
         const groups = await Group.findAll();
         const associatedUser = await groups[0].getUser();
@@ -354,7 +354,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
         await sequelize.sync({ force: true });
         const group = await Group.create({ name: 'bar' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await group.createUser({ username: 'foo' }, { transaction: t });
         const user = await group.getUser();
         expect(user).to.be.null;
