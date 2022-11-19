@@ -71,6 +71,11 @@ export class SqliteDialect extends AbstractDialect {
     return createNamedParamBindCollector('$');
   }
 
+  getDefaultSchema(): string {
+    // Our SQLite implementation doesn't support schemas
+    return '';
+  }
+
   static getDefaultPort() {
     return 0;
   }

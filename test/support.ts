@@ -24,13 +24,6 @@ chai.use(chaiDatetime);
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
-// Using util.inspect to correctly assert objects with symbols
-// Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
-chai.Assertion.addMethod('deepEqual', function deepEqual(expected, depth = 5) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
-  expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
-});
-
 /**
  * `expect(fn).to.throwWithCause()` works like `expect(fn).to.throw()`, except
  * that is also checks whether the message is present in the error cause.
@@ -170,6 +163,8 @@ export function createSequelizeInstance(options: Options = {}): Sequelize {
     pool: config.pool,
     dialectOptions: options.dialectOptions || config.dialectOptions || {},
     minifyAliases: options.minifyAliases || config.minifyAliases,
+    // the test suite was written before ALS was turned on by default.
+    disableAlsTransactions: true,
   });
 
   if (process.env.DIALECT === 'postgres-native') {
@@ -212,9 +207,7 @@ export async function clearDatabase(sequelize: Sequelize) {
 }
 
 export async function dropTestSchemas(sequelize: Sequelize) {
-  const queryInterface = sequelize.getQueryInterface();
-
-  if (!queryInterface.queryGenerator.dialect.supports.schemas) {
+  if (!sequelize.dialect.supports.schemas) {
     await sequelize.drop({});
 
     return;

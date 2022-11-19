@@ -35,6 +35,7 @@ export class MssqlDialect extends AbstractDialect {
       type: true,
       using: false,
       where: true,
+      include: true,
     },
     tmpTableTrigger: true,
     dataTypes: {
@@ -98,6 +99,10 @@ export class MssqlDialect extends AbstractDialect {
     value = value.replace(/'/g, '\'\'');
 
     return `N'${value}'`;
+  }
+
+  getDefaultSchema(): string {
+    return 'dbo';
   }
 
   static getDefaultPort() {

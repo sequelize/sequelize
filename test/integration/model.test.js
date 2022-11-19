@@ -834,7 +834,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           foo: DataTypes.STRING,
         });
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const user = await User.findOne({ where: { username: 'foo' }, transaction: t });
         expect(user).to.not.be.null;
@@ -874,7 +874,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = sequelize.define('User', { username: DataTypes.STRING, foo: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const [user1] = await User.findOrBuild({
           where: { username: 'foo' },
@@ -1011,7 +1011,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         await User.create({ username: 'foo' });
 
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.update({ username: 'bar' }, {
           where: { username: 'foo' },
           transaction: t,
@@ -1470,7 +1470,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
         await User.create({ username: 'foo' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.destroy({
           where: {},
           transaction: t,
@@ -1841,7 +1841,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const count1 = await User.count();
         const count2 = await User.count({ transaction: t });
@@ -1986,7 +1986,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const User = sequelize.define('User', { age: DataTypes.INTEGER });
 
           await User.sync({ force: true });
-          const t = await sequelize.transaction();
+          const t = await sequelize.startUnmanagedTransaction();
           await User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t });
           const val1 = await User[methodName]('age');
           const val2 = await User[methodName]('age', { transaction: t });
@@ -2735,7 +2735,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const sequelize = await Support.prepareTransactionTest(this.sequelize);
       const User = sequelize.define('User', { username: DataTypes.STRING });
       const testAsync = async function () {
-        const t0 = await sequelize.transaction();
+        const t0 = await sequelize.startUnmanagedTransaction();
 
         await User.create({
           username: 'foo',

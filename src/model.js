@@ -21,7 +21,7 @@ const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
 const { Op } = require('./operators');
-const { _validateIncludedElements, combineIncludes, throwInvalidInclude, setTransactionFromCls } = require('./model-internals');
+const { _validateIncludedElements, combineIncludes, throwInvalidInclude, setTransactionFromAls } = require('./model-internals');
 const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -929,7 +929,7 @@ Specify a different name for either index to resolve this issue.`);
       this.tableName = this.options.tableName;
     }
 
-    this._schema = this.options.schema || '';
+    this._schema = this.options.schema || this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
     this._schemaDelimiter = this.options.schemaDelimiter || '';
 
     // error check options
@@ -1311,6 +1311,19 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     const tableName = this.getTableName(options);
+    if (options.schema && options.schema !== tableName.schema) {
+      // Some users sync the same set of tables in different schemas for various reasons
+      // They then set `searchPath` when running a query to use different schemas.
+      // See https://github.com/sequelize/sequelize/pull/15274#discussion_r1020770364
+      // We only allow this if the tables are in the default schema, because we need to ensure that
+      // all tables are in the same schema to prevent collisions and `searchPath` only works if we don't specify the schema
+      // (which we don't for the default schema)
+      if (tableName.schema !== this.sequelize.dialect.getDefaultSchema()) {
+        throw new Error(`The "schema" option in sync can only be used on models that do not already specify a schema, or that are using the default schema. Model ${this.name} already specifies schema ${tableName.schema}`);
+      }
+
+      tableName.schema = options.schema;
+    }
 
     let tableExists;
     if (options.force) {
@@ -1476,6 +1489,8 @@ Specify a different name for either index to resolve this issue.`);
 
     const schemaOptions = typeof schema === 'string' ? { schema } : schema;
 
+    schemaOptions.schema ||= this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
+
     return this.getInitialModel()
       ._withScopeAndSchema(schemaOptions, this._scope, this._scopeNames);
   }
@@ -1506,7 +1521,18 @@ Specify a different name for either index to resolve this issue.`);
    * @returns {string|object}
    */
   static getTableName() {
-    return this.queryGenerator.addSchema(this);
+    const self = this;
+
+    return {
+      tableName: this.tableName,
+      schema: this._schema,
+      delimiter: this._schemaDelimiter || '.',
+      // TODO: remove, it should not be relied on
+      //  once this is removed, also remove the various omit(..., 'toString') that are used in tests when deep-equaling table names.
+      toString() {
+        return self.sequelize.queryInterface.queryGenerator.quoteTable(this);
+      },
+    };
   }
 
   /**
@@ -1762,8 +1788,7 @@ Specify a different name for either index to resolve this issue.`);
     tableNames[this.getTableName(options)] = true;
     options = Utils.cloneDeep(options);
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     _.defaults(options, { hooks: true, model: this });
 
@@ -2081,8 +2106,7 @@ Specify a different name for either index to resolve this issue.`);
     options = Utils.cloneDeep(options);
     options = _.defaults(options, { hooks: true });
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     options.raw = true;
     if (options.hooks) {
@@ -2352,19 +2376,15 @@ Specify a different name for either index to resolve this issue.`);
       }
     }
 
-    if (options.transaction === undefined && this.sequelize.constructor._cls) {
-      const t = this.sequelize.constructor._cls.get('transaction');
-      if (t) {
-        options.transaction = t;
-      }
-    }
+    setTransactionFromAls(options, this.sequelize);
 
     const internalTransaction = !options.transaction;
     let values;
     let transaction;
 
     try {
-      const t = await this.sequelize.transaction(options);
+      // TODO: use managed sequelize.transaction() instead
+      const t = await this.sequelize.startUnmanagedTransaction(options);
       transaction = t;
       options.transaction = t;
 
@@ -2518,8 +2538,7 @@ Specify a different name for either index to resolve this issue.`);
       ...Utils.cloneDeep(options),
     };
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     const createdAtAttr = this._timestampAttributes.createdAt;
     const updatedAtAttr = this._timestampAttributes.updatedAt;
@@ -2614,8 +2633,7 @@ Specify a different name for either index to resolve this issue.`);
     const now = Utils.now(this.sequelize.dialect);
     options = Utils.cloneDeep(options);
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     options.model = this;
 
@@ -2964,8 +2982,7 @@ Specify a different name for either index to resolve this issue.`);
   static async destroy(options) {
     options = Utils.cloneDeep(options);
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     this._injectScope(options);
 
@@ -3059,8 +3076,7 @@ Specify a different name for either index to resolve this issue.`);
       ...options,
     };
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     options.type = QueryTypes.RAW;
     options.model = this;
@@ -3123,8 +3139,7 @@ Specify a different name for either index to resolve this issue.`);
   static async update(values, options) {
     options = Utils.cloneDeep(options);
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     this._injectScope(options);
     this._optionsMustContainWhere(options);
@@ -4005,8 +4020,7 @@ Instead of specifying a Model, either:
       validate: true,
     });
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     if (!options.fields) {
       if (this.isNewRecord) {
@@ -4371,8 +4385,7 @@ Instead of specifying a Model, either:
       ...options,
     };
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     // Run before hook
     if (options.hooks) {
@@ -4449,8 +4462,7 @@ Instead of specifying a Model, either:
       ...options,
     };
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     // Run before hook
     if (options.hooks) {

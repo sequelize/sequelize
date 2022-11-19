@@ -8,6 +8,7 @@ const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const { Config: config } = require('../config/config');
 const sinon = require('sinon');
+const semver = require('semver');
 
 const current = Support.sequelize;
 
@@ -297,7 +298,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('one value', async function () {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
         this.t = t;
         await this.sequelize.set({ foo: 'bar' }, { transaction: t });
         const data = await this.sequelize.query('SELECT @foo as `foo`', { plain: true, transaction: this.t });
@@ -307,7 +308,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('multiple values', async function () {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
         this.t = t;
 
         await this.sequelize.set({
@@ -437,6 +438,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('fails with incorrect database credentials (1)', async function () {
+        // TODO: remove this once fixed in https://github.com/brianc/node-postgres/issues/1927 or when password is not allowed to be null in our postgres implementation
+        if (dialect === 'postgres' && semver.gte(this.sequelize.options.databaseVersion, '12.0.0')) {
+          return;
+        }
+
         this.sequelizeWithInvalidCredentials = Support.createSequelizeInstance({
           database: 'omg',
           username: 'bar',
@@ -639,12 +645,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         it('passes a transaction object to the callback', async function () {
-          const t = await this.sequelizeWithTransaction.transaction();
+          const t = await this.sequelizeWithTransaction.startUnmanagedTransaction();
           expect(t).to.be.instanceOf(Transaction);
         });
 
         it('allows me to define a callback on the result', async function () {
-          const t = await this.sequelizeWithTransaction.transaction();
+          const t = await this.sequelizeWithTransaction.startUnmanagedTransaction();
           await t.commit();
         });
 
@@ -661,7 +667,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             };
 
             await TransactionTest.sync({ force: true });
-            const t1 = await this.sequelizeWithTransaction.transaction();
+            const t1 = await this.sequelizeWithTransaction.startUnmanagedTransaction();
             this.t1 = t1;
             await this.sequelizeWithTransaction.query(`INSERT INTO ${qq('TransactionTests')} (${qq('name')}) VALUES ('foo');`, { transaction: t1 });
             await expect(count()).to.eventually.equal(0);
@@ -684,10 +690,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             };
 
             await TransactionTest.sync({ force: true });
-            const t1 = await this.sequelizeWithTransaction.transaction();
+            const t1 = await this.sequelizeWithTransaction.startUnmanagedTransaction();
             this.t1 = t1;
             await this.sequelizeWithTransaction.query(`INSERT INTO ${qq('TransactionTests')} (${qq('name')}) VALUES ('foo');`, { transaction: t1 });
-            const t2 = await this.sequelizeWithTransaction.transaction();
+            const t2 = await this.sequelizeWithTransaction.startUnmanagedTransaction();
             this.t2 = t2;
             await this.sequelizeWithTransaction.query(`INSERT INTO ${qq('TransactionTests')} (${qq('name')}) VALUES ('bar');`, { transaction: t2 });
             await expect(count()).to.eventually.equal(0);
@@ -705,9 +711,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING });
 
           await User.sync({ force: true });
-          const t1 = await this.sequelizeWithTransaction.transaction();
+          const t1 = await this.sequelizeWithTransaction.startUnmanagedTransaction();
           const user = await User.create({ username: 'foo' }, { transaction: t1 });
-          const t2 = await this.sequelizeWithTransaction.transaction({ transaction: t1 });
+          const t2 = await this.sequelizeWithTransaction.startUnmanagedTransaction({ transaction: t1 });
           await user.update({ username: 'bar' }, { transaction: t2 });
           await t2.commit();
           const newUser = await user.reload({ transaction: t1 });
@@ -723,13 +729,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           });
 
           it('rolls back to the first savepoint, undoing everything', async function () {
-            const transaction = await this.sequelizeWithTransaction.transaction();
+            const transaction = await this.sequelizeWithTransaction.startUnmanagedTransaction();
             this.transaction = transaction;
 
-            const sp1 = await this.sequelizeWithTransaction.transaction({ transaction });
+            const sp1 = await this.sequelizeWithTransaction.startUnmanagedTransaction({ transaction });
             this.sp1 = sp1;
             await this.User.create({}, { transaction: this.transaction });
-            const sp2 = await this.sequelizeWithTransaction.transaction({ transaction: this.transaction });
+            const sp2 = await this.sequelizeWithTransaction.startUnmanagedTransaction({ transaction: this.transaction });
             this.sp2 = sp2;
             await this.User.create({}, { transaction: this.transaction });
             const users0 = await this.User.findAll({ transaction: this.transaction });
@@ -748,13 +754,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           });
 
           it('rolls back to the most recent savepoint, only undoing recent changes', async function () {
-            const transaction = await this.sequelizeWithTransaction.transaction();
+            const transaction = await this.sequelizeWithTransaction.startUnmanagedTransaction();
             this.transaction = transaction;
 
-            const sp1 = await this.sequelizeWithTransaction.transaction({ transaction });
+            const sp1 = await this.sequelizeWithTransaction.startUnmanagedTransaction({ transaction });
             this.sp1 = sp1;
             await this.User.create({}, { transaction: this.transaction });
-            const sp2 = await this.sequelizeWithTransaction.transaction({ transaction: this.transaction });
+            const sp2 = await this.sequelizeWithTransaction.startUnmanagedTransaction({ transaction: this.transaction });
             this.sp2 = sp2;
             await this.User.create({}, { transaction: this.transaction });
             const users0 = await this.User.findAll({ transaction: this.transaction });
@@ -772,9 +778,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING });
 
           await User.sync({ force: true });
-          const t1 = await this.sequelizeWithTransaction.transaction();
+          const t1 = await this.sequelizeWithTransaction.startUnmanagedTransaction();
           const user = await User.create({ username: 'foo' }, { transaction: t1 });
-          const t2 = await this.sequelizeWithTransaction.transaction({ transaction: t1 });
+          const t2 = await this.sequelizeWithTransaction.startUnmanagedTransaction({ transaction: t1 });
           await user.update({ username: 'bar' }, { transaction: t2 });
           await t2.rollback();
           const newUser = await user.reload({ transaction: t1 });
@@ -787,9 +793,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING });
 
           await User.sync({ force: true });
-          const t1 = await this.sequelizeWithTransaction.transaction();
+          const t1 = await this.sequelizeWithTransaction.startUnmanagedTransaction();
           const user = await User.create({ username: 'foo' }, { transaction: t1 });
-          const t2 = await this.sequelizeWithTransaction.transaction({ transaction: t1 });
+          const t2 = await this.sequelizeWithTransaction.startUnmanagedTransaction({ transaction: t1 });
           await user.update({ username: 'bar' }, { transaction: t2 });
           await t1.rollback();
           const users = await User.findAll();

@@ -240,6 +240,7 @@ export class Sequelize extends SequelizeTypeScript {
       native: false,
       replication: false,
       ssl: undefined,
+      // TODO [=7]: print a deprecation warning if quoteIdentifiers is set to false
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -255,6 +256,7 @@ export class Sequelize extends SequelizeTypeScript {
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
+      disableAlsTransactions: false,
       ...options,
       pool: _.defaults(options.pool || {}, {
         max: 5,
@@ -264,6 +266,11 @@ export class Sequelize extends SequelizeTypeScript {
         evict: 1000,
       }),
     };
+
+    // TODO: remove & assign property directly once this constructor has been migrated to the SequelizeTypeScript class
+    if (!this.options.disableAlsTransactions) {
+      this._setupTransactionAls();
+    }
 
     if (!this.options.dialect) {
       throw new Error('Dialect needs to be explicitly supplied as of v4.0.0');
@@ -675,8 +682,8 @@ Use Sequelize#query if you wish to use replacements.`);
     const retryOptions = { ...this.options.retry, ...options.retry };
 
     return await retry(async () => {
-      if (options.transaction === undefined && Sequelize._cls) {
-        options.transaction = Sequelize._cls.get('transaction');
+      if (options.transaction === undefined) {
+        options.transaction = this.getCurrentAlsTransaction();
       }
 
       checkTransaction();
@@ -1060,134 +1067,6 @@ Use Sequelize#query if you wish to use replacements.`);
   static isModelStatic = isModelStatic;
 
   static isSameInitialModel = isSameInitialModel;
-
-  /**
-   * Start a transaction. When using transactions, you should pass the transaction in the options argument in order for the query to happen under that transaction @see {@link Transaction}
-   *
-   * If you have [CLS](https://github.com/Jeff-Lewis/cls-hooked) enabled, the transaction will automatically be passed to any query that runs within the callback
-   *
-   * @example
-   *
-   * try {
-   *   const transaction = await sequelize.transaction();
-   *   const user = await User.findOne(..., { transaction });
-   *   await user.update(..., { transaction });
-   *   await transaction.commit();
-   * } catch {
-   *   await transaction.rollback()
-   * }
-   *
-   * @example <caption>A syntax for automatically committing or rolling back based on the promise chain resolution is also supported</caption>
-   *
-   * try {
-   *   await sequelize.transaction(async transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
-   *     const user = await User.findOne(..., {transaction});
-   *     await user.update(..., {transaction});
-   *   });
-   *   // Committed
-   * } catch(err) {
-   *   // Rolled back
-   *   console.error(err);
-   * }
-   * @example <caption>To enable CLS, add it do your project, create a namespace and set it on the sequelize constructor:</caption>
-   *
-   * const cls = require('cls-hooked');
-   * const namespace = cls.createNamespace('....');
-   * const Sequelize = require('@sequelize/core');
-   * Sequelize.useCLS(namespace);
-   *
-   * // Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
-   *
-   * @param {object}   [options] Transaction options
-   * @param {string}   [options.type='DEFERRED'] See `Sequelize.Transaction.TYPES` for possible options. Sqlite only.
-   * @param {string}   [options.isolationLevel] See `Sequelize.Transaction.ISOLATION_LEVELS` for possible options
-   * @param {string}   [options.deferrable] Sets the constraints to be deferred or immediately checked. See `Sequelize.Deferrable`. PostgreSQL Only
-   * @param {Function} [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {Function} [autoCallback] The callback is called with the transaction object, and should return a promise. If the promise is resolved, the transaction commits; if the promise rejects, the transaction rolls back
-   *
-   * @returns {Promise}
-   */
-  async transaction(options, autoCallback) {
-    if (typeof options === 'function') {
-      autoCallback = options;
-      options = undefined;
-    }
-
-    const transaction = new Transaction(this, options);
-
-    if (!autoCallback) {
-      await transaction.prepareEnvironment(/* cls */ false);
-
-      return transaction;
-    }
-
-    // autoCallback provided
-    return Sequelize._clsRun(async () => {
-      await transaction.prepareEnvironment(/* cls */ true);
-
-      let result;
-      try {
-        result = await autoCallback(transaction);
-      } catch (error) {
-        try {
-          await transaction.rollback();
-        } catch {
-          // ignore, because 'rollback' will already print the error before killing the connection
-        }
-
-        throw error;
-      }
-
-      await transaction.commit();
-
-      return result;
-    });
-  }
-
-  /**
-   * Use CLS (Continuation Local Storage) with Sequelize. With Continuation
-   * Local Storage, all queries within the transaction callback will
-   * automatically receive the transaction object.
-   *
-   * CLS namespace provided is stored as `Sequelize._cls`
-   *
-   * @param {object} ns CLS namespace
-   * @returns {object} Sequelize constructor
-   */
-  static useCLS(ns) {
-    // check `ns` is valid CLS namespace
-    if (!ns || typeof ns !== 'object' || typeof ns.bind !== 'function' || typeof ns.run !== 'function') {
-      throw new Error('Must provide CLS namespace');
-    }
-
-    // save namespace as `Sequelize._cls`
-    Sequelize._cls = ns;
-
-    // return Sequelize for chaining
-    return this;
-  }
-
-  /**
-   * Run function in CLS context.
-   * If no CLS context in use, just runs the function normally
-   *
-   * @private
-   * @param {Function} fn Function to run
-   * @returns {*} Return value of function
-   */
-  static _clsRun(fn) {
-    const ns = Sequelize._cls;
-    if (!ns) {
-      return fn();
-    }
-
-    let res;
-    ns.run(context => {
-      res = fn(context);
-    });
-
-    return res;
-  }
 
   log(...args) {
     let options;

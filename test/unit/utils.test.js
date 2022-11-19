@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       expect(Utils.toDefaultValue('Test', dialect)).to.equal('Test');
     });
     it('return plain object', () => {
-      chai.assert.deepEqual({}, Utils.toDefaultValue({}, dialect));
+      expect(Utils.toDefaultValue({}, dialect)).to.deep.equal({});
     });
   });
 
@@ -71,14 +71,14 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
     it('defaults symbol keys', () => {
       expect(Utils.defaults(
-        { a: 1, [Symbol.for('c')]: 3 },
+        { a: 1, [Symbol.for('eq')]: 3 },
         { b: 2 },
-        { [Symbol.for('c')]: 4, [Symbol.for('d')]: 4 },
+        { [Symbol.for('eq')]: 4, [Symbol.for('ne')]: 4 },
       )).to.eql({
         a: 1,
         b: 2,
-        [Symbol.for('c')]: 3,
-        [Symbol.for('d')]: 4,
+        [Symbol.for('eq')]: 3,
+        [Symbol.for('ne')]: 4,
       });
     });
   });
