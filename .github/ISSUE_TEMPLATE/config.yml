@@ -1,6 +1,6 @@
 blank_issues_enabled: false
 contact_links:
-  - name: ❓ Help & Questions
+  - name: 💬 Help & Questions
     url: https://github.com/sequelize/sequelize/discussions
     about: The issue tracker is for bug reports and feature requests. Use GitHub Discussions for question and help requests.
   - name: 🔧 Having issues with Sequelize CLI?
