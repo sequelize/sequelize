@@ -183,7 +183,7 @@ export class SqliteQueryInterface extends QueryInterface {
    * @override
    */
   async describeTable(tableName, options) {
-    const table = this.extractTableDetails(tableName);
+    const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
       noSchemaParameter();

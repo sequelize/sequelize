@@ -396,7 +396,7 @@ export class QueryInterface {
    * @returns {Promise<object>}
    */
   async describeTable(tableName, options) {
-    const table = this.extractTableDetails(tableName);
+    const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
       noSchemaParameter();
@@ -650,7 +650,7 @@ export class QueryInterface {
    * @private
    */
   async showIndex(tableName, options) {
-    const table = this.extractTableDetails(tableName);
+    const table = this.queryGenerator.extractTableDetails(tableName);
 
     const sql = this.queryGenerator.showIndexesQuery(table, options);
 
