@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Supports and troubleshooting
+  - name: ❓Help & Questions
     url: https://github.com/sequelize/sequelize/discussions
-    about: This issue tracker is not for bug reports which requires a SSCCE. Please refer to the bug report issue template.
-  - name: SSCCE
-    url: https://github.com/sequelize/sequelize-sscce
-    about: This issue tracker is for bug reports which requires a SSCCE.
+    about: The issue tracker is for bug reports and feature requests. Use GitHub Discussions for question and help requests.
+  - name: 🔧Having issues with Sequelize CLI?
+    url: https://github.com/sequelize/cli/issues
+    about: The issue tracker is for Sequelize CLI issues.
+  - name: 📗Having issues with Sequelize documentation?
+    url: https://github.com/sequelize/website/issues
+    about: The issue tracker is for Sequelize documentation issues.
