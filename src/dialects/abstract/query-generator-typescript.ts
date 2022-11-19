@@ -43,7 +43,7 @@ export class AbstractQueryGeneratorTypeScript {
     return `DESCRIBE ${this.quoteTable(table)};`;
   }
 
-  showIndexesQuery(_tableName: TableName): string {
+  showIndexesQuery(_table: TableNameWithSchema): string {
     throw new Error(`showIndexesQuery has not been implemented in ${this.dialect.name}.`);
   }
 

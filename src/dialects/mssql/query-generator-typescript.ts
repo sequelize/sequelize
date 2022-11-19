@@ -1,6 +1,6 @@
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableName, TableNameWithSchema } from '../abstract/query-interface';
+import type { TableNameWithSchema } from '../abstract/query-interface';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -41,7 +41,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableName) {
-    return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(tableName))};`;
+  showIndexesQuery(table: TableNameWithSchema) {
+    return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(table))};`;
   }
 }

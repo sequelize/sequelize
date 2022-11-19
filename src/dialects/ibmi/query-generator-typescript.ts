@@ -1,6 +1,6 @@
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableName, TableNameWithSchema } from '../abstract/query-interface';
+import type { TableNameWithSchema } from '../abstract/query-interface';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -26,9 +26,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableName) {
-    const table = this.extractTableDetails(tableName);
-
+  showIndexesQuery(table: TableNameWithSchema) {
     // TODO [+odbc]: check if the query also works when capitalized (for consistency)
     return joinSQLFragments([
       'select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,',

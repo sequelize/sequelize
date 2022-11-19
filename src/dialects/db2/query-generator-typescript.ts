@@ -1,6 +1,6 @@
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableName, TableNameWithSchema } from '../abstract/query-interface';
+import type { TableNameWithSchema } from '../abstract/query-interface';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -20,9 +20,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableName) {
-    const table = this.extractTableDetails(tableName);
-
+  showIndexesQuery(table: TableNameWithSchema) {
     return joinSQLFragments([
       'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType",',
       'COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES',

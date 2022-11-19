@@ -204,7 +204,7 @@ export class SqliteQueryInterface extends QueryInterface {
 
     const sql = this.queryGenerator.describeTableQuery(table);
     options = { ...options, type: QueryTypes.DESCRIBE };
-    const sqlIndexes = this.queryGenerator.showIndexesQuery(tableName);
+    const sqlIndexes = this.queryGenerator.showIndexesQuery(table);
 
     try {
       const data = await this.sequelize.queryRaw(sql, options);

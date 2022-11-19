@@ -1,5 +1,5 @@
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableName, TableNameWithSchema } from '../abstract/query-interface';
+import type { TableNameWithSchema } from '../abstract/query-interface';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -9,7 +9,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(table)};`;
   }
 
-  showIndexesQuery(tableName: TableName) {
-    return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
+  showIndexesQuery(table: TableNameWithSchema) {
+    return `SHOW INDEX FROM ${this.quoteTable(table)}`;
   }
 }
