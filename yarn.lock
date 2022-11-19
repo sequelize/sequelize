@@ -1143,11 +1143,6 @@
   resolved "https://registry.yarnpkg.com/@types/ibm_db/-/ibm_db-2.0.11.tgz#be01a2f3a9d5710cfc42dac557dd78bae6b2ffa1"
   integrity sha512-Tlxdv4y26HzhL4fBpIS1KXNvwlHsJVlppcQ/IN9ICu0TH4zJIC2R476oEqVXi3L5rzs9f/l4LQVs0z6+PJPc4w==
 
-"@types/inflection@^1.13.0":
-  version "1.13.0"
-  resolved "https://registry.yarnpkg.com/@types/inflection/-/inflection-1.13.0.tgz#d641b773317f2e71e5c7c80809057e3101c4b2bf"
-  integrity sha512-kZSETqAVS74XC/K3mPX/tbMEi/Zy1KP0Wc59dB1i5P72AHz4eSW+UIpzWxmQnDxipoKSX5eRgUXy+wUr+bY73g==
-
 "@types/json-schema@^7.0.9":
   version "7.0.11"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.11.tgz#d421b6c527a3037f7c84433fd2c4229e016863d3"

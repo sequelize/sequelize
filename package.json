@@ -42,7 +42,6 @@
   "license": "MIT",
   "dependencies": {
     "@types/debug": "^4.1.7",
-    "@types/inflection": "^1.13.0",
     "@types/validator": "^13.7.5",
     "dayjs": "^1.11.5",
     "debug": "^4.3.4",
