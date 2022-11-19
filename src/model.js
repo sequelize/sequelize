@@ -21,7 +21,7 @@ const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
 const Hooks = require('./hooks');
 const { Op } = require('./operators');
-const { _validateIncludedElements, combineIncludes, throwInvalidInclude, setTransactionFromCls } = require('./model-internals');
+const { _validateIncludedElements, combineIncludes, throwInvalidInclude, setTransactionFromAls } = require('./model-internals');
 const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -1788,8 +1788,7 @@ Specify a different name for either index to resolve this issue.`);
     tableNames[this.getTableName(options)] = true;
     options = Utils.cloneDeep(options);
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     _.defaults(options, { hooks: true, model: this });
 
@@ -2107,8 +2106,7 @@ Specify a different name for either index to resolve this issue.`);
     options = Utils.cloneDeep(options);
     options = _.defaults(options, { hooks: true });
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     options.raw = true;
     if (options.hooks) {
@@ -2378,19 +2376,15 @@ Specify a different name for either index to resolve this issue.`);
       }
     }
 
-    if (options.transaction === undefined && this.sequelize.constructor._cls) {
-      const t = this.sequelize.constructor._cls.get('transaction');
-      if (t) {
-        options.transaction = t;
-      }
-    }
+    setTransactionFromAls(options, this.sequelize);
 
     const internalTransaction = !options.transaction;
     let values;
     let transaction;
 
     try {
-      const t = await this.sequelize.transaction(options);
+      // TODO: use managed sequelize.transaction() instead
+      const t = await this.sequelize.startUnmanagedTransaction(options);
       transaction = t;
       options.transaction = t;
 
@@ -2544,8 +2538,7 @@ Specify a different name for either index to resolve this issue.`);
       ...Utils.cloneDeep(options),
     };
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     const createdAtAttr = this._timestampAttributes.createdAt;
     const updatedAtAttr = this._timestampAttributes.updatedAt;
@@ -2640,8 +2633,7 @@ Specify a different name for either index to resolve this issue.`);
     const now = Utils.now(this.sequelize.dialect);
     options = Utils.cloneDeep(options);
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     options.model = this;
 
@@ -2994,8 +2986,7 @@ Specify a different name for either index to resolve this issue.`);
   static async destroy(options) {
     options = Utils.cloneDeep(options);
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     this._injectScope(options);
 
@@ -3089,8 +3080,7 @@ Specify a different name for either index to resolve this issue.`);
       ...options,
     };
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     options.type = QueryTypes.RAW;
     options.model = this;
@@ -3153,8 +3143,7 @@ Specify a different name for either index to resolve this issue.`);
   static async update(values, options) {
     options = Utils.cloneDeep(options);
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     this._injectScope(options);
     this._optionsMustContainWhere(options);
@@ -4035,8 +4024,7 @@ Instead of specifying a Model, either:
       validate: true,
     });
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     if (!options.fields) {
       if (this.isNewRecord) {
@@ -4401,8 +4389,7 @@ Instead of specifying a Model, either:
       ...options,
     };
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     // Run before hook
     if (options.hooks) {
@@ -4479,8 +4466,7 @@ Instead of specifying a Model, either:
       ...options,
     };
 
-    // Add CLS transaction
-    setTransactionFromCls(options, this.sequelize);
+    setTransactionFromAls(options, this.sequelize);
 
     // Run before hook
     if (options.hooks) {
