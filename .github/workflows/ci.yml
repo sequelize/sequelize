@@ -149,28 +149,20 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
         run: yarn test-integration
-  test-oldest-latest:
+  test-postgres:
     strategy:
       fail-fast: false
       matrix:
         node-version: [14, 18]
-        database-version: [oldest, latest]
-        dialect: [mysql, mariadb, mssql, postgres, db2]
-        include:
-          - dialect: postgres
-            minify-aliases: true
-          - dialect: postgres
-            minify-aliases: false
-          - dialect: postgres
-            native: true
-          - dialect: postgres
-            native: false
-    name: ${{ matrix.dialect }} ${{ matrix.database-version }}${{ matrix.dialect == 'postgres' && matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.dialect == 'postgres' && matrix.minify-aliases && ' (minified aliases)' || '' }}
+        postgres-version: [oldest, latest]
+        minify-aliases: [true, false]
+        native: [true, false]
+    name: postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
-      DIALECT: ${{ matrix.dialect == 'postgres' && matrix.native && 'postgres-native' || matrix.dialect }}
-      SEQ_PG_MINIFY_ALIASES: ${{ matrix.dialect == 'postgres' && matrix.minify-aliases && '1' || '' }}
+      DIALECT: ${{ matrix.native && 'postgres-native' || 'postgres' }}
+      SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -184,11 +176,37 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install pg-native (Node 14)
         run: yarn add pg-native --ignore-engines
-        if: matrix.dialect == 'postgres' && matrix.native && matrix.node-version == 14
+        if: matrix.native && matrix.node-version == 14
       # This step uses npm instead of yarn to minimize the time needed. See #14171
       - name: Install pg-native (Node 18)
         run: npm install --no-save --no-audit pg-native
-        if: matrix.dialect == 'postgres' && matrix.native && matrix.node-version == 18
+        if: matrix.native && matrix.node-version == 18
+      - run: yarn start-postgres-${{ matrix.postgres-version }}
+      - name: Integration Tests
+        run: yarn test-integration
+  test-oldest-latest:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [14, 18]
+        database-version: [oldest, latest]
+        dialect: [mysql, mariadb, mssql, db2]
+    name: ${{ matrix.dialect }} ${{ matrix.database-version }} (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    needs: [ unit-test, test-typings ]
+    env:
+      DIALECT: ${{ matrix.dialect }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+      - uses: actions/download-artifact@v3
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - name: Extract artifact
+        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - run: yarn start-${{ matrix.dialect }}-${{ matrix.database-version }}
       - name: Integration Tests
         run: yarn test-integration
@@ -199,6 +217,7 @@ jobs:
       [
         docs,
         test-sqlite,
+        test-postgres
         test-oldest-latest
       ]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v7')
