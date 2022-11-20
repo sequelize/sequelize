@@ -13,7 +13,7 @@ import {
 
 const _ = require('lodash');
 const Utils = require('../../utils');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const util = require('util');
 const { Op } = require('../../operators');
 
@@ -51,7 +51,7 @@ const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
-export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
+export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
@@ -200,15 +200,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
       ';',
     ]);
-  }
-
-  // TODO: remove schema, schemaDelimiter options
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    tableName = this.extractTableDetails(tableName);
-    tableName.schema = schema || tableName.schema;
-    tableName.delimiter = schemaDelimiter || tableName.delimiter;
-
-    return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
   showTablesQuery(database, options) {
@@ -432,11 +423,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       table,
       whereClause,
     ]);
-  }
-
-  showIndexesQuery() {
-    // TODO: check if this is the correct implementation
-    return 'SELECT \'\' FROM DUAL';
   }
 
   showConstraintsQuery(table, constraintName) {

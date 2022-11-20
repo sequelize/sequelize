@@ -8,13 +8,13 @@ import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_O
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
-const { MySqlQueryGenerator } = require('../mysql/query-generator');
+const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
-export class SqliteQueryGenerator extends MySqlQueryGenerator {
+export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   createSchemaQuery() {
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
@@ -365,10 +365,6 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     return result;
   }
 
-  showIndexesQuery(tableName) {
-    return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
-  }
-
   showConstraintsQuery(tableName, constraintName) {
     let sql = `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}'`;
 
@@ -387,14 +383,6 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     }
 
     return `DROP INDEX IF EXISTS ${this.quoteIdentifier(indexName)}`;
-  }
-
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    tableName = this.extractTableDetails(tableName);
-    tableName.schema = schema || tableName.schema;
-    tableName.delimiter = schemaDelimiter || tableName.delimiter;
-
-    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)});`;
   }
 
   describeCreateTableQuery(tableName) {
