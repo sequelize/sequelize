@@ -179,7 +179,7 @@ if (dialect.startsWith('mssql')) {
       });
 
       expect(spy).to.have.been.called;
-      const log = spy.args.find(arg => arg[0].includes('IF OBJECT_ID(\'[a].[Toys]\', \'U\') IS NULL CREATE TABLE'))[0];
+      const log = spy.args.find(arg => arg[0].includes(`IF OBJECT_ID(N'[a].[Toys]', 'U') IS NULL CREATE TABLE`))[0];
 
       expect(log.match(/ON DELETE CASCADE/g).length).to.equal(2);
     });

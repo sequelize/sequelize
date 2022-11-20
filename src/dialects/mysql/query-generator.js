@@ -10,7 +10,7 @@ import {
 
 const _ = require('lodash');
 const Utils = require('../../utils');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const util = require('util');
 const { Op } = require('../../operators');
 
@@ -36,7 +36,7 @@ const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
-export class MySqlQueryGenerator extends AbstractQueryGenerator {
+export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
@@ -164,18 +164,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
       ';',
     ]);
-  }
-
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = this.quoteTable(
-      this.addSchema({
-        tableName,
-        _schema: schema,
-        _schemaDelimiter: schemaDelimiter,
-      }),
-    );
-
-    return `SHOW FULL COLUMNS FROM ${table};`;
   }
 
   showTablesQuery(schemaName) {
@@ -366,12 +354,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     return query;
   }
 
-  showIndexesQuery(tableName) {
-    return Utils.joinSQLFragments([
-      `SHOW INDEX FROM ${this.quoteTable(tableName)}`,
-    ]);
-  }
-
   showConstraintsQuery(table, constraintName) {
     const tableName = table.tableName || table;
     const schemaName = table.schema;
@@ -453,10 +435,9 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
 
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
-        const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
+        const fkName = this.quoteIdentifier(`${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`);
 
-        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
+        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
       }
 
       template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
@@ -629,18 +610,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
   }
 
   /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '`'), '`');
-  }
-
-  /**
    * Generates an SQL query that extract JSON property of given path.
    *
    * @param   {string}               column  The JSON column
@@ -673,7 +642,10 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
   }
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }

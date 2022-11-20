@@ -1,5 +1,6 @@
 'use strict';
 
+import { quoteIdentifier } from '../../utils';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
@@ -7,13 +8,13 @@ import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_O
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
-const { MySqlQueryGenerator } = require('../mysql/query-generator');
+const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
-export class SqliteQueryGenerator extends MySqlQueryGenerator {
+export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   createSchemaQuery() {
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
@@ -364,10 +365,6 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     return result;
   }
 
-  showIndexesQuery(tableName) {
-    return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
-  }
-
   showConstraintsQuery(tableName, constraintName) {
     let sql = `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}'`;
 
@@ -386,16 +383,6 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     }
 
     return `DROP INDEX IF EXISTS ${this.quoteIdentifier(indexName)}`;
-  }
-
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = {
-      _schema: schema,
-      _schemaDelimiter: schemaDelimiter,
-      tableName,
-    };
-
-    return `PRAGMA TABLE_INFO(${this.quoteTable(this.addSchema(table))});`;
   }
 
   describeCreateTableQuery(tableName) {
@@ -525,11 +512,11 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
    * @private
    */
   getForeignKeysQuery(tableName) {
-    return `PRAGMA foreign_key_list(${this.quoteTable(this.addSchema(tableName))})`;
+    return `PRAGMA foreign_key_list(${this.quoteTable(tableName)})`;
   }
 
   tableExistsQuery(tableName) {
-    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.addSchema(tableName))};`;
+    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.extractTableDetails(tableName).tableName)};`;
   }
 
   /**
@@ -539,18 +526,6 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
    */
   foreignKeyCheckQuery(tableName) {
     return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
-  }
-
-  /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '`'), '`');
   }
 
   /**

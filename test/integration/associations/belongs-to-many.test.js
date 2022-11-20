@@ -5,7 +5,8 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
-const _ = require('lodash');
+const omit = require('lodash/omit');
+const assert = require('node:assert');
 const sinon = require('sinon');
 const { resetSequelizeInstance } = require('../../support');
 
@@ -53,7 +54,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [article, label, t] = await Promise.all([
           Article.create({ title: 'foo' }),
           Label.create({ text: 'bar' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await article.setLabels([label], { transaction: t });
@@ -1281,7 +1282,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [article, label, t] = await Promise.all([
           Article.create({ title: 'foo' }),
           Label.create({ text: 'bar' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await article.setLabels([label], { transaction: t });
@@ -1880,7 +1881,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         const [task, t] = await Promise.all([
           Task.create({ title: 'task' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await task.createUser({ username: 'foo' }, { transaction: t });
@@ -1980,7 +1981,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [user, task, t] = await Promise.all([
           User.create({ username: 'foo' }),
           Task.create({ title: 'task' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await task.addUser(user, { transaction: t });
@@ -2007,7 +2008,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [user, task, t] = await Promise.all([
           User.create({ username: 'foo' }),
           Task.create({ title: 'task' }),
-          sequelize.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED }),
+          sequelize.startUnmanagedTransaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED }),
         ]);
 
         await task.addUser(user, { through: { status: 'pending' } }); // Create without transaction, so the old value is
@@ -3373,7 +3374,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           through: 'UserProjects',
         });
         expect(UserProjects.through.model.rawAttributes.user_id).to.be.ok;
-        expect(UserProjects.through.model.rawAttributes.user_id.references.model).to.equal(User.getTableName());
+        const targetTable = UserProjects.through.model.rawAttributes.user_id.references.model;
+        assert(typeof targetTable === 'object');
+
+        expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
         expect(UserProjects.through.model.rawAttributes.user_id.references.key).to.equal('uid');
         expect(UserProjects.through.model.rawAttributes.user_id.defaultValue).to.equal(42);
       });

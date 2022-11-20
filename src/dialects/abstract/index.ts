@@ -128,6 +128,7 @@ export type DialectSupports = {
     functionBased: boolean,
     operator: boolean,
     where: boolean,
+    include: boolean,
   },
   groupedLimit: boolean,
   indexViaAlter: boolean,
@@ -287,6 +288,7 @@ export abstract class AbstractDialect {
       functionBased: false,
       operator: false,
       where: false,
+      include: false,
     },
     groupedLimit: true,
     indexViaAlter: false,
@@ -510,6 +512,8 @@ export abstract class AbstractDialect {
   getParserForDatabaseDataType(databaseDataType: unknown): TypeParser | undefined {
     return this.#dataTypeParsers.get(databaseDataType);
   }
+
+  abstract getDefaultSchema(): string;
 
   static getDefaultPort(): number {
     throw new Error(`getDefaultPort not implemented in ${this.name}`);

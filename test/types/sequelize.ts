@@ -1,12 +1,5 @@
-import type { Config, ConnectionOptions, ModelStatic, Utils } from '@sequelize/core';
+import type { ConnectionOptions, ModelStatic, Utils } from '@sequelize/core';
 import { Sequelize, Model, QueryTypes, Op } from '@sequelize/core';
-
-Sequelize.useCLS({
-  get(key: string): unknown {
-    return null;
-  },
-  set(key: string, value: unknown) {},
-});
 
 export const sequelize = new Sequelize({
   hooks: {

@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         await User.sync({ force: true });
         const user = await User.create({ number: 1 });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await user.increment('number', { by: 2, transaction: t });
         const users1 = await User.findAll();
         const users2 = await User.findAll({ transaction: t });

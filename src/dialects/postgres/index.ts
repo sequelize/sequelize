@@ -32,6 +32,7 @@ export class PostgresDialect extends AbstractDialect {
       where: true,
       functionBased: true,
       operator: true,
+      include: true,
     },
     inserts: {
       onConflictDoNothing: ' ON CONFLICT DO NOTHING',
@@ -78,7 +79,7 @@ export class PostgresDialect extends AbstractDialect {
   readonly dataTypesDocumentationUrl = 'https://www.postgresql.org/docs/current/datatype.html';
 
   // minimum supported version
-  readonly defaultVersion = '9.5.0';
+  readonly defaultVersion = '11.0.0';
   readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
@@ -125,6 +126,10 @@ export class PostgresDialect extends AbstractDialect {
     // - the string is prefixed with E (out of scope for this method)
 
     return !this.sequelize.options.standardConformingStrings;
+  }
+
+  getDefaultSchema() {
+    return 'public';
   }
 
   static getDefaultPort() {

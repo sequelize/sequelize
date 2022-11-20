@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'foo' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await user.update({ username: 'bar' }, { transaction: t });
         const users1 = await User.findAll();
         const users2 = await User.findAll({ transaction: t });

@@ -1,5 +1,6 @@
 'use strict';
 
+import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
 
@@ -204,6 +205,7 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
+  // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
     let sql = '';
 
@@ -233,16 +235,16 @@ export class QueryInterface {
       !tableName.schema
       && (options.schema || Boolean(model) && model._schema)
     ) {
-      tableName = this.queryGenerator.addSchema({
-        tableName,
-        _schema: Boolean(model) && model._schema || options.schema,
-      });
+      tableName = this.queryGenerator.extractTableDetails(tableName);
+      tableName.schema = model?._schema || options.schema;
     }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
+      // schema override for multi-tenancy
+      schema: options.schema,
     });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
@@ -388,28 +390,41 @@ export class QueryInterface {
    * }
    * ```
    *
-   * @param {string} tableName table name
+   * @param {TableName} tableName
    * @param {object} [options] Query options
    *
    * @returns {Promise<object>}
    */
+  // TODO: allow TableNameOrModel for tableName
   async describeTable(tableName, options) {
-    let schema = null;
-    let schemaDelimiter = null;
+    let table = {};
 
-    if (typeof options === 'string') {
-      schema = options;
-    } else if (typeof options === 'object' && options !== null) {
-      schema = options.schema || null;
-      schemaDelimiter = options.schemaDelimiter || null;
+    if (typeof tableName === 'string') {
+      table.tableName = tableName;
     }
 
     if (typeof tableName === 'object' && tableName !== null) {
-      schema = tableName.schema;
-      tableName = tableName.tableName;
+      table = tableName;
     }
 
-    const sql = this.queryGenerator.describeTableQuery(tableName, schema, schemaDelimiter);
+    if (typeof options === 'string') {
+      noSchemaParameter();
+      table.schema = options;
+    }
+
+    if (typeof options === 'object' && options !== null) {
+      if (options.schema) {
+        noSchemaParameter();
+        table.schema = options.schema;
+      }
+
+      if (options.schemaDelimiter) {
+        noSchemaDelimiterParameter();
+        table.delimiter = options.schemaDelimiter;
+      }
+    }
+
+    const sql = this.queryGenerator.describeTableQuery(table);
     options = { ...options, type: QueryTypes.DESCRIBE };
 
     try {
@@ -420,13 +435,13 @@ export class QueryInterface {
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
       if (_.isEmpty(data)) {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       return data;
     } catch (error) {
       if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       throw error;
@@ -637,8 +652,8 @@ export class QueryInterface {
   /**
    * Show indexes on a table
    *
-   * @param {string} tableName table name
-   * @param {object} [options]   Query options
+   * @param {TableNameOrModel} tableName
+   * @param {object}    [options] Query options
    *
    * @returns {Promise<Array>}
    * @private

@@ -1,6 +1,7 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -12,7 +13,7 @@ import {
 
 const _ = require('lodash');
 const Utils = require('../../utils');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const util = require('util');
 const { Op } = require('../../operators');
 
@@ -50,7 +51,7 @@ const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
-export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
+export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
@@ -199,18 +200,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
       ';',
     ]);
-  }
-
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = this.quoteTable(
-      this.addSchema({
-        tableName,
-        _schema: schema,
-        _schemaDelimiter: schemaDelimiter,
-      }),
-    );
-
-    return `SHOW FULL COLUMNS FROM ${table};`;
   }
 
   showTablesQuery(database, options) {
@@ -434,11 +423,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       table,
       whereClause,
     ]);
-  }
-
-  showIndexesQuery() {
-    // TODO: check if this is the correct implementation
-    return 'SELECT \'\' FROM DUAL';
   }
 
   showConstraintsQuery(table, constraintName) {
@@ -741,28 +725,31 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   quoteIdentifier(identifier, force) {
     const optForceQuote = force || false;
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
-    const rawIdentifier = Utils.removeTicks(identifier, '"');
 
     if (
       optForceQuote === true
+      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers.
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')
-      || SNOWFLAKE_RESERVED_WORDS.includes(rawIdentifier.toLowerCase())
+      || SNOWFLAKE_RESERVED_WORDS.includes(identifier.toLowerCase())
     ) {
       // In Snowflake if tables or attributes are created double-quoted,
       // they are also case sensitive. If they contain any uppercase
       // characters, they must always be double-quoted. This makes it
       // impossible to write queries in portable SQL if tables are created in
       // this way. Hence, we strip quotes if we don't want case sensitivity.
-      return Utils.addTicks(rawIdentifier, '"');
+      return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
     }
 
-    return rawIdentifier;
+    return identifier;
   }
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }

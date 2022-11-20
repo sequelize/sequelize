@@ -9,11 +9,11 @@ import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
+import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
 
 const _ = require('lodash');
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
 const randomBytes = require('crypto').randomBytes;
 const { Op } = require('../../operators');
 
@@ -26,7 +26,7 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-export class Db2QueryGenerator extends AbstractQueryGenerator {
+export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
@@ -105,7 +105,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
           if (commentMatch && commentMatch.length > 2) {
             const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
             commentStr += _.template(commentTemplate, this._templateSettings)({
-              table: this.quoteIdentifier(tableName),
+              table: this.quoteTable(tableName),
               comment: this.escape(commentText, undefined, { replacements: options.replacements }),
               column: this.quoteIdentifier(attr),
             });
@@ -178,31 +178,6 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     }
 
     return `${_.template(query, this._templateSettings)(values).trim()};${commentStr}`;
-  }
-
-  describeTableQuery(tableName, schema) {
-    if (typeof tableName === 'object') {
-      schema = tableName.schema || schema;
-      tableName = tableName.tableName;
-    }
-
-    let sql = [
-      'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",',
-      'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",',
-      'NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",',
-      'IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"',
-      'FROM',
-      'SYSIBM.SYSCOLUMNS',
-      'WHERE TBNAME =', wrapSingleQuote(tableName),
-    ].join(' ');
-
-    if (schema) {
-      sql += ` AND TBCREATOR =${wrapSingleQuote(schema)}`;
-    } else {
-      sql += ' AND TBCREATOR = USER';
-    }
-
-    return `${sql};`;
   }
 
   renameTableQuery(before, after) {
@@ -604,24 +579,12 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     return query.trim();
   }
 
-  showIndexesQuery(tableName) {
-    let sql = 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = <%= tableName %>';
-    let schema;
-    if (_.isObject(tableName)) {
-      schema = tableName.schema;
-      tableName = tableName.tableName;
+  addIndexQuery(tableName, attributes, options, rawTablename) {
+    if ('include' in attributes && !attributes.unique) {
+      throw new Error('DB2 does not support non-unique indexes with INCLUDE syntax.');
     }
 
-    if (schema) {
-      sql = `${sql} AND TBCREATOR = <%= schemaName %>`;
-    }
-
-    sql = `${sql} ORDER BY NAME;`;
-
-    return _.template(sql, this._templateSettings)({
-      tableName: wrapSingleQuote(tableName),
-      schemaName: wrapSingleQuote(schema),
-    });
+    return super.addIndexQuery(tableName, attributes, options, rawTablename);
   }
 
   showConstraintsQuery(tableName, constraintName) {
@@ -961,22 +924,12 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     return uniqno;
   }
-
-  /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} _force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, _force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '"'), '"');
-  }
-
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   if (identifier) {
     return `'${identifier}'`;

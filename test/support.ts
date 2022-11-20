@@ -163,6 +163,8 @@ export function createSequelizeInstance(options: Options = {}): Sequelize {
     pool: config.pool,
     dialectOptions: options.dialectOptions || config.dialectOptions || {},
     minifyAliases: options.minifyAliases || config.minifyAliases,
+    // the test suite was written before ALS was turned on by default.
+    disableAlsTransactions: true,
   });
 
   if (process.env.DIALECT === 'postgres-native') {
@@ -205,9 +207,7 @@ export async function clearDatabase(sequelize: Sequelize) {
 }
 
 export async function dropTestSchemas(sequelize: Sequelize) {
-  const queryInterface = sequelize.getQueryInterface();
-
-  if (!queryInterface.queryGenerator.dialect.supports.schemas) {
+  if (!sequelize.dialect.supports.schemas) {
     await sequelize.drop({});
 
     return;
