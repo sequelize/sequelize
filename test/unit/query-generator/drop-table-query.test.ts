@@ -2,6 +2,7 @@ import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use
 import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
+const dialect = sequelize.dialect;
 
 describe('QueryGenerator#dropTableQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -28,8 +29,14 @@ describe('QueryGenerator#dropTableQuery', () => {
     });
   });
 
-  // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
-  it.skip('produces a DROP TABLE query from a table and globally set schema', () => {
+  it('produces a DROP TABLE query with default schema', () => {
+    expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }), {
+      default: `DROP TABLE IF EXISTS [myTable];`,
+      mssql: `IF OBJECT_ID('[myTable]', 'U') IS NOT NULL DROP TABLE [myTable];`,
+    });
+  });
+
+  it('produces a DROP TABLE query from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
     const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
 

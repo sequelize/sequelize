@@ -100,15 +100,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
-  // TODO: remove schema, schemaDelimiter
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    tableName = this.extractTableDetails(tableName);
-    tableName.schema = schema || tableName.schema;
-    tableName.delimiter = schemaDelimiter || tableName.delimiter;
-
-    return `DESCRIBE ${this.quoteTable(tableName)};`;
-  }
-
   dropTableQuery(tableName, options) {
     const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
