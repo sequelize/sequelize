@@ -5,11 +5,6 @@ on:
       - v7
   pull_request:
 
-env:
-  SEQ_DB: sequelize_test
-  SEQ_USER: sequelize_test
-  SEQ_PW: sequelize_test
-
 # This configuration cancels previous runs if a new run is started on the same PR. Only one run at a time per PR.
 # This does not affect pushes to the v7 branch itself, only PRs.
 # from https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-a-fallback-value
