@@ -217,10 +217,10 @@ jobs:
       [
         docs,
         test-sqlite,
-        test-postgres
+        test-postgres,
         test-oldest-latest
       ]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v7')
+    if: github.event_name == 'push'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
