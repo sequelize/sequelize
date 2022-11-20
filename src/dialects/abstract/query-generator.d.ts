@@ -1,5 +1,73 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
+/** Incomplete list of QueryGenerator functions that are not typed yet:
+ * attributesToSQL
+ * format
+ * whereItemQuery
+ * createTableQuery
+ * removeIndexQuery
+ * getForeignKeyQuery
+ * selectFromTableFragment
+ * upsertQuery
+ * getDefaultConstraintQuery
+ * dropConstraintQuery
+ * getPrimaryKeyConstraintQuery
+ * versionQuery
+ * renameTableQuery
+ * showTablesQuery
+ * getForeignKeysQuery
+ * dropForeignKeyQuery
+ * changeColumnQuery
+ * tableExistsQuery
+ * renameColumnQuery
+ * addIndexQuery
+ * addConstraintQuery
+ * getConstraintSnippet
+ * removeConstraintQuery
+ * quote
+ * _initQuoteIdentifier
+ * quoteAttribute
+ * isIdentifierQuoted
+ * aliasGrouping
+ * escapeAttributes
+ * generateInclude
+ * _getMinifiedAlias
+ * _getAliasForField
+ * _getAliasForFieldFromQueryOptions
+ * generateJoin
+ * generateReturnValues
+ * generateThroughJoin
+ * _generateSubQueryFilter
+ * _getRequiredClosure
+ * getQueryOrders
+ * _throwOnEmptyAttributes
+ * addLimitAndOffset
+ * _findField
+ * _whereGroupBind
+ * _whereBind
+ * _whereJSON
+ * _traverseJSON
+ * _toJSONValue
+ * _castKey
+ * _getJsonCast
+ * _joinKeyValue
+ * _getSafeKey
+ * _prefixKey
+ * _whereParseSingleValueObject
+ * getWhereConditions
+ * parseConditionObject
+ * booleanValue
+ * getForeignKeyReferenceQuery (postgres only)
+ * fromArray (postgres only)
+ * foreignKeyCheckQuery (sqlite only)
+ * setOperatorsAliases (in query-generator/operators.js)
+ * _replaceAliases (in query-generator/operators.js)
+ * setIsolationLevelQuery (in query-generator/transaction.js)
+ * startTransactionQuery (in query-generator/transaction.js)
+ * commitTransactionQuery (in query-generator/transaction.js)
+ * rollbackTransactionQuery (in query-generator/transaction.js)
+ */
+
 import type {
   BuiltModelAttributeColumnOptions,
   FindOptions,
@@ -113,9 +181,11 @@ export interface RemoveColumnQueryOptions {
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   constructor(options: QueryGeneratorOptions);
 
-  setImmediateQuery(constraints: string[]): string;
-  setDeferredQuery(constraints: string[]): string;
+  // These functions are in query-generator/transaction.js
   generateTransactionId(): string;
+  setDeferredQuery(constraints: string[]): string;
+  setImmediateQuery(constraints: string[]): string;
+
   whereQuery(where: object, options?: ParameterOptions): string;
   whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
   validate(value: unknown, field?: BuiltModelAttributeColumnOptions): void;
