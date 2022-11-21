@@ -12,7 +12,7 @@ import type {
   BuiltModelAttributeColumnOptions,
 } from '../../model';
 import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
-import type { Transaction } from '../../transaction';
+import type { ISOLATION_LEVELS, Transaction } from '../../transaction';
 import type { Fn, Literal } from '../../utils';
 import type { SetRequired } from '../../utils/set-required';
 import type { DataType } from './data-types.js';
@@ -666,7 +666,7 @@ export class QueryInterface {
   /**
    * Set the isolation level of a transaction
    */
-  setIsolationLevel(transaction: Transaction, value: string, options?: QueryRawOptions): Promise<void>;
+  setIsolationLevel(transaction: Transaction, value: ISOLATION_LEVELS, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Begin a new transaction
