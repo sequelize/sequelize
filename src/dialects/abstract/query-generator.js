@@ -1880,7 +1880,7 @@ export class AbstractQueryGenerator {
       }
     }
 
-    if (this.options.minifyAliases && asRight.length > 63) {
+    if (this.options.minifyAliases && asRight.length > this.dialect.MAX_ALIAS_LENGTH) {
       const alias = `%${topLevelInfo.options.includeAliases.size}`;
 
       topLevelInfo.options.includeAliases.set(alias, asRight);
