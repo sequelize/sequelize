@@ -79,6 +79,13 @@ export class PostgresDialect extends AbstractDialect {
   readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
+  /**
+   * Max length allowed by Postgres for aliases is 63
+   * Max allowed is 64 - 1 byte of type which boils down to 63
+   *
+   * @see https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
+   */
+  readonly MAX_ALIAS_LENGTH = 63;
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'postgres');

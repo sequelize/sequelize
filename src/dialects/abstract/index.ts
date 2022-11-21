@@ -347,6 +347,7 @@ export abstract class AbstractDialect {
   abstract readonly queryGenerator: AbstractQueryGenerator;
   abstract readonly connectionManager: AbstractConnectionManager<any>;
   abstract readonly dataTypesDocumentationUrl: string;
+  abstract readonly MAX_ALIAS_LENGTH: number;
 
   readonly name: Dialect;
   readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;

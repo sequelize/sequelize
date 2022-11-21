@@ -52,6 +52,12 @@ export class SqliteDialect extends AbstractDialect {
   readonly queryGenerator: SqliteQueryGenerator;
   readonly queryInterface: SqliteQueryInterface;
   readonly dataTypesDocumentationUrl = 'https://www.sqlite.org/datatype3.html';
+  /**
+   * There is no documentation for limits on SQLite.
+   *
+   * @see https://www.sqlite.org/limits.html#:~:text=The%20current%20implementation%20will%20only,231%2D1%20or%202147483647.
+   */
+  readonly MAX_ALIAS_LENGTH = 2_147_483_647;
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'sqlite');

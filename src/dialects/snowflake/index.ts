@@ -52,6 +52,12 @@ export class SnowflakeDialect extends AbstractDialect {
   readonly connectionManager: SnowflakeConnectionManager;
   readonly queryGenerator: SnowflakeQueryGenerator;
   readonly queryInterface: SnowflakeQueryInterface;
+  /**
+   * Maximum identifier length for snowflake is 255.
+   *
+   * @see https://docs.snowflake.com/en/sql-reference/identifiers.html#:~:text=An%20identifier%20is%20a%20string,queries%20and%20DDL%2FDML%20statements.
+   */
+  readonly MAX_ALIAS_LENGTH = 255;
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'snowflake');

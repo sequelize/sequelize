@@ -44,6 +44,12 @@ export class IBMiDialect extends AbstractDialect {
   readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
+  /**
+   * IBMI can take most object names upto 128 characters
+   *
+   * @see https://www.ibm.com/docs/en/informix-servers/12.10?topic=SSGU8G_12.1.0/com.ibm.dbdk.doc/ids_dbdk_078.html
+   */
+  readonly MAX_ALIAS_LENGTH = 128;
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'ibmi');
