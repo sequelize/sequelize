@@ -482,7 +482,12 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       return `SAVEPOINT ${this.quoteIdentifier(transaction.name)};`;
     }
 
-    return `BEGIN ${transaction.options.type} TRANSACTION;`;
+    if (transaction.options?.type) {
+      return `BEGIN ${transaction.options.type} TRANSACTION;`;
+    }
+
+    // This will start a DEFERRED transaction
+    return `BEGIN TRANSACTION;`;
   }
 
   setIsolationLevelQuery(value) {

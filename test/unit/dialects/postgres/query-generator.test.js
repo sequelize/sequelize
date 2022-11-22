@@ -1030,42 +1030,6 @@ if (dialect.startsWith('postgres')) {
         },
       ],
 
-      startTransactionQuery: [
-        {
-          arguments: [{}],
-          expectation: 'START TRANSACTION;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
-          expectation: 'SAVEPOINT "transaction-uid";',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
-          expectation: 'SAVEPOINT "transaction-uid";',
-          context: { options: { quoteIdentifiers: true } },
-        },
-      ],
-
-      rollbackTransactionQuery: [
-        {
-          arguments: [{}],
-          expectation: 'ROLLBACK;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
-          expectation: 'ROLLBACK TO SAVEPOINT "transaction-uid";',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
-          expectation: 'ROLLBACK TO SAVEPOINT "transaction-uid";',
-          context: { options: { quoteIdentifiers: true } },
-        },
-      ],
-
       createTrigger: [
         {
           arguments: ['myTable', 'myTrigger', 'after', ['insert'],  'myFunction', [], []],

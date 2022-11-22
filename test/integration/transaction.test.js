@@ -34,14 +34,6 @@ if (current.dialect.supports.transactions) {
         const transaction = new Transaction(this.sequelize);
         expect(transaction.id).to.exist;
       });
-
-      it('should call dialect specific generateTransactionId method', function () {
-        const transaction = new Transaction(this.sequelize);
-        expect(transaction.id).to.exist;
-        if (dialect === 'mssql') {
-          expect(transaction.id).to.have.lengthOf(20);
-        }
-      });
     });
 
     describe('commit', () => {

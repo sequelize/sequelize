@@ -1,4 +1,4 @@
-import { Transaction } from '@sequelize/core';
+import { ISOLATION_LEVELS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/transaction.js';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { beforeAll2, getTestDialect, sequelize } from '../support';
@@ -79,7 +79,7 @@ describe('Transaction', () => {
       ],
     };
 
-    await sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, async () => {
+    await sequelize.transaction({ isolationLevel: ISOLATION_LEVELS.READ_UNCOMMITTED }, async () => {
       expect(vars.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialectName] || expectations.all);
     });
   });
