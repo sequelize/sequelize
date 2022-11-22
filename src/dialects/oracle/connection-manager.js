@@ -35,7 +35,6 @@ export class OracleConnectionManager extends AbstractConnectionManager {
    *
    */
   extendLib() {
-    this.lib.maxRows = 1000;
     if (this.sequelize.config && 'dialectOptions' in this.sequelize.config) {
       const dialectOptions = this.sequelize.config.dialectOptions;
       if (dialectOptions && 'maxRows' in dialectOptions) {
