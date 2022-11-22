@@ -3,6 +3,14 @@ import type { QueryTypes } from '../../query-types';
 import type { Sequelize } from '../../sequelize';
 import type { Connection } from './connection-manager';
 
+/** Incomplete list of Query functions that are not typed yet:
+ * logWarnings
+ * formatError
+ * _parseDataArrayByType
+ * _parseDataByType
+ * _parseDatabaseValue
+ */
+
 export interface AbstractQueryGroupJoinDataOptions {
   checkExisting: boolean;
 }
