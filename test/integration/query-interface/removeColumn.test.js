@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               autoIncrement: true,
             },
             name: {
-              type: DataTypes.CHAR,
+              type: DataTypes.STRING,
               allowNull: false,
             },
           });
@@ -173,7 +173,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               autoIncrement: true,
             },
             name: {
-              type: DataTypes.CHAR,
+              type: DataTypes.STRING,
               allowNull: false,
             },
           });
@@ -213,95 +213,97 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
     });
 
-    describe('(with a schema)', () => {
-      beforeEach(async function () {
-        await this.sequelize.createSchema('archive');
+    if (Support.sequelize.dialect.supports.schemas) {
+      describe('(with a schema)', () => {
+        beforeEach(async function () {
+          await this.sequelize.createSchema('archive');
 
-        await this.queryInterface.createTable({
-          tableName: 'users',
-          schema: 'archive',
-        }, {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
-          },
-          firstName: {
-            type: DataTypes.STRING,
-            defaultValue: 'Someone',
-          },
-          lastName: {
-            type: DataTypes.STRING,
-          },
-          email: {
-            type: DataTypes.STRING,
-            unique: true,
-            allowNull: false,
-          },
-        });
-      });
-
-      it('[Flaky] should be able to remove a column with a default value', async function () {
-        await this.queryInterface.removeColumn({
-          tableName: 'users',
-          schema: 'archive',
-        }, 'firstName');
-
-        const table = await this.queryInterface.describeTable({
-          tableName: 'users',
-          schema: 'archive',
+          await this.queryInterface.createTable({
+            tableName: 'users',
+            schema: 'archive',
+          }, {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            firstName: {
+              type: DataTypes.STRING,
+              defaultValue: 'Someone',
+            },
+            lastName: {
+              type: DataTypes.STRING,
+            },
+            email: {
+              type: DataTypes.STRING,
+              unique: true,
+              allowNull: false,
+            },
+          });
         });
 
-        expect(table).to.not.have.property('firstName');
-      });
-
-      it('should be able to remove a column without default value', async function () {
-        await this.queryInterface.removeColumn({
-          tableName: 'users',
-          schema: 'archive',
-        }, 'lastName');
-
-        const table = await this.queryInterface.describeTable({
-          tableName: 'users',
-          schema: 'archive',
-        });
-
-        expect(table).to.not.have.property('lastName');
-      });
-
-      it('should be able to remove a column with primaryKey', async function () {
-        await this.queryInterface.removeColumn({
-          tableName: 'users',
-          schema: 'archive',
-        }, 'id');
-
-        const table = await this.queryInterface.describeTable({
-          tableName: 'users',
-          schema: 'archive',
-        });
-
-        expect(table).to.not.have.property('id');
-      });
-
-      // From MSSQL documentation on ALTER COLUMN:
-      //    The modified column cannot be any one of the following:
-      //      - Used in a CHECK or UNIQUE constraint.
-      // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql#arguments
-      if (dialect !== 'mssql') {
-        it('should be able to remove a column with unique contraint', async function () {
+        it('[Flaky] should be able to remove a column with a default value', async function () {
           await this.queryInterface.removeColumn({
             tableName: 'users',
             schema: 'archive',
-          }, 'email');
+          }, 'firstName');
 
           const table = await this.queryInterface.describeTable({
             tableName: 'users',
             schema: 'archive',
           });
 
-          expect(table).to.not.have.property('email');
+          expect(table).to.not.have.property('firstName');
         });
-      }
-    });
+
+        it('should be able to remove a column without default value', async function () {
+          await this.queryInterface.removeColumn({
+            tableName: 'users',
+            schema: 'archive',
+          }, 'lastName');
+
+          const table = await this.queryInterface.describeTable({
+            tableName: 'users',
+            schema: 'archive',
+          });
+
+          expect(table).to.not.have.property('lastName');
+        });
+
+        it('should be able to remove a column with primaryKey', async function () {
+          await this.queryInterface.removeColumn({
+            tableName: 'users',
+            schema: 'archive',
+          }, 'id');
+
+          const table = await this.queryInterface.describeTable({
+            tableName: 'users',
+            schema: 'archive',
+          });
+
+          expect(table).to.not.have.property('id');
+        });
+
+        // From MSSQL documentation on ALTER COLUMN:
+        //    The modified column cannot be any one of the following:
+        //      - Used in a CHECK or UNIQUE constraint.
+        // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql#arguments
+        if (dialect !== 'mssql') {
+          it('should be able to remove a column with unique contraint', async function () {
+            await this.queryInterface.removeColumn({
+              tableName: 'users',
+              schema: 'archive',
+            }, 'email');
+
+            const table = await this.queryInterface.describeTable({
+              tableName: 'users',
+              schema: 'archive',
+            });
+
+            expect(table).to.not.have.property('email');
+          });
+        }
+      });
+    }
   });
 });

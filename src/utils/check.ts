@@ -1,28 +1,60 @@
-import isEmpty from 'lodash/isEmpty';
-import isPlainObject from 'lodash/isPlainObject';
-import type { DataType } from '..';
-import { getOperators } from './format';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
+import pickBy from 'lodash/pickBy';
+import { BaseError } from '../errors/index.js';
 import { Where } from './sequelize-method';
 
-const DataTypes = require('../data-types');
-
-export function isPrimitive(val: any): val is string | number | boolean {
-  const type = typeof val;
-
-  return ['string', 'number', 'boolean'].includes(type);
+export function isNullish(val: unknown): val is null | undefined {
+  return val == null;
 }
 
-export function isNodeError(val: any): val is NodeJS.ErrnoException {
+export function isNodeError(val: unknown): val is NodeJS.ErrnoException {
   return val instanceof Error && 'code' in val;
 }
 
-export function isError(val: any): val is Error {
+/**
+ * Some dialects emit an Error with a string code, that are not ErrnoException.
+ * This serves as a more generic check for those cases.
+ *
+ * @param val The value to check
+ */
+export function isErrorWithStringCode(val: unknown): val is Error & { code: string } {
+  return val instanceof Error
+    // @ts-expect-error
+    && typeof val.code === 'string';
+}
+
+export function assertIsErrorWithStringCode(val: unknown): asserts val is Error & { code: string } {
+  if (!isErrorWithStringCode(val)) {
+    throw new Error('Expected Error with string "code" property');
+  }
+}
+
+export function isError(val: unknown): val is Error {
   return val instanceof Error;
 }
 
-export function isString(val: any): val is string {
+export function assertCaughtError(val: unknown): asserts val is Error {
+  if (!isError(val)) {
+    throw new BaseError('A non-error value was thrown', { cause: val });
+  }
+}
+
+export function isString(val: unknown): val is string {
   return typeof val === 'string';
+}
+
+/**
+ * Works like lodash's isPlainObject, but has better typings
+ *
+ * @param value The value to check
+ */
+export function isPlainObject(value: unknown): value is object {
+  if (value === null || typeof value !== 'object') {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+
+  return prototype === null || prototype === Object.prototype;
 }
 
 /**
@@ -50,35 +82,32 @@ export function canTreatArrayAsAnd(arr: unknown[]): arr is Array<object | Where>
 }
 
 /**
- * Determine if the default value provided exists and can be described
- * in a db schema using the DEFAULT directive.
+ * For use in per-dialect implementation of methods to warn the user when they use an option that TypeScript declares as valid,
+ * but that the dialect they use does not support.
  *
- * @param value Any default value.
- * @private
+ * @param methodName The name of the method that received the options
+ * @param dialectName The name of the dialect to which the implementation belongs
+ * @param allSupportableOptions All options that this method *can* support. The ones that are declared in TypeScript typings.
+ * @param supportedOptions The subset of options that this dialect *actually does* support.
+ * @param receivedOptions The user provided options that were passed to the method.
  */
-export function defaultValueSchemable(value: DataType): boolean {
-  if (value === undefined) {
-    return false;
-  }
+export function rejectInvalidOptions(
+  methodName: string,
+  dialectName: string,
+  allSupportableOptions: Set<string>,
+  supportedOptions: Set<string>,
+  receivedOptions: Record<string, unknown>,
+): void {
+  const receivedOptionNames = Object.keys(pickBy(receivedOptions));
+  const unsupportedOptions = receivedOptionNames.filter(optionName => {
+    return allSupportableOptions.has(optionName) && !supportedOptions.has(optionName);
+  });
 
-  // TODO this will be schemable when all supported db
-  //  have been normalized for this case
-  if (value instanceof DataTypes.NOW) {
-    return false;
+  if (unsupportedOptions.length > 0) {
+    throw buildInvalidOptionReceivedError(methodName, dialectName, unsupportedOptions);
   }
-
-  if (value instanceof DataTypes.UUIDV1 || value instanceof DataTypes.UUIDV4) {
-    return false;
-  }
-
-  return typeof value !== 'function';
 }
 
-/**
- * Returns true if a where clause is empty, even with Symbols
- *
- * @param obj
- */
-export function isWhereEmpty(obj: object): boolean {
-  return Boolean(obj) && isEmpty(obj) && getOperators(obj).length === 0;
+export function buildInvalidOptionReceivedError(methodName: string, dialectName: string, invalidOptions: string[]): Error {
+  return new Error(`The following options are not supported by ${methodName} in ${dialectName}: ${invalidOptions.join(', ')}`);
 }

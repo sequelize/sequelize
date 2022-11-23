@@ -1,17 +1,18 @@
 'use strict';
 
+import NodeUtil from 'node:util';
+import { AbstractDataType } from './data-types';
+
 const _ = require('lodash');
-const SqlString = require('../../sql-string');
 const { QueryTypes } = require('../../query-types');
 const Dot = require('dottie');
 const deprecations = require('../../utils/deprecations');
-const uuid = require('uuid').v4;
-const { safeStringifyJson } = require('../../utils');
+const crypto = require('crypto');
 
 export class AbstractQuery {
 
   constructor(connection, sequelize, options) {
-    this.uuid = uuid();
+    this.uuid = crypto.randomUUID();
     this.connection = connection;
     this.instance = options.instance;
     this.model = options.model;
@@ -31,6 +32,31 @@ export class AbstractQuery {
       // implementations.
       this.formatError = AbstractQuery.prototype.formatError;
     }
+  }
+
+  async logWarnings(results) {
+    const warningResults = await this.run('SHOW WARNINGS');
+    const warningMessage = `${this.sequelize.dialect.name} warnings (${this.connection.uuid || 'default'}): `;
+    const messages = [];
+    for (const _warningRow of warningResults) {
+      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
+        continue;
+      }
+
+      for (const _warningResult of _warningRow) {
+        if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
+          messages.push(_warningResult.Message);
+        } else {
+          for (const _objectKey of _warningResult.keys()) {
+            messages.push([_objectKey, _warningResult[_objectKey]].join(': '));
+          }
+        }
+      }
+    }
+
+    this.sequelize.log(warningMessage + messages.join('; '), this.options);
+
+    return results;
   }
 
   /**
@@ -224,7 +250,7 @@ export class AbstractQuery {
         checkExisting: this.options.hasMultiAssociation,
       });
 
-      result = this.model.bulkBuild(results, {
+      result = this.model.bulkBuild(this._parseDataArrayByType(results, this.model, this.options.includeMap), {
         isNewRecord: false,
         include: this.options.include,
         includeNames: this.options.includeNames,
@@ -232,12 +258,14 @@ export class AbstractQuery {
         includeValidated: true,
         attributes: this.options.originalAttributes || this.options.attributes,
         raw: true,
+        comesFromDatabase: true,
       });
     // Regular queries
     } else {
-      result = this.model.bulkBuild(results, {
+      result = this.model.bulkBuild(this._parseDataArrayByType(results, this.model, this.options.includeMap), {
         isNewRecord: false,
         raw: true,
+        comesFromDatabase: true,
         attributes: this.options.originalAttributes || this.options.attributes,
       });
     }
@@ -248,6 +276,56 @@ export class AbstractQuery {
     }
 
     return result;
+  }
+
+  /**
+   * Calls {@link AbstractDataType#parseDatabaseValue} on all attributes returned by the database, if a model is specified.
+   *
+   * This method mutates valueArrays.
+   *
+   * @param {Array} valueArrays The values to parse
+   * @param {Model} model The model these values belong to
+   * @param {object} includeMap The list of included associations
+   */
+  _parseDataArrayByType(valueArrays, model, includeMap) {
+    for (const values of valueArrays) {
+      this._parseDataByType(values, model, includeMap);
+    }
+
+    return valueArrays;
+  }
+
+  _parseDataByType(values, model, includeMap) {
+    for (const key of Object.keys(values)) {
+      // parse association values
+      // hasOwnProperty is very important here. An include could be called "toString"
+      if (includeMap && Object.hasOwnProperty.call(includeMap, key)) {
+        if (Array.isArray(values[key])) {
+          values[key] = this._parseDataArrayByType(values[key], includeMap[key].model, includeMap[key].includeMap);
+        } else {
+          values[key] = this._parseDataByType(values[key], includeMap[key].model, includeMap[key].includeMap);
+        }
+
+        continue;
+      }
+
+      const attribute = model?.rawAttributes[key];
+      values[key] = this._parseDatabaseValue(values[key], attribute?.type);
+    }
+
+    return values;
+  }
+
+  _parseDatabaseValue(value, attributeType) {
+    if (value == null) {
+      return value;
+    }
+
+    if (!attributeType || !(attributeType instanceof AbstractDataType)) {
+      return value;
+    }
+
+    return attributeType.parseDatabaseValue(value);
   }
 
   isShowOrDescribeQuery() {
@@ -279,25 +357,20 @@ export class AbstractQuery {
 
     if (logQueryParameters && parameters) {
       const delimiter = sql.endsWith(';') ? '' : ';';
-      let paramStr;
-      if (Array.isArray(parameters)) {
-        paramStr = parameters.map(p => safeStringifyJson(p)).join(', ');
-      } else {
-        paramStr = safeStringifyJson(parameters);
-      }
 
-      logParameter = `${delimiter} ${paramStr}`;
+      logParameter = `${delimiter} with parameters ${NodeUtil.inspect(parameters)}`;
     }
 
     const fmt = `(${connection.uuid || 'default'}): ${sql}${logParameter}`;
-    const msg = `Executing ${fmt}`;
+    const queryLabel = options.queryLabel ? `${options.queryLabel}\n` : '';
+    const msg = `${queryLabel}Executing ${fmt}`;
     debugContext(msg);
     if (!benchmark) {
-      this.sequelize.log(`Executing ${fmt}`, options);
+      this.sequelize.log(`${queryLabel}Executing ${fmt}`, options);
     }
 
     return () => {
-      const afterMsg = `Executed ${fmt}`;
+      const afterMsg = `${queryLabel}Executed ${fmt}`;
       debugContext(afterMsg);
       if (benchmark) {
         this.sequelize.log(afterMsg, Date.now() - startTime, options);

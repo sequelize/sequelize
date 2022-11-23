@@ -6,6 +6,8 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
+const omit = require('lodash/omit');
+const assert = require('node:assert');
 
 const current = Support.sequelize;
 const dialect = Support.getTestDialect();
@@ -70,7 +72,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         await sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
         const group = await Group.create({ name: 'bar' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
         const groups = await Group.findAll();
         const associatedUser = await groups[0].getUser();
@@ -103,62 +105,64 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       expect(user).to.be.null;
     });
 
-    it('supports schemas', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING }).schema('archive');
-      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING }).schema('archive');
+    if (current.dialect.supports.schemas) {
+      it('supports schemas', async function () {
+        const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING }).schema('archive');
+        const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING }).schema('archive');
 
-      Task.belongsTo(User);
+        Task.belongsTo(User);
 
-      await Support.dropTestSchemas(this.sequelize);
-      await this.sequelize.createSchema('archive');
-      await User.sync({ force: true });
-      await Task.sync({ force: true });
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.createSchema('archive');
+        await User.sync({ force: true });
+        await Task.sync({ force: true });
 
-      const [user0, task] = await Promise.all([
-        User.create({ username: 'foo', gender: 'male' }),
-        Task.create({ title: 'task', status: 'inactive' }),
-      ]);
+        const [user0, task] = await Promise.all([
+          User.create({ username: 'foo', gender: 'male' }),
+          Task.create({ title: 'task', status: 'inactive' }),
+        ]);
 
-      await task.setUserXYZ(user0);
-      const user = await task.getUserXYZ();
-      expect(user).to.be.ok;
-      await this.sequelize.dropSchema('archive');
-      const schemas = await this.sequelize.showAllSchemas();
-      if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
-        expect(schemas).to.not.have.property('archive');
-      }
-    });
+        await task.setUserXYZ(user0);
+        const user = await task.getUserXYZ();
+        expect(user).to.be.ok;
+        await this.sequelize.dropSchema('archive');
+        const schemas = await this.sequelize.showAllSchemas();
+        if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
+          expect(schemas).to.not.have.property('archive');
+        }
+      });
 
-    it('supports schemas when defining custom foreign key attribute #9029', async function () {
-      const User = this.sequelize.define('UserXYZ', {
-        uid: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-          allowNull: false,
-        },
-      }).schema('archive');
-      const Task = this.sequelize.define('TaskXYZ', {
-        user_id: {
-          type: DataTypes.INTEGER,
-          references: { model: User, key: 'uid' },
-        },
-      }).schema('archive');
+      it('supports schemas when defining custom foreign key attribute #9029', async function () {
+        const User = this.sequelize.define('UserXYZ', {
+          uid: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            allowNull: false,
+          },
+        }).schema('archive');
+        const Task = this.sequelize.define('TaskXYZ', {
+          user_id: {
+            type: DataTypes.INTEGER,
+            references: { model: User, key: 'uid' },
+          },
+        }).schema('archive');
 
-      Task.belongsTo(User, { foreignKey: 'user_id' });
+        Task.belongsTo(User, { foreignKey: 'user_id' });
 
-      await Support.dropTestSchemas(this.sequelize);
-      await this.sequelize.createSchema('archive');
-      await User.sync({ force: true });
-      await Task.sync({ force: true });
-      const user0 = await User.create({});
-      const task = await Task.create({});
-      await task.setUserXYZ(user0);
-      const user = await task.getUserXYZ();
-      expect(user).to.be.ok;
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.createSchema('archive');
+        await User.sync({ force: true });
+        await Task.sync({ force: true });
+        const user0 = await User.create({});
+        const task = await Task.create({});
+        await task.setUserXYZ(user0);
+        const user = await task.getUserXYZ();
+        expect(user).to.be.ok;
 
-      await this.sequelize.dropSchema('archive');
-    });
+        await this.sequelize.dropSchema('archive');
+      });
+    }
   });
 
   describe('setAssociation', () => {
@@ -174,7 +178,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         await sequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
         const group = await Group.create({ name: 'bar' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
         const groups = await Group.findAll();
         const associatedUser = await groups[0].getUser();
@@ -350,7 +354,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
         await sequelize.sync({ force: true });
         const group = await Group.create({ name: 'bar' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await group.createUser({ username: 'foo' }, { transaction: t });
         const user = await group.getUser();
         expect(user).to.be.null;
@@ -599,7 +603,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         // the `UPDATE` query generated by `save()` uses `id` in the
         // `WHERE` clause
 
-        const tableName = user.sequelize.getQueryInterface().queryGenerator.addSchema(user.constructor);
+        const tableName = User.getTableName();
 
         await expect(
           user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id }),
@@ -629,7 +633,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         // the `UPDATE` query generated by `save()` uses `id` in the
         // `WHERE` clause
 
-        const tableName = user.sequelize.getQueryInterface().queryGenerator.addSchema(user.constructor);
+        const tableName = User.getTableName();
         await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
         const tasks = await Task.findAll();
         expect(tasks).to.have.length(1);
@@ -783,7 +787,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const Tasks = {};
 
       for (const dataType of dataTypes) {
-        const tableName = `TaskXYZ_${dataType.key}`;
+        const tableName = `TaskXYZ_${dataType.getDataTypeId()}`;
         Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
         Tasks[dataType].belongsTo(User, { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
       }
@@ -808,7 +812,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
         expect(Task.rawAttributes.uid).to.be.ok;
         expect(Task.rawAttributes.uid.allowNull).to.be.false;
-        expect(Task.rawAttributes.uid.references.model).to.equal(User.getTableName());
+        const targetTable = Task.rawAttributes.uid.references.model;
+        assert(typeof targetTable === 'object');
+
+        expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
+
         expect(Task.rawAttributes.uid.references.key).to.equal('id');
       });
 
@@ -829,7 +837,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         Profile.belongsTo(User, { foreignKey: Profile.rawAttributes.user_id });
 
         expect(Profile.rawAttributes.user_id).to.be.ok;
-        expect(Profile.rawAttributes.user_id.references.model).to.equal(User.getTableName());
+        const targetTable = Profile.rawAttributes.user_id.references.model;
+        assert(typeof targetTable === 'object');
+
+        expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
         expect(Profile.rawAttributes.user_id.references.key).to.equal('uid');
         expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
       });

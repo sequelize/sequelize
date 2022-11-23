@@ -1,18 +1,30 @@
 'use strict';
 
+import { quoteIdentifier } from '../../utils';
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { rejectInvalidOptions } from '../../utils/check';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+
 const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
-const { MySqlQueryGenerator } = require('../mysql/query-generator');
+const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
-export class SqliteQueryGenerator extends MySqlQueryGenerator {
-  createSchema() {
-    return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+
+export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
+  createSchemaQuery() {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
-  showSchemasQuery() {
-    return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
+  dropSchemaQuery() {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
+  listSchemasQuery() {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
   versionQuery() {
@@ -195,7 +207,17 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     return AbstractQueryGenerator.prototype.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
-  addColumnQuery(table, key, dataType) {
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const attributes = {};
     attributes[key] = dataType;
     const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
@@ -293,7 +315,7 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
           sql += ' NOT NULL';
         }
 
-        if (Utils.defaultValueSchemable(dataType.defaultValue)) {
+        if (defaultValueSchemable(dataType.defaultValue)) {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
@@ -343,10 +365,6 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     return result;
   }
 
-  showIndexesQuery(tableName) {
-    return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
-  }
-
   showConstraintsQuery(tableName, constraintName) {
     let sql = `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}'`;
 
@@ -367,21 +385,20 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
     return `DROP INDEX IF EXISTS ${this.quoteIdentifier(indexName)}`;
   }
 
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = {
-      _schema: schema,
-      _schemaDelimiter: schemaDelimiter,
-      tableName,
-    };
-
-    return `PRAGMA TABLE_INFO(${this.quoteTable(this.addSchema(table))});`;
-  }
-
   describeCreateTableQuery(tableName) {
     return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
   }
 
-  removeColumnQuery(tableName, attributes) {
+  removeColumnQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
 
     attributes = this.attributesToSQL(attributes);
 
@@ -495,11 +512,11 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
    * @private
    */
   getForeignKeysQuery(tableName) {
-    return `PRAGMA foreign_key_list(${this.quoteTable(this.addSchema(tableName))})`;
+    return `PRAGMA foreign_key_list(${this.quoteTable(tableName)})`;
   }
 
   tableExistsQuery(tableName) {
-    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.addSchema(tableName))};`;
+    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.extractTableDetails(tableName).tableName)};`;
   }
 
   /**
@@ -512,27 +529,14 @@ export class SqliteQueryGenerator extends MySqlQueryGenerator {
   }
 
   /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '`'), '`');
-  }
-
-  /**
    * Generates an SQL query that extract JSON property of given path.
    *
    * @param   {string}               column  The JSON column
    * @param   {string|Array<string>} [path]  The path to extract (optional)
-   * @param   {boolean}              [isJson] The value is JSON use alt symbols (optional)
    * @returns {string}                       The generated sql query
    * @private
    */
-  jsonPathExtractionQuery(column, path, isJson) {
+  jsonPathExtractionQuery(column, path) {
     const quotedColumn = this.isIdentifierQuoted(column)
       ? column
       : this.quoteIdentifier(column);

@@ -70,7 +70,8 @@ function mapBindParametersAndReplacements(
       const remainingString = sqlString.slice(i, sqlString.length);
 
       const dollarStringStartMatch = remainingString.match(/^\$(?<name>[a-z_][0-9a-z_])?(\$)/i);
-      const tagName = dollarStringStartMatch?.groups?.name;
+      const tagName = dollarStringStartMatch?.groups?.name ?? '';
+
       if (currentDollarStringTagName === tagName) {
         currentDollarStringTagName = null;
       }
@@ -201,7 +202,7 @@ function mapBindParametersAndReplacements(
         throw new Error(`Named replacement ":${replacementName}" has no entry in the replacement map.`);
       }
 
-      const escapedReplacement = escapeSqlValue(replacementValue, undefined, dialect.name, true);
+      const escapedReplacement = escapeSqlValue(replacementValue, undefined, dialect, true);
 
       // add everything before the bind parameter name
       output += sqlString.slice(previousSliceEnd, i);
@@ -242,7 +243,7 @@ function mapBindParametersAndReplacements(
         throw new Error(`Positional replacement (?) ${replacementIndex} has no entry in the replacement map (replacements[${replacementIndex}] is undefined).`);
       }
 
-      const escapedReplacement = escapeSqlValue(replacementValue as any, undefined, dialect.name, true);
+      const escapedReplacement = escapeSqlValue(replacementValue, undefined, dialect, true);
 
       // add everything before the bind parameter name
       output += sqlString.slice(previousSliceEnd, i);

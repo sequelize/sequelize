@@ -5,6 +5,8 @@ npm-debug.log*
 *~
 test.sqlite
 *.sublime*
+package-lock.json
+pnpm-lock.yaml
 
 .nyc_output
 coverage-*

@@ -125,7 +125,7 @@ export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
  * @returns a flattened object
  * @private
  */
-export function flattenObjectDeep<T>(value: T): T extends object ? Flatten<T> : T {
+export function flattenObjectDeep<T extends {}>(value: T): T extends object ? Flatten<T> : T {
   if (!isPlainObject(value)) {
     // TypeScript doesn't know T is an object due to isPlainObject's typings. Cast to any.
     return value as any;
@@ -174,19 +174,17 @@ type Flatten<T extends object> = object extends T ? object : {
  * @private
  */
 export function defaults(
-  objectIn: { [key: string]: any }, // TODO [2022-09-01]: key should be string | symbol once we drop support for TS 4.4
-  ...sources: Array<{ [key: string]: any }> // TODO [2022-09-01]: key should be string | symbol once we drop support for TS 4.4
+  objectIn: { [key: PropertyKey]: any },
+  ...sources: Array<{ [key: PropertyKey]: any }>
 ): object {
   for (const source of sources) {
     if (!source) {
       continue;
     }
 
-    // TODO [2022-09-01]: note on 'as any[]': TypeScript < 4.4 does not support using Symbol for keys.
-    //  Cast can be removed in sept. 2022 when we drop support for < 4.4
-    for (const key of getComplexKeys(source) as any[]) {
+    for (const key of getComplexKeys(source)) {
       const value = objectIn[key];
-      const objectPrototype: { [key: string]: any } = Object.prototype; // TODO [2022-09-01]: key should be string | symbol once we drop support for TS 4.4
+      const objectPrototype: { [key: PropertyKey]: any } = Object.prototype;
 
       if (
         value === undefined
@@ -218,6 +216,6 @@ export function camelizeObjectKeys(obj: { [key: string]: any }) {
 
 type NoUndefinedField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
 
-export function removeUndefined<T>(val: T): NoUndefinedField<T> {
+export function removeUndefined<T extends {}>(val: T): NoUndefinedField<T> {
   return omitBy(val, isUndefined) as NoUndefinedField<T>;
 }

@@ -25,6 +25,7 @@ sequelize.transaction<void>(async transaction => {
     await sequelize.query('SELECT * FROM `user`', {
       retry: {
         max: 123,
+        report: (msg, options) => {},
       },
       model: User,
       transaction,

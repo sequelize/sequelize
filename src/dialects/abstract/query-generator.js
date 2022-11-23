@@ -1,11 +1,17 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils/check';
+import { getTextDataTypeForDialect } from '../../sql-string';
+import { isNullish } from '../../utils';
 import { isModelStatic } from '../../utils/model-utils';
 import { injectReplacements } from '../../utils/sql';
+import { AbstractDataType } from './data-types';
+import { attributeTypeToSql, validateDataType } from './data-types-utils';
+import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 
 const util = require('util');
 const _ = require('lodash');
-const uuidv4 = require('uuid').v4;
+const crypto = require('crypto');
 
 const Utils = require('../../utils');
 const deprecations = require('../../utils/deprecations');
@@ -22,79 +28,91 @@ const { IndexHints } = require('../../index-hints');
 const { _validateIncludedElements } = require('../../model-internals');
 
 /**
+ * List of possible options listed in {@link CreateDatabaseQueryOptions}.
+ * It is used to validate the options passed to {@link QueryGenerator#createDatabaseQuery},
+ * as not all of them are supported by all dialects.
+ */
+export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
+export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
+export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS = new Set(['skip']);
+export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['cascade']);
+export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
+export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
+
+/**
  * Abstract Query Generator
  *
  * @private
  */
-export class AbstractQueryGenerator {
+export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   constructor(options) {
-    if (!options.sequelize) {
-      throw new Error('QueryGenerator initialized without options.sequelize');
-    }
-
-    if (!options._dialect) {
-      throw new Error('QueryGenerator initialized without options._dialect');
-    }
-
-    this.sequelize = options.sequelize;
-    this.options = options.sequelize.options;
-
-    // dialect name
-    this.dialect = options._dialect.name;
-    this._dialect = options._dialect;
+    super(options);
 
     // wrap quoteIdentifier with common logic
     this._initQuoteIdentifier();
   }
 
-  extractTableDetails(tableName, options) {
-    options = options || {};
-    tableName = tableName || {};
-
-    return {
-      schema: tableName.schema || options.schema || this.options.schema || 'public',
-      tableName: _.isPlainObject(tableName) ? tableName.tableName : tableName,
-      delimiter: tableName.delimiter || options.delimiter || '.',
-    };
-  }
-
-  // TODO: always return an object, instead of sometimes an object, sometimes a string
-  addSchema(param) {
-    if (!param._schema) {
-      return param.tableName || param;
+  createDatabaseQuery() {
+    if (this.dialect.supports.multiDatabases) {
+      throw new Error(`${this.dialect.name} declares supporting databases but createDatabaseQuery is not implemented.`);
     }
 
-    const self = this;
-
-    return {
-      tableName: param.tableName || param,
-      table: param.tableName || param,
-      name: param.name || param,
-      schema: param._schema,
-      delimiter: param._schemaDelimiter || '.',
-      toString() {
-        return self.quoteTable(this);
-      },
-    };
+    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
   }
 
-  dropSchema(tableName, options) {
-    return this.dropTableQuery(tableName, options);
+  dropDatabaseQuery() {
+    if (this.dialect.supports.multiDatabases) {
+      throw new Error(`${this.dialect.name} declares supporting databases but dropDatabaseQuery is not implemented.`);
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
   }
 
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = this.quoteTable(
-      this.addSchema({
-        tableName,
-        _schema: schema,
-        _schemaDelimiter: schemaDelimiter,
-      }),
-    );
+  listDatabasesQuery() {
+    if (this.dialect.supports.multiDatabases) {
+      throw new Error(`${this.dialect.name} declares supporting databases but listDatabasesQuery is not implemented.`);
+    }
 
-    return `DESCRIBE ${table};`;
+    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
   }
 
-  dropTableQuery(tableName) {
+  createSchemaQuery() {
+    if (this.dialect.supports.schemas) {
+      throw new Error(`${this.dialect.name} declares supporting schema but createSchemaQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
+  dropSchemaQuery() {
+    if (this.dialect.supports.schemas) {
+      throw new Error(`${this.dialect.name} declares supporting schema but dropSchemaQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
+  listSchemasQuery() {
+    if (this.dialect.supports.schemas) {
+      throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
+  dropTableQuery(tableName, options) {
+    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
+
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)};`;
   }
 
@@ -140,13 +158,13 @@ export class AbstractQueryGenerator {
       });
     }
 
-    if (this._dialect.supports['DEFAULT VALUES']) {
+    if (this.dialect.supports['DEFAULT VALUES']) {
       emptyQuery += ' DEFAULT VALUES';
-    } else if (this._dialect.supports['VALUES ()']) {
+    } else if (this.dialect.supports['VALUES ()']) {
       emptyQuery += ' VALUES ()';
     }
 
-    if (this._dialect.supports.returnValues && options.returning) {
+    if (this.dialect.supports.returnValues && options.returning) {
       const returnValues = this.generateReturnValues(modelAttributes, options);
 
       returningModelAttributes.push(...returnValues.returnFields);
@@ -160,7 +178,7 @@ export class AbstractQueryGenerator {
       options.bindParam = false;
     }
 
-    if (this._dialect.supports.EXCEPTION && options.exception) {
+    if (this.dialect.supports.EXCEPTION && options.exception) {
       // Not currently supported with bind parameters (requires output of multiple queries)
       options.bindParam = false;
     }
@@ -173,9 +191,9 @@ export class AbstractQueryGenerator {
 
         // SERIALS' can't be NULL in postgresql, use DEFAULT where supported
         if (modelAttributeMap && modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true && value == null) {
-          if (!this._dialect.supports.autoIncrement.defaultValue) {
+          if (!this.dialect.supports.autoIncrement.defaultValue) {
             fields.splice(-1, 1);
-          } else if (this._dialect.supports.DEFAULT) {
+          } else if (this.dialect.supports.DEFAULT) {
             values[key] = 'DEFAULT';
           } else {
             values[key] = this.escape(null);
@@ -199,8 +217,8 @@ export class AbstractQueryGenerator {
     // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
     // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
     // upsert function.
-    if (this._dialect.supports.inserts.updateOnDuplicate && options.updateOnDuplicate) {
-      if (this._dialect.supports.inserts.updateOnDuplicate === ' ON CONFLICT DO UPDATE SET') { // postgres / sqlite
+    if (this.dialect.supports.inserts.updateOnDuplicate && options.updateOnDuplicate) {
+      if (this.dialect.supports.inserts.updateOnDuplicate === ' ON CONFLICT DO UPDATE SET') { // postgres / sqlite
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
@@ -224,13 +242,13 @@ export class AbstractQueryGenerator {
           throw new Error('No update values found for ON DUPLICATE KEY UPDATE clause, and no identifier fields could be found to use instead.');
         }
 
-        onDuplicateKeyUpdate += `${this._dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
+        onDuplicateKeyUpdate += `${this.dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
       }
     }
 
     const replacements = {
-      ignoreDuplicates: options.ignoreDuplicates ? this._dialect.supports.inserts.ignoreDuplicates : '',
-      onConflictDoNothing: options.ignoreDuplicates ? this._dialect.supports.inserts.onConflictDoNothing : '',
+      ignoreDuplicates: options.ignoreDuplicates ? this.dialect.supports.inserts.ignoreDuplicates : '',
+      onConflictDoNothing: options.ignoreDuplicates ? this.dialect.supports.inserts.onConflictDoNothing : '',
       attributes: fields.join(','),
       output: outputFragment,
       values: Object.values(values).join(','),
@@ -242,14 +260,14 @@ export class AbstractQueryGenerator {
 
     // Mostly for internal use, so we expect the user to know what he's doing!
     // pg_temp functions are private per connection, so we never risk this function interfering with another one.
-    if (this._dialect.supports.EXCEPTION && options.exception) {
+    if (this.dialect.supports.EXCEPTION && options.exception) {
       const dropFunction = 'DROP FUNCTION IF EXISTS pg_temp.testfunc()';
 
       if (returningModelAttributes.length === 0) {
         returningModelAttributes.push('*');
       }
 
-      const delimiter = `$func_${uuidv4().replace(/-/g, '')}$`;
+      const delimiter = `$func_${crypto.randomUUID().replace(/-/g, '')}$`;
       const selectQuery = `SELECT (testfunc.response).${returningModelAttributes.join(', (testfunc.response).')}, testfunc.sequelize_caught_exception FROM pg_temp.testfunc();`;
 
       options.exception = 'WHEN unique_violation THEN GET STACKED DIAGNOSTICS sequelize_caught_exception = PG_EXCEPTION_DETAIL;';
@@ -260,11 +278,11 @@ export class AbstractQueryGenerator {
     }
 
     query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}`.trim()};`;
-    if (this._dialect.supports.finalTable) {
+    if (this.dialect.supports.finalTable) {
       query = `SELECT * FROM FINAL TABLE (${replacements.attributes.length > 0 ? valueQuery : emptyQuery});`;
     }
 
-    if (identityWrapperRequired && this._dialect.supports.autoIncrement.identityInsert) {
+    if (identityWrapperRequired && this.dialect.supports.autoIncrement.identityInsert) {
       query = `SET IDENTITY_INSERT ${quotedTable} ON; ${query} SET IDENTITY_INSERT ${quotedTable} OFF;`;
     }
 
@@ -314,7 +332,7 @@ export class AbstractQueryGenerator {
     for (const fieldValueHash of fieldValueHashes) {
       const values = allAttributes.map(key => {
         if (
-          this._dialect.supports.bulkDefault
+          this.dialect.supports.bulkDefault
           && serials[key] === true
         ) {
           // fieldValueHashes[key] ?? 'DEFAULT'
@@ -330,24 +348,24 @@ export class AbstractQueryGenerator {
     // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
     // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
     // upsert function.
-    if (this._dialect.supports.inserts.updateOnDuplicate && options.updateOnDuplicate) {
-      if (this._dialect.supports.inserts.updateOnDuplicate === ' ON CONFLICT DO UPDATE SET') { // postgres / sqlite
+    if (this.dialect.supports.inserts.updateOnDuplicate && options.updateOnDuplicate) {
+      if (this.dialect.supports.inserts.updateOnDuplicate === ' ON CONFLICT DO UPDATE SET') { // postgres / sqlite
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
         onDuplicateKeyUpdate = ` ON CONFLICT (${conflictKeys.join(',')}) DO UPDATE SET ${updateKeys.join(',')}`;
       } else { // mysql / maria
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
-        onDuplicateKeyUpdate = `${this._dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
+        onDuplicateKeyUpdate = `${this.dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
       }
     }
 
-    const ignoreDuplicates = options.ignoreDuplicates ? this._dialect.supports.inserts.ignoreDuplicates : '';
+    const ignoreDuplicates = options.ignoreDuplicates ? this.dialect.supports.inserts.ignoreDuplicates : '';
     const attributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
-    const onConflictDoNothing = options.ignoreDuplicates ? this._dialect.supports.inserts.onConflictDoNothing : '';
+    const onConflictDoNothing = options.ignoreDuplicates ? this.dialect.supports.inserts.onConflictDoNothing : '';
     let returning = '';
 
-    if (this._dialect.supports.returnValues && options.returning) {
+    if (this.dialect.supports.returnValues && options.returning) {
       const returnValues = this.generateReturnValues(fieldMappedAttributes, options);
 
       returning += returnValues.returningFragment;
@@ -399,11 +417,11 @@ export class AbstractQueryGenerator {
 
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
-    if (this._dialect.supports['LIMIT ON UPDATE'] && options.limit && this.dialect !== 'mssql' && this.dialect !== 'db2') {
+    if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit && this.dialect.name !== 'mssql' && this.dialect.name !== 'db2') {
       suffix = ` LIMIT ${this.escape(options.limit, undefined, options)} `;
     }
 
-    if (this._dialect.supports.returnValues && options.returning) {
+    if (this.dialect.supports.returnValues && options.returning) {
       const returnValues = this.generateReturnValues(columnDefinitions, options);
 
       suffix += returnValues.returningFragment;
@@ -411,7 +429,7 @@ export class AbstractQueryGenerator {
       outputFragment = returnValues.outputFragment || '';
 
       // ensure that the return output is properly mapped to model fields.
-      if (!this._dialect.supports.returnValues.output && options.returning) {
+      if (!this.dialect.supports.returnValues.output && options.returning) {
         options.mapToModel = true;
       }
     }
@@ -428,7 +446,7 @@ export class AbstractQueryGenerator {
     for (const key in attrValueHash) {
       if (modelAttributeMap && modelAttributeMap[key]
         && modelAttributeMap[key].autoIncrement === true
-        && !this._dialect.supports.autoIncrement.update) {
+        && !this.dialect.supports.autoIncrement.update) {
         // not allowed to update identity column
         continue;
       }
@@ -484,7 +502,7 @@ export class AbstractQueryGenerator {
     let outputFragment = '';
     let returningFragment = '';
 
-    if (this._dialect.supports.returnValues && options.returning) {
+    if (this.dialect.supports.returnValues && options.returning) {
       const returnValues = this.generateReturnValues(null, options);
 
       outputFragment = returnValues.outputFragment;
@@ -533,6 +551,7 @@ export class AbstractQueryGenerator {
         - using
         - operator
         - concurrently: Pass CONCURRENT so other operations run while the index is created
+        - include
       - rawTablename, the name of the table, without schema. Used to create the name of the index
    @private
   */
@@ -549,7 +568,6 @@ export class AbstractQueryGenerator {
     options.prefix = options.prefix || rawTablename || tableName;
     if (options.prefix && typeof options.prefix === 'string') {
       options.prefix = options.prefix.replace(/\./g, '_');
-      options.prefix = options.prefix.replace(/("|')/g, '');
     }
 
     const fieldsSql = options.fields.map(field => {
@@ -575,18 +593,18 @@ export class AbstractQueryGenerator {
 
       result += this.quoteIdentifier(field.name);
 
-      if (this._dialect.supports.index.collate && field.collate) {
+      if (this.dialect.supports.index.collate && field.collate) {
         result += ` COLLATE ${this.quoteIdentifier(field.collate)}`;
       }
 
-      if (this._dialect.supports.index.operator) {
+      if (this.dialect.supports.index.operator) {
         const operator = field.operator || options.operator;
         if (operator) {
           result += ` ${operator}`;
         }
       }
 
-      if (this._dialect.supports.index.length > 0 && field.length > 0) {
+      if (this.dialect.supports.index.length > 0 && field.length > 0) {
         result += `(${field.length})`;
       }
 
@@ -597,6 +615,21 @@ export class AbstractQueryGenerator {
       return result;
     });
 
+    let includeSql;
+    if (options.include) {
+      if (!this.dialect.supports.index.include) {
+        throw new Error(`The include attribute for indexes is not supported by ${this.dialect.name} dialect`);
+      }
+
+      if (options.include instanceof Utils.Literal) {
+        includeSql = `INCLUDE ${options.include.val}`;
+      } else if (Array.isArray(options.include)) {
+        includeSql = `INCLUDE (${options.include.map(field => (field instanceof Utils.Literal ? field.val : this.quoteIdentifier(field))).join(', ')})`;
+      } else {
+        throw new TypeError('The include attribute for indexes must be an array or a literal.');
+      }
+    }
+
     if (!options.name) {
       // Mostly for cases where addIndex is called directly by the user without an options object (for example in migrations)
       // All calls that go through sequelize should already have a name
@@ -605,7 +638,7 @@ export class AbstractQueryGenerator {
 
     options = Model._conformIndex(options);
 
-    if (!this._dialect.supports.index.type) {
+    if (!this.dialect.supports.index.type) {
       delete options.type;
     }
 
@@ -613,11 +646,11 @@ export class AbstractQueryGenerator {
       options.where = this.whereQuery(options.where);
     }
 
-    const escapedTableName = typeof tableName === 'string' ? this.quoteIdentifiers(tableName) : this.quoteTable(tableName);
+    const escapedTableName = this.quoteTable(tableName);
 
-    const concurrently = this._dialect.supports.index.concurrently && options.concurrently ? 'CONCURRENTLY' : undefined;
+    const concurrently = this.dialect.supports.index.concurrently && options.concurrently ? 'CONCURRENTLY' : undefined;
     let ind;
-    if (this._dialect.supports.indexViaAlter) {
+    if (this.dialect.supports.indexViaAlter) {
       ind = [
         'ALTER TABLE',
         escapedTableName,
@@ -630,7 +663,7 @@ export class AbstractQueryGenerator {
 
     // DB2 incorrectly scopes the index if we don't specify the schema name,
     // which will cause it to error if another schema contains a table that uses an index with an identical name
-    const escapedIndexName = tableName.schema && this.dialect === 'db2'
+    const escapedIndexName = tableName.schema && this.dialect.name === 'db2'
       // 'quoteTable' isn't the best name: it quotes any identifier.
       // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
       ? this.quoteTable({
@@ -642,29 +675,24 @@ export class AbstractQueryGenerator {
     ind = ind.concat(
       options.unique ? 'UNIQUE' : '',
       options.type, 'INDEX',
-      !this._dialect.supports.indexViaAlter ? concurrently : undefined,
+      !this.dialect.supports.indexViaAlter ? concurrently : undefined,
       escapedIndexName,
-      this._dialect.supports.index.using === 1 && options.using ? `USING ${options.using}` : '',
-      !this._dialect.supports.indexViaAlter ? `ON ${escapedTableName}` : undefined,
-      this._dialect.supports.index.using === 2 && options.using ? `USING ${options.using}` : '',
+      this.dialect.supports.index.using === 1 && options.using ? `USING ${options.using}` : '',
+      !this.dialect.supports.indexViaAlter ? `ON ${escapedTableName}` : undefined,
+      this.dialect.supports.index.using === 2 && options.using ? `USING ${options.using}` : '',
       `(${fieldsSql.join(', ')})`,
-      this._dialect.supports.index.parser && options.parser ? `WITH PARSER ${options.parser}` : undefined,
-      this._dialect.supports.index.where && options.where ? options.where : undefined,
+      this.dialect.supports.index.parser && options.parser ? `WITH PARSER ${options.parser}` : undefined,
+      this.dialect.supports.index.include && options.include ? includeSql : undefined,
+      this.dialect.supports.index.where && options.where ? options.where : undefined,
     );
 
     return _.compact(ind).join(' ');
   }
 
   addConstraintQuery(tableName, options) {
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
-
     return Utils.joinSQLFragments([
       'ALTER TABLE',
-      tableName,
+      this.quoteTable(tableName),
       'ADD',
       this.getConstraintSnippet(tableName, options || {}),
       ';',
@@ -675,7 +703,7 @@ export class AbstractQueryGenerator {
     let constraintSnippet;
     let constraintName;
 
-    const fieldsSql = options.fields.map(field => {
+    const quotedFields = options.fields.map(field => {
       if (typeof field === 'string') {
         return this.quoteIdentifier(field);
       }
@@ -695,8 +723,24 @@ export class AbstractQueryGenerator {
       return this.quoteIdentifier(field.name);
     });
 
-    const fieldsSqlQuotedString = fieldsSql.join(', ');
-    const fieldsSqlString = fieldsSql.join('_');
+    const constraintNameParts = options.name ? null : options.fields.map(field => {
+      if (typeof field === 'string') {
+        return field;
+      }
+
+      if (field instanceof Utils.SequelizeMethod) {
+        throw new TypeError(`The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`);
+      }
+
+      if (field.attribute) {
+        return field.attribute;
+      }
+
+      return field.name;
+    });
+
+    const fieldsSqlQuotedString = quotedFields.join(', ');
+    const fieldsSqlString = constraintNameParts?.join('_');
 
     switch (options.type.toUpperCase()) {
       case 'UNIQUE':
@@ -713,12 +757,12 @@ export class AbstractQueryGenerator {
           throw new Error('Default value must be specified for DEFAULT CONSTRAINT');
         }
 
-        if (this._dialect.name !== 'mssql') {
+        if (this.dialect.name !== 'mssql') {
           throw new Error('Default constraints are supported only for MSSQL dialect.');
         }
 
         constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_df`);
-        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, undefined, options)}) FOR ${fieldsSql[0]}`;
+        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, undefined, options)}) FOR ${quotedFields[0]}`;
         break;
       case 'PRIMARY KEY':
         constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_pk`);
@@ -739,8 +783,8 @@ export class AbstractQueryGenerator {
         constraintSnippet = `CONSTRAINT ${constraintName} `;
         constraintSnippet += `FOREIGN KEY (${fieldsSqlQuotedString}) REFERENCES ${referencesSnippet}`;
         if (options.onUpdate) {
-          if (!this._dialect.supports.constraints.onUpdate) {
-            throw new Error(`Constraint onUpdate is not supported by ${this._dialect}`);
+          if (!this.dialect.supports.constraints.onUpdate) {
+            throw new Error(`Constraint onUpdate is not supported by ${this.dialect.name}`);
           }
 
           constraintSnippet += ` ON UPDATE ${options.onUpdate.toUpperCase()}`;
@@ -764,15 +808,9 @@ export class AbstractQueryGenerator {
   }
 
   removeConstraintQuery(tableName, constraintName) {
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
-
     return Utils.joinSQLFragments([
       'ALTER TABLE',
-      tableName,
+      this.quoteTable(tableName),
       'DROP CONSTRAINT',
       this.quoteIdentifiers(constraintName),
     ]);
@@ -977,18 +1015,6 @@ export class AbstractQueryGenerator {
   }
 
   /**
-   * Adds quotes to identifier
-   *
-   * @param {string} _identifier
-   * @param {boolean} _force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(_identifier, _force) {
-    throw new Error(`quoteIdentifier for Dialect "${this.dialect}" is not implemented`);
-  }
-
-  /**
    * Split a list of identifiers by "." and quote each part.
    *
    * @param {string} identifiers
@@ -1017,76 +1043,41 @@ export class AbstractQueryGenerator {
   }
 
   /**
-   * Quote table name with optional alias and schema attribution
+   * Escape a value (e.g. a string, number or date)
    *
-   * @param {string|object}  param table string or object
-   * @param {string|boolean} alias alias name
-   *
-   * @returns {string}
+   * @param {unknown} value
+   * @param {object} field
+   * @param {object} options
+   * @private
    */
-  quoteTable(param, alias = false) {
-    let table = '';
-
-    if (alias === true) {
-      alias = param.as || param.name || param;
+  escape(value, field, options = {}) {
+    if (value instanceof Utils.SequelizeMethod) {
+      return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
-    if (_.isObject(param)) {
-      if (this._dialect.supports.schemas) {
-        if (param.schema) {
-          table += `${this.quoteIdentifier(param.schema)}.`;
-        }
-
-        table += this.quoteIdentifier(param.tableName);
-      } else {
-        if (param.schema) {
-          table += param.schema + (param.delimiter || '.');
-        }
-
-        table += param.tableName;
-        table = this.quoteIdentifier(table);
-      }
-    } else {
-      table = this.quoteIdentifier(param);
+    if (value == null || field?.type == null || typeof field.type === 'string') {
+      // use default escape mechanism instead of the DataType's.
+      return SqlString.escape(value, this.options.timezone, this.dialect);
     }
 
-    if (alias) {
-      table += ` AS ${this.quoteIdentifier(alias)}`;
+    field.type = field.type.toDialectDataType(this.dialect);
+
+    if (options.isList && Array.isArray(value)) {
+      const escapeOptions = { ...options, isList: false };
+
+      return `(${value.map(valueItem => {
+        return this.escape(valueItem, field, escapeOptions);
+      }).join(', ')})`;
     }
 
-    return table;
-  }
+    this.validate(value, field, options);
 
-  /*
-    Escape a value (e.g. a string, number or date)
-    @private
-  */
-  escape(value, field, options) {
-    options = options || {};
-
-    if (value !== null && value !== undefined) {
-      if (value instanceof Utils.SequelizeMethod) {
-        return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
-      }
-
-      if (field && field.type) {
-        this.validate(value, field, options);
-
-        if (field.type.stringify) {
-          // Users shouldn't have to worry about these args - just give them a function that takes a single arg
-          const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this.dialect);
-
-          value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation });
-
-          if (field.type.escape === false) {
-            // The data-type already did the required escaping
-            return value;
-          }
-        }
-      }
-    }
-
-    return SqlString.escape(value, this.options.timezone, this.dialect);
+    return field.type.escape(value, {
+      field,
+      timezone: this.options.timezone,
+      operation: options.operation,
+      dialect: this.dialect,
+    });
   }
 
   bindParam(bind) {
@@ -1108,51 +1099,39 @@ export class AbstractQueryGenerator {
   format(value, field, options, bindParam) {
     options = options || {};
 
-    if (value !== null && value !== undefined) {
-      if (value instanceof Utils.SequelizeMethod) {
-        throw new TypeError('Cannot pass SequelizeMethod as a bind parameter - use escape instead');
-      }
-
-      if (field && field.type) {
-        this.validate(value, field, options);
-
-        if (field.type.bindParam) {
-          return field.type.bindParam(value, { escape: _.identity, field, timezone: this.options.timezone, operation: options.operation, bindParam });
-        }
-      }
+    if (value instanceof Utils.SequelizeMethod) {
+      throw new TypeError('Cannot pass SequelizeMethod as a bind parameter - use escape instead');
     }
 
-    return bindParam(value);
+    if (value == null || !field?.type || typeof field.type === 'string') {
+      return bindParam(value);
+    }
+
+    this.validate(value, field, options);
+
+    return field.type.getBindParamSql(value, {
+      field,
+      timezone: this.options.timezone,
+      operation: options.operation,
+      bindParam,
+      dialect: this.dialect,
+    });
   }
 
   /*
     Validate a value against a field specification
     @private
   */
-  validate(value, field, options) {
-    if (this.typeValidation && field.type.validate && value) {
-      try {
-        if (options.isList && Array.isArray(value)) {
-          for (const item of value) {
-            field.type.validate(item, options);
-          }
-        } else {
-          field.type.validate(value, options);
-        }
-      } catch (error) {
-        if (error instanceof sequelizeError.ValidationError) {
-          error.errors.push(new sequelizeError.ValidationErrorItem(
-            error.message,
-            'Validation error',
-            field.fieldName,
-            value,
-            null,
-            `${field.type.key} validator`,
-          ));
-        }
+  validate(value, field) {
+    if (this.noTypeValidation || isNullish(value)) {
+      return;
+    }
 
-        throw error;
-      }
+    const error = field.type instanceof AbstractDataType
+      ? validateDataType(field.type, field.fieldName, null, value)
+      : null;
+    if (error) {
+      throw error;
     }
   }
 
@@ -1166,11 +1145,11 @@ export class AbstractQueryGenerator {
    * @param   {string}               _column   The JSON column
    * @param   {string|Array<string>} [_path]   The path to extract (optional)
    * @param   {boolean}              [_isJson] The value is JSON use alt symbols (optional)
-   * @returns {string}                        The generated sql query
+   * @returns {string}                         The generated sql query
    * @private
    */
   jsonPathExtractionQuery(_column, _path, _isJson) {
-    throw new Error(`JSON operations are not supported in ${this.dialect}`);
+    throw new Error(`JSON operations are not supported in ${this.dialect.name}.`);
   }
 
   /*
@@ -1199,6 +1178,7 @@ export class AbstractQueryGenerator {
       name: tableName,
       quotedName: null,
       as: null,
+      quotedAs: null,
       model,
     };
     const topLevelInfo = {
@@ -1219,10 +1199,12 @@ export class AbstractQueryGenerator {
 
     // resolve table name options
     if (options.tableAs) {
-      mainTable.as = this.quoteIdentifier(options.tableAs);
+      mainTable.as = options.tableAs;
     } else if (!Array.isArray(mainTable.name) && mainTable.model) {
-      mainTable.as = this.quoteIdentifier(mainTable.model.name);
+      mainTable.as = mainTable.model.name;
     }
+
+    mainTable.quotedAs = mainTable.as && this.quoteIdentifier(mainTable.as);
 
     mainTable.quotedName = !Array.isArray(mainTable.name) ? this.quoteTable(mainTable.name) : tableName.map(t => {
       return Array.isArray(t) ? this.quoteTable(t[0], t[1]) : this.quoteTable(t, true);
@@ -1238,13 +1220,13 @@ export class AbstractQueryGenerator {
     }
 
     attributes.main = this.escapeAttributes(attributes.main, options, mainTable.as);
-    attributes.main = attributes.main || (options.include ? [`${mainTable.as}.*`] : ['*']);
+    attributes.main = attributes.main || (options.include ? [`${mainTable.quotedAs}.*`] : ['*']);
 
     // If subquery, we add the mainAttributes to the subQuery and set the mainAttributes to select * from subquery
     if (subQuery || options.groupedLimit) {
       // We need primary keys
       attributes.subQuery = attributes.main;
-      attributes.main = [`${mainTable.as || mainTable.quotedName}.*`];
+      attributes.main = [`${mainTable.quotedAs || mainTable.quotedName}.*`];
     }
 
     if (options.include) {
@@ -1270,13 +1252,17 @@ export class AbstractQueryGenerator {
 
     if (subQuery) {
       subQueryItems.push(
-        this.selectFromTableFragment(options, mainTable.model, attributes.subQuery, mainTable.quotedName, mainTable.as),
+        this.selectFromTableFragment(options, mainTable.model, attributes.subQuery, mainTable.quotedName, mainTable.quotedAs),
         subJoinQueries.join(''),
       );
     } else {
       if (options.groupedLimit) {
+        if (!mainTable.quotedAs) {
+          mainTable.quotedAs = mainTable.quotedName;
+        }
+
         if (!mainTable.as) {
-          mainTable.as = mainTable.quotedName;
+          mainTable.as = mainTable.name;
         }
 
         const where = { ...options.where };
@@ -1381,11 +1367,11 @@ export class AbstractQueryGenerator {
 
             return Utils.spliceStr(baseQuery, splicePos, placeHolder.length, this.getWhereConditions(groupWhere, groupedTableName, undefined, options));
           }).join(
-            this._dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ',
+            this.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ',
           )
-        })`, mainTable.as));
+        })`, mainTable.quotedAs));
       } else {
-        mainQueryItems.push(this.selectFromTableFragment(options, mainTable.model, attributes.main, mainTable.quotedName, mainTable.as));
+        mainQueryItems.push(this.selectFromTableFragment(options, mainTable.model, attributes.main, mainTable.quotedName, mainTable.quotedAs));
       }
 
       mainQueryItems.push(mainJoinQueries.join(''));
@@ -1402,7 +1388,7 @@ export class AbstractQueryGenerator {
           // Walk the main query to update all selects
           for (const [key, value] of mainQueryItems.entries()) {
             if (value.startsWith('SELECT')) {
-              mainQueryItems[key] = this.selectFromTableFragment(options, model, attributes.main, mainTable.quotedName, mainTable.as, options.where);
+              mainQueryItems[key] = this.selectFromTableFragment(options, model, attributes.main, mainTable.quotedName, mainTable.quotedAs, options.where);
             }
           }
         }
@@ -1411,7 +1397,9 @@ export class AbstractQueryGenerator {
 
     // Add GROUP BY to sub or main query
     if (options.group) {
-      options.group = Array.isArray(options.group) ? options.group.map(t => this.aliasGrouping(t, model, mainTable.as, options)).join(', ') : this.aliasGrouping(options.group, model, mainTable.as, options);
+      options.group = Array.isArray(options.group)
+        ? options.group.map(t => this.aliasGrouping(t, model, mainTable.as, options)).join(', ')
+        : this.aliasGrouping(options.group, model, mainTable.as, options);
 
       if (subQuery && options.group) {
         subQueryItems.push(` GROUP BY ${options.group}`);
@@ -1455,31 +1443,31 @@ export class AbstractQueryGenerator {
     }
 
     if (subQuery) {
-      this._throwOnEmptyAttributes(attributes.main, { modelName: model && model.name, as: mainTable.as });
-      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${mainTable.as}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+      this._throwOnEmptyAttributes(attributes.main, { modelName: model && model.name, as: mainTable.quotedAs });
+      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${mainTable.quotedAs}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
     } else {
       query = mainQueryItems.join('');
     }
 
-    if (options.lock && this._dialect.supports.lock) {
+    if (options.lock && this.dialect.supports.lock) {
       let lock = options.lock;
       if (typeof options.lock === 'object') {
         lock = options.lock.level;
       }
 
-      if (this._dialect.supports.lockKey && ['KEY SHARE', 'NO KEY UPDATE'].includes(lock)) {
+      if (this.dialect.supports.lockKey && ['KEY SHARE', 'NO KEY UPDATE'].includes(lock)) {
         query += ` FOR ${lock}`;
       } else if (lock === 'SHARE') {
-        query += ` ${this._dialect.supports.forShare}`;
+        query += ` ${this.dialect.supports.forShare}`;
       } else {
         query += ' FOR UPDATE';
       }
 
-      if (this._dialect.supports.lockOf && options.lock.of && isModelStatic(options.lock.of)) {
+      if (this.dialect.supports.lockOf && options.lock.of && isModelStatic(options.lock.of)) {
         query += ` OF ${this.quoteTable(options.lock.of.name)}`;
       }
 
-      if (this._dialect.supports.skipLocked && options.skipLocked) {
+      if (this.dialect.supports.skipLocked && options.skipLocked) {
         query += ' SKIP LOCKED';
       }
     }
@@ -1494,6 +1482,8 @@ export class AbstractQueryGenerator {
   }
 
   escapeAttributes(attributes, options, mainTableAs) {
+    const quotedMainTableAs = mainTableAs && this.quoteIdentifier(mainTableAs);
+
     return attributes && attributes.map(attr => {
       let addTable = true;
 
@@ -1525,13 +1515,14 @@ export class AbstractQueryGenerator {
 
         attr = [attr[0], this.quoteIdentifier(alias)].join(' AS ');
       } else {
+        // TODO: attributes should always be escaped as identifiers, not escaped as strings
         attr = !attr.includes(Utils.TICK_CHAR) && !attr.includes('"')
           ? this.quoteAttribute(attr, options.model)
           : this.escape(attr, undefined, options);
       }
 
       if (!_.isEmpty(options.include) && (!attr.includes('.') || options.dotNotation) && addTable) {
-        attr = `${mainTableAs}.${attr}`;
+        attr = `${quotedMainTableAs}.${attr}`;
       }
 
       return attr;
@@ -1554,7 +1545,6 @@ export class AbstractQueryGenerator {
       main: [],
       subQuery: [],
     };
-    let joinQuery;
 
     topLevelInfo.options.keysEscaped = true;
 
@@ -1633,7 +1623,7 @@ export class AbstractQueryGenerator {
       }
     }
 
-    // through
+    let joinQuery;
     if (include.through) {
       joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, topLevelInfo);
     } else {
@@ -1739,6 +1729,12 @@ export class AbstractQueryGenerator {
     return null;
   }
 
+  _getAliasForFieldFromQueryOptions(field, options) {
+    return (options.attributes || []).find(
+      attr => Array.isArray(attr) && attr[1] && (attr[0] === field || attr[1] === field),
+    );
+  }
+
   generateJoin(include, topLevelInfo, options) {
     const association = include.association;
     const parent = include.parent;
@@ -1782,13 +1778,14 @@ export class AbstractQueryGenerator {
     if (topLevelInfo.options.groupedLimit && parentIsTop || topLevelInfo.subQuery && include.parent.subQuery && !include.subQuery) {
       if (parentIsTop) {
         // The main model attributes is not aliased to a prefix
-        const tableName = this.quoteTable(parent.as || parent.model.name);
+        const tableName = parent.as || parent.model.name;
+        const quotedTableName = this.quoteTable(tableName);
 
         // Check for potential aliased JOIN condition
-        joinOn = this._getAliasForField(tableName, attrLeft, topLevelInfo.options) || `${tableName}.${this.quoteIdentifier(attrLeft)}`;
+        joinOn = this._getAliasForField(tableName, attrLeft, topLevelInfo.options) || `${quotedTableName}.${this.quoteIdentifier(attrLeft)}`;
 
         if (topLevelInfo.subQuery) {
-          const dbIdentifier = `${tableName}.${this.quoteIdentifier(fieldLeft)}`;
+          const dbIdentifier = `${quotedTableName}.${this.quoteIdentifier(fieldLeft)}`;
           subqueryAttributes.push(dbIdentifier !== joinOn ? `${dbIdentifier} AS ${this.quoteIdentifier(attrLeft)}` : dbIdentifier);
         }
       } else {
@@ -1831,7 +1828,7 @@ export class AbstractQueryGenerator {
     }
 
     return {
-      join: include.required ? 'INNER JOIN' : include.right && this._dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN',
+      join: include.required ? 'INNER JOIN' : include.right && this.dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN',
       body: this.quoteTable(tableRight, asRight),
       condition: joinOn,
       attributes: {
@@ -1871,14 +1868,16 @@ export class AbstractQueryGenerator {
       returnFields.push('*');
     }
 
-    if (this._dialect.supports.returnValues.returning) {
+    if (this.dialect.supports.returnValues.returning) {
       returningFragment = ` RETURNING ${returnFields.join(',')}`;
-    } else if (this._dialect.supports.returnValues.output) {
+    } else if (this.dialect.supports.returnValues.output) {
       outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(',')}`;
 
       // To capture output rows when there is a trigger on MSSQL DB
-      if (options.hasTrigger && this._dialect.supports.tmpTableTrigger) {
-        const tmpColumns = returnFields.map((field, i) => `${field} ${returnTypes[i].toSql()}`);
+      if (options.hasTrigger && this.dialect.supports.tmpTableTrigger) {
+        const tmpColumns = returnFields.map((field, i) => {
+          return `${field} ${attributeTypeToSql(returnTypes[i], { dialect: this.dialect })}`;
+        });
 
         tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;
         outputFragment += ' INTO @tmp';
@@ -1915,7 +1914,7 @@ export class AbstractQueryGenerator {
     const identTarget = association.foreignIdentifierField;
     const attrTarget = association.targetKeyField;
 
-    const joinType = include.required ? 'INNER JOIN' : include.right && this._dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN';
+    const joinType = include.required ? 'INNER JOIN' : include.right && this.dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN';
     let joinBody;
     let joinCondition;
     const attributes = {
@@ -2143,17 +2142,37 @@ export class AbstractQueryGenerator {
           && !isModelStatic(order[0].model)
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
-          subQueryOrder.push(this.quote(order, model, '->', options));
+          // TODO - refactor this.quote() to not change the first argument
+          const field = model.rawAttributes[order[0]]?.field || order[0];
+          const subQueryAlias = this._getAliasForField(model.name, field, options);
+
+          let parent = null;
+          let orderToQuote = [];
+
+          // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
+          // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
+          // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
+          if (subQueryAlias === null) {
+            orderToQuote = order;
+            parent = model;
+          } else {
+            orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
+            parent = null;
+          }
+
+          subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
         }
 
-        if (subQuery) {
-          // Handle case where sub-query renames attribute we want to order by,
-          // see https://github.com/sequelize/sequelize/issues/8739
-          const subQueryAttribute = options.attributes.find(a => Array.isArray(a) && a[0] === order[0] && a[1]);
-          if (subQueryAttribute) {
-            const modelName = this.quoteIdentifier(model.name);
+        // Handle case where renamed attributes are used to order by,
+        // see https://github.com/sequelize/sequelize/issues/8739
+        // need to check if either of the attribute options match the order
+        if (options.attributes && model) {
+          const aliasedAttribute = this._getAliasForFieldFromQueryOptions(order[0], options);
 
-            order[0] = new Utils.Col(this._getAliasForField(modelName, subQueryAttribute[1], options) || subQueryAttribute[1]);
+          if (aliasedAttribute) {
+            const alias = this._getAliasForField(model.name, aliasedAttribute[1], options);
+
+            order[0] = new Utils.Col(alias || aliasedAttribute[1]);
           }
         }
 
@@ -2193,7 +2212,7 @@ export class AbstractQueryGenerator {
       fragment += ` AS ${mainTableAs}`;
     }
 
-    if (options.indexHints && this._dialect.supports.indexHints) {
+    if (options.indexHints && this.dialect.supports.indexHints) {
       for (const hint of options.indexHints) {
         if (IndexHints[hint.type]) {
           fragment += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifiers(indexName)).join(',')})`;
@@ -2290,7 +2309,7 @@ export class AbstractQueryGenerator {
 
     if (smth instanceof Utils.Literal) {
       if (options?.replacements) {
-        return injectReplacements(smth.val, this._dialect, options.replacements, {
+        return injectReplacements(smth.val, this.dialect, options.replacements, {
           onPositionalReplacement: () => {
             throw new TypeError(`The following literal includes positional replacements (?).
 Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
@@ -2787,9 +2806,20 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     }
 
     const escapeOptions = {
-      acceptStrings: comparator.includes(this.OperatorMap[Op.like]),
       replacements: options.replacements,
     };
+
+    // because UUID is implemented as CHAR() in most dialects (except postgres)
+    //  we accept comparing to non-uuid values when using LIKE and similar operators.
+    // TODO: https://github.com/sequelize/sequelize/issues/13828 - in postgres, automatically cast to CHAR(36)
+    //  to have the same behavior as the others dialects.
+    if (comparator.includes(this.OperatorMap[Op.like]) && field?.type) {
+      field = {
+        ...field,
+        // replace DataType with DataTypes.TEXT() to accept all string values.
+        type: getTextDataTypeForDialect(this.dialect),
+      };
+    }
 
     if (_.isPlainObject(value)) {
       if (value[Op.col]) {
@@ -2815,6 +2845,22 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
     if (value === null && comparator === this.OperatorMap[Op.ne]) {
       return this._joinKeyValue(key, this.escape(value, field, escapeOptions), this.OperatorMap[Op.not], options.prefix);
+    }
+
+    // In postgres, Op.contains has multiple signatures:
+    // - RANGE<VALUE> Op.contains RANGE<VALUE> (both represented by fixed-size arrays in JS)
+    // - RANGE<VALUE> Op.contains VALUE
+    // - ARRAY<VALUE> Op.contains ARRAY<VALUE>
+    // Since the left operand is a RANGE, the type validation must allow the right operand to be either RANGE or VALUE.
+    if (prop === Op.contains && field?.type instanceof DataTypes.RANGE && !Array.isArray(value)) {
+      // Since the right operand is not an array, it must be a value.
+      // We'll serialize using the range's subtype (i.e. if a range of integers, we'll serialize "value" as an integer).
+      return this._joinKeyValue(key, this.escape(value, {
+        ...field,
+        type: field.type.options.subtype,
+      }, escapeOptions), comparator, options.prefix);
+
+      // The case where "value" is a 'RANGE<VALUE>' is not a special case and is handled by the default case below.
     }
 
     return this._joinKeyValue(key, this.escape(value, field, escapeOptions), comparator, options.prefix);

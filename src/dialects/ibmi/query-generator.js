@@ -1,18 +1,32 @@
 'use strict';
 
-import { removeTrailingSemicolon } from '../../utils';
+import { rejectInvalidOptions } from '../../utils/check';
+import { removeTrailingSemicolon } from '../../utils/string';
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
+import {
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 const Utils = require('../../utils');
 const util = require('util');
 const _ = require('lodash');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { IBMiQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const DataTypes = require('../../data-types');
 const { Model } = require('../../model');
 const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);
 
-export class IBMiQueryGenerator extends AbstractQueryGenerator {
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+
+export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
   // Version queries
   versionQuery() {
@@ -20,19 +34,29 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   // Schema queries
-  createSchema(schema) {
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect.name,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return `CREATE SCHEMA "${schema}"`;
   }
 
-  dropSchema(schema) {
+  dropSchemaQuery(schema) {
     return `BEGIN IF EXISTS (SELECT * FROM SYSIBM.SQLSCHEMAS WHERE TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}) THEN SET TRANSACTION ISOLATION LEVEL NO COMMIT; DROP SCHEMA "${schema ? `${schema}` : 'CURRENT SCHEMA'}"; COMMIT; END IF; END`;
   }
 
-  showSchemasQuery(options) {
+  listSchemasQuery(options) {
     let skippedSchemas = '';
-    if (options.skip) {
+    if (options?.skip) {
       for (let i = 0; i < options.skip.length; i++) {
-        skippedSchemas += ` AND SCHEMA_NAME != '${options.skip[i]}'`;
+        skippedSchemas += ` AND SCHEMA_NAME != ${this.escape(options.skip[i])}`;
       }
     }
 
@@ -118,51 +142,42 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   dropTableQuery(tableName, options) {
-    let table = tableName;
-    let schema;
-
-    if (typeof table === 'object') {
-      schema = table.schema || undefined;
-      table = table.table;
-    } else if (options.schema) {
-      schema = options.schema;
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
     }
 
-    return `DROP TABLE IF EXISTS ${schema ? `"${schema}".` : ''}"${table}"`;
-  }
-
-  describeTableQuery(tableName, schema) {
-
-    const sql
-    = `SELECT
-    QSYS2.SYSCOLUMNS.*,
-    QSYS2.SYSCST.CONSTRAINT_NAME,
-    QSYS2.SYSCST.CONSTRAINT_TYPE
-    FROM
-    QSYS2.SYSCOLUMNS
-    LEFT OUTER JOIN
-      QSYS2.SYSCSTCOL
-    ON
-      QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA
-      AND
-      QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME
-      AND
-      QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME
-    LEFT JOIN
-      QSYS2.SYSCST
-    ON
-      QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-    WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'} AND QSYS2.SYSCOLUMNS.TABLE_NAME = '${tableName}'`;
-
-    return sql;
+    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}`;
   }
 
   showTablesQuery(schema) {
     return `SELECT TABLE_NAME FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}`;
   }
 
-  addColumnQuery(table, key, dataType) {
-    dataType.field = key;
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    dataType = {
+      ...dataType,
+      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      //       but instead we need to pass the key along as the field here
+      field: key,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
+
     const definition = this.attributeToSQL(dataType, {
       context: 'addColumn',
       tableName: table,
@@ -172,7 +187,17 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     return `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition}`;
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return `ALTER TABLE ${this.quoteTable(tableName)} DROP COLUMN ${this.quoteIdentifier(attributeName)}`;
   }
 
@@ -282,37 +307,37 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   escape(value, field, options) {
-    options = options || {};
-
-    if (value !== null && value !== undefined) {
-      if (value instanceof Utils.SequelizeMethod) {
-        return this.handleSequelizeMethod(value, undefined, undefined, options);
-      }
-
-      if (field && field.type) {
-        this.validate(value, field, options);
-
-        if (field.type.stringify) {
-          // Users shouldn't have to worry about these args - just give them a function that takes a single arg
-          if (field.type._binary) {
-            field.type.escape = false;
-          }
-
-          const simpleEscape = escVal => SqlString.escape(escVal, this.options.timezone, this.dialect);
-
-          value = field.type.stringify(value, { escape: simpleEscape, field, timezone: this.options.timezone, operation: options.operation });
-
-          if (field.type.escape === false) {
-            // The data-type already did the required escaping
-            return value;
-          }
-        }
-      }
+    if (value instanceof Utils.SequelizeMethod) {
+      return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
-    const format = (value === null && options.where);
+    if (value == null || field?.type == null || typeof field.type === 'string') {
+      const format = (value === null && options.where);
 
-    return SqlString.escape(value, this.options.timezone, this.dialect, format);
+      // use default escape mechanism instead of the DataType's.
+      return SqlString.escape(value, this.options.timezone, this.dialect, format);
+    }
+
+    field.type = field.type.toDialectDataType(this.dialect);
+
+    if (options.isList && Array.isArray(value)) {
+      const escapeOptions = { ...options, isList: false };
+
+      return `(${value.map(valueItem => {
+        return this.escape(valueItem, field, escapeOptions);
+      }).join(', ')})`;
+    }
+
+    this.validate(value, field);
+
+    return field.type.escape(value, {
+      // Users shouldn't have to worry about these args - just give them a function that takes a single arg
+      escape: this.simpleEscape,
+      field,
+      timezone: this.options.timezone,
+      operation: options.operation,
+      dialect: this.dialect,
+    });
   }
 
   /*
@@ -346,7 +371,6 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     options.prefix = options.prefix || rawTablename || tableName;
     if (options.prefix && typeof options.prefix === 'string') {
       options.prefix = options.prefix.replace(/\./g, '_');
-      options.prefix = options.prefix.replace(/("|')/g, '');
     }
 
     const fieldsSql = options.fields.map(field => {
@@ -370,7 +394,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
       result += this.quoteIdentifier(field.name);
 
-      if (this._dialect.supports.index.length && field.length) {
+      if (this.dialect.supports.index.length && field.length) {
         result += `(${field.length})`;
       }
 
@@ -381,6 +405,10 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       return result;
     });
 
+    if (options.include) {
+      throw new Error(`The include attribute for indexes is not supported by ${this.dialect.name} dialect`);
+    }
+
     if (!options.name) {
       // Mostly for cases where addIndex is called directly by the user without an options object (for example in migrations)
       // All calls that go through sequelize should already have a name
@@ -389,7 +417,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     options = Model._conformIndex(options);
 
-    if (!this._dialect.supports.index.type) {
+    if (!this.dialect.supports.index.type) {
       delete options.type;
     }
 
@@ -397,13 +425,10 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       options.where = this.whereQuery(options.where);
     }
 
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
+    tableName = this.quoteTable(tableName);
 
     let schema;
+    // TODO: drop this option in favor of passing the schema through tableName
     if (typeof options.schema === 'string') {
       schema = this.quoteIdentifiers(options.schema);
     }
@@ -546,58 +571,6 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
   // Indexes and constraints
 
-  showIndexesQuery(tableName) {
-    let table;
-    let schema;
-    if (typeof tableName === 'string') {
-      table = tableName;
-    } else {
-      table = tableName.tableName || tableName.table;
-      schema = tableName.schema;
-    }
-
-    const sql
-    = `select
-      QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME,
-      QSYS2.SYSCSTCOL.COLUMN_NAME,
-      QSYS2.SYSCST.CONSTRAINT_TYPE,
-      QSYS2.SYSCST.TABLE_SCHEMA,
-      QSYS2.SYSCST.TABLE_NAME
-    from
-      QSYS2.SYSCSTCOL
-    left outer join
-      QSYS2.SYSCST
-    on
-      QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA
-      and
-      QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME
-      and
-      QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-    where
-      QSYS2.SYSCSTCOL.TABLE_SCHEMA = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}
-      and
-      QSYS2.SYSCSTCOL.TABLE_NAME = '${table}'
-    union
-    select
-      QSYS2.SYSKEYS.INDEX_NAME AS NAME,
-      QSYS2.SYSKEYS.COLUMN_NAME,
-      CAST('INDEX' AS VARCHAR(11)),
-      QSYS2.SYSINDEXES.TABLE_SCHEMA,
-      QSYS2.SYSINDEXES.TABLE_NAME
-    from
-      QSYS2.SYSKEYS
-    left outer join
-      QSYS2.SYSINDEXES
-    on
-      QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME
-    where
-      QSYS2.SYSINDEXES.TABLE_SCHEMA = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}
-      and
-      QSYS2.SYSINDEXES.TABLE_NAME = '${table}'`;
-
-    return sql;
-  }
-
   showConstraintsQuery(table, constraintName) {
     const tableName = table.tableName || table;
     const schemaName = table.schema;
@@ -648,25 +621,21 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attribute.type.toString({ escape: this.escape.bind(this), dialect: this.dialect });
     let template = attributeString;
 
     if (attribute.type instanceof DataTypes.ENUM) {
-      if (attribute.type.values && !attribute.values) {
-        attribute.values = attribute.type.values;
-      }
-
       // enums are a special case
-      template = attribute.type.toSql();
+      template = attribute.type.toSql({ dialect: this.dialect });
       if (options && options.context) {
         template += options.context === 'changeColumn' ? ' ADD' : '';
       }
 
-      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.values.map(value => {
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
         return this.escape(value, undefined, { replacements: options?.replacements });
       }).join(', ')}))`;
     } else {
-      template = attribute.type.toString(options);
+      template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
     }
 
     if (attribute.allowNull === false) {
@@ -682,7 +651,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     // BLOB cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && Utils.defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue)) {
       if (attribute.defaultValue === true) {
         attribute.defaultValue = 1;
       } else if (attribute.defaultValue === false) {
@@ -838,13 +807,12 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
     return 0;
   }
-
-  quoteIdentifier(identifier, _force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '"'), '"');
-  }
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }

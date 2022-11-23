@@ -1,5 +1,7 @@
 'use strict';
 
+import NodeUtil from 'node:util';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
@@ -108,8 +110,8 @@ export class MySqlQuery extends AbstractQuery {
         ) {
           const startId = data[this.getInsertIdField()];
           result = [];
-          for (let i = startId; i < startId + data.affectedRows; i++) {
-            result.push({ [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: i });
+          for (let i = BigInt(startId); i < BigInt(startId) + BigInt(data.affectedRows); i = i + 1n) {
+            result.push({ [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: typeof startId === 'string' ? i.toString() : Number(i) });
           }
         } else {
           result = data[this.getInsertIdField()];
@@ -184,31 +186,6 @@ export class MySqlQuery extends AbstractQuery {
     return result;
   }
 
-  async logWarnings(results) {
-    const warningResults = await this.run('SHOW WARNINGS');
-    const warningMessage = `MySQL Warnings (${this.connection.uuid || 'default'}): `;
-    const messages = [];
-    for (const _warningRow of warningResults) {
-      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
-        continue;
-      }
-
-      for (const _warningResult of _warningRow) {
-        if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
-          messages.push(_warningResult.Message);
-        } else {
-          for (const _objectKey of _warningResult.keys()) {
-            messages.push([_objectKey, _warningResult[_objectKey]].join(': '));
-          }
-        }
-      }
-    }
-
-    this.sequelize.log(warningMessage + messages.join('; '), this.options);
-
-    return results;
-  }
-
   formatError(err, errStack) {
     const errCode = err.errno || err.code;
 
@@ -272,6 +249,13 @@ export class MySqlQuery extends AbstractQuery {
     }
   }
 
+  handleShowTablesQuery(results) {
+    return results.map(resultSet => ({
+      tableName: resultSet.TABLE_NAME,
+      schema: resultSet.TABLE_SCHEMA,
+    }));
+  }
+
   handleShowIndexesQuery(data) {
     // Group by index name, and collect all fields
     data = data.reduce((acc, item) => {
@@ -283,20 +267,29 @@ export class MySqlQuery extends AbstractQuery {
       acc[item.Key_name].fields[item.Seq_in_index - 1] = {
         attribute: item.Column_name,
         length: item.Sub_part || undefined,
-        order: item.Collation === 'A' ? 'ASC' : undefined,
+        order: item.Collation === 'A' ? 'ASC'
+          : item.Collation === 'D' ? 'DESC'
+            // Not sorted
+          : item.Collation === null ? null
+          : (() => {
+            throw new Error(`Unknown index collation ${NodeUtil.inspect(item.Collation)}`);
+          })(),
       };
       delete item.column_name;
 
       return acc;
     }, {});
 
-    return _.map(data, item => ({
-      primary: item.Key_name === 'PRIMARY',
-      fields: item.fields,
-      name: item.Key_name,
-      tableName: item.Table,
-      unique: item.Non_unique !== 1,
-      type: item.Index_type,
-    }));
+    return _.map(data, item => {
+      return ({
+        primary: item.Key_name === 'PRIMARY',
+        fields: item.fields,
+        name: item.Key_name,
+        tableName: item.Table,
+        // MySQL 8 returns this as a number (Integer), MySQL 5 returns it as a string (BigInt)
+        unique: item.Non_unique !== '1' && item.Non_unique !== 1,
+        type: item.Index_type,
+      });
+    });
   }
 }

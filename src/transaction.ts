@@ -20,7 +20,7 @@ export class Transaction {
   private readonly savepoints: Transaction[] = [];
   private readonly options: PartlyRequired<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
   private readonly parent: Transaction | null;
-  private readonly id: string;
+  readonly id: string;
   private readonly name: string;
   private finished: 'commit' | undefined;
   private connection: Connection | undefined;
@@ -74,6 +74,11 @@ export class Transaction {
 
     try {
       await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      for (const hook of this._afterCommitHooks) {
+        // eslint-disable-next-line no-await-in-loop -- sequentially call hooks
+        await Reflect.apply(hook, this, [this]);
+      }
+
       this.cleanup();
     } catch (error) {
       console.warn(`Committing transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`);
@@ -82,10 +87,6 @@ export class Transaction {
       throw error;
     } finally {
       this.finished = 'commit';
-      for (const hook of this._afterCommitHooks) {
-        // eslint-disable-next-line no-await-in-loop -- sequentially call hooks
-        await Reflect.apply(hook, this, [this]);
-      }
     }
   }
 
@@ -118,11 +119,9 @@ export class Transaction {
 
   /**
    * Called to acquire a connection to use and set the correct options on the connection.
-   * We should ensure all of the environment that's set up is cleaned up in `cleanup()` below.
-   *
-   * @param useCLS Defaults to true: Use CLS (Continuation Local Storage) with Sequelize. With CLS, all queries within the transaction callback will automatically receive the transaction object.
+   * We should ensure all the environment that's set up is cleaned up in `cleanup()` below.
    */
-  async prepareEnvironment(useCLS = true) {
+  async prepareEnvironment() {
     let connection;
     if (this.parent) {
       connection = this.parent.connection;
@@ -150,11 +149,6 @@ export class Transaction {
       } finally {
         throw error; // eslint-disable-line no-unsafe-finally -- while this will mask the error thrown by `rollback`, the previous error is more important.
       }
-    }
-
-    // TODO (@ephys) [>=7.0.0]: move this inside of sequelize.transaction, remove parameter -- during the move to built-in AsyncLocalStorage
-    if (useCLS && this.sequelize.Sequelize._cls) {
-      this.sequelize.Sequelize._cls.set('transaction', this);
     }
 
     return result;

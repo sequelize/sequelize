@@ -209,7 +209,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
       await cm.releaseConnection(secondConnection);
     });
 
-    it('[MSSQL Flaky] should get new connection beyond idle range', async () => {
+    it('[Flaky] should get new connection beyond idle range', async () => {
       const sequelize = createSequelizeInstance({
         pool: { max: 1, idle: 100, evict: 10 },
       });
@@ -251,6 +251,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
 
     it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', async () => {
 
+      // @ts-expect-error -- internal method, no typings
       sandbox.stub(testInstance.connectionManager, '_connect')
         .returns(new Promise(() => {}));
 
@@ -269,6 +270,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
         },
       });
 
+      // @ts-expect-error -- internal method, no typings
       sandbox.stub(testInstance.connectionManager, '_connect')
         .returns(new Promise(() => {}));
 

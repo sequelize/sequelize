@@ -1,24 +1,23 @@
-import type { Config, ModelStatic, Utils } from '@sequelize/core';
+import type { ConnectionOptions, ModelStatic, Utils } from '@sequelize/core';
 import { Sequelize, Model, QueryTypes, Op } from '@sequelize/core';
-
-Sequelize.useCLS({
-  get(key: string): unknown {
-    return null;
-  },
-  set(key: string, value: unknown) {},
-});
 
 export const sequelize = new Sequelize({
   hooks: {
-    afterConnect: (connection: unknown, config: Config) => {
+    afterConnect: (connection: unknown, config: ConnectionOptions) => {
       // noop
     },
   },
   retry: {
     max: 123,
     match: ['hurr'],
+    timeout: 3000,
+    backoffBase: 1000,
+    backoffExponent: 1.2,
+    report: (msg, options) => {},
+    name: 'durr',
   },
   dialectModule: {},
+  keepDefaultTimezone: false,
   pool: {
     evict: 1000,
   },
@@ -54,22 +53,22 @@ sequelize.beforeCreate('test', () => {
 });
 
 sequelize
-  .addHook('beforeConnect', (config: Config) => {
+  .addHook('beforeConnect', (config: ConnectionOptions) => {
     // noop
   })
   .addHook('beforeBulkSync', () => {
     // noop
   });
 
-Sequelize.addHook('beforeCreate', () => {
+Sequelize.addHook('beforeInit', () => {
   // noop
-}).addHook('beforeBulkCreate', () => {
+}).addHook('afterInit', () => {
   // noop
 });
 
-Sequelize.beforeConnect(() => {});
+sequelize.beforeConnect(() => {});
 
-Sequelize.afterConnect(() => {});
+sequelize.afterConnect(() => {});
 
 const rnd: Utils.Fn = sequelize.random();
 

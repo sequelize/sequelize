@@ -6,10 +6,11 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const dialect = Support.getTestDialect();
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
+const dialect = current.dialect;
+const dialectName = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
@@ -32,7 +33,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
 
         const user1 = await User.findOne({
@@ -65,7 +66,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.user = user;
       });
 
-      if (dialect === 'mysql') {
+      if (dialectName === 'mysql') {
         // Bit fields interpreted as boolean need conversion from buffer / bool.
         // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
 
@@ -86,8 +87,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           await bitUser.bulkCreate([
-            { bool: 0 },
-            { bool: 1 },
+            { bool: false },
+            { bool: true },
           ]);
 
           const bitUsers = await bitUser.findAll();
@@ -238,12 +239,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           name: 'Johnno',
         });
 
+        // the rest of the test is disabled for now, because SQLite tries to return 9_007_199_254_740_993 as a JS number,
+        // which we reject due to being out of range.
+        if (dialectName === 'sqlite') {
+          // sqlite3 returns a number, so u2.id comes back as 9_007_199_254_740_992 here:
+          // https://github.com/TryGhost/node-sqlite3/issues/922
+          // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
+          const [[{ stringifiedId }]] = await this.sequelize.query(`select cast("id" as text) as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
+          expect(stringifiedId).to.equal('9007199254740993');
+
+          return;
+        }
+
         const u2 = await UserPrimary.findByPk(9_007_199_254_740_993n);
         expect(u2.name).to.equal('Johnno');
 
         // Getting the value back as bigint is not supported yet: https://github.com/sequelize/sequelize/issues/14296
         // With most dialects we'll receive a string, but in some cases we have to be a bit creative to prove that we did get hold of the right record:
-        if (dialect === 'db2') {
+        if (dialectName === 'db2') {
           // ibm_db 2.7.4+ returns BIGINT values as JS numbers, which leads to a loss of precision:
           // https://github.com/ibmdb/node-ibm_db/issues/816
           // It means that u2.id comes back as 9_007_199_254_740_992 here :(
@@ -251,18 +264,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
           const [[{ stringifiedId }]] = await this.sequelize.query(`select "id"::varchar as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
           expect(stringifiedId).to.equal('9007199254740993');
-        } else if (dialect === 'mariadb') {
+        } else if (dialectName === 'mariadb') {
           // With our current default config, the mariadb driver sends back a Long instance.
           // Updating the mariadb dev dep and passing "supportBigInt: true" would get it back as a bigint,
           // but that's potentially a big change.
           // For now, we'll just stringify the Long and make the comparison:
           expect(u2.id.toString()).to.equal('9007199254740993');
-        } else if (dialect === 'sqlite') {
-          // sqlite3 returns a number, so u2.id comes back as 9_007_199_254_740_992 here:
-          // https://github.com/TryGhost/node-sqlite3/issues/922
-          // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
-          const [[{ stringifiedId }]] = await this.sequelize.query(`select cast("id" as text) as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
-          expect(stringifiedId).to.equal('9007199254740993');
         } else {
           expect(u2.id).to.equal('9007199254740993');
         }
@@ -304,7 +311,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user.ID).to.equal(1);
       });
 
-      if (['postgres', 'sqlite'].includes(dialect)) {
+      if (dialect.supports.dataTypes.CITEXT) {
         it('should allow case-insensitive find on CITEXT type', async function () {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
             username: DataTypes.CITEXT,
@@ -318,7 +325,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      if (dialect === 'postgres') {
+      if (dialectName === 'postgres') {
         it('should allow case-sensitive find on TSVECTOR type', async function () {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
             username: DataTypes.TSVECTOR,
@@ -963,7 +970,7 @@ The following associations are defined on "Worker": "ToDos"`);
       });
 
       it('throws error when record not found by findByPk', async function () {
-        await expect(this.User.findByPk(4_732_322_332_323_333_232_344_334_354_234, {
+        await expect(this.User.findByPk(2, {
           rejectOnEmpty: true,
         })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });

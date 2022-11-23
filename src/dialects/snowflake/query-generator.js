@@ -1,8 +1,19 @@
 'use strict';
 
+import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { quoteIdentifier } from '../../utils/dialect.js';
+import { rejectInvalidOptions } from '../../utils/check';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
+
 const _ = require('lodash');
 const Utils = require('../../utils');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const util = require('util');
 const { Op } = require('../../operators');
 
@@ -34,7 +45,13 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
-export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+
+export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
@@ -46,17 +63,21 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   createDatabaseQuery(databaseName, options) {
-    options = {
-      charset: null,
-      collate: null,
-      ...options,
-    };
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect.name,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
 
     return Utils.joinSQLFragments([
       'CREATE DATABASE IF NOT EXISTS',
       this.quoteIdentifier(databaseName),
-      options.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset, undefined, options)}`,
-      options.collate && `DEFAULT COLLATE ${this.escape(options.collate, undefined, options)}`,
+      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
+      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
       ';',
     ]);
   }
@@ -65,12 +86,40 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
   }
 
-  createSchema() {
-    return 'SHOW TABLES';
+  listDatabasesQuery() {
+    return `SHOW DATABASES;`;
   }
 
-  showSchemasQuery() {
-    return 'SHOW TABLES';
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect.name,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
+  }
+
+  dropSchemaQuery(schema) {
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
+  }
+
+  listSchemasQuery(options) {
+    if (options) {
+      rejectInvalidOptions(
+        'listSchemasQuery',
+        this.dialect.name,
+        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
+        LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `SHOW SCHEMAS;`;
   }
 
   versionQuery() {
@@ -153,18 +202,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    const table = this.quoteTable(
-      this.addSchema({
-        tableName,
-        _schema: schema,
-        _schemaDelimiter: schemaDelimiter,
-      }),
-    );
-
-    return `SHOW FULL COLUMNS FROM ${table};`;
-  }
-
   showTablesQuery(database, options) {
     return Utils.joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
@@ -173,7 +210,29 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  addColumnQuery(table, key, dataType) {
+  tableExistsQuery(table) {
+    const tableName = table.tableName ?? table;
+    const schema = table.schema;
+
+    return Utils.joinSQLFragments([
+      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
+      `AND TABLE_SCHEMA = ${schema !== undefined ? this.escape(schema) : 'CURRENT_SCHEMA()'}`,
+      `AND TABLE_NAME = ${this.escape(tableName)}`,
+      ';',
+    ]);
+  }
+
+  addColumnQuery(table, key, dataType, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'addColumnQuery',
+        this.dialect.name,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
@@ -188,7 +247,17 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  removeColumnQuery(tableName, attributeName) {
+  removeColumnQuery(tableName, attributeName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
@@ -356,10 +425,6 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery() {
-    return 'SELECT \'\' FROM DUAL';
-  }
-
   showConstraintsQuery(table, constraintName) {
     const tableName = table.tableName || table;
     const schemaName = table.schema;
@@ -402,7 +467,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this) });
+    const attributeString = attribute.type.toString({ dialect: this.dialect });
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -416,7 +481,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && Utils.defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
     }
 
@@ -660,28 +725,31 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   quoteIdentifier(identifier, force) {
     const optForceQuote = force || false;
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
-    const rawIdentifier = Utils.removeTicks(identifier, '"');
 
     if (
       optForceQuote === true
+      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers.
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')
-      || SNOWFLAKE_RESERVED_WORDS.includes(rawIdentifier.toLowerCase())
+      || SNOWFLAKE_RESERVED_WORDS.includes(identifier.toLowerCase())
     ) {
       // In Snowflake if tables or attributes are created double-quoted,
       // they are also case sensitive. If they contain any uppercase
       // characters, they must always be double-quoted. This makes it
       // impossible to write queries in portable SQL if tables are created in
       // this way. Hence, we strip quotes if we don't want case sensitivity.
-      return Utils.addTicks(rawIdentifier, '"');
+      return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
     }
 
-    return rawIdentifier;
+    return identifier;
   }
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   return Utils.addTicks(identifier, '\'');
 }

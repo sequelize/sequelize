@@ -4,9 +4,10 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
+const dialectName = Support.getTestDialect();
+const dialect = Support.sequelize.dialect;
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -54,7 +55,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: DataTypes.STRING,
         });
         await User.sync({ force: true });
-        const transaction = await this.sequelize.transaction();
+        const transaction = await this.sequelize.startUnmanagedTransaction();
         await User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction });
         const count1 = await User.count();
         const count2 = await User.count({ transaction });
@@ -157,7 +158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         style: 'ipa',
       }], {
         logging(sql) {
-          switch (dialect) {
+          switch (dialectName) {
             case 'postgres':
             case 'ibmi': {
               expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
@@ -324,7 +325,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ], { validate: true });
       } catch (error) {
         const expectedValidationError = 'Validation len on code failed';
-        const expectedNotNullError = 'notNull Violation: Task.name cannot be null';
+        const expectedNotNullError = 'notNull violation: Task.name cannot be null';
 
         expect(error.toString()).to.include(expectedValidationError)
           .and.to.include(expectedNotNullError);
@@ -334,7 +335,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const e0name0 = errors[0].errors.get('name')[0];
 
         expect(errors[0].record.code).to.equal('1234');
-        expect(e0name0.type || e0name0.origin).to.equal('notNull Violation');
+        expect(e0name0.type || e0name0.origin).to.equal('notNull violation');
 
         expect(errors[1].record.name).to.equal('bar');
         expect(errors[1].record.code).to.equal('1');
@@ -395,24 +396,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(workers[1].id).to.equal(10);
     });
 
-    it('should support schemas', async function () {
-      const Dummy = this.sequelize.define('Dummy', {
-        foo: DataTypes.STRING,
-        bar: DataTypes.STRING,
-      }, {
-        schema: 'space1',
-        tableName: 'Dummy',
+    if (dialect.supports.schemas) {
+      it('should support schemas', async function () {
+        const Dummy = this.sequelize.define('Dummy', {
+          foo: DataTypes.STRING,
+          bar: DataTypes.STRING,
+        }, {
+          schema: 'space1',
+          tableName: 'Dummy',
+        });
+
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.createSchema('space1');
+        await Dummy.sync({ force: true });
+
+        await Dummy.bulkCreate([
+          { foo: 'a', bar: 'b' },
+          { foo: 'c', bar: 'd' },
+        ]);
       });
-
-      await Support.dropTestSchemas(this.sequelize);
-      await this.sequelize.createSchema('space1');
-      await Dummy.sync({ force: true });
-
-      await Dummy.bulkCreate([
-        { foo: 'a', bar: 'b' },
-        { foo: 'c', bar: 'd' },
-      ]);
-    });
+    }
 
     if (current.dialect.supports.inserts.ignoreDuplicates
         || current.dialect.supports.inserts.onConflictDoNothing) {
@@ -448,7 +451,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         try {
           await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
         } catch (error) {
-          expect(error.message).to.equal(`${dialect} does not support the ignoreDuplicates option.`);
+          expect(error.message).to.equal(`${dialectName} does not support the ignoreDuplicates option.`);
         }
       });
     }
@@ -858,7 +861,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('enums', () => {
       it('correctly restores enum values', async function () {
         const Item = this.sequelize.define('Item', {
-          state: { type: DataTypes.ENUM, values: ['available', 'in_cart', 'shipped'] },
+          state: { type: DataTypes.ENUM(['available', 'in_cart', 'shipped']) },
           name: DataTypes.STRING,
         });
 
