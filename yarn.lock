@@ -1240,10 +1240,10 @@
   resolved "https://registry.yarnpkg.com/@types/sinonjs__fake-timers/-/sinonjs__fake-timers-8.1.2.tgz#bf2e02a3dbd4aecaf95942ecd99b7402e03fad5e"
   integrity sha512-9GcLXF0/v3t80caGs5p2rRfkB+a8VBGLJZVih6CNFkx8IZ994wiKKLSRs9nuFwk1HevWs/1mnUmkApGrSGsShA==
 
-"@types/snowflake-sdk@1.6.9":
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/@types/snowflake-sdk/-/snowflake-sdk-1.6.9.tgz#752ea444a708ea4b6f1d497eee1c7636cce066af"
-  integrity sha512-hIra/wAVaGQo2BGJ8NWSrUOmttpScENtDKelivAJuGQZF0ABL8DjZmW9Y4YtsOyvqa58EU4WVxPO7g5YHSTupA==
+"@types/snowflake-sdk@1.6.10":
+  version "1.6.10"
+  resolved "https://registry.yarnpkg.com/@types/snowflake-sdk/-/snowflake-sdk-1.6.10.tgz#5bc43996b9b2d59e9c2cecc3e566cdbd80a0e24a"
+  integrity sha512-XzhE7HM2jhTRHaDso99Ipk2DT/qkCDLmDe6ES10ULV5s/t33rsUJjEaUVTO7aNXH9rvZsDJOoMA9nVtD/RAb5g==
   dependencies:
     "@types/generic-pool" "*"
     "@types/node" "*"
