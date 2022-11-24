@@ -10,6 +10,7 @@ import type {
   WhereOptions,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
+import type { Transaction } from '../../transaction.js';
 import type { Literal, SequelizeMethod } from '../../utils/index.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions } from './query-generator-typescript.js';
@@ -72,6 +73,10 @@ export type WhereItemsQueryOptions = ParameterOptions & {
 
 type HandleSequelizeMethodOptions = ParameterOptions & {
 
+};
+
+type DeferConstraintsQueryOptions = {
+  transaction?: Transaction,
 };
 
 // keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
@@ -198,6 +203,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
   dropDatabaseQuery(databaseName: string): string;
   listDatabasesQuery(): string;
+
+  deferConstraintsQuery(options: DeferConstraintsQueryOptions): string;
 
   /**
    * Creates a function that can be used to collect bind parameters.

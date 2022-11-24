@@ -1360,11 +1360,9 @@ export class QueryInterface {
       return;
     }
 
-    options = { ...options, transaction: transaction.parent || transaction };
+    options = { ...options, transaction };
 
-    const sql = this.queryGenerator.setIsolationLevelQuery(value, {
-      parent: transaction.parent,
-    });
+    const sql = this.queryGenerator.setIsolationLevelQuery(value);
 
     if (!sql) {
       return;
@@ -1380,7 +1378,13 @@ export class QueryInterface {
 
     options = { ...options, transaction: transaction.parent || transaction };
     options.transaction.name = transaction.parent ? transaction.name : undefined;
-    const sql = this.queryGenerator.startTransactionQuery(transaction);
+
+    let sql;
+    if (transaction.parent) {
+      sql = this.queryGenerator.createSavepointQuery(transaction.name);
+    } else {
+      sql = this.queryGenerator.startTransactionQuery(transaction.options);
+    }
 
     return await this.sequelize.queryRaw(sql, options);
   }
@@ -1432,7 +1436,14 @@ export class QueryInterface {
       completesTransaction: true,
     };
     options.transaction.name = transaction.parent ? transaction.name : undefined;
-    const sql = this.queryGenerator.rollbackTransactionQuery(transaction);
+
+    let sql;
+    if (transaction.parent) {
+      sql = this.queryGenerator.rollbackSavepointQuery(transaction.name);
+    } else {
+      sql = this.queryGenerator.rollbackTransactionQuery();
+    }
+
     const promise = this.sequelize.queryRaw(sql, options);
 
     transaction.finished = 'rollback';

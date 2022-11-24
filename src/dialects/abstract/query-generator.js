@@ -2973,7 +2973,11 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   booleanValue(value) {
     return value;
   }
+
+  deferConstraintsQuery(_options) {
+    throw new Error(`deferConstraintsQuery has not been implemented in ${this.dialect.name}.`);
+  }
 }
 
+// TODO: move this file inside the AbstractQueryGenerator since mixins cannot be migrated to TypeScript
 Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/operators'));
-Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/transaction'));

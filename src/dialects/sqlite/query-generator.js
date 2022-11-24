@@ -477,14 +477,21 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       + `DROP TABLE ${quotedBackupTableName};`;
   }
 
-  startTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `SAVEPOINT ${this.quoteIdentifier(transaction.name)};`;
+  // TODO: migrate to SqliteQueryGeneratorTypeScript
+  startTransactionQuery(options) {
+    if (options?.type) {
+      return `BEGIN ${options.type} TRANSACTION;`;
     }
 
-    return `BEGIN ${transaction.options.type} TRANSACTION;`;
+    return 'BEGIN TRANSACTION;';
   }
 
+  // TODO: migrate to SqliteQueryGeneratorTypeScript
+  createSavepointQuery(savepointName) {
+    return `SAVEPOINT ${this.quoteIdentifier(savepointName)};`;
+  }
+
+  // TODO: migrate to SqliteQueryGeneratorTypeScript
   setIsolationLevelQuery(value) {
     switch (value) {
       case Transaction.ISOLATION_LEVELS.REPEATABLE_READ:

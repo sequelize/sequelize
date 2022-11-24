@@ -853,34 +853,38 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ]);
   }
 
+  // TODO: migrate to MssqlQueryGeneratorTypeScript
+  // TODO: how to deal with this void return? since the abstract method returns string
   setIsolationLevelQuery() {}
 
+  // TODO: migrate to MssqlQueryGeneratorTypeScript
   generateTransactionId() {
     return randomBytes(10).toString('hex');
   }
 
-  startTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `SAVE TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
+  // TODO: migrate to MssqlQueryGeneratorTypeScript
+  startTransactionQuery(_options) {
     return 'BEGIN TRANSACTION;';
   }
 
-  commitTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return;
-    }
+  // TODO: migrate to MssqlQueryGeneratorTypeScript
+  createSavepointQuery(savepointName) {
+    return `SAVE TRANSACTION ${this.quoteIdentifier(savepointName)};`;
+  }
 
+  // TODO: migrate to MssqlQueryGeneratorTypeScript
+  commitTransactionQuery() {
     return 'COMMIT TRANSACTION;';
   }
 
-  rollbackTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `ROLLBACK TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
+  // TODO: migrate to MssqlQueryGeneratorTypeScript
+  rollbackTransactionQuery() {
     return 'ROLLBACK TRANSACTION;';
+  }
+
+  // TODO: migrate to MssqlQueryGeneratorTypeScript
+  rollbackSavepointQuery(savepointName) {
+    return `ROLLBACK TRANSACTION ${this.quoteIdentifier(savepointName)};`;
   }
 
   selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {

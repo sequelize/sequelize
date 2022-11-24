@@ -1,13 +1,17 @@
+import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
 import type { ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
+import type { ISOLATION_LEVELS, Transaction } from '../../transaction.js';
 import { isPlainObject, isString, quoteIdentifier } from '../../utils/index.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
 
 export type TableNameOrModel = TableName | ModelStatic;
+
+export type StartTransactionQueryOptions = Transaction['options'];
 
 export interface QueryGeneratorOptions {
   sequelize: Sequelize;
@@ -133,5 +137,74 @@ export class AbstractQueryGeneratorTypeScript {
     tableB = this.extractTableDetails(tableB);
 
     return tableA.tableName === tableB.tableName && tableA.schema === tableB.schema;
+  }
+
+  /**
+   * Returns a query that sets the transaction isolation level.
+   *
+   * @param  value   The isolation level.
+   * @returns        The generated sql query.
+   * @private
+   */
+  setIsolationLevelQuery(value: ISOLATION_LEVELS): string {
+    return `SET TRANSACTION ISOLATION LEVEL ${value};`;
+  }
+
+  generateTransactionId() {
+    return randomUUID();
+  }
+
+  /**
+     * Returns a query that starts a transaction.
+     *
+     * @param   _options
+     * @returns          The generated sql query.
+     * @private
+     */
+  // TODO: research which dialects support specifying the transaction type (like sqlite) and implement this
+  startTransactionQuery(_options?: StartTransactionQueryOptions): string {
+    return 'START TRANSACTION;';
+  }
+
+  createSavepointQuery(savepointName: string) {
+    // force quoting of savepoint identifiers for postgres/snowflake
+    return `SAVEPOINT ${this.quoteIdentifier(savepointName, true)};`;
+  }
+
+  // TODO: research which additional dialects support this, and probably add a DialectSupports for this.
+  //       the error would then be either 'not been implemented' or 'not supported' depending on the dialect
+  setConstraintsDeferredQuery(_constraintNames?: string[]): string {
+    throw new Error(`setConstraintsDeferredQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  // TODO: research which additional dialects support this, and probably add a DialectSupports for this.
+  //       the error would then be either 'not been implemented' or 'not supported' depending on the dialect
+  setConstraintsImmediateQuery(_constraintNames?: string[]): string {
+    throw new Error(`setConstraintsImmediateQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+     * Returns a query that commits a transaction.
+     *
+     * @returns              The generated sql query.
+     * @private
+     */
+  commitTransactionQuery() {
+    return 'COMMIT;';
+  }
+
+  /**
+     * Returns a query that rollbacks a transaction.
+     *
+     * @returns              The generated sql query.
+     * @private
+     */
+  rollbackTransactionQuery(): string {
+    return 'ROLLBACK;';
+  }
+
+  rollbackSavepointQuery(savepointName: string) {
+    // force quoting of savepoint identifiers for postgres/snowflake
+    return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(savepointName, true)};`;
   }
 }

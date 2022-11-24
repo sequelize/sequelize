@@ -84,7 +84,7 @@ export class Deferrable {
     }
 
     toSql(queryGenerator: AbstractQueryGenerator): string {
-      return queryGenerator.setDeferredQuery(this.#constraints);
+      return queryGenerator.setConstraintsDeferredQuery(this.#constraints);
     }
   });
 
@@ -104,7 +104,7 @@ export class Deferrable {
     }
 
     toSql(queryGenerator: AbstractQueryGenerator): string {
-      return queryGenerator.setImmediateQuery(this.#constraints);
+      return queryGenerator.setConstraintsImmediateQuery(this.#constraints);
     }
   });
 }

@@ -857,34 +857,38 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return '';
   }
 
+  // TODO: migrate to Db2QueryGeneratorTypeScript
+  // TODO: how to deal with this void return? since the abstract method returns string
   setIsolationLevelQuery() {}
 
+  // TODO: migrate to Db2QueryGeneratorTypeScript
   generateTransactionId() {
     return randomBytes(10).toString('hex');
   }
 
-  startTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `SAVE TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
+  // TODO: migrate to Db2QueryGeneratorTypeScript
+  startTransactionQuery(_options) {
     return 'BEGIN TRANSACTION;';
   }
 
-  commitTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return;
-    }
+  // TODO: migrate to Db2QueryGeneratorTypeScript
+  createSavepointQuery(savepointName) {
+    return `SAVE TRANSACTION ${this.quoteIdentifier(savepointName)};`;
+  }
 
+  // TODO: migrate to Db2QueryGeneratorTypeScript
+  commitTransactionQuery() {
     return 'COMMIT TRANSACTION;';
   }
 
-  rollbackTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `ROLLBACK TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
+  // TODO: migrate to Db2QueryGeneratorTypeScript
+  rollbackTransactionQuery() {
     return 'ROLLBACK TRANSACTION;';
+  }
+
+  // TODO: migrate to Db2QueryGeneratorTypeScript
+  rollbackSavepointQuery(savepointName) {
+    return `ROLLBACK TRANSACTION ${this.quoteIdentifier(savepointName)};`;
   }
 
   addLimitAndOffset(options) {

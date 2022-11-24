@@ -1036,13 +1036,16 @@ if (dialect.startsWith('postgres')) {
           expectation: 'START TRANSACTION;',
           context: { options: { quoteIdentifiers: false } },
         },
+      ],
+
+      createSavepointQuery: [
         {
-          arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
+          arguments: ['transaction-uid'],
           expectation: 'SAVEPOINT "transaction-uid";',
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
+          arguments: ['transaction-uid'],
           expectation: 'SAVEPOINT "transaction-uid";',
           context: { options: { quoteIdentifiers: true } },
         },
@@ -1054,13 +1057,16 @@ if (dialect.startsWith('postgres')) {
           expectation: 'ROLLBACK;',
           context: { options: { quoteIdentifiers: false } },
         },
+      ],
+
+      rollbackSavepointQuery: [
         {
-          arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
+          arguments: ['transaction-uid'],
           expectation: 'ROLLBACK TO SAVEPOINT "transaction-uid";',
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
+          arguments: ['transaction-uid'],
           expectation: 'ROLLBACK TO SAVEPOINT "transaction-uid";',
           context: { options: { quoteIdentifiers: true } },
         },
