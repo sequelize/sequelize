@@ -21,7 +21,6 @@ export class Transaction {
   private readonly options: PartlyRequired<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
   readonly parent: Transaction | null;
   readonly id: string;
-  // TODO: this should become private, the savepoint queries should request the save point ID instead of a Transaction object
   readonly name: string;
   private finished: 'commit' | undefined;
   private connection: Connection | undefined;

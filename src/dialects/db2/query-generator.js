@@ -14,7 +14,6 @@ import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
 const _ = require('lodash');
 const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
-const randomBytes = require('crypto').randomBytes;
 const { Op } = require('../../operators');
 
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
@@ -855,40 +854,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
   setAutocommitQuery() {
     return '';
-  }
-
-  // TODO: migrate to Db2QueryGeneratorTypeScript
-  // TODO: how to deal with this void return? since the abstract method returns string
-  setIsolationLevelQuery() {}
-
-  // TODO: migrate to Db2QueryGeneratorTypeScript
-  generateTransactionId() {
-    return randomBytes(10).toString('hex');
-  }
-
-  // TODO: migrate to Db2QueryGeneratorTypeScript
-  startTransactionQuery(_options) {
-    return 'BEGIN TRANSACTION;';
-  }
-
-  // TODO: migrate to Db2QueryGeneratorTypeScript
-  createSavepointQuery(savepointName) {
-    return `SAVE TRANSACTION ${this.quoteIdentifier(savepointName)};`;
-  }
-
-  // TODO: migrate to Db2QueryGeneratorTypeScript
-  commitTransactionQuery() {
-    return 'COMMIT TRANSACTION;';
-  }
-
-  // TODO: migrate to Db2QueryGeneratorTypeScript
-  rollbackTransactionQuery() {
-    return 'ROLLBACK TRANSACTION;';
-  }
-
-  // TODO: migrate to Db2QueryGeneratorTypeScript
-  rollbackSavepointQuery(savepointName) {
-    return `ROLLBACK TRANSACTION ${this.quoteIdentifier(savepointName)};`;
   }
 
   addLimitAndOffset(options) {

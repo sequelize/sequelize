@@ -1,6 +1,7 @@
+import { randomBytes } from 'node:crypto';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { StartTransactionQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -45,5 +46,29 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   showIndexesQuery(tableName: TableNameOrModel) {
     return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(tableName))};`;
+  }
+
+  generateTransactionId() {
+    return randomBytes(10).toString('hex');
+  }
+
+  startTransactionQuery(_options: StartTransactionQueryOptions) {
+    return 'BEGIN TRANSACTION;';
+  }
+
+  createSavepointQuery(savepointName: string) {
+    return `SAVE TRANSACTION ${this.quoteIdentifier(savepointName)};`;
+  }
+
+  commitTransactionQuery() {
+    return 'COMMIT TRANSACTION;';
+  }
+
+  rollbackTransactionQuery() {
+    return 'ROLLBACK TRANSACTION;';
+  }
+
+  rollbackSavepointQuery(savepointName: string) {
+    return `ROLLBACK TRANSACTION ${this.quoteIdentifier(savepointName)};`;
   }
 }

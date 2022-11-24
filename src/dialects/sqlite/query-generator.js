@@ -477,36 +477,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       + `DROP TABLE ${quotedBackupTableName};`;
   }
 
-  // TODO: migrate to SqliteQueryGeneratorTypeScript
-  startTransactionQuery(options) {
-    if (options?.type) {
-      return `BEGIN ${options.type} TRANSACTION;`;
-    }
-
-    return 'BEGIN TRANSACTION;';
-  }
-
-  // TODO: migrate to SqliteQueryGeneratorTypeScript
-  createSavepointQuery(savepointName) {
-    return `SAVEPOINT ${this.quoteIdentifier(savepointName)};`;
-  }
-
-  // TODO: migrate to SqliteQueryGeneratorTypeScript
-  setIsolationLevelQuery(value) {
-    switch (value) {
-      case Transaction.ISOLATION_LEVELS.REPEATABLE_READ:
-        return '-- SQLite is not able to choose the isolation level REPEATABLE READ.';
-      case Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED:
-        return 'PRAGMA read_uncommitted = ON;';
-      case Transaction.ISOLATION_LEVELS.READ_COMMITTED:
-        return 'PRAGMA read_uncommitted = OFF;';
-      case Transaction.ISOLATION_LEVELS.SERIALIZABLE:
-        return '-- SQLite\'s default isolation level is SERIALIZABLE. Nothing to do.';
-      default:
-        throw new Error(`Unknown isolation level: ${value}`);
-    }
-  }
-
   replaceBooleanDefaults(sql) {
     return sql.replace(/DEFAULT '?false'?/g, 'DEFAULT 0').replace(/DEFAULT '?true'?/g, 'DEFAULT 1');
   }

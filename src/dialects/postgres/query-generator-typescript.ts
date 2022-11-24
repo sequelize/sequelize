@@ -48,4 +48,23 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;',
     ]);
   }
+
+  #setConstraintQuery(type: 'DEFERRED' | 'IMMEDIATE', constraintNames?: string[]) {
+    let constraintNameFragment = 'ALL';
+
+    if (constraintNames) {
+      constraintNameFragment = constraintNames.map(constraintName => this.quoteIdentifier(constraintName)).join(', ');
+    }
+
+    return `SET CONSTRAINTS ${constraintNameFragment} ${type}`;
+  }
+
+  setConstraintsDeferredQuery(constraintNames?: string[]) {
+    return this.#setConstraintQuery('DEFERRED', constraintNames);
+  }
+
+  setConstraintsImmediateQuery(constraintNames?: string[]) {
+    return this.#setConstraintQuery('IMMEDIATE', constraintNames);
+  }
+
 }

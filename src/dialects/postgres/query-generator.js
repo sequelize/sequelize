@@ -576,28 +576,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return options.deferrable.toString(this);
   }
 
-  // TODO: migrate this to PostgresQueryGeneratorTypeScript
-  // setConstraintQuery(_type: 'DEFERRED' | 'IMMEDIATE', _constraintNames?: string[]): string
-  #setConstraintQuery(type, constraintNames) {
-    let constraintNameFragment = 'ALL';
-
-    if (constraintNames) {
-      constraintNameFragment = constraintNames.map(constraintName => this.quoteIdentifier(constraintName)).join(', ');
-    }
-
-    return `SET CONSTRAINTS ${constraintNameFragment} ${type}`;
-  }
-
-  // TODO: migrate this to PostgresQueryGeneratorTypeScript
-  setConstraintsDeferredQuery(constraintNames) {
-    return this.#setConstraintQuery('DEFERRED', constraintNames);
-  }
-
-  // TODO: migrate this to PostgresQueryGeneratorTypeScript
-  setConstraintsImmediateQuery(constraintNames) {
-    return this.#setConstraintQuery('IMMEDIATE', constraintNames);
-  }
-
   attributesToSQL(attributes, options) {
     const result = {};
 

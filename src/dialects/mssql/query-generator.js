@@ -15,7 +15,6 @@ const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
 const { TableHints } = require('../../table-hints');
 const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const randomBytes = require('crypto').randomBytes;
 const semver = require('semver');
 const { Op } = require('../../operators');
 
@@ -851,40 +850,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       this.quoteIdentifier(constraintName),
       ';',
     ]);
-  }
-
-  // TODO: migrate to MssqlQueryGeneratorTypeScript
-  // TODO: how to deal with this void return? since the abstract method returns string
-  setIsolationLevelQuery() {}
-
-  // TODO: migrate to MssqlQueryGeneratorTypeScript
-  generateTransactionId() {
-    return randomBytes(10).toString('hex');
-  }
-
-  // TODO: migrate to MssqlQueryGeneratorTypeScript
-  startTransactionQuery(_options) {
-    return 'BEGIN TRANSACTION;';
-  }
-
-  // TODO: migrate to MssqlQueryGeneratorTypeScript
-  createSavepointQuery(savepointName) {
-    return `SAVE TRANSACTION ${this.quoteIdentifier(savepointName)};`;
-  }
-
-  // TODO: migrate to MssqlQueryGeneratorTypeScript
-  commitTransactionQuery() {
-    return 'COMMIT TRANSACTION;';
-  }
-
-  // TODO: migrate to MssqlQueryGeneratorTypeScript
-  rollbackTransactionQuery() {
-    return 'ROLLBACK TRANSACTION;';
-  }
-
-  // TODO: migrate to MssqlQueryGeneratorTypeScript
-  rollbackSavepointQuery(savepointName) {
-    return `ROLLBACK TRANSACTION ${this.quoteIdentifier(savepointName)};`;
   }
 
   selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
