@@ -1,5 +1,5 @@
 import type { CreationOptional, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
-import { DataTypes, Deferrable } from '@sequelize/core';
+import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import { sequelize } from '../support';
 
@@ -35,7 +35,7 @@ describe('Sequelize#truncate', () => {
 
       await sequelize.sync();
 
-      await sequelize.transaction({ deferrable: Deferrable.SET_DEFERRED }, async transaction => {
+      await sequelize.transaction(async transaction => {
         const a = await A.create({
           BId: null,
         }, { transaction });
