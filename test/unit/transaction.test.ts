@@ -76,8 +76,8 @@ describe('Transaction', () => {
         'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;',
       ],
       db2: [
-        'BEGIN TRANSACTION',
-        'CHANGE ISOLATION LEVEL TO UR;',
+        'BEGIN TRANSACTION;',
+        'CHANGE ISOLATION TO UR;',
       ],
     };
 
