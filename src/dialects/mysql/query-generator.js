@@ -13,7 +13,7 @@ import {
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { Op } = require('../../operators');
 
 const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
@@ -38,7 +38,7 @@ const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
-export class MySqlQueryGenerator extends AbstractQueryGenerator {
+export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
@@ -166,15 +166,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
       ';',
     ]);
-  }
-
-  // TODO: remove schema, schemaDelimiter options
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    tableName = this.extractTableDetails(tableName);
-    tableName.schema = schema || tableName.schema;
-    tableName.delimiter = schemaDelimiter || tableName.delimiter;
-
-    return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
   showTablesQuery(schemaName) {
@@ -363,12 +354,6 @@ export class MySqlQueryGenerator extends AbstractQueryGenerator {
     }
 
     return query;
-  }
-
-  showIndexesQuery(tableName) {
-    return joinSQLFragments([
-      `SHOW INDEX FROM ${this.quoteTable(tableName)}`,
-    ]);
   }
 
   showConstraintsQuery(table, constraintName) {

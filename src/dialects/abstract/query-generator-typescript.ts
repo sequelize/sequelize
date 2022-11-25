@@ -40,6 +40,14 @@ export class AbstractQueryGeneratorTypeScript {
     return this.sequelize.options;
   }
 
+  describeTableQuery(tableName: TableNameOrModel) {
+    return `DESCRIBE ${this.quoteTable(tableName)};`;
+  }
+
+  showIndexesQuery(_tableName: TableNameOrModel): string {
+    throw new Error(`showIndexesQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
   extractTableDetails(
     tableNameOrModel: TableNameOrModel,
     options?: { schema?: string, delimiter?: string },
