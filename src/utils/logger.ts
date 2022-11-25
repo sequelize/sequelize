@@ -5,7 +5,7 @@
  * @module logging
  * @access package
  */
-import util from 'util';
+import util from 'node:util';
 import nodeDebug from 'debug';
 
 /**

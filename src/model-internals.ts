@@ -1,4 +1,4 @@
-import NodeUtil from 'util';
+import NodeUtil from 'node:util';
 import { EagerLoadingError } from './errors';
 import type { Transactionable } from './model';
 import type { Sequelize } from './sequelize';

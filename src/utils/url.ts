@@ -1,5 +1,5 @@
-import path from 'path';
-import url from 'url';
+import path from 'node:path';
+import url from 'node:url';
 import type { ConnectionOptions } from 'pg-connection-string';
 import pgConnectionString from 'pg-connection-string';
 import type { Dialect, DialectOptions, Options } from '../sequelize';

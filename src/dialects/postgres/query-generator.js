@@ -1,8 +1,10 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { Json } from '../../utils/sequelize-method';
+import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
-import { quoteIdentifier } from '../../utils/dialect';
+import { quoteIdentifier, removeTicks } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
@@ -10,7 +12,6 @@ import {
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const Utils = require('../../utils');
 const util = require('util');
 const DataTypes = require('../../data-types');
 const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescript');
@@ -128,7 +129,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       _.each(options.uniqueKeys, (columns, indexName) => {
         if (columns.customIndex) {
           if (typeof indexName !== 'string') {
-            indexName = Utils.generateIndexName(tableName, columns);
+            indexName = generateIndexName(tableName, columns);
           }
 
           attributesClause += `, CONSTRAINT ${
@@ -251,7 +252,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Utils.Json) {
+    if (smth instanceof Json) {
       // Parse nested object
       if (smth.conditions) {
         const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`);
@@ -437,7 +438,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.generateIndexName(tableName, { fields: indexNameOrAttributes });
+      indexName = generateIndexName(tableName, { fields: indexNameOrAttributes });
     }
 
     return [
@@ -655,7 +656,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   pgEscapeAndQuote(val) {
-    return this.quoteIdentifier(Utils.removeTicks(this.escape(val), '\''));
+    return this.quoteIdentifier(removeTicks(this.escape(val), '\''));
   }
 
   _expandFunctionParamList(params) {

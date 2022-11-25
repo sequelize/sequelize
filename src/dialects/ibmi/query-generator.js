@@ -1,7 +1,10 @@
 'use strict';
 
+import { underscore } from 'inflection';
 import { rejectInvalidOptions } from '../../utils/check';
-import { removeTrailingSemicolon } from '../../utils/string';
+import { addTicks } from '../../utils/dialect';
+import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
+import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
@@ -11,7 +14,6 @@ import {
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const Utils = require('../../utils');
 const util = require('util');
 const _ = require('lodash');
 const { IBMiQueryGeneratorTypeScript } = require('./query-generator-typescript');
@@ -246,7 +248,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Utils.Json) {
+    if (smth instanceof Json) {
       // Parse nested object
       if (smth.conditions) {
         const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.quoteIdentifier(condition.path[0])}->>'$.${_.tail(condition.path).join('.')}' = '${condition.value}'`);
@@ -290,7 +292,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
         return str;
       }
-    } else if (smth instanceof Utils.Cast) {
+    } else if (smth instanceof Cast) {
       if (/timestamp/i.test(smth.type)) {
         smth.type = 'timestamp';
       } else if (smth.json && /boolean/i.test(smth.type)) {
@@ -307,7 +309,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   }
 
   escape(value, field, options) {
-    if (value instanceof Utils.SequelizeMethod) {
+    if (value instanceof SequelizeMethod) {
       return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
@@ -378,7 +380,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         return this.quoteIdentifier(field);
       }
 
-      if (field instanceof Utils.SequelizeMethod) {
+      if (field instanceof SequelizeMethod) {
         return this.handleSequelizeMethod(field);
       }
 
@@ -412,7 +414,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     if (!options.name) {
       // Mostly for cases where addIndex is called directly by the user without an options object (for example in migrations)
       // All calls that go through sequelize should already have a name
-      options = Utils.nameIndex(options, options.prefix);
+      options = nameIndex(options, options.prefix);
     }
 
     options = Model._conformIndex(options);
@@ -600,7 +602,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
+      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
     return `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = '${indexName}') THEN DROP INDEX "${indexName}"; COMMIT; END IF; END`;
@@ -814,5 +816,5 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
  * @deprecated use "escape" or "escapeString" on QueryGenerator
  */
 function wrapSingleQuote(identifier) {
-  return Utils.addTicks(identifier, '\'');
+  return addTicks(identifier, '\'');
 }

@@ -10,7 +10,7 @@ import type {
   WhereOptions,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
-import type { Literal, SequelizeMethod } from '../../utils/index.js';
+import type { Literal, SequelizeMethod } from '../../utils/sequelize-method.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';

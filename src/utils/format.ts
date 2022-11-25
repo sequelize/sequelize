@@ -1,13 +1,13 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type {
-  Model,
-  ModelStatic,
-  WhereOptions,
-  ModelAttributeColumnOptions,
   Attributes,
   BuiltModelAttributeColumnOptions,
+  Model,
+  ModelAttributeColumnOptions,
+  ModelStatic,
+  WhereOptions,
 } from '..';
 import * as DataTypes from '../data-types';
 import { Op as operators } from '../operators';
@@ -156,6 +156,17 @@ export function getComplexKeys(obj: object): Array<string | symbol> {
     ...getOperators(obj),
     ...Object.keys(obj),
   ];
+}
+
+/**
+ * getComplexSize
+ *
+ * @param obj
+ * @returns Length of object properties including operators if obj is array returns its length
+ * @private
+ */
+export function getComplexSize(obj: object | any[]): number {
+  return Array.isArray(obj) ? obj.length : getComplexKeys(obj).length;
 }
 
 /**

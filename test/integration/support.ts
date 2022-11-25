@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import { QueryTypes } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import pTimeout from 'p-timeout';
