@@ -7,7 +7,7 @@
       "@sequelize/core": ["../types/index.d.ts"],
       "@sequelize/core/_non-semver-use-at-your-own-risk_/*": ["../types/*"],
       "@sequelize/core/package.json": ["../package.json"],
-      "@sequelize/core/decorators-legacy": ["../types/decorators/legacy/index.d.ts"],
+      "@sequelize/core/decorators-legacy": ["../types/decorators/legacy/index.d.ts"]
     },
     "types": ["node", "mocha", "sinon", "chai", "sinon-chai", "chai-as-promised", "chai-datetime"],
     "noEmit": true,
