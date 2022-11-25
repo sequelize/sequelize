@@ -85,7 +85,7 @@ export class PostgresQueryInterface extends QueryInterface {
         // If the enum type doesn't exist then create it
         if (!results[enumIdx]) {
           promises.push(() => {
-            return this.sequelize.queryRaw(this.queryGenerator.pgEnum(tableName, field, enumType, options), { ...options, raw: true });
+            return this.sequelize.queryRaw(this.queryGenerator.createEnumQuery(tableName, field, enumType, options), { ...options, raw: true });
           });
         } else if (Boolean(results[enumIdx]) && Boolean(model)) {
           const enumVals = this.queryGenerator.fromArray(results[enumIdx].enum_value);

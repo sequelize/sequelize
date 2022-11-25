@@ -950,6 +950,8 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       throw new TypeError('createEnumQuery expects an instance of the ENUM DataType');
     }
 
+    tableName = this.extractTableDetails(tableName);
+
     const enumName = options?.enumName || this.pgEnumName(tableName, attr, { ...options, noEscape: true, schema: false });
     const values = `ENUM(${dataType.options.values.map(value => this.escape(value))
       .join(', ')})`;
