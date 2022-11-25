@@ -1,7 +1,6 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils/check';
-import { now } from '../../utils/dialect';
 import { removeNullishValuesFromHash } from '../../utils/format';
 import { SequelizeMethod } from '../../utils/sequelize-method';
 import { removeTrailingSemicolon, underscore } from '../../utils/string';

@@ -35,7 +35,6 @@ export { useInflection } from './utils/string';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils';
 export type { Validator } from './utils/validator-extras';
 export { Deferrable } from './deferrable';
-export type { Optional } from './utils/types.js';
-export type { PartlyRequired } from './utils/types.js';
+export type { Optional, PartlyRequired } from './utils/types.js';
 export { Col, Cast, Fn, Json, Where, Literal, SequelizeMethod } from './utils/sequelize-method.js';
 export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';

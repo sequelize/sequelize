@@ -1,4 +1,4 @@
-import type { Class } from 'type-fest';
+import type { Class, SetRequired } from 'type-fest';
 import type {
   Association,
   BelongsTo,
@@ -32,7 +32,7 @@ import type {
   AnyFunction,
   MakeNullishOptional,
   Nullish,
-  OmitConstructors, SetRequired,
+  OmitConstructors,
 } from './utils/types.js';
 import type { LOCK, Op, Optional, Transaction, TableHints } from './index';
 

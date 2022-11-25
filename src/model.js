@@ -4,7 +4,7 @@ import omit from 'lodash/omit';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { BaseError } from './errors';
 import { intersects } from './utils/array';
-import { now, toDefaultValue } from './utils/dialect';
+import { toDefaultValue } from './utils/dialect';
 import {
   getComplexKeys,
   mapFinderOptions,
