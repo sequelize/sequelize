@@ -25,6 +25,11 @@
       "require": "./lib/index.js",
       "types": "./types/index.d.ts"
     },
+    "./decorators-legacy": {
+      "types": "./types/decorators/legacy/index.d.ts",
+      "import": "./lib/decorators/legacy/index.mjs",
+      "require": "./lib/decorators/legacy/index.js"
+    },
     "./_non-semver-use-at-your-own-risk_/*": {
       "types": "./types/*",
       "default": "./lib/*"
