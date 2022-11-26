@@ -936,6 +936,12 @@ export interface FindOptions<TAttributes = any>
    * Use a table hint for the query, only supported in MSSQL.
    */
   tableHint?: TableHints;
+
+  /**
+   * Use to manipulate model instances.
+   * Get the results in the format you want in your mixed queries.
+   */
+  manipulate?: <M extends Model>(instancesOrInstance: M[] | M | null) => {}
 }
 
 export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttributes> {
