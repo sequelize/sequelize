@@ -1946,9 +1946,9 @@ Specify a different name for either index to resolve this issue.`);
               const instance = associations[i];
 
               if (manipulate) {
-                memo.push(manipulate(instance))
+                memo.push(manipulate(instance));
               } else {
-                memo.push(instance)
+                memo.push(instance);
               }
             }
 
