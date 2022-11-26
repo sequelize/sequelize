@@ -92,6 +92,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'name', 'value', 'updatedAt',
         ]);
       });
+
+      it('should work with objects with getters', async function () {
+        await this.UserNoTime.upsert({
+          get name() {
+            return 'Silly Cat';
+          },
+        });
+
+        expect(this.stub.getCall(0).args[2]).to.deep.equal({
+          name: 'Silly Cat',
+        });
+      });
+
+      it('should work with instances of classes with getters', async function () {
+        class MyUserDTO {
+          get name() {
+            return 'Silly Cat';
+          }
+        }
+
+        await this.UserNoTime.upsert(new MyUserDTO());
+
+        expect(this.stub.getCall(0).args[2]).to.deep.equal({
+          name: 'Silly Cat',
+        });
+      });
     });
   }
 });
