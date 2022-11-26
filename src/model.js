@@ -1925,6 +1925,8 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     await Promise.all(options.include.map(async include => {
+      const { manipulate } = include;
+
       if (!include.separate) {
         return await Model._findSeparate(
           results.reduce((memo, result) => {
@@ -1941,7 +1943,13 @@ Specify a different name for either index to resolve this issue.`);
             }
 
             for (let i = 0, len = associations.length; i !== len; ++i) {
-              memo.push(associations[i]);
+              const instance = associations[i];
+
+              if (manipulate) {
+                memo.push(manipulate(instance))
+              } else {
+                memo.push(instance)
+              }
             }
 
             return memo;
@@ -1961,9 +1969,13 @@ Specify a different name for either index to resolve this issue.`);
       });
 
       for (const result of results) {
+        const instance = map[result.get(include.association.sourceKey)];
+
         result.set(
           include.association.as,
-          map.get(result.get(include.association.sourceKey)),
+          manipulate
+            ? manipulate(instance)
+            : instance,
           { raw: true },
         );
       }
