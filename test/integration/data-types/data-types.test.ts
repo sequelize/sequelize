@@ -1661,9 +1661,9 @@ export async function testSimpleInOutRaw<M extends Model, Key extends keyof Crea
   // @ts-expect-error -- we can't guarantee that this model doesn't expect more than one property, but it's just a test util.
   const createdUser = await model.create({ [attributeName]: inVal });
 
-  const quotedTableName = model.sequelize!.queryInterface.queryGenerator.quoteIdentifier(model.tableName);
-  const quotedId = model.sequelize!.queryInterface.queryGenerator.quoteIdentifier('id');
-  const fetchedUser = await model.sequelize!.query<any>(`SELECT * FROM ${quotedTableName} WHERE ${quotedId} = :id`, {
+  const quotedTableName = model.queryGenerator.quoteIdentifier(model.tableName);
+  const quotedId = model.queryGenerator.quoteIdentifier('id');
+  const fetchedUser = await model.sequelize.query<any>(`SELECT * FROM ${quotedTableName} WHERE ${quotedId} = :id`, {
     type: QueryTypes.SELECT,
     replacements: {
       // @ts-expect-error -- it's not worth it to type .id for these internal tests.

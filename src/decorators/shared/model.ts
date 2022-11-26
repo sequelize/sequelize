@@ -139,3 +139,7 @@ export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): vo
     sequelize,
   });
 }
+
+export function isDecoratedModel(model: ModelStatic): boolean {
+  return registeredOptions.has(model);
+}
