@@ -1,13 +1,10 @@
 import Pkg from './index.js';
 
+export const AfterAssociate = Pkg.AfterAssociate;
 export const AfterBulkCreate = Pkg.AfterBulkCreate;
 export const AfterBulkDestroy = Pkg.AfterBulkDestroy;
 export const AfterBulkRestore = Pkg.AfterBulkRestore;
 export const AfterBulkUpdate = Pkg.AfterBulkUpdate;
-export const BeforeBulkCreate = Pkg.BeforeBulkCreate;
-export const BeforeBulkDestroy = Pkg.BeforeBulkDestroy;
-export const BeforeBulkRestore = Pkg.BeforeBulkRestore;
-export const BeforeBulkUpdate = Pkg.BeforeBulkUpdate;
 export const AfterCreate = Pkg.AfterCreate;
 export const AfterDestroy = Pkg.AfterDestroy;
 export const AfterFind = Pkg.AfterFind;
@@ -17,6 +14,11 @@ export const AfterSync = Pkg.AfterSync;
 export const AfterUpdate = Pkg.AfterUpdate;
 export const AfterUpsert = Pkg.AfterUpsert;
 export const AfterValidate = Pkg.AfterValidate;
+export const BeforeAssociate = Pkg.BeforeAssociate;
+export const BeforeBulkCreate = Pkg.BeforeBulkCreate;
+export const BeforeBulkDestroy = Pkg.BeforeBulkDestroy;
+export const BeforeBulkRestore = Pkg.BeforeBulkRestore;
+export const BeforeBulkUpdate = Pkg.BeforeBulkUpdate;
 export const BeforeCount = Pkg.BeforeCount;
 export const BeforeCreate = Pkg.BeforeCreate;
 export const BeforeDestroy = Pkg.BeforeDestroy;

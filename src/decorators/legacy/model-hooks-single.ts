@@ -1,6 +1,18 @@
 import type { HookOptions, HookDecoratorArgs } from './hook-decorators.js';
 import { implementHookDecorator } from './hook-decorators.js';
 
+export function BeforeAssociate(target: Object, propertyName: string): void;
+export function BeforeAssociate(options: HookOptions): MethodDecorator;
+export function BeforeAssociate(...args: HookDecoratorArgs): undefined | MethodDecorator {
+  return implementHookDecorator('beforeAssociate', args);
+}
+
+export function AfterAssociate(target: Object, propertyName: string): void;
+export function AfterAssociate(options: HookOptions): MethodDecorator;
+export function AfterAssociate(...args: HookDecoratorArgs): undefined | MethodDecorator {
+  return implementHookDecorator('afterAssociate', args);
+}
+
 export function BeforeCount(target: Object, propertyName: string): void;
 export function BeforeCount(options: HookOptions): MethodDecorator;
 export function BeforeCount(...args: HookDecoratorArgs): undefined | MethodDecorator {

@@ -1,5 +1,6 @@
 import upperFirst from 'lodash/upperFirst';
 import type { ModelHooks } from '../../model-typescript.js';
+import { Model } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 
 export interface HookOptions {
@@ -46,13 +47,13 @@ function addHook(
 ): void {
   if (typeof targetModel !== 'function') {
     throw new TypeError(
-      `Decorator @${upperFirst(hookType)} has been used on method "${targetModel.constructor.name}.${String(methodName)}" which is not static. Only static methods can be used for hooks`,
+      `Decorator @${upperFirst(hookType)} has been used on method "${targetModel.constructor.name}.${String(methodName)}" which is not static. Only static methods can be used for hooks.`,
     );
   }
 
   if (!isModelStatic(targetModel)) {
     throw new TypeError(
-      `Decorator @${upperFirst(hookType)} has been used on "${targetModel.name}.${String(methodName)}", but class "${targetModel.name}" does not extend Model. Hook decorators can only be used on models`,
+      `Decorator @${upperFirst(hookType)} has been used on "${targetModel.name}.${String(methodName)}", but class "${targetModel.name}" does not extend Model. Hook decorators can only be used on models.`,
     );
   }
 
@@ -60,15 +61,15 @@ function addHook(
   const targetMethod: unknown = targetModel[methodName];
   if (typeof targetMethod !== 'function') {
     throw new TypeError(
-      `Decorator @${upperFirst(hookType)} has been used on "${targetModel.name}.${String(methodName)}", which is not a method`,
+      `Decorator @${upperFirst(hookType)} has been used on "${targetModel.name}.${String(methodName)}", which is not a method.`,
     );
   }
 
-  if (options?.name) {
-    targetModel.addHook(hookType, options.name, targetMethod.bind(targetModel));
-
-    return;
+  if (methodName in Model) {
+    throw new Error(
+      `Decorator @${upperFirst(hookType)} has been used on "${targetModel.name}.${String(methodName)}", but method ${JSON.stringify(methodName)} already exists on the base Model class and replacing it can lead to issues.`,
+    );
   }
 
-  targetModel.addHook(hookType, targetMethod.bind(targetModel));
+  targetModel.hooks.addListener(hookType, targetMethod.bind(targetModel), options?.name);
 }
