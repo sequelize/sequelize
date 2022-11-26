@@ -1,6 +1,7 @@
 'use strict';
 
 import omit from 'lodash/omit';
+import { isDecoratedModel } from './decorators/shared/model';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { BaseError } from './errors';
 import { intersects } from './utils/array';
@@ -854,8 +855,21 @@ Specify a different name for either index to resolve this issue.`);
    * @returns {Model}
    */
   static init(attributes, options = {}) {
+    // TODO: In a future major release, Model.init should be reworked to work in two steps:
+    //  - Model.init, Model.hasOne, Model.hasMany, Model.belongsTo, and Model.belongsToMany should *only* call registerModelAttributeOptions, registerModelOptions, and registerModelAssociation
+    //  - Then all models are passed to the Sequelize constructor, which actually inits the options & attributes of all models, *then* adds all associations.
+    //  - If the model is already registered, Model.hasOne, Model.hasMany, Model.belongsTo, and Model.belongsToMany should add the association immediately, so sequelize.define() continues to work
+    //  Model.init should be renamed to something else to prevent confusion (Model.configure?)
+    if (isDecoratedModel(this)) {
+      throw new Error(`Model.init cannot be used if the model uses one of Sequelize's decorators. You must pass your model to the Sequelize constructor using the "models" option instead.`);
+    }
+
+    return this._internalInit(attributes, options);
+  }
+
+  static _internalInit(attributes, options = {}) {
     if (!options.sequelize) {
-      throw new Error('No Sequelize instance passed');
+      throw new Error('Model.init expects a Sequelize instance to be passed through the option bag, which is the second parameter.');
     }
 
     this._setSequelize(options.sequelize);

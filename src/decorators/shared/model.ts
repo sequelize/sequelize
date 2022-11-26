@@ -134,7 +134,8 @@ export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): vo
   const { model: modelOptions, attributes: attributeOptions } = registeredOptions.get(model) ?? {};
 
   // model.init will ensure all required attributeOptions have been specified.
-  model.init(attributeOptions as ModelAttributes, {
+  // @ts-expect-error secret method
+  model._internalInit(attributeOptions as ModelAttributes, {
     ...modelOptions,
     sequelize,
   });

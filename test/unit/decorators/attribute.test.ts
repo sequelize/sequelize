@@ -14,6 +14,15 @@ describe(`@Attribute legacy decorator`, () => {
     expect(() => new Test()).to.throw(/has not been initialized/);
   });
 
+  it('prevents using Model.init', () => {
+    class Test extends Model {
+      @Attribute(DataTypes.BIGINT)
+      declare id: bigint;
+    }
+
+    expect(() => Test.init({}, { sequelize })).to.throw(/pass your model to the Sequelize constructor/);
+  });
+
   it('registers an attribute when sequelize.addModels is called', () => {
     class BigIntModel extends Model<InferAttributes<BigIntModel>> {
       @Attribute({ type: DataTypes.BIGINT, primaryKey: true })

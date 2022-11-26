@@ -11,6 +11,15 @@ describe(`@Table legacy decorator`, () => {
     expect(() => new Test()).to.throw(/has not been initialized/);
   });
 
+  it('prevents using Model.init', () => {
+    @Table
+    class Test extends Model {
+      declare id: bigint;
+    }
+
+    expect(() => Test.init({}, { sequelize })).to.throw(/pass your model to the Sequelize constructor/);
+  });
+
   it('supports specifying options', () => {
     @Table({ tableName: 'custom_users' })
     class User extends Model {}
