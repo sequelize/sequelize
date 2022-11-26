@@ -3,7 +3,7 @@ import uniq from 'lodash/uniq';
 import type { ModelStatic } from './model.js';
 import { isModelStatic } from './utils/model-utils.js';
 
-type ModelMatch = (path?: string, exportName?: string, exportValue?: ModelStatic) => boolean;
+type ModelMatch = (path: string, exportName: string, exportValue: ModelStatic) => boolean;
 
 /**
  * Imports all model classes exported in the file matching the specified globs.
