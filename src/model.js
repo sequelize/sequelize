@@ -64,25 +64,6 @@ const nonCascadingOptions = ['include', 'attributes', 'originalAttributes', 'ord
  * @see {Sequelize#define} for more information about getters and setters
  */
 export class Model extends ModelTypeScript {
-  static get queryInterface() {
-    return this.sequelize.getQueryInterface();
-  }
-
-  static get queryGenerator() {
-    return this.queryInterface.queryGenerator;
-  }
-
-  /**
-   * A reference to the sequelize instance
-   *
-   * @property sequelize
-   *
-   * @returns {Sequelize}
-   */
-  get sequelize() {
-    return this.constructor.sequelize;
-  }
-
   /**
    * Builds a new model instance.
    *
@@ -95,6 +76,8 @@ export class Model extends ModelTypeScript {
    */
   constructor(values = {}, options = {}) {
     super();
+
+    this.constructor.assertIsInitialized();
 
     if (!this.constructor._overwrittenAttributesChecked) {
       this.constructor._overwrittenAttributesChecked = true;
@@ -875,7 +858,7 @@ Specify a different name for either index to resolve this issue.`);
       throw new Error('No Sequelize instance passed');
     }
 
-    this.sequelize = options.sequelize;
+    this._setSequelize(options.sequelize);
 
     const globalOptions = this.sequelize.options;
 
@@ -1745,6 +1728,7 @@ Specify a different name for either index to resolve this issue.`);
     model._initialModel = this;
     Object.defineProperty(model, 'name', { value: this.name });
 
+    model._setSequelize(this.sequelize);
     model.rawAttributes = _.mapValues(this.rawAttributes, attributeDefinition => {
       return {
         ...attributeDefinition,
