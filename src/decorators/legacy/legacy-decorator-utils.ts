@@ -10,6 +10,12 @@ export interface ParameterizedPropertyDecorator<T> {
   (target: Object, propertyName: string | symbol, propertyDescriptor?: PropertyDescriptor): void;
 }
 
+/**
+ * Makes a decorator that can optionally receive a parameter
+ *
+ * @param defaultValue The value to use if no parameter is provided.
+ * @param callback The callback that will be executed once the decorator is applied.
+ */
 export function makeParameterizedPropertyDecorator<T>(
   defaultValue: T,
   callback: (

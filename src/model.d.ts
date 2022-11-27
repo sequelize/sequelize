@@ -1696,7 +1696,7 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> {
    * composite unique index. If multiple columns have the same string, they will be part of the same unique
    * index
    */
-  unique?: AllowArray<boolean | string | { name: string, msg: string }>;
+  unique?: AllowArray<boolean | string | { name: string, msg?: string }>;
 
   /**
    * If true, this attribute will be marked as primary key
