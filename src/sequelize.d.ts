@@ -307,6 +307,37 @@ export interface Options extends Logging {
    */
   omitNull?: boolean;
 
+  // TODO: https://github.com/sequelize/sequelize/issues/14298
+  //  Model.init should be able to omit the "sequelize" parameter and only be initialized once passed to a Sequelize instance
+  //  using this option.
+  //  Association definition methods should be able to be used on not-yet-initialized models, and be registered once the
+  //  Sequelize constructor inits.
+  /**
+   * A list of models to load and init.
+   *
+   * This option is only useful if you created your models using decorators.
+   * Models created using {@link Model.init} or {@link Sequelize#define} don't need to be specified in this option.
+   *
+   * Use {@link importModels} to load models dynamically:
+   *
+   * @example
+   * ```ts
+   * import { User } from './models/user.js';
+   *
+   * new Sequelize({
+   *   models: [User],
+   * });
+   * ```
+   *
+   * @example
+   * ```ts
+   * new Sequelize({
+   *   models: await importModels(__dirname + '/*.model.ts'),
+   * });
+   * ```
+   */
+  models?: ModelStatic[];
+
   /**
    * A flag that defines if native library shall be used or not. Currently only has an effect for postgres
    *

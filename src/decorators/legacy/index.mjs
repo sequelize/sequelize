@@ -1,5 +1,9 @@
 import Pkg from './index.js';
 
+export const Column = Pkg.Column;
+export const Attribute = Pkg.Attribute;
+export const Table = Pkg.Table;
+
 export const AfterAssociate = Pkg.AfterAssociate;
 export const AfterBulkCreate = Pkg.AfterBulkCreate;
 export const AfterBulkDestroy = Pkg.AfterBulkDestroy;

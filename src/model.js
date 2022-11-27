@@ -1,6 +1,7 @@
 'use strict';
 
 import omit from 'lodash/omit';
+import { isDecoratedModel } from './decorators/shared/model';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { BaseError } from './errors';
 import { intersects } from './utils/array';
@@ -64,25 +65,6 @@ const nonCascadingOptions = ['include', 'attributes', 'originalAttributes', 'ord
  * @see {Sequelize#define} for more information about getters and setters
  */
 export class Model extends ModelTypeScript {
-  static get queryInterface() {
-    return this.sequelize.getQueryInterface();
-  }
-
-  static get queryGenerator() {
-    return this.queryInterface.queryGenerator;
-  }
-
-  /**
-   * A reference to the sequelize instance
-   *
-   * @property sequelize
-   *
-   * @returns {Sequelize}
-   */
-  get sequelize() {
-    return this.constructor.sequelize;
-  }
-
   /**
    * Builds a new model instance.
    *
@@ -95,6 +77,8 @@ export class Model extends ModelTypeScript {
    */
   constructor(values = {}, options = {}) {
     super();
+
+    this.constructor.assertIsInitialized();
 
     if (!this.constructor._overwrittenAttributesChecked) {
       this.constructor._overwrittenAttributesChecked = true;
@@ -871,11 +855,24 @@ Specify a different name for either index to resolve this issue.`);
    * @returns {Model}
    */
   static init(attributes, options = {}) {
-    if (!options.sequelize) {
-      throw new Error('No Sequelize instance passed');
+    // TODO: In a future major release, Model.init should be reworked to work in two steps:
+    //  - Model.init, Model.hasOne, Model.hasMany, Model.belongsTo, and Model.belongsToMany should *only* call registerModelAttributeOptions, registerModelOptions, and registerModelAssociation
+    //  - Then all models are passed to the Sequelize constructor, which actually inits the options & attributes of all models, *then* adds all associations.
+    //  - If the model is already registered, Model.hasOne, Model.hasMany, Model.belongsTo, and Model.belongsToMany should add the association immediately, so sequelize.define() continues to work
+    //  Model.init should be renamed to something else to prevent confusion (Model.configure?)
+    if (isDecoratedModel(this)) {
+      throw new Error(`Model.init cannot be used if the model uses one of Sequelize's decorators. You must pass your model to the Sequelize constructor using the "models" option instead.`);
     }
 
-    this.sequelize = options.sequelize;
+    return this._internalInit(attributes, options);
+  }
+
+  static _internalInit(attributes, options = {}) {
+    if (!options.sequelize) {
+      throw new Error('Model.init expects a Sequelize instance to be passed through the option bag, which is the second parameter.');
+    }
+
+    this._setSequelize(options.sequelize);
 
     const globalOptions = this.sequelize.options;
 
@@ -1745,6 +1742,7 @@ Specify a different name for either index to resolve this issue.`);
     model._initialModel = this;
     Object.defineProperty(model, 'name', { value: this.name });
 
+    model._setSequelize(this.sequelize);
     model.rawAttributes = _.mapValues(this.rawAttributes, attributeDefinition => {
       return {
         ...attributeDefinition,

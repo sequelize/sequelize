@@ -228,7 +228,7 @@ export function defineAssociation<
   checkNamingCollision(source, normalizedOptions.as);
   assertAssociationUnique(type, source, target, normalizedOptions, parent);
 
-  const sequelize = source.sequelize!;
+  const sequelize = source.sequelize;
   Object.defineProperty(normalizedOptions, 'sequelize', {
     configurable: true,
     get() {

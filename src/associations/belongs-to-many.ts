@@ -881,7 +881,7 @@ function normalizeOptions<SourceKey extends string, TargetKey extends string, Th
     throw new TypeError('The "uniqueKey" option in belongsToMany has been renamed to through.unique');
   }
 
-  const sequelize = target.sequelize!;
+  const sequelize = target.sequelize;
 
   return normalizeBaseAssociationOptions(type, {
     ...options,

@@ -27,7 +27,7 @@ class MyModel extends Model<InferAttributes<MyModel>, InferCreationAttributes<My
   };
 
   static async customStuff() {
-    return this.sequelize!.query('select 1');
+    return this.sequelize.query('select 1');
   }
 }
 

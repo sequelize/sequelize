@@ -11,6 +11,7 @@ import { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
+import { importModels } from './import-models.js';
 
 const retry = require('retry-as-promised');
 const _ = require('lodash');
@@ -413,6 +414,10 @@ export class Sequelize extends SequelizeTypeScript {
     this.models = {};
     this.modelManager = new ModelManager(this);
     this.connectionManager = this.dialect.connectionManager;
+
+    if (options.models) {
+      this.addModels(options.models);
+    }
 
     Sequelize.hooks.runSync('afterInit', this);
   }
@@ -1080,6 +1085,8 @@ Use Sequelize#query if you wish to use replacements.`);
   static isModelStatic = isModelStatic;
 
   static isSameInitialModel = isSameInitialModel;
+
+  static importModels = importModels;
 
   log(...args) {
     let options;
