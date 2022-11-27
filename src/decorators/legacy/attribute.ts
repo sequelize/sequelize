@@ -4,8 +4,8 @@ import type { ModelAttributeColumnOptions, ModelStatic } from '../../model.js';
 import { Model } from '../../model.js';
 import { columnToAttribute } from '../../utils/deprecations.js';
 import { registerModelAttributeOptions } from '../shared/model.js';
-import type { PropertyOrGetterDescriptor } from './legacy-decorator-utils.js';
-import { makeParameterizedPropertyDecorator } from './legacy-decorator-utils.js';
+import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
+import { makeParameterizedPropertyDecorator } from './decorator-utils.js';
 
 type AttributeDecoratorOption = DataType | Partial<ModelAttributeColumnOptions> | undefined;
 
