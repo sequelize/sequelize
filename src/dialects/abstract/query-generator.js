@@ -2231,9 +2231,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       const MINIMUM_EXECUTION_TIME_VALUE = 0;
       const MAXIMUM_EXECUTION_TIME_VALUE = 4_294_967_295;
 
-      if (options.maxExecutionTimeMs >= MINIMUM_EXECUTION_TIME_VALUE
-        && options.maxExecutionTimeMs <= MAXIMUM_EXECUTION_TIME_VALUE) {
-        fragment += ` /*+ MAX_EXECUTION_TIME(${options.maxExecutionTimeMs}) */`;
+      if (Number.isSafeInteger(options.maxExecutionTimeHintMs)
+        && options.maxExecutionTimeHintMs >= MINIMUM_EXECUTION_TIME_VALUE
+        && options.maxExecutionTimeHintMs <= MAXIMUM_EXECUTION_TIME_VALUE) {
+        fragment += ` /*+ MAX_EXECUTION_TIME(${options.maxExecutionTimeHintMs}) */`;
       } else {
         throw new Error(`MAX_EXECUTION_TIME ms is must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}`);
       }
