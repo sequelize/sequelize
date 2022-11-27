@@ -4,6 +4,7 @@ import { cloneDeep } from '../../utils/object';
 import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
+import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 const _ = require('lodash');
 
@@ -15,8 +16,10 @@ const { QueryTypes } = require('../../query-types');
  * The interface that Sequelize uses to talk to all databases
  */
 // TODO: rename to AbstractQueryInterface
-export class QueryInterface {
+// export class QueryInterface extends AbstractQueryInterfaceTypescript{
+export class QueryInterface extends AbstractQueryInterfaceTypeScript {
   constructor(sequelize, queryGenerator) {
+    super({ sequelize, queryGenerator });
     this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
   }
