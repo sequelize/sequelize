@@ -892,6 +892,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const dbVersion = this.sequelize.options.databaseVersion;
     const isSQLServer2008 = semver.valid(dbVersion) && semver.lt(dbVersion, '11.0.0');
 
+    // mssql overwrite the abstract selectFromTableFragment function.
+    if (options.maxExecutionTimeHintMs != null) {
+      throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
+    }
+
     if (isSQLServer2008 && options.offset) {
       // For earlier versions of SQL server, we need to nest several queries
       // in order to emulate the OFFSET behavior.
