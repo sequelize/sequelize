@@ -45,7 +45,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('can detect complexe objects', async function () {
+    it('should handle attributes with object getter', async function () {
+      const values = {
+        get name() {
+          return 'Robin';
+        },
+      };
+
+      await this.User.update(values, { where: { secretValue: '2' } });
+
+      expect(this.stubUpdate.getCall(0).args[1]).to.include({ name: 'Robin' });
+    });
+
+    it('should handle class instance attributes with getter', async function () {
+      class MyUserDTO {
+        get name() {
+          return 'Robin';
+        }
+      }
+
+      await this.User.update(new MyUserDTO(), { where: { secretValue: '2' } });
+
+      expect(this.stubUpdate.getCall(0).args[1]).to.include({ name: 'Robin' });
+    });
+
+    it('can detect complex objects', async function () {
       const Where = function () {
         this.secretValue = '1';
       };

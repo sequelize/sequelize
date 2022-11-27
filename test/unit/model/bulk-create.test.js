@@ -41,6 +41,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { account_id: 42, id: null },
         ]);
       });
+
+      it('should work with objects with getters', async function () {
+        await this.Model.bulkCreate([
+          {
+            get accountId() {
+              return 1234;
+            },
+          },
+        ]);
+
+        expect(this.stub.getCall(0).args[1]).to.be.an('array').with.lengthOf(1);
+        expect(this.stub.getCall(0).args[1][0]).to.include({
+          account_id: 1234,
+        });
+      });
+
+      it('should work with instances of classes with getters', async function () {
+        class MyAccountDTO {
+          get accountId() {
+            return 1234;
+          }
+        }
+
+        await this.Model.bulkCreate([new MyAccountDTO()]);
+
+        expect(this.stub.getCall(0).args[1]).to.be.an('array').with.lengthOf(1);
+        expect(this.stub.getCall(0).args[1][0]).to.include({
+          account_id: 1234,
+        });
+      });
     });
   });
 });
