@@ -821,7 +821,7 @@ export interface IndexHintable {
 
 export interface MaxExecutionTimeHintable {
   /**
-   * MySQL only.
+   * This sets the max execution time for MySQL.
    */
   maxExecutionTimeMs?: number;
 }
