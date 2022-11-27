@@ -9,9 +9,6 @@ import { makeParameterizedPropertyDecorator } from './legacy-decorator-utils.js'
 
 type AttributeDecoratorOption = DataType | Partial<ModelAttributeColumnOptions> | undefined;
 
-/**
- * Sets the unique option true for annotated property
- */
 export const Attribute = makeParameterizedPropertyDecorator<AttributeDecoratorOption>(undefined, (
   option: AttributeDecoratorOption,
   target: Object,
