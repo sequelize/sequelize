@@ -376,8 +376,8 @@ Add your own primary key to the through model, on different attributes than the 
         uniqueKey = [this.through.model.tableName, ...keys, 'unique'].join('_');
       }
 
-      this.throughModel.rawAttributes[this.foreignKey].unique = uniqueKey;
-      this.throughModel.rawAttributes[this.otherKey].unique = uniqueKey;
+      this.throughModel.rawAttributes[this.foreignKey].unique = [{ name: uniqueKey }];
+      this.throughModel.rawAttributes[this.otherKey].unique = [{ name: uniqueKey }];
     }
 
     this.throughModel.refreshAttributes();

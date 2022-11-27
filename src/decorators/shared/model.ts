@@ -121,6 +121,23 @@ export function registerModelAttributeOptions(
       continue;
     }
 
+    if (optionName === 'unique') {
+      if (!existingOptions.unique) {
+        existingOptions.unique = [];
+      } else if (!Array.isArray(existingOptions.unique)) {
+        existingOptions.unique = [existingOptions.unique];
+      }
+
+      if (Array.isArray(optionValue)) {
+        existingOptions.unique = [...existingOptions.unique, ...optionValue];
+      } else {
+        // @ts-expect-error -- runtime type checking is enforced by model
+        existingOptions.unique = [...existingOptions.unique, optionValue];
+      }
+
+      continue;
+    }
+
     // @ts-expect-error
     if (optionValue === existingOptions[optionName]) {
       continue;

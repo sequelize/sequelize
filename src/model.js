@@ -988,7 +988,7 @@ Specify a different name for either index to resolve this issue.`);
       }
 
       if (attribute.type === undefined) {
-        throw new Error(`Unrecognized datatype for attribute "${this.name}.${name}"`);
+        throw new Error(`Attribute "${this.name}.${name}" does not specify its DataType.`);
       }
 
       if (attribute.allowNull !== false && _.get(attribute, 'validate.notNull')) {
@@ -1172,36 +1172,46 @@ Specify a different name for either index to resolve this issue.`);
         }
 
         if (Object.prototype.hasOwnProperty.call(definition, 'unique') && definition.unique) {
-          if (typeof definition.unique === 'string') {
-            definition.unique = {
-              name: definition.unique,
-            };
-          } else if (definition.unique === true) {
-            definition.unique = {};
+          if (!Array.isArray(definition.unique)) {
+            definition.unique = [definition.unique];
           }
 
-          const index = definition.unique.name && this.uniqueKeys[definition.unique.name]
-            ? this.uniqueKeys[definition.unique.name]
-            : { fields: [] };
+          for (let i = 0; i < definition.unique.length; i++) {
+            let unique = definition.unique[i];
 
-          index.fields.push(definition.field);
-          index.msg = index.msg || definition.unique.msg || null;
+            if (typeof unique === 'string') {
+              unique = {
+                name: unique,
+              };
+            } else if (unique === true) {
+              unique = {};
+            }
 
-          // TODO: remove this 'column'? It does not work with composite indexes, and is only used by db2 which should use fields instead.
-          index.column = name;
+            definition.unique[i] = unique;
 
-          index.customIndex = definition.unique !== true;
-          index.unique = true;
+            const index = unique.name && this.uniqueKeys[unique.name]
+              ? this.uniqueKeys[unique.name]
+              : { fields: [] };
 
-          if (definition.unique.name) {
-            index.name = definition.unique.name;
-          } else {
-            this._nameIndex(index);
+            index.fields.push(definition.field);
+            index.msg = index.msg || unique.msg || null;
+
+            // TODO: remove this 'column'? It does not work with composite indexes, and is only used by db2 which should use fields instead.
+            index.column = name;
+
+            index.customIndex = unique !== true;
+            index.unique = true;
+
+            if (unique.name) {
+              index.name = unique.name;
+            } else {
+              this._nameIndex(index);
+            }
+
+            unique.name ??= index.name;
+
+            this.uniqueKeys[index.name] = index;
           }
-
-          definition.unique.name ??= index.name;
-
-          this.uniqueKeys[index.name] = index;
         }
 
         if (Object.prototype.hasOwnProperty.call(definition, 'validate')) {

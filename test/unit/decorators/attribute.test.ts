@@ -1,6 +1,6 @@
 import type { InferAttributes } from '@sequelize/core';
 import { Model, DataTypes } from '@sequelize/core';
-import { Attribute } from '@sequelize/core/decorators-legacy';
+import { Attribute, Unique } from '@sequelize/core/decorators-legacy';
 import { expect } from 'chai';
 import { sequelize } from '../../support';
 
@@ -131,7 +131,7 @@ describe(`@Attribute legacy decorator`, () => {
     expect(User.getAttributes().pk.validate).to.deep.equal({ not: 'abc', is: 'abc' });
   });
 
-  it('rejects conflicting getterMethods', () => {
+  it('rejects conflicting validates', () => {
     expect(() => {
       class User extends Model<InferAttributes<User>> {
         @Attribute({
@@ -151,5 +151,58 @@ describe(`@Attribute legacy decorator`, () => {
 
       return User;
     }).to.throw();
+  });
+
+  it('merges "unique"', () => {
+    class User extends Model<InferAttributes<User>> {
+      @Attribute({
+        type: DataTypes.STRING,
+        unique: true,
+      })
+      @Attribute({
+        unique: 'firstName-lastName',
+      })
+      @Unique(['firstName-country'])
+      declare firstName: string;
+
+      @Attribute({
+        type: DataTypes.STRING,
+        unique: 'firstName-lastName',
+      })
+      declare lastName: string;
+
+      @Attribute(DataTypes.STRING)
+      @Unique('firstName-country')
+      declare country: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getIndexes()).to.deep.equal([
+      {
+        fields: ['firstName', 'country'],
+        msg: null,
+        column: 'country',
+        customIndex: true,
+        unique: true,
+        name: 'firstName-country',
+      },
+      {
+        fields: ['firstName', 'lastName'],
+        msg: null,
+        column: 'lastName',
+        customIndex: true,
+        unique: true,
+        name: 'firstName-lastName',
+      },
+      {
+        fields: ['firstName'],
+        msg: null,
+        column: 'firstName',
+        customIndex: true,
+        unique: true,
+        name: 'users_first_name_unique',
+      },
+    ]);
   });
 });
