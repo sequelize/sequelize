@@ -1696,9 +1696,7 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> {
    * composite unique index. If multiple columns have the same string, they will be part of the same unique
    * index
    */
-  // TODO: unique should accept an array so multiple uniques can be registered
-  //  https://github.com/sequelize/sequelize/issues/15334
-  unique?: boolean | string | { name: string, msg: string };
+  unique?: AllowArray<boolean | string | { name: string, msg?: string }>;
 
   /**
    * If true, this attribute will be marked as primary key
@@ -1764,7 +1762,7 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> {
   set?(this: M, val: unknown): void;
 }
 
-export interface BuiltModelAttributeColumnOptions<M extends Model = Model> extends Omit<ModelAttributeColumnOptions<M>, 'type'> {
+export interface BuiltModelAttributeColumnOptions<M extends Model = Model> extends Omit<ModelAttributeColumnOptions<M>, 'type' | 'unique'> {
   /**
    * The name of the attribute (JS side).
    */
@@ -1775,6 +1773,8 @@ export interface BuiltModelAttributeColumnOptions<M extends Model = Model> exten
    */
   type: string | AbstractDataType<any>;
   references?: ModelAttributeColumnReferencesOptions;
+
+  unique?: Array<{ name: string, msg?: string }>;
 
   /**
    * This attribute was added by sequelize. Do not use!

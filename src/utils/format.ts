@@ -5,7 +5,6 @@ import type {
   Attributes,
   BuiltModelAttributeColumnOptions,
   Model,
-  ModelAttributeColumnOptions,
   ModelStatic,
   WhereOptions,
 } from '..';
@@ -103,7 +102,7 @@ export function mapWhereFieldNames(where: Record<PropertyKey, any>, Model: Model
   const newWhere: Record<PropertyKey, any> = Object.create(null);
   // TODO: note on 'as any[]'; removing the cast causes the following error on attributeNameOrOperator "TS2538: Type 'symbol' cannot be used as an index type."
   for (const attributeNameOrOperator of getComplexKeys(where) as any[]) {
-    const rawAttribute: ModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
+    const rawAttribute: BuiltModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
 
     const columnNameOrOperator: PropertyKey = rawAttribute?.field ?? attributeNameOrOperator;
 
