@@ -1150,7 +1150,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   updateOnDuplicate?: Array<keyof TAttributes>;
 
   /**
-   * Include options. See `find` for details
+   * An array of include options. A single option is also supported - Used to build prefetched/included model instances. See `set`
    */
   include?: AllowArray<Includeable>;
 
