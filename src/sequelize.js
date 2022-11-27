@@ -1,7 +1,6 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
-import { initDecoratedModel } from './decorators/shared/model';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
