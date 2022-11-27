@@ -2,7 +2,7 @@ import type { InferAttributes, Model } from '@sequelize/core';
 import { Op, literal, DataTypes, or, fn, where, cast, col } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expect } from 'chai';
-import { createSequelizeInstance, expectsql, sequelize } from '../../support';
+import { createSequelizeInstance, expectsql, sequelize, getTestDialect } from '../../support';
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -462,6 +462,23 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
       expectsql(sql, {
         default: `SELECT 1 AS [_0] FROM [Users] AS [User] GROUP BY [_0] ORDER BY [_0];`,
+      });
+    });
+  });
+
+  describe('optimizer hints', () => {
+    const dialectName = getTestDialect();
+
+    it('max execution time hint', () => {
+      const notSupportedError = new Error(`The maxExecutionTimeMs option is not supported by ${dialectName}`);
+
+      expectsql(() => queryGenerator.selectQuery(User.tableName, {
+        model: User,
+        attributes: ['id'],
+        maxExecutionTimeHintMs: 1000,
+      }, User), {
+        mysql: 'SELECT /*+ MAX_EXECUTION_TIME(1000) */ `id` FROM `Users` AS `User`;',
+        'sqlite db2 ibmi mariadb postgres snowflake mssql': notSupportedError,
       });
     });
   });

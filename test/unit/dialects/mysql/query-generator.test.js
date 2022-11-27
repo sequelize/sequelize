@@ -700,54 +700,6 @@ if (dialect === 'mysql') {
             '`Project`',
           ],
           expectation: 'SELECT * FROM `Project`',
-        }, {
-          arguments: [
-            { maxExecutionTimeHintMs: 1000 },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT /*+ MAX_EXECUTION_TIME(1000) */ * FROM `Project`',
-        }, {
-          arguments: [
-            { maxExecutionTimeHintMs: 0 },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT /*+ MAX_EXECUTION_TIME(0) */ * FROM `Project`',
-        }, {
-          arguments: [
-            { maxExecutionTimeHintMs: 0, indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT /*+ MAX_EXECUTION_TIME(0) */ * FROM `Project` USE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { maxExecutionTimeHintMs: 0, indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT /*+ MAX_EXECUTION_TIME(0) */ * FROM `Project` FORCE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { maxExecutionTimeHintMs: 0, indexHints: [{ type: IndexHints.IGNORE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT /*+ MAX_EXECUTION_TIME(0) */ * FROM `Project` IGNORE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { maxExecutionTimeHintMs: 0, indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT /*+ MAX_EXECUTION_TIME(0) */ * FROM `Project` USE INDEX (`index_project_on_name`,`index_project_on_name_and_foo`)',
         },
       ],
     };
