@@ -2223,7 +2223,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     let fragment = `SELECT`;
 
-    if (typeof options.maxExecutionTimeMs === 'number' && this.dialect.supports.maxExecutionTimeHint) {
+    if (options.maxExecutionTimeHintMs != null) {
+      if (!this.dialect.supports.maxExecutionTimeHint) {
+        throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
+      }
+
       const MINIMUM_EXECUTION_TIME_VALUE = 0;
       const MAXIMUM_EXECUTION_TIME_VALUE = 4_294_967_295;
 
