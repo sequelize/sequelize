@@ -819,13 +819,21 @@ export interface IndexHintable {
   indexHints?: IndexHint[];
 }
 
+export interface MaxExecutionTimeHintable {
+  /**
+   * MySQL only.
+   */
+  maxExecutionTimeMs?: number;
+}
+
 /**
  * Options that are passed to any model creating a SELECT query
  *
  * A hash of options to describe the scope of the search
  */
 export interface FindOptions<TAttributes = any>
-  extends QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable, SearchPathable {
+  extends
+  QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable, SearchPathable, MaxExecutionTimeHintable {
   /**
    * A list of associations to eagerly load using a left join (a single association is also supported).
    *
@@ -952,7 +960,7 @@ export interface NonNullFindByPkOptions<M extends Model> extends Omit<NonNullFin
  * Options for Model.count method
  */
 export interface CountOptions<TAttributes = any>
-  extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable {
+  extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable, MaxExecutionTimeHintable {
   /**
    * Include options. See `find` for details
    */

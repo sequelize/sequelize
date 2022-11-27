@@ -212,6 +212,7 @@ export type DialectSupports = {
   dropTable: {
     cascade: boolean,
   },
+  maxExecutionTimeHint: boolean,
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -332,6 +333,7 @@ export abstract class AbstractDialect {
     dropTable: {
       cascade: false,
     },
+    maxExecutionTimeHint: false,
   };
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {
