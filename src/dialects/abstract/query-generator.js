@@ -1,7 +1,8 @@
 'use strict';
 
+import { inspect } from 'node:util';
 import { getTextDataTypeForDialect } from '../../sql-string';
-import { rejectInvalidOptions, isNullish, canTreatArrayAsAnd, isColString } from '../../utils/check';
+import { canTreatArrayAsAnd, isColString, isNullish, rejectInvalidOptions } from '../../utils/check';
 import { TICK_CHAR } from '../../utils/dialect';
 import {
   getComplexKeys,
@@ -2236,7 +2237,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         && options.maxExecutionTimeHintMs <= MAXIMUM_EXECUTION_TIME_VALUE) {
         fragment += ` /*+ MAX_EXECUTION_TIME(${options.maxExecutionTimeHintMs}) */`;
       } else {
-        throw new Error(`MAX_EXECUTION_TIME ms is must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}`);
+        throw new Error(`maxExecutionTimeMs must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}, but it is ${inspect(options.maxExecutionTimeHintMs)}`);
       }
     }
 
