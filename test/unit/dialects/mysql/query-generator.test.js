@@ -702,7 +702,7 @@ if (dialect === 'mysql') {
           expectation: 'SELECT * FROM `Project`',
         }, {
           arguments: [
-            { maxExecutionTimeMs: 1000 },
+            { maxExecutionTimeHintMs: 1000 },
             null,
             ['*'],
             '`Project`',
@@ -710,7 +710,7 @@ if (dialect === 'mysql') {
           expectation: 'SELECT /*+ MAX_EXECUTION_TIME(1000) */ * FROM `Project`',
         }, {
           arguments: [
-            { maxExecutionTimeMs: 0 },
+            { maxExecutionTimeHintMs: 0 },
             null,
             ['*'],
             '`Project`',
@@ -718,7 +718,7 @@ if (dialect === 'mysql') {
           expectation: 'SELECT /*+ MAX_EXECUTION_TIME(0) */ * FROM `Project`',
         }, {
           arguments: [
-            { maxExecutionTimeMs: 0, indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name'] }] },
+            { maxExecutionTimeHintMs: 0, indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name'] }] },
             null,
             ['*'],
             '`Project`',
@@ -726,7 +726,7 @@ if (dialect === 'mysql') {
           expectation: 'SELECT /*+ MAX_EXECUTION_TIME(0) */ * FROM `Project` USE INDEX (`index_project_on_name`)',
         }, {
           arguments: [
-            { maxExecutionTimeMs: 0, indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }] },
+            { maxExecutionTimeHintMs: 0, indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }] },
             null,
             ['*'],
             '`Project`',
@@ -734,7 +734,7 @@ if (dialect === 'mysql') {
           expectation: 'SELECT /*+ MAX_EXECUTION_TIME(0) */ * FROM `Project` FORCE INDEX (`index_project_on_name`)',
         }, {
           arguments: [
-            { maxExecutionTimeMs: 0, indexHints: [{ type: IndexHints.IGNORE, values: ['index_project_on_name'] }] },
+            { maxExecutionTimeHintMs: 0, indexHints: [{ type: IndexHints.IGNORE, values: ['index_project_on_name'] }] },
             null,
             ['*'],
             '`Project`',
@@ -742,7 +742,7 @@ if (dialect === 'mysql') {
           expectation: 'SELECT /*+ MAX_EXECUTION_TIME(0) */ * FROM `Project` IGNORE INDEX (`index_project_on_name`)',
         }, {
           arguments: [
-            { maxExecutionTimeMs: 0, indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }] },
+            { maxExecutionTimeHintMs: 0, indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }] },
             null,
             ['*'],
             '`Project`',

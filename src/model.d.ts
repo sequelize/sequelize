@@ -823,7 +823,7 @@ export interface MaxExecutionTimeHintable {
   /**
    * This sets the max execution time for MySQL.
    */
-  maxExecutionTimeMs?: number;
+  maxExecutionTimeHintMs?: number;
 }
 
 /**
