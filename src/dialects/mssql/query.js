@@ -129,7 +129,7 @@ export class MsSqlQuery extends AbstractQuery {
       error.sql = sql;
       error.parameters = parameters;
       const errForStack = new Error(error.message);
-      throw this.formatError(error, errForStack);
+      throw this.formatError(error, errForStack.stack);
     }
 
     complete();

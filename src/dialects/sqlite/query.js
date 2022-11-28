@@ -53,7 +53,7 @@ export class SqliteQuery extends AbstractQuery {
     if (error) {
       error.sql = this.sql;
       const errForStack = new Error(error.message);
-      throw this.formatError(error, errForStack);
+      throw this.formatError(error, errForStack.stack);
     }
 
     let result = this.instance;
