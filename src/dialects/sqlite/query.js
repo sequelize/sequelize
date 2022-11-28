@@ -49,13 +49,7 @@ export class SqliteQuery extends AbstractQuery {
     return ret;
   }
 
-  _handleQueryResponse(metaData, columnTypes, error, results) {
-    if (error) {
-      error.sql = this.sql;
-      const errForStack = new Error(error.message);
-      throw this.formatError(error, errForStack.stack);
-    }
-
+  _handleQueryResponse(metaData, columnTypes, results) {
     let result = this.instance;
 
     // add the inserted row id to the instance
@@ -231,7 +225,7 @@ export class SqliteQuery extends AbstractQuery {
         //  and is very unreliable.
         //  Use Sequelize DataType parsing instead, until sqlite3 provides a clean API to know the DB type.
         const columnTypes = {};
-
+        const errForStack = new Error();
         const executeSql = () => {
           // TODO: remove this check. A query could start with a comment:
           if (sql.startsWith('-- ')) {
@@ -242,14 +236,16 @@ export class SqliteQuery extends AbstractQuery {
 
           // cannot use arrow function here because the function is bound to the statement
           function afterExecute(executionError, results) {
-            try {
-              complete();
-              // `this` is passed from sqlite, we have no control over this.
-
-              resolve(query._handleQueryResponse(this, columnTypes, executionError, results));
-            } catch (error) {
-              reject(error);
+            if (executionError) {
+              executionError.sql = query.sql;
+              const rethrowErrStack = new Error(executionError.message);
+              rethrowErrStack.stack = `${rethrowErrStack.stack.split('\n').slice(0, 2).join('\n')}\n${errForStack.stack}`;
+              reject(query.formatError(executionError, rethrowErrStack.stack));
             }
+
+            complete();
+            // `this` is passed from sqlite, we have no control over this.
+            resolve(query._handleQueryResponse(this, columnTypes, results));
           }
 
           if (!parameters) {
@@ -360,7 +356,6 @@ export class SqliteQuery extends AbstractQuery {
   }
 
   formatError(err, errStack) {
-
     switch (err.code) {
       case 'SQLITE_CONSTRAINT_UNIQUE':
       case 'SQLITE_CONSTRAINT_PRIMARYKEY':
