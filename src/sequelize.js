@@ -1038,6 +1038,10 @@ Use Sequelize#query if you wish to use replacements.`);
 
   // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
+    if (this.options.databaseVersion === 0) {
+      throw new Error('The current database version is unknown, please call `sequelize.authenticate()` first to fetch it. Or manually configure it through options.');
+    }
+
     return await this.getQueryInterface().databaseVersion(options);
   }
 
