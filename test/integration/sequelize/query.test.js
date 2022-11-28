@@ -409,6 +409,17 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             .and.not.be.an.instanceOf(DatabaseError);
         });
 
+        it('get error message with stack traces', async function () {
+          const sql = 'SELECT 1 FROM NotFoundTable';
+
+          try {
+            await this.sequelize.query(sql);
+          } catch (error) {
+            expect(error).to.have.property('name', 'SequelizeDatabaseError');
+            expect(error.message).to.not.be.undefined;
+          }
+        });
+
         it('emits full stacktraces for generic database error', async function () {
           let error = null;
           try {

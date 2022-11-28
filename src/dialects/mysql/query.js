@@ -32,7 +32,6 @@ export class MySqlQuery extends AbstractQuery {
     }
 
     let results;
-    const errForStack = new Error();
 
     try {
       if (parameters && parameters.length > 0) {
@@ -64,6 +63,7 @@ export class MySqlQuery extends AbstractQuery {
 
       error.sql = sql;
       error.parameters = parameters;
+      const errForStack = new Error(error.message);
       throw this.formatError(error, errForStack.stack);
     } finally {
       complete();

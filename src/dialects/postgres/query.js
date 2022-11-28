@@ -39,7 +39,6 @@ export class PostgresQuery extends AbstractQuery {
     const complete = this._logQuery(sql, debug, parameters);
 
     let queryResult;
-    const errForStack = new Error();
 
     try {
       queryResult = await query;
@@ -59,6 +58,7 @@ export class PostgresQuery extends AbstractQuery {
 
       error.sql = sql;
       error.parameters = parameters;
+      const errForStack = new Error(error.message);
       throw this.formatError(error, errForStack.stack);
     }
 

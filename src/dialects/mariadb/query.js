@@ -34,8 +34,6 @@ export class MariaDbQuery extends AbstractQuery {
 
     let results;
 
-    const errForStack = new Error();
-
     try {
       results = await connection.query(this.sql, parameters);
     } catch (error) {
@@ -54,6 +52,8 @@ export class MariaDbQuery extends AbstractQuery {
 
       error.sql = sql;
       error.parameters = parameters;
+
+      const errForStack = new Error(error.message);
       throw this.formatError(error, errForStack.stack);
     } finally {
       complete();

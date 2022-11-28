@@ -49,10 +49,11 @@ export class SqliteQuery extends AbstractQuery {
     return ret;
   }
 
-  _handleQueryResponse(metaData, columnTypes, err, results, errStack) {
-    if (err) {
-      err.sql = this.sql;
-      throw this.formatError(err, errStack);
+  _handleQueryResponse(metaData, columnTypes, error, results) {
+    if (error) {
+      error.sql = this.sql;
+      const errForStack = new Error(error.message);
+      throw this.formatError(error, errForStack);
     }
 
     let result = this.instance;
@@ -230,7 +231,7 @@ export class SqliteQuery extends AbstractQuery {
         //  and is very unreliable.
         //  Use Sequelize DataType parsing instead, until sqlite3 provides a clean API to know the DB type.
         const columnTypes = {};
-        const errForStack = new Error();
+
         const executeSql = () => {
           // TODO: remove this check. A query could start with a comment:
           if (sql.startsWith('-- ')) {
@@ -245,7 +246,7 @@ export class SqliteQuery extends AbstractQuery {
               complete();
               // `this` is passed from sqlite, we have no control over this.
 
-              resolve(query._handleQueryResponse(this, columnTypes, executionError, results, errForStack.stack));
+              resolve(query._handleQueryResponse(this, columnTypes, executionError, results));
             } catch (error) {
               reject(error);
             }

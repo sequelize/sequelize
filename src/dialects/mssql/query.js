@@ -62,7 +62,7 @@ export class MsSqlQuery extends AbstractQuery {
     return paramType;
   }
 
-  async _run(connection, sql, parameters, errStack) {
+  async _run(connection, sql, parameters) {
     this.sql = sql;
     const { options } = this;
 
@@ -128,8 +128,8 @@ export class MsSqlQuery extends AbstractQuery {
     } catch (error) {
       error.sql = sql;
       error.parameters = parameters;
-
-      throw this.formatError(error, errStack);
+      const errForStack = new Error(error.message);
+      throw this.formatError(error, errForStack);
     }
 
     complete();
@@ -157,10 +157,7 @@ export class MsSqlQuery extends AbstractQuery {
   }
 
   run(sql, parameters) {
-
-    const errForStack = new Error();
-
-    return this.connection.queue.enqueue(() => this._run(this.connection, sql, parameters, errForStack.stack));
+    return this.connection.queue.enqueue(() => this._run(this.connection, sql, parameters));
   }
 
   /**
