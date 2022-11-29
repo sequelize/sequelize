@@ -5,7 +5,6 @@ import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
 const _ = require('lodash');
-const Utils = require('../../utils');
 const { Op } = require('../../operators');
 const { QueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');

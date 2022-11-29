@@ -1,11 +1,14 @@
-import util from 'util';
+import util from 'node:util';
 import type {
   WhereOptions,
-  Utils,
   WhereOperators,
   InferAttributes,
   Attributes,
   Range,
+  Col,
+  Literal,
+  Fn,
+  Cast,
 } from '@sequelize/core';
 import { DataTypes, QueryTypes, Op, literal, col, where, fn, json, cast, and, or, Model } from '@sequelize/core';
 import type { WhereItemsQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
@@ -128,7 +131,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       [Key in keyof WhereOperators<number>
         as IncludesType<
           WhereOperators<number>[Key],
-          Utils.Col | Utils.Literal | Utils.Fn | Utils.Cast | { [Op.col]: string }
+          Col | Literal | Fn | Cast | { [Op.col]: string }
         > extends true ? Key : never
       ]: WhereOperators<number>[Key]
     };
@@ -192,8 +195,8 @@ describe(getTestDialectTeaser('SQL'), () => {
       [Key in keyof WhereOperators<AttributeType>
         as IncludesType<
           WhereOperators<AttributeType>[Key],
-          | { [Op.all]: any[] | Utils.Literal | { [Op.values]: any[] } }
-          | { [Op.any]: any[] | Utils.Literal | { [Op.values]: any[] } }
+          | { [Op.all]: any[] | Literal | { [Op.values]: any[] } }
+          | { [Op.any]: any[] | Literal | { [Op.values]: any[] } }
         > extends true ? Key : never
       ]: WhereOperators<AttributeType>[Key]
     };

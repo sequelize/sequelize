@@ -207,11 +207,6 @@ export type DialectSupports = {
    */
   escapeStringConstants: boolean,
 
-  /**
-   * Whether this dialect supports date & time values with a precision down to at least the millisecond.
-   */
-  milliseconds: boolean,
-
   /** Whether this dialect supports changing the global timezone option */
   globalTimeZoneConfig: boolean,
   dropTable: {
@@ -333,7 +328,6 @@ export abstract class AbstractDialect {
     indexHints: false,
     searchPath: false,
     escapeStringConstants: false,
-    milliseconds: true,
     globalTimeZoneConfig: false,
     dropTable: {
       cascade: false,

@@ -1,10 +1,20 @@
 'use strict';
 
-import { rejectInvalidOptions } from '../../utils/check';
 import { getTextDataTypeForDialect } from '../../sql-string';
-import { isNullish } from '../../utils';
+import { rejectInvalidOptions, isNullish, canTreatArrayAsAnd, isColString } from '../../utils/check';
+import { TICK_CHAR } from '../../utils/dialect';
+import {
+  getComplexKeys,
+  getComplexSize,
+  getOperators,
+  mapFinderOptions,
+  removeNullishValuesFromHash,
+} from '../../utils/format';
+import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
+import { Cast, Col, Fn, Literal, SequelizeMethod, Where } from '../../utils/sequelize-method';
 import { injectReplacements } from '../../utils/sql';
+import { nameIndex, spliceStr } from '../../utils/string';
 import { AbstractDataType } from './data-types';
 import { attributeTypeToSql, validateDataType } from './data-types-utils';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
@@ -13,7 +23,6 @@ const util = require('util');
 const _ = require('lodash');
 const crypto = require('crypto');
 
-const Utils = require('../../utils');
 const deprecations = require('../../utils/deprecations');
 const SqlString = require('../../sql-string');
 const DataTypes = require('../../data-types');
@@ -100,15 +109,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
-  // TODO: remove schema, schemaDelimiter
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    tableName = this.extractTableDetails(tableName);
-    tableName.schema = schema || tableName.schema;
-    tableName.delimiter = schemaDelimiter || tableName.delimiter;
-
-    return `DESCRIBE ${this.quoteTable(tableName)};`;
-  }
-
   dropTableQuery(tableName, options) {
     const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
@@ -192,7 +192,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       options.bindParam = false;
     }
 
-    valueHash = Utils.removeNullishValuesFromHash(valueHash, this.options.omitNull);
+    valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
     for (const key in valueHash) {
       if (Object.prototype.hasOwnProperty.call(valueHash, key)) {
         const value = valueHash[key];
@@ -212,7 +212,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             identityWrapperRequired = true;
           }
 
-          if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
+          if (value instanceof SequelizeMethod || options.bindParam === false) {
             values.push(this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT', replacements: options.replacements }));
           } else {
             values.push(this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }, bindParam));
@@ -380,7 +380,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning += returnValues.returningFragment;
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'INSERT',
       ignoreDuplicates,
       'INTO',
@@ -410,7 +410,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options = options || {};
     _.defaults(options, this.options);
 
-    attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
+    attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const values = [];
     const bind = Object.create(null);
@@ -462,7 +462,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       const value = attrValueHash[key];
 
-      if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
+      if (value instanceof SequelizeMethod || options.bindParam === false) {
         values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
         values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' }, bindParam)}`);
@@ -506,7 +506,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     const replacementOptions = _.pick(options, ['replacements']);
 
-    extraAttributesToBeUpdated = Utils.removeNullishValuesFromHash(extraAttributesToBeUpdated, this.options.omitNull);
+    extraAttributesToBeUpdated = removeNullishValuesFromHash(extraAttributesToBeUpdated, this.options.omitNull);
 
     let outputFragment = '';
     let returningFragment = '';
@@ -533,7 +533,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       updateSetSqlFragments.push(`${quotedField}=${escapedValue}`);
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'UPDATE',
       this.quoteTable(tableName),
       'SET',
@@ -580,7 +580,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     const fieldsSql = options.fields.map(field => {
-      if (field instanceof Utils.SequelizeMethod) {
+      if (field instanceof SequelizeMethod) {
         return this.handleSequelizeMethod(field);
       }
 
@@ -630,10 +630,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         throw new Error(`The include attribute for indexes is not supported by ${this.dialect.name} dialect`);
       }
 
-      if (options.include instanceof Utils.Literal) {
+      if (options.include instanceof Literal) {
         includeSql = `INCLUDE ${options.include.val}`;
       } else if (Array.isArray(options.include)) {
-        includeSql = `INCLUDE (${options.include.map(field => (field instanceof Utils.Literal ? field.val : this.quoteIdentifier(field))).join(', ')})`;
+        includeSql = `INCLUDE (${options.include.map(field => (field instanceof Literal ? field.val : this.quoteIdentifier(field))).join(', ')})`;
       } else {
         throw new TypeError('The include attribute for indexes must be an array or a literal.');
       }
@@ -642,7 +642,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     if (!options.name) {
       // Mostly for cases where addIndex is called directly by the user without an options object (for example in migrations)
       // All calls that go through sequelize should already have a name
-      options = Utils.nameIndex(options, options.prefix);
+      options = nameIndex(options, options.prefix);
     }
 
     options = Model._conformIndex(options);
@@ -699,7 +699,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   addConstraintQuery(tableName, options) {
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'ADD',
@@ -717,7 +717,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         return this.quoteIdentifier(field);
       }
 
-      if (field instanceof Utils.SequelizeMethod) {
+      if (field instanceof SequelizeMethod) {
         return this.handleSequelizeMethod(field);
       }
 
@@ -737,7 +737,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         return field;
       }
 
-      if (field instanceof Utils.SequelizeMethod) {
+      if (field instanceof SequelizeMethod) {
         throw new TypeError(`The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`);
       }
 
@@ -817,7 +817,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   removeConstraintQuery(tableName, constraintName) {
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP CONSTRAINT',
@@ -963,7 +963,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       for (i = 0; i < collectionLength - 1; i++) {
         item = collection[i];
-        if (typeof item === 'string' || item._modelAttribute || item instanceof Utils.SequelizeMethod) {
+        if (typeof item === 'string' || item._modelAttribute || item instanceof SequelizeMethod) {
           break;
         } else if (item instanceof Association) {
           const previousAssociation = collection[i - 1];
@@ -1000,7 +1000,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       return `${this.quoteTable(collection.Model.name)}.${this.quoteIdentifier(collection.fieldName)}`;
     }
 
-    if (collection instanceof Utils.SequelizeMethod) {
+    if (collection instanceof SequelizeMethod) {
       return this.handleSequelizeMethod(collection, undefined, undefined, options);
     }
 
@@ -1060,7 +1060,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    * @private
    */
   escape(value, field, options = {}) {
-    if (value instanceof Utils.SequelizeMethod) {
+    if (value instanceof SequelizeMethod) {
       return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
@@ -1108,7 +1108,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   format(value, field, options, bindParam) {
     options = options || {};
 
-    if (value instanceof Utils.SequelizeMethod) {
+    if (value instanceof SequelizeMethod) {
       throw new TypeError('Cannot pass SequelizeMethod as a bind parameter - use escape instead');
     }
 
@@ -1144,6 +1144,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
   }
 
+  /**
+   * @param {string} identifier
+   *
+   * @deprecated Do not use this method. A string starting & ending with the identifier quote (", `, []) does
+   * not mean that it's already quoted. These characters are valid inside of identifiers and should be properly escaped.
+   */
   isIdentifierQuoted(identifier) {
     return /^\s*(?:(["'`])(?:(?!\1).|\1{2})*\1\.?)+\s*$/i.test(identifier);
   }
@@ -1374,7 +1380,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
               };
             }
 
-            return Utils.spliceStr(baseQuery, splicePos, placeHolder.length, this.getWhereConditions(groupWhere, groupedTableName, undefined, options));
+            return spliceStr(baseQuery, splicePos, placeHolder.length, this.getWhereConditions(groupWhere, groupedTableName, undefined, options));
           }).join(
             this.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ',
           )
@@ -1496,7 +1502,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return attributes && attributes.map(attr => {
       let addTable = true;
 
-      if (attr instanceof Utils.SequelizeMethod) {
+      if (attr instanceof SequelizeMethod) {
         return this.handleSequelizeMethod(attr, undefined, undefined, options);
       }
 
@@ -1507,7 +1513,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         attr = [...attr];
 
-        if (attr[0] instanceof Utils.SequelizeMethod) {
+        if (attr[0] instanceof SequelizeMethod) {
           attr[0] = this.handleSequelizeMethod(attr[0], undefined, undefined, options);
           addTable = false;
         } else if (!attr[0].includes('(') && !attr[0].includes(')')) {
@@ -1525,7 +1531,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         attr = [attr[0], this.quoteIdentifier(alias)].join(' AS ');
       } else {
         // TODO: attributes should always be escaped as identifiers, not escaped as strings
-        attr = !attr.includes(Utils.TICK_CHAR) && !attr.includes('"')
+        attr = !attr.includes(TICK_CHAR) && !attr.includes('"')
           ? this.quoteAttribute(attr, options.model)
           : this.escape(attr, undefined, options);
       }
@@ -1565,33 +1571,33 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     // includeIgnoreAttributes is used by aggregate functions
     if (topLevelInfo.options.includeIgnoreAttributes !== false) {
       include.model._expandAttributes(include);
-      Utils.mapFinderOptions(include, include.model);
+      mapFinderOptions(include, include.model);
 
       const includeAttributes = include.attributes.map(attr => {
         let attrAs = attr;
         let verbatim = false;
 
         if (Array.isArray(attr) && attr.length === 2) {
-          if (attr[0] instanceof Utils.SequelizeMethod && (
-            attr[0] instanceof Utils.Literal
-            || attr[0] instanceof Utils.Cast
-            || attr[0] instanceof Utils.Fn
+          if (attr[0] instanceof SequelizeMethod && (
+            attr[0] instanceof Literal
+            || attr[0] instanceof Cast
+            || attr[0] instanceof Fn
           )) {
             verbatim = true;
           }
 
-          attr = attr.map(attrPart => (attrPart instanceof Utils.SequelizeMethod ? this.handleSequelizeMethod(attrPart, undefined, undefined, options) : attrPart));
+          attr = attr.map(attrPart => (attrPart instanceof SequelizeMethod ? this.handleSequelizeMethod(attrPart, undefined, undefined, options) : attrPart));
 
           attrAs = attr[1];
           attr = attr[0];
         }
 
-        if (attr instanceof Utils.Literal) {
+        if (attr instanceof Literal) {
           // We trust the user to rename the field correctly
           return this.handleSequelizeMethod(attr, undefined, undefined, options);
         }
 
-        if (attr instanceof Utils.Cast || attr instanceof Utils.Fn) {
+        if (attr instanceof Cast || attr instanceof Fn) {
           throw new TypeError(
             'Tried to select attributes using Sequelize.cast or Sequelize.fn without specifying an alias for the result, during eager loading. '
             + 'This means the attribute will not be added to the returned instance',
@@ -1615,7 +1621,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           alias = this._getMinifiedAlias(alias, includeAs.internalAs, topLevelInfo.options);
         }
 
-        return Utils.joinSQLFragments([
+        return joinSQLFragments([
           prefix,
           'AS',
           this.quoteIdentifier(alias, true),
@@ -1909,7 +1915,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         alias = this._getMinifiedAlias(alias, throughAs, topLevelInfo.options);
       }
 
-      return Utils.joinSQLFragments([
+      return joinSQLFragments([
         `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(Array.isArray(attr) ? attr[0] : attr)}`,
         'AS',
         this.quoteIdentifier(alias),
@@ -2181,13 +2187,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           if (aliasedAttribute) {
             const alias = this._getAliasForField(model.name, aliasedAttribute[1], options);
 
-            order[0] = new Utils.Col(alias || aliasedAttribute[1]);
+            order[0] = new Col(alias || aliasedAttribute[1]);
           }
         }
 
         mainQueryOrder.push(this.quote(order, model, '->', options));
       }
-    } else if (options.order instanceof Utils.SequelizeMethod) {
+    } else if (options.order instanceof SequelizeMethod) {
       const sql = this.quote(options.order, model, '->', options);
       if (subQuery) {
         subQueryOrder.push(sql);
@@ -2263,17 +2269,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       smth.comparator = this.OperatorMap[smth.comparator];
     }
 
-    if (smth instanceof Utils.Where) {
+    if (smth instanceof Where) {
       let value = smth.logic;
       let key;
 
-      if (smth.attribute instanceof Utils.SequelizeMethod) {
+      if (smth.attribute instanceof SequelizeMethod) {
         key = this.getWhereConditions(smth.attribute, tableName, factory, options, prepend);
       } else {
         key = `${this.quoteTable(smth.attribute.Model.name)}.${this.quoteIdentifier(smth.attribute.field || smth.attribute.fieldName)}`;
       }
 
-      if (value && value instanceof Utils.SequelizeMethod) {
+      if (value && value instanceof SequelizeMethod) {
         value = this.getWhereConditions(value, tableName, factory, options, prepend);
 
         if (value === 'NULL') {
@@ -2316,7 +2322,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       return [key, value].join(` ${smth.comparator} `);
     }
 
-    if (smth instanceof Utils.Literal) {
+    if (smth instanceof Literal) {
       if (options?.replacements) {
         return injectReplacements(smth.val, this.dialect, options.replacements, {
           onPositionalReplacement: () => {
@@ -2331,8 +2337,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
     }
 
-    if (smth instanceof Utils.Cast) {
-      if (smth.val instanceof Utils.SequelizeMethod) {
+    if (smth instanceof Cast) {
+      if (smth.val instanceof SequelizeMethod) {
         result = this.handleSequelizeMethod(smth.val, tableName, factory, options, prepend);
       } else if (_.isPlainObject(smth.val)) {
         result = this.whereItemsQuery(smth.val);
@@ -2343,10 +2349,10 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       return `CAST(${result} AS ${smth.type.toUpperCase()})`;
     }
 
-    if (smth instanceof Utils.Fn) {
+    if (smth instanceof Fn) {
       return `${smth.fn}(${
         smth.args.map(arg => {
-          if (arg instanceof Utils.SequelizeMethod) {
+          if (arg instanceof SequelizeMethod) {
             return this.handleSequelizeMethod(arg, tableName, factory, options, prepend);
           }
 
@@ -2359,7 +2365,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       })`;
     }
 
-    if (smth instanceof Utils.Col) {
+    if (smth instanceof Col) {
       if (Array.isArray(smth.col) && !factory) {
         throw new Error('Cannot call Sequelize.col() with array outside of order / group clause');
       }
@@ -2387,7 +2393,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     if (
       where === null
       || where === undefined
-      || Utils.getComplexSize(where) === 0
+      || getComplexSize(where) === 0
     ) {
       // NO OP
       return '';
@@ -2405,7 +2411,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     }
 
     if (_.isPlainObject(where)) {
-      for (const prop of Utils.getComplexKeys(where)) {
+      for (const prop of getComplexKeys(where)) {
         const item = where[prop];
         items.push(this.whereItemQuery(prop, item, options));
       }
@@ -2442,7 +2448,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       value = this._replaceAliases(value);
     }
 
-    const valueKeys = isPlainObject && Utils.getComplexKeys(value);
+    const valueKeys = isPlainObject && getComplexKeys(value);
 
     if (key === undefined) {
       if (typeof value === 'string') {
@@ -2466,13 +2472,13 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       return this._joinKeyValue(key, opValue, this.OperatorMap[Op.eq], options.prefix);
     }
 
-    if (value instanceof Utils.SequelizeMethod && !(key !== undefined && value instanceof Utils.Fn)) {
+    if (value instanceof SequelizeMethod && !(key !== undefined && value instanceof Fn)) {
       return this.handleSequelizeMethod(value, undefined, undefined, options);
     }
 
     // Convert where: [] to Op.and if possible, else treat as literal/replacements
     if (key === undefined && isArray) {
-      if (Utils.canTreatArrayAsAnd(value)) {
+      if (canTreatArrayAsAnd(value)) {
         key = Op.and;
       } else {
         throw new Error('Support for literal replacements in the `where` object has been removed.');
@@ -2551,7 +2557,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     if (Array.isArray(value)) {
       value = value.map(item => {
         let itemQuery = this.whereItemsQuery(item, options, this.OperatorMap[Op.and]);
-        if (itemQuery && itemQuery.length > 0 && (Array.isArray(item) || _.isPlainObject(item)) && Utils.getComplexSize(item) > 1) {
+        if (itemQuery && itemQuery.length > 0 && (Array.isArray(item) || _.isPlainObject(item)) && getComplexSize(item) > 1) {
           itemQuery = `(${itemQuery})`;
         }
 
@@ -2574,7 +2580,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
   _whereBind(binding, key, value, options) {
     if (_.isPlainObject(value)) {
-      value = Utils.getComplexKeys(value).map(prop => {
+      value = getComplexKeys(value).map(prop => {
         const item = value[prop];
 
         return this.whereItemQuery(key, { [prop]: item }, options);
@@ -2592,14 +2598,14 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     const items = [];
     let baseKey = this.quoteIdentifier(key);
     if (options.prefix) {
-      if (options.prefix instanceof Utils.Literal) {
+      if (options.prefix instanceof Literal) {
         baseKey = `${this.handleSequelizeMethod(options.prefix)}.${baseKey}`;
       } else {
         baseKey = `${this.quoteTable(options.prefix)}.${baseKey}`;
       }
     }
 
-    for (const op of Utils.getOperators(value)) {
+    for (const op of getOperators(value)) {
       const where = {
         [op]: value[op],
       };
@@ -2627,7 +2633,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     let pathKey = this.jsonPathExtractionQuery(baseKey, path);
 
     if (_.isPlainObject(item)) {
-      for (const op of Utils.getOperators(item)) {
+      for (const op of getOperators(item)) {
         const value = this._toJSONValue(item[op]);
         let isJson = false;
         if (typeof value === 'string' && op === Op.contains) {
@@ -2661,10 +2667,10 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   _castKey(key, value, cast, json) {
     cast = cast || this._getJsonCast(Array.isArray(value) ? value[0] : value);
     if (cast) {
-      return new Utils.Literal(this.handleSequelizeMethod(new Utils.Cast(new Utils.Literal(key), cast, json)));
+      return new Literal(this.handleSequelizeMethod(new Cast(new Literal(key), cast, json)));
     }
 
-    return new Utils.Literal(key);
+    return new Literal(key);
   }
 
   _getJsonCast(value) {
@@ -2697,13 +2703,13 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   }
 
   _getSafeKey(key, prefix) {
-    if (key instanceof Utils.SequelizeMethod) {
+    if (key instanceof SequelizeMethod) {
       key = this.handleSequelizeMethod(key);
 
       return this._prefixKey(this.handleSequelizeMethod(key), prefix);
     }
 
-    if (Utils.isColString(key)) {
+    if (isColString(key)) {
       key = key.slice(1, 1 + key.length - 2).split('.');
 
       if (key.length > 2) {
@@ -2722,7 +2728,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
   _prefixKey(key, prefix) {
     if (prefix) {
-      if (prefix instanceof Utils.Literal) {
+      if (prefix instanceof Literal) {
         return [this.handleSequelizeMethod(prefix), key].join('.');
       }
 
@@ -2746,7 +2752,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     switch (prop) {
       case Op.in:
       case Op.notIn:
-        if (value instanceof Utils.Literal) {
+        if (value instanceof Literal) {
           return this._joinKeyValue(key, value.val, comparator, options.prefix);
         }
 
@@ -2796,7 +2802,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
           comparator = this.OperatorMap[Op.notLike];
         }
 
-        if (value instanceof Utils.Literal) {
+        if (value instanceof Literal) {
           value = value.val;
         }
 
@@ -2895,7 +2901,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       prepend = true;
     }
 
-    if (smth && smth instanceof Utils.SequelizeMethod) { // Checking a property is cheaper than a lot of instanceof calls
+    if (smth && smth instanceof SequelizeMethod) { // Checking a property is cheaper than a lot of instanceof calls
       return this.handleSequelizeMethod(smth, tableName, factory, options, prepend);
     }
 
@@ -2944,7 +2950,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         return '1=1';
       }
 
-      if (Utils.canTreatArrayAsAnd(smth)) {
+      if (canTreatArrayAsAnd(smth)) {
         const _smth = { [Op.and]: smth };
 
         return this.getWhereConditions(_smth, tableName, factory, options, prepend);

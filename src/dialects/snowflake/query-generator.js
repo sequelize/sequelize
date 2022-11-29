@@ -1,8 +1,11 @@
 'use strict';
 
+import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { quoteIdentifier } from '../../utils/dialect.js';
+import { addTicks, quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
+import { Cast, Json } from '../../utils/sequelize-method';
+import { underscore } from '../../utils/string';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
@@ -12,8 +15,7 @@ import {
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
-const Utils = require('../../utils');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const util = require('util');
 const { Op } = require('../../operators');
 
@@ -51,7 +53,7 @@ const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
-export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
+export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
@@ -73,7 +75,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       );
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'CREATE DATABASE IF NOT EXISTS',
       this.quoteIdentifier(databaseName),
       options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
@@ -190,7 +192,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       }
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'CREATE TABLE IF NOT EXISTS',
       table,
       `(${attributesClause})`,
@@ -202,17 +204,8 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     ]);
   }
 
-  // TODO: remove schema, schemaDelimiter options
-  describeTableQuery(tableName, schema, schemaDelimiter) {
-    tableName = this.extractTableDetails(tableName);
-    tableName.schema = schema || tableName.schema;
-    tableName.delimiter = schemaDelimiter || tableName.delimiter;
-
-    return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
-  }
-
   showTablesQuery(database, options) {
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
       database ? `AND TABLE_SCHEMA = ${this.escape(database, undefined, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
       ';',
@@ -223,7 +216,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     const tableName = table.tableName ?? table;
     const schema = table.schema;
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
       `AND TABLE_SCHEMA = ${schema !== undefined ? this.escape(schema) : 'CURRENT_SCHEMA()'}`,
       `AND TABLE_NAME = ${this.escape(tableName)}`,
@@ -242,7 +235,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       );
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
       'ADD',
@@ -267,7 +260,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       );
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP',
@@ -277,7 +270,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   changeColumnQuery(tableName, attributes) {
-    const query = (...subQuerys) => Utils.joinSQLFragments([
+    const query = (...subQuerys) => joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'ALTER COLUMN',
@@ -331,7 +324,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       attrString.push(`'${attrBefore}' '${attrName}' ${definition}`);
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'RENAME COLUMN',
@@ -341,7 +334,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   handleSequelizeMethod(attr, tableName, factory, options, prepend) {
-    if (attr instanceof Utils.Json) {
+    if (attr instanceof Json) {
       // Parse nested object
       if (attr.conditions) {
         const conditions = this.parseConditionObject(attr.conditions).map(condition => `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`);
@@ -368,7 +361,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
 
         return str;
       }
-    } else if (attr instanceof Utils.Cast) {
+    } else if (attr instanceof Cast) {
       if (/timestamp/i.test(attr.type)) {
         attr.type = 'datetime';
       } else if (attr.json && /boolean/i.test(attr.type)) {
@@ -385,7 +378,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   }
 
   truncateTableQuery(tableName) {
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'TRUNCATE',
       this.quoteTable(tableName),
     ]);
@@ -412,7 +405,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       primaryKeys = model.primaryKeyAttributes.length > 1 ? `(${pks})` : pks;
       primaryKeysSelection = pks;
 
-      return Utils.joinSQLFragments([
+      return joinSQLFragments([
         'DELETE FROM',
         table,
         'WHERE',
@@ -427,23 +420,18 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
       ]);
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'DELETE FROM',
       table,
       whereClause,
     ]);
   }
 
-  showIndexesQuery() {
-    // TODO: check if this is the correct implementation
-    return 'SELECT \'\' FROM DUAL';
-  }
-
   showConstraintsQuery(table, constraintName) {
     const tableName = table.tableName || table;
     const schemaName = table.schema;
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT CONSTRAINT_CATALOG AS constraintCatalog,',
       'CONSTRAINT_NAME AS constraintName,',
       'CONSTRAINT_SCHEMA AS constraintSchema,',
@@ -462,10 +450,10 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
+      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'DROP INDEX',
       this.quoteIdentifier(indexName),
       'ON',
@@ -654,7 +642,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
   getForeignKeysQuery(table, schemaName) {
     const tableName = table.tableName || table;
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT',
       FOREIGN_KEY_FIELDS,
       `FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '${tableName}'`,
@@ -677,7 +665,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
     const quotedTableName = wrapSingleQuote(table.tableName || table);
     const quotedColumnName = wrapSingleQuote(columnName);
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT',
       FOREIGN_KEY_FIELDS,
       'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
@@ -707,7 +695,7 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
    * @private
    */
   dropForeignKeyQuery(tableName, foreignKey) {
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP FOREIGN KEY',
@@ -765,5 +753,5 @@ export class SnowflakeQueryGenerator extends AbstractQueryGenerator {
  * @deprecated use "escape" or "escapeString" on QueryGenerator
  */
 function wrapSingleQuote(identifier) {
-  return Utils.addTicks(identifier, '\'');
+  return addTicks(identifier, '\'');
 }

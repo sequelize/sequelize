@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, Fn, Col } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('DAO'), () => {
   describe('Values', () => {
@@ -130,8 +130,8 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           b: this.sequelize.col('always_false'),
         });
 
-        expect(user.get('d')).to.be.instanceof(Sequelize.Utils.Fn);
-        expect(user.get('b')).to.be.instanceof(Sequelize.Utils.Col);
+        expect(user.get('d')).to.be.instanceof(Fn);
+        expect(user.get('b')).to.be.instanceof(Col);
 
         await user.save();
         await user.reload();

@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import path from 'node:path';
 import type { Dialect } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';

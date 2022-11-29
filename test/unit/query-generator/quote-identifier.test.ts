@@ -1,4 +1,4 @@
-import { expectsql, sequelize } from '../../support.js';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#quoteIdentifier', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;

@@ -1,8 +1,10 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { Json } from '../../utils/sequelize-method';
+import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
-import { quoteIdentifier } from '../../utils/dialect';
+import { quoteIdentifier, removeTicks } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
@@ -10,10 +12,9 @@ import {
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const Utils = require('../../utils');
 const util = require('util');
 const DataTypes = require('../../data-types');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const semver = require('semver');
 const _ = require('lodash');
 
@@ -29,7 +30,7 @@ const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['encoding', 'collate', 
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['cascade']);
 
-export class PostgresQueryGenerator extends AbstractQueryGenerator {
+export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   setSearchPath(searchPath) {
     return `SET search_path to ${searchPath};`;
   }
@@ -128,7 +129,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
       _.each(options.uniqueKeys, (columns, indexName) => {
         if (columns.customIndex) {
           if (typeof indexName !== 'string') {
-            indexName = Utils.generateIndexName(tableName, columns);
+            indexName = generateIndexName(tableName, columns);
           }
 
           attributesClause += `, CONSTRAINT ${
@@ -180,36 +181,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     const schema = tableName.schema || 'public';
 
     return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
-  }
-
-  describeTableQuery(tableName, schema) {
-    if (typeof tableName === 'object') {
-      schema = tableName.schema || schema;
-      tableName = tableName.tableName;
-    }
-
-    schema = schema || this.options.schema || 'public';
-
-    return 'SELECT '
-      + 'pk.constraint_type as "Constraint",'
-      + 'c.column_name as "Field", '
-      + 'c.column_default as "Default",'
-      + 'c.is_nullable as "Null", '
-      + '(CASE WHEN c.udt_name = \'hstore\' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN \'(\' || c.character_maximum_length || \')\' ELSE \'\' END) as "Type", '
-      + '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", '
-      + '(SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment" '
-      + 'FROM information_schema.columns c '
-      + 'LEFT JOIN (SELECT tc.table_schema, tc.table_name, '
-      + 'cu.column_name, tc.constraint_type '
-      + 'FROM information_schema.TABLE_CONSTRAINTS tc '
-      + 'JOIN information_schema.KEY_COLUMN_USAGE  cu '
-      + 'ON tc.table_schema=cu.table_schema and tc.table_name=cu.table_name '
-      + 'and tc.constraint_name=cu.constraint_name '
-      + 'and tc.constraint_type=\'PRIMARY KEY\') pk '
-      + 'ON pk.table_schema=c.table_schema '
-      + 'AND pk.table_name=c.table_name '
-      + 'AND pk.column_name=c.column_name '
-      + `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)}`;
   }
 
   /**
@@ -281,7 +252,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Utils.Json) {
+    if (smth instanceof Json) {
       // Parse nested object
       if (smth.conditions) {
         const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`);
@@ -446,24 +417,6 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     return `DELETE FROM ${table}${whereClause}`;
   }
 
-  showIndexesQuery(tableName) {
-    let schemaJoin = '';
-    let schemaWhere = '';
-    if (typeof tableName !== 'string') {
-      schemaJoin = ', pg_namespace s';
-      schemaWhere = ` AND s.oid = t.relnamespace AND s.nspname = '${tableName.schema}'`;
-      tableName = tableName.tableName;
-    }
-
-    // This is ARCANE!
-    return 'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, '
-      + 'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid) '
-      + `AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a${schemaJoin} `
-      + 'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND '
-      + `t.relkind = 'r' and t.relname = '${tableName}'${schemaWhere} `
-      + 'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;';
-  }
-
   showConstraintsQuery(tableName) {
     // Postgres converts camelCased alias to lowercase unless quoted
     return [
@@ -485,7 +438,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.generateIndexName(tableName, { fields: indexNameOrAttributes });
+      indexName = generateIndexName(tableName, { fields: indexNameOrAttributes });
     }
 
     return [
@@ -703,7 +656,7 @@ export class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   pgEscapeAndQuote(val) {
-    return this.quoteIdentifier(Utils.removeTicks(this.escape(val), '\''));
+    return this.quoteIdentifier(removeTicks(this.escape(val), '\''));
   }
 
   _expandFunctionParamList(params) {

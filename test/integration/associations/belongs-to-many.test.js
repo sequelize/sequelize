@@ -3320,42 +3320,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(ut1).to.have.length(1);
       expect(ut2).to.have.length(1);
     });
-
-    it('create custom unique identifier', async function () {
-      const UserTasksLong = this.sequelize.define('table_user_task_with_very_long_name', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        id_user_very_long_field: {
-          type: DataTypes.INTEGER(1),
-        },
-        id_task_very_long_field: {
-          type: DataTypes.INTEGER(1),
-        },
-      }, {
-        tableName: 'table_user_task_with_very_long_name',
-      });
-
-      this.User.belongsToMany(this.Task, {
-        as: 'MyTasks',
-        through: {
-          model: UserTasksLong,
-          unique: 'custom_user_group_unique',
-        },
-        foreignKey: 'id_user_very_long_field',
-        otherKey: 'id_task_very_long_field',
-        inverse: {
-          as: 'MyUsers',
-        },
-      });
-
-      await this.sequelize.sync({ force: true });
-
-      expect(UserTasksLong.rawAttributes.id_user_very_long_field.unique).to.deep.equal({ name: 'custom_user_group_unique' });
-      expect(UserTasksLong.rawAttributes.id_task_very_long_field.unique).to.deep.equal({ name: 'custom_user_group_unique' });
-    });
   });
 
   describe('Association options', () => {

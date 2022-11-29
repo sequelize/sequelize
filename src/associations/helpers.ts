@@ -1,5 +1,5 @@
-import assert from 'assert';
-import NodeUtils from 'util';
+import assert from 'node:assert';
+import NodeUtils from 'node:util';
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject.js';
 import lowerFirst from 'lodash/lowerFirst';
@@ -9,10 +9,10 @@ import { AssociationError } from '../errors/index.js';
 import type { Model, ModelAttributeColumnOptions, ModelStatic } from '../model';
 import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
-import type { OmitConstructors } from '../utils/index.js';
-import * as Utils from '../utils/index.js';
-import { removeUndefined } from '../utils/index.js';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
+import { removeUndefined } from '../utils/object.js';
+import { pluralize, singularize } from '../utils/string.js';
+import type { OmitConstructors } from '../utils/types.js';
 import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAssociationOptions } from './base';
 
 export function checkNamingCollision(source: ModelStatic<any>, associationName: string): void {
@@ -108,7 +108,7 @@ export function getModel<M extends Model>(
       return null;
     }
 
-    return sequelize.model(model) as ModelStatic<M>;
+    return sequelize.model(model);
   }
 
   return model;
@@ -228,7 +228,7 @@ export function defineAssociation<
   checkNamingCollision(source, normalizedOptions.as);
   assertAssociationUnique(type, source, target, normalizedOptions, parent);
 
-  const sequelize = source.sequelize!;
+  const sequelize = source.sequelize;
   Object.defineProperty(normalizedOptions, 'sequelize', {
     configurable: true,
     get() {
@@ -302,8 +302,8 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
       assert(typeof options.as === 'string');
       as = options.as;
       name = {
-        plural: isMultiAssociation ? options.as : Utils.pluralize(options.as),
-        singular: isMultiAssociation ? Utils.singularize(options.as) : options.as,
+        plural: isMultiAssociation ? options.as : pluralize(options.as),
+        singular: isMultiAssociation ? singularize(options.as) : options.as,
       };
     }
   } else {

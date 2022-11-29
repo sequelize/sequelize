@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import { literal } from '@sequelize/core';
 // eslint-disable-next-line import/order
 import { expect } from 'chai';

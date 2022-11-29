@@ -40,7 +40,6 @@ export class SqliteDialect extends AbstractDialect {
     },
     // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)
     jsonOperations: false,
-    milliseconds: true,
   });
 
   readonly defaultVersion = '3.8.0';

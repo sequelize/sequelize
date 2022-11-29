@@ -33,13 +33,11 @@ module.exports = {
     // Enable this one if you want to prevent creating throwaway objects (perf)
     'unicorn/no-object-as-default-parameter': 'off',
 
-    // sequelize needs to support node >= 12.
+    // sequelize 7 needs to support node >= 14.
     // Object.hasOwn, Array#at, String#replaceAll are available in node >= 16.
-    // `node:` protocol is available in node >= 14.
     'prefer-object-has-own': 'off',
     'unicorn/prefer-at': 'off',
     'unicorn/prefer-string-replace-all': 'off',
-    'unicorn/prefer-node-protocol': 'off',
 
     // Too opinionated.
     'unicorn/prevent-abbreviations': 'off',

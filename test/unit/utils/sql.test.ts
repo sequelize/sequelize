@@ -178,6 +178,23 @@ describe('mapBindParameters', () => {
     }
   });
 
+  it('does consider the token to be a bind parameter if it is located after a $ quoted string', () => {
+    const { sql, bindOrder } = mapBindParameters(`SELECT $$ abc $$ AS string FROM users WHERE id = $id`, dialect);
+
+    expectsql(sql, {
+      default: `SELECT $$ abc $$ AS string FROM users WHERE id = ?`,
+      postgres: `SELECT $$ abc $$ AS string FROM users WHERE id = $1`,
+      sqlite: `SELECT $$ abc $$ AS string FROM users WHERE id = $id`,
+      mssql: `SELECT $$ abc $$ AS string FROM users WHERE id = @id`,
+    });
+
+    if (supportsNamedParameters) {
+      expect(bindOrder).to.be.null;
+    } else {
+      expect(bindOrder).to.deep.eq(['id']);
+    }
+  });
+
   it('does not consider the token to be a bind parameter if it is part of a string with a backslash escaped quote, in dialects that support backslash escape', () => {
     expectPerDialect(() => mapBindParameters(`SELECT * FROM users WHERE id = '\\' $id' OR id = $id`, dialect), {
       default: new Error(`The following SQL query includes an unterminated string literal:
@@ -461,6 +478,16 @@ describe('injectReplacements (named replacements)', () => {
     });
   });
 
+  it('does consider the token to be a bind parameter if it is located after a $ quoted string', () => {
+    const sql = injectReplacements(`SELECT $$ abc $$ AS string FROM users WHERE id = :id`, dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT $$ abc $$ AS string FROM users WHERE id = 1`,
+    });
+  });
+
   it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote', () => {
     const test = () => injectReplacements(`SELECT * FROM users WHERE id = '\\' :id' OR id = :id`, dialect, { id: 1 });
 
@@ -640,6 +667,14 @@ describe('injectReplacements (positional replacements)', () => {
 
     expectsql(sql, {
       default: `SELECT z$$ 1 x$$ * FROM users`,
+    });
+  });
+
+  it('does consider the token to be a bind parameter if it is located after a $ quoted string', () => {
+    const sql = injectReplacements(`SELECT $$ abc $$ AS string FROM users WHERE id = ?`, dialect, [1]);
+
+    expectsql(sql, {
+      default: `SELECT $$ abc $$ AS string FROM users WHERE id = 1`,
     });
   });
 
