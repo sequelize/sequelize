@@ -19,6 +19,7 @@ export const Config: Record<Dialect, Options> = {
       max: Number(env.SEQ_MSSQL_POOL_MAX || env.SEQ_POOL_MAX || 5),
       idle: Number(env.SEQ_MSSQL_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
+    databaseVersion: env.SEQ_MSSQL_DATABASE_VERSION || env.SEQ_MSSQL_DB_VERSION || '14.0.1000',
   },
 
   mysql: {
@@ -31,6 +32,7 @@ export const Config: Record<Dialect, Options> = {
       max: Number(env.SEQ_MYSQL_POOL_MAX || env.SEQ_POOL_MAX || 5),
       idle: Number(env.SEQ_MYSQL_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
+    databaseVersion: env.SEQ_MYSQL_DATABASE_VERSION || env.SEQ_MYSQL_DB_VERSION || '5.7.0',
   },
 
   snowflake: {
@@ -43,6 +45,7 @@ export const Config: Record<Dialect, Options> = {
       warehouse: env.SEQ_SNOWFLAKE_WH || env.SEQ_WH || 'warehouse',
       schema: env.SEQ_SNOWFLAKE_SCHEMA || env.SEQ_SCHEMA || '',
     },
+    databaseVersion: env.SEQ_SNOWFLAKE_DATABASE_VERSION || env.SEQ_SNOWFLAKE_DB_VERSION || '5.7.0',
   },
 
   mariadb: {
@@ -55,9 +58,12 @@ export const Config: Record<Dialect, Options> = {
       max: Number(env.SEQ_MARIADB_POOL_MAX || env.SEQ_POOL_MAX || 5),
       idle: Number(env.SEQ_MARIADB_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
+    databaseVersion: env.SEQ_MARIADB_DATABASE_VERSION || env.SEQ_MARIADB_DB_VERSION || '10.1.44',
   },
 
-  sqlite: {},
+  sqlite: {
+    databaseVersion: env.SEQ_SQLITE_DATABASE_VERSION || env.SEQ_SQLITE_DB_VERSION || '3.8.0',
+  },
 
   postgres: {
     database: env.SEQ_PG_DB || env.SEQ_DB || 'sequelize_test',
@@ -70,6 +76,7 @@ export const Config: Record<Dialect, Options> = {
       idle: Number(env.SEQ_PG_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
     minifyAliases: Boolean(env.SEQ_PG_MINIFY_ALIASES),
+    databaseVersion: env.SEQ_PG_DATABASE_VERSION || env.SEQ_DB_VERSION || '11.0.0',
   },
   db2: {
     database: process.env.SEQ_DB2_DB || process.env.SEQ_DB || process.env.IBM_DB_DBNAME || 'testdb',
@@ -82,6 +89,7 @@ export const Config: Record<Dialect, Options> = {
       max: Number(process.env.SEQ_DB2_POOL_MAX || process.env.SEQ_POOL_MAX || 5),
       idle: Number(process.env.SEQ_DB2_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000),
     },
+    databaseVersion: env.SEQ_DB2_DATABASE_VERSION || env.SEQ_DB2_DB_VERSION || '1.0.0',
   },
   ibmi: {
     database: env.SEQ_IBMI_DB || env.SEQ_DB,
@@ -94,5 +102,6 @@ export const Config: Record<Dialect, Options> = {
     dialectOptions: {
       odbcConnectionString: env.SEQ_IBMI_CONN_STR,
     },
+    databaseVersion: env.SEQ_IBMI_DATABASE_VERSION || env.SEQ_IBMI_DB_VERSION || '7.3.0',
   },
 };
