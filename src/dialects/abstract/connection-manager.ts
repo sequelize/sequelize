@@ -1,5 +1,4 @@
 import cloneDeep from 'lodash/cloneDeep';
-import isNil from 'lodash/isNil';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
 import { ConnectionAcquireTimeoutError } from '../../errors';
@@ -191,7 +190,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
   }
 
   async #initDatabaseVersion() {
-    if (!isNil(this.sequelize.options.databaseVersion)) {
+    if (this.sequelize.options.databaseVersion !== null) {
       return;
     }
 
