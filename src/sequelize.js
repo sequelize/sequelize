@@ -1037,7 +1037,13 @@ Use Sequelize#query if you wish to use replacements.`);
 
   }
 
-  // TODO: rename to getDatabaseVersion
+  /**
+   * Fetchs the version of the dialect
+   *
+   * @param {object} [options] the options passed to fatchDatabaseVersion
+   *
+   * @returns {Promise<string>} current version of the dialect
+   */
   async fetchDatabaseVersion(options) {
     return await this.getQueryInterface().databaseVersion(options);
   }
@@ -1045,7 +1051,7 @@ Use Sequelize#query if you wish to use replacements.`);
   /**
    * Returns the current version of the database that is loaded internally.
    *
-   * @returns {string}
+   * @returns {string} current version of the dialect that is internally loaded
    */
   getDatabaseVersion() {
     if (isNil(this.options.databaseVersion)) {
