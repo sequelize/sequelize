@@ -1,4 +1,5 @@
 import DatabaseError, { DatabaseErrorSubclassOptions } from '../database-error';
+import { removeUndefined } from '../../utils/object.js';
 
 interface UnknownConstraintErrorOptions {
   constraint?: string;
@@ -9,18 +10,18 @@ interface UnknownConstraintErrorOptions {
 /**
  * Thrown when constraint name is not found in the database
  */
-class UnknownConstraintError extends DatabaseError implements UnknownConstraintErrorOptions {
+class UnknownConstraintError extends DatabaseError {
   constraint: string | undefined;
   fields: Record<string, string | number> | undefined;
   table: string | undefined;
 
   constructor(
-    options: UnknownConstraintErrorOptions & DatabaseErrorSubclassOptions
+    options: DatabaseErrorSubclassOptions & UnknownConstraintErrorOptions
   ) {
     options = options || {};
     options.parent = options.parent || { sql: '', name: '', message: '' };
 
-    super(options.parent, { stack: options.stack });
+    super(options.parent, removeUndefined({ stack: options.stack }));
     this.name = 'SequelizeUnknownConstraintError';
 
     this.message = options.message || 'The specified constraint does not exist';

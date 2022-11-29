@@ -1,5 +1,6 @@
 import { CommonErrorProperties, ErrorOptions } from '../base-error';
 import ValidationError, { ValidationErrorItem } from '../validation-error';
+import { removeUndefined } from '../../utils/object.js';
 
 interface UniqueConstraintErrorParent
   extends Error,
@@ -16,7 +17,7 @@ export interface UniqueConstraintErrorOptions extends ErrorOptions {
 /**
  * Thrown when a unique constraint is violated in the database
  */
-class UniqueConstraintError extends ValidationError implements CommonErrorProperties {
+class UniqueConstraintError extends ValidationError {
   readonly parent: UniqueConstraintErrorParent;
   readonly original: UniqueConstraintErrorParent;
   readonly fields: Record<string, unknown>;
@@ -28,7 +29,7 @@ class UniqueConstraintError extends ValidationError implements CommonErrorProper
     options.message =
       options.message || options.parent.message || 'Validation Error';
     options.errors = options.errors ?? [];
-    super(options.message, options.errors, { stack: options.stack });
+    super(options.message, options.errors, removeUndefined({ stack: options.stack }));
 
     this.name = 'SequelizeUniqueConstraintError';
     this.fields = options.fields ?? {};

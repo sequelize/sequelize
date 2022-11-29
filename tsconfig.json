@@ -15,8 +15,8 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "exactOptionalPropertyTypes": true,
     "checkJs": false,
-    "removeComments": false
   },
   "include": ["./src/**/*.ts"]
 }
