@@ -87,7 +87,6 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
 
       this.connections.set(connectionCacheKey, connectionInstance);
     });
-    this.sequelize.options.databaseVersion = await this.sequelize.fetchDatabaseVersion();
 
     if (this.sequelize.config.password) {
       // Make it possible to define and use password for sqlite encryption plugin like sqlcipher
