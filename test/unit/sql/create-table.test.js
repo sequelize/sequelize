@@ -13,10 +13,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     return;
   }
 
-  if (current.dialect.name === 'postgres') {
-    current.options.databaseVersion = '11.0.0';
-  }
-
   describe('createTable', () => {
     const FooUser = current.define('user', {
       mood: DataTypes.ENUM('happy', 'sad'),
