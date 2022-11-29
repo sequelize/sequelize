@@ -80,7 +80,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
     const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
     // @ts-expect-error -- internal method, no typings
     sandbox.stub(connectionManager, '_disconnect').resolves();
-    sandbox.stub(sequelize, 'databaseVersion').resolves(sequelize.dialect.defaultVersion);
+    sandbox.stub(sequelize, 'fetchDatabaseVersion').resolves(sequelize.dialect.defaultVersion);
 
     const queryOptions: GetConnectionOptions = {
       type: 'read',
@@ -111,7 +111,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       const sequelize = createSequelizeInstance();
       const connectionManager = sequelize.connectionManager;
 
-      sandbox.stub(sequelize, 'databaseVersion').resolves('0.0.1');
+      sandbox.stub(sequelize, 'fetchDatabaseVersion').resolves('0.0.1');
 
       const res: Connection = {};
 
@@ -162,7 +162,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       sandbox.stub(connectionManager, '_disconnect').resolves();
 
       sandbox
-        .stub(sequelize, 'databaseVersion')
+        .stub(sequelize, 'fetchDatabaseVersion')
         .resolves(sequelize.dialect.defaultVersion);
 
       const queryOptions: GetConnectionOptions = {
