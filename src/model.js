@@ -1366,8 +1366,8 @@ Specify a different name for either index to resolve this issue.`);
                 && foreignKeyReference.referencedTableName === foreignReferenceTableName
                 && foreignKeyReference.referencedColumnName === references.key
                 && (foreignReferenceSchema
-                    ? foreignKeyReference.referencedTableSchema === foreignReferenceSchema
-                    : true)
+                  ? foreignKeyReference.referencedTableSchema === foreignReferenceSchema
+                  : true)
                 && !removedConstraints[constraintName])
                 || this.sequelize.options.dialect === 'ibmi') {
                 // Remove constraint on foreign keys.
@@ -1685,7 +1685,7 @@ Specify a different name for either index to resolve this issue.`);
   }
 
   static _createModelVariant() {
-    const model = class extends this {};
+    const model = class extends this { };
     model._initialModel = this;
     Object.defineProperty(model, 'name', { value: this.name });
 
@@ -1809,6 +1809,44 @@ Specify a different name for either index to resolve this issue.`);
     }
 
     return await Model._findSeparate(results, options);
+  }
+
+  /**
+   * batchFindAll({ batchSize: 1000 })
+   * 
+   * Same as findAll() but the queries are executed in batches. 
+   * 
+   * Based on: {@link https://www.npmjs.com/package/sequelize-batches}
+   * 
+   * __Example:__
+   * ```js
+   * for await (const batch of Model.batch({ batchSize: 1000 })) {   
+   *     for (const model of batch) {
+   *         console.log(model);
+   *     }
+   * }
+   * ``` 
+   * 
+   * @generator
+   * @param {object} options
+   * @yields {Array} result of findAll()
+   */
+  static async * batchFindAll(query = { batchSize: 1000 }) {
+    const count = await this.count(query);
+
+    if (count === 0) return false;
+
+    const pagesRemainder = (count % query.batchSize) ? 1 : 0;
+    const pages = Math.floor(count / query.batchSize) + pagesRemainder;
+    let page = 1;
+
+    const params = Object.assign({}, query);
+    while (page <= pages) {
+      params.offset = (page - 1) * query.batchSize;
+      params.limit = query.batchSize;
+      yield await this.findAll(params);
+      page = page + 1;
+    }
   }
 
   static _warnOnInvalidOptions(options, validColumnNames) {
@@ -2798,91 +2836,91 @@ Specify a different name for either index to resolve this issue.`);
       if (options.include && options.include.length > 0) {
         await Promise.all(options.include.filter(include => !(include.association instanceof BelongsTo
           || include.parent && include.parent.association instanceof BelongsToMany)).map(async include => {
-          const associationInstances = [];
-          const associationInstanceIndexToInstanceMap = [];
+            const associationInstances = [];
+            const associationInstanceIndexToInstanceMap = [];
 
-          for (const instance of instances) {
-            let associated = instance.get(include.as);
-            if (!Array.isArray(associated)) {
-              associated = [associated];
-            }
-
-            for (const associationInstance of associated) {
-              if (associationInstance) {
-                if (!(include.association instanceof BelongsToMany)) {
-                  associationInstance.set(include.association.foreignKey, instance.get(include.association.sourceKey || instance.constructor.primaryKeyAttribute, { raw: true }), { raw: true });
-                  Object.assign(associationInstance, include.association.scope);
-                }
-
-                associationInstances.push(associationInstance);
-                associationInstanceIndexToInstanceMap.push(instance);
+            for (const instance of instances) {
+              let associated = instance.get(include.as);
+              if (!Array.isArray(associated)) {
+                associated = [associated];
               }
-            }
-          }
 
-          if (associationInstances.length === 0) {
-            return;
-          }
-
-          const includeOptions = _(Utils.cloneDeep(include))
-            .omit(['association'])
-            .defaults({
-              transaction: options.transaction,
-              logging: options.logging,
-            })
-            .value();
-
-          const createdAssociationInstances = await recursiveBulkCreate(associationInstances, includeOptions);
-          if (include.association instanceof BelongsToMany) {
-            const valueSets = [];
-
-            for (const idx in createdAssociationInstances) {
-              const associationInstance = createdAssociationInstances[idx];
-              const instance = associationInstanceIndexToInstanceMap[idx];
-
-              const values = {
-                [include.association.foreignKey]: instance.get(instance.constructor.primaryKeyAttribute, { raw: true }),
-                [include.association.otherKey]: associationInstance.get(associationInstance.constructor.primaryKeyAttribute, { raw: true }),
-                // Include values defined in the association
-                ...include.association.through.scope,
-              };
-              if (associationInstance[include.association.through.model.name]) {
-                for (const attr of Object.keys(include.association.through.model.rawAttributes)) {
-                  if (include.association.through.model.rawAttributes[attr]._autoGenerated
-                    || attr === include.association.foreignKey
-                    || attr === include.association.otherKey
-                    || typeof associationInstance[include.association.through.model.name][attr] === 'undefined') {
-                    continue;
+              for (const associationInstance of associated) {
+                if (associationInstance) {
+                  if (!(include.association instanceof BelongsToMany)) {
+                    associationInstance.set(include.association.foreignKey, instance.get(include.association.sourceKey || instance.constructor.primaryKeyAttribute, { raw: true }), { raw: true });
+                    Object.assign(associationInstance, include.association.scope);
                   }
 
-                  values[attr] = associationInstance[include.association.through.model.name][attr];
+                  associationInstances.push(associationInstance);
+                  associationInstanceIndexToInstanceMap.push(instance);
                 }
               }
-
-              valueSets.push(values);
             }
 
-            const throughOptions = _(Utils.cloneDeep(include))
-              .omit(['association', 'attributes'])
+            if (associationInstances.length === 0) {
+              return;
+            }
+
+            const includeOptions = _(Utils.cloneDeep(include))
+              .omit(['association'])
               .defaults({
                 transaction: options.transaction,
                 logging: options.logging,
               })
               .value();
-            throughOptions.model = include.association.throughModel;
-            const throughInstances = include.association.throughModel.bulkBuild(valueSets, throughOptions);
 
-            await recursiveBulkCreate(throughInstances, throughOptions);
-          }
-        }));
+            const createdAssociationInstances = await recursiveBulkCreate(associationInstances, includeOptions);
+            if (include.association instanceof BelongsToMany) {
+              const valueSets = [];
+
+              for (const idx in createdAssociationInstances) {
+                const associationInstance = createdAssociationInstances[idx];
+                const instance = associationInstanceIndexToInstanceMap[idx];
+
+                const values = {
+                  [include.association.foreignKey]: instance.get(instance.constructor.primaryKeyAttribute, { raw: true }),
+                  [include.association.otherKey]: associationInstance.get(associationInstance.constructor.primaryKeyAttribute, { raw: true }),
+                  // Include values defined in the association
+                  ...include.association.through.scope,
+                };
+                if (associationInstance[include.association.through.model.name]) {
+                  for (const attr of Object.keys(include.association.through.model.rawAttributes)) {
+                    if (include.association.through.model.rawAttributes[attr]._autoGenerated
+                      || attr === include.association.foreignKey
+                      || attr === include.association.otherKey
+                      || typeof associationInstance[include.association.through.model.name][attr] === 'undefined') {
+                      continue;
+                    }
+
+                    values[attr] = associationInstance[include.association.through.model.name][attr];
+                  }
+                }
+
+                valueSets.push(values);
+              }
+
+              const throughOptions = _(Utils.cloneDeep(include))
+                .omit(['association', 'attributes'])
+                .defaults({
+                  transaction: options.transaction,
+                  logging: options.logging,
+                })
+                .value();
+              throughOptions.model = include.association.throughModel;
+              const throughInstances = include.association.throughModel.bulkBuild(valueSets, throughOptions);
+
+              await recursiveBulkCreate(throughInstances, throughOptions);
+            }
+          }));
       }
 
       // map fields back to attributes
       for (const instance of instances) {
         for (const attr in model.rawAttributes) {
           if (model.rawAttributes[attr].field
-              && instance.dataValues[model.rawAttributes[attr].field] !== undefined
-              && model.rawAttributes[attr].field !== attr
+            && instance.dataValues[model.rawAttributes[attr].field] !== undefined
+            && model.rawAttributes[attr].field !== attr
           ) {
             instance.dataValues[attr] = instance.dataValues[model.rawAttributes[attr].field];
             delete instance.dataValues[model.rawAttributes[attr].field];
@@ -3229,7 +3267,7 @@ Specify a different name for either index to resolve this issue.`);
     if (updateDoneRowByRow) {
       result = [instances.length, instances];
     } else if (_.isEmpty(valuesUse)
-       || Object.keys(valuesUse).length === 1 && valuesUse[this._timestampAttributes.updatedAt]) {
+      || Object.keys(valuesUse).length === 1 && valuesUse[this._timestampAttributes.updatedAt]) {
       // only updatedAt is being passed, then skip update
       result = [0];
     } else {
@@ -4132,8 +4170,8 @@ Instead of specifying a Model, either:
     // Transfer database generated values (defaults, autoincrement, etc)
     for (const attr of Object.keys(this.constructor.rawAttributes)) {
       if (this.constructor.rawAttributes[attr].field
-          && values[this.constructor.rawAttributes[attr].field] !== undefined
-          && this.constructor.rawAttributes[attr].field !== attr
+        && values[this.constructor.rawAttributes[attr].field] !== undefined
+        && this.constructor.rawAttributes[attr].field !== attr
       ) {
         values[attr] = values[this.constructor.rawAttributes[attr].field];
         delete values[this.constructor.rawAttributes[attr].field];
@@ -4147,57 +4185,57 @@ Instead of specifying a Model, either:
       await Promise.all(
         this._options.include.filter(include => !(include.association instanceof BelongsTo
           || include.parent && include.parent.association instanceof BelongsToMany)).map(async include => {
-          let instances = this.get(include.as);
+            let instances = this.get(include.as);
 
-          if (!instances) {
-            return;
-          }
-
-          if (!Array.isArray(instances)) {
-            instances = [instances];
-          }
-
-          const includeOptions = _(Utils.cloneDeep(include))
-            .omit(['association'])
-            .defaults({
-              transaction: options.transaction,
-              logging: options.logging,
-              parentRecord: this,
-            })
-            .value();
-
-          // Instances will be updated in place so we can safely treat HasOne like a HasMany
-          await Promise.all(instances.map(async instance => {
-            if (include.association instanceof BelongsToMany) {
-              await instance.save(includeOptions);
-              const values0 = {
-                [include.association.foreignKey]: this.get(this.constructor.primaryKeyAttribute, { raw: true }),
-                [include.association.otherKey]: instance.get(instance.constructor.primaryKeyAttribute, { raw: true }),
-                // Include values defined in the association
-                ...include.association.through.scope,
-              };
-
-              if (instance[include.association.through.model.name]) {
-                for (const attr of Object.keys(include.association.through.model.rawAttributes)) {
-                  if (include.association.through.model.rawAttributes[attr]._autoGenerated
-                    || attr === include.association.foreignKey
-                    || attr === include.association.otherKey
-                    || typeof instance[include.association.through.model.name][attr] === 'undefined') {
-                    continue;
-                  }
-
-                  values0[attr] = instance[include.association.through.model.name][attr];
-                }
-              }
-
-              await include.association.throughModel.create(values0, includeOptions);
-            } else {
-              instance.set(include.association.foreignKey, this.get(include.association.sourceKey || this.constructor.primaryKeyAttribute, { raw: true }), { raw: true });
-              Object.assign(instance, include.association.scope);
-              await instance.save(includeOptions);
+            if (!instances) {
+              return;
             }
-          }));
-        }),
+
+            if (!Array.isArray(instances)) {
+              instances = [instances];
+            }
+
+            const includeOptions = _(Utils.cloneDeep(include))
+              .omit(['association'])
+              .defaults({
+                transaction: options.transaction,
+                logging: options.logging,
+                parentRecord: this,
+              })
+              .value();
+
+            // Instances will be updated in place so we can safely treat HasOne like a HasMany
+            await Promise.all(instances.map(async instance => {
+              if (include.association instanceof BelongsToMany) {
+                await instance.save(includeOptions);
+                const values0 = {
+                  [include.association.foreignKey]: this.get(this.constructor.primaryKeyAttribute, { raw: true }),
+                  [include.association.otherKey]: instance.get(instance.constructor.primaryKeyAttribute, { raw: true }),
+                  // Include values defined in the association
+                  ...include.association.through.scope,
+                };
+
+                if (instance[include.association.through.model.name]) {
+                  for (const attr of Object.keys(include.association.through.model.rawAttributes)) {
+                    if (include.association.through.model.rawAttributes[attr]._autoGenerated
+                      || attr === include.association.foreignKey
+                      || attr === include.association.otherKey
+                      || typeof instance[include.association.through.model.name][attr] === 'undefined') {
+                      continue;
+                    }
+
+                    values0[attr] = instance[include.association.through.model.name][attr];
+                  }
+                }
+
+                await include.association.throughModel.create(values0, includeOptions);
+              } else {
+                instance.set(include.association.foreignKey, this.get(include.association.sourceKey || this.constructor.primaryKeyAttribute, { raw: true }), { raw: true });
+                Object.assign(instance, include.association.scope);
+                await instance.save(includeOptions);
+              }
+            }));
+          }),
       );
     }
 
