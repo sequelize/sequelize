@@ -1,5 +1,6 @@
 'use strict';
 
+import isNil from 'lodash/isNil';
 import isPlainObject from 'lodash/isPlainObject';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { SequelizeTypeScript } from './sequelize-typescript';
@@ -253,7 +254,7 @@ export class Sequelize extends SequelizeTypeScript {
       },
       transactionType: TRANSACTION_TYPES.DEFERRED,
       isolationLevel: null,
-      databaseVersion: 0,
+      databaseVersion: null,
       noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,
@@ -1037,12 +1038,21 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   // TODO: rename to getDatabaseVersion
-  async databaseVersion(options) {
-    if (this.options.databaseVersion === 0) {
+  async fetchDatabaseVersion(options) {
+    return await this.getQueryInterface().databaseVersion(options);
+  }
+
+  /**
+   * Returns the current version of the database that is loaded internally.
+   *
+   * @returns {string}
+   */
+  getDatabaseVersion() {
+    if (isNil(this.options.databaseVersion)) {
       throw new Error('The current database version is unknown, please call `sequelize.authenticate()` first to fetch it. Or manually configure it through options.');
     }
 
-    return await this.getQueryInterface().databaseVersion(options);
+    return this.options.databaseVersion;
   }
 
   /**
