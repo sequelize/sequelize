@@ -1812,15 +1812,14 @@ Specify a different name for either index to resolve this issue.`);
   }
 
   /**
-   * batchFindAll({ batchSize: 1000 })
+   * findAllBatched({ batchSize: 1000 })
    * 
    * Same as findAll() but the queries are executed in batches. 
    * 
-   * Based on: {@link https://www.npmjs.com/package/sequelize-batches}
    * 
    * __Example:__
    * ```js
-   * for await (const batch of Model.batch({ batchSize: 1000 })) {   
+   * for await (const batch of Model.findAllBatched({ batchSize: 1000 })) {   
    *     for (const model of batch) {
    *         console.log(model);
    *     }
@@ -1829,24 +1828,23 @@ Specify a different name for either index to resolve this issue.`);
    * 
    * @generator
    * @param {object} options
-   * @yields {Array} result of findAll()
+   * @yields {Promise} result of findAll()
    */
-  static async * batchFindAll(query = { batchSize: 1000 }) {
-    const count = await this.count(query);
-
-    if (count === 0) return false;
-
-    const pagesRemainder = (count % query.batchSize) ? 1 : 0;
-    const pages = Math.floor(count / query.batchSize) + pagesRemainder;
+  static async * findAllBatched(query = { batchSize: 1000 }) {
+    const params = Object.assign({}, query);
+    let isLastPage = false;
     let page = 1;
 
-    const params = Object.assign({}, query);
-    while (page <= pages) {
+    do {
       params.offset = (page - 1) * query.batchSize;
       params.limit = query.batchSize;
-      yield await this.findAll(params);
+      const results = await this.findAll(params);
+      if (results.length < query.batchSize) {
+        isLastPage = true;
+      }
+      yield results;
       page = page + 1;
-    }
+    } while (!isLastPage);
   }
 
   static _warnOnInvalidOptions(options, validColumnNames) {
