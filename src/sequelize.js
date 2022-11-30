@@ -1038,9 +1038,9 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   /**
-   * Fetchs the version of the dialect
+   * Fetchs the version of the database
    *
-   * @param {object} [options] the options passed to fatchDatabaseVersion
+   * @param {object} [options] Query options
    *
    * @returns {Promise<string>} current version of the dialect
    */
@@ -1049,7 +1049,9 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   /**
-   * Returns the current version of the database that is loaded internally.
+   * Throws if the database version hasn't been loaded yet. It is automatically loaded the first time Sequelize connects to your database.
+   *
+   * You can use {@link Sequelize#authenticate} to cause a first connection.
    *
    * @returns {string} current version of the dialect that is internally loaded
    */

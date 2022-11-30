@@ -816,12 +816,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('getDatabaseVersion', () => {
-    it('throws if no database version is set internally', function () {
-      try {
-        this.sequelize.getDatabaseVersion();
-      } catch (error) {
-        expect(error.message).to.equal('The current database version is unknown, please call `sequelize.authenticate()` first to fetch it. Or manually configure it through options.');
-      }
+    it('throws if no database version is set internally', () => {
+      expect(() => {
+        // ensures the version hasn't been loaded by another test yet
+        const sequelize = Support.createSequelizeInstance();
+        sequelize.getDatabaseVersion();
+      }).to.throw(
+        'The current database version is unknown, please call `sequelize.authenticate()` first to fetch it. Or manually configure it through options.',
+      );
     });
 
     it('should be able to get database version once loaded internally', async function () {

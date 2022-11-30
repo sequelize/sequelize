@@ -172,7 +172,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    * @param options
    */
   async getConnection(options?: GetConnectionOptions) {
-    await this.#initDatabaseVersion();
+    await this._initDatabaseVersion();
 
     try {
       const result = await this.pool.acquire(options?.type, options?.useMaster);
@@ -189,8 +189,8 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     }
   }
 
-  async #initDatabaseVersion() {
-    if (this.sequelize.options.databaseVersion !== null) {
+  async _initDatabaseVersion() {
+    if (this.sequelize.options.databaseVersion != null) {
       return;
     }
 
