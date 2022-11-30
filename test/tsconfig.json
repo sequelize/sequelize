@@ -10,7 +10,8 @@
     },
     "types": ["node", "mocha", "sinon", "chai"],
     "noEmit": true,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "exactOptionalPropertyTypes": false
   },
   "include": ["./types/**/*", "../types/*"]
 }
