@@ -1,7 +1,5 @@
 'use strict';
 
-import { getAttributeName } from '../../utils';
-
 const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');

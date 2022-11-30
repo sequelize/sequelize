@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import type { Class } from 'type-fest';
 import type { Logging, Deferrable, PartlyRequired, Connection, Sequelize } from './index.js';
 

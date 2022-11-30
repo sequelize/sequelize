@@ -1,4 +1,4 @@
-import NodeUtil from 'util';
+import NodeUtil from 'node:util';
 import isPlainObject from 'lodash/isPlainObject';
 import type { Rangable, RangePart, Range, InputRangePart } from '../../model.js';
 

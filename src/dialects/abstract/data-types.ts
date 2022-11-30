@@ -1,5 +1,5 @@
 import { Blob } from 'node:buffer';
-import util from 'util';
+import util from 'node:util';
 import dayjs from 'dayjs';
 import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';

@@ -31,7 +31,6 @@ export class IBMiDialect extends AbstractDialect {
       dataTypes: {
         COLLATE_BINARY: true,
       },
-      milliseconds: true,
     },
   );
 

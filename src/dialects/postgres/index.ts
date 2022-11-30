@@ -65,7 +65,6 @@ export class PostgresDialect extends AbstractDialect {
     deferrableConstraints: true,
     searchPath: true,
     escapeStringConstants: true,
-    milliseconds: true,
     globalTimeZoneConfig: true,
     dropTable: {
       cascade: true,

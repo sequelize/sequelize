@@ -1,3 +1,3 @@
-import { MySqlQueryGenerator } from '../mysql/query-generator.js';
+import { SqliteQueryGeneratorTypeScript } from './query-generator-typescript.js';
 
-export class SqliteQueryGenerator extends MySqlQueryGenerator {}
+export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {}
