@@ -1843,7 +1843,7 @@ Specify a different name for either index to resolve this issue.`);
         isLastPage = true;
       }
       yield results;
-      page = page + 1;
+      page++;
     } while (!isLastPage);
   }
 
