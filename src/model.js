@@ -1830,18 +1830,16 @@ Specify a different name for either index to resolve this issue.`);
    * @param {object} options
    * @yields {Promise} result of findAll()
    */
-  static async * findAllBatched(query = { batchSize: 1000 }) {
-    const params = Object.assign({}, query);
+  static async *findAllBatched(options = { batchSize: 1000 }) {
+    const options_ = Object.assign({}, options);
     let isLastPage = false;
     let page = 1;
 
     do {
-      params.offset = (page - 1) * query.batchSize;
-      params.limit = query.batchSize;
-      const results = await this.findAll(params);
-      if (results.length < query.batchSize) {
-        isLastPage = true;
-      }
+      options_.offset = (page - 1) * options.batchSize;
+      options_.limit = options.batchSize;
+      const results = await this.findAll(options_);
+      isLastPage = (results.length < options.batchSize);
       yield results;
       page++;
     } while (!isLastPage);
