@@ -889,7 +889,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT',
       attributes.join(', '),
       `FROM ${tables}`,
