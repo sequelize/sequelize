@@ -119,12 +119,16 @@ if (current.dialect.name === 'mssql') {
         sequelize: this.sequelize,
         dialect: this.sequelize.dialect,
       });
+
+      let dbVersion = '11.0.0';
+
       // Test newer versions first
       // Should be all the same since handling is done in addLimitAndOffset
       // for SQL Server 2012 and higher (>= v11.0.0)
       modifiedGen.sequelize = {
+        getDatabaseVersion: () => dbVersion,
         options: {
-          databaseVersion: '11.0.0',
+          databaseVersion: dbVersion,
         },
       };
 
@@ -159,7 +163,7 @@ if (current.dialect.name === 'mssql') {
       });
 
       // Test older version (< v11.0.0)
-      modifiedGen.sequelize.options.databaseVersion = '10.0.0';
+      dbVersion = '10.0.0';
 
       // Base case
       expectsql(modifiedGen.selectFromTableFragment({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {

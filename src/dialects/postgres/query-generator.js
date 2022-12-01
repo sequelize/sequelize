@@ -98,7 +98,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     options = { ...options };
 
     // Postgres 9.0 does not support CREATE TABLE IF NOT EXISTS, 9.1 and above do
-    const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
+    const databaseVersion = this.sequelize.getDatabaseVersion();
     const attrStr = [];
     let comments = '';
     let columnComments = '';
@@ -820,7 +820,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const enumName = this.pgEnumName(tableName, attr);
     let sql = `ALTER TYPE ${enumName} ADD VALUE `;
 
-    if (semver.gte(this.sequelize.options.databaseVersion, '9.3.0')) {
+    if (semver.gte(this.sequelize.getDatabaseVersion(), '9.3.0')) {
       sql += 'IF NOT EXISTS ';
     }
 

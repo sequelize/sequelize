@@ -889,7 +889,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
 
-    const dbVersion = this.sequelize.options.databaseVersion;
+    const dbVersion = this.sequelize.getDatabaseVersion();
     const isSQLServer2008 = semver.valid(dbVersion) && semver.lt(dbVersion, '11.0.0');
 
     if (isSQLServer2008 && options.offset) {
@@ -1004,7 +1004,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   addLimitAndOffset(options, model) {
     // Skip handling of limit and offset as postfixes for older SQL Server versions
-    if (semver.valid(this.sequelize.options.databaseVersion) && semver.lt(this.sequelize.options.databaseVersion, '11.0.0')) {
+    if (semver.valid(this.sequelize.getDatabaseVersion()) && semver.lt(this.sequelize.getDatabaseVersion(), '11.0.0')) {
       return '';
     }
 

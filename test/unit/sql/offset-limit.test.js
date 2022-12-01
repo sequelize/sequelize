@@ -11,6 +11,10 @@ const sql       = current.dialect.queryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('offset/limit', () => {
+    if (current.options.dialect === 'mssql') {
+      current.options.databaseVersion = '11.0.0';
+    }
+
     const testsql = function (options, expectation) {
       const model = options.model;
 

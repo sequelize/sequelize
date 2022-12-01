@@ -439,7 +439,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('fails with incorrect database credentials (1)', async function () {
         // TODO: remove this once fixed in https://github.com/brianc/node-postgres/issues/1927 or when password is not allowed to be null in our postgres implementation
-        if (dialect === 'postgres' && semver.gte(this.sequelize.options.databaseVersion, '12.0.0')) {
+        if (dialect === 'postgres' && semver.gte(this.sequelize.getDatabaseVersion(), '12.0.0')) {
           return;
         }
 

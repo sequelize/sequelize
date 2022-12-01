@@ -220,9 +220,9 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
           ? parsedVersion
           : this.dialect.defaultVersion;
 
-        if (semver.lt(this.sequelize.options.databaseVersion, this.dialect.defaultVersion)) {
+        if (semver.lt(this.sequelize.getDatabaseVersion(), this.dialect.defaultVersion)) {
           deprecations.unsupportedEngine();
-          debug(`Unsupported database engine version ${this.sequelize.options.databaseVersion}`);
+          debug(`Unsupported database engine version ${this.sequelize.getDatabaseVersion()}`);
         }
 
         return await this._disconnect(connection);
