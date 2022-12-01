@@ -80,7 +80,7 @@
     "@types/sinon-chai": "3.2.9",
     "@types/snowflake-sdk": "1.6.10",
     "@types/tedious": "4.0.9",
-    "@types/uuid": "8.3.4",
+    "@types/uuid": "9.0.0",
     "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
