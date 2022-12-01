@@ -1,5 +1,5 @@
-import type { Nullish, AllowArray } from './utils/index.js';
 import { Multimap } from './utils/multimap.js';
+import type { AllowArray, Nullish } from './utils/types.js';
 
 export type AsyncHookReturn = Promise<void> | void;
 

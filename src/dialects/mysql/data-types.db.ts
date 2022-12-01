@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import wkx from 'wkx';
-import { isValidTimeZone } from '../../utils/index.js';
+import { isValidTimeZone } from '../../utils/dayjs.js';
 import type { MariaDbDialect } from '../mariadb/index.js';
 import type { MySqlTypeCastValue } from './connection-manager.js';
 import type { MysqlDialect } from './index.js';

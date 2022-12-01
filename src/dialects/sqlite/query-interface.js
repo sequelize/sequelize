@@ -1,9 +1,11 @@
 'use strict';
 
+import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
+
 const sequelizeErrors = require('../../errors');
 const { QueryTypes } = require('../../query-types');
 const { QueryInterface, QueryOptions, ColumnsDescription } = require('../abstract/query-interface');
-const { cloneDeep } = require('../../utils');
+const { cloneDeep } = require('../../utils/object.js');
 const _ = require('lodash');
 const crypto = require('crypto');
 
@@ -181,24 +183,36 @@ export class SqliteQueryInterface extends QueryInterface {
    * @override
    */
   async describeTable(tableName, options) {
-    let schema = null;
-    let schemaDelimiter = null;
+    let table = {};
 
-    if (typeof options === 'string') {
-      schema = options;
-    } else if (typeof options === 'object' && options !== null) {
-      schema = options.schema || null;
-      schemaDelimiter = options.schemaDelimiter || null;
+    if (typeof tableName === 'string') {
+      table.tableName = tableName;
     }
 
     if (typeof tableName === 'object' && tableName !== null) {
-      schema = tableName.schema;
-      tableName = tableName.tableName;
+      table = tableName;
     }
 
-    const sql = this.queryGenerator.describeTableQuery(tableName, schema, schemaDelimiter);
+    if (typeof options === 'string') {
+      noSchemaParameter();
+      table.schema = options;
+    }
+
+    if (typeof options === 'object' && options !== null) {
+      if (options.schema) {
+        noSchemaParameter();
+        table.schema = options.schema;
+      }
+
+      if (options.schemaDelimiter) {
+        noSchemaDelimiterParameter();
+        table.delimiter = options.schemaDelimiter;
+      }
+    }
+
+    const sql = this.queryGenerator.describeTableQuery(table);
     options = { ...options, type: QueryTypes.DESCRIBE };
-    const sqlIndexes = this.queryGenerator.showIndexesQuery(tableName);
+    const sqlIndexes = this.queryGenerator.showIndexesQuery(table);
 
     try {
       const data = await this.sequelize.queryRaw(sql, options);
@@ -208,7 +222,7 @@ export class SqliteQueryInterface extends QueryInterface {
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
       if (_.isEmpty(data)) {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       const indexes = await this.sequelize.queryRaw(sqlIndexes, options);
@@ -241,7 +255,7 @@ export class SqliteQueryInterface extends QueryInterface {
       return data;
     } catch (error) {
       if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       throw error;

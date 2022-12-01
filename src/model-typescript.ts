@@ -25,6 +25,9 @@ import type {
   SyncOptions,
   UpdateOptions,
   UpsertOptions,
+  Sequelize,
+  AbstractQueryGenerator,
+  QueryInterface,
 } from '.';
 
 export interface ModelHooks<M extends Model = Model, TAttributes = any> {
@@ -137,9 +140,67 @@ const staticModelHooks = new HookHandlerBuilder<ModelHooks>(validModelHooks, asy
   }
 });
 
+const staticPrivateStates = new WeakMap<typeof ModelTypeScript, { sequelize?: Sequelize }>();
+
 // DO NOT EXPORT THIS CLASS!
 // This is a temporary class to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
 export class ModelTypeScript {
+  static get queryInterface(): QueryInterface {
+    return this.sequelize.queryInterface;
+  }
+
+  static get queryGenerator(): AbstractQueryGenerator {
+    return this.queryInterface.queryGenerator;
+  }
+
+  /**
+   * A reference to the sequelize instance.
+   */
+  get sequelize(): Sequelize {
+    return (this.constructor as typeof ModelTypeScript).sequelize;
+  }
+
+  /**
+   * A reference to the sequelize instance.
+   *
+   * Accessing this property throws if the model has not been registered with a Sequelize instance yet.
+   */
+  static get sequelize(): Sequelize {
+    const sequelize = staticPrivateStates.get(this)?.sequelize;
+
+    if (sequelize == null) {
+      throw new Error(`Model "${this.name}" has not been initialized yet. You can check whether a model has been initialized by calling its isInitialized method.`);
+    }
+
+    return sequelize;
+  }
+
+  static assertIsInitialized(): void {
+    const sequelize = staticPrivateStates.get(this)?.sequelize;
+
+    if (sequelize == null) {
+      throw new Error(`Model "${this.name}" has not been initialized yet. You can check whether a model has been initialized by calling its isInitialized method.`);
+    }
+  }
+
+  static isInitialized(): boolean {
+    const sequelize = staticPrivateStates.get(this)?.sequelize;
+
+    return sequelize != null;
+  }
+
+  // TODO: make this hard-private once Model.init has been moved here
+  private static _setSequelize(sequelize: Sequelize) {
+    const privateState = staticPrivateStates.get(this) ?? {};
+
+    if (privateState.sequelize != null && privateState.sequelize !== sequelize) {
+      throw new Error(`Model "${this.name}" already belongs to a different Sequelize instance.`);
+    }
+
+    privateState.sequelize = sequelize;
+    staticPrivateStates.set(this, privateState);
+  }
+
   static get hooks() {
     return staticModelHooks.getFor(this);
   }

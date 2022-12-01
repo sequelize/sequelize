@@ -2,8 +2,8 @@ import dayjs from 'dayjs';
 import wkx from 'wkx';
 import type { Falsy } from '../../generic/falsy.js';
 import type { GeoJson } from '../../geo-json.js';
+import { isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs';
-import { isString } from '../../utils/index.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type {
   AcceptedDate,

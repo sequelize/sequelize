@@ -1175,20 +1175,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    it('raises an error if you mess up the datatype', function () {
-      expect(() => {
-        this.sequelize.define('UserBadDataType', {
-          activity_date: DataTypes.DATe,
-        });
-      }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
-
-      expect(() => {
-        this.sequelize.define('UserBadDataType', {
-          activity_date: { type: DataTypes.DATe },
-        });
-      }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
-    });
-
     it('sets a 64 bit int in bigint', async function () {
       const User = this.sequelize.define('UserWithBigIntFields', {
         big: DataTypes.BIGINT,
