@@ -432,7 +432,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       outputFragment = returnValues.outputFragment || '';
 
       // ensure that the return output is properly mapped to model fields.
-      if (!this.dialect.supports.returnValues === 'output' && options.returning) {
+      if (this.dialect.supports.returnValues !== 'output' && options.returning) {
         options.mapToModel = true;
       }
     }

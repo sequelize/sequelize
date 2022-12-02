@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op } = require('@sequelize/core');
+const { DataTypes, Op, col } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -845,7 +845,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {},
             {},
           ], {
-            returning: ['*'],
+            returning: [col('*')],
           });
 
           const actualUsers0 = await User.findAll();
