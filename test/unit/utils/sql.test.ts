@@ -1,5 +1,5 @@
-import { injectReplacements, mapBindParameters } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { expect } from 'chai';
+import { injectReplacements, mapBindParameters } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import {
   createSequelizeInstance,
   expectPerDialect,

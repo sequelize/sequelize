@@ -117,7 +117,7 @@ export class BelongsTo<
     // for non primary columns.
     if (target.sequelize.options.dialect === 'db2' && this.target.getAttributes()[this.targetKey].primaryKey !== true) {
       // TODO: throw instead
-      // @ts-expect-error
+      // @ts-expect-error -- pending removal, not worth typing
       this.target.getAttributes()[this.targetKey].unique = true;
     }
 

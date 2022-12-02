@@ -1,3 +1,4 @@
+import { expectTypeOf } from 'expect-type';
 import type {
   WhereOptions,
   Attributes,
@@ -11,7 +12,6 @@ import {
   or,
   Transaction,
 } from '@sequelize/core';
-import { expectTypeOf } from 'expect-type';
 
 // NOTE: most typing tests for WhereOptions are located in test/unit/sql/where.test.ts
 
@@ -144,27 +144,27 @@ MyModel.findAll({
   where: {
     id: {
       [Op.in]: {
-        // @ts-expect-error - cannot use Operator inside another one!
+        // @ts-expect-error -- cannot use Operator inside another one!
         [Op.eq]: [1, 2],
       },
     },
   },
 });
 
-// @ts-expect-error - no attribute
+// @ts-expect-error -- no attribute
 MyModel.findAll({
   where: [1, 2],
 });
 
 // TODO [2022-05-26]: TS < 4.4 does not detect an error here. Uncomment test once we remove support for TS 4.3
 MyModel.findAll({
-  // @ts-expect-error - no attribute
+  // @ts-expect-error -- no attribute
   where: { [Op.or]: [1, 2] },
 });
 
 // TODO [2022-05-26]: TS < 4.4 does not detect an error here. Uncomment test once we remove support for TS 4.3
 MyModel.findAll({
-  // @ts-expect-error - no attribute
+  // @ts-expect-error -- no attribute
   where: { [Op.and]: { [Op.or]: [1, 2] } },
 });
 
@@ -173,7 +173,7 @@ MyModel.findAll({
   where: {
     id: {
       [Op.eq]: {
-        // @ts-expect-error - this is not a valid query
+        // @ts-expect-error -- this is not a valid query
         [Op.or]: [1, 2],
       },
     },

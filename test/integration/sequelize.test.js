@@ -462,15 +462,31 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               'FATAL:  role "bar" does not exist',
               'password authentication failed for user "bar"',
             ].some(fragment => error.message.includes(fragment)));
-          } else if (dialect === 'mssql') {
-            expect(error.message).to.include('Login failed for user \'bar\'.');
-          } else if (dialect === 'db2') {
-            expect(error.message).to.include('A communication error has been detected');
-          } else if (dialect === 'ibmi') {
-            expect(error.message).to.equal('[odbc] Error connecting to the database');
-            expect(error.original.odbcErrors[0].message).to.include('Data source name not found and no default driver specified');
           } else {
-            expect(error.message.toString()).to.match(/.*Access denied.*/);
+            switch (dialect) {
+              case 'mssql': {
+                expect(error.message).to.include('Login failed for user \'bar\'.');
+
+                break;
+              }
+
+              case 'db2': {
+                expect(error.message).to.include('A communication error has been detected');
+
+                break;
+              }
+
+              case 'ibmi': {
+                expect(error.message).to.equal('[odbc] Error connecting to the database');
+                expect(error.original.odbcErrors[0].message).to.include('Data source name not found and no default driver specified');
+
+                break;
+              }
+
+              default: {
+                expect(error.message.toString()).to.match(/.*Access denied.*/);
+              }
+            }
           }
         }
       });

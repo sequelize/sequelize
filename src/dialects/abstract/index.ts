@@ -470,7 +470,7 @@ export abstract class AbstractDialect {
   }
 
   getDefaultPort(): number {
-    // @ts-expect-error untyped constructor
+    // @ts-expect-error -- untyped constructor
     return this.constructor.getDefaultPort();
   }
 

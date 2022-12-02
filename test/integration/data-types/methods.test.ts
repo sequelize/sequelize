@@ -1,3 +1,5 @@
+import { expect } from 'chai';
+import sinon from 'sinon';
 import type {
   BelongsToManyAddAssociationMixin,
   CreationOptional,
@@ -7,8 +9,6 @@ import type {
   NonAttribute,
 } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
-import { expect } from 'chai';
-import sinon from 'sinon';
 import { disableDatabaseResetForSuite, beforeAll2, beforeEach2, sequelize } from '../support';
 
 // This test suite ensures DataType methods are called at the appropriate time

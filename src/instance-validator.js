@@ -8,7 +8,7 @@ const _ = require('lodash');
 const sequelizeError = require('./errors');
 const { BelongsTo } = require('./associations/belongs-to');
 const validator = require('./utils/validator-extras').validator;
-const { promisify } = require('util');
+const { promisify } = require('node:util');
 
 /**
  * Instance Validator.

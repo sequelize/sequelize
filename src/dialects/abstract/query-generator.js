@@ -20,9 +20,9 @@ import { AbstractDataType } from './data-types';
 import { attributeTypeToSql, validateDataType } from './data-types-utils';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 
-const util = require('util');
+const util = require('node:util');
 const _ = require('lodash');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 
 const deprecations = require('../../utils/deprecations');
 const SqlString = require('../../sql-string');
