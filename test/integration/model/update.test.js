@@ -7,7 +7,6 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const current = Support.sequelize;
-const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('update', () => {
