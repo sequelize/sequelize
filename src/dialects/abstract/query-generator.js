@@ -1,5 +1,6 @@
 'use strict';
 
+import NodeUtil from 'node:util';
 import { getTextDataTypeForDialect } from '../../sql-string';
 import { rejectInvalidOptions, isNullish, canTreatArrayAsAnd, isColString } from '../../utils/check';
 import { TICK_CHAR } from '../../utils/dialect';
@@ -2967,7 +2968,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       });
     }
 
-    return '1=1';
+    throw new Error(`Unsupported where option value: ${NodeUtil.inspect(smth)}. Please refer to the Sequelize documentation to learn more about which values are accepted as part of the where option.`);
   }
 
   // A recursive parser for nested where conditions
