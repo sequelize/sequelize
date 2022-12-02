@@ -447,11 +447,29 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         model: User,
         attributes: [
           ['count(*)', 'count'],
+          '.*',
+          '*',
         ],
       }, User);
 
       expectsql(sql, {
-        default: `SELECT [count(*)] AS [count] FROM [Users] AS [User];`,
+        default: `SELECT [count(*)] AS [count], [.*], [*] FROM [Users] AS [User];`,
+      });
+    });
+
+    it('supports a "having" option', () => {
+      const sql = queryGenerator.selectQuery(User.tableName, {
+        model: User,
+        attributes: [
+          literal('*'),
+          [fn('YEAR', col('createdAt')), 'creationYear'],
+        ],
+        group: ['creationYear', 'title'],
+        having: { creationYear: { [Op.gt]: 2002 } },
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT *, YEAR([createdAt]) AS [creationYear] FROM [Users] AS [User] GROUP BY [creationYear], [title] HAVING [creationYear] > 2002;`,
       });
     });
   });

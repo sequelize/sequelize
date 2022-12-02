@@ -54,13 +54,6 @@ export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
  * @private
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
-  constructor(options) {
-    super(options);
-
-    // wrap quoteIdentifier with common logic
-    this._initQuoteIdentifier();
-  }
-
   createDatabaseQuery() {
     if (this.dialect.supports.multiDatabases) {
       throw new Error(`${this.dialect.name} declares supporting databases but createDatabaseQuery is not implemented.`);
@@ -1012,17 +1005,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     throw new Error(`Unknown structure passed to order / group: ${util.inspect(collection)}`);
   }
 
-  _initQuoteIdentifier() {
-    this._quoteIdentifier = this.quoteIdentifier;
-    this.quoteIdentifier = function quoteIdentifier(identifier, force) {
-      if (identifier === '*') {
-        return identifier;
-      }
-
-      return this._quoteIdentifier(identifier, force);
-    };
-  }
-
   /**
    * Split a list of identifiers by "." and quote each part.
    *
@@ -1041,14 +1023,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     return this.quoteIdentifier(identifiers);
-  }
-
-  quoteAttribute(attribute, model) {
-    if (model && attribute in model.rawAttributes) {
-      return this.quoteIdentifier(attribute);
-    }
-
-    return this.quoteIdentifiers(attribute);
   }
 
   /**
@@ -1528,10 +1502,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         attr = [attr[0], this.quoteIdentifier(alias)].join(' AS ');
       } else {
-        // TODO: attributes should always be escaped as identifiers, not escaped as strings
-        attr = !attr.includes(TICK_CHAR) && !attr.includes('"')
-          ? this.quoteAttribute(attr, options.model)
-          : this.escape(attr, undefined, options);
+        attr = this.quoteIdentifier(attr, options.model);
       }
 
       if (!_.isEmpty(options.include) && (!attr.includes('.') || options.dotNotation) && addTable) {

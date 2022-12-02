@@ -379,18 +379,6 @@ if (dialect === 'snowflake') {
           expectation: 'SELECT * FROM "myTable" GROUP BY "name" ORDER BY "id" DESC;',
           context: QueryGenerator,
         }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR("createdAt") AS "creationYear" FROM "myTable" GROUP BY "creationYear", "title" HAVING "creationYear" > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true,
-        }, {
           title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
           arguments: ['myTable', function (sequelize) {
             return {
@@ -654,18 +642,6 @@ if (dialect === 'snowflake') {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM myTable GROUP BY name ORDER BY id DESC;',
           context: { options: { quoteIdentifiers: false } },
-        }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR(createdAt) AS creationYear FROM myTable GROUP BY creationYear, title HAVING creationYear > 2002;',
-          context: { options: { quoteIdentifiers: false } },
-          needsSequelize: true,
         }, {
           title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
           arguments: ['myTable', function (sequelize) {
