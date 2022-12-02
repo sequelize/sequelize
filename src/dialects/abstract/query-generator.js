@@ -1008,6 +1008,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   /**
    * Split a list of identifiers by "." and quote each part.
    *
+   * ⚠️ You almost certainly want to use `quoteIdentifier` instead!
+   * This method splits the identifier by "." into multiple identifiers, and has special meaning for "*".
+   * This behavior should never be the default and should be explicitly opted into by using {@link Col}.
+   *
    * @param {string} identifiers
    *
    * @returns {string}
@@ -1019,7 +1023,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       const head = identifiers.slice(0, -1).join('->');
       const tail = identifiers[identifiers.length - 1];
 
-      return `${this.quoteIdentifier(head)}.${this.quoteIdentifier(tail)}`;
+      return `${this.quoteIdentifier(head)}.${tail === '*' ? '*' : this.quoteIdentifier(tail)}`;
+    }
+
+    if (identifiers === '*') {
+      return '*';
     }
 
     return this.quoteIdentifier(identifiers);

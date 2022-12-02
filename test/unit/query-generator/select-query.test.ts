@@ -446,14 +446,47 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       const sql = queryGenerator.selectQuery(User.tableName, {
         model: User,
         attributes: [
+          // these used to have special escaping logic, now they're always escaped like any other strings. col, fn, and literal can be used for advanced logic.
           ['count(*)', 'count'],
           '.*',
           '*',
+          [literal('count(*)'), 'literal_count'],
+          [fn('count', '*'), 'fn_count_str'],
+          [fn('count', col('*')), 'fn_count_col'],
+          [fn('count', literal('*')), 'fn_count_lit'],
+          [col('a.b'), 'col_a_b'],
+          [col('a.*'), 'col_a_all'],
+          [col('*'), 'col_all'],
         ],
       }, User);
 
       expectsql(sql, {
-        default: `SELECT [count(*)] AS [count], [.*], [*] FROM [Users] AS [User];`,
+        default: `
+          SELECT
+            [count(*)] AS [count],
+            [.*],
+            [*],
+            count(*) AS [literal_count],
+            count('*') AS [fn_count_str],
+            count(*) AS [fn_count_col],
+            count(*) AS [fn_count_lit],
+            [a].[b] AS [col_a_b],
+            [a].* AS [col_a_all],
+            * AS [col_all]
+          FROM [Users] AS [User];`,
+        mssql: `
+          SELECT
+            [count(*)] AS [count],
+            [.*],
+            [*],
+            count(*) AS [literal_count],
+            count(N'*') AS [fn_count_str],
+            count(*) AS [fn_count_col],
+            count(*) AS [fn_count_lit],
+            [a].[b] AS [col_a_b],
+            [a].* AS [col_a_all],
+            * AS [col_all]
+          FROM [Users] AS [User];`,
       });
     });
 
