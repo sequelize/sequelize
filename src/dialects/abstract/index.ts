@@ -63,10 +63,7 @@ export type DialectSupports = {
   finalTable: boolean,
 
   /* does the dialect support returning values for inserted/updated fields */
-  returnValues: false | {
-    output: boolean,
-    returning: boolean,
-  },
+  returnValues: false | 'output' | 'returning',
 
   /* features specific to autoIncrement values */
   autoIncrement: {
