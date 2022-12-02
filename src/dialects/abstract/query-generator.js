@@ -1,5 +1,6 @@
 'use strict';
 
+import NodeUtil from 'node:util';
 import { getTextDataTypeForDialect } from '../../sql-string';
 import { rejectInvalidOptions, isNullish, canTreatArrayAsAnd, isColString } from '../../utils/check';
 import { TICK_CHAR } from '../../utils/dialect';
@@ -431,7 +432,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       outputFragment = returnValues.outputFragment || '';
 
       // ensure that the return output is properly mapped to model fields.
-      if (!this.dialect.supports.returnValues.output && options.returning) {
+      if (!this.dialect.supports.returnValues === 'output' && options.returning) {
         options.mapToModel = true;
       }
     }
@@ -1845,8 +1846,26 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let returningFragment = '';
     let tmpTable = '';
 
+    const returnValuesType = this.dialect.supports.returnValues;
+
     if (Array.isArray(options.returning)) {
-      returnFields.push(...options.returning.map(field => this.quoteIdentifier(field)));
+      returnFields.push(...options.returning.map(field => {
+        if (typeof field === 'string') {
+          return this.quoteIdentifier(field);
+        } else if (field instanceof Literal) {
+          // Due to how the mssql query is built, using a literal would never result in a properly formed query.
+          // It's better to warn early.
+          if (returnValuesType === 'output') {
+            throw new Error(`literal() cannot be used in the "returning" option array in ${this.dialect.name}. Use col(), or a string instead.`);
+          }
+
+          return this.handleSequelizeMethod(field);
+        } else if (field instanceof Col) {
+          return this.handleSequelizeMethod(field);
+        }
+
+        throw new Error(`Unsupported value in "returning" option: ${NodeUtil.inspect(field)}. This option only accepts true, false, or an array of strings, col() or literal().`);
+      }));
     } else if (modelAttributes) {
       _.each(modelAttributes, attribute => {
         if (!(attribute.type instanceof DataTypes.VIRTUAL)) {
@@ -1857,13 +1876,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (_.isEmpty(returnFields)) {
-      returnFields.push('*');
+      returnFields.push(`*`);
     }
 
-    if (this.dialect.supports.returnValues.returning) {
-      returningFragment = ` RETURNING ${returnFields.join(',')}`;
-    } else if (this.dialect.supports.returnValues.output) {
-      outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(',')}`;
+    if (returnValuesType === 'returning') {
+      returningFragment = ` RETURNING ${returnFields.join(', ')}`;
+    } else if (returnValuesType === 'output') {
+      outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(', ')}`;
 
       // To capture output rows when there is a trigger on MSSQL DB
       if (options.hasTrigger && this.dialect.supports.tmpTableTrigger) {

@@ -702,7 +702,7 @@ if (dialect.startsWith('postgres')) {
           expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING *;',
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { returning: ['id', 'sentToId'] }],
-          expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING "id","sentToId";',
+          expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING "id", "sentToId";',
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true, returning: true }],
           expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') ON CONFLICT DO NOTHING RETURNING *;',

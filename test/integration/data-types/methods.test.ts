@@ -162,7 +162,7 @@ describe('DataType Methods', () => {
     });
   }
 
-  if (dialect.supports.returnValues && dialect.supports.returnValues.returning) {
+  if (dialect.supports.returnValues === 'returning') {
     it(`updating a model calls 'parseDatabaseValue' on returned values`, async () => {
       const user = await models.User.create({ name: 'foo' });
       user.name = 'bob';
