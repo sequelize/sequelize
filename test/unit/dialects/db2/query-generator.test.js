@@ -163,10 +163,6 @@ if (dialect === 'db2') {
           expectation: 'SELECT * FROM "myTable" WHERE "myTable"."id" = 2;',
           context: QueryGenerator,
         }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS "count" FROM "foo";',
-          context: QueryGenerator,
-        }, {
           arguments: ['myTable', { order: ['id'] }],
           expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
           context: QueryGenerator,

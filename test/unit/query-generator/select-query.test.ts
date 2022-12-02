@@ -90,7 +90,7 @@ describe('QueryGenerator#selectQuery', () => {
   });
 
   describe('replacements', () => {
-    it('parses named replacements in literals', async () => {
+    it('parses named replacements in literals', () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
 
       const sql = queryGenerator.selectQuery(User.tableName, {
@@ -167,7 +167,7 @@ describe('QueryGenerator#selectQuery', () => {
     });
 
     // see the unit tests of 'injectReplacements' for more
-    it('does not parse replacements in strings in literals', async () => {
+    it('does not parse replacements in strings in literals', () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
 
       const sql = queryGenerator.selectQuery(User.tableName, {
@@ -184,7 +184,7 @@ describe('QueryGenerator#selectQuery', () => {
       });
     });
 
-    it('parses named replacements in literals in includes', async () => {
+    it('parses named replacements in literals in includes', () => {
       const sql = queryGenerator.selectQuery(User.tableName, {
         model: User,
         attributes: ['id'],
@@ -255,7 +255,7 @@ describe('QueryGenerator#selectQuery', () => {
       });
     });
 
-    it(`parses named replacements in belongsToMany includes' through tables`, async () => {
+    it(`parses named replacements in belongsToMany includes' through tables`, () => {
       const sql = queryGenerator.selectQuery(Project.tableName, {
         model: Project,
         attributes: ['id'],
@@ -308,7 +308,7 @@ describe('QueryGenerator#selectQuery', () => {
       });
     });
 
-    it('parses named replacements in literals in includes (subQuery)', async () => {
+    it('parses named replacements in literals in includes (subQuery)', () => {
       const sql = queryGenerator.selectQuery(User.tableName, {
         model: User,
         attributes: ['id'],
@@ -426,8 +426,8 @@ describe('QueryGenerator#selectQuery', () => {
       });
     });
 
-    it('rejects positional replacements, because their execution order is hard to determine', async () => {
-      await expect(
+    it('rejects positional replacements, because their execution order is hard to determine', () => {
+      expect(
         () => queryGenerator.selectQuery(User.tableName, {
           model: User,
           where: {
@@ -440,6 +440,19 @@ describe('QueryGenerator#selectQuery', () => {
       ).to.throw(`The following literal includes positional replacements (?).
 Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal("?")`);
+    });
+
+    it(`always escapes the attribute if it's provided as a string`, () => {
+      const sql = queryGenerator.selectQuery(User.tableName, {
+        model: User,
+        attributes: [
+          ['count(*)', 'count'],
+        ],
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT [count(*)] AS [count] FROM [Users] AS [User];`,
+      });
     });
   });
 

@@ -215,9 +215,6 @@ if (dialect.startsWith('postgres')) {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM "myTable" WHERE "myTable"."id" = 2;',
         }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS "count" FROM "foo";',
-        }, {
           arguments: ['myTable', { order: ['id'] }],
           expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
           context: QueryGenerator,
@@ -411,10 +408,6 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM myTable WHERE myTable.id = 2;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS count FROM foo;',
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { order: ['id DESC'] }],

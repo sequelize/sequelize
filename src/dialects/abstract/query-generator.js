@@ -1516,10 +1516,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         if (attr[0] instanceof SequelizeMethod) {
           attr[0] = this.handleSequelizeMethod(attr[0], undefined, undefined, options);
           addTable = false;
-        } else if (!attr[0].includes('(') && !attr[0].includes(')')) {
-          attr[0] = this.quoteIdentifier(attr[0]);
         } else {
-          deprecations.noRawAttributes();
+          attr[0] = this.quoteIdentifier(attr[0]);
         }
 
         let alias = attr[1];
