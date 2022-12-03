@@ -54,7 +54,9 @@ export class MysqlDialect extends AbstractDialect {
       jsonOperations: true,
       REGEXP: true,
       globalTimeZoneConfig: true,
-      maxExecutionTimeHint: true,
+      maxExecutionTimeHint: {
+        select: true,
+      },
     },
   );
 
