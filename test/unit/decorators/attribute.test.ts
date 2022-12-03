@@ -207,7 +207,7 @@ describe(`@Attribute legacy decorator`, () => {
   });
 });
 
-describe('@AllowNull', () => {
+describe('@AllowNull legacy decorator', () => {
   it('sets allowNull to true', () => {
     class User extends Model<InferAttributes<User>> {
       @Attribute(DataTypes.STRING)
@@ -233,7 +233,7 @@ describe('@AllowNull', () => {
   });
 });
 
-describe('@NotNull', () => {
+describe('@NotNull legacy decorator', () => {
   it('sets allowNull to false', () => {
     class User extends Model<InferAttributes<User>> {
       @Attribute(DataTypes.STRING)
@@ -259,7 +259,7 @@ describe('@NotNull', () => {
   });
 });
 
-describe('@AutoIncrement', () => {
+describe('@AutoIncrement legacy decorator', () => {
   it('sets autoIncrement to true', () => {
     @Table({ noPrimaryKey: true })
     class User extends Model<InferAttributes<User>> {
@@ -274,7 +274,7 @@ describe('@AutoIncrement', () => {
   });
 });
 
-describe('@PrimaryKey', () => {
+describe('@PrimaryKey legacy decorator', () => {
   it('sets primaryKey to true', () => {
     class User extends Model<InferAttributes<User>> {
       @Attribute(DataTypes.INTEGER)
@@ -288,7 +288,7 @@ describe('@PrimaryKey', () => {
   });
 });
 
-describe('@Comment', () => {
+describe('@Comment legacy decorator', () => {
   it('sets comment', () => {
     class User extends Model<InferAttributes<User>> {
       @Attribute(DataTypes.INTEGER)
@@ -328,7 +328,7 @@ describe('@Comment', () => {
   });
 });
 
-describe('@Default', () => {
+describe('@Default legacy decorator', () => {
   it('sets defaultValue', () => {
     class User extends Model<InferAttributes<User>> {
       @Attribute(DataTypes.INTEGER)
@@ -368,7 +368,7 @@ describe('@Default', () => {
   });
 });
 
-describe('@ColumnName', () => {
+describe('@ColumnName legacy decorator', () => {
   it('sets to which column the attribute maps', () => {
     class User extends Model<InferAttributes<User>> {
       @Attribute(DataTypes.INTEGER)

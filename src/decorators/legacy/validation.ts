@@ -8,7 +8,6 @@ import {
   createRequiredAttributeOptionsDecorator,
   throwMustBeMethod,
   throwMustBeModel,
-  throwMustBeStaticProperty,
 } from './decorator-utils.js';
 
 type ValidateKeys = Extract<keyof ColumnValidateOptions, string>;
@@ -74,15 +73,14 @@ export const ValidateAttribute = createRequiredAttributeOptionsDecorator<ColumnV
  *
  * See also {@link ValidateAttribute}.
  */
-export const ValidateModel = createOptionallyParameterizedPropertyDecorator<undefined>(
-  'ValidateModel',
+export const ModelValidator = createOptionallyParameterizedPropertyDecorator<undefined>(
+  'ModelValidator',
   undefined,
   (decoratorOption: ModelOptions['validate'], target: Object, propertyName: string | symbol) => {
-    if (typeof target !== 'function') {
-      throwMustBeStaticProperty('ValidateModel', target, propertyName);
-    }
+    const isStatic = typeof target === 'function';
+    const targetClass = isStatic ? target : target.constructor;
 
-    if (!isModelStatic(target)) {
+    if (!isModelStatic(targetClass)) {
       throwMustBeModel('ValidateModel', target, propertyName);
     }
 
@@ -92,11 +90,17 @@ export const ValidateModel = createOptionallyParameterizedPropertyDecorator<unde
       throwMustBeMethod('ValidateModel', target, propertyName);
     }
 
-    const key = Symbol(`method ${String(propertyName)}`);
+    const validator = isStatic ? function validate() {
+      // When registered as a static method, the model is passed as the first parameter, and the context ("this") must be the class
+      /* eslint-disable @typescript-eslint/no-invalid-this */
+      // @ts-expect-error -- description above ^
+      property.call(target, this);
+      /* eslint-enable @typescript-eslint/no-invalid-this */
+    } : property;
 
-    registerModelOptions(target, {
+    registerModelOptions(targetClass, {
       validate: {
-        [key]: property.bind(target),
+        [propertyName]: validator,
       },
     });
   },

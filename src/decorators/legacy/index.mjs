@@ -20,7 +20,7 @@ export const Unique = Pkg.Unique;
 // Validation Decorators
 
 export const ValidateAttribute = Pkg.ValidateAttribute;
-export const ValidateModel = Pkg.ValidateModel;
+export const ModelValidator = Pkg.ModelValidator;
 export const Contains = Pkg.Contains;
 export const Equals = Pkg.Equals;
 export const Is = Pkg.Is;

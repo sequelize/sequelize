@@ -1,5 +1,6 @@
 import type { ModelAttributeColumnOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
+import { getAllOwnEntries } from '../../utils/object.js';
 
 interface RegisteredOptions {
   model: ModelOptions;
@@ -37,8 +38,8 @@ export function registerModelOptions(
     }
 
     // These are objects. We merge their properties, unless the same key is used in both values.
-    if (optionName === 'scopes' || optionName === 'setterMethods' || optionName === 'getterMethods') {
-      for (const [subOptionName, subOptionValue] of Object.entries(optionValue)) {
+    if (optionName === 'scopes' || optionName === 'setterMethods' || optionName === 'getterMethods' || optionName === 'validate') {
+      for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
         if (subOptionName in existingModelOptions[optionName]!) {
           throw new Error(`Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] on model ${model.name}.`);
         }
@@ -109,7 +110,7 @@ export function registerModelAttributeOptions(
     // These are objects. We merge their properties, unless the same key is used in both values.
     if (optionName === 'validate') {
       // @ts-expect-error -- dynamic type, not worth typing
-      for (const [subOptionName, subOptionValue] of Object.entries(optionValue)) {
+      for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
         if (subOptionName in existingOptions[optionName]!) {
           throw new Error(`Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] of attribute ${attributeName} on model ${model.name}.`);
         }

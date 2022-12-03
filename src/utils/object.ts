@@ -8,6 +8,7 @@ import isUndefined from 'lodash/isUndefined.js';
 import mergeWith from 'lodash/mergeWith';
 import omitBy from 'lodash/omitBy.js';
 import { getComplexKeys } from './format';
+import { combinedIterator, map } from './iterators.js';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { camelize } from './string';
 
@@ -218,4 +219,23 @@ type NoUndefinedField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
 
 export function removeUndefined<T extends {}>(val: T): NoUndefinedField<T> {
   return omitBy(val, isUndefined) as NoUndefinedField<T>;
+}
+
+/**
+ * Returns all own keys of an object, including non-enumerable ones and symbols.
+ *
+ * @param object
+ */
+export function getAllOwnKeys(object: object): IterableIterator<string | symbol> {
+  return combinedIterator<string | symbol>(
+    Object.getOwnPropertySymbols(object),
+    Object.getOwnPropertyNames(object),
+  );
+}
+
+/**
+ * Returns all own entries of an object, including non-enumerable ones and symbols.
+ */
+export function getAllOwnEntries<T>(object: { [s: PropertyKey]: T }): IterableIterator<[key: string | symbol, value: T]> {
+  return map(getAllOwnKeys(object), key => [key, object[key]]);
 }
