@@ -341,13 +341,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         });
 
         it('supports schemas', async function () {
-          const User = this.sequelize.define('User', {}).schema('work');
+          const User = this.sequelize.define('User', {}).withSchema('work');
           const Task = this.sequelize.define('Task', {
             title: DataTypes.STRING,
-          }).schema('work');
+          }).withSchema('work');
           const SubTask = this.sequelize.define('SubTask', {
             title: DataTypes.STRING,
-          }).schema('work');
+          }).withSchema('work');
 
           User.Tasks = User.hasMany(Task, { as: 'tasks' });
           Task.SubTasks = Task.hasMany(SubTask, { as: 'subtasks' });

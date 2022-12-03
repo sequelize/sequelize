@@ -107,8 +107,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
     if (current.dialect.supports.schemas) {
       it('supports schemas', async function () {
-        const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING }).schema('archive');
-        const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING }).schema('archive');
+        const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING }).withSchema('archive');
+        const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING }).withSchema('archive');
 
         Task.belongsTo(User);
 
@@ -140,13 +140,13 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             autoIncrement: true,
             allowNull: false,
           },
-        }).schema('archive');
+        }).withSchema('archive');
         const Task = this.sequelize.define('TaskXYZ', {
           user_id: {
             type: DataTypes.INTEGER,
             references: { model: User, key: 'uid' },
           },
-        }).schema('archive');
+        }).withSchema('archive');
 
         Task.belongsTo(User, { foreignKey: 'user_id' });
 

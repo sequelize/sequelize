@@ -169,15 +169,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       it('should support schemas', async function () {
         const AcmeUser = this.sequelize.define('User', {
           username: DataTypes.STRING,
-        }).schema('acme', '_');
+        }).withSchema('acme', '_');
         const AcmeProject = this.sequelize.define('Project', {
           title: DataTypes.STRING,
           active: DataTypes.BOOLEAN,
-        }).schema('acme', '_');
+        }).withSchema('acme', '_');
         const AcmeProjectUsers = this.sequelize.define('ProjectUsers', {
           status: DataTypes.STRING,
           data: DataTypes.INTEGER,
-        }).schema('acme', '_');
+        }).withSchema('acme', '_');
 
         AcmeUser.belongsToMany(AcmeProject, { through: AcmeProjectUsers });
         AcmeProject.belongsToMany(AcmeUser, { through: AcmeProjectUsers });

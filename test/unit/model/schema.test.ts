@@ -1,16 +1,12 @@
 import assert from 'node:assert';
-import { literal } from '@sequelize/core';
-// eslint-disable-next-line import/order
 import { expect } from 'chai';
+import { literal } from '@sequelize/core';
+import { sequelize } from '../../support';
 
-const Support = require('../../support');
-
-const current = Support.sequelize;
-
-describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
-  if (current.dialect.supports.schemas) {
-    const Project = current.define('project');
-    const Company = current.define('company', {}, {
+describe('Model Schemas', () => {
+  if (sequelize.dialect.supports.schemas) {
+    const Project = sequelize.define('project');
+    const Company = sequelize.define('company', {}, {
       schema: 'default',
       schemaDelimiter: '&',
     });
@@ -19,7 +15,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
 
     describe('schema', () => {
       it('should work with no default schema', () => {
-        expect(Project._schema).to.equal(current.dialect.getDefaultSchema());
+        expect(Project._schema).to.equal(sequelize.dialect.getDefaultSchema());
       });
 
       it('should apply default schema from define', () => {
@@ -41,19 +37,37 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able to override the default schema', () => {
-        expect(Company.schema('newSchema')._schema).to.equal('newSchema');
+        expect(Company.withSchema('newSchema')._schema).to.equal('newSchema');
       });
 
       it('should be able nullify schema', () => {
-        expect(Company.schema(null)._schema).to.equal(current.dialect.getDefaultSchema());
+        expect(Company.withSchema(null)._schema).to.equal(sequelize.dialect.getDefaultSchema());
       });
 
       it('should support multiple, coexistent schema models', () => {
-        const schema1 = Company.schema('schema1');
-        const schema2 = Company.schema('schema1');
+        const schema1 = Company.withSchema('schema1');
+        const schema2 = Company.withSchema('schema1');
 
         expect(schema1._schema).to.equal('schema1');
         expect(schema2._schema).to.equal('schema1');
+      });
+
+      describe('schema (deprecated)', () => {
+        it('should be able to override the default schema', () => {
+          expect(Company.schema('newSchema')._schema).to.equal('newSchema');
+        });
+
+        it('should be able nullify schema', () => {
+          expect(Company.schema(null)._schema).to.equal(sequelize.dialect.getDefaultSchema());
+        });
+
+        it('should support multiple, coexistent schema models', () => {
+          const schema1 = Company.schema('schema1');
+          const schema2 = Company.schema('schema1');
+
+          expect(schema1._schema).to.equal('schema1');
+          expect(schema2._schema).to.equal('schema1');
+        });
       });
     });
 
@@ -67,15 +81,29 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able to override the default schema delimiter', () => {
-        expect(Company.schema(Company._schema, '^')._schemaDelimiter).to.equal('^');
+        expect(Company.withSchema(Company._schema, '^')._schemaDelimiter).to.equal('^');
       });
 
       it('should support multiple, coexistent schema delimiter models', () => {
-        const schema1 = Company.schema(Company._schema, '$');
-        const schema2 = Company.schema(Company._schema, '#');
+        const schema1 = Company.withSchema(Company._schema, '$');
+        const schema2 = Company.withSchema(Company._schema, '#');
 
         expect(schema1._schemaDelimiter).to.equal('$');
         expect(schema2._schemaDelimiter).to.equal('#');
+      });
+
+      describe('schema (deprecated)', () => {
+        it('should be able to override the default schema delimiter', () => {
+          expect(Company.schema(Company._schema, '^')._schemaDelimiter).to.equal('^');
+        });
+
+        it('should support multiple, coexistent schema delimiter models', () => {
+          const schema1 = Company.schema(Company._schema, '$');
+          const schema2 = Company.schema(Company._schema, '#');
+
+          expect(schema1._schemaDelimiter).to.equal('$');
+          expect(schema2._schemaDelimiter).to.equal('#');
+        });
       });
     });
   }

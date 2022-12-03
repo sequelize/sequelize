@@ -90,8 +90,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
     if (current.dialect.supports.schemas) {
       it('supports schemas', async function () {
-        const User = this.sequelize.define('User', { username: DataTypes.STRING }).schema('admin');
-        const Group = this.sequelize.define('Group', { name: DataTypes.STRING }).schema('admin');
+        const User = this.sequelize.define('User', { username: DataTypes.STRING }).withSchema('admin');
+        const Group = this.sequelize.define('Group', { name: DataTypes.STRING }).withSchema('admin');
 
         Group.hasOne(User);
 

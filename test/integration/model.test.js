@@ -1720,7 +1720,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { username: 'Paul', secretValue: '42' },
           { username: 'Bob', secretValue: '43' },
         ];
-        const prefixUser = this.User.schema('prefix');
+        const prefixUser = this.User.withSchema('prefix');
 
         await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.queryInterface.createSchema('prefix');
@@ -2142,7 +2142,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('schema_test');
         await this.sequelize.createSchema('special');
-        this.UserSpecialSync = await this.UserSpecial.schema('special').sync({ force: true });
+        this.UserSpecialSync = await this.UserSpecial.withSchema('special').sync({ force: true });
       });
 
       afterEach(async function () {
@@ -2182,7 +2182,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let test = 0;
 
         await UserPublic.sync({ force: true });
-        await UserPublic.schema('special').sync({ force: true });
+        await UserPublic.withSchema('special').sync({ force: true });
 
         let table = await this.sequelize.queryInterface.describeTable('Publics', {
           logging(sql) {
@@ -2318,7 +2318,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        const UserSpecial = await this.UserSpecialSync.schema('special').create({ age: 3 }, {
+        const UserSpecial = await this.UserSpecialSync.withSchema('special').create({ age: 3 }, {
           logging(UserSpecial) {
             logged++;
             switch (dialectName) {
@@ -2396,7 +2396,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           age: DataTypes.INTEGER,
         });
         const User = await UserSpecialUnderscore.sync({ force: true });
-        const DblUser = await UserSpecialDblUnderscore.schema('hello', '__').sync({ force: true });
+        const DblUser = await UserSpecialDblUnderscore.withSchema('hello', '__').sync({ force: true });
         await DblUser.create({ age: 3 }, {
           logging(sql) {
             test++;

@@ -30,9 +30,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         const schemaNames = await this.queryInterface.showAllSchemas();
         await this.queryInterface.createSchema('newSchema');
         const newSchemaNames = await this.queryInterface.showAllSchemas();
-        if (!current.dialect.supports.schemas) {
-          return;
-        }
 
         expect(newSchemaNames).to.have.length(schemaNames.length + 1);
         await this.queryInterface.dropSchema('newSchema');

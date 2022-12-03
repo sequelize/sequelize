@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('with references', () => {
-      const BarUser = current.define('user', {}, { timestamps: false }).schema('bar');
+      const BarUser = current.define('user', {}, { timestamps: false }).withSchema('bar');
 
       const BarProject = current.define('project', {
         user_id: {
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       }, {
         timestamps: false,
-      }).schema('bar');
+      }).withSchema('bar');
 
       BarProject.belongsTo(BarUser, { foreignKey: 'user_id' });
 
