@@ -1,6 +1,5 @@
 'use strict';
 
-import { inspect } from 'node:util';
 import { getTextDataTypeForDialect } from '../../sql-string';
 import { canTreatArrayAsAnd, isColString, isNullish, rejectInvalidOptions } from '../../utils/check';
 import { TICK_CHAR } from '../../utils/dialect';
@@ -2219,27 +2218,22 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     throw new sequelizeError.QueryError(message.replace(/ +/g, ' '));
   }
 
+  _validateSelectOptions(options) {
+    if (options.maxExecutionTimeHintMs != null && !this.dialect.supports.maxExecutionTimeHint.select) {
+      throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
+    }
+  }
+
+  _getSelectOptimizerHints(_options) {
+    return 'SELECT';
+  }
+
   selectFromTableFragment(options, model, attributes, tables, mainTableAs) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
 
-    let fragment = `SELECT`;
+    this._validateSelectOptions(options);
 
-    if (options.maxExecutionTimeHintMs != null) {
-      if (!this.dialect.supports.maxExecutionTimeHint) {
-        throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
-      }
-
-      const MINIMUM_EXECUTION_TIME_VALUE = 0;
-      const MAXIMUM_EXECUTION_TIME_VALUE = 4_294_967_295;
-
-      if (Number.isSafeInteger(options.maxExecutionTimeHintMs)
-        && options.maxExecutionTimeHintMs >= MINIMUM_EXECUTION_TIME_VALUE
-        && options.maxExecutionTimeHintMs <= MAXIMUM_EXECUTION_TIME_VALUE) {
-        fragment += ` /*+ MAX_EXECUTION_TIME(${options.maxExecutionTimeHintMs}) */`;
-      } else {
-        throw new Error(`maxExecutionTimeMs must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}, but it is ${inspect(options.maxExecutionTimeHintMs)}`);
-      }
-    }
+    let fragment = this._getSelectOptimizerHints(options);
 
     fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 

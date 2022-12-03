@@ -11,6 +11,7 @@ import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
+import { inspect } from 'node:util';
 
 const _ = require('lodash');
 const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
@@ -641,6 +642,25 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       .replace(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
 
     return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
+  }
+
+  _getSelectOptimizerHints(options) {
+    let fragment = 'SELECT';
+
+    const MINIMUM_EXECUTION_TIME_VALUE = 0;
+    const MAXIMUM_EXECUTION_TIME_VALUE = 4_294_967_295;
+
+    if (options.maxExecutionTimeHintMs != null) {
+      if (Number.isSafeInteger(options.maxExecutionTimeHintMs)
+        && options.maxExecutionTimeHintMs >= MINIMUM_EXECUTION_TIME_VALUE
+        && options.maxExecutionTimeHintMs <= MAXIMUM_EXECUTION_TIME_VALUE) {
+        fragment += ` /*+ MAX_EXECUTION_TIME(${options.maxExecutionTimeHintMs}) */`;
+      } else {
+        throw new Error(`maxExecutionTimeMs must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}, but it is ${inspect(options.maxExecutionTimeHintMs)}`);
+      }
+    }
+
+    return fragment;
   }
 }
 

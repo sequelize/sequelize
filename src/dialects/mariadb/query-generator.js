@@ -12,6 +12,10 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
     return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema'];
   }
 
+  _getSelectOptimizerHints(_options) {
+    return 'SELECT';
+  }
+
   addColumnQuery(table, key, dataType, options = {}) {
     const ifNotExists = options.ifNotExists ? 'IF NOT EXISTS' : '';
 
