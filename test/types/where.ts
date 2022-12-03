@@ -138,8 +138,6 @@ MyModel.findAll({
   ],
 });
 
-// TODO [2022-05-26]: TS < 4.4 reports the error in a different location than 4.4
-//  Uncomment test once we remove support for TS 4.3
 MyModel.findAll({
   where: {
     id: {
@@ -156,19 +154,16 @@ MyModel.findAll({
   where: [1, 2],
 });
 
-// TODO [2022-05-26]: TS < 4.4 does not detect an error here. Uncomment test once we remove support for TS 4.3
 MyModel.findAll({
   // @ts-expect-error -- no attribute
   where: { [Op.or]: [1, 2] },
 });
 
-// TODO [2022-05-26]: TS < 4.4 does not detect an error here. Uncomment test once we remove support for TS 4.3
 MyModel.findAll({
   // @ts-expect-error -- no attribute
   where: { [Op.and]: { [Op.or]: [1, 2] } },
 });
 
-// TODO [2022-05-26]: TS < 4.4 does not detect an error here. Uncomment test once we remove support for TS 4.3
 MyModel.findAll({
   where: {
     id: {

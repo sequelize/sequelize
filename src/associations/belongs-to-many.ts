@@ -54,7 +54,7 @@ import {
 function addInclude(findOptions: FindOptions, include: Includeable) {
   if (Array.isArray(findOptions.include)) {
     findOptions.include.push(include);
-  } else if (findOptions.include == null) {
+  } else if (!findOptions.include) {
     findOptions.include = [include];
   } else {
     findOptions.include = [findOptions.include, include];

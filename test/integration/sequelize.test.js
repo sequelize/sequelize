@@ -455,37 +455,39 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           await User2.sync();
           expect.fail();
         } catch (error) {
-          if (['postgres', 'postgres-native'].includes(dialect)) {
-            assert([
-              'fe_sendauth: no password supplied',
-              'role "bar" does not exist',
-              'FATAL:  role "bar" does not exist',
-              'password authentication failed for user "bar"',
-            ].some(fragment => error.message.includes(fragment)));
-          } else {
-            switch (dialect) {
-              case 'mssql': {
-                expect(error.message).to.include('Login failed for user \'bar\'.');
+          switch (dialect) {
+            case 'postgres': {
+              assert([
+                'fe_sendauth: no password supplied',
+                'role "bar" does not exist',
+                'FATAL:  role "bar" does not exist',
+                'password authentication failed for user "bar"',
+              ].some(fragment => error.message.includes(fragment)));
 
-                break;
-              }
+              break;
+            }
 
-              case 'db2': {
-                expect(error.message).to.include('A communication error has been detected');
+            case 'mssql': {
+              expect(error.message).to.include('Login failed for user \'bar\'.');
 
-                break;
-              }
+              break;
+            }
 
-              case 'ibmi': {
-                expect(error.message).to.equal('[odbc] Error connecting to the database');
-                expect(error.original.odbcErrors[0].message).to.include('Data source name not found and no default driver specified');
+            case 'db2': {
+              expect(error.message).to.include('A communication error has been detected');
 
-                break;
-              }
+              break;
+            }
 
-              default: {
-                expect(error.message.toString()).to.match(/.*Access denied.*/);
-              }
+            case 'ibmi': {
+              expect(error.message).to.equal('[odbc] Error connecting to the database');
+              expect(error.original.odbcErrors[0].message).to.include('Data source name not found and no default driver specified');
+
+              break;
+            }
+
+            default: {
+              expect(error.message.toString()).to.match(/.*Access denied.*/);
             }
           }
         }

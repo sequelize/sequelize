@@ -30,7 +30,7 @@ Car.belongsTo(Person, { foreignKey: 'doesnotexist' });
 Car.belongsTo(Person, { foreignKey: { name: 'doesnotexist' } });
 
 Car.belongsTo(Person, { targetKey: 'id' });
-// @ts-expect-error -- this should error, if this doesn't error, findOne has a bug!
+// @ts-expect-error -- this should error, if this doesn't error, there is a bug!
 Car.belongsTo(Person, { targetKey: 'doesnotexist' });
 
 // HasOne
@@ -45,7 +45,7 @@ Person.hasOne(Car, { foreignKey: 'doesnotexist' });
 Person.hasOne(Car, { foreignKey: { name: 'doesnotexist' } });
 
 Person.hasOne(Car, { sourceKey: 'id' });
-// @ts-expect-error -- this should error, if this doesn't error, findOne has a bug!
+// @ts-expect-error -- this should error, if this doesn't error, there is a bug!
 Person.hasOne(Car, { sourceKey: 'doesnotexist' });
 
 // HasMany
@@ -60,7 +60,7 @@ Person.hasMany(Car, { foreignKey: 'doesnotexist' });
 Person.hasMany(Car, { foreignKey: { name: 'doesnotexist' } });
 
 Person.hasMany(Car, { sourceKey: 'id' });
-// @ts-expect-error -- this should error, if this doesn't error, findOne has a bug!
+// @ts-expect-error -- this should error, if this doesn't error, there is a bug!
 Person.hasMany(Car, { sourceKey: 'doesnotexist' });
 
 // BelongsToMany

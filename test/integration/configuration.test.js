@@ -62,7 +62,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       const seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', { logging: false, host: config[dialect].host, port: 1, dialect });
       switch (dialect) {
         case 'sqlite': {
-        // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
+          // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
           await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
 
           break;
