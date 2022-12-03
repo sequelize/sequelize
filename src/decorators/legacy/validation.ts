@@ -2,8 +2,9 @@ import upperFirst from 'lodash/upperFirst';
 import type { ColumnValidateOptions, ModelOptions } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { registerModelOptions } from '../shared/model.js';
-import type { RequiredParameterizedPropertyDecorator } from './decorator-utils.js';
+import type { OptionalParameterizedPropertyDecorator, RequiredParameterizedPropertyDecorator } from './decorator-utils.js';
 import {
+  createOptionalAttributeOptionsDecorator,
   createOptionallyParameterizedPropertyDecorator,
   createRequiredAttributeOptionsDecorator,
   throwMustBeMethod,
@@ -12,11 +13,24 @@ import {
 
 type ValidateKeys = Extract<keyof ColumnValidateOptions, string>;
 
-function createAttrValidateDecorator<Key extends ValidateKeys>(
+function createRequiredAttrValidateDecorator<Key extends ValidateKeys>(
   decoratorName: Key,
 ): RequiredParameterizedPropertyDecorator<ColumnValidateOptions[Key]> {
   return createRequiredAttributeOptionsDecorator<ColumnValidateOptions[Key]>(
     upperFirst(decoratorName),
+    (decoratorOption: ColumnValidateOptions[Key]) => {
+      return { validate: { [decoratorName]: decoratorOption } };
+    },
+  );
+}
+
+function createOptionalAttrValidateDecorator<Key extends ValidateKeys>(
+  decoratorName: Key,
+  defaultValue: ColumnValidateOptions[Key],
+): OptionalParameterizedPropertyDecorator<ColumnValidateOptions[Key]> {
+  return createOptionalAttributeOptionsDecorator<ColumnValidateOptions[Key]>(
+    upperFirst(decoratorName),
+    defaultValue,
     (decoratorOption: ColumnValidateOptions[Key]) => {
       return { validate: { [decoratorName]: decoratorOption } };
     },
@@ -106,62 +120,62 @@ export const ModelValidator = createOptionallyParameterizedPropertyDecorator<und
   },
 );
 
-export const Is = createAttrValidateDecorator('is');
+export const Is = createRequiredAttrValidateDecorator('is');
 
-export const Not = createAttrValidateDecorator('not');
+export const Not = createRequiredAttrValidateDecorator('not');
 
-export const IsEmail = createAttrValidateDecorator('isEmail');
+export const IsEmail = createOptionalAttrValidateDecorator('isEmail', true);
 
-export const IsUrl = createAttrValidateDecorator('isUrl');
+export const IsUrl = createOptionalAttrValidateDecorator('isUrl', true);
 
-export const IsIP = createAttrValidateDecorator('isIP');
+export const IsIP = createOptionalAttrValidateDecorator('isIP', true);
 
-export const IsIPv4 = createAttrValidateDecorator('isIPv4');
+export const IsIPv4 = createOptionalAttrValidateDecorator('isIPv4', true);
 
-export const IsIPv6 = createAttrValidateDecorator('isIPv6');
+export const IsIPv6 = createOptionalAttrValidateDecorator('isIPv6', true);
 
-export const IsAlpha = createAttrValidateDecorator('isAlpha');
+export const IsAlpha = createOptionalAttrValidateDecorator('isAlpha', true);
 
-export const IsAlphanumeric = createAttrValidateDecorator('isAlphanumeric');
+export const IsAlphanumeric = createOptionalAttrValidateDecorator('isAlphanumeric', true);
 
-export const IsNumeric = createAttrValidateDecorator('isNumeric');
+export const IsNumeric = createOptionalAttrValidateDecorator('isNumeric', true);
 
-export const IsInt = createAttrValidateDecorator('isInt');
+export const IsInt = createOptionalAttrValidateDecorator('isInt', true);
 
-export const IsFloat = createAttrValidateDecorator('isFloat');
+export const IsFloat = createOptionalAttrValidateDecorator('isFloat', true);
 
-export const IsDecimal = createAttrValidateDecorator('isDecimal');
+export const IsDecimal = createOptionalAttrValidateDecorator('isDecimal', true);
 
-export const IsLowercase = createAttrValidateDecorator('isLowercase');
+export const IsLowercase = createOptionalAttrValidateDecorator('isLowercase', true);
 
-export const IsUppercase = createAttrValidateDecorator('isUppercase');
+export const IsUppercase = createOptionalAttrValidateDecorator('isUppercase', true);
 
-export const NotEmpty = createAttrValidateDecorator('notEmpty');
+export const NotEmpty = createOptionalAttrValidateDecorator('notEmpty', true);
 
-export const Equals = createAttrValidateDecorator('equals');
+export const Equals = createRequiredAttrValidateDecorator('equals');
 
-export const Contains = createAttrValidateDecorator('contains');
+export const Contains = createRequiredAttrValidateDecorator('contains');
 
-export const NotIn = createAttrValidateDecorator('notIn');
+export const NotIn = createRequiredAttrValidateDecorator('notIn');
 
-export const IsIn = createAttrValidateDecorator('isIn');
+export const IsIn = createRequiredAttrValidateDecorator('isIn');
 
-export const NotContains = createAttrValidateDecorator('notContains');
+export const NotContains = createRequiredAttrValidateDecorator('notContains');
 
-export const Len = createAttrValidateDecorator('len');
+export const Len = createRequiredAttrValidateDecorator('len');
 
-export const IsUUID = createAttrValidateDecorator('isUUID');
+export const IsUUID = createRequiredAttrValidateDecorator('isUUID');
 
-export const IsDate = createAttrValidateDecorator('isDate');
+export const IsDate = createOptionalAttrValidateDecorator('isDate', true);
 
-export const IsAfter = createAttrValidateDecorator('isAfter');
+export const IsAfter = createRequiredAttrValidateDecorator('isAfter');
 
-export const IsBefore = createAttrValidateDecorator('isBefore');
+export const IsBefore = createRequiredAttrValidateDecorator('isBefore');
 
-export const Max = createAttrValidateDecorator('max');
+export const Max = createRequiredAttrValidateDecorator('max');
 
-export const Min = createAttrValidateDecorator('min');
+export const Min = createRequiredAttrValidateDecorator('min');
 
-export const IsArray = createAttrValidateDecorator('isArray');
+export const IsArray = createOptionalAttrValidateDecorator('isArray', true);
 
-export const IsCreditCard = createAttrValidateDecorator('isCreditCard');
+export const IsCreditCard = createOptionalAttrValidateDecorator('isCreditCard', true);
