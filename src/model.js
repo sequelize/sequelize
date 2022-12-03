@@ -1512,14 +1512,14 @@ Specify a different name for either index to resolve this issue.`);
   }
 
   // TODO [>=2023-01-01]: remove in Sequelize 8
-  static schema(schema, options) {
-    schemaRenamedToWithSchema();
+  // static schema(schema, options) {
+  //   schemaRenamedToWithSchema();
 
-    return this.withSchema({
-      schema,
-      schemaDelimiter: typeof options === 'string' ? options : options?.schemaDelimiter,
-    });
-  }
+  //   return this.withSchema({
+  //     schema,
+  //     schemaDelimiter: typeof options === 'string' ? options : options?.schemaDelimiter,
+  //   });
+  // }
 
   /**
    * Returns the initial model, the one returned by {@link Model.init} or {@link Sequelize#define},

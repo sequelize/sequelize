@@ -52,7 +52,7 @@ describe('Model Schemas', () => {
         expect(schema2._schema).to.equal('schema1');
       });
 
-      describe('schema (deprecated)', () => {
+      describe.skip('schema (deprecated)', () => {
         it('should be able to override the default schema', () => {
           expect(Company.schema('newSchema')._schema).to.equal('newSchema');
         });
@@ -92,7 +92,7 @@ describe('Model Schemas', () => {
         expect(schema2._schemaDelimiter).to.equal('#');
       });
 
-      describe('schema (deprecated)', () => {
+      describe.skip('schema (deprecated)', () => {
         it('should be able to override the default schema delimiter', () => {
           expect(Company.schema(Company._schema, '^')._schemaDelimiter).to.equal('^');
         });
