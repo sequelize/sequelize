@@ -1,6 +1,6 @@
+import { expect } from 'chai';
 import type { CreationOptional, InferAttributes, InferCreationAttributes, Rangable } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
-import { expect } from 'chai';
 import { beforeEach2, sequelize } from '../support';
 import { testSimpleInOut } from './data-types.test';
 

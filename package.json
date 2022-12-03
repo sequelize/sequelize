@@ -65,7 +65,7 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@ephys/eslint-config-typescript": "17.0.0",
+    "@ephys/eslint-config-typescript": "18.0.1",
     "@rushstack/eslint-patch": "1.2.0",
     "@types/chai": "4.3.4",
     "@types/chai-as-promised": "7.1.5",

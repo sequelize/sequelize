@@ -57,7 +57,7 @@ function addHook(
     );
   }
 
-  // @ts-expect-error
+  // @ts-expect-error -- implicit any, no way around it
   const targetMethod: unknown = targetModel[methodName];
   if (typeof targetMethod !== 'function') {
     throw new TypeError(

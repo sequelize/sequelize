@@ -1,5 +1,5 @@
-import { Sequelize } from '@sequelize/core';
 import { expect } from 'chai';
+import { Sequelize } from '@sequelize/core';
 
 describe('Sequelize', () => {
   describe('version', () => {

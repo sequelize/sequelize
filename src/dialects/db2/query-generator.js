@@ -15,7 +15,7 @@ import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
 
 const _ = require('lodash');
 const DataTypes = require('../../data-types');
-const randomBytes = require('crypto').randomBytes;
+const randomBytes = require('node:crypto').randomBytes;
 const { Op } = require('../../operators');
 
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();

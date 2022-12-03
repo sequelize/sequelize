@@ -322,7 +322,7 @@ because, as this is a hasOne association, the foreign key we need to update is l
 
     if (this.scope) {
       for (const attribute of Object.keys(this.scope)) {
-        // @ts-expect-error
+        // @ts-expect-error -- TODO: fix the typing of {@link AssociationScope}
         values[attribute] = this.scope[attribute];
         if (options.fields) {
           options.fields.push(attribute);
@@ -330,7 +330,7 @@ because, as this is a hasOne association, the foreign key we need to update is l
       }
     }
 
-    // @ts-expect-error
+    // @ts-expect-error -- implicit any, can't fix
     values[this.foreignKey] = sourceInstance.get(this.sourceKeyAttribute);
     if (options.fields) {
       options.fields.push(this.foreignKey);

@@ -8,8 +8,7 @@ describe('QueryGenerator#getWhereConditions', () => {
     const User = sequelize.define('User');
 
     expect(() => {
-      // TODO: https://github.com/sequelize/sequelize/pull/14020 - remove expect-error
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: https://github.com/sequelize/sequelize/pull/14020
       queryGenerator.getWhereConditions(new Date(), User.getTableName(), User);
     }).to.throw('Unsupported where option value');
   });

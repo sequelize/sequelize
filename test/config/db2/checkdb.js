@@ -1,6 +1,6 @@
 'use strict';
 
-const execSync = require('child_process').execSync;
+const execSync = require('node:child_process').execSync;
 
 let isDbReady = false;
 

@@ -1,6 +1,6 @@
+import { expect } from 'chai';
 import { Model } from '@sequelize/core';
 import { Table } from '@sequelize/core/decorators-legacy';
-import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 describe(`@Table legacy decorator`, () => {

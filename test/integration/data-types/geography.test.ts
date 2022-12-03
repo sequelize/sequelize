@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import type {
   CreationOptional,
   GeoJson,
@@ -8,7 +9,6 @@ import type {
   GeoJsonPolygon,
 } from '@sequelize/core';
 import { DataTypes, Model, GeoJsonType } from '@sequelize/core';
-import { expect } from 'chai';
 import { sequelize, getTestDialectTeaser, beforeEach2 } from '../support';
 
 async function createUserModelWithGeography(type?: GeoJsonType, srid?: number) {

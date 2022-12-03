@@ -24,12 +24,12 @@ User.build().update({
   firstName: col('id'),
   lastName: literal('Smith'),
 });
-// @ts-expect-error invalid `returning`
+// @ts-expect-error -- invalid `returning`
 User.update({}, { where: {}, returning: ['foo'] });
-// @ts-expect-error no `where`
+// @ts-expect-error -- no `where`
 User.update({}, {});
-// @ts-expect-error invalid attribute
+// @ts-expect-error -- invalid attribute
 User.update({ foo: '<bar>' }, { where: {} });
-// @ts-expect-error invalid attribute
+// @ts-expect-error -- invalid attribute
 User.build().update({ foo: '<bar>' });
 

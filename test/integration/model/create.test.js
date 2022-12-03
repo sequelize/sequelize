@@ -9,7 +9,7 @@ const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 
 const _ = require('lodash');
 const delay = require('delay');
-const assert = require('assert');
+const assert = require('node:assert');
 
 const pTimeout = require('p-timeout');
 

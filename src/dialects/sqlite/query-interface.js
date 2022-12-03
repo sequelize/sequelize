@@ -7,7 +7,7 @@ const { QueryTypes } = require('../../query-types');
 const { QueryInterface, QueryOptions, ColumnsDescription } = require('../abstract/query-interface');
 const { cloneDeep } = require('../../utils/object.js');
 const _ = require('lodash');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 
 /**
  * The interface that Sequelize uses to talk with SQLite database

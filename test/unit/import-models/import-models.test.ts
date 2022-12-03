@@ -1,9 +1,9 @@
+import { expect } from 'chai';
 import type { ModelStatic } from '@sequelize/core';
 import { importModels } from '@sequelize/core';
-import { expect } from 'chai';
-// @ts-expect-error
+// @ts-expect-error -- commonjs file
 import Node from './models/node.abstract';
-// @ts-expect-error
+// @ts-expect-error -- commonjs file
 import User from './models/user';
 
 describe('importModels', () => {
