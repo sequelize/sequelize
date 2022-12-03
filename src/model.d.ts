@@ -1418,7 +1418,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
  *
  * The validations are implemented by validator.js.
  */
-export interface ModelValidateOptions {
+export interface ColumnValidateOptions {
   /**
    * - `{ is: ['^[a-z]+$','i'] }` will only allow letters
    * - `{ is: /^[a-z]+$/i }` also only allows letters
@@ -1506,11 +1506,13 @@ export interface ModelValidateOptions {
   /**
    * won't allow null
    */
+  // TODO: remove. Already checked by allowNull
   notNull?: boolean | { msg: string };
 
   /**
    * only allows null
    */
+  // TODO: remove. Already checked by allowNull
   isNull?: boolean | { msg: string };
 
   /**
@@ -1684,6 +1686,7 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> {
    *
    * If no value is provided, Sequelize will use the name of the attribute (in snake_case if {@link InitOptions.underscored} is true)
    */
+  // TODO [>7]: rename to "columnName"
   field?: string;
 
   /**
@@ -1747,7 +1750,7 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> {
    * they are asynchronous. If the validator is sync, it should throw in the case of a failed validation, it
    * it is async, the callback should be called with the error text.
    */
-  validate?: ModelValidateOptions;
+  validate?: ColumnValidateOptions;
 
   /**
    * Provide a custom getter for this column.
@@ -1990,7 +1993,12 @@ export interface ModelOptions<M extends Model = Model> {
    * validator function takes an argument, it is assumed to be async, and is called with a callback that
    * accepts an optional error.
    */
-  validate?: ModelValidateOptions;
+  validate?: {
+    /**
+     * Custom validation functions run on all instances of the model.
+     */
+    [name: string]: (value: unknown) => boolean,
+  };
 
   /**
    * Allows defining additional setters that will be available on model instances.
