@@ -477,8 +477,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         attributes: ['id'],
         maxExecutionTimeHintMs: 1000,
       }, User), {
+        default: notSupportedError,
         mysql: 'SELECT /*+ MAX_EXECUTION_TIME(1000) */ `id` FROM `Users` AS `User`;',
-        'sqlite db2 ibmi mariadb postgres snowflake mssql': notSupportedError,
       });
     });
   });
