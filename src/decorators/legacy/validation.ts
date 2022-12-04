@@ -2,11 +2,10 @@ import upperFirst from 'lodash/upperFirst';
 import type { ColumnValidateOptions, ModelOptions } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { registerModelOptions } from '../shared/model.js';
+import { createOptionalAttributeOptionsDecorator, createRequiredAttributeOptionsDecorator } from './attribute-utils.js';
 import type { OptionalParameterizedPropertyDecorator, RequiredParameterizedPropertyDecorator } from './decorator-utils.js';
 import {
-  createOptionalAttributeOptionsDecorator,
   createOptionallyParameterizedPropertyDecorator,
-  createRequiredAttributeOptionsDecorator,
   throwMustBeMethod,
   throwMustBeModel,
 } from './decorator-utils.js';

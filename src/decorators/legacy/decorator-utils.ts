@@ -1,7 +1,3 @@
-import type { ModelAttributeColumnOptions, ModelStatic } from '../../model.js';
-import { Model } from '../../model.js';
-import { registerModelAttributeOptions } from '../shared/model.js';
-
 export type PropertyOrGetterDescriptor = (
   target: Object,
   propertyName: string | symbol,
@@ -22,7 +18,7 @@ export interface RequiredParameterizedPropertyDecorator<T> {
   (options: T): PropertyOrGetterDescriptor;
 }
 
-const DECORATOR_NO_DEFAULT = Symbol('DECORATOR_NO_DEFAULT');
+export const DECORATOR_NO_DEFAULT = Symbol('DECORATOR_NO_DEFAULT');
 
 /**
  * Creates a decorator that MUST receive a parameter
@@ -85,73 +81,6 @@ export function createOptionallyParameterizedPropertyDecorator<T>(
     // this method only returns something if args.length === 1, but typescript doesn't understand it
     return undefined as unknown as PropertyOrGetterDescriptor;
   };
-}
-
-export function createRequiredAttributeOptionsDecorator<T>(
-  decoratorName: string,
-  callback: (
-    option: T,
-    target: Object,
-    propertyName: string | symbol,
-    propertyDescriptor: PropertyDescriptor | undefined,
-  ) => Partial<ModelAttributeColumnOptions>,
-): RequiredParameterizedPropertyDecorator<T> {
-  return createOptionalAttributeOptionsDecorator(decoratorName, DECORATOR_NO_DEFAULT, callback);
-}
-
-export function createOptionalAttributeOptionsDecorator<T>(
-  decoratorName: string,
-  defaultValue: T | typeof DECORATOR_NO_DEFAULT,
-  callback: (
-    option: T,
-    target: Object,
-    propertyName: string | symbol,
-    propertyDescriptor: PropertyDescriptor | undefined,
-  ) => Partial<ModelAttributeColumnOptions>,
-): OptionalParameterizedPropertyDecorator<T> {
-  return createOptionallyParameterizedPropertyDecorator(
-    decoratorName,
-    defaultValue,
-    (decoratorOption, target, propertyName, propertyDescriptor) => {
-      const attributeOptions = callback(decoratorOption, target, propertyName, propertyDescriptor);
-
-      annotate(decoratorName, target, propertyName, propertyDescriptor, attributeOptions);
-    },
-  );
-}
-
-function annotate(
-  decoratorName: string,
-  target: Object,
-  propertyName: string | symbol,
-  propertyDescriptor: PropertyDescriptor | undefined,
-  options: Partial<ModelAttributeColumnOptions>,
-): void {
-  if (typeof propertyName === 'symbol') {
-    throw new TypeError('Symbol Model Attributes are not currently supported. We welcome a PR that implements this feature.');
-  }
-
-  if (typeof target === 'function') {
-    throwMustBeInstanceProperty(decoratorName, target, propertyName);
-  }
-
-  if (!(target instanceof Model)) {
-    throwMustBeMethod(decoratorName, target, propertyName);
-  }
-
-  options = { ...options };
-
-  if (propertyDescriptor) {
-    if (propertyDescriptor.get) {
-      options.get = propertyDescriptor.get;
-    }
-
-    if (propertyDescriptor.set) {
-      options.set = propertyDescriptor.set;
-    }
-  }
-
-  registerModelAttributeOptions(target.constructor as ModelStatic, propertyName, options);
 }
 
 export function throwMustBeStaticProperty(decoratorName: string, target: Object, propertyName: string | symbol): never {

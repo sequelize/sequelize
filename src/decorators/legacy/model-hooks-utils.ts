@@ -2,12 +2,15 @@ import upperFirst from 'lodash/upperFirst';
 import type { ModelHooks } from '../../model-typescript.js';
 import { Model } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
+import {
+  createOptionallyParameterizedPropertyDecorator, throwMustBeMethod,
+  throwMustBeModel,
+  throwMustBeStaticProperty,
+} from './decorator-utils.js';
 
 export interface HookOptions {
   name?: string;
 }
-
-export type HookDecoratorArgs = [targetOrOptions: Object | HookOptions, propertyName?: string | symbol];
 
 /**
  * Implementation for hook decorator functions. These are polymorphic. When
@@ -15,28 +18,16 @@ export type HookDecoratorArgs = [targetOrOptions: Object | HookOptions, property
  * factory function. When called with multiple arguments, they add the hook
  * to the model’s metadata.
  *
- * @param hookType
- * @param args
+ * @param hookType The type of hook
  */
-export function implementHookDecorator(
-  hookType: keyof ModelHooks,
-  args: HookDecoratorArgs,
-): MethodDecorator | undefined {
-  if (args.length === 1) {
-    const options: HookOptions = args[0];
-
-    return (target: Object, propertyName: string | symbol) => {
-      addHook(target, propertyName, hookType, options);
-    };
-  }
-
-  const target = args[0];
-  const propertyName = args[1]!;
-
-  addHook(target, propertyName, hookType);
-
-  // eslint-disable-next-line consistent-return
-  return undefined;
+export function createHookDecorator(hookType: keyof ModelHooks) {
+  return createOptionallyParameterizedPropertyDecorator<HookOptions | undefined>(
+    upperFirst(hookType),
+    undefined,
+    (args: HookOptions | undefined, target, propertyName) => {
+      addHook(target, propertyName, hookType, args);
+    },
+  );
 }
 
 function addHook(
@@ -46,23 +37,17 @@ function addHook(
   options?: HookOptions,
 ): void {
   if (typeof targetModel !== 'function') {
-    throw new TypeError(
-      `Decorator @${upperFirst(hookType)} has been used on method "${targetModel.constructor.name}.${String(methodName)}" which is not static. Only static methods can be used for hooks.`,
-    );
+    throwMustBeStaticProperty(upperFirst(hookType), targetModel, methodName);
   }
 
   if (!isModelStatic(targetModel)) {
-    throw new TypeError(
-      `Decorator @${upperFirst(hookType)} has been used on "${targetModel.name}.${String(methodName)}", but class "${targetModel.name}" does not extend Model. Hook decorators can only be used on models.`,
-    );
+    throwMustBeModel(upperFirst(hookType), targetModel, methodName);
   }
 
   // @ts-expect-error -- implicit any, no way around it
   const targetMethod: unknown = targetModel[methodName];
   if (typeof targetMethod !== 'function') {
-    throw new TypeError(
-      `Decorator @${upperFirst(hookType)} has been used on "${targetModel.name}.${String(methodName)}", which is not a method.`,
-    );
+    throwMustBeMethod(upperFirst(hookType), targetModel, methodName);
   }
 
   if (methodName in Model) {
