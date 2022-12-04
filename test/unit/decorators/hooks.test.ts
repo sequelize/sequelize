@@ -111,7 +111,7 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
         }
 
         return MyModel;
-      }).to.throw(Error, /Only static methods can be used for hooks/);
+      }).to.throw(Error, /This decorator can only be used on static properties/);
     });
 
     it('throws on non-method properties', () => {
@@ -133,7 +133,7 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
         }
 
         return MyModel;
-      }).to.throw(Error, /Hook decorators can only be used on models/);
+      }).to.throw(Error, /This decorator can only be used on models/);
     });
 
     it('throws on reserved methods', () => {
