@@ -915,6 +915,11 @@ export interface FindOptions<TAttributes = any>
   raw?: boolean;
 
   /**
+   * Generate minified aliases only for this query.
+   */
+  minifyAlias?: boolean;
+
+  /**
    * Select group rows after groups and aggregates are computed.
    */
   having?: WhereOptions<any>;
