@@ -4280,10 +4280,10 @@ husky@8.0.2:
   resolved "https://registry.yarnpkg.com/husky/-/husky-8.0.2.tgz#5816a60db02650f1f22c8b69b928fd6bcd77a236"
   integrity sha512-Tkv80jtvbnkK3mYWxPZePGFpQ/tT3HNSs/sasF9P2YfkMezDl3ON37YN6jUUI4eTg5LcyVynlb6r4eyvOmspvg==
 
-ibm_db@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/ibm_db/-/ibm_db-3.0.0.tgz#44e9ff5b41d041ecbecbb9e26e287054636aec92"
-  integrity sha512-jqKnGq4ay1OWPBExJDvd8mClUVtM3/A+zs3Inm7KEiOyCQB2CXjhImcgWB04hrEKTNgHW7poKqduvokdmESzgQ==
+ibm_db@3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/ibm_db/-/ibm_db-3.1.0.tgz#4c51d7fe91cc0c3092ae3080476a1e6a1043a541"
+  integrity sha512-vYxTNRMYHsjK+wUHS/eBLrouQm+KroggQGqtRyOfDA1WN0ybW9Ll4uu5ooCjSrkrOhbkPOhoFchIhQgWv0MF4A==
   dependencies:
     axios "^0.26.1"
     big-integer "^1.6.51"
@@ -4291,7 +4291,7 @@ ibm_db@3.0.0:
     fs-extra "^8.1.0"
     fstream "^1.0.12"
     lodash "^4.17.21"
-    nan "^2.16.0"
+    nan "^2.17.0"
     q "^1.5.1"
     targz "^1.0.1"
     unzipper "^0.10.11"
@@ -5869,7 +5869,7 @@ named-placeholders@^1.1.2:
   dependencies:
     lru-cache "^4.1.3"
 
-nan@^2.16.0:
+nan@^2.17.0:
   version "2.17.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.17.0.tgz#c0150a2368a182f033e9aa5195ec76ea41a199cb"
   integrity sha512-2ZTgtl0nJsO0KQCjEpxcIr5D+Yv90plTitZt9JBfQvVJDS5seMl3FOvsh3+9CoYWXf/1l5OaZzzF6nDm4cagaQ==
