@@ -8,12 +8,12 @@ describe('QueryGenerator#showIndexesQuery', () => {
   it('produces a SHOW INDEX query from a table', () => {
     expectsql(() => queryGenerator.showIndexesQuery('myTable'), {
       default: `SHOW INDEX FROM [myTable]`,
-      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey,
-        array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
-        AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
+      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey[:ix.indnkeyatts-1] AS index_fields,
+        ix.indkey[ix.indnkeyatts:] AS include_fields, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,
+        pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
         t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public'
-        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
+        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;`,
       mssql: `SELECT I.[name] AS [index_name], I.[type_desc] AS [index_type], C.[name] AS [column_name], IC.[is_descending_key], IC.[is_included_column], I.[is_unique], I.[is_primary_key], I.[is_unique_constraint]
         FROM sys.indexes I
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
@@ -37,12 +37,12 @@ describe('QueryGenerator#showIndexesQuery', () => {
 
     expectsql(() => queryGenerator.showIndexesQuery(MyModel), {
       default: `SHOW INDEX FROM [MyModels]`,
-      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey,
-        array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
-        AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
+      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey[:ix.indnkeyatts-1] AS index_fields,
+        ix.indkey[ix.indnkeyatts:] AS include_fields, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,
+        pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
         t.relkind = 'r' and t.relname = 'MyModels' AND s.oid = t.relnamespace AND s.nspname = 'public'
-        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
+        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;`,
       mssql: `SELECT I.[name] AS [index_name], I.[type_desc] AS [index_type], C.[name] AS [column_name], IC.[is_descending_key], IC.[is_included_column], I.[is_unique], I.[is_primary_key], I.[is_unique_constraint]
         FROM sys.indexes I
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
@@ -64,12 +64,12 @@ describe('QueryGenerator#showIndexesQuery', () => {
   it('produces a SHOW INDEX query from a table and schema', () => {
     expectsql(() => queryGenerator.showIndexesQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: `SHOW INDEX FROM [mySchema].[myTable]`,
-      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey,
-        array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
-        AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
+      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey[:ix.indnkeyatts-1] AS index_fields,
+        ix.indkey[ix.indnkeyatts:] AS include_fields, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,
+        pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
         t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'mySchema'
-        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
+        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;`,
       mssql: `SELECT I.[name] AS [index_name], I.[type_desc] AS [index_type], C.[name] AS [column_name], IC.[is_descending_key], IC.[is_included_column], I.[is_unique], I.[is_primary_key], I.[is_unique_constraint]
         FROM sys.indexes I
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
@@ -91,12 +91,12 @@ describe('QueryGenerator#showIndexesQuery', () => {
   it('produces a SHOW INDEX query from a table and default schema', () => {
     expectsql(() => queryGenerator.showIndexesQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }), {
       default: `SHOW INDEX FROM [myTable]`,
-      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey,
-        array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
-        AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
+      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey[:ix.indnkeyatts-1] AS index_fields,
+        ix.indkey[ix.indnkeyatts:] AS include_fields, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,
+        pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
         t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public'
-        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
+        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;`,
       mssql: `SELECT I.[name] AS [index_name], I.[type_desc] AS [index_type], C.[name] AS [column_name], IC.[is_descending_key], IC.[is_included_column], I.[is_unique], I.[is_primary_key], I.[is_unique_constraint]
         FROM sys.indexes I
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
@@ -121,12 +121,12 @@ describe('QueryGenerator#showIndexesQuery', () => {
 
     expectsql(() => queryGeneratorSchema.showIndexesQuery('myTable'), {
       default: `SHOW INDEX FROM [mySchema].[myTable]`,
-      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey,
-        array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
-        AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
+      postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey[:ix.indnkeyatts-1] AS index_fields,
+        ix.indkey[ix.indnkeyatts:] AS include_fields, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,
+        pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
         t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'mySchema'
-        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
+        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;`,
       mssql: `SELECT I.[name] AS [index_name], I.[type_desc] AS [index_type], C.[name] AS [column_name], IC.[is_descending_key], IC.[is_included_column], I.[is_unique], I.[is_primary_key], I.[is_unique_constraint]
         FROM sys.indexes I
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
