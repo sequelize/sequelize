@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import semver from 'semver/preload.js';
 import type {
   CreationOptional,
   GeoJson,
