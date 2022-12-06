@@ -1334,7 +1334,7 @@
     pg-protocol "*"
     pg-types "^2.2.0"
 
-"@types/retry-as-promised@2.3.4":
+"@types/retry-as-promised@^2.3.4":
   version "2.3.4"
   resolved "https://registry.yarnpkg.com/@types/retry-as-promised/-/retry-as-promised-2.3.4.tgz#4a9b5a062e985a5804813f1803a51fc4e74e8f60"
   integrity sha512-mupT8I391XnYRKpBPb8UMUPVNmd4b9dF+eLioB8apgJZGuzKAl6kdLIgQ/XPgyKKkX9QMJaLQHgBttjwPTTK4Q==
