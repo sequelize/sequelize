@@ -20,8 +20,6 @@ const { QueryTypes } = require('../../query-types');
 export class QueryInterface extends AbstractQueryInterfaceTypeScript {
   constructor(sequelize, queryGenerator) {
     super({ sequelize, queryGenerator });
-    this.sequelize = sequelize;
-    this.queryGenerator = queryGenerator;
   }
 
   /**
