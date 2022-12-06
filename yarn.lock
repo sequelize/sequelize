@@ -1214,6 +1214,11 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.3.tgz#472eaab5f15c1ffdd7f8628bd4c4f753995ec79e"
   integrity sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==
 
+"@types/bluebird@*":
+  version "3.5.38"
+  resolved "https://registry.yarnpkg.com/@types/bluebird/-/bluebird-3.5.38.tgz#7a671e66750ccd21c9fc9d264d0e1e5330bc9908"
+  integrity sha512-yR/Kxc0dd4FfwtEoLZMoqJbM/VE/W7hXn/MIjb+axcwag0iFmSPK7OBUZq1YWLynJUoWQkfUrI7T0HDqGApNSg==
+
 "@types/chai-as-promised@7.1.5":
   version "7.1.5"
   resolved "https://registry.yarnpkg.com/@types/chai-as-promised/-/chai-as-promised-7.1.5.tgz#6e016811f6c7a64f2eed823191c3a6955094e255"
@@ -1328,6 +1333,13 @@
     "@types/node" "*"
     pg-protocol "*"
     pg-types "^2.2.0"
+
+"@types/retry-as-promised@^2.3.4":
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/@types/retry-as-promised/-/retry-as-promised-2.3.4.tgz#4a9b5a062e985a5804813f1803a51fc4e74e8f60"
+  integrity sha512-mupT8I391XnYRKpBPb8UMUPVNmd4b9dF+eLioB8apgJZGuzKAl6kdLIgQ/XPgyKKkX9QMJaLQHgBttjwPTTK4Q==
+  dependencies:
+    "@types/bluebird" "*"
 
 "@types/retry@0.12.0":
   version "0.12.0"

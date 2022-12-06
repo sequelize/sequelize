@@ -1,3 +1,4 @@
+import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
@@ -169,16 +170,7 @@ export interface Config {
 
 export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
 
-export interface RetryOptions {
-  match?: Array<RegExp | string | Function>;
-  max?: number;
-  timeout?: number;
-  backoffBase?: number;
-  backoffExponent?: number;
-  report?(msg: string, options: RetryOptions & { $current: number }): void;
-  name?: string;
-}
-
+export type RetryOptions = RetryAsPromisedOptions;
 /**
  * Options for the constructor of the {@link Sequelize} main class.
  */

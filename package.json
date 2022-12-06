@@ -75,6 +75,7 @@
     "@types/mocha": "10.0.1",
     "@types/node": "18.11.11",
     "@types/pg": "8.6.5",
+    "@types/retry-as-promised": "^2.3.4",
     "@types/semver": "7.3.13",
     "@types/sinon": "10.0.13",
     "@types/sinon-chai": "3.2.9",
