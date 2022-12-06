@@ -424,48 +424,44 @@ export class Db2Query extends AbstractQuery {
     return result;
   }
 
-  isShowIndexesQuery() {
-    let result = false;
-
-    result = result || this.sql.toLowerCase().startsWith('exec sys.sp_helpindex @objname');
-    result = result || this.sql.startsWith('SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES');
-
-    return result;
-  }
-
   handleShowIndexesQuery(data) {
-    let currItem;
-    const result = [];
-    for (const item of data) {
-      if (!currItem || currItem.name !== item.Key_name) {
-        currItem = {
-          primary: item.keyType === 'P',
-          fields: [],
-          name: item.name,
-          tableName: item.tableName,
-          unique: item.keyType === 'U',
-          type: item.type,
-        };
+    const indexes = data.reduce((acc, curr) => {
+      if (acc.has(curr.name)) {
+        const index = acc.get(curr.name);
+        if (curr.columnOrder === 'I') {
+          index.includes.push(curr.columnName);
+        } else {
+          index.fields.push({
+            attribute: curr.columnName,
+            length: undefined,
+            order: curr.columnOrder === 'D' ? 'DESC' : curr.columnOrder === 'A' ? 'ASC' : undefined,
+            collate: undefined,
+          });
+        }
 
-        _.forEach(item.COLNAMES.replace(/\+|-/g, x => {
-          return ` ${x}`;
-        }).split(' '), column => {
-          let columnName = column.trim();
-          if (columnName) {
-            columnName = columnName.replace(/\+|-/, '');
-            currItem.fields.push({
-              attribute: columnName,
-              length: undefined,
-              order: !column.includes('-') ? 'ASC' : 'DESC',
-              collate: undefined,
-            });
-          }
-        });
-        result.push(currItem);
+        return acc;
       }
-    }
 
-    return result;
+      acc.set(curr.name, {
+        primary: curr.keyType === 'P',
+        fields: curr.columnOrder === 'I' ? [] : [{
+          attribute: curr.columnName,
+          length: undefined,
+          order: curr.columnOrder === 'D' ? 'DESC' : 'ASC',
+          collate: undefined,
+        }],
+        includes: curr.columnOrder === 'I' ? [curr.columnName] : [],
+        name: curr.name,
+        tableName: curr.tableName,
+        unique: curr.keyType === 'U',
+        type: curr.type,
+      });
+
+      return acc;
+
+    }, new Map());
+
+    return Array.from(indexes.values());
   }
 
   handleInsertQuery(results, metaData) {
