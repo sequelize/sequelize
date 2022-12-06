@@ -2,7 +2,7 @@ import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
-import type { QueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
+import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type {
   DestroyOptions,
   DropOptions,
@@ -765,12 +765,12 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns the dialect-dependant QueryInterface instance.
    */
-  getQueryInterface(): QueryInterface;
+  getQueryInterface(): AbstractQueryInterface;
 
   /**
    * The QueryInterface instance, dialect dependant.
    */
-  queryInterface: QueryInterface;
+  queryInterface: AbstractQueryInterface;
 
   /**
    * Define a new model, representing a table in the DB.

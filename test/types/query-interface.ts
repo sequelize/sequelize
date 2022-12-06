@@ -1,7 +1,7 @@
-import type { QueryInterface } from '@sequelize/core';
+import type { AbstractQueryInterface } from '@sequelize/core';
 import { DataTypes, Model, fn, literal, col } from '@sequelize/core';
 
-declare let queryInterface: QueryInterface;
+declare let queryInterface: AbstractQueryInterface;
 
 async function test() {
   await queryInterface.createTable(

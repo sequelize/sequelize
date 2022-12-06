@@ -1,20 +1,19 @@
 import { expect } from 'chai';
-import { sequelize, getTestDialect } from '../support';
+import { sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;
 
 const testSchema = 'testSchema';
-const dialect = getTestDialect();
 
-if (dialect.startsWith('postgres')) {
-  describe('QueryInterface#{create,drop}Schema', async () => {
-    it('should create then drop a schema', async () => {
+if (sequelize.dialect.supports.schemas) {
+  describe('QueryInterface#{create}Schema', async () => {
+    it('should create a schema', async () => {
       const preCreationSchemas: string[] = await queryInterface.showAllSchemas();
-      await queryInterface.createSchema(testSchema);
-      expect(preCreationSchemas).to.not.include(testSchema);
+      expect(preCreationSchemas).to.not.include(testSchema, 'testSchema existed before creation');
 
+      await queryInterface.createSchema(testSchema);
       const postCreationSchemas: string[] = await queryInterface.showAllSchemas();
-      expect(postCreationSchemas).to.include(testSchema);
+      expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
     });
   });
 }

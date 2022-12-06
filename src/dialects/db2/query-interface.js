@@ -6,13 +6,13 @@ import { assertNoReservedBind } from '../../utils/sql';
 
 const _ = require('lodash');
 const { Op } = require('../../operators');
-const { QueryInterface } = require('../abstract/query-interface');
+const { AbstractQueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
 
 /**
  * The interface that Sequelize uses to talk with Db2 database
  */
-export class Db2QueryInterface extends QueryInterface {
+export class Db2QueryInterface extends AbstractQueryInterface {
   async getForeignKeyReferencesForTable(tableName, options) {
     const queryOptions = {
       ...options,
