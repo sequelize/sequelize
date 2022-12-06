@@ -1,0 +1,21 @@
+services:
+  cockroachdb-oldest:
+    container_name: sequelize-cockroachdb-oldest
+    image: cockroachdb/cockroach:v22.1.11
+    ports:
+      - 26257:8080
+    expose:
+      - 8080
+      - 26257
+    command: start-single-node --cluster-name=cockroach-sequilize-example --insecure --advertise-addr='localhost'
+    environment:
+      database: cockroachdb-sequilize-db
+    healthcheck:
+      test: ["status"]
+      interval: 3s
+      timeout: 1s
+      retries: 10
+
+networks:
+  default:
+    name: sequelize-cockroachdb-oldest-network
