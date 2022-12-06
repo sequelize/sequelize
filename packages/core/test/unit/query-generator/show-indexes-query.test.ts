@@ -14,7 +14,11 @@ describe('QueryGenerator#showIndexesQuery', () => {
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
         t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
-      mssql: `EXEC sys.sp_helpindex @objname = N'[myTable]';`,
+      mssql: `SELECT I.[name] AS [index_name], I.[type_desc] AS [index_type], C.[name] AS [column_name], IC.[is_descending_key], IC.[is_included_column], I.[is_unique], I.[is_primary_key], I.[is_unique_constraint]
+        FROM sys.indexes I
+        INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
+        INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
+        WHERE I.[object_id] = OBJECT_ID(N'dbo.myTable') ORDER BY I.[name];`,
       sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
       db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'myTable' AND TBCREATOR = USER ORDER BY NAME;`,
@@ -39,7 +43,11 @@ describe('QueryGenerator#showIndexesQuery', () => {
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
         t.relkind = 'r' and t.relname = 'MyModels' AND s.oid = t.relnamespace AND s.nspname = 'public'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
-      mssql: `EXEC sys.sp_helpindex @objname = N'[MyModels]';`,
+      mssql: `SELECT I.[name] AS [index_name], I.[type_desc] AS [index_type], C.[name] AS [column_name], IC.[is_descending_key], IC.[is_included_column], I.[is_unique], I.[is_primary_key], I.[is_unique_constraint]
+        FROM sys.indexes I
+        INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
+        INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
+        WHERE I.[object_id] = OBJECT_ID(N'dbo.MyModels') ORDER BY I.[name];`,
       sqlite: 'PRAGMA INDEX_LIST(`MyModels`)',
       snowflake: `SELECT '' FROM DUAL`,
       db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'MyModels' AND TBCREATOR = USER ORDER BY NAME;`,
@@ -62,7 +70,11 @@ describe('QueryGenerator#showIndexesQuery', () => {
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
         t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'mySchema'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
-      mssql: `EXEC sys.sp_helpindex @objname = N'[mySchema].[myTable]';`,
+      mssql: `SELECT I.[name] AS [index_name], I.[type_desc] AS [index_type], C.[name] AS [column_name], IC.[is_descending_key], IC.[is_included_column], I.[is_unique], I.[is_primary_key], I.[is_unique_constraint]
+        FROM sys.indexes I
+        INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
+        INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
+        WHERE I.[object_id] = OBJECT_ID(N'mySchema.myTable') ORDER BY I.[name];`,
       sqlite: 'PRAGMA INDEX_LIST(`mySchema.myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
       db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'myTable' AND TBCREATOR = 'mySchema' ORDER BY NAME;`,
@@ -85,7 +97,11 @@ describe('QueryGenerator#showIndexesQuery', () => {
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
         t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
-      mssql: `EXEC sys.sp_helpindex @objname = N'[myTable]';`,
+      mssql: `SELECT I.[name] AS [index_name], I.[type_desc] AS [index_type], C.[name] AS [column_name], IC.[is_descending_key], IC.[is_included_column], I.[is_unique], I.[is_primary_key], I.[is_unique_constraint]
+        FROM sys.indexes I
+        INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
+        INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
+        WHERE I.[object_id] = OBJECT_ID(N'dbo.myTable') ORDER BY I.[name];`,
       sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
       db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'myTable' AND TBCREATOR = USER ORDER BY NAME;`,
@@ -111,7 +127,11 @@ describe('QueryGenerator#showIndexesQuery', () => {
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
         t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'mySchema'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
-      mssql: `EXEC sys.sp_helpindex @objname = N'[mySchema].[myTable]';`,
+      mssql: `SELECT I.[name] AS [index_name], I.[type_desc] AS [index_type], C.[name] AS [column_name], IC.[is_descending_key], IC.[is_included_column], I.[is_unique], I.[is_primary_key], I.[is_unique_constraint]
+        FROM sys.indexes I
+        INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
+        INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
+        WHERE I.[object_id] = OBJECT_ID(N'mySchema.myTable') ORDER BY I.[name];`,
       sqlite: 'PRAGMA INDEX_LIST(`mySchema.myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
       db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'myTable' AND TBCREATOR = 'mySchema' ORDER BY NAME;`,
