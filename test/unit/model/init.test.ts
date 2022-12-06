@@ -1,5 +1,5 @@
-import { Model } from '@sequelize/core';
 import { expect } from 'chai';
+import { Model } from '@sequelize/core';
 
 describe('Uninitialized model', () => {
   class Test extends Model {}

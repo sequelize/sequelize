@@ -20,8 +20,8 @@ import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { SequelizeMethod } from './utils/sequelize-method';
 import { generateIndexName, singularize, pluralize, underscoredIf } from './utils/string';
 
-const assert = require('assert');
-const NodeUtil = require('util');
+const assert = require('node:assert');
+const NodeUtil = require('node:util');
 const _ = require('lodash');
 const Dottie = require('dottie');
 const { logger } = require('./utils/logger');

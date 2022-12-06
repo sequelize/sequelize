@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize, Op, AggregateError } = require('@sequelize/core');
+const { DataTypes, Sequelize, Op, AggregateError, col } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -1054,7 +1054,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
           });
         },
-        returning: ['*'],
+        returning: [col('*')],
       });
       expect(test).to.be.true;
     });

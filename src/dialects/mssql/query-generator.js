@@ -18,7 +18,7 @@ const _ = require('lodash');
 const DataTypes = require('../../data-types');
 const { TableHints } = require('../../table-hints');
 const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const randomBytes = require('crypto').randomBytes;
+const randomBytes = require('node:crypto').randomBytes;
 const semver = require('semver');
 const { Op } = require('../../operators');
 

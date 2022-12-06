@@ -7,7 +7,7 @@ const _ = require('lodash');
 const { QueryTypes } = require('../../query-types');
 const Dot = require('dottie');
 const deprecations = require('../../utils/deprecations');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 
 export class AbstractQuery {
 

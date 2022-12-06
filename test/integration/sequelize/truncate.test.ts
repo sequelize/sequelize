@@ -1,6 +1,6 @@
+import { expect } from 'chai';
 import type { CreationOptional, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
 import { DataTypes, Deferrable } from '@sequelize/core';
-import { expect } from 'chai';
 import { sequelize } from '../support';
 
 interface IA extends Model<InferAttributes<IA>, InferCreationAttributes<IA>> {
