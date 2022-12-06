@@ -54,7 +54,6 @@ export class MariaDbDialect extends AbstractDialect {
       },
       REGEXP: true,
       jsonOperations: true,
-      milliseconds: true,
       globalTimeZoneConfig: true,
     },
   );
@@ -100,6 +99,10 @@ export class MariaDbDialect extends AbstractDialect {
 
   canBackslashEscape() {
     return true;
+  }
+
+  getDefaultSchema(): string {
+    return this.sequelize.options.database ?? '';
   }
 
   static getDefaultPort() {

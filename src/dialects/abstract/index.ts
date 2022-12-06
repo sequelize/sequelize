@@ -63,10 +63,7 @@ export type DialectSupports = {
   finalTable: boolean,
 
   /* does the dialect support returning values for inserted/updated fields */
-  returnValues: false | {
-    output: boolean,
-    returning: boolean,
-  },
+  returnValues: false | 'output' | 'returning',
 
   /* features specific to autoIncrement values */
   autoIncrement: {
@@ -128,6 +125,7 @@ export type DialectSupports = {
     functionBased: boolean,
     operator: boolean,
     where: boolean,
+    include: boolean,
   },
   groupedLimit: boolean,
   indexViaAlter: boolean,
@@ -206,13 +204,11 @@ export type DialectSupports = {
    */
   escapeStringConstants: boolean,
 
-  /**
-   * Whether this dialect supports date & time values with a precision down to at least the millisecond.
-   */
-  milliseconds: boolean,
-
   /** Whether this dialect supports changing the global timezone option */
   globalTimeZoneConfig: boolean,
+  dropTable: {
+    cascade: boolean,
+  },
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -284,6 +280,7 @@ export abstract class AbstractDialect {
       functionBased: false,
       operator: false,
       where: false,
+      include: false,
     },
     groupedLimit: true,
     indexViaAlter: false,
@@ -328,8 +325,10 @@ export abstract class AbstractDialect {
     indexHints: false,
     searchPath: false,
     escapeStringConstants: false,
-    milliseconds: true,
     globalTimeZoneConfig: false,
+    dropTable: {
+      cascade: false,
+    },
   };
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {
@@ -468,7 +467,7 @@ export abstract class AbstractDialect {
   }
 
   getDefaultPort(): number {
-    // @ts-expect-error untyped constructor
+    // @ts-expect-error -- untyped constructor
     return this.constructor.getDefaultPort();
   }
 
@@ -504,6 +503,8 @@ export abstract class AbstractDialect {
   getParserForDatabaseDataType(databaseDataType: unknown): TypeParser | undefined {
     return this.#dataTypeParsers.get(databaseDataType);
   }
+
+  abstract getDefaultSchema(): string;
 
   static getDefaultPort(): number {
     throw new Error(`getDefaultPort not implemented in ${this.name}`);

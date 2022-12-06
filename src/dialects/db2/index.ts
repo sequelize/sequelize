@@ -22,6 +22,7 @@ export class Db2Dialect extends AbstractDialect {
       collate: false,
       using: false,
       where: true,
+      include: true,
     },
     tmpTableTrigger: true,
     dataTypes: {
@@ -30,7 +31,6 @@ export class Db2Dialect extends AbstractDialect {
         precision: false,
       },
     },
-    milliseconds: true,
   });
 
   readonly defaultVersion = '1.0.0';
@@ -70,6 +70,11 @@ export class Db2Dialect extends AbstractDialect {
 
   escapeBuffer(buffer: Buffer): string {
     return `BLOB(${this.queryGenerator.escape(buffer.toString())})`;
+  }
+
+  getDefaultSchema(): string {
+    // TODO: what is the default schema in DB2?
+    return '';
   }
 
   static getDefaultPort() {

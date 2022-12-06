@@ -39,7 +39,6 @@ export class SnowflakeDialect extends AbstractDialect {
       COLLATE_BINARY: true,
     },
     REGEXP: true,
-    milliseconds: true,
     globalTimeZoneConfig: true,
   });
 
@@ -65,6 +64,10 @@ export class SnowflakeDialect extends AbstractDialect {
 
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
+  }
+
+  getDefaultSchema(): string {
+    return 'PUBLIC';
   }
 
   static getDefaultPort() {

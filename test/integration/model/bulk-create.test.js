@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op } = require('@sequelize/core');
+const { DataTypes, Op, col } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: DataTypes.STRING,
         });
         await User.sync({ force: true });
-        const transaction = await this.sequelize.transaction();
+        const transaction = await this.sequelize.startUnmanagedTransaction();
         await User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction });
         const count1 = await User.count();
         const count2 = await User.count({ transaction });
@@ -943,7 +943,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {},
             {},
           ], {
-            returning: ['*'],
+            returning: [col('*')],
           });
 
           const actualUsers0 = await User.findAll();

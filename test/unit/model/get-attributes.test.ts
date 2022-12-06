@@ -1,6 +1,6 @@
+import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
 import type { BuiltModelAttributeColumnOptions, DataType } from '@sequelize/core';
-import { expect } from 'chai';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
 function assertDataType(property: BuiltModelAttributeColumnOptions, dataType: DataType) {

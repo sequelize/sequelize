@@ -1,5 +1,5 @@
-import type { Nullish, AllowArray } from './utils/index.js';
 import { Multimap } from './utils/multimap.js';
+import type { AllowArray, Nullish } from './utils/types.js';
 
 export type AsyncHookReturn = Promise<void> | void;
 
@@ -88,7 +88,7 @@ export class HookHandler<HookConfig extends {}> {
 
     const listeners = this.#listeners.getAll(hookName);
     for (const listener of listeners) {
-      // @ts-expect-error
+      // @ts-expect-error -- callback can by any hook type (due to coming from the map), args is the args of a specific hook. Too hard to type properly.
       const out = listener.callback(...args);
 
       if (out && 'then' in out) {
@@ -112,7 +112,7 @@ export class HookHandler<HookConfig extends {}> {
     const listeners = this.#listeners.getAll(hookName);
     for (const listener of listeners) {
       /* eslint-disable no-await-in-loop */
-      // @ts-expect-error
+      // @ts-expect-error -- callback can by any hook type (due to coming from the map), args is the args of a specific hook. Too hard to type properly.
       await listener.callback(...args);
       /* eslint-enable no-await-in-loop */
     }

@@ -1,4 +1,4 @@
-import type { Class } from 'type-fest';
+import type { Class, SetRequired } from 'type-fest';
 import type {
   Association,
   BelongsTo,
@@ -12,27 +12,28 @@ import type {
 } from './associations/index';
 import type { Deferrable } from './deferrable';
 import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
-import type { IndexOptions, TableName } from './dialects/abstract/query-interface';
+import type { IndexOptions, TableName, TableNameWithSchema } from './dialects/abstract/query-interface';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-typescript.js';
 import { ModelTypeScript } from './model-typescript.js';
 import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import type {
-  AllowArray,
-  AllowReadonlyArray,
-  AnyFunction,
   Cast,
   Col,
   Fn,
   Json,
   Literal,
+  Where,
+} from './utils/sequelize-method.js';
+import type {
+  AllowArray,
+  AllowReadonlyArray,
+  AnyFunction,
   MakeNullishOptional,
   Nullish,
   OmitConstructors,
-  Where,
-} from './utils';
-import type { SetRequired } from './utils/set-required';
+} from './utils/types.js';
 import type { LOCK, Op, Optional, Transaction, TableHints } from './index';
 
 export interface Logging {
@@ -60,10 +61,10 @@ export interface Transactionable {
   /**
    * The transaction in which this query must be run.
    *
-   * If CLS is enabled and a transaction is running in the current CLS context,
+   * If {@link Options.disableAlsTransactions} has not been set to true, and a transaction is running in the current ALS context,
    * that transaction will be used, unless null or a Transaction is manually specified here.
    */
-  transaction?: Transaction | null;
+  transaction?: Transaction | null | undefined;
 }
 
 export interface SearchPathable {
@@ -1037,7 +1038,7 @@ export interface CreateOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * If false, validations won't be run.
@@ -1095,7 +1096,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * Fetch back the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * Run validations before the row is inserted
@@ -1156,7 +1157,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
@@ -1278,7 +1279,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    *
    * @default false
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * How many rows to update
@@ -1331,7 +1332,7 @@ export interface IncrementDecrementOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
@@ -1411,7 +1412,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
@@ -1641,31 +1642,6 @@ export interface ModelScopeOptions<TAttributes = any> {
 }
 
 /**
- * General column options
- */
-export interface ColumnOptions {
-  /**
-   * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
-   * instance is saved.
-   *
-   * @default true
-   */
-  allowNull?: boolean;
-
-  /**
-   * The name of the column.
-   *
-   * If no value is provided, Sequelize will use the name of the attribute (in snake_case if {@link InitOptions.underscored} is true)
-   */
-  field?: string;
-
-  /**
-   * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
-   */
-  defaultValue?: unknown;
-}
-
-/**
  * References options for the column's attributes
  */
 export interface ModelAttributeColumnReferencesOptions {
@@ -1693,7 +1669,7 @@ export type ReferentialAction = 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NU
 /**
  * Column options for the model schema attributes
  */
-export interface ModelAttributeColumnOptions<M extends Model = Model> extends ColumnOptions {
+export interface ModelAttributeColumnOptions<M extends Model = Model> {
   /**
    * A string or a data type.
    *
@@ -1702,11 +1678,31 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   type: DataType;
 
   /**
+   * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
+   * instance is saved.
+   *
+   * @default true
+   */
+  allowNull?: boolean;
+
+  /**
+   * The name of the column.
+   *
+   * If no value is provided, Sequelize will use the name of the attribute (in snake_case if {@link InitOptions.underscored} is true)
+   */
+  field?: string;
+
+  /**
+   * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
+   */
+  defaultValue?: unknown;
+
+  /**
    * If true, the column will get a unique constraint. If a string is provided, the column will be part of a
    * composite unique index. If multiple columns have the same string, they will be part of the same unique
    * index
    */
-  unique?: boolean | string | { name: string, msg: string };
+  unique?: AllowArray<boolean | string | { name: string, msg?: string }>;
 
   /**
    * If true, this attribute will be marked as primary key
@@ -1760,21 +1756,6 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   validate?: ModelValidateOptions;
 
   /**
-   * Usage in object notation
-   *
-   * ```js
-   * class MyModel extends Model {}
-   * MyModel.init({
-   *   states: {
-   *     type:   DataTypes.ENUM,
-   *     values: ['active', 'pending', 'deleted']
-   *   }
-   * }, { sequelize })
-   * ```
-   */
-  values?: readonly string[];
-
-  /**
    * Provide a custom getter for this column.
    * Use {@link Model.getDataValue} to access the underlying values.
    */
@@ -1785,17 +1766,9 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * Use {@link Model.setDataValue} to access the underlying values.
    */
   set?(this: M, val: unknown): void;
-
-  /**
-   * This attribute was added by sequelize. Do not use!
-   *
-   * @private
-   * @internal
-   */
-  _autoGenerated?: boolean;
 }
 
-export interface BuiltModelAttributeColumnOptions<M extends Model = Model> extends Omit<ModelAttributeColumnOptions<M>, 'type'> {
+export interface BuiltModelAttributeColumnOptions<M extends Model = Model> extends Omit<ModelAttributeColumnOptions<M>, 'type' | 'unique'> {
   /**
    * The name of the attribute (JS side).
    */
@@ -1806,6 +1779,16 @@ export interface BuiltModelAttributeColumnOptions<M extends Model = Model> exten
    */
   type: string | AbstractDataType<any>;
   references?: ModelAttributeColumnReferencesOptions;
+
+  unique?: Array<{ name: string, msg?: string }>;
+
+  /**
+   * This attribute was added by sequelize. Do not use!
+   *
+   * @private
+   * @internal
+   */
+  _autoGenerated?: boolean;
 }
 
 /**
@@ -2218,13 +2201,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static getIndexes(): readonly IndexOptions[];
 
   /**
-   * Reference to the sequelize instance the model was initialized with.
-   *
-   * Can be undefined if the Model has not been initialized yet.
-   */
-  static readonly sequelize?: Sequelize;
-
-  /**
    * Initialize a model, representing a table in the DB, with attributes and options.
    *
    * The table columns are define by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
@@ -2386,11 +2362,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * The method will return The name as a string if the model has no schema,
    * or an object with `tableName`, `schema` and `delimiter` properties.
    */
-  static getTableName(): string | {
-    tableName: string,
-    schema: string,
-    delimiter: string,
-  };
+  static getTableName(): TableNameWithSchema;
 
   /**
    * Creates a copy of this model, with one or more scopes applied.
@@ -3027,11 +2999,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * Returns true if this instance has not yet been persisted to the database
    */
   isNewRecord: boolean;
-
-  /**
-   * A reference to the sequelize instance.
-   */
-  sequelize: Sequelize;
 
   /**
    * Builds a new model instance.

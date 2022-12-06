@@ -1,12 +1,7 @@
-import assert from 'assert';
-import fs from 'fs';
-import path from 'path';
-import { inspect, isDeepStrictEqual } from 'util';
-import type { Dialect, Options } from '@sequelize/core';
-import { Sequelize } from '@sequelize/core';
-import {
-  AbstractQueryGenerator,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { inspect, isDeepStrictEqual } from 'node:util';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
@@ -14,6 +9,11 @@ import defaults from 'lodash/defaults';
 import isObject from 'lodash/isObject';
 import type { ExclusiveTestFunction, PendingTestFunction, TestFunction } from 'mocha';
 import sinonChai from 'sinon-chai';
+import { Sequelize } from '@sequelize/core';
+import type { Dialect, Options } from '@sequelize/core';
+import {
+  AbstractQueryGenerator,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
 import { Config } from './config/config';
 
 const expect = chai.expect;
@@ -163,6 +163,8 @@ export function createSequelizeInstance(options: Options = {}): Sequelize {
     pool: config.pool,
     dialectOptions: options.dialectOptions || config.dialectOptions || {},
     minifyAliases: options.minifyAliases || config.minifyAliases,
+    // the test suite was written before ALS was turned on by default.
+    disableAlsTransactions: true,
   });
 
   if (process.env.DIALECT === 'postgres-native') {
@@ -205,9 +207,7 @@ export async function clearDatabase(sequelize: Sequelize) {
 }
 
 export async function dropTestSchemas(sequelize: Sequelize) {
-  const queryInterface = sequelize.getQueryInterface();
-
-  if (!queryInterface.queryGenerator.dialect.supports.schemas) {
+  if (!sequelize.dialect.supports.schemas) {
     await sequelize.drop({});
 
     return;
@@ -216,7 +216,7 @@ export async function dropTestSchemas(sequelize: Sequelize) {
   const schemas = await sequelize.showAllSchemas();
   const schemasPromise = [];
   for (const schema of schemas) {
-    // @ts-expect-error
+    // @ts-expect-error -- TODO: type return value of "showAllSchemas"
     const schemaName = schema.name ? schema.name : schema;
     if (schemaName !== sequelize.config.database) {
       const promise = sequelize.dropSchema(schemaName);
@@ -460,7 +460,7 @@ export function expectsql(
 
   if ('bind' in assertions) {
     const bind = assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
-    // @ts-expect-error
+    // @ts-expect-error -- too difficult to type, but this is safe
     expect(query.bind).to.deep.equal(bind);
   }
 }

@@ -53,7 +53,6 @@ export class MysqlDialect extends AbstractDialect {
       },
       jsonOperations: true,
       REGEXP: true,
-      milliseconds: true,
       globalTimeZoneConfig: true,
     },
   );
@@ -95,6 +94,10 @@ export class MysqlDialect extends AbstractDialect {
 
   canBackslashEscape() {
     return true;
+  }
+
+  getDefaultSchema(): string {
+    return this.sequelize.options.database ?? '';
   }
 
   static getDefaultPort() {

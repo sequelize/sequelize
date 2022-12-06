@@ -1,4 +1,4 @@
-import util from 'util';
+import util from 'node:util';
 import { isPlainObject } from './utils/check.js';
 import { validator as Validator } from './utils/validator-extras.js';
 

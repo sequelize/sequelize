@@ -1,6 +1,6 @@
 'use strict';
 
-import { getAttributeName } from '../../utils';
+import { getAttributeName } from '../../utils/format';
 
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
@@ -304,6 +304,9 @@ export class MsSqlQuery extends AbstractQuery {
 
   formatError(err, errStack) {
     let match;
+
+    // TODO: err can be an AggregateError. When that happens, we must throw an AggregateError too instead of throwing only the second error,
+    //  or we lose important information
 
     match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'. Cannot insert duplicate key in object '.*'.(:? The duplicate key value is \((.*)\).)?/);
     match = match || err.message.match(/Cannot insert duplicate key row in object .* with unique index '(.*)'/);

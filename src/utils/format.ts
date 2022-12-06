@@ -1,13 +1,12 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type {
+  Attributes,
+  BuiltModelAttributeColumnOptions,
   Model,
   ModelStatic,
   WhereOptions,
-  ModelAttributeColumnOptions,
-  Attributes,
-  BuiltModelAttributeColumnOptions,
 } from '..';
 import * as DataTypes from '../data-types';
 import { Op as operators } from '../operators';
@@ -95,20 +94,17 @@ export function mapOptionFieldNames<M extends Model>(
   return out;
 }
 
-export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: ModelStatic<Model>): object {
+export function mapWhereFieldNames(where: Record<PropertyKey, any>, Model: ModelStatic<Model>): object {
   if (!where) {
     return where;
   }
 
-  const newWhere: Record<string | symbol, any> = Object.create(null);
-  // TODO [2022-09-01]: note on 'as any[]': TypeScript < 4.4 does not support using Symbol for keys.
-  //  Cast can be removed in sept. 2022 when we drop support for < 4.4
+  const newWhere: Record<PropertyKey, any> = Object.create(null);
+  // TODO: note on 'as any[]'; removing the cast causes the following error on attributeNameOrOperator "TS2538: Type 'symbol' cannot be used as an index type."
   for (const attributeNameOrOperator of getComplexKeys(where) as any[]) {
-    const rawAttribute: ModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
+    const rawAttribute: BuiltModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
 
-    // TODO [2022-09-01]: note on 'any': TypeScript < 4.4 does not support using Symbol for keys.
-    //  Cast can changed back to 'symbol | string' in sept. 2022 when we drop support for < 4.4
-    const columnNameOrOperator: any = rawAttribute?.field ?? attributeNameOrOperator;
+    const columnNameOrOperator: PropertyKey = rawAttribute?.field ?? attributeNameOrOperator;
 
     if (
       isPlainObject(where[attributeNameOrOperator])
@@ -159,6 +155,17 @@ export function getComplexKeys(obj: object): Array<string | symbol> {
     ...getOperators(obj),
     ...Object.keys(obj),
   ];
+}
+
+/**
+ * getComplexSize
+ *
+ * @param obj
+ * @returns Length of object properties including operators if obj is array returns its length
+ * @private
+ */
+export function getComplexSize(obj: object | any[]): number {
+  return Array.isArray(obj) ? obj.length : getComplexKeys(obj).length;
 }
 
 /**
