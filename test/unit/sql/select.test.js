@@ -1065,7 +1065,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: Project,
         attributes: ['id'],
         where: {
-          duration: { [Op.eq]: 9_007_199_254_740_993n }
+          duration: { [Op.eq]: 9007199254740993n }
         }
       }, Project);
 
