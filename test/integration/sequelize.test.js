@@ -840,7 +840,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         const sequelize = Support.createSequelizeInstance();
         sequelize.getDatabaseVersion();
       }).to.throw(
-        'The current database version is unknown, please call `sequelize.authenticate()` first to fetch it. Or manually configure it through options.',
+        'The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.',
       );
     });
 
