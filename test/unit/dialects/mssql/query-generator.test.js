@@ -227,5 +227,17 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
+    it('removeIndexQuery', function () {
+      expectsql(this.queryGenerator.removeIndexQuery('myTable', 'myIndex'), {
+        mssql: 'DROP INDEX [myIndex] ON [myTable]',
+      });
+    });
+
+    it('removeIndexQuery with custom schema', function () {
+      expectsql(this.queryGenerator.removeIndexQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myIndex'), {
+        mssql: 'DROP INDEX [myIndex] ON [mySchema].[myTable]',
+      });
+    });
+
   });
 }

@@ -608,7 +608,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
-    return `DROP INDEX ${this.quoteIdentifiers(indexName)} ON ${this.quoteIdentifiers(tableName)}`;
+    return `DROP INDEX ${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableName)}`;
   }
 
   attributeToSQL(attribute, options) {
