@@ -232,11 +232,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await UserPrimary.sync({ force: true });
 
         await UserPrimary.create({
-          id: 9_007_199_254_740_993n, // Number.MAX_SAFE_INTEGER + 2 (cannot be represented exactly as a number in JS)
+          id: 9007199254740993n, // Number.MAX_SAFE_INTEGER + 2 (cannot be represented exactly as a number in JS)
           name: 'Johnno'
         });
 
-        const u2 = await UserPrimary.findByPk(9_007_199_254_740_993n);
+        const u2 = await UserPrimary.findByPk(9007199254740993n);
         expect(u2.name).to.equal('Johnno');
 
         // Getting the value back as bigint is not supported yet: https://github.com/sequelize/sequelize/issues/14296
