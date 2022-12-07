@@ -57,7 +57,7 @@ export function registerModelOptions(
       continue;
     }
 
-    // @ts-expect-error
+    // @ts-expect-error -- dynamic type, not worth typing
     if (optionValue === existingModelOptions[optionName]) {
       continue;
     }
@@ -108,7 +108,7 @@ export function registerModelAttributeOptions(
 
     // These are objects. We merge their properties, unless the same key is used in both values.
     if (optionName === 'validate') {
-      // @ts-expect-error
+      // @ts-expect-error -- dynamic type, not worth typing
       for (const [subOptionName, subOptionValue] of Object.entries(optionValue)) {
         if (subOptionName in existingOptions[optionName]!) {
           throw new Error(`Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] of attribute ${attributeName} on model ${model.name}.`);
@@ -138,7 +138,7 @@ export function registerModelAttributeOptions(
       continue;
     }
 
-    // @ts-expect-error
+    // @ts-expect-error -- dynamic type, not worth typing
     if (optionValue === existingOptions[optionName]) {
       continue;
     }
@@ -151,7 +151,7 @@ export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): vo
   const { model: modelOptions, attributes: attributeOptions } = registeredOptions.get(model) ?? {};
 
   // model.init will ensure all required attributeOptions have been specified.
-  // @ts-expect-error secret method
+  // @ts-expect-error -- secret method
   model._internalInit(attributeOptions as ModelAttributes, {
     ...modelOptions,
     sequelize,

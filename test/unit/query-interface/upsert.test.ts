@@ -1,6 +1,6 @@
-import { DataTypes, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
+import { DataTypes, literal } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 const dialectName = sequelize.dialect.name;

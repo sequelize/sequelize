@@ -115,113 +115,34 @@ if (current.dialect.name === 'mssql') {
     });
 
     it('selectFromTableFragment', function () {
-      const modifiedGen = new QueryGenerator({
-        sequelize: this.sequelize,
-        dialect: this.sequelize.dialect,
-      });
-
-      let dbVersion = '11.0.0';
-
-      // Test newer versions first
-      // Should be all the same since handling is done in addLimitAndOffset
-      // for SQL Server 2012 and higher (>= v11.0.0)
-      modifiedGen.sequelize = {
-        getDatabaseVersion: () => dbVersion,
-        options: {
-          databaseVersion: dbVersion,
-        },
-      };
-
       // Base case
-      expectsql(modifiedGen.selectFromTableFragment({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName',
       });
 
       // With tableHint - nolock
-      expectsql(modifiedGen.selectFromTableFragment({ tableHint: TableHints.NOLOCK }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({ tableHint: TableHints.NOLOCK }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName WITH (NOLOCK)',
       });
 
       // With tableHint - NOWAIT
-      expectsql(modifiedGen.selectFromTableFragment({ tableHint: TableHints.NOWAIT }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({ tableHint: TableHints.NOWAIT }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName WITH (NOWAIT)',
       });
 
       // With limit
-      expectsql(modifiedGen.selectFromTableFragment({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName',
       });
 
       // With offset
-      expectsql(modifiedGen.selectFromTableFragment({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName',
       });
 
       // With both limit and offset
-      expectsql(modifiedGen.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName',
-      });
-
-      // Test older version (< v11.0.0)
-      dbVersion = '10.0.0';
-
-      // Base case
-      expectsql(modifiedGen.selectFromTableFragment({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
-        mssql: 'SELECT id, name FROM myTable AS myOtherName',
-      });
-
-      // With limit
-      expectsql(modifiedGen.selectFromTableFragment({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT TOP 10 id, name FROM myTable AS myOtherName',
-      });
-
-      // With offset
-      expectsql(modifiedGen.selectFromTableFragment({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, * FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName',
-      });
-
-      // With both limit and offset
-      expectsql(modifiedGen.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, * FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName',
-      });
-
-      // With limit, offset, include, and where
-      const Foo = this.sequelize.define('Foo', {
-        id: {
-          type: DataTypes.INTEGER,
-          field: 'id',
-          primaryKey: true,
-        },
-      }, {
-        tableName: 'Foos',
-      });
-      const bar = this.sequelize.define('Bar', {
-        id: {
-          type: DataTypes.INTEGER,
-          field: 'id',
-          primaryKey: true,
-        },
-      }, {
-        tableName: 'Bars',
-      });
-      Foo.Bar = Foo.belongsTo(bar, { foreignKey: 'barId' });
-      let options = {
-        model: Foo,
-        limit: 10,
-        offset: 10,
-        include: [
-          {
-            model: bar,
-            association: Foo.Bar,
-            as: 'Bars',
-            required: true,
-          },
-        ],
-      };
-      Foo._conformIncludes(options, Foo);
-      options = _validateIncludedElements(options);
-      expectsql(modifiedGen.selectFromTableFragment(options, Foo, ['[Foo].[id]', '[Foo].[barId]'], Foo.tableName, 'Foo', '[Bars].[id] = 12'), {
-        mssql: 'SELECT TOP 100 PERCENT [Foo].[id], [Foo].[barId] FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, Foo.* FROM (SELECT DISTINCT Foo.* FROM Foos AS Foo INNER JOIN [Bars] AS [Bars] ON [Foo].[barId] = [Bars].[id] WHERE [Bars].[id] = 12) AS Foo) AS Foo WHERE row_num > 10) AS Foo',
       });
     });
 
