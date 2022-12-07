@@ -1,6 +1,5 @@
 'use strict';
 
-import isNil from 'lodash/isNil';
 import isPlainObject from 'lodash/isPlainObject';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { SequelizeTypeScript } from './sequelize-typescript';
@@ -1056,8 +1055,8 @@ Use Sequelize#query if you wish to use replacements.`);
    * @returns {string} current version of the dialect that is internally loaded
    */
   getDatabaseVersion() {
-    if (isNil(this.options.databaseVersion)) {
-      throw new Error('The current database version is unknown, please call `sequelize.authenticate()` first to fetch it. Or manually configure it through options.');
+    if (this.options.databaseVersion == null) {
+      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
     }
 
     return this.options.databaseVersion;

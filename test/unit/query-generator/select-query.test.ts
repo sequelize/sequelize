@@ -1,15 +1,11 @@
-import { expect } from 'chai';
 import type { InferAttributes, Model } from '@sequelize/core';
 import { Op, literal, DataTypes, or, fn, where, cast, col } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
+import { expect } from 'chai';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
-
-  if (sequelize.dialect.name === 'mssql') {
-    sequelize.options.databaseVersion = '11.0.0';
-  }
 
   interface TUser extends Model<InferAttributes<TUser>> {
     username: string;

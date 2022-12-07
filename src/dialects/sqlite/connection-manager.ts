@@ -87,7 +87,8 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
 
       this.connections.set(connectionCacheKey, connectionInstance);
     });
-    await this._initDatabaseVersion();
+
+    await this._initDatabaseVersion(connection);
 
     if (this.sequelize.config.password) {
       // Make it possible to define and use password for sqlite encryption plugin like sqlcipher
@@ -102,6 +103,8 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
 
     return connection;
   }
+
+  async disconnect(_connection: SqliteConnection): Promise<void> {}
 
   async releaseConnection(connection: SqliteConnection, force?: boolean): Promise<void> {
     if (connection.filename === ':memory:' && force !== true) {

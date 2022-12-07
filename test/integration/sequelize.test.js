@@ -844,7 +844,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       );
     });
 
-    it('should be able to get database version once loaded internally', async function () {
+    it('returns the database version if loaded', async function () {
       await this.sequelize.authenticate();
       const version = this.sequelize.getDatabaseVersion();
       expect(typeof version).to.equal('string');

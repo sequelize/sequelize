@@ -189,7 +189,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     }
   }
 
-  async _initDatabaseVersion() {
+  async _initDatabaseVersion(conn?: TConnection) {
     if (this.sequelize.options.databaseVersion != null) {
       return;
     }
@@ -203,7 +203,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     // TODO: move to sequelize.queryRaw instead?
     this.#versionPromise = (async () => {
       try {
-        const connection = await this._connect(this.config.replication.write || this.config);
+        const connection = conn ? conn : await this._connect(this.config.replication.write || this.config);
 
         // connection might have set databaseVersion value at initialization,
         // avoiding a useless round trip
