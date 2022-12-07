@@ -1,3 +1,4 @@
+import { expectTypeOf } from 'expect-type';
 import type {
   Association,
   BelongsToManyGetAssociationsMixin,
@@ -13,7 +14,6 @@ import {
   Model,
   Sequelize,
 } from '@sequelize/core';
-import { expectTypeOf } from 'expect-type';
 
 expectTypeOf<HasOne>().toMatchTypeOf<Association>();
 
@@ -27,7 +27,7 @@ class MyModel extends Model<InferAttributes<MyModel>, InferCreationAttributes<My
   };
 
   static async customStuff() {
-    return this.sequelize!.query('select 1');
+    return this.sequelize.query('select 1');
   }
 }
 

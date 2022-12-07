@@ -39,11 +39,11 @@ export class SnowflakeDialect extends AbstractDialect {
       COLLATE_BINARY: true,
     },
     REGEXP: true,
-    milliseconds: true,
     globalTimeZoneConfig: true,
   });
 
-  readonly dataTypesDocumentationUrl = 'https://dev.snowflake.com/doc/refman/5.7/en/data-types.html';
+  readonly dataTypesDocumentationUrl = 'https://docs.snowflake.com/en/sql-reference/data-types.html';
+  // TODO: fix the minimum supported version
   readonly defaultVersion = '5.7.0';
   readonly Query = SnowflakeQuery;
   readonly TICK_CHAR = '"';
@@ -65,6 +65,10 @@ export class SnowflakeDialect extends AbstractDialect {
 
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
+  }
+
+  getDefaultSchema(): string {
+    return 'PUBLIC';
   }
 
   static getDefaultPort() {

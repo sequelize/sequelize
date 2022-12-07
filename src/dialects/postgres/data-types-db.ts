@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import identity from 'lodash/identity';
 import wkx from 'wkx';
 import { getDataTypeParser } from '../abstract/data-types-utils.js';

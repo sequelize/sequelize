@@ -9,37 +9,11 @@ const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const { Op } = require('@sequelize/core');
 const { Db2QueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/db2/query-generator.js');
+const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'db2') {
   describe('[DB2 Specific] QueryGenerator', () => {
     const suites = {
-      arithmeticQuery: [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\'',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' WHERE "bar" = \'biz\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\'',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- -1',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' WHERE "bar" = \'biz\'',
-        },
-      ],
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
@@ -163,13 +137,6 @@ if (dialect === 'db2') {
         },
       ],
 
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS "myTable";',
-        },
-      ],
-
       selectQuery: [
         {
           arguments: ['myTable'],
@@ -194,10 +161,6 @@ if (dialect === 'db2') {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM "myTable" WHERE "myTable"."id" = 2;',
-          context: QueryGenerator,
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS "count" FROM "foo";',
           context: QueryGenerator,
         }, {
           arguments: ['myTable', { order: ['id'] }],
@@ -311,18 +274,6 @@ if (dialect === 'db2') {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM "myTable" GROUP BY "name" ORDER BY "id" DESC;',
           context: QueryGenerator,
-        }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR("createdAt") AS "creationYear" FROM "myTable" GROUP BY "creationYear", "title" HAVING "creationYear" > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true,
         }, {
           title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
           arguments: ['myTable', function (sequelize) {
@@ -628,16 +579,6 @@ if (dialect === 'db2') {
         },
       ],
 
-      showIndexesQuery: [
-        {
-          arguments: ['User'],
-          expectation: 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = \'User\' ORDER BY NAME;',
-        }, {
-          arguments: ['User', { database: 'sequelize' }],
-          expectation: 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = \'User\' ORDER BY NAME;',
-        },
-      ],
-
       removeIndexQuery: [
         {
           arguments: ['User', 'user_foo_bar'],
@@ -657,31 +598,27 @@ if (dialect === 'db2') {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
-        beforeEach(function () {
-          this.queryGenerator = new QueryGenerator({
-            sequelize: this.sequelize,
-            dialect: this.sequelize.dialect,
-          });
-        });
-
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
           const title = test.title || `Db2 correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
-          it(title, function () {
+          it(title, () => {
+            const sequelize = createSequelizeInstance({
+              ...test.context && test.context.options,
+            });
+
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {
-                test.arguments[1] = test.arguments[1](this.sequelize);
+                test.arguments[1] = test.arguments[1](sequelize);
               }
 
               if (typeof test.arguments[2] === 'function') {
-                test.arguments[2] = test.arguments[2](this.sequelize);
+                test.arguments[2] = test.arguments[2](sequelize);
               }
             }
 
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            this.queryGenerator.options = { ...this.queryGenerator.options, ...test.context && test.context.options };
+            const queryGenerator = sequelize.dialect.queryGenerator;
 
-            const conditions = this.queryGenerator[suiteTitle](...test.arguments);
+            const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         }

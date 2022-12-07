@@ -1,3 +1,4 @@
+import { expectTypeOf } from 'expect-type';
 import type {
   Attributes,
   CreationAttributes,
@@ -12,7 +13,6 @@ import {
   Model,
   Sequelize,
 } from '@sequelize/core';
-import { expectTypeOf } from 'expect-type';
 
 class Project extends Model<InferAttributes<Project>> {
   declare id: number;

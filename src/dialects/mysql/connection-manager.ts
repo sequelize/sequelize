@@ -1,5 +1,5 @@
-import assert from 'assert';
-import { promisify } from 'util';
+import assert from 'node:assert';
+import { promisify } from 'node:util';
 import dayjs from 'dayjs';
 import type { createConnection as mysqlCreateConnection, Connection, ConnectionOptions as MySqlConnectionOptions } from 'mysql2';
 import {
@@ -11,7 +11,7 @@ import {
   InvalidConnectionError,
 } from '../../errors';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
-import { isError, isNodeError } from '../../utils/index.js';
+import { isError, isNodeError } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection as AbstractConnection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';

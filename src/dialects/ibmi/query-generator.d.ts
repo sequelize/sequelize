@@ -1,3 +1,3 @@
-import { AbstractQueryGenerator } from '../abstract/query-generator.js';
+import { IBMiQueryGeneratorTypeScript } from './query-generator-typescript.js';
 
-export class IBMiQueryGenerator extends AbstractQueryGenerator {}
+export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {}

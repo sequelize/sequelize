@@ -63,14 +63,14 @@ import { User } from './models/user';
   });
   expectTypeOf(partialUser).toEqualTypeOf<User>();
 
-  // @ts-expect-error missing attribute
+  // @ts-expect-error -- missing attribute
   await User.create({
     id: 123,
   });
   await User.create({
     id: 123,
     firstName: '<first-name>',
-    // @ts-expect-error unknown attribute
+    // @ts-expect-error -- unknown attribute
     unknown: '<unknown>',
   });
 })();

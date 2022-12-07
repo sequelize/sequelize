@@ -17,7 +17,6 @@ export type {
   PositionPosition,
 } from './geo-json.js';
 export { GeoJsonType } from './geo-json.js';
-export * as Utils from './utils';
 export { QueryTypes } from './query-types';
 export { IndexHints } from './index-hints';
 export { TableHints } from './table-hints';
@@ -32,15 +31,11 @@ export * from './model';
 export * from './dialects/abstract/query-interface';
 export * from './sequelize';
 export { Sequelize as default } from './sequelize';
-export { useInflection } from './utils';
+export { useInflection } from './utils/string';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils';
 export type { Validator } from './utils/validator-extras';
 export { Deferrable } from './deferrable';
-
-/**
- * Type helper for making certain fields of an object optional. This is helpful
- * for creating the `CreationAttributes` from your `Attributes` for a Model.
- */
-export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-
-export type PartlyRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+export type { Optional, PartlyRequired } from './utils/types.js';
+export { Col, Cast, Fn, Json, Where, Literal, SequelizeMethod } from './utils/sequelize-method.js';
+export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
+export { importModels } from './import-models.js';

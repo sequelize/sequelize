@@ -33,8 +33,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
-            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($sequelize_1); SELECT * FROM @tmp;',
-            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id","user_name";',
+            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id], INSERTED.[user_name] INTO @tmp VALUES ($sequelize_1); SELECT * FROM @tmp;',
+            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id", "user_name";',
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',

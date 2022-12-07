@@ -1,5 +1,5 @@
-import { injectReplacements, mapBindParameters } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { expect } from 'chai';
+import { injectReplacements, mapBindParameters } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import {
   createSequelizeInstance,
   expectPerDialect,
@@ -169,6 +169,23 @@ describe('mapBindParameters', () => {
       postgres: `SELECT z$$ $1 x$$ * FROM users`,
       sqlite: `SELECT z$$ $id x$$ * FROM users`,
       mssql: `SELECT z$$ @id x$$ * FROM users`,
+    });
+
+    if (supportsNamedParameters) {
+      expect(bindOrder).to.be.null;
+    } else {
+      expect(bindOrder).to.deep.eq(['id']);
+    }
+  });
+
+  it('does consider the token to be a bind parameter if it is located after a $ quoted string', () => {
+    const { sql, bindOrder } = mapBindParameters(`SELECT $$ abc $$ AS string FROM users WHERE id = $id`, dialect);
+
+    expectsql(sql, {
+      default: `SELECT $$ abc $$ AS string FROM users WHERE id = ?`,
+      postgres: `SELECT $$ abc $$ AS string FROM users WHERE id = $1`,
+      sqlite: `SELECT $$ abc $$ AS string FROM users WHERE id = $id`,
+      mssql: `SELECT $$ abc $$ AS string FROM users WHERE id = @id`,
     });
 
     if (supportsNamedParameters) {
@@ -461,6 +478,16 @@ describe('injectReplacements (named replacements)', () => {
     });
   });
 
+  it('does consider the token to be a bind parameter if it is located after a $ quoted string', () => {
+    const sql = injectReplacements(`SELECT $$ abc $$ AS string FROM users WHERE id = :id`, dialect, {
+      id: 1,
+    });
+
+    expectsql(sql, {
+      default: `SELECT $$ abc $$ AS string FROM users WHERE id = 1`,
+    });
+  });
+
   it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote', () => {
     const test = () => injectReplacements(`SELECT * FROM users WHERE id = '\\' :id' OR id = :id`, dialect, { id: 1 });
 
@@ -640,6 +667,14 @@ describe('injectReplacements (positional replacements)', () => {
 
     expectsql(sql, {
       default: `SELECT z$$ 1 x$$ * FROM users`,
+    });
+  });
+
+  it('does consider the token to be a bind parameter if it is located after a $ quoted string', () => {
+    const sql = injectReplacements(`SELECT $$ abc $$ AS string FROM users WHERE id = ?`, dialect, [1]);
+
+    expectsql(sql, {
+      default: `SELECT $$ abc $$ AS string FROM users WHERE id = 1`,
     });
   });
 

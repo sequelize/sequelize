@@ -1,5 +1,5 @@
-import { isModelStatic, isSameInitialModel, Model } from '@sequelize/core';
 import { expect } from 'chai';
+import { isModelStatic, isSameInitialModel, Model } from '@sequelize/core';
 import { sequelize } from '../../support';
 
 describe('isModelStatic', () => {

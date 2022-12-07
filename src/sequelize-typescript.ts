@@ -1,3 +1,6 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { initDecoratedModel } from './decorators/shared/model.js';
+import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { AbstractQuery } from './dialects/abstract/query.js';
 import {
   legacyBuildHasHook,
@@ -10,8 +13,10 @@ import type { AsyncHookReturn, HookHandler } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
 import type { ModelHooks } from './model-typescript.js';
 import { validModelHooks } from './model-typescript.js';
-import type { ConnectionOptions, Options } from './sequelize.js';
-import type { ModelAttributes, ModelOptions, ModelStatic, QueryOptions, Sequelize, SyncOptions } from '.';
+import type { ConnectionOptions, Options, Sequelize } from './sequelize.js';
+import type { TransactionOptions } from './transaction.js';
+import { Transaction } from './transaction.js';
+import type { ModelAttributes, ModelOptions, ModelStatic, QueryOptions, SyncOptions } from '.';
 
 export interface SequelizeHooks extends ModelHooks {
   /**
@@ -28,17 +33,16 @@ export interface SequelizeHooks extends ModelHooks {
    * A hook that is run before a connection is created
    */
   beforeConnect(config: ConnectionOptions): AsyncHookReturn;
-  // TODO: set type of Connection once DataType-TS PR is merged
 
   /**
    * A hook that is run after a connection is created
    */
-  afterConnect(connection: unknown, config: ConnectionOptions): AsyncHookReturn;
+  afterConnect(connection: Connection, config: ConnectionOptions): AsyncHookReturn;
 
   /**
    * A hook that is run before a connection is disconnected
    */
-  beforeDisconnect(connection: unknown): AsyncHookReturn;
+  beforeDisconnect(connection: Connection): AsyncHookReturn;
 
   /**
    * A hook that is run after a connection is disconnected
@@ -83,9 +87,11 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
   ...validModelHooks,
 ]);
 
+type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
+
 // DO NOT EXPORT THIS CLASS!
 // This is a temporary class to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
-export class SequelizeTypeScript {
+export abstract class SequelizeTypeScript {
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);
   }
@@ -170,4 +176,160 @@ export class SequelizeTypeScript {
 
   beforeAssociate = legacyBuildAddHook(instanceSequelizeHooks, 'beforeAssociate');
   afterAssociate = legacyBuildAddHook(instanceSequelizeHooks, 'afterAssociate');
+
+  #transactionAls: AsyncLocalStorage<Transaction> | undefined;
+
+  private _setupTransactionAls() {
+    this.#transactionAls = new AsyncLocalStorage<Transaction>();
+  }
+
+  addModels(models: ModelStatic[]) {
+    for (const model of models) {
+      initDecoratedModel(
+        model,
+        // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
+        this,
+      );
+    }
+
+    // TODO: https://github.com/sequelize/sequelize/issues/15334 -- register associations declared by decorators
+  }
+
+  /**
+   * Returns the transaction that is associated to the current asynchronous operation.
+   * This method returns undefined if no transaction is active in the current asynchronous operation,
+   * or if {@link Options.disableAlsTransactions} is true.
+   */
+  getCurrentAlsTransaction(): Transaction | undefined {
+    return this.#transactionAls?.getStore();
+  }
+
+  /**
+   * Start a managed transaction: Sequelize will create a transaction, pass it to your callback, and commit
+   * it once the promise returned by your callback resolved, or execute a rollback if the promise rejects.
+   *
+   * ```ts
+   * try {
+   *   await sequelize.transaction(() => {
+   *     const user = await User.findOne(...);
+   *     await user.update(...);
+   *   });
+   *
+   *   // By now, the transaction has been committed
+   * } catch {
+   *   // If the transaction callback threw an error, the transaction has been rolled back
+   * }
+   * ```
+   *
+   * By default, Sequelize uses AsyncLocalStorage to automatically pass the transaction to all queries executed inside the callback (unless you already pass one or set the `transaction` option to null).
+   * This can be disabled by setting {@link Options.disableAlsTransactions} to true. You will then need to pass transactions to your queries manually.
+   *
+   * ```ts
+   * const sequelize = new Sequelize({
+   *   // ...
+   *   disableAlsTransactions: true,
+   * })
+   *
+   * await sequelize.transaction(transaction => {
+   *   // transactions are not automatically passed around anymore, you need to do it yourself:
+   *   const user = await User.findOne(..., { transaction });
+   *   await user.update(..., { transaction });
+   * });
+   * ```
+   *
+   * If you want to manage your transaction yourself, use {@link startUnmanagedTransaction}.
+   *
+   * @param callback Async callback during which the transaction will be active
+   */
+  transaction<T>(callback: TransactionCallback<T>): Promise<T>;
+  /**
+   * @param options Transaction Options
+   * @param callback Async callback during which the transaction will be active
+   */
+  transaction<T>(options: TransactionOptions, callback: TransactionCallback<T>): Promise<T>;
+  async transaction<T>(
+    optionsOrCallback: TransactionOptions | TransactionCallback<T>,
+    maybeCallback?: TransactionCallback<T>,
+  ): Promise<T> {
+    let options: TransactionOptions;
+    let callback: TransactionCallback<T>;
+    if (typeof optionsOrCallback === 'function') {
+      callback = optionsOrCallback;
+      options = {};
+    } else {
+      callback = maybeCallback!;
+      options = optionsOrCallback;
+    }
+
+    if (!callback) {
+      throw new Error('sequelize.transaction requires a callback. If you wish to start an unmanaged transaction, please use sequelize.startUnmanagedTransaction instead');
+    }
+
+    const transaction = new Transaction(
+      // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
+      this,
+      options,
+    );
+
+    const wrappedCallback = async () => {
+      await transaction.prepareEnvironment();
+
+      let result;
+      try {
+        result = await callback(transaction);
+      } catch (error) {
+        try {
+          await transaction.rollback();
+        } catch {
+          // ignore, because 'rollback' will already print the error before killing the connection
+        }
+
+        throw error;
+      }
+
+      await transaction.commit();
+
+      return result;
+    };
+
+    const als = this.#transactionAls;
+    if (!als) {
+      return wrappedCallback();
+    }
+
+    return als.run(transaction, wrappedCallback);
+  }
+
+  /**
+   * We highly recommend using {@link Sequelize#transaction} instead.
+   * If you really want to use the manual solution, don't forget to commit or rollback your transaction once you are done with it.
+   *
+   * Transactions started by this method are not automatically passed to queries. You must pass the transaction object manually,
+   * even if {@link Options.disableAlsTransactions} is false.
+   *
+   * @example
+   * ```ts
+   * try {
+   *   const transaction = await sequelize.startUnmanagedTransaction();
+   *   const user = await User.findOne(..., { transaction });
+   *   await user.update(..., { transaction });
+   *   await transaction.commit();
+   * } catch(err) {
+   *   await transaction.rollback();
+   * }
+   * ```
+   *
+   * @param options
+   */
+  async startUnmanagedTransaction(options?: TransactionOptions): Promise<Transaction> {
+    const transaction = new Transaction(
+      // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
+      this,
+      options,
+    );
+
+    await transaction.prepareEnvironment();
+
+    return transaction;
+  }
 }

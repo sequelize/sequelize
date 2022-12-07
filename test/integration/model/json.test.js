@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.lock) {
       it('findOrCreate supports transactions, json and locks', async function () {
-        const transaction = await current.transaction();
+        const transaction = await current.startUnmanagedTransaction();
 
         await this.Event.findOrCreate({
           where: {

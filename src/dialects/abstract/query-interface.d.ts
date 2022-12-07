@@ -1,3 +1,4 @@
+import type { SetRequired } from 'type-fest';
 import type { Deferrable } from '../../deferrable';
 import type {
   Logging,
@@ -13,9 +14,9 @@ import type {
 } from '../../model';
 import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { Transaction } from '../../transaction';
-import type { Fn, Literal } from '../../utils';
-import type { SetRequired } from '../../utils/set-required';
+import type { Fn, Literal, Col } from '../../utils/sequelize-method.js';
 import type { DataType } from './data-types.js';
+import type { TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
 
 interface Replaceable {
@@ -28,7 +29,7 @@ interface Replaceable {
 interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
 
 export interface QiInsertOptions extends QueryRawOptions, Replaceable {
-  returning?: boolean | string[];
+  returning?: boolean | Array<string | Literal | Col>;
 }
 
 export interface QiSelectOptions extends QueryRawOptions, Replaceable, Filterable<any> {
@@ -36,7 +37,7 @@ export interface QiSelectOptions extends QueryRawOptions, Replaceable, Filterabl
 }
 
 export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
-  returning?: boolean | string[];
+  returning?: boolean | Array<string | Literal | Col>;
 }
 
 export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
@@ -44,7 +45,7 @@ export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
 }
 
 export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
-  returning?: boolean | string[];
+  returning?: boolean | Array<string | Literal | Col>;
 }
 
 export interface QiUpsertOptions<M extends Model> extends QueryRawOptionsWithModel<M>, Replaceable {
@@ -86,9 +87,8 @@ export interface TableNameWithSchema {
   tableName: string;
   schema?: string;
   delimiter?: string;
-  as?: string;
-  name?: string;
 }
+
 export type TableName = string | TableNameWithSchema;
 
 export type IndexType = 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
@@ -175,6 +175,11 @@ export interface IndexOptions {
    * Prefix to append to the index name.
    */
   prefix?: string;
+
+  /**
+   * Non-key columns to be added to the lead level of the nonclustered index.
+   */
+  include?: Literal | Array<string | Literal>;
 }
 
 export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}
@@ -247,6 +252,22 @@ export interface ColumnsDescription {
 
 export interface DatabaseDescription {
   name: string;
+}
+
+export interface IndexFieldDescription {
+  attribute: string;
+  length: number | undefined;
+  order: 'DESC' | 'ASC';
+  collate: string | undefined;
+}
+
+export interface IndexDescription {
+  primary: boolean;
+  fields: IndexFieldDescription[];
+  name: string;
+  tableName: string | undefined;
+  unique: boolean;
+  type: string | undefined;
 }
 
 export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable {}
@@ -442,7 +463,7 @@ export class QueryInterface {
   /**
    * Shows the index of a table
    */
-  showIndex(tableName: string | object, options?: QueryRawOptions): Promise<object>;
+  showIndex(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<IndexDescription[]>;
 
   /**
    * Put a name to an index

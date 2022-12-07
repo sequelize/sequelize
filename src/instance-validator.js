@@ -2,13 +2,13 @@
 
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { validateDataType } from './dialects/abstract/data-types-utils';
+import { SequelizeMethod } from './utils/sequelize-method';
 
 const _ = require('lodash');
-const Utils = require('./utils');
 const sequelizeError = require('./errors');
 const { BelongsTo } = require('./associations/belongs-to');
 const validator = require('./utils/validator-extras').validator;
-const { promisify } = require('util');
+const { promisify } = require('node:util');
 
 /**
  * Instance Validator.
@@ -139,7 +139,7 @@ export class InstanceValidator {
 
       const value = this.modelInstance.dataValues[field];
 
-      if (value instanceof Utils.SequelizeMethod) {
+      if (value instanceof SequelizeMethod) {
         return;
       }
 
@@ -370,7 +370,7 @@ export class InstanceValidator {
     }
 
     const type = rawAttribute.type;
-    if (value != null && !(value instanceof Utils.SequelizeMethod) && type instanceof AbstractDataType) {
+    if (value != null && !(value instanceof SequelizeMethod) && type instanceof AbstractDataType) {
       const error = validateDataType(type, field, this.modelInstance, value);
       if (error) {
         this.errors.push(error);

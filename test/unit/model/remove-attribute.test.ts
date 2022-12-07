@@ -1,6 +1,6 @@
-import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import size from 'lodash/size';
+import { DataTypes } from '@sequelize/core';
 import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('Model'), () => {

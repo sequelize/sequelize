@@ -1,12 +1,5 @@
-import type { Config, ConnectionOptions, ModelStatic, Utils } from '@sequelize/core';
+import type { ConnectionOptions, ModelStatic, Fn } from '@sequelize/core';
 import { Sequelize, Model, QueryTypes, Op } from '@sequelize/core';
-
-Sequelize.useCLS({
-  get(key: string): unknown {
-    return null;
-  },
-  set(key: string, value: unknown) {},
-});
 
 export const sequelize = new Sequelize({
   hooks: {
@@ -77,7 +70,7 @@ sequelize.beforeConnect(() => {});
 
 sequelize.afterConnect(() => {});
 
-const rnd: Utils.Fn = sequelize.random();
+const rnd: Fn = sequelize.random();
 
 class Model1 extends Model {}
 

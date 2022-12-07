@@ -69,21 +69,21 @@ if (current.dialect.name === 'mssql') {
 
     it('createTableQuery', function () {
       expectsql(this.queryGenerator.createTableQuery('myTable', { int: 'INTEGER' }, {}), {
-        mssql: 'IF OBJECT_ID(\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([int] INTEGER);',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER);`,
       });
     });
 
     it('createTableQuery with comments', function () {
-      expectsql(this.queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: 'IF OBJECT_ID(\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Foo Bar\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [int]; EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Bar Foo\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [varchar];' });
+      expectsql(this.queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [int]; EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Bar Foo', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [varchar];` });
     });
 
     it('createTableQuery with comments and table object', function () {
-      expectsql(this.queryGenerator.createTableQuery({ tableName: 'myTable' }, { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: 'IF OBJECT_ID(\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Foo Bar\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [int]; EXEC sp_addextendedproperty @name = N\'MS_Description\', @value = N\'Bar Foo\', @level0type = N\'Schema\', @level0name = \'dbo\', @level1type = N\'Table\', @level1name = [myTable], @level2type = N\'Column\', @level2name = [varchar];' });
+      expectsql(this.queryGenerator.createTableQuery({ tableName: 'myTable' }, { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), { mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [int]; EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Bar Foo', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [varchar];` });
     });
 
     it('getDefaultConstraintQuery', function () {
       expectsql(this.queryGenerator.getDefaultConstraintQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myColumn'), {
-        mssql: 'SELECT name FROM sys.default_constraints WHERE PARENT_OBJECT_ID = OBJECT_ID(\'[mySchema].[myTable]\', \'U\') AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = (\'myColumn\') AND object_id = OBJECT_ID(\'[mySchema].[myTable]\', \'U\'));',
+        mssql: `SELECT name FROM sys.default_constraints WHERE PARENT_OBJECT_ID = OBJECT_ID('[mySchema].[myTable]', 'U') AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('myColumn') AND object_id = OBJECT_ID('[mySchema].[myTable]', 'U'));`,
       });
     });
 
@@ -115,109 +115,34 @@ if (current.dialect.name === 'mssql') {
     });
 
     it('selectFromTableFragment', function () {
-      const modifiedGen = new QueryGenerator({
-        sequelize: this.sequelize,
-        dialect: this.sequelize.dialect,
-      });
-      // Test newer versions first
-      // Should be all the same since handling is done in addLimitAndOffset
-      // for SQL Server 2012 and higher (>= v11.0.0)
-      modifiedGen.sequelize = {
-        options: {
-          databaseVersion: '11.0.0',
-        },
-      };
-
       // Base case
-      expectsql(modifiedGen.selectFromTableFragment({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName',
       });
 
       // With tableHint - nolock
-      expectsql(modifiedGen.selectFromTableFragment({ tableHint: TableHints.NOLOCK }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({ tableHint: TableHints.NOLOCK }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName WITH (NOLOCK)',
       });
 
       // With tableHint - NOWAIT
-      expectsql(modifiedGen.selectFromTableFragment({ tableHint: TableHints.NOWAIT }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({ tableHint: TableHints.NOWAIT }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName WITH (NOWAIT)',
       });
 
       // With limit
-      expectsql(modifiedGen.selectFromTableFragment({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName',
       });
 
       // With offset
-      expectsql(modifiedGen.selectFromTableFragment({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName',
       });
 
       // With both limit and offset
-      expectsql(modifiedGen.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+      expectsql(this.queryGenerator.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
         mssql: 'SELECT id, name FROM myTable AS myOtherName',
-      });
-
-      // Test older version (< v11.0.0)
-      modifiedGen.sequelize.options.databaseVersion = '10.0.0';
-
-      // Base case
-      expectsql(modifiedGen.selectFromTableFragment({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
-        mssql: 'SELECT id, name FROM myTable AS myOtherName',
-      });
-
-      // With limit
-      expectsql(modifiedGen.selectFromTableFragment({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT TOP 10 id, name FROM myTable AS myOtherName',
-      });
-
-      // With offset
-      expectsql(modifiedGen.selectFromTableFragment({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, * FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName',
-      });
-
-      // With both limit and offset
-      expectsql(modifiedGen.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, * FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName',
-      });
-
-      // With limit, offset, include, and where
-      const Foo = this.sequelize.define('Foo', {
-        id: {
-          type: DataTypes.INTEGER,
-          field: 'id',
-          primaryKey: true,
-        },
-      }, {
-        tableName: 'Foos',
-      });
-      const bar = this.sequelize.define('Bar', {
-        id: {
-          type: DataTypes.INTEGER,
-          field: 'id',
-          primaryKey: true,
-        },
-      }, {
-        tableName: 'Bars',
-      });
-      Foo.Bar = Foo.belongsTo(bar, { foreignKey: 'barId' });
-      let options = {
-        model: Foo,
-        limit: 10,
-        offset: 10,
-        include: [
-          {
-            model: bar,
-            association: Foo.Bar,
-            as: 'Bars',
-            required: true,
-          },
-        ],
-      };
-      Foo._conformIncludes(options, Foo);
-      options = _validateIncludedElements(options);
-      expectsql(modifiedGen.selectFromTableFragment(options, Foo, ['[Foo].[id]', '[Foo].[barId]'], Foo.tableName, 'Foo', '[Bars].[id] = 12'), {
-        mssql: 'SELECT TOP 100 PERCENT [Foo].[id], [Foo].[barId] FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, Foo.* FROM (SELECT DISTINCT Foo.* FROM Foos AS Foo INNER JOIN [Bars] AS [Bars] ON [Foo].[barId] = [Bars].[id] WHERE [Bars].[id] = 12) AS Foo) AS Foo WHERE row_num > 10) AS Foo',
       });
     });
 
@@ -245,12 +170,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('dropTableQuery', function () {
-      expectsql(this.queryGenerator.dropTableQuery('dirtyTable'), {
-        mssql: 'IF OBJECT_ID(\'[dirtyTable]\', \'U\') IS NOT NULL DROP TABLE [dirtyTable];',
-      });
-    });
-
     it('addColumnQuery', function () {
       expectsql(this.queryGenerator.addColumnQuery('myTable', 'myColumn', { type: 'VARCHAR(255)' }), {
         mssql: 'ALTER TABLE [myTable] ADD [myColumn] VARCHAR(255) NULL;',
@@ -270,12 +189,6 @@ if (current.dialect.name === 'mssql') {
     it('removeColumnQuery', function () {
       expectsql(this.queryGenerator.removeColumnQuery('myTable', 'myColumn'), {
         mssql: 'ALTER TABLE [myTable] DROP COLUMN [myColumn];',
-      });
-    });
-
-    it('quoteIdentifier', function () {
-      expectsql(this.queryGenerator.quoteIdentifier('\'myTable\'.\'Test\''), {
-        mssql: '[myTable.Test]',
       });
     });
 
@@ -314,50 +227,5 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    describe('arithmeticQuery', () => {
-      for (const test of [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]+ N\'bar\' OUTPUT INSERTED.*',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]+ N\'bar\' OUTPUT INSERTED.* WHERE [bar] = N\'biz\'',
-        },
-        {
-          title: 'Should use the plus operator without returning clause',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]+ N\'bar\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- N\'bar\' OUTPUT INSERTED.*',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- -1 OUTPUT INSERTED.*',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- N\'bar\' OUTPUT INSERTED.* WHERE [bar] = N\'biz\'',
-        },
-        {
-          title: 'Should use the minus operator without returning clause',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE [myTable] SET [foo]=[foo]- N\'bar\'',
-        },
-      ]) {
-        it(test.title, function () {
-          expectsql(this.queryGenerator.arithmeticQuery(...test.arguments), {
-            mssql: test.expectation,
-          });
-        });
-      }
-    });
   });
 }
