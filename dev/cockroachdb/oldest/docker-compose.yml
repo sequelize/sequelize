@@ -3,19 +3,21 @@ services:
     container_name: sequelize-cockroachdb-oldest
     image: cockroachdb/cockroach:v22.1.11
     ports:
-      - 26257:8080
-    expose:
-      - 8080
-      - 26257
-    command: start-single-node --cluster-name=cockroach-sequilize-example --insecure --advertise-addr='localhost'
+      - 26257:26257
+      - 8080:8080
+    command: start-single-node --cluster-name=cockroach-sequilize-example --advertise-addr='localhost' --insecure
     environment:
-      database: cockroachdb-sequilize-db
+      COCKROACH_DATABASE: cockroachdbsingle
+    volumes:
+      - cockroach-single:/cockroach/cockroach-data
+      - ~/init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["status"]
+      test: ["CMD", "pg_isready"]
       interval: 3s
       timeout: 1s
       retries: 10
-
 networks:
   default:
     name: sequelize-cockroachdb-oldest-network
+volumes: 
+  cockroach-single:
