@@ -598,16 +598,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return sql;
   }
 
-  removeIndexQuery(tableName, indexNameOrAttributes) {
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
-    }
-
-    return `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = '${indexName}') THEN DROP INDEX "${indexName}"; COMMIT; END IF; END`;
-  }
-
   // bindParam(bind) {
   //   return value => {
   //     bind.push(value);

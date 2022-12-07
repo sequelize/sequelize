@@ -1,6 +1,9 @@
+import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableNameOrModel } from '../abstract/query-generator-typescript';
+import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -46,6 +49,34 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `t.relkind = 'r' and t.relname = ${this.escape(table.tableName)}`,
       `AND s.oid = t.relnamespace AND s.nspname = ${this.escape(table.schema)}`,
       'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;',
+    ]);
+  }
+
+  removeIndexQuery(tableName: TableNameOrModel, indexNameOrAttributes: string | string[], options: RemoveIndexQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeIndexQuery',
+        this.dialect.name,
+        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+        new Set(['concurrently', 'ifExists', 'cascade']),
+        options,
+      );
+    }
+
+    let indexName;
+    const table = this.extractTableDetails(tableName);
+    if (Array.isArray(indexNameOrAttributes)) {
+      indexName = generateIndexName(table, { fields: indexNameOrAttributes });
+    } else {
+      indexName = indexNameOrAttributes;
+    }
+
+    return joinSQLFragments([
+      'DROP INDEX',
+      options?.concurrently ? 'CONCURRENTLY' : '',
+      options?.ifExists ? 'IF EXISTS' : '',
+      this.quoteIdentifier(indexName),
+      options?.cascade && !options?.concurrently ? 'CASCADE' : '',
     ]);
   }
 }

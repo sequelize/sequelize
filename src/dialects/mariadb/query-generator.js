@@ -2,6 +2,9 @@
 
 import { normalizeDataType } from '../abstract/data-types-utils';
 import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
+import { rejectInvalidOptions } from '../../utils/check';
+import { generateIndexName } from '../../utils/string';
+import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const _ = require('lodash');
@@ -45,6 +48,34 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
       ifExists,
       this.quoteIdentifier(attributeName),
       ';',
+    ]);
+  }
+
+  removeIndexQuery(tableName, indexNameOrAttributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeIndexQuery',
+        this.dialect.name,
+        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+        new Set(['ifExists']),
+        options,
+      );
+    }
+
+    let indexName;
+    const table = this.extractTableDetails(tableName);
+    if (Array.isArray(indexNameOrAttributes)) {
+      indexName = generateIndexName(table, { fields: indexNameOrAttributes });
+    } else {
+      indexName = indexNameOrAttributes;
+    }
+
+    return joinSQLFragments([
+      'DROP INDEX',
+      options?.ifExists ? 'IF EXISTS' : '',
+      this.quoteIdentifier(indexName),
+      'ON',
+      this.quoteTable(tableName),
     ]);
   }
 

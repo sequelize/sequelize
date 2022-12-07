@@ -598,22 +598,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return `${sql} ORDER BY CONSTNAME;`;
   }
 
-  removeIndexQuery(tableName, indexNameOrAttributes) {
-    const sql = 'DROP INDEX <%= indexName %>';
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
-    }
-
-    const values = {
-      tableName: this.quoteIdentifiers(tableName),
-      indexName: this.quoteIdentifiers(indexName),
-    };
-
-    return _.template(sql, this._templateSettings)(values);
-  }
-
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
