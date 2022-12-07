@@ -1916,10 +1916,10 @@ class Model {
   /**
    * Search for a single instance by its primary key._
    *
-   * @param  {number|string|Buffer}      param The value of the desired instance's primary key.
-   * @param  {object}                    [options] find options
-   * @param  {Transaction}               [options.transaction] Transaction to run query under
-   * @param  {string}                    [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
+   * @param  {number|bigint|string|Buffer}      param The value of the desired instance's primary key.
+   * @param  {object}                           [options] find options
+   * @param  {Transaction}                      [options.transaction] Transaction to run query under
+   * @param  {string}                           [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
    *
    * @see
    * {@link Model.findAll}           for a full explanation of options, Note that options.where is not supported.
@@ -1934,7 +1934,7 @@ class Model {
 
     options = Utils.cloneDeep(options) || {};
 
-    if (typeof param === 'number' || typeof param === 'string' || Buffer.isBuffer(param)) {
+    if (typeof param === 'number' || typeof param === 'bigint' || typeof param === 'string' || Buffer.isBuffer(param)) {
       options.where = {
         [this.primaryKeyAttribute]: param
       };

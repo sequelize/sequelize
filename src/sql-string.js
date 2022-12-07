@@ -33,6 +33,7 @@ function escape(val, timeZone, dialect, format) {
       }
       return (!!val).toString();
     case 'number':
+    case 'bigint':
       return val.toString();
     case 'string':
     // In mssql, prepend N to all quoted vals which are originally a string (for

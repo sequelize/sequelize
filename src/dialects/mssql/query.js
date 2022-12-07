@@ -8,6 +8,9 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:mssql');
 
+const minSafeIntegerAsBigInt = BigInt(Number.MIN_SAFE_INTEGER);
+const maxSafeIntegerAsBigInt = BigInt(Number.MAX_SAFE_INTEGER);
+
 function getScale(aNum) {
   if (!Number.isFinite(aNum)) return 0;
   let e = 1;
@@ -21,8 +24,7 @@ class Query extends AbstractQuery {
   }
 
   getSQLTypeFromJsType(value, TYPES) {
-    const paramType = { type: TYPES.VarChar, typeOptions: {} };
-    paramType.type = TYPES.NVarChar;
+    const paramType = { type: TYPES.NVarChar, typeOptions: {}, value };
     if (typeof value === 'number') {
       if (Number.isInteger(value)) {
         if (value >= -2147483648 && value <= 2147483647) {
@@ -34,6 +36,13 @@ class Query extends AbstractQuery {
         paramType.type = TYPES.Numeric;
         //Default to a reasonable numeric precision/scale pending more sophisticated logic
         paramType.typeOptions = { precision: 30, scale: getScale(value) };
+      }
+    } else if (typeof value === 'bigint') {
+      if (value < minSafeIntegerAsBigInt || value > maxSafeIntegerAsBigInt) {
+        paramType.type = TYPES.VarChar;
+        paramType.value = value.toString();
+      } else {
+        return this.getSQLTypeFromJsType(Number(value), TYPES);
       }
     } else if (typeof value === 'boolean') {
       paramType.type = TYPES.Bit;

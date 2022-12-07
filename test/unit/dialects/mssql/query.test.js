@@ -66,19 +66,30 @@ if (dialect === 'mssql') {
     describe('getSQLTypeFromJsType', () => {
       const TYPES = tedious.TYPES;
       it('should return correct parameter type', () => {
-        expect(query.getSQLTypeFromJsType(2147483647, TYPES)).to.eql({ type: TYPES.Int, typeOptions: {} });
-        expect(query.getSQLTypeFromJsType(-2147483648, TYPES)).to.eql({ type: TYPES.Int, typeOptions: {} });
+        expect(query.getSQLTypeFromJsType(2147483647, TYPES)).to.eql({ type: TYPES.Int, typeOptions: {}, value: 2147483647 });
+        expect(query.getSQLTypeFromJsType(-2147483648, TYPES)).to.eql({ type: TYPES.Int, typeOptions: {}, value: -2147483648 });
 
-        expect(query.getSQLTypeFromJsType(2147483648, TYPES)).to.eql({ type: TYPES.BigInt, typeOptions: {} });
-        expect(query.getSQLTypeFromJsType(-2147483649, TYPES)).to.eql({ type: TYPES.BigInt, typeOptions: {} });
+        expect(query.getSQLTypeFromJsType(2147483648, TYPES)).to.eql({ type: TYPES.BigInt, typeOptions: {}, value: 2147483648 });
+        expect(query.getSQLTypeFromJsType(-2147483649, TYPES)).to.eql({ type: TYPES.BigInt, typeOptions: {}, value: -2147483649 });
 
-        expect(query.getSQLTypeFromJsType(Buffer.from('abc'), TYPES)).to.eql({ type: TYPES.VarBinary, typeOptions: {} });
+        expect(query.getSQLTypeFromJsType(2147483647n, TYPES)).to.eql({ type: TYPES.Int, typeOptions: {}, value: 2147483647 });
+        expect(query.getSQLTypeFromJsType(-2147483648n, TYPES)).to.eql({ type: TYPES.Int, typeOptions: {}, value: -2147483648 });
+
+        expect(query.getSQLTypeFromJsType(BigInt(Number.MAX_SAFE_INTEGER), TYPES)).to.eql({ type: TYPES.BigInt, typeOptions: {}, value: Number.MAX_SAFE_INTEGER });
+        expect(query.getSQLTypeFromJsType(BigInt(Number.MIN_SAFE_INTEGER), TYPES)).to.eql({ type: TYPES.BigInt, typeOptions: {}, value: Number.MIN_SAFE_INTEGER });
+
+        const overMaxSafe = BigInt(Number.MAX_SAFE_INTEGER) + 1n;
+        expect(query.getSQLTypeFromJsType(overMaxSafe, TYPES)).to.eql({ type: TYPES.VarChar, typeOptions: {}, value: overMaxSafe.toString() });
+        const underMinSafe = BigInt(Number.MIN_SAFE_INTEGER) - 1n;
+        expect(query.getSQLTypeFromJsType(underMinSafe, TYPES)).to.eql({ type: TYPES.VarChar, typeOptions: {}, value: underMinSafe.toString() });
+
+        expect(query.getSQLTypeFromJsType(Buffer.from('abc'), TYPES)).to.eql({ type: TYPES.VarBinary, typeOptions: {}, value: Buffer.from('abc') });
       });
 
       it('should return parameter type correct scale for float', () => {
-        expect(query.getSQLTypeFromJsType(1.23, TYPES)).to.eql({ type: TYPES.Numeric, typeOptions: { precision: 30, scale: 2 } });
-        expect(query.getSQLTypeFromJsType(0.30000000000000004, TYPES)).to.eql({ type: TYPES.Numeric, typeOptions: { precision: 30, scale: 17 } });
-        expect(query.getSQLTypeFromJsType(2.5e-15, TYPES)).to.eql({ type: TYPES.Numeric, typeOptions: { precision: 30, scale: 16 } });
+        expect(query.getSQLTypeFromJsType(1.23, TYPES)).to.eql({ type: TYPES.Numeric, typeOptions: { precision: 30, scale: 2 }, value: 1.23 });
+        expect(query.getSQLTypeFromJsType(0.30000000000000004, TYPES)).to.eql({ type: TYPES.Numeric, typeOptions: { precision: 30, scale: 17 }, value: 0.30000000000000004 });
+        expect(query.getSQLTypeFromJsType(2.5e-15, TYPES)).to.eql({ type: TYPES.Numeric, typeOptions: { precision: 30, scale: 16 }, value: 2.5e-15 });
       });
     });
 
