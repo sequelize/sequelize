@@ -1050,9 +1050,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       expectsql(query, {
         postgres: 'SELECT "id" FROM "Users" AS "User" OFFSET 1;',
-        mysql: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
-        mariadb: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
-        sqlite: 'SELECT `id` FROM `Users` AS `User` LIMIT -1 OFFSET 1;',
+        mysql: 'SELECT `id` FROM `Users` AS `User` LIMIT 1, 10000000000000;',   //original 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
+        mariadb: 'SELECT `id` FROM `Users` AS `User` LIMIT 1, 10000000000000;', //original 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
+        sqlite: 'SELECT `id` FROM `Users` AS `User` LIMIT 1, 10000000000000;',  //original 'SELECT `id` FROM `Users` AS `User` LIMIT -1 OFFSET 1;'
+        oracle: 'SELECT "id" FROM "Users" "User" ORDER BY "User"."id" OFFSET 1 ROWS;',
         snowflake: 'SELECT "id" FROM "Users" AS "User" LIMIT NULL OFFSET 1;',
         db2: 'SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS;',
         ibmi: 'SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS',
@@ -1074,6 +1075,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mysql: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
         mariadb: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
         sqlite: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
+        oracle: 'SELECT "id" FROM "Projects" "Project" WHERE "Project"."duration" = 9007199254740993;',
         snowflake: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
         db2: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
         ibmi: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = \'9007199254740993\'',
