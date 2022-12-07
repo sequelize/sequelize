@@ -276,6 +276,12 @@ export interface IndexDescription {
   type: string | undefined;
 }
 
+export interface ConstraintDescription {
+  constraintType: string;
+  constraintName: string;
+  tableName: string | undefined;
+}
+
 export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable { }
 
 export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions, Replaceable { }
@@ -478,6 +484,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Shows the index of a table
    */
   showIndex(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<IndexDescription[]>;
+
+  /**
+   * Shows the constraint of a table
+   */
+  showConstraint(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<ConstraintDescription[]>;
 
   /**
    * Put a name to an index
