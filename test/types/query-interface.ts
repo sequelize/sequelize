@@ -206,6 +206,7 @@ async function test() {
 
   await queryInterface.removeIndex('Person', 'SuperDuperIndex');
   await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex');
+  await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex', { ifExists: true });
 
   const indexes = await queryInterface.showIndex('Person');
   indexes.map(index => ({

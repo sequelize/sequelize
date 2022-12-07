@@ -16,7 +16,7 @@ import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../..
 import type { Transaction } from '../../transaction';
 import type { Fn, Literal, Col } from '../../utils/sequelize-method.js';
 import type { DataType } from './data-types.js';
-import type { TableNameOrModel } from './query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
@@ -438,8 +438,16 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Removes an index of a table
    */
-  removeIndex(tableName: TableName, indexName: string, options?: QueryInterfaceIndexOptions): Promise<void>;
-  removeIndex(tableName: TableName, attributes: string[], options?: QueryInterfaceIndexOptions): Promise<void>;
+  removeIndex(
+    tableName: TableName,
+    indexName: string,
+    options?: QueryInterfaceIndexOptions & RemoveIndexQueryOptions
+  ): Promise<void>;
+  removeIndex(
+    tableName: TableName,
+    attributes: string[],
+    options?: QueryInterfaceIndexOptions & RemoveIndexQueryOptions
+  ): Promise<void>;
 
   /**
    * Adds constraints to a table
