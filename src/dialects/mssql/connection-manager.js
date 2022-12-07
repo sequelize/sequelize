@@ -129,6 +129,9 @@ class ConnectionManager extends AbstractConnectionManager {
           if (error.message.includes('connect EADDRNOTAVAIL')) {
             throw new sequelizeErrors.HostNotReachableError(error);
           }
+          if (error.message.includes('connect EAFNOSUPPORT')) {
+            throw new sequelizeErrors.HostNotReachableError(error);
+          }
           if (error.message.includes('getaddrinfo ENOTFOUND')) {
             throw new sequelizeErrors.HostNotFoundError(error);
           }
