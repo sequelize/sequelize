@@ -11,6 +11,13 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:oracle');
 
+function stringifyIfBigint(value) {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  return value;
+}
+
 export class OracleQuery extends AbstractQuery {
   constructor(connection, sequelize, options) {
     super(connection, sequelize, options);
@@ -70,6 +77,18 @@ export class OracleQuery extends AbstractQuery {
       this.sql = sql;
     }
 
+    // Since the bigint primitive is not automatically translated
+    // we stringify the value as was done previously
+    if (_.isPlainObject(parameters)) {
+      const newParameters = Object.create(null);
+      for (const key of Object.keys(parameters)) {
+        newParameters[`${key}`] = stringifyIfBigint(parameters[key]);
+      }
+      parameters = newParameters;
+    } else if (_.isArray(parameters)) {
+      parameters = parameters.map(stringifyIfBigint);
+    }
+
     // When this.options.bindAttributes exists then it is an insertQuery/upsertQuery
     // So we insert the return bind direction and type
     if (this.options.outBindAttributes && (Array.isArray(parameters) || _.isPlainObject(parameters))) {
@@ -103,15 +122,15 @@ export class OracleQuery extends AbstractQuery {
     if (this.sql.startsWith('BEGIN TRANSACTION')) {
       this.autocommit = false;
       return Promise.resolve();
-    } 
+    }
     if (this.sql.startsWith('SET AUTOCOMMIT ON')) {
       this.autocommit = true;
       return Promise.resolve();
-    } 
+    }
     if (this.sql.startsWith('SET AUTOCOMMIT OFF')) {
       this.autocommit = false;
       return Promise.resolve();
-    } 
+    }
     if (this.sql.startsWith('DECLARE x NUMBER')) {
       // Calling a stored procedure for bulkInsert with NO attributes, returns nothing
       if (this.autoCommit === undefined) {
@@ -130,7 +149,7 @@ export class OracleQuery extends AbstractQuery {
       } finally {
         complete();
       }
-    } 
+    }
     if (this.sql.startsWith('BEGIN')) {
       // Call to stored procedures - BEGIN TRANSACTION has been treated before
       if (this.autoCommit === undefined) {
@@ -155,7 +174,7 @@ export class OracleQuery extends AbstractQuery {
       } finally {
         complete();
       }
-    } 
+    }
     if (this.sql.startsWith('COMMIT TRANSACTION')) {
       try {
         await this.connection.commit();
@@ -165,7 +184,7 @@ export class OracleQuery extends AbstractQuery {
       } finally {
         complete();
       }
-    } 
+    }
     if (this.sql.startsWith('ROLLBACK TRANSACTION')) {
       try {
         await this.connection.rollback();
@@ -175,7 +194,7 @@ export class OracleQuery extends AbstractQuery {
       } finally {
         complete();
       }
-    } 
+    }
     if (this.sql.startsWith('SET TRANSACTION')) {
       try {
         await this.connection.execute(this.sql, [], { autoCommit: false });
@@ -185,7 +204,7 @@ export class OracleQuery extends AbstractQuery {
       } finally {
         complete();
       }
-    } 
+    }
     // QUERY SUPPORT
     // As Oracle does everything in transaction, if autoCommit is not defined, we set it to true
     if (this.autoCommit === undefined) {
@@ -235,8 +254,8 @@ export class OracleQuery extends AbstractQuery {
   }
 
   /**
-   * Building the attribute map by matching the column names received 
-   * from DB and the one in rawAttributes 
+   * Building the attribute map by matching the column names received
+   * from DB and the one in rawAttributes
    * to sequelize format
    *
    * @param {object} attrsMap
@@ -253,7 +272,7 @@ export class OracleQuery extends AbstractQuery {
 
   /**
    * Process rows received from the DB.
-   * Use parse function to parse the returned value 
+   * Use parse function to parse the returned value
    * to sequelize format
    *
    * @param {Array} rows
@@ -280,19 +299,19 @@ export class OracleQuery extends AbstractQuery {
       }, {});
 
 
-      // Building the attribute map by matching the column names received 
-      // from DB and the one in model.rawAttributes 
+      // Building the attribute map by matching the column names received
+      // from DB and the one in model.rawAttributes
       if (this.model) {
         this._getAttributeMap(attrsMap, this.model.rawAttributes);
       }
-      
+
       // If aliasesmapping exists we update the attribute map
       if (this.options.aliasesMapping) {
         const obj = Object.fromEntries(this.options.aliasesMapping);
         rows = rows
           .map(row => _.toPairs(row)
             .reduce((acc, [key, value]) => {
-              const mapping = Object.values(obj).find(element => { 
+              const mapping = Object.values(obj).find(element => {
                 const catalogElement = this.sequelize.queryInterface.queryGenerator.getCatalogName(element);
                 return catalogElement === key;
               });
@@ -309,7 +328,7 @@ export class OracleQuery extends AbstractQuery {
           const targetAttr = attrsMap[key];
           if (typeof targetAttr === 'string' && targetAttr !== key) {
             return targetAttr;
-          } 
+          }
           return key;
         });
       });
@@ -339,14 +358,14 @@ export class OracleQuery extends AbstractQuery {
         });
       });
     }
-  
+
     return result;
   }
 
   /**
    * High level function that handles the results of a query execution.
    * Example:
-   * Oracle format : 
+   * Oracle format :
    * { rows: //All rows
      [ [ 'Oracle Database 11g Enterprise Edition Release 11.2.0.1.0 - 64bit Production' ],
        [ 'PL/SQL Release 11.2.0.1.0 - Production' ],
@@ -390,7 +409,7 @@ export class OracleQuery extends AbstractQuery {
       }
       this.handleInsertQuery(insertData);
       return [result, data.rowsAffected];
-    } 
+    }
     if (this.isShowTablesQuery()) {
       result = this.handleShowTablesQuery(data.rows);
     } else if (this.isDescribeQuery()) {
