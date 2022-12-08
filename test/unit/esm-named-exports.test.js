@@ -7,8 +7,6 @@ const expect = chai.expect;
  * Context: https://github.com/sequelize/sequelize/pull/13689
  */
 
-const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
-
 const exportPaths = ['@sequelize/core', '@sequelize/core/decorators-legacy'];
 
 // require('@sequelize/core') returns the Sequelize class
