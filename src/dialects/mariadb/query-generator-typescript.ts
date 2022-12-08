@@ -11,11 +11,12 @@ import { MySqlQueryGenerator } from '../mysql/query-generator.js';
 export class MariaDbQueryGeneratorTypeScript extends MySqlQueryGenerator {
   removeIndexQuery(tableName: TableNameOrModel, indexNameOrAttributes: string | string[], options: RemoveIndexQueryOptions) {
     if (options) {
+      const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
       rejectInvalidOptions(
         'removeIndexQuery',
         this.dialect.name,
         REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        new Set(['ifExists']),
+        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
