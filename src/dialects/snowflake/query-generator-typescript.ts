@@ -38,11 +38,6 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       indexName = indexNameOrAttributes;
     }
 
-    return joinSQLFragments([
-      'DROP INDEX',
-      this.quoteIdentifier(indexName),
-      'ON',
-      this.quoteTable(tableName),
-    ]);
+    return `DROP INDEX ${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableName)}`;
   }
 }
