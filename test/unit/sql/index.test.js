@@ -297,15 +297,4 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
   });
-
-  describe('removeIndex', () => {
-    it('naming', () => {
-      expectsql(sql.removeIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
-        default: 'DROP INDEX [table_column1_column2] ON [table]',
-        ibmi: 'BEGIN DROP INDEX "table_column1_column2"; COMMIT; END',
-        sqlite: 'DROP INDEX `table_column1_column2`',
-        'db2 postgres': 'DROP INDEX "table_column1_column2"',
-      });
-    });
-  });
 });
