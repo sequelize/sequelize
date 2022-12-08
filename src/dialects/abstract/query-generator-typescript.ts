@@ -61,7 +61,7 @@ export class AbstractQueryGeneratorTypeScript {
     _tableName: TableNameOrModel,
     _indexNameOrAttributes: string | string [],
     _options?: RemoveIndexQueryOptions,
-  ): string | Error {
+  ): string {
     throw new Error(`removeIndexQuery has not been implemented in ${this.dialect.name}.`);
   }
 
