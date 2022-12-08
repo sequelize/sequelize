@@ -7351,10 +7351,10 @@ restore-cursor@^3.1.0:
     onetime "^5.1.0"
     signal-exit "^3.0.2"
 
-retry-as-promised@^7.0.2:
-  version "7.0.2"
-  resolved "https://registry.yarnpkg.com/retry-as-promised/-/retry-as-promised-7.0.2.tgz#13115746736813e689d179f64b162666436bf6c2"
-  integrity sha512-grWu7vnuC5uSb3h+uehW4g0zSAMrGHOXeuQohLKmT9KMy1b/rM/gsiRGIXAvhUPJxEGgT9uhvoZ7DwESM/VPNg==
+retry-as-promised@^7.0.3:
+  version "7.0.3"
+  resolved "https://registry.yarnpkg.com/retry-as-promised/-/retry-as-promised-7.0.3.tgz#ca3c13b15525a7bfbf0f56d2996f0e75649d068b"
+  integrity sha512-SEvMa4khHvpU/o6zgh7sK24qm6rxVgKnrSyzb5POeDvZx5N9Bf0s5sQsQ4Fl+HjRp0X+w2UzACGfUnXtx6cJ9Q==
 
 retry@^0.12.0:
   version "0.12.0"
