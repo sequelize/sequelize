@@ -70,7 +70,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       'BEGIN',
-      options?.ifExists ? `IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = '${indexName}') THEN` : '',
+      options?.ifExists ? `IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = ${this.quoteIdentifier(indexName)}) THEN` : '',
       `DROP INDEX ${this.quoteIdentifier(indexName)};`,
       'COMMIT;',
       options?.ifExists ? 'END IF;' : '',
