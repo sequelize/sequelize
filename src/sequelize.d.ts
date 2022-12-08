@@ -1,4 +1,4 @@
-import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
+import type { retryAsPromised } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
@@ -25,6 +25,8 @@ import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
 import type { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method.js';
 import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
+
+export type RetryOptions = Parameters<typeof retryAsPromised>[1];
 
 /**
  * Additional options for table altering during sync
@@ -170,7 +172,6 @@ export interface Config {
 
 export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
 
-export type RetryOptions = RetryAsPromisedOptions;
 /**
  * Options for the constructor of the {@link Sequelize} main class.
  */
