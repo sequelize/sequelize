@@ -85,8 +85,9 @@ describe('QueryGenerator#removeIndexQuery', () => {
     expectsql(() => queryGenerator.removeIndexQuery({ tableName: 'myTable', schema: 'mySchema' }, 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [mySchema].[myTable]`,
       sqlite: 'DROP INDEX `user_foo_bar`',
+      postgres: `DROP INDEX "mySchema"."user_foo_bar"`,
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      'db2 postgres': `DROP INDEX "user_foo_bar"`,
+      db2: `DROP INDEX "user_foo_bar"`,
     });
   });
 
@@ -106,8 +107,9 @@ describe('QueryGenerator#removeIndexQuery', () => {
     expectsql(() => queryGeneratorSchema.removeIndexQuery('myTable', 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [mySchema].[myTable]`,
       sqlite: 'DROP INDEX `user_foo_bar`',
+      postgres: `DROP INDEX "mySchema"."user_foo_bar"`,
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      'db2 postgres': `DROP INDEX "user_foo_bar"`,
+      db2: 'DROP INDEX "user_foo_bar"',
     });
   });
 });
