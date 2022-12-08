@@ -244,7 +244,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         if (dialect === 'db2') {
           // ibm_db 2.7.4+ returns BIGINT values as JS numbers, which leads to a loss of precision:
           // https://github.com/ibmdb/node-ibm_db/issues/816
-          // It means that u2.id comes back as 9_007_199_254_740_992 here :(
+          // It means that u2.id comes back as 9007199254740992 here :(
           // Hopefully this will be fixed soon.
           // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
           const [[{ stringifiedId }]] = await this.sequelize.query(`select "id"::varchar as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
@@ -256,7 +256,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           // For now, we'll just stringify the Long and make the comparison:
           expect(u2.id.toString()).to.equal('9007199254740993');
         } else if (dialect === 'sqlite') {
-          // sqlite3 returns a number, so u2.id comes back as 9_007_199_254_740_992 here:
+          // sqlite3 returns a number, so u2.id comes back as 9007199254740992 here:
           // https://github.com/TryGhost/node-sqlite3/issues/922
           // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
           const [[{ stringifiedId }]] = await this.sequelize.query(`select cast("id" as text) as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
