@@ -40,7 +40,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       default: `DROP INDEX IF EXISTS [user_foo_bar] ON [myTable]`,
       sqlite: 'DROP INDEX IF EXISTS `user_foo_bar`',
       postgres: `DROP INDEX IF EXISTS "user_foo_bar"`,
-      ibmi: `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = 'user_foo_bar') THEN DROP INDEX "user_foo_bar"; COMMIT; END IF; END`,
+      ibmi: `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = "user_foo_bar") THEN DROP INDEX "user_foo_bar"; COMMIT; END IF; END`,
       snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
       'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['ifExists']),
     });
