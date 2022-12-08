@@ -12,7 +12,7 @@ import {
 
 type ValidateKeys = Extract<keyof ColumnValidateOptions, string>;
 
-function createRequiredAttrValidateDecorator<Key extends ValidateKeys>(
+function createRequiredAttributeValidationDecorator<Key extends ValidateKeys>(
   decoratorName: Key,
 ): RequiredParameterizedPropertyDecorator<ColumnValidateOptions[Key]> {
   return createRequiredAttributeOptionsDecorator<ColumnValidateOptions[Key]>(
@@ -23,7 +23,7 @@ function createRequiredAttrValidateDecorator<Key extends ValidateKeys>(
   );
 }
 
-function createOptionalAttrValidateDecorator<Key extends ValidateKeys>(
+function createOptionalAttributeValidationDecorator<Key extends ValidateKeys>(
   decoratorName: Key,
   defaultValue: ColumnValidateOptions[Key],
 ): OptionalParameterizedPropertyDecorator<ColumnValidateOptions[Key]> {
@@ -119,62 +119,62 @@ export const ModelValidator = createOptionallyParameterizedPropertyDecorator<und
   },
 );
 
-export const Is = createRequiredAttrValidateDecorator('is');
+export const Is = createRequiredAttributeValidationDecorator('is');
 
-export const Not = createRequiredAttrValidateDecorator('not');
+export const Not = createRequiredAttributeValidationDecorator('not');
 
-export const IsEmail = createOptionalAttrValidateDecorator('isEmail', true);
+export const IsEmail = createOptionalAttributeValidationDecorator('isEmail', true);
 
-export const IsUrl = createOptionalAttrValidateDecorator('isUrl', true);
+export const IsUrl = createOptionalAttributeValidationDecorator('isUrl', true);
 
-export const IsIP = createOptionalAttrValidateDecorator('isIP', true);
+export const IsIP = createOptionalAttributeValidationDecorator('isIP', true);
 
-export const IsIPv4 = createOptionalAttrValidateDecorator('isIPv4', true);
+export const IsIPv4 = createOptionalAttributeValidationDecorator('isIPv4', true);
 
-export const IsIPv6 = createOptionalAttrValidateDecorator('isIPv6', true);
+export const IsIPv6 = createOptionalAttributeValidationDecorator('isIPv6', true);
 
-export const IsAlpha = createOptionalAttrValidateDecorator('isAlpha', true);
+export const IsAlpha = createOptionalAttributeValidationDecorator('isAlpha', true);
 
-export const IsAlphanumeric = createOptionalAttrValidateDecorator('isAlphanumeric', true);
+export const IsAlphanumeric = createOptionalAttributeValidationDecorator('isAlphanumeric', true);
 
-export const IsNumeric = createOptionalAttrValidateDecorator('isNumeric', true);
+export const IsNumeric = createOptionalAttributeValidationDecorator('isNumeric', true);
 
-export const IsInt = createOptionalAttrValidateDecorator('isInt', true);
+export const IsInt = createOptionalAttributeValidationDecorator('isInt', true);
 
-export const IsFloat = createOptionalAttrValidateDecorator('isFloat', true);
+export const IsFloat = createOptionalAttributeValidationDecorator('isFloat', true);
 
-export const IsDecimal = createOptionalAttrValidateDecorator('isDecimal', true);
+export const IsDecimal = createOptionalAttributeValidationDecorator('isDecimal', true);
 
-export const IsLowercase = createOptionalAttrValidateDecorator('isLowercase', true);
+export const IsLowercase = createOptionalAttributeValidationDecorator('isLowercase', true);
 
-export const IsUppercase = createOptionalAttrValidateDecorator('isUppercase', true);
+export const IsUppercase = createOptionalAttributeValidationDecorator('isUppercase', true);
 
-export const NotEmpty = createOptionalAttrValidateDecorator('notEmpty', true);
+export const NotEmpty = createOptionalAttributeValidationDecorator('notEmpty', true);
 
-export const Equals = createRequiredAttrValidateDecorator('equals');
+export const Equals = createRequiredAttributeValidationDecorator('equals');
 
-export const Contains = createRequiredAttrValidateDecorator('contains');
+export const Contains = createRequiredAttributeValidationDecorator('contains');
 
-export const NotIn = createRequiredAttrValidateDecorator('notIn');
+export const NotIn = createRequiredAttributeValidationDecorator('notIn');
 
-export const IsIn = createRequiredAttrValidateDecorator('isIn');
+export const IsIn = createRequiredAttributeValidationDecorator('isIn');
 
-export const NotContains = createRequiredAttrValidateDecorator('notContains');
+export const NotContains = createRequiredAttributeValidationDecorator('notContains');
 
-export const Len = createRequiredAttrValidateDecorator('len');
+export const Len = createRequiredAttributeValidationDecorator('len');
 
-export const IsUUID = createRequiredAttrValidateDecorator('isUUID');
+export const IsUUID = createRequiredAttributeValidationDecorator('isUUID');
 
-export const IsDate = createOptionalAttrValidateDecorator('isDate', true);
+export const IsDate = createOptionalAttributeValidationDecorator('isDate', true);
 
-export const IsAfter = createRequiredAttrValidateDecorator('isAfter');
+export const IsAfter = createRequiredAttributeValidationDecorator('isAfter');
 
-export const IsBefore = createRequiredAttrValidateDecorator('isBefore');
+export const IsBefore = createRequiredAttributeValidationDecorator('isBefore');
 
-export const Max = createRequiredAttrValidateDecorator('max');
+export const Max = createRequiredAttributeValidationDecorator('max');
 
-export const Min = createRequiredAttrValidateDecorator('min');
+export const Min = createRequiredAttributeValidationDecorator('min');
 
-export const IsArray = createOptionalAttrValidateDecorator('isArray', true);
+export const IsArray = createOptionalAttributeValidationDecorator('isArray', true);
 
-export const IsCreditCard = createOptionalAttrValidateDecorator('isCreditCard', true);
+export const IsCreditCard = createOptionalAttributeValidationDecorator('isCreditCard', true);

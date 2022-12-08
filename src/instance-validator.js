@@ -2,7 +2,6 @@
 
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { validateDataType } from './dialects/abstract/data-types-utils';
-import { combinedIterator } from './utils/iterators';
 import { getAllOwnKeys } from './utils/object';
 import { SequelizeMethod } from './utils/sequelize-method';
 
