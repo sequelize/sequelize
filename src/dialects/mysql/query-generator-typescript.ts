@@ -4,6 +4,8 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 
+const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
+
 /**
  * Temporary class to ease the TypeScript migration
  */
@@ -18,7 +20,6 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   removeIndexQuery(tableName: TableNameOrModel, indexNameOrAttributes: string | string[], options: RemoveIndexQueryOptions) {
     if (options) {
-      const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
       rejectInvalidOptions(
         'removeIndexQuery',
         this.dialect.name,
