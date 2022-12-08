@@ -47,5 +47,9 @@ jobs:
           days-before-pr-close: 14
           any-of-issue-labels: 'invalid'
           any-of-pr-labels: 'invalid'
-      - name: Print outputs
-        run: echo ${{ join(steps.stale.outputs.*, ',') }}
+      - name: Print outputs (stale-bug)
+        run: echo ${{ join(steps.stale-bug.outputs.*, ',') }}
+      - name: Print outputs (stale-feature)
+        run: echo ${{ join(steps.stale-feature.outputs.*, ',') }}
+      - name: Print outputs (invalid)
+        run: echo ${{ join(steps.invalid.outputs.*, ',') }}
