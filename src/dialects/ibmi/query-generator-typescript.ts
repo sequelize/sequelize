@@ -55,7 +55,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
         'removeIndexQuery',
         this.dialect.name,
         REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        new Set<string>(['ifExists']),
+        new Set(['ifExists']),
         options,
       );
     }
