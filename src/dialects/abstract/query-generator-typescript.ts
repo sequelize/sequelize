@@ -17,7 +17,7 @@ export type RemoveIndexQueryOptions = {
   cascade?: boolean,
 };
 
-export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set(['concurrently', 'ifExists', 'cascade']);
+export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 
 export interface QueryGeneratorOptions {
   sequelize: Sequelize;
