@@ -52,7 +52,11 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(tableName))};`;
   }
 
-  removeIndexQuery(tableName: TableNameOrModel, indexNameOrAttributes: string | string[], options: RemoveIndexQueryOptions) {
+  removeIndexQuery(
+    tableName: TableNameOrModel,
+    indexNameOrAttributes: string | string[],
+    options?: RemoveIndexQueryOptions,
+  ) {
     if (options) {
       rejectInvalidOptions(
         'removeIndexQuery',

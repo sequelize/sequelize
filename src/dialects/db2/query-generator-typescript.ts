@@ -39,7 +39,11 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  removeIndexQuery(tableName: TableNameOrModel, indexNameOrAttributes: string | string[], options: RemoveIndexQueryOptions) {
+  removeIndexQuery(
+    tableName: TableNameOrModel,
+    indexNameOrAttributes: string | string[],
+    options?: RemoveIndexQueryOptions,
+  ) {
     if (options) {
       rejectInvalidOptions(
         'removeIndexQuery',

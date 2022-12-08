@@ -50,7 +50,11 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  removeIndexQuery(tableName: TableNameOrModel, indexNameOrAttributes: string | string[], options: RemoveIndexQueryOptions) {
+  removeIndexQuery(
+    tableName: TableNameOrModel,
+    indexNameOrAttributes: string | string[],
+    options?: RemoveIndexQueryOptions,
+  ) {
     if (options?.cascade && options?.concurrently) {
       throw new Error(`Cannot specify both concurrently and cascade options in removeIndexQuery for ${this.dialect.name} dialect`);
     }

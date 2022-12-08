@@ -51,7 +51,11 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  removeIndexQuery(tableName: TableNameOrModel, indexNameOrAttributes: string | string[], options: RemoveIndexQueryOptions) {
+  removeIndexQuery(
+    tableName: TableNameOrModel,
+    indexNameOrAttributes: string | string[],
+    options?: RemoveIndexQueryOptions,
+  ) {
     if (options) {
       rejectInvalidOptions(
         'removeIndexQuery',

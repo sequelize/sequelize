@@ -19,7 +19,11 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
   }
 
-  removeIndexQuery(tableName: TableNameOrModel, indexNameOrAttributes: string | string[], options: RemoveIndexQueryOptions) {
+  removeIndexQuery(
+    tableName: TableNameOrModel,
+    indexNameOrAttributes: string | string[],
+    options?: RemoveIndexQueryOptions,
+  ) {
     if (options) {
       rejectInvalidOptions(
         'removeIndexQuery',

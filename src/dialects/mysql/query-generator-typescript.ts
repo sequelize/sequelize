@@ -18,7 +18,11 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
   }
 
-  removeIndexQuery(tableName: TableNameOrModel, indexNameOrAttributes: string | string[], options: RemoveIndexQueryOptions) {
+  removeIndexQuery(
+    tableName: TableNameOrModel,
+    indexNameOrAttributes: string | string[],
+    options?: RemoveIndexQueryOptions,
+  ) {
     if (options) {
       rejectInvalidOptions(
         'removeIndexQuery',
