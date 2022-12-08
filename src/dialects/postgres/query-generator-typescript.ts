@@ -1,8 +1,6 @@
-import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 
 /**
@@ -53,18 +51,8 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(tableName: TableNameOrModel, indexNameOrAttributes: string | string[], options: RemoveIndexQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect.name,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        new Set(['concurrently', 'ifExists', 'cascade']),
-        options,
-      );
-
-      if (options.cascade && options.concurrently) {
-        throw new Error(`Cannot specify both concurrently and cascade options in removeIndexQuery for ${this.dialect.name} dialect`);
-      }
+    if (options?.cascade && options?.concurrently) {
+      throw new Error(`Cannot specify both concurrently and cascade options in removeIndexQuery for ${this.dialect.name} dialect`);
     }
 
     let indexName;
