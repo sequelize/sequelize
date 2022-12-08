@@ -28,8 +28,8 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     let indexName: string;
-    const table = this.extractTableDetails(tableName);
     if (Array.isArray(indexNameOrAttributes)) {
+      const table = this.extractTableDetails(tableName);
       indexName = generateIndexName(table, { fields: indexNameOrAttributes });
     } else {
       indexName = indexNameOrAttributes;
