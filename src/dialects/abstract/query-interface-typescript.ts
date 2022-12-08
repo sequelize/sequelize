@@ -1,5 +1,5 @@
-import type { QueryRawOptions, Sequelize } from '../../sequelize';
-import type { AbstractQueryGenerator } from './query-generator';
+import type { Sequelize } from '../../sequelize';
+import type { AbstractQueryGenerator, CreateSchemaQueryOptions } from './query-generator';
 
 export interface QueryInterfaceOptions {
   sequelize: Sequelize;
@@ -16,13 +16,18 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Queries the schema (table list).
+   * Create a new database schema.
    *
-   * @param schema The schema to query. Applies only to Postgres.
+   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
+   * not a database table. In mysql and sqlite, this command will do nothing.
+   *
+   * @param schema
    * @param options
+   * @see
+   * {@link Model.schema}
    */
-  async createSchema(schema: string, options?: QueryRawOptions): Promise<void> {
-    const sql = this.queryGenerator.createSchemaQuery(schema);
-    await this.sequelize.queryRaw(sql, options);
+  async createSchema(schema: string, options?: CreateSchemaQueryOptions): Promise<void> {
+    const sql = this.queryGenerator.createSchemaQuery(schema, options);
+    await this.sequelize.queryRaw(sql);
   }
 }
