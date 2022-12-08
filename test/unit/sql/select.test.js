@@ -2,7 +2,7 @@
 
 const Support = require('../../support');
 const { DataTypes, Model, Op } = require('@sequelize/core');
-const util = require('util');
+const util = require('node:util');
 const chai = require('chai');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
@@ -710,17 +710,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('plain attributes (1)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: [
-            '* FROM [User]; DELETE FROM [User];SELECT [id]'
+            '* FROM [User];'
               .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-              .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+              .replace(/]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
           ],
         }), {
-          // TODO: the attribute should be escaped as an identifier, not a string
-          default: `SELECT '* FROM [User]; DELETE FROM [User];SELECT [id]' FROM [User];`,
-          ibmi: `SELECT '* FROM "User"; DELETE FROM "User";SELECT "id"' FROM "User"`,
-          db2: `SELECT '* FROM "User"; DELETE FROM "User";SELECT "id"' FROM "User";`,
-          snowflake: `SELECT '* FROM "User"; DELETE FROM "User";SELECT "id"' FROM "User";`,
-          mssql: 'SELECT [* FROM [[User]]; DELETE FROM [[User]];SELECT [[id]]] FROM [User];',
+          default: `SELECT ${TICK_LEFT}* FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT};${TICK_RIGHT} FROM ${TICK_LEFT}User${TICK_RIGHT};`,
         });
       });
 

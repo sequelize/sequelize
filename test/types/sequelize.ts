@@ -1,4 +1,4 @@
-import type { ConnectionOptions, ModelStatic, Utils } from '@sequelize/core';
+import type { ConnectionOptions, ModelStatic, Fn } from '@sequelize/core';
 import { Sequelize, Model, QueryTypes, Op } from '@sequelize/core';
 
 export const sequelize = new Sequelize({
@@ -70,7 +70,7 @@ sequelize.beforeConnect(() => {});
 
 sequelize.afterConnect(() => {});
 
-const rnd: Utils.Fn = sequelize.random();
+const rnd: Fn = sequelize.random();
 
 class Model1 extends Model {}
 

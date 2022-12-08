@@ -1,12 +1,12 @@
 'use strict';
 
+import { cloneDeep } from '../../utils/object';
 import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
 
 const _ = require('lodash');
 
-const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
 const { Transaction } = require('../../transaction');
 const { QueryTypes } = require('../../query-types');
@@ -642,7 +642,7 @@ export class QueryInterface {
       rawTablename = tableName;
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options.fields = attributes;
     const sql = this.queryGenerator.addIndexQuery(tableName, options, rawTablename);
 
@@ -826,7 +826,7 @@ export class QueryInterface {
       throw new Error('Constraint type must be specified through options.type');
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
 
     const sql = this.queryGenerator.addConstraintQuery(tableName, options);
 
@@ -855,7 +855,7 @@ export class QueryInterface {
       assertNoReservedBind(options.bind);
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
     const { query, bind } = this.queryGenerator.insertQuery(tableName, values, instance && instance.constructor.rawAttributes, options);
 
@@ -1020,9 +1020,9 @@ export class QueryInterface {
       assertNoReservedBind(options.bind);
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     if (typeof where === 'object') {
-      where = Utils.cloneDeep(where);
+      where = cloneDeep(where);
     }
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
@@ -1097,7 +1097,7 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async bulkDelete(tableName, where, options, model) {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options = _.defaults(options, { limit: null });
 
     if (options.truncate === true) {
@@ -1108,7 +1108,7 @@ export class QueryInterface {
     }
 
     if (typeof identifier === 'object') {
-      where = Utils.cloneDeep(where);
+      where = cloneDeep(where);
     }
 
     const sql = this.queryGenerator.deleteQuery(tableName, where, options, model);
@@ -1142,7 +1142,7 @@ export class QueryInterface {
   }
 
   async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options.model = model;
 
     const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
@@ -1156,7 +1156,7 @@ export class QueryInterface {
   }
 
   async rawSelect(tableName, options, attributeSelector, Model) {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options = _.defaults(options, {
       raw: true,
       plain: true,

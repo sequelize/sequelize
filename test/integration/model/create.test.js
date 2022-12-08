@@ -9,7 +9,7 @@ const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 
 const _ = require('lodash');
 const delay = require('delay');
-const assert = require('assert');
+const assert = require('node:assert');
 
 const pTimeout = require('p-timeout');
 
@@ -1173,20 +1173,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(error).to.exist;
         expect(error.get('str')[0].message).to.match(/Validation isURL on str failed/);
       }
-    });
-
-    it('raises an error if you mess up the datatype', function () {
-      expect(() => {
-        this.sequelize.define('UserBadDataType', {
-          activity_date: DataTypes.DATe,
-        });
-      }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
-
-      expect(() => {
-        this.sequelize.define('UserBadDataType', {
-          activity_date: { type: DataTypes.DATe },
-        });
-      }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
     });
 
     it('sets a 64 bit int in bigint', async function () {

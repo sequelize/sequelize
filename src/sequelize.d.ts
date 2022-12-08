@@ -22,7 +22,7 @@ import type {
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
-import type { Cast, Col, Fn, Json, Literal, Where } from './utils';
+import type { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method.js';
 import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
 
 /**
@@ -306,6 +306,37 @@ export interface Options extends Logging {
    * @default false
    */
   omitNull?: boolean;
+
+  // TODO: https://github.com/sequelize/sequelize/issues/14298
+  //  Model.init should be able to omit the "sequelize" parameter and only be initialized once passed to a Sequelize instance
+  //  using this option.
+  //  Association definition methods should be able to be used on not-yet-initialized models, and be registered once the
+  //  Sequelize constructor inits.
+  /**
+   * A list of models to load and init.
+   *
+   * This option is only useful if you created your models using decorators.
+   * Models created using {@link Model.init} or {@link Sequelize#define} don't need to be specified in this option.
+   *
+   * Use {@link importModels} to load models dynamically:
+   *
+   * @example
+   * ```ts
+   * import { User } from './models/user.js';
+   *
+   * new Sequelize({
+   *   models: [User],
+   * });
+   * ```
+   *
+   * @example
+   * ```ts
+   * new Sequelize({
+   *   models: await importModels(__dirname + '/*.model.ts'),
+   * });
+   * ```
+   */
+  models?: ModelStatic[];
 
   /**
    * A flag that defines if native library shall be used or not. Currently only has an effect for postgres
@@ -812,7 +843,7 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @param modelName The name of a model defined with Sequelize.define
    */
-  model(modelName: string): ModelStatic<Model>;
+  model<M extends Model = Model>(modelName: string): ModelStatic<M>;
 
   /**
    * Checks whether a model with the given name is defined

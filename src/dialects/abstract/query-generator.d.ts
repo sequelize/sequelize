@@ -10,7 +10,7 @@ import type {
   WhereOptions,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
-import type { Literal, SequelizeMethod } from '../../utils/index.js';
+import type { Literal, SequelizeMethod, Col } from '../../utils/sequelize-method.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
@@ -39,7 +39,7 @@ type InsertOptions = ParameterOptions & SearchPathable & {
   updateOnDuplicate?: string[],
   ignoreDuplicates?: boolean,
   upsertKeys?: string[],
-  returning?: boolean | string[],
+  returning?: boolean | Array<string | Literal | Col>,
 };
 
 type BulkInsertOptions = ParameterOptions & {
@@ -48,7 +48,7 @@ type BulkInsertOptions = ParameterOptions & {
   updateOnDuplicate?: string[],
   ignoreDuplicates?: boolean,
   upsertKeys?: string[],
-  returning?: boolean | string[],
+  returning?: boolean | Array<string | Literal | Col>,
 };
 
 type UpdateOptions = ParameterOptions & {
@@ -60,7 +60,7 @@ type DeleteOptions = ParameterOptions & {
 };
 
 type ArithmeticQueryOptions = ParameterOptions & {
-  returning?: boolean | string[],
+  returning?: boolean | Array<string | Literal | Col>,
 };
 
 export type WhereItemsQueryOptions = ParameterOptions & {

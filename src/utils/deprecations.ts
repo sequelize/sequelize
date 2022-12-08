@@ -1,8 +1,7 @@
-import { deprecate } from 'util';
+import { deprecate } from 'node:util';
 
 const noop = () => { /* noop */ };
 
-export const noRawAttributes = deprecate(noop, 'Use sequelize.fn / sequelize.literal to construct attributes', 'SEQUELIZE0001');
 export const noTrueLogging = deprecate(noop, 'The logging-option should be either a function or false. Default: console.log', 'SEQUELIZE0002');
 export const noStringOperators = deprecate(noop, 'String based operators are deprecated. Please use Symbol based operators for better security, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases', 'SEQUELIZE0003');
 export const noBoolOperatorAliases = deprecate(noop, 'A boolean value was passed to options.operatorsAliases. This is a no-op with v5 and should be removed.', 'SEQUELIZE0004');
@@ -19,3 +18,4 @@ export const hooksReworked = deprecate(noop, 'Sequelize Hooks methods, such as a
 export const doNotUseRealDataType = deprecate(noop, 'Sequelize 7 has normalized its FLOAT & DOUBLE data types, and made REAL redundant. FLOAT is now always an IEEE-754 single precision floating point, and DOUBLE a double-precision one. Use either instead of REAL.', 'SEQUELIZE0014');
 export const noSchemaParameter = deprecate(noop, 'The schema parameter in QueryInterface#describeTable has been deprecated, use a TableNameWithSchema object to specify the schema or set the schema globally in the options.', 'SEQUELIZE0015');
 export const noSchemaDelimiterParameter = deprecate(noop, 'The schemaDelimiter parameter in QueryInterface#describeTable has been deprecated, use a TableNameWithSchema object to specify the schemaDelimiter.', 'SEQUELIZE0016');
+export const columnToAttribute = deprecate(noop, 'The @Column decorator has been renamed to @Attribute.', 'SEQUELIZE0017');

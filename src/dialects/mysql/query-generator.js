@@ -1,17 +1,19 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils/check';
+import { addTicks } from '../../utils/dialect';
+import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { Cast, Json } from '../../utils/sequelize-method';
+import { underscore } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import { rejectInvalidOptions } from '../../utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 const _ = require('lodash');
-const Utils = require('../../utils');
 const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const util = require('util');
 const { Op } = require('../../operators');
 
 const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
@@ -48,7 +50,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   }
 
   createSchemaQuery(schemaName, options) {
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'CREATE SCHEMA IF NOT EXISTS',
       this.quoteIdentifier(schemaName),
       options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
@@ -73,7 +75,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       schemasToSkip.push(...options.skip);
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT SCHEMA_NAME as schema_name',
       'FROM INFORMATION_SCHEMA.SCHEMATA',
       `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
@@ -152,7 +154,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       }
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'CREATE TABLE IF NOT EXISTS',
       table,
       `(${attributesClause})`,
@@ -202,7 +204,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       type: normalizeDataType(dataType.type, this.dialect),
     };
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
       'ADD',
@@ -227,7 +229,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       );
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP',
@@ -251,7 +253,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       }
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       attrString.length && `CHANGE ${attrString.join(', ')}`,
@@ -268,7 +270,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       attrString.push(`\`${attrBefore}\` \`${attrName}\` ${definition}`);
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'CHANGE',
@@ -278,7 +280,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Utils.Json) {
+    if (smth instanceof Json) {
       // Parse nested object
       if (smth.conditions) {
         const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`);
@@ -305,7 +307,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
 
         return str;
       }
-    } else if (smth instanceof Utils.Cast) {
+    } else if (smth instanceof Cast) {
       if (/timestamp/i.test(smth.type)) {
         smth.type = 'datetime';
       } else if (smth.json && /boolean/i.test(smth.type)) {
@@ -358,7 +360,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     const tableName = table.tableName || table;
     const schemaName = table.schema;
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT CONSTRAINT_CATALOG AS constraintCatalog,',
       'CONSTRAINT_NAME AS constraintName,',
       'CONSTRAINT_SCHEMA AS constraintSchema,',
@@ -377,10 +379,10 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
+      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'DROP INDEX',
       this.quoteIdentifier(indexName),
       'ON',
@@ -547,7 +549,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     // TODO (https://github.com/sequelize/sequelize/pull/14687): use dialect.getDefaultSchema() instead of this.sequelize.config.database
     const schemaName = table.schema || this.sequelize.config.database;
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT',
       FOREIGN_KEY_FIELDS,
       `FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '${tableName}'`,
@@ -570,7 +572,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     const quotedTableName = wrapSingleQuote(table.tableName || table);
     const quotedColumnName = wrapSingleQuote(columnName);
 
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'SELECT',
       FOREIGN_KEY_FIELDS,
       'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
@@ -600,7 +602,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
    * @private
    */
   dropForeignKeyQuery(tableName, foreignKey) {
-    return Utils.joinSQLFragments([
+    return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP FOREIGN KEY',
@@ -629,7 +631,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
      */
     paths = paths.map(subPath => {
       return /\D/.test(subPath)
-        ? Utils.addTicks(subPath, '"')
+        ? addTicks(subPath, '"')
         : subPath;
     });
 
@@ -647,5 +649,5 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
  * @deprecated use "escape" or "escapeString" on QueryGenerator
  */
 function wrapSingleQuote(identifier) {
-  return Utils.addTicks(identifier, '\'');
+  return addTicks(identifier, '\'');
 }

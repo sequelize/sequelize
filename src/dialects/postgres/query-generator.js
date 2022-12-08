@@ -1,8 +1,10 @@
 'use strict';
 
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { Json } from '../../utils/sequelize-method';
+import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
-import { quoteIdentifier } from '../../utils/dialect';
+import { quoteIdentifier, removeTicks } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
@@ -10,8 +12,7 @@ import {
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const Utils = require('../../utils');
-const util = require('util');
+const util = require('node:util');
 const DataTypes = require('../../data-types');
 const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const semver = require('semver');
@@ -96,8 +97,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
     options = { ...options };
 
-    // Postgres 9.0 does not support CREATE TABLE IF NOT EXISTS, 9.1 and above do
-    const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
     const attrStr = [];
     let comments = '';
     let columnComments = '';
@@ -128,7 +127,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       _.each(options.uniqueKeys, (columns, indexName) => {
         if (columns.customIndex) {
           if (typeof indexName !== 'string') {
-            indexName = Utils.generateIndexName(tableName, columns);
+            indexName = generateIndexName(tableName, columns);
           }
 
           attributesClause += `, CONSTRAINT ${
@@ -152,7 +151,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       attributesClause += `, PRIMARY KEY (${pks})`;
     }
 
-    return `CREATE TABLE ${databaseVersion === 0 || semver.gte(databaseVersion, '9.1.0') ? 'IF NOT EXISTS ' : ''}${quotedTable} (${attributesClause})${comments}${columnComments};`;
+    return `CREATE TABLE IF NOT EXISTS ${quotedTable} (${attributesClause})${comments}${columnComments};`;
   }
 
   dropTableQuery(tableName, options) {
@@ -251,7 +250,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Utils.Json) {
+    if (smth instanceof Json) {
       // Parse nested object
       if (smth.conditions) {
         const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`);
@@ -437,7 +436,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.generateIndexName(tableName, { fields: indexNameOrAttributes });
+      indexName = generateIndexName(tableName, { fields: indexNameOrAttributes });
     }
 
     return [
@@ -655,7 +654,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   pgEscapeAndQuote(val) {
-    return this.quoteIdentifier(Utils.removeTicks(this.escape(val), '\''));
+    return this.quoteIdentifier(removeTicks(this.escape(val), '\''));
   }
 
   _expandFunctionParamList(params) {
@@ -817,11 +816,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
   pgEnumAdd(tableName, attr, value, options) {
     const enumName = this.pgEnumName(tableName, attr);
-    let sql = `ALTER TYPE ${enumName} ADD VALUE `;
-
-    if (semver.gte(this.sequelize.options.databaseVersion, '9.3.0')) {
-      sql += 'IF NOT EXISTS ';
-    }
+    let sql = `ALTER TYPE ${enumName} ADD VALUE IF NOT EXISTS `;
 
     sql += this.escape(value);
 

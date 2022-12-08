@@ -1,4 +1,4 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import NodeUtil from 'node:util';
 import type { Database as Db2LibDatabase, ConnStr } from 'ibm_db';
 import { ConnectionError, ConnectionRefusedError } from '../../errors/index.js';

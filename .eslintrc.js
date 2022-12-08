@@ -27,30 +27,20 @@ module.exports = {
     'jsdoc/valid-types': 'error',
     'jsdoc/no-types': 'error',
 
-    // We need to enable this in the next Major, it resolves a code smell
-    'unicorn/custom-error-definition': 'off',
+    // enable this as an error, or keep disabled (not warning)
+    'unicorn/no-unsafe-regex': 'off',
 
     // Enable this one if you want to prevent creating throwaway objects (perf)
     'unicorn/no-object-as-default-parameter': 'off',
 
-    // sequelize needs to support node >= 12.
+    // sequelize 7 needs to support node >= 14.
     // Object.hasOwn, Array#at, String#replaceAll are available in node >= 16.
-    // `node:` protocol is available in node >= 14.
     'prefer-object-has-own': 'off',
     'unicorn/prefer-at': 'off',
     'unicorn/prefer-string-replace-all': 'off',
-    'unicorn/prefer-node-protocol': 'off',
-
-    // Too opinionated.
-    'unicorn/prevent-abbreviations': 'off',
-    'unicorn/prefer-switch': 'off',
 
     // This rule is incompatible with DataTypes
     'babel/new-cap': 'off',
-
-    // Too slow for the scale of this codebase
-    'import/no-deprecated': 'off',
-    'import/named': 'off',
   },
   overrides: [{
     files: ['**/*.{js,mjs,cjs}'],
