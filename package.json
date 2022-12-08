@@ -55,7 +55,7 @@
     "inflection": "^2.0.0",
     "lodash": "^4.17.21",
     "pg-connection-string": "^2.5.0",
-    "retry-as-promised": "^6.0.0",
+    "retry-as-promised": "^7.0.3",
     "semver": "^7.3.7",
     "sequelize-pool": "^8.0.0",
     "toposort-class": "^1.0.1",
