@@ -12,7 +12,6 @@ describe('QueryGenerator#removeIndexQuery', () => {
       sqlite: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       'db2 postgres': `DROP INDEX "user_foo_bar"`,
-
     });
   });
 
@@ -22,7 +21,6 @@ describe('QueryGenerator#removeIndexQuery', () => {
       sqlite: 'DROP INDEX `my_table_foo_bar`',
       ibmi: `BEGIN DROP INDEX "my_table_foo_bar"; COMMIT; END`,
       'db2 postgres': `DROP INDEX "my_table_foo_bar"`,
-
     });
   });
 
