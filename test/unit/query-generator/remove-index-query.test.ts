@@ -68,6 +68,13 @@ describe('QueryGenerator#removeIndexQuery', () => {
     });
   });
 
+  it('throws an error for DROP INDEX with CASCADE and CONCURRENTLY query from a table', () => {
+    expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { cascade: true, concurrently: true }), {
+      default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade', 'concurrently']),
+      postgres: new Error(`Cannot specify both concurrently and cascade options in removeIndexQuery for ${dialect.name} dialect`),
+    });
+  });
+
   it('produces a DROP INDEX query from a model', () => {
     const MyModel = sequelize.define('myModel', {});
 

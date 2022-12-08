@@ -61,6 +61,10 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
         new Set(['concurrently', 'ifExists', 'cascade']),
         options,
       );
+
+      if (options.cascade && options.concurrently) {
+        throw new Error(`Cannot specify both concurrently and cascade options in removeIndexQuery for ${this.dialect.name} dialect`);
+      }
     }
 
     let indexName;
@@ -78,7 +82,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       table?.schema && table.schema !== this.dialect.getDefaultSchema()
         ? `${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(indexName)}`
         : this.quoteIdentifier(indexName),
-      options?.cascade && !options?.concurrently ? 'CASCADE' : '',
+      options?.cascade ? 'CASCADE' : '',
     ]);
   }
 }
