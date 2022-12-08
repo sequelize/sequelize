@@ -256,9 +256,8 @@ class Query extends AbstractQuery {
 
         if (_.isPlainObject(parameters)) {
           const newParameters = Object.create(null);
-
           for (const key of Object.keys(parameters)) {
-            newParameters[`$${key}`] = stringifyIfBigint(parameters[key]);
+            newParameters[`${key}`] = stringifyIfBigint(parameters[key]);
           }
           parameters = newParameters;
         } else {
