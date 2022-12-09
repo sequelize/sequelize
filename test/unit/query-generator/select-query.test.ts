@@ -514,10 +514,6 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
     const minifyQueryGenerator = minifyAliasesSequelize.queryInterface.queryGenerator;
 
-    if (minifyAliasesSequelize.dialect.name === 'mssql') {
-      minifyAliasesSequelize.options.databaseVersion = '11.0.0';
-    }
-
     it('minifies custom attributes', () => {
       const sql = minifyQueryGenerator.selectQuery(User.tableName, {
         model: User,

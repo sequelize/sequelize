@@ -1037,7 +1037,7 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   /**
-   * Fetchs the version of the database
+   * Fetches the version of the database
    *
    * @param {object} [options] Query options
    *
