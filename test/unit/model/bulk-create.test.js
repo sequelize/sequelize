@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
       });
 
-      it('should not skips setters if the raw option is false', async function () {
+      it('does not skip setters if the raw option is false', async function () {
         await this.Model.bulkCreate([
           { accountId: 42, name: 'a' },
         ], { raw: false });
