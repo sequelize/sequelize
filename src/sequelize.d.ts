@@ -1,3 +1,4 @@
+import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
@@ -24,6 +25,8 @@ import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
 import type { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method.js';
 import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
+
+export type RetryOptions = RetryAsPromisedOptions;
 
 /**
  * Additional options for table altering during sync
@@ -168,16 +171,6 @@ export interface Config {
 }
 
 export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
-
-export interface RetryOptions {
-  match?: Array<RegExp | string | Function>;
-  max?: number;
-  timeout?: number;
-  backoffBase?: number;
-  backoffExponent?: number;
-  report?(msg: string, options: RetryOptions & { $current: number }): void;
-  name?: string;
-}
 
 /**
  * Options for the constructor of the {@link Sequelize} main class.
@@ -1020,9 +1013,14 @@ export class Sequelize extends SequelizeTypeScript {
   normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
 
   /**
+   * Fetches the database version
+   */
+  fetchDatabaseVersion(options?: QueryRawOptions): Promise<string>;
+
+  /**
    * Returns the database version
    */
-  databaseVersion(options?: QueryRawOptions): Promise<string>;
+  getDatabaseVersion(): string;
 
   /**
    * Returns the installed version of Sequelize
