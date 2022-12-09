@@ -8,9 +8,9 @@ const Support = require('./support');
 
 const dialect = Support.getTestDialect();
 const { Sequelize } = require('@sequelize/core');
-const fs = require('fs');
-const path = require('path');
-const { promisify } = require('util');
+const fs = require('node:fs');
+const path = require('node:path');
+const { promisify } = require('node:util');
 
 let sqlite3;
 if (dialect === 'sqlite') {
@@ -60,15 +60,29 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       }
 
       const seq = new Sequelize(config[dialect].database, config[dialect].username, 'fakepass123', { logging: false, host: config[dialect].host, port: 1, dialect });
-      if (dialect === 'sqlite') {
-        // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
-        await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
-      } else if (dialect === 'db2') {
-        await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
-      } else if (dialect === 'ibmi') {
-        await expect(seq.query('select 1 as hello from SYSIBM.SYSDUMMY1')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'Error connecting to the database');
-      } else {
-        await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
+      switch (dialect) {
+        case 'sqlite': {
+          // SQLite doesn't require authentication and `select 1 as hello` is a valid query, so this should be fulfilled not rejected for it.
+          await expect(seq.query('select 1 as hello')).to.eventually.be.fulfilled;
+
+          break;
+        }
+
+        case 'db2': {
+          await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(...willBeRejectedWithArgs);
+
+          break;
+        }
+
+        case 'ibmi': {
+          await expect(seq.query('select 1 as hello from SYSIBM.SYSDUMMY1')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'Error connecting to the database');
+
+          break;
+        }
+
+        default: {
+          await expect(seq.query('select 1 as hello')).to.eventually.be.rejectedWith(Sequelize.ConnectionRefusedError, 'connect ECONNREFUSED');
+        }
       }
     });
 

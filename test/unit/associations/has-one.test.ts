@@ -1,10 +1,10 @@
 import assert from 'node:assert';
-import type { ModelStatic } from '@sequelize/core';
-import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import omit from 'lodash/omit';
 import sinon from 'sinon';
+import { DataTypes } from '@sequelize/core';
+import type { ModelStatic } from '@sequelize/core';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
 describe(getTestDialectTeaser('hasOne'), () => {
@@ -12,7 +12,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
     const User = sequelize.define('User');
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error -- testing that invalid input results in error
       User.hasOne();
     }).to.throw(`User.hasOne was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
@@ -75,7 +75,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
     const user = User.build();
 
     each(methods, (alias, method) => {
-      // @ts-expect-error
+      // @ts-expect-error -- dynamic type, not worth typing
       expect(user[method]).to.eq(originalFunction);
     });
   });

@@ -1,6 +1,7 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
@@ -13,7 +14,6 @@ import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
 import { importModels } from './import-models.js';
 
-const retry = require('retry-as-promised');
 const _ = require('lodash');
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
@@ -219,7 +219,7 @@ export class Sequelize extends SequelizeTypeScript {
 
     Sequelize.hooks.runSync('beforeInit', options);
 
-    // @ts-expect-error
+    // @ts-expect-error -- doesn't exist
     if (options.pool === false) {
       throw new Error('Support for pool:false was removed in v4.0');
     }

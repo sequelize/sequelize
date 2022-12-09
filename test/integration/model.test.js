@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize, Op, AggregateError } = require('@sequelize/core');
+const { DataTypes, Sequelize, Op, AggregateError, col } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -1054,7 +1054,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
           });
         },
-        returning: ['*'],
+        returning: [col('*')],
       });
       expect(test).to.be.true;
     });
@@ -2490,10 +2490,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           case 'mysql': {
             if (isMySQL8) {
               expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
-            } else if (semver.gte(current.options.databaseVersion, '5.6.0')) {
-              expect(error.message).to.match(/Cannot add foreign key constraint/);
             } else {
-              expect(error.message).to.match(/Can't create table/);
+              expect(error.message).to.match(/Cannot add foreign key constraint/);
             }
 
             break;

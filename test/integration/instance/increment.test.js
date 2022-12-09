@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     }
 
-    if (current.dialect.supports.returnValues.returning) {
+    if (current.dialect.supports.returnValues === 'returning') {
       it('supports returning', async function () {
         const user1 = await this.User.findByPk(1);
         await user1.increment('aNumber', { by: 2 });

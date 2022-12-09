@@ -13,9 +13,7 @@ export class MssqlDialect extends AbstractDialect {
     'DEFAULT VALUES': true,
     'LIMIT ON UPDATE': true,
     migrations: false,
-    returnValues: {
-      output: true,
-    },
+    returnValues: 'output',
     schemas: true,
     multiDatabases: true,
     autoIncrement: {

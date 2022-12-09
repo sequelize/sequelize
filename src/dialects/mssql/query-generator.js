@@ -18,7 +18,7 @@ const _ = require('lodash');
 const DataTypes = require('../../data-types');
 const { TableHints } = require('../../table-hints');
 const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const randomBytes = require('crypto').randomBytes;
+const randomBytes = require('node:crypto').randomBytes;
 const semver = require('semver');
 const { Op } = require('../../operators');
 
@@ -889,112 +889,8 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
 
-    const dbVersion = this.sequelize.options.databaseVersion;
-    const isSQLServer2008 = semver.valid(dbVersion) && semver.lt(dbVersion, '11.0.0');
-
-    if (isSQLServer2008 && options.offset) {
-      // For earlier versions of SQL server, we need to nest several queries
-      // in order to emulate the OFFSET behavior.
-      //
-      // 1. The outermost query selects all items from the inner query block.
-      //    This is due to a limitation in SQL server with the use of computed
-      //    columns (e.g. SELECT ROW_NUMBER()...AS x) in WHERE clauses.
-      // 2. The next query handles the LIMIT and OFFSET behavior by getting
-      //    the TOP N rows of the query where the row number is > OFFSET
-      // 3. The innermost query is the actual set we want information from
-
-      const offset = options.offset || 0;
-      const isSubQuery = options.hasIncludeWhere || options.hasIncludeRequired || options.hasMultiAssociation;
-      let orders = { mainQueryOrder: [] };
-      if (options.order) {
-        orders = this.getQueryOrders(options, model, isSubQuery);
-      }
-
-      if (orders.mainQueryOrder.length === 0) {
-        orders.mainQueryOrder.push(this.quoteIdentifier(model.primaryKeyField));
-      }
-
-      const tmpTable = mainTableAs || 'OffsetTable';
-
-      if (options.include) {
-        const subQuery = options.subQuery === undefined ? options.limit && options.hasMultiAssociation : options.subQuery;
-        const mainTable = {
-          name: mainTableAs,
-          quotedName: null,
-          as: null,
-          model,
-        };
-        const topLevelInfo = {
-          names: mainTable,
-          options,
-          subQuery,
-        };
-
-        let mainJoinQueries = [];
-        for (const include of options.include) {
-          if (include.separate) {
-            continue;
-          }
-
-          const joinQueries = this.generateInclude(include, { externalAs: mainTableAs, internalAs: mainTableAs }, topLevelInfo);
-          mainJoinQueries = mainJoinQueries.concat(joinQueries.mainQuery);
-        }
-
-        return joinSQLFragments([
-          'SELECT TOP 100 PERCENT',
-          attributes.join(', '),
-          'FROM (',
-          [
-            'SELECT',
-            options.limit && `TOP ${options.limit}`,
-            '* FROM (',
-            [
-              'SELECT ROW_NUMBER() OVER (',
-              [
-                'ORDER BY',
-                orders.mainQueryOrder.join(', '),
-              ],
-              `) as row_num, ${tmpTable}.* FROM (`,
-              [
-                'SELECT DISTINCT',
-                `${tmpTable}.* FROM ${tables} AS ${tmpTable}`,
-                mainJoinQueries,
-                where && `WHERE ${where}`,
-              ],
-              `) AS ${tmpTable}`,
-            ],
-            `) AS ${tmpTable} WHERE row_num > ${offset}`,
-          ],
-          `) AS ${tmpTable}`,
-        ]);
-      }
-
-      return joinSQLFragments([
-        'SELECT TOP 100 PERCENT',
-        attributes.join(', '),
-        'FROM (',
-        [
-          'SELECT',
-          options.limit && `TOP ${options.limit}`,
-          '* FROM (',
-          [
-            'SELECT ROW_NUMBER() OVER (',
-            [
-              'ORDER BY',
-              orders.mainQueryOrder.join(', '),
-            ],
-            `) as row_num, * FROM ${tables} AS ${tmpTable}`,
-            where && `WHERE ${where}`,
-          ],
-          `) AS ${tmpTable} WHERE row_num > ${offset}`,
-        ],
-        `) AS ${tmpTable}`,
-      ]);
-    }
-
     return joinSQLFragments([
       'SELECT',
-      isSQLServer2008 && options.limit && `TOP ${options.limit}`,
       attributes.join(', '),
       `FROM ${tables}`,
       mainTableAs && `AS ${mainTableAs}`,
@@ -1003,11 +899,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   addLimitAndOffset(options, model) {
-    // Skip handling of limit and offset as postfixes for older SQL Server versions
-    if (semver.valid(this.sequelize.options.databaseVersion) && semver.lt(this.sequelize.options.databaseVersion, '11.0.0')) {
-      return '';
-    }
-
     const offset = options.offset || 0;
     const isSubQuery = options.subQuery === undefined
       ? options.hasIncludeWhere || options.hasIncludeRequired || options.hasMultiAssociation

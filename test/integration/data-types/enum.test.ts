@@ -1,6 +1,6 @@
+import { expect } from 'chai';
 import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
-import { expect } from 'chai';
 import { beforeEach2, sequelize } from '../support';
 import { testSimpleInOut, testSimpleInOutRaw } from './data-types.test';
 

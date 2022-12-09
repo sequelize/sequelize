@@ -1,5 +1,5 @@
-import { DataTypes, literal } from '@sequelize/core';
 import { expect } from 'chai';
+import { DataTypes, literal } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#updateQuery', () => {

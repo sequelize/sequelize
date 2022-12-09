@@ -1,6 +1,6 @@
 'use strict';
 
-const util = require('util');
+const util = require('node:util');
 const chai = require('chai');
 
 const expect = chai.expect;
