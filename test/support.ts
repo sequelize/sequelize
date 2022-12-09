@@ -361,6 +361,20 @@ export function toMatchSql(sql: string) {
   return new SqlExpectation(sql);
 }
 
+class RegexExpectation extends Expectation<string> {
+  constructor(private readonly regex: RegExp) {
+    super();
+  }
+
+  assert(value: string) {
+    expect(value).to.match(this.regex);
+  }
+}
+
+export function toMatchRegex(regex: RegExp) {
+  return new RegexExpectation(regex);
+}
+
 type HasPropertiesInput<Obj extends Record<string, unknown>> = {
   [K in keyof Obj]?: any | Expectation<Obj[K]> | Error;
 };
@@ -385,7 +399,10 @@ type MaybeLazy<T> = T | (() => T);
 
 export function expectsql(
   query: MaybeLazy<{ query: string, bind: unknown } | Error>,
-  assertions: { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> },
+  assertions: {
+    query: PartialRecord<ExpectationKey, string | Error>,
+    bind: PartialRecord<ExpectationKey, unknown>,
+   },
 ): void;
 export function expectsql(
   query: MaybeLazy<string | Error>,
