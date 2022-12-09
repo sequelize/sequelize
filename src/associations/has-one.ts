@@ -11,9 +11,8 @@ import type {
   Attributes,
 } from '../model';
 import { Op } from '../operators';
-import * as Utils from '../utils';
-import { removeUndefined } from '../utils';
 import { isSameInitialModel } from '../utils/model-utils.js';
+import { cloneDeep, removeUndefined } from '../utils/object.js';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import { BelongsTo } from './belongs-to.js';
@@ -176,7 +175,7 @@ If having two associations does not make sense (for instance a "spouse" associat
     instances: S | S[],
     options?: HasOneGetAssociationMixinOptions<T>,
   ): Promise<Map<any, T | null> | T | null> {
-    options = options ? Utils.cloneDeep(options) : {};
+    options = options ? cloneDeep(options) : {};
 
     let Target = this.target;
     if (options.scope != null) {
@@ -323,7 +322,7 @@ because, as this is a hasOne association, the foreign key we need to update is l
 
     if (this.scope) {
       for (const attribute of Object.keys(this.scope)) {
-        // @ts-expect-error
+        // @ts-expect-error -- TODO: fix the typing of {@link AssociationScope}
         values[attribute] = this.scope[attribute];
         if (options.fields) {
           options.fields.push(attribute);
@@ -331,7 +330,7 @@ because, as this is a hasOne association, the foreign key we need to update is l
       }
     }
 
-    // @ts-expect-error
+    // @ts-expect-error -- implicit any, can't fix
     values[this.foreignKey] = sourceInstance.get(this.sourceKeyAttribute);
     if (options.fields) {
       options.fields.push(this.foreignKey);

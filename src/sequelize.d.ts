@@ -1,3 +1,4 @@
+import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
@@ -22,8 +23,10 @@ import type {
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
-import type { Cast, Col, Fn, Json, Literal, Where } from './utils';
+import type { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method.js';
 import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
+
+export type RetryOptions = RetryAsPromisedOptions;
 
 /**
  * Additional options for table altering during sync
@@ -169,16 +172,6 @@ export interface Config {
 
 export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
 
-export interface RetryOptions {
-  match?: Array<RegExp | string | Function>;
-  max?: number;
-  timeout?: number;
-  backoffBase?: number;
-  backoffExponent?: number;
-  report?(msg: string, options: RetryOptions & { $current: number }): void;
-  name?: string;
-}
-
 /**
  * Options for the constructor of the {@link Sequelize} main class.
  */
@@ -306,6 +299,37 @@ export interface Options extends Logging {
    * @default false
    */
   omitNull?: boolean;
+
+  // TODO: https://github.com/sequelize/sequelize/issues/14298
+  //  Model.init should be able to omit the "sequelize" parameter and only be initialized once passed to a Sequelize instance
+  //  using this option.
+  //  Association definition methods should be able to be used on not-yet-initialized models, and be registered once the
+  //  Sequelize constructor inits.
+  /**
+   * A list of models to load and init.
+   *
+   * This option is only useful if you created your models using decorators.
+   * Models created using {@link Model.init} or {@link Sequelize#define} don't need to be specified in this option.
+   *
+   * Use {@link importModels} to load models dynamically:
+   *
+   * @example
+   * ```ts
+   * import { User } from './models/user.js';
+   *
+   * new Sequelize({
+   *   models: [User],
+   * });
+   * ```
+   *
+   * @example
+   * ```ts
+   * new Sequelize({
+   *   models: await importModels(__dirname + '/*.model.ts'),
+   * });
+   * ```
+   */
+  models?: ModelStatic[];
 
   /**
    * A flag that defines if native library shall be used or not. Currently only has an effect for postgres
@@ -812,7 +836,7 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @param modelName The name of a model defined with Sequelize.define
    */
-  model(modelName: string): ModelStatic<Model>;
+  model<M extends Model = Model>(modelName: string): ModelStatic<M>;
 
   /**
    * Checks whether a model with the given name is defined

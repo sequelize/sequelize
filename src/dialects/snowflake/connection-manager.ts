@@ -7,7 +7,7 @@ import {
   InvalidConnectionError,
 } from '../../errors/index.js';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
-import { isErrorWithStringCode } from '../../utils/index.js';
+import { isErrorWithStringCode } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';

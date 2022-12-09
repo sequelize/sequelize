@@ -61,10 +61,10 @@ export function legacyBuildAddAnyHook<HookConfig extends {}>(
     hooksReworked();
 
     if (hook) {
-      // @ts-expect-error
+      // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
       hookHandlerBuilder.getFor(this).addListener(hookName, hook, listenerNameOrHook);
     } else {
-      // @ts-expect-error
+      // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
       hookHandlerBuilder.getFor(this).addListener(hookName, listenerNameOrHook);
     }
 
@@ -98,10 +98,10 @@ export function legacyBuildAddHook<HookConfig extends {}, HookName extends keyof
     hooksReworked();
 
     if (hook) {
-      // @ts-expect-error
+      // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
       hookHandlerBuilder.getFor(this).addListener(hookName, hook, listenerNameOrHook);
     } else {
-      // @ts-expect-error
+      // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
       return hookHandlerBuilder.getFor(this).addListener(hookName, listenerNameOrHook);
     }
 

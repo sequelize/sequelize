@@ -1,18 +1,20 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
-import { isString } from './utils';
+import { isString } from './utils/check.js';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
+import { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method';
 import { injectReplacements, mapBindParameters } from './utils/sql';
+import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
+import { importModels } from './import-models.js';
 
-const retry = require('retry-as-promised');
 const _ = require('lodash');
-const Utils = require('./utils');
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
 const { Deferrable } = require('./deferrable');
@@ -217,7 +219,7 @@ export class Sequelize extends SequelizeTypeScript {
 
     Sequelize.hooks.runSync('beforeInit', options);
 
-    // @ts-expect-error
+    // @ts-expect-error -- doesn't exist
     if (options.pool === false) {
       throw new Error('Support for pool:false was removed in v4.0');
     }
@@ -412,6 +414,10 @@ export class Sequelize extends SequelizeTypeScript {
     this.models = {};
     this.modelManager = new ModelManager(this);
     this.connectionManager = this.dialect.connectionManager;
+
+    if (options.models) {
+      this.addModels(options.models);
+    }
 
     Sequelize.hooks.runSync('afterInit', this);
   }
@@ -1050,23 +1056,37 @@ Use Sequelize#query if you wish to use replacements.`);
 
   static fn = fn;
 
+  static Fn = Fn;
+
   static col = col;
+
+  static Col = Col;
 
   static cast = cast;
 
+  static Cast = Cast;
+
   static literal = literal;
+
+  static Literal = Literal;
+
+  static json = json;
+
+  static Json = Json;
+
+  static where = where;
+
+  static Where = Where;
 
   static and = and;
 
   static or = or;
 
-  static json = json;
-
-  static where = where;
-
   static isModelStatic = isModelStatic;
 
   static isSameInitialModel = isSameInitialModel;
+
+  static importModels = importModels;
 
   log(...args) {
     let options;
@@ -1185,11 +1205,6 @@ Object.defineProperty(Sequelize, 'version', {
 });
 
 /**
- * @private
- */
-Sequelize.Utils = Utils;
-
-/**
  * Operators symbols to be used for querying data
  *
  * @see  {@link Operators}
@@ -1276,11 +1291,11 @@ Sequelize.Deferrable = Deferrable;
 Sequelize.prototype.Association = Sequelize.Association = Association;
 
 /**
- * Provide alternative version of `inflection` module to be used by `Utils.pluralize` etc.
+ * Provide alternative version of `inflection` module to be used by `pluralize` etc.
  *
  * @param {object} _inflection - `inflection` module
  */
-Sequelize.useInflection = Utils.useInflection;
+Sequelize.useInflection = useInflection;
 
 /**
  * Expose various errors available
@@ -1314,7 +1329,7 @@ for (const error of Object.keys(sequelizeErrors)) {
  * });
  */
 export function fn(fn, ...args) {
-  return new Utils.Fn(fn, args);
+  return new Fn(fn, args);
 }
 
 /**
@@ -1329,7 +1344,7 @@ export function fn(fn, ...args) {
  * @returns {Sequelize.col}
  */
 export function col(col) {
-  return new Utils.Col(col);
+  return new Col(col);
 }
 
 /**
@@ -1343,7 +1358,7 @@ export function col(col) {
  * @returns {Sequelize.cast}
  */
 export function cast(val, type) {
-  return new Utils.Cast(val, type);
+  return new Cast(val, type);
 }
 
 /**
@@ -1356,7 +1371,7 @@ export function cast(val, type) {
  * @returns {Sequelize.literal}
  */
 export function literal(val) {
-  return new Utils.Literal(val);
+  return new Literal(val);
 }
 
 /**
@@ -1402,7 +1417,7 @@ export function or(...args) {
  * @returns {Sequelize.json}
  */
 export function json(conditionsOrPath, value) {
-  return new Utils.Json(conditionsOrPath, value);
+  return new Json(conditionsOrPath, value);
 }
 
 /**
@@ -1421,5 +1436,5 @@ export function json(conditionsOrPath, value) {
  * @since v2.0.0-dev3
  */
 export function where(attr, comparator, logic) {
-  return new Utils.Where(attr, comparator, logic);
+  return new Where(attr, comparator, logic);
 }

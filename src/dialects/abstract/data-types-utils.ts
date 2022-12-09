@@ -1,4 +1,4 @@
-import NodeUtils from 'util';
+import NodeUtils from 'node:util';
 import { BaseError, ValidationErrorItem } from '../../errors/index.js';
 import type { Model } from '../../model.js';
 import type { DataType, DataTypeClass, DataTypeClassOrInstance, DataTypeInstance, ToSqlOptions } from './data-types.js';

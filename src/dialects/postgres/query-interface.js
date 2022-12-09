@@ -1,11 +1,11 @@
 'use strict';
 
 import { Deferrable } from '../../deferrable';
+import { camelizeObjectKeys } from '../../utils/object';
 
 const DataTypes = require('../../data-types');
 const { QueryTypes } = require('../../query-types');
 const { QueryInterface } = require('../abstract/query-interface');
-const Utils = require('../../utils');
 
 /**
  * The interface that Sequelize uses to talk with Postgres database
@@ -163,7 +163,7 @@ export class PostgresQueryInterface extends QueryInterface {
     const result = await this.sequelize.queryRaw(query, queryOptions);
 
     return result.map(fkMeta => {
-      const { initiallyDeferred, isDeferrable, ...remaining } = Utils.camelizeObjectKeys(fkMeta);
+      const { initiallyDeferred, isDeferrable, ...remaining } = camelizeObjectKeys(fkMeta);
 
       return {
         ...remaining,

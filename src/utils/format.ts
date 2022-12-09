@@ -1,13 +1,12 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type {
+  Attributes,
+  BuiltModelAttributeColumnOptions,
   Model,
   ModelStatic,
   WhereOptions,
-  ModelAttributeColumnOptions,
-  Attributes,
-  BuiltModelAttributeColumnOptions,
 } from '..';
 import * as DataTypes from '../data-types';
 import { Op as operators } from '../operators';
@@ -103,7 +102,7 @@ export function mapWhereFieldNames(where: Record<PropertyKey, any>, Model: Model
   const newWhere: Record<PropertyKey, any> = Object.create(null);
   // TODO: note on 'as any[]'; removing the cast causes the following error on attributeNameOrOperator "TS2538: Type 'symbol' cannot be used as an index type."
   for (const attributeNameOrOperator of getComplexKeys(where) as any[]) {
-    const rawAttribute: ModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
+    const rawAttribute: BuiltModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
 
     const columnNameOrOperator: PropertyKey = rawAttribute?.field ?? attributeNameOrOperator;
 
@@ -156,6 +155,17 @@ export function getComplexKeys(obj: object): Array<string | symbol> {
     ...getOperators(obj),
     ...Object.keys(obj),
   ];
+}
+
+/**
+ * getComplexSize
+ *
+ * @param obj
+ * @returns Length of object properties including operators if obj is array returns its length
+ * @private
+ */
+export function getComplexSize(obj: object | any[]): number {
+  return Array.isArray(obj) ? obj.length : getComplexKeys(obj).length;
 }
 
 /**
