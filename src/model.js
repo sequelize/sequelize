@@ -32,7 +32,7 @@ const { QueryTypes } = require('./query-types');
 const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
 const { Op } = require('./operators');
-const { _validateIncludedElements, combineIncludes, throwInvalidInclude, setTransactionFromAls } = require('./model-internals');
+const { _validateIncludedElements, combineIncludes, throwInvalidInclude, setTransactionFromCls } = require('./model-internals');
 const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -1805,7 +1805,7 @@ Specify a different name for either index to resolve this issue.`);
     tableNames[this.getTableName(options)] = true;
     options = cloneDeep(options);
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     _.defaults(options, { hooks: true, model: this });
 
@@ -2120,7 +2120,7 @@ Specify a different name for either index to resolve this issue.`);
     options = cloneDeep(options);
     options = _.defaults(options, { hooks: true });
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     options.raw = true;
     if (options.hooks) {
@@ -2390,7 +2390,7 @@ Specify a different name for either index to resolve this issue.`);
       }
     }
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     const internalTransaction = !options.transaction;
     let values;
@@ -2552,7 +2552,7 @@ Specify a different name for either index to resolve this issue.`);
       ...cloneDeep(options),
     };
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     const createdAtAttr = this._timestampAttributes.createdAt;
     const updatedAtAttr = this._timestampAttributes.updatedAt;
@@ -2657,7 +2657,7 @@ Specify a different name for either index to resolve this issue.`);
     const now = new Date();
     options = cloneDeep(options);
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     options.model = this;
 
@@ -3006,7 +3006,7 @@ Specify a different name for either index to resolve this issue.`);
   static async destroy(options) {
     options = cloneDeep(options);
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     this._injectScope(options);
 
@@ -3100,7 +3100,7 @@ Specify a different name for either index to resolve this issue.`);
       ...options,
     };
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     options.type = QueryTypes.RAW;
     options.model = this;
@@ -3163,7 +3163,7 @@ Specify a different name for either index to resolve this issue.`);
   static async update(values, options) {
     options = cloneDeep(options);
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     this._injectScope(options);
     this._optionsMustContainWhere(options);
@@ -4065,7 +4065,7 @@ Instead of specifying a Model, either:
       validate: true,
     });
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     if (!options.fields) {
       if (this.isNewRecord) {
@@ -4436,7 +4436,7 @@ Instead of specifying a Model, either:
       ...options,
     };
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     // Run before hook
     if (options.hooks) {
@@ -4513,7 +4513,7 @@ Instead of specifying a Model, either:
       ...options,
     };
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     // Run before hook
     if (options.hooks) {

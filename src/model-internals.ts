@@ -147,8 +147,8 @@ export function throwInvalidInclude(include: any): never {
 Got ${NodeUtil.inspect(include)} instead`);
 }
 
-export function setTransactionFromAls(options: Transactionable, sequelize: Sequelize): void {
+export function setTransactionFromCls(options: Transactionable, sequelize: Sequelize): void {
   if (options.transaction === undefined) {
-    options.transaction = sequelize.getCurrentAlsTransaction();
+    options.transaction = sequelize.getCurrentClsTransaction();
   }
 }

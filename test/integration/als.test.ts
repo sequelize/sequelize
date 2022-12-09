@@ -20,7 +20,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
 
   const vars = beforeAll2(async () => {
     const alsSequelize = await prepareTransactionTest(createSequelizeInstance({
-      disableAlsTransactions: false,
+      disableClsTransactions: false,
     }));
 
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -40,7 +40,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
       const transaction = await vars.alsSequelize.startUnmanagedTransaction();
 
       try {
-        expect(vars.alsSequelize.getCurrentAlsTransaction()).to.equal(undefined);
+        expect(vars.alsSequelize.getCurrentClsTransaction()).to.equal(undefined);
       } finally {
         await transaction.rollback();
       }
@@ -51,10 +51,10 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
       let t2id;
       await Promise.all([
         vars.alsSequelize.transaction(async () => {
-          t1id = vars.alsSequelize.getCurrentAlsTransaction()!.id;
+          t1id = vars.alsSequelize.getCurrentClsTransaction()!.id;
         }),
         vars.alsSequelize.transaction(async () => {
-          t2id = vars.alsSequelize.getCurrentAlsTransaction()!.id;
+          t2id = vars.alsSequelize.getCurrentClsTransaction()!.id;
         }),
       ]);
       expect(t1id).to.be.ok;
@@ -64,12 +64,12 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
 
     it('supports nested promise chains', async () => {
       await vars.alsSequelize.transaction(async () => {
-        const tid = vars.alsSequelize.getCurrentAlsTransaction()!.id;
+        const tid = vars.alsSequelize.getCurrentClsTransaction()!.id;
 
         await vars.User.findAll();
 
-        expect(vars.alsSequelize.getCurrentAlsTransaction()!.id).to.be.ok;
-        expect(vars.alsSequelize.getCurrentAlsTransaction()!.id).to.equal(tid);
+        expect(vars.alsSequelize.getCurrentClsTransaction()!.id).to.be.ok;
+        expect(vars.alsSequelize.getCurrentClsTransaction()!.id).to.equal(tid);
       });
     });
 
@@ -83,7 +83,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
       const alsTask = vars.alsSequelize.transaction(async () => {
         transactionSetup = true;
         await delay(500);
-        expect(vars.alsSequelize.getCurrentAlsTransaction()).to.be.ok;
+        expect(vars.alsSequelize.getCurrentClsTransaction()).to.be.ok;
         transactionEnded = true;
       });
 
@@ -98,7 +98,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
       });
       expect(transactionEnded).not.to.be.ok;
 
-      expect(vars.alsSequelize.getCurrentAlsTransaction()).not.to.be.ok;
+      expect(vars.alsSequelize.getCurrentClsTransaction()).not.to.be.ok;
 
       // Just to make sure it didn't change between our last check and the assertion
       expect(transactionEnded).not.to.be.ok;
@@ -107,7 +107,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
 
     it('does not leak variables to the following promise chain', async () => {
       await vars.alsSequelize.transaction(() => {});
-      expect(vars.alsSequelize.getCurrentAlsTransaction()).not.to.be.ok;
+      expect(vars.alsSequelize.getCurrentClsTransaction()).not.to.be.ok;
     });
 
     it('does not leak outside findOrCreate', async () => {
@@ -155,7 +155,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
     await vars.alsSequelize.transaction(async t => {
       await vars.alsSequelize.query('select 1', { type: QueryTypes.SELECT });
 
-      return expect(vars.alsSequelize.getCurrentAlsTransaction()).to.equal(t);
+      return expect(vars.alsSequelize.getCurrentClsTransaction()).to.equal(t);
     });
   });
 
