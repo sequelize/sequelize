@@ -172,7 +172,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    * @param options
    */
   async getConnection(options?: GetConnectionOptions) {
-    await this.#initDatabaseVersion();
+    await this._initDatabaseVersion();
 
     try {
       const result = await this.pool.acquire(options?.type, options?.useMaster);
@@ -189,8 +189,8 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     }
   }
 
-  async #initDatabaseVersion() {
-    if (this.sequelize.options.databaseVersion !== 0) {
+  async _initDatabaseVersion(conn?: TConnection) {
+    if (this.sequelize.options.databaseVersion != null) {
       return;
     }
 
@@ -203,7 +203,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     // TODO: move to sequelize.queryRaw instead?
     this.#versionPromise = (async () => {
       try {
-        const connection = await this._connect(this.config.replication.write || this.config);
+        const connection = conn ?? await this._connect(this.config.replication.write || this.config);
 
         // connection might have set databaseVersion value at initialization,
         // avoiding a useless round trip
@@ -216,15 +216,15 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
           transaction: { connection },
         };
 
-        const version = await this.sequelize.databaseVersion(options);
+        const version = await this.sequelize.fetchDatabaseVersion(options);
         const parsedVersion = semver.coerce(version)?.version || version;
         this.sequelize.options.databaseVersion = semver.valid(parsedVersion)
           ? parsedVersion
           : this.dialect.defaultVersion;
 
-        if (semver.lt(this.sequelize.options.databaseVersion, this.dialect.defaultVersion)) {
+        if (semver.lt(this.sequelize.getDatabaseVersion(), this.dialect.defaultVersion)) {
           deprecations.unsupportedEngine();
-          debug(`Unsupported database engine version ${this.sequelize.options.databaseVersion}`);
+          debug(`Unsupported database engine version ${this.sequelize.getDatabaseVersion()}`);
         }
 
         return await this._disconnect(connection);
