@@ -640,9 +640,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             for (const option of Object.keys(customAttributes[attribute])) {
               const optionValue = customAttributes[attribute][option];
               if (typeof optionValue === 'function' && optionValue() instanceof DataTypes.ABSTRACT) {
-                expect(Picture.rawAttributes[attribute][option] instanceof optionValue).to.be.ok;
+                expect(Picture.getAttributes()[attribute][option] instanceof optionValue).to.be.ok;
               } else {
-                expect(Picture.rawAttributes[attribute][option]).to.be.equal(optionValue);
+                expect(Picture.getAttributes()[attribute][option]).to.be.equal(optionValue);
               }
             }
           }

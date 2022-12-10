@@ -515,7 +515,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }
 
-      template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
         template += ` (${this.quoteIdentifier(attribute.references.key)})`;

@@ -163,12 +163,15 @@ export class Db2QueryInterface extends QueryInterface {
       attribute => this.sequelize.normalizeAttribute(attribute),
     );
 
+    const modelTable = model?.table;
+
     if (
       !tableName.schema
-      && (options.schema || Boolean(model) && model._schema)
+      && (options.schema || modelTable?.schema)
     ) {
       tableName = this.queryGenerator.extractTableDetails(tableName);
-      tableName.schema = Boolean(model) && model._schema || options.schema || tableName.schema;
+      tableName.schema = modelTable?.schema || options.schema;
+      tableName.schema = modelTable?.schema || options.schema || tableName.schema;
     }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable', withoutForeignKeyConstraints: options.withoutForeignKeyConstraints });

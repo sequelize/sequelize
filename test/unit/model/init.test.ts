@@ -11,8 +11,4 @@ describe('Uninitialized model', () => {
   it('throws when .sequelize is accessed', () => {
     expect(() => Test.sequelize).to.throw(/has not been initialized/);
   });
-
-  it('does not throw if the method does not need Sequelize', () => {
-    expect(() => Test.beforeCreate(() => {})).not.to.throw();
-  });
 });

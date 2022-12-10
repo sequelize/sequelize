@@ -1,10 +1,12 @@
-import type { ModelAttributeColumnOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';
+import type { ModelHooks } from '../../model-hooks.js';
+import { initModel } from '../../model-typescript.js';
+import type { AttributeOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { getAllOwnEntries } from '../../utils/object.js';
 
 interface RegisteredOptions {
   model: ModelOptions;
-  attributes: { [key: string]: Partial<ModelAttributeColumnOptions> };
+  attributes: { [key: string]: Partial<AttributeOptions> };
 }
 
 const registeredOptions = new WeakMap<ModelStatic, RegisteredOptions>();
@@ -27,7 +29,7 @@ export function registerModelOptions(
     return;
   }
 
-  // merge-able: scopes, indexes, setterMethods, getterMethods
+  // merge-able: scopes, indexes
   const existingModelOptions = registeredOptions.get(model)!.model;
 
   for (const [optionName, optionValue] of Object.entries(options)) {
@@ -38,7 +40,7 @@ export function registerModelOptions(
     }
 
     // These are objects. We merge their properties, unless the same key is used in both values.
-    if (optionName === 'scopes' || optionName === 'setterMethods' || optionName === 'getterMethods' || optionName === 'validate') {
+    if (optionName === 'scopes' || optionName === 'validate') {
       for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
         if (subOptionName in existingModelOptions[optionName]!) {
           throw new Error(`Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] on model ${model.name}.`);
@@ -46,6 +48,30 @@ export function registerModelOptions(
 
         // @ts-expect-error -- runtime type checking is enforced by model
         existingModelOptions[optionName][subOptionName] = subOptionValue;
+      }
+
+      continue;
+    }
+
+    if (optionName === 'hooks') {
+      const existingHooks = existingModelOptions.hooks!;
+      for (const hookType of Object.keys(optionValue) as Array<keyof ModelHooks>) {
+        if (!existingHooks[hookType]) {
+          // @ts-expect-error -- type is too complex for typescript
+          existingHooks[hookType] = optionValue[hookType];
+          continue;
+        }
+
+        const existingHooksOfType = Array.isArray(existingHooks[hookType])
+          ? existingHooks[hookType]
+          : [existingHooks[hookType]];
+
+        if (!Array.isArray(optionValue[hookType])) {
+          // @ts-expect-error -- typescript doesn't like this merge algorithm.
+          optionValue[hookType] = [...existingHooksOfType, optionValue[hookType]];
+        } else {
+          existingHooks[hookType] = [...existingHooksOfType, ...optionValue[hookType]];
+        }
       }
 
       continue;
@@ -78,7 +104,7 @@ export function registerModelOptions(
 export function registerModelAttributeOptions(
   model: ModelStatic,
   attributeName: string,
-  options: Partial<ModelAttributeColumnOptions>,
+  options: Partial<AttributeOptions>,
 ): void {
   if (!registeredOptions.has(model)) {
     registeredOptions.set(model, {
@@ -151,9 +177,7 @@ export function registerModelAttributeOptions(
 export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): void {
   const { model: modelOptions, attributes: attributeOptions } = registeredOptions.get(model) ?? {};
 
-  // model.init will ensure all required attributeOptions have been specified.
-  // @ts-expect-error -- secret method
-  model._internalInit(attributeOptions as ModelAttributes, {
+  initModel(model, attributeOptions as ModelAttributes, {
     ...modelOptions,
     sequelize,
   });

@@ -337,7 +337,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
         }
 
         if (dataType.references) {
-          const referencesTable = this.quoteTable(dataType.references.model);
+          const referencesTable = this.quoteTable(dataType.references.table);
 
           let referencesKey;
           if (dataType.references.key) {

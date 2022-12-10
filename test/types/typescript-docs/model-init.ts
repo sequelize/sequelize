@@ -101,8 +101,6 @@ Project.init(
       type: new DataTypes.STRING(128),
       allowNull: false,
     },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE,
   },
   {
     sequelize,
@@ -125,8 +123,6 @@ User.init(
       type: new DataTypes.STRING(128),
       allowNull: true,
     },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE,
   },
   {
     tableName: 'users',
@@ -140,8 +136,6 @@ Address.init(
       type: new DataTypes.STRING(128),
       allowNull: false,
     },
-    createdAt: DataTypes.DATE,
-    updatedAt: DataTypes.DATE,
   },
   {
     tableName: 'address',

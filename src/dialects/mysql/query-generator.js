@@ -442,7 +442,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
         template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
       }
 
-      template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
         template += ` (${this.quoteIdentifier(attribute.references.key)})`;

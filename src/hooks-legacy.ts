@@ -1,4 +1,4 @@
-import type { HookHandlerBuilder } from './hooks.js';
+import type { HookHandlerBuilder, HookHandler } from './hooks.js';
 import { hooksReworked } from './utils/deprecations.js';
 
 // TODO: delete this in Sequelize v8
@@ -13,11 +13,12 @@ export interface LegacyRunHookFunction<HookConfig extends {}, Return> {
 }
 
 export function legacyBuildRunHook<HookConfig extends {}>(
-  hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
+  // added for typing purposes
+  _hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
 ): LegacyRunHookFunction<HookConfig, void> {
 
   return async function runHooks<HookName extends keyof HookConfig>(
-    this: object,
+    this: { hooks: HookHandler<HookConfig> },
     hookName: HookName,
     ...args: HookConfig[HookName] extends (...args2: any) => any
       ? Parameters<HookConfig[HookName]>
@@ -25,7 +26,7 @@ export function legacyBuildRunHook<HookConfig extends {}>(
   ): Promise<void> {
     hooksReworked();
 
-    return hookHandlerBuilder.getFor(this).runAsync(hookName, ...args);
+    return this.hooks.runAsync(hookName, ...args);
   };
 }
 
@@ -49,10 +50,11 @@ export interface LegacyAddAnyHookFunction<HookConfig extends {}> {
 }
 
 export function legacyBuildAddAnyHook<HookConfig extends {}>(
-  hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
+  // added for typing purposes
+  _hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
 ): LegacyAddAnyHookFunction<HookConfig> {
 
-  return function addHook<This extends object, HookName extends keyof HookConfig>(
+  return function addHook<This extends { hooks: HookHandler<HookConfig> }, HookName extends keyof HookConfig>(
     this: This,
     hookName: HookName,
     listenerNameOrHook: HookConfig[HookName] | string,
@@ -62,10 +64,10 @@ export function legacyBuildAddAnyHook<HookConfig extends {}>(
 
     if (hook) {
       // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
-      hookHandlerBuilder.getFor(this).addListener(hookName, hook, listenerNameOrHook);
+      this.hooks.addListener(hookName, hook, listenerNameOrHook);
     } else {
       // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
-      hookHandlerBuilder.getFor(this).addListener(hookName, listenerNameOrHook);
+      this.hooks.addListener(hookName, listenerNameOrHook);
     }
 
     return this;
@@ -90,7 +92,7 @@ export function legacyBuildAddHook<HookConfig extends {}, HookName extends keyof
   hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
   hookName: HookName,
 ): LegacyAddHookFunction<HookConfig[HookName]> {
-  return function addHook<This extends object>(
+  return function addHook<This extends { hooks: HookHandler<HookConfig> }>(
     this: This,
     listenerNameOrHook: HookConfig[HookName] | string,
     hook?: HookConfig[HookName],
@@ -99,32 +101,41 @@ export function legacyBuildAddHook<HookConfig extends {}, HookName extends keyof
 
     if (hook) {
       // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
-      hookHandlerBuilder.getFor(this).addListener(hookName, hook, listenerNameOrHook);
+      this.hooks.addListener(hookName, hook, listenerNameOrHook);
     } else {
       // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
-      return hookHandlerBuilder.getFor(this).addListener(hookName, listenerNameOrHook);
+      this.hooks.addListener(hookName, listenerNameOrHook);
     }
 
     return this;
   };
 }
 
-export function legacyBuildHasHook<HookConfig extends {}>(hookHandlerBuilder: HookHandlerBuilder<HookConfig>) {
-  return function hasHook<HookName extends keyof HookConfig>(this: object, hookName: HookName): boolean {
+export function legacyBuildHasHook<HookConfig extends {}>(
+  // added for typing purposes
+  _hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
+) {
+  return function hasHook<HookName extends keyof HookConfig>(
+    this: { hooks: HookHandler<HookConfig> },
+    hookName: HookName,
+  ): boolean {
     hooksReworked();
 
-    return hookHandlerBuilder.getFor(this).hasListeners(hookName);
+    return this.hooks.hasListeners(hookName);
   };
 }
 
-export function legacyBuildRemoveHook<HookConfig extends {}>(hookHandlerBuilder: HookHandlerBuilder<HookConfig>) {
+export function legacyBuildRemoveHook<HookConfig extends {}>(
+  // added for typing purposes
+  _hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
+) {
   return function removeHook<HookName extends keyof HookConfig>(
-    this: object,
+    this: { hooks: HookHandler<HookConfig> },
     hookName: HookName,
     listenerNameOrListener: HookConfig[HookName] | string,
   ): void {
     hooksReworked();
 
-    return hookHandlerBuilder.getFor(this).removeListener(hookName, listenerNameOrListener);
+    return this.hooks.removeListener(hookName, listenerNameOrListener);
   };
 }

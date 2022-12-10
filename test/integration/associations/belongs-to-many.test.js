@@ -5,7 +5,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
-const omit = require('lodash/omit');
 const assert = require('node:assert');
 const sinon = require('sinon');
 const { resetSequelizeInstance } = require('../../support');
@@ -71,7 +70,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('gets all associated objects with all fields', async function () {
       const john = await this.User.findOne({ where: { username: 'John' } });
       const tasks = await john.getTasks();
-      for (const attr of Object.keys(tasks[0].rawAttributes)) {
+      for (const attr of Object.keys(tasks[0].getAttributes())) {
         expect(tasks[0]).to.have.property(attr);
       }
     });
@@ -2381,7 +2380,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       User.belongsToMany(Place, { through: 'user_places' });
       Place.belongsToMany(User, { through: 'user_places' });
 
-      const attributes = this.sequelize.model('user_places').rawAttributes;
+      const attributes = this.sequelize.model('user_places').getAttributes();
 
       expect(attributes.PlaceId.field).to.equal('PlaceId');
       expect(attributes.UserId.field).to.equal('UserId');
@@ -2634,19 +2633,21 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
-          }, username: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE,
+          },
+          username: DataTypes.STRING,
         });
         await this.sequelize.queryInterface.createTable('tasks', {
           id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
-          }, title: DataTypes.STRING, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE,
+          },
+          title: DataTypes.STRING,
         });
 
         return this.sequelize.queryInterface.createTable(
           'users_tasks',
-          { TaskId: DataTypes.INTEGER, UserId: DataTypes.INTEGER, createdAt: DataTypes.DATE, updatedAt: DataTypes.DATE },
+          { TaskId: DataTypes.INTEGER, UserId: DataTypes.INTEGER },
         );
       });
 
@@ -3122,8 +3123,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { as: 'MyUsers', through: 'group_user' });
 
       expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId).to.exist;
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId).to.exist;
+      expect(Group.associations.MyUsers.through.model.getAttributes().UserId).to.exist;
+      expect(Group.associations.MyUsers.through.model.getAttributes().GroupId).to.exist;
     });
 
     it('correctly identifies its counterpart when through is a model', function () {
@@ -3136,8 +3137,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
 
-      expect(Group.associations.MyUsers.through.model.rawAttributes.UserId).to.exist;
-      expect(Group.associations.MyUsers.through.model.rawAttributes.GroupId).to.exist;
+      expect(Group.associations.MyUsers.through.model.getAttributes().UserId).to.exist;
+      expect(Group.associations.MyUsers.through.model.getAttributes().GroupId).to.exist;
     });
   });
 
@@ -3290,8 +3291,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       this.User.belongsToMany(this.Task, { foreignKeyConstraints: false, through: 'tasksusers', inverse: { foreignKeyConstraints: false } });
 
       const Through = this.sequelize.model('tasksusers');
-      expect(Through.rawAttributes.taskId.references).to.eq(undefined, 'Attribute taskId should not be a foreign key');
-      expect(Through.rawAttributes.userId.references).to.eq(undefined, 'Attribute userId should not be a foreign key');
+      expect(Through.getAttributes().taskId.references).to.eq(undefined, 'Attribute taskId should not be a foreign key');
+      expect(Through.getAttributes().userId.references).to.eq(undefined, 'Attribute userId should not be a foreign key');
 
       await this.sequelize.sync({ force: true });
 
@@ -3337,13 +3338,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           foreignKey: { name: 'user_id', defaultValue: 42 },
           through: 'UserProjects',
         });
-        expect(UserProjects.through.model.rawAttributes.user_id).to.be.ok;
-        const targetTable = UserProjects.through.model.rawAttributes.user_id.references.model;
+        expect(UserProjects.through.model.getAttributes().user_id).to.be.ok;
+        const targetTable = UserProjects.through.model.getAttributes().user_id.references.table;
         assert(typeof targetTable === 'object');
 
-        expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
-        expect(UserProjects.through.model.rawAttributes.user_id.references.key).to.equal('uid');
-        expect(UserProjects.through.model.rawAttributes.user_id.defaultValue).to.equal(42);
+        expect(targetTable).to.deep.equal(User.table);
+        expect(UserProjects.through.model.getAttributes().user_id.references.key).to.equal('uid');
+        expect(UserProjects.through.model.getAttributes().user_id.defaultValue).to.equal(42);
       });
     });
 

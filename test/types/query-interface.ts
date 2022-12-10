@@ -20,7 +20,7 @@ async function test() {
         onUpdate: 'CASCADE',
         references: {
           key: 'id',
-          model: 'another_table_name',
+          tableName: 'another_table_name',
         },
         type: DataTypes.INTEGER,
       },
@@ -29,20 +29,14 @@ async function test() {
         onUpdate: 'CASCADE',
         references: {
           key: 'id',
-          model: { schema: '<schema>', tableName: 'another_table_name' },
+          tableName: { schema: '<schema>', tableName: 'another_table_name' },
         },
         type: DataTypes.INTEGER,
-      },
-      createdAt: {
-        type: DataTypes.DATE,
       },
       id: {
         autoIncrement: true,
         primaryKey: true,
         type: DataTypes.INTEGER,
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
       },
     },
     {

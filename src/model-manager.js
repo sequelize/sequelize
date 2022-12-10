@@ -30,6 +30,10 @@ export class ModelManager {
     return this.models.find(model => model[options.attribute] === against);
   }
 
+  hasModel(targetModel) {
+    return this.models.includes(targetModel);
+  }
+
   get all() {
     return this.models;
   }
@@ -55,19 +59,19 @@ export class ModelManager {
 
       models.set(tableName, model);
 
-      for (const attrName in model.rawAttributes) {
-        if (Object.prototype.hasOwnProperty.call(model.rawAttributes, attrName)) {
-          const attribute = model.rawAttributes[attrName];
+      const { attributes } = model.modelDefinition;
+      for (const attrName of attributes.keys()) {
+        const attribute = attributes.get(attrName);
 
-          if (attribute.references) {
-            let dep = attribute.references.model;
+        if (attribute.references) {
+          let dep = attribute.references.tableName;
 
-            if (_.isObject(dep)) {
-              dep = `${dep.schema}.${dep.tableName}`;
-            }
-
-            deps.push(dep);
+          if (_.isObject(dep)) {
+            // TODO: use quoteTable instead, as table names could include "." as well
+            dep = `${dep.schema}.${dep.tableName}`;
           }
+
+          deps.push(dep);
         }
       }
 

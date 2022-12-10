@@ -1,4 +1,4 @@
-import type { ModelAttributeColumnOptions, ModelStatic } from '../../model.js';
+import type { AttributeOptions, ModelStatic } from '../../model.js';
 import { Model } from '../../model.js';
 import { registerModelAttributeOptions } from '../shared/model.js';
 import type {
@@ -25,7 +25,7 @@ export function createRequiredAttributeOptionsDecorator<T>(
     target: Object,
     propertyName: string | symbol,
     propertyDescriptor: PropertyDescriptor | undefined,
-  ) => Partial<ModelAttributeColumnOptions>,
+  ) => Partial<AttributeOptions>,
 ): RequiredParameterizedPropertyDecorator<T> {
   return createOptionalAttributeOptionsDecorator(decoratorName, DECORATOR_NO_DEFAULT, callback);
 }
@@ -45,7 +45,7 @@ export function createOptionalAttributeOptionsDecorator<T>(
     target: Object,
     propertyName: string | symbol,
     propertyDescriptor: PropertyDescriptor | undefined,
-  ) => Partial<ModelAttributeColumnOptions>,
+  ) => Partial<AttributeOptions>,
 ): OptionalParameterizedPropertyDecorator<T> {
   return createOptionallyParameterizedPropertyDecorator(
     decoratorName,
@@ -63,7 +63,7 @@ function annotate(
   target: Object,
   propertyName: string | symbol,
   propertyDescriptor: PropertyDescriptor | undefined,
-  options: Partial<ModelAttributeColumnOptions>,
+  options: Partial<AttributeOptions>,
 ): void {
   if (typeof propertyName === 'symbol') {
     throw new TypeError('Symbol Model Attributes are not currently supported. We welcome a PR that implements this feature.');

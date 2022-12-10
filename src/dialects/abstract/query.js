@@ -309,7 +309,7 @@ export class AbstractQuery {
         continue;
       }
 
-      const attribute = model?.rawAttributes[key];
+      const attribute = model?.modelDefinition.attributes.get(key);
       values[key] = this._parseDatabaseValue(values[key], attribute?.type);
     }
 

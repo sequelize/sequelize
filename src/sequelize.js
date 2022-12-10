@@ -282,6 +282,11 @@ export class Sequelize extends SequelizeTypeScript {
       this.options.dialect = 'postgres';
     }
 
+    //     if (this.options.define.hooks) {
+    //       throw new Error(`The "define" Sequelize option cannot be used to add hooks to all models. Please remove the "hooks" property from the "define" option you passed to the Sequelize constructor.
+    // Instead of using this option, you can listen to the same event on all models by adding the listener to the Sequelize instance itself, since all model hooks are forwarded to the Sequelize instance.`);
+    //     }
+
     if (this.options.logging === true) {
       deprecations.noTrueLogging();
       this.options.logging = console.debug;
@@ -485,7 +490,7 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * sequelize.models.modelName // The model will now be available in models under the name given to define
    */
-  define(modelName, attributes, options = {}) {
+  define(modelName, attributes = {}, options = {}) {
     options.modelName = modelName;
     options.sequelize = this;
 
@@ -646,7 +651,8 @@ Use Sequelize#query if you wish to use replacements.`);
 
     // map raw fields to model attributes
     if (options.mapToModel) {
-      options.fieldMap = _.get(options, 'model.fieldAttributeMap', {});
+      // TODO: throw if model is not specified
+      options.fieldMap = options.model?.fieldAttributeMap;
     }
 
     options = _.defaults(options, {
@@ -1190,12 +1196,6 @@ Remove the "values" property to resolve this issue.
     }
 
     attribute.type = this.normalizeDataType(attribute.type);
-
-    if (Object.prototype.hasOwnProperty.call(attribute, 'defaultValue') && typeof attribute.defaultValue === 'function'
-        && [DataTypes.NOW, DataTypes.UUIDV1, DataTypes.UUIDV4].includes(attribute.defaultValue)
-    ) {
-      attribute.defaultValue = new attribute.defaultValue();
-    }
 
     return attribute;
   }

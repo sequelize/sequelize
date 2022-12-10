@@ -1,5 +1,5 @@
 import type { Optional } from '../index.js';
-import type { Model, ModelStatic, Hookable, AttributeNames, ModelAttributeColumnOptions } from '../model';
+import type { Model, ModelStatic, Hookable, AttributeNames, AttributeOptions } from '../model';
 import { cloneDeep } from '../utils/object.js';
 import type { AllowArray } from '../utils/types.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
@@ -221,6 +221,7 @@ export abstract class MultiAssociation<
       }
 
       const tmpInstance = Object.create(null);
+      // @ts-expect-error -- TODO: what if the target has no primary key?
       tmpInstance[this.target.primaryKeyAttribute] = element;
 
       return this.target.build(tmpInstance, { isNewRecord: false });
@@ -248,11 +249,11 @@ export type MultiAssociationAccessors = {
 };
 
 /** Foreign Key Options */
-export interface ForeignKeyOptions<ForeignKey extends string> extends Optional<ModelAttributeColumnOptions, 'type'> {
+export interface ForeignKeyOptions<ForeignKey extends string> extends Optional<AttributeOptions, 'type'> {
   /**
    * The name of the foreign key attribute.
    *
-   * Not to be confused with {@link ModelAttributeColumnOptions#field} which controls the name of the foreign key Column.
+   * Not to be confused with {@link AttributeOptions#columnName} which controls the name of the foreign key Column.
    */
   name?: ForeignKey;
 

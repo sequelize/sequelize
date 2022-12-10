@@ -86,3 +86,5 @@ export const BeforeUpdate = Pkg.BeforeUpdate;
 export const BeforeUpsert = Pkg.BeforeUpsert;
 export const BeforeValidate = Pkg.BeforeValidate;
 export const ValidationFailed = Pkg.ValidationFailed;
+export const BeforeDefinitionRefresh = Pkg.BeforeDefinitionRefresh;
+export const AfterDefinitionRefresh = Pkg.AfterDefinitionRefresh;

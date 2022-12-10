@@ -70,17 +70,17 @@ describe(`@Table legacy decorator`, () => {
 
     expect(User.getIndexes()).to.deep.equal([
       {
+        column: 'createdAt',
+        customIndex: false,
         fields: ['createdAt'],
         name: 'users_created_at',
-        parser: null,
-        type: '',
       },
       {
+        column: 'id',
+        customIndex: true,
         fields: ['id'],
         unique: true,
         name: 'users_id_unique',
-        parser: null,
-        type: '',
       },
     ]);
   });
@@ -118,54 +118,6 @@ describe(`@Table legacy decorator`, () => {
           scope1: {},
         },
       })
-      class User extends Model {}
-
-      return User;
-    }).to.throw();
-  });
-
-  it('merges setterMethods', () => {
-    function one() {}
-
-    function two() {}
-
-    @Table({ setterMethods: { one } })
-    @Table({ setterMethods: { two } })
-    class User extends Model {}
-
-    sequelize.addModels([User]);
-
-    expect(User.options.setterMethods).to.deep.equal({ one, two });
-  });
-
-  it('rejects conflicting setterMethods', () => {
-    expect(() => {
-      @Table({ setterMethods: { one: () => {} } })
-      @Table({ setterMethods: { one: () => {} } })
-      class User extends Model {}
-
-      return User;
-    }).to.throw();
-  });
-
-  it('merges getterMethods', () => {
-    function one() {}
-
-    function two() {}
-
-    @Table({ getterMethods: { one } })
-    @Table({ getterMethods: { two } })
-    class User extends Model {}
-
-    sequelize.addModels([User]);
-
-    expect(User.options.getterMethods).to.deep.equal({ one, two });
-  });
-
-  it('rejects conflicting getterMethods', () => {
-    expect(() => {
-      @Table({ getterMethods: { one: () => {} } })
-      @Table({ getterMethods: { one: () => {} } })
       class User extends Model {}
 
       return User;

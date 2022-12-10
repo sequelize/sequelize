@@ -33,22 +33,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         it('properly quotes both the schema and the enum name', () => {
-          expect(sql.pgEnumName(PublicUser.getTableName(), 'mood', PublicUser.rawAttributes.mood.type))
+          expect(sql.pgEnumName(PublicUser.getTableName(), 'mood', PublicUser.getAttributes().mood.type))
             .to.equal('"public"."enum_users_mood"');
-          expect(sql.pgEnumName(FooUser.getTableName(), 'theirMood', FooUser.rawAttributes.mood.type))
+          expect(sql.pgEnumName(FooUser.getTableName(), 'theirMood', FooUser.getAttributes().mood.type))
             .to.equal('"foo"."enum_users_theirMood"');
         });
       });
 
       describe('pgEnum', () => {
         it('uses schema #3171', () => {
-          expectsql(sql.pgEnum(FooUser.getTableName(), 'mood', FooUser.rawAttributes.mood.type), {
+          expectsql(sql.pgEnum(FooUser.getTableName(), 'mood', FooUser.getAttributes().mood.type), {
             postgres: 'CREATE TYPE "foo"."enum_users_mood" AS ENUM(\'happy\', \'sad\');',
           });
         });
 
         it('does add schema when public', () => {
-          expectsql(sql.pgEnum(PublicUser.getTableName(), 'theirMood', PublicUser.rawAttributes.mood.type), {
+          expectsql(sql.pgEnum(PublicUser.getTableName(), 'theirMood', PublicUser.getAttributes().mood.type), {
             postgres: 'CREATE TYPE "public"."enum_users_theirMood" AS ENUM(\'happy\', \'sad\');',
           });
         });

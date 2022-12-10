@@ -1,6 +1,7 @@
 'use strict';
 
 import { underscore } from 'inflection';
+import { conformIndex } from '../../model-internals';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
 import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
@@ -417,7 +418,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       options = nameIndex(options, options.prefix);
     }
 
-    options = Model._conformIndex(options);
+    options = conformIndex(options);
 
     if (!this.dialect.supports.index.type) {
       delete options.type;
@@ -693,7 +694,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         template += ` ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }
 
-      template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
         template += ` (${this.quoteIdentifier(attribute.references.key)})`;

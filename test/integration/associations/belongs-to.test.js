@@ -6,7 +6,6 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
-const omit = require('lodash/omit');
 const assert = require('node:assert');
 
 const current = Support.sequelize;
@@ -374,8 +373,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       User.belongsTo(Account);
 
-      expect(User.rawAttributes.AccountId).to.exist;
-      expect(User.rawAttributes.AccountId.field).to.equal('account_id');
+      expect(User.getAttributes().AccountId).to.exist;
+      expect(User.getAttributes().AccountId.field).to.equal('account_id');
     });
 
     it('should use model name when using camelcase', function () {
@@ -384,8 +383,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       User.belongsTo(Account);
 
-      expect(User.rawAttributes.AccountId).to.exist;
-      expect(User.rawAttributes.AccountId.field).to.equal('AccountId');
+      expect(User.getAttributes().AccountId).to.exist;
+      expect(User.getAttributes().AccountId.field).to.equal('AccountId');
     });
 
     it('should support specifying the field of a foreign key', async function () {
@@ -399,8 +398,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         },
       });
 
-      expect(User.rawAttributes.AccountId).to.exist;
-      expect(User.rawAttributes.AccountId.field).to.equal('account_id');
+      expect(User.getAttributes().AccountId).to.exist;
+      expect(User.getAttributes().AccountId.field).to.equal('account_id');
 
       await Account.sync({ force: true });
       // Can't use Promise.all cause of foreign key references
@@ -660,7 +659,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       User.belongsTo(Group);
 
       await this.sequelize.sync({ force: true });
-      expect(User.rawAttributes.GroupPKBTName.type).to.an.instanceof(DataTypes.STRING);
+      expect(User.getAttributes().GroupPKBTName.type).to.an.instanceof(DataTypes.STRING);
     });
 
     it('should support a non-primary key as the association column on a target without a primary key', async function () {
@@ -794,7 +793,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       await this.sequelize.sync({ force: true });
       for (const dataType of dataTypes) {
-        expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
+        expect(Tasks[dataType].getAttributes().userId.type).to.be.an.instanceof(dataType);
       }
     });
 
@@ -810,14 +809,14 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           },
         });
 
-        expect(Task.rawAttributes.uid).to.be.ok;
-        expect(Task.rawAttributes.uid.allowNull).to.be.false;
-        const targetTable = Task.rawAttributes.uid.references.model;
+        expect(Task.getAttributes().uid).to.be.ok;
+        expect(Task.getAttributes().uid.allowNull).to.be.false;
+        const targetTable = Task.getAttributes().uid.references.table;
         assert(typeof targetTable === 'object');
 
-        expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
+        expect(targetTable).to.deep.equal(User.table);
 
-        expect(Task.rawAttributes.uid.references.key).to.equal('id');
+        expect(Task.getAttributes().uid.references.key).to.equal('id');
       });
 
       it('works when taking a column directly from the object', function () {
@@ -834,15 +833,15 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           },
         });
 
-        Profile.belongsTo(User, { foreignKey: Profile.rawAttributes.user_id });
+        Profile.belongsTo(User, { foreignKey: Profile.getAttributes().user_id });
 
-        expect(Profile.rawAttributes.user_id).to.be.ok;
-        const targetTable = Profile.rawAttributes.user_id.references.model;
+        expect(Profile.getAttributes().user_id).to.be.ok;
+        const targetTable = Profile.getAttributes().user_id.references.table;
         assert(typeof targetTable === 'object');
 
-        expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
-        expect(Profile.rawAttributes.user_id.references.key).to.equal('uid');
-        expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
+        expect(targetTable).to.deep.equal(User.table);
+        expect(Profile.getAttributes().user_id.references.key).to.equal('uid');
+        expect(Profile.getAttributes().user_id.allowNull).to.be.false;
       });
 
       it('works when merging with an existing definition', function () {
@@ -856,9 +855,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
         Task.belongsTo(Project, { foreignKey: { allowNull: true } });
 
-        expect(Task.rawAttributes.projectId).to.be.ok;
-        expect(Task.rawAttributes.projectId.defaultValue).to.equal(42);
-        expect(Task.rawAttributes.projectId.allowNull).to.be.ok;
+        expect(Task.getAttributes().projectId).to.be.ok;
+        expect(Task.getAttributes().projectId.defaultValue).to.equal(42);
+        expect(Task.getAttributes().projectId.allowNull).to.be.ok;
       });
     });
   });

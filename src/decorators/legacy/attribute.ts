@@ -1,11 +1,11 @@
 import { isDataType } from '../../dialects/abstract/data-types-utils.js';
 import type { DataType } from '../../dialects/abstract/data-types.js';
-import type { ModelAttributeColumnOptions } from '../../model.js';
+import type { AttributeOptions } from '../../model.js';
 import { columnToAttribute } from '../../utils/deprecations.js';
 import { createOptionalAttributeOptionsDecorator, createRequiredAttributeOptionsDecorator } from './attribute-utils.js';
 import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
 
-type AttributeDecoratorOption = DataType | Partial<ModelAttributeColumnOptions>;
+type AttributeDecoratorOption = DataType | Partial<AttributeOptions>;
 
 export const Attribute = createRequiredAttributeOptionsDecorator<AttributeDecoratorOption>('Attribute', attrOptionOrDataType => {
   if (isDataType(attrOptionOrDataType)) {
@@ -21,13 +21,13 @@ export const Attribute = createRequiredAttributeOptionsDecorator<AttributeDecora
  * @param optionsOrDataType
  * @deprecated use {@link Attribute} instead.
  */
-export function Column(optionsOrDataType: DataType | ModelAttributeColumnOptions): PropertyOrGetterDescriptor {
+export function Column(optionsOrDataType: DataType | AttributeOptions): PropertyOrGetterDescriptor {
   columnToAttribute();
 
   return Attribute(optionsOrDataType);
 }
 
-type UniqueOptions = NonNullable<ModelAttributeColumnOptions['unique']>;
+type UniqueOptions = NonNullable<AttributeOptions['unique']>;
 
 /**
  * Configures the unique option of the attribute.

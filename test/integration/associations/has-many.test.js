@@ -10,7 +10,6 @@ const sinon = require('sinon');
 
 const current = Support.sequelize;
 const _ = require('lodash');
-const omit = require('lodash/omit');
 const assert = require('node:assert');
 
 const dialect = Support.getTestDialect();
@@ -499,8 +498,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         this.Label.belongsTo(this.Article);
         this.Article.hasMany(this.Label);
 
-        expect(Object.keys(this.Label.rawAttributes)).to.deep.equal(['id', 'text', 'ArticleId']);
-        expect(Object.keys(this.Label.rawAttributes).length).to.equal(3);
+        expect(Object.keys(this.Label.getAttributes())).to.deep.equal(['id', 'text', 'ArticleId']);
+        expect(Object.keys(this.Label.getAttributes()).length).to.equal(3);
       });
 
       if (current.dialect.supports.transactions) {
@@ -1254,8 +1253,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       User.hasMany(Account);
 
-      expect(Account.rawAttributes.UserId).to.exist;
-      expect(Account.rawAttributes.UserId.field).to.equal('user_id');
+      expect(Account.getAttributes().UserId).to.exist;
+      expect(Account.getAttributes().UserId.field).to.equal('user_id');
     });
 
     it('should use model name when using camelcase', function () {
@@ -1264,8 +1263,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       User.hasMany(Account);
 
-      expect(Account.rawAttributes.UserId).to.exist;
-      expect(Account.rawAttributes.UserId.field).to.equal('UserId');
+      expect(Account.getAttributes().UserId).to.exist;
+      expect(Account.getAttributes().UserId.field).to.equal('UserId');
     });
 
     it('can specify data type for auto-generated relational keys', async function () {
@@ -1280,7 +1279,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         User.hasMany(Tasks[dataType], { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
 
         await Tasks[dataType].sync({ force: true });
-        expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
+        expect(Tasks[dataType].getAttributes().userId.type).to.be.an.instanceof(dataType);
       }
     });
 
@@ -1296,7 +1295,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       User.hasMany(Task);
 
       await this.sequelize.sync({ force: true });
-      expect(Task.rawAttributes.UserId.type instanceof DataTypes.STRING).to.be.ok;
+      expect(Task.getAttributes().UserId.type instanceof DataTypes.STRING).to.be.ok;
     });
 
     describe('allows the user to provide an attribute definition object as foreignKey', () => {
@@ -1311,13 +1310,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           },
         });
 
-        expect(Task.rawAttributes.uid).to.be.ok;
-        expect(Task.rawAttributes.uid.allowNull).to.be.false;
-        const targetTable = Task.rawAttributes.uid.references.model;
+        expect(Task.getAttributes().uid).to.be.ok;
+        expect(Task.getAttributes().uid.allowNull).to.be.false;
+        const targetTable = Task.getAttributes().uid.references.table;
         assert(typeof targetTable === 'object');
 
-        expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
-        expect(Task.rawAttributes.uid.references.key).to.equal('id');
+        expect(targetTable).to.deep.equal(User.table);
+        expect(Task.getAttributes().uid.references.key).to.equal('id');
       });
 
       it('works when taking a column directly from the object', function () {
@@ -1334,15 +1333,15 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           },
         });
 
-        User.hasMany(Project, { foreignKey: Project.rawAttributes.user_id });
+        User.hasMany(Project, { foreignKey: Project.getAttributes().user_id });
 
-        expect(Project.rawAttributes.user_id).to.be.ok;
-        const targetTable = Project.rawAttributes.user_id.references.model;
+        expect(Project.getAttributes().user_id).to.be.ok;
+        const targetTable = Project.getAttributes().user_id.references.table;
         assert(typeof targetTable === 'object');
 
-        expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
-        expect(Project.rawAttributes.user_id.references.key).to.equal('uid');
-        expect(Project.rawAttributes.user_id.defaultValue).to.equal(42);
+        expect(targetTable).to.deep.equal(User.table);
+        expect(Project.getAttributes().user_id.references.key).to.equal('uid');
+        expect(Project.getAttributes().user_id.defaultValue).to.equal(42);
       });
 
       it('works when merging with an existing definition', function () {
@@ -1356,9 +1355,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         User.hasMany(Task, { foreignKey: { allowNull: true } });
 
-        expect(Task.rawAttributes.userId).to.be.ok;
-        expect(Task.rawAttributes.userId.defaultValue).to.equal(42);
-        expect(Task.rawAttributes.userId.allowNull).to.be.ok;
+        expect(Task.getAttributes().userId).to.be.ok;
+        expect(Task.getAttributes().userId.defaultValue).to.equal(42);
+        expect(Task.getAttributes().userId.allowNull).to.be.ok;
       });
     });
 

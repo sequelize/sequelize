@@ -42,11 +42,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
       const instance = Model.build({ ip: '127.0.0.1', ip2: '0.0.0.0' });
 
-      expect(instance.get('created_time')).to.be.ok;
-      expect(instance.get('created_time')).to.be.an.instanceof(Date);
-
-      expect(instance.get('updated_time')).to.be.ok;
-      expect(instance.get('updated_time')).to.be.an.instanceof(Date);
+      expect(instance.get('created_time')).to.be.an.instanceof(Date, 'created_time should be a date');
+      expect(instance.get('updated_time')).to.be.an.instanceof(Date, 'updated_time should be a date');
 
       await instance.validate();
     });
