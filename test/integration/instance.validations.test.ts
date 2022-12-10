@@ -1,5 +1,4 @@
-'use strict';
-
+import chai from 'chai';
 import type {
   InferAttributes,
   CreationOptional,
@@ -8,7 +7,7 @@ import type {
   BelongsToSetAssociationMixin,
   HasMany,
   BelongsTo,
-  Utils,
+  Literal,
 } from '@sequelize/core';
 import {
   DataTypes,
@@ -16,7 +15,6 @@ import {
   Model,
   Sequelize,
 } from '@sequelize/core';
-import chai from 'chai';
 import {
   getTestDialectTeaser,
   getTestDialect,
@@ -733,7 +731,7 @@ describe(getTestDialectTeaser('InstanceValidator'), async () => {
     const values = Object.values(TestEnum);
 
     class Bar extends Model<InferAttributes<Bar>, InferCreationAttributes<Bar>> {
-      declare field: TestEnum | FailingTestEnum | Utils.Literal;
+      declare field: TestEnum | FailingTestEnum | Literal;
     }
 
     Bar.init({
