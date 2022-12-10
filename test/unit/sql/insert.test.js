@@ -33,8 +33,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
-            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($sequelize_1); SELECT * FROM @tmp;',
-            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id","user_name";',
+            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id], INSERTED.[user_name] INTO @tmp VALUES ($sequelize_1); SELECT * FROM @tmp;',
+            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id", "user_name";',
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
@@ -252,7 +252,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.bulkInsertQuery(M.tableName, [{ id: 0 }, { id: null }], {}, M.fieldRawAttributesMap),
         {
           query: {
-            mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL);; SET IDENTITY_INSERT [ms] OFF;',
+            mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL); SET IDENTITY_INSERT [ms] OFF;',
             postgres: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
             db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (0),(DEFAULT))',

@@ -1,7 +1,7 @@
 'use strict';
 
 import { normalizeDataType } from '../abstract/data-types-utils';
-import { joinSQLFragments } from '../../utils';
+import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
 
 const { MySqlQueryGenerator } = require('../mysql/query-generator');
 const _ = require('lodash');

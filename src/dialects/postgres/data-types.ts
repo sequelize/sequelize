@@ -1,7 +1,7 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import wkx from 'wkx';
 import type { Rangable } from '../../model.js';
-import { isString } from '../../utils/index.js';
+import { isString } from '../../utils/check.js';
 import type {
   AcceptableTypeOf,
   StringifyOptions,

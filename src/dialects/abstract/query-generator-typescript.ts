@@ -2,7 +2,8 @@ import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
 import type { ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
-import { isPlainObject, isString, quoteIdentifier } from '../../utils/index.js';
+import { isPlainObject, isString } from '../../utils/check.js';
+import { quoteIdentifier } from '../../utils/dialect.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
@@ -37,6 +38,14 @@ export class AbstractQueryGeneratorTypeScript {
 
   protected get options() {
     return this.sequelize.options;
+  }
+
+  describeTableQuery(tableName: TableNameOrModel) {
+    return `DESCRIBE ${this.quoteTable(tableName)};`;
+  }
+
+  showIndexesQuery(_tableName: TableNameOrModel): string {
+    throw new Error(`showIndexesQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   extractTableDetails(

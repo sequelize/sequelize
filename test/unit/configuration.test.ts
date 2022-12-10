@@ -1,8 +1,8 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import path from 'node:path';
+import { expect } from 'chai';
 import type { Dialect } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { expect } from 'chai';
 import { getSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();

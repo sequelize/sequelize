@@ -2,7 +2,7 @@
 name: 🐛 Bug report
 about: Create a bug report to help us improve
 title: ""
-labels: ""
+labels: ["type: bug", "pending-approval"]
 assignees: ""
 ---
 
@@ -58,9 +58,9 @@ To find the version numbers for the three systems below use the following comman
 - `npm list sequelize` / `yarn list --pattern sequelize` (v6 stable)
 - `npm list @sequelize/core` / `yarn list --pattern @sequelize/core` (v7 alpha)
 - `node -v`
-- `npm list typescript` / `yarn list --pattern typescript` 
+- `npm list typescript` / `yarn list --pattern typescript`
 - 'Database' is which actual database system you're using. e.g. 'PostgreSQL 14', 'MariaDB 8', etc…
-- 'Connector library' is the dependency sequelize requires you to install to interact with a given database type. 
+- 'Connector library' is the dependency sequelize requires you to install to interact with a given database type.
   e.g. 'pg' or 'pg-native' for PostgreSQL, 'mysql2' for MySQL, 'tedious' for SQL Server, etc… (see README for complete list).
 --->
 

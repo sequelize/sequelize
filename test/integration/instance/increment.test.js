@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     }
 
-    if (current.dialect.supports.returnValues.returning) {
+    if (current.dialect.supports.returnValues === 'returning') {
       it('supports returning', async function () {
         const user1 = await this.User.findByPk(1);
         await user1.increment('aNumber', { by: 2 });
@@ -116,6 +116,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await user1.increment('aNumber');
       const user2 = await this.User.findByPk(1);
       expect(user2.aNumber).to.be.equal(1);
+    });
+
+    it('is disallowed if no primary key is present', async function () {
+      const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+      await Foo.sync({ force: true });
+
+      const instance = await Foo.create({});
+      await expect(instance.increment()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
     });
 
     it('should still work right with other concurrent updates', async function () {

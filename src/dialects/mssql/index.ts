@@ -13,9 +13,7 @@ export class MssqlDialect extends AbstractDialect {
     'DEFAULT VALUES': true,
     'LIMIT ON UPDATE': true,
     migrations: false,
-    returnValues: {
-      output: true,
-    },
+    returnValues: 'output',
     schemas: true,
     multiDatabases: true,
     autoIncrement: {
@@ -45,7 +43,6 @@ export class MssqlDialect extends AbstractDialect {
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geometry/spatial-types-geometry-transact-sql?view=sql-server-ver16
       GEOMETRY: false,
     },
-    milliseconds: true,
     // TODO: add support for JSON queries https://learn.microsoft.com/en-us/sql/relational-databases/json/json-data-sql-server?view=sql-server-ver16
     jsonOperations: false,
   });

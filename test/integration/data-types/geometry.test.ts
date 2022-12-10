@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import type {
   CreationOptional,
   GeoJson,
@@ -12,8 +13,6 @@ import type {
   InferCreationAttributes,
 } from '@sequelize/core';
 import { DataTypes, GeoJsonType, Model, QueryTypes } from '@sequelize/core';
-import { expect } from 'chai';
-import semver from 'semver/preload.js';
 import { beforeEach2, getTestDialectTeaser, sequelize } from '../support';
 
 const dialect = sequelize.dialect;
@@ -85,26 +84,8 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       expect(user.geometry).to.eq(null);
     });
 
-    it('correctly parses an empty GEOMETRY field', async () => {
-      // mysql does not support empty points
-      const runTests = dialect.name === 'mysql' ? false
-        : dialect.name !== 'postgres' ? true
-        : await (
-          sequelize.query('SELECT PostGIS_Lib_Version();')
-            .then(result => {
-              // @ts-expect-error -- not worth it to type the output of this query.
-              if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
-                return true;
-              }
-
-              return false;
-            })
-        );
-
-      if (!runTests) {
-        return;
-      }
-
+    // TODO: fix this test, see https://github.com/sequelize/sequelize/pull/15249#discussion_r1015617763
+    it.skip('correctly parses an empty GEOMETRY field', async () => {
       const User = vars.User;
       const point: GeoJsonPoint = { type: 'Point', coordinates: [] };
       await User.create({
@@ -183,9 +164,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       await expect(vars.User.create({
         geometry: {
-          // @ts-expect-error
+          // @ts-expect-error -- wrong type in coordinate causes cascading type error
           type: 'Point',
-          // @ts-expect-error
+          // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
           coordinates: [39.807_222, '\'); DELETE YOLO INJECTIONS; --'],
         },
       })).to.be.rejectedWith('specifies an invalid point');
@@ -238,9 +219,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       await expect(vars.User.create({
         geometry: {
-          // @ts-expect-error
+          // @ts-expect-error -- wrong type in coordinate causes cascading type error
           type: 'LineString',
-          // @ts-expect-error
+          // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
           coordinates: [[39.807_222, '\'); DELETE YOLO INJECTIONS; --'], [0, 0]],
         },
       })).to.be.rejectedWith('specifies an invalid point');
@@ -314,13 +295,13 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       await expect(vars.User.create({
         geometry: {
-          // @ts-expect-error
+          // @ts-expect-error -- wrong type in coordinate causes cascading type error
           type: 'Polygon',
           coordinates: [
             [
-              // @ts-expect-error
+              // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
               [39.807_222, '\'); DELETE YOLO INJECTIONS; --'],
-              // @ts-expect-error
+              // @ts-expect-error -- wrong type in coordinate causes cascading type error
               [0, 0],
             ],
           ],
@@ -394,12 +375,12 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       await expect(vars.User.create({
         geometry: {
-          // @ts-expect-error
+          // @ts-expect-error -- wrong type in coordinate causes cascading type error
           type: 'MultiPoint',
           coordinates: [
-            // @ts-expect-error
+            // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
             [100, '\'); DELETE YOLO INJECTIONS; --'],
-            // @ts-expect-error
+            // @ts-expect-error -- wrong type in coordinate causes cascading type error
             [0, 0],
           ],
         },
@@ -472,12 +453,12 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       await expect(vars.User.create({
         geometry: {
-          // @ts-expect-error
+          // @ts-expect-error -- wrong type in coordinate causes cascading type error
           type: 'MultiLineString',
           coordinates: [
-            // @ts-expect-error
+            // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
             [[100, '\'); DELETE YOLO INJECTIONS; --'], [101, 1]],
-            // @ts-expect-error
+            // @ts-expect-error -- wrong type in coordinate causes cascading type error
             [[102, 2], [103, 3]],
           ],
         },
@@ -576,7 +557,7 @@ describe(getTestDialectTeaser('DataTypes'), () => {
             [
               // first linear ring of first polygon
               [
-                // @ts-expect-error
+                // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
                 [102, 2], [103, 2], ['\'); DELETE YOLO INJECTIONS; --', 3], [102, 3], [102, 2],
               ],
             ],
@@ -687,7 +668,7 @@ describe(getTestDialectTeaser('DataTypes'), () => {
           geometries: [
             {
               type: 'Point',
-              // @ts-expect-error
+              // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
               coordinates: ['\'); DELETE YOLO INJECTIONS; --', 0],
             },
           ],
