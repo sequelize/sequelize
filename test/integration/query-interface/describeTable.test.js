@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('rejects when no data is available', async function () {
       await expect(
         this.queryInterface.describeTable('_some_random_missing_table'),
-      ).to.be.rejectedWith('No description found for "_some_random_missing_table" table. Check the table name and schema; remember, they _are_ case sensitive.');
+      ).to.be.rejectedWith('No description found for table _some_random_missing_table. Check the table name and schema; remember, they _are_ case sensitive.');
     });
 
     it('reads the metadata of the table', async function () {

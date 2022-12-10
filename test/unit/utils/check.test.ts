@@ -1,11 +1,7 @@
-import { Sequelize, Utils } from '@sequelize/core';
-import { defaultValueSchemable, isWhereEmpty } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { expect } from 'chai';
-
-const {
-  canTreatArrayAsAnd,
-  isColString,
-} = Utils;
+import { Sequelize } from '@sequelize/core';
+import { canTreatArrayAsAnd, isColString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { defaultValueSchemable, isWhereEmpty } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 
 describe('utils / check', () => {
   describe('isColString', () => {

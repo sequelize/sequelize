@@ -1,9 +1,9 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import { removeTicks } from '../../utils/dialect';
 
 const _ = require('lodash');
-const Utils = require('../../utils');
 const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
@@ -329,10 +329,10 @@ export class SqliteQuery extends AbstractQuery {
 
         const referencesRegex = /REFERENCES.+\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/;
         const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
-        referenceTableName = Utils.removeTicks(referenceConditions[1]);
+        referenceTableName = removeTicks(referenceConditions[1]);
         let columnNames = referenceConditions[2];
         columnNames = columnNames.replace(/\(|\)/g, '').split(', ');
-        referenceTableKeys = columnNames.map(column => Utils.removeTicks(column));
+        referenceTableKeys = columnNames.map(column => removeTicks(column));
       }
 
       const constraintCondition = constraintSql.match(/\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/)[0];
@@ -344,7 +344,7 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       return {
-        constraintName: Utils.removeTicks(constraint[0]),
+        constraintName: removeTicks(constraint[0]),
         constraintType: constraint[1],
         updateAction,
         deleteAction,

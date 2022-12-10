@@ -1,3 +1,3 @@
-import { AbstractQueryGenerator } from '../abstract/query-generator.js';
+import { MySqlQueryGeneratorTypeScript } from './query-generator-typescript.js';
 
-export class MySqlQueryGenerator extends AbstractQueryGenerator {}
+export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {}

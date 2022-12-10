@@ -7,7 +7,6 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const current = Support.sequelize;
-const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('update', () => {
@@ -118,7 +117,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(account.ownerId).to.be.equal(ownerId);
     });
 
-    if (_.get(current.dialect.supports, 'returnValues.returning')) {
+    if (current.dialect.supports.returnValues === 'returning') {
       it('should return the updated record', async function () {
         const account = await this.Account.create({ ownerId: 2 });
 
@@ -135,7 +134,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (_.get(current.dialect.supports, 'returnValues.output')) {
+    if (current.dialect.supports.returnValues === 'output') {
       it('should output the updated record', async function () {
         const account = await this.Account.create({ ownerId: 2 });
 

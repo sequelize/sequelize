@@ -13,9 +13,10 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import { col, fn } from '../sequelize';
-import type { AllowArray } from '../utils';
-import { isPlainObject, removeUndefined } from '../utils';
+import { isPlainObject } from '../utils/check.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
+import { removeUndefined } from '../utils/object.js';
+import type { AllowArray } from '../utils/types.js';
 import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';
 import { BelongsTo } from './belongs-to.js';
@@ -322,8 +323,7 @@ export class HasMany<
       scope: false,
       attributes: [this.target.primaryKeyAttribute],
       raw: true,
-      // TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
       where: {
         [Op.and]: [
           where,
@@ -467,7 +467,7 @@ export class HasMany<
 
         // raw entity
         if (isPlainObject(targetInstance) && this.target.primaryKeyAttribute in targetInstance) {
-          // @ts-expect-error
+          // @ts-expect-error -- implicit any, can't be fixed
           return targetInstance[this.target.primaryKeyAttribute];
         }
 
@@ -502,8 +502,7 @@ export class HasMany<
 
     if (this.scope) {
       for (const attribute of Object.keys(this.scope)) {
-        // TODO: fix the typing of {@link AssociationScope}
-        // @ts-expect-error
+        // @ts-expect-error -- TODO: fix the typing of {@link AssociationScope}
         values[attribute] = this.scope[attribute];
         if (options.fields) {
           options.fields.push(attribute);

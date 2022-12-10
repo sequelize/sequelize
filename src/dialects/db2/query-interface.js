@@ -5,7 +5,6 @@ import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
 const _ = require('lodash');
-const Utils = require('../../utils');
 const { Op } = require('../../operators');
 const { QueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
@@ -141,6 +140,7 @@ export class Db2QueryInterface extends QueryInterface {
     return response;
   }
 
+  // TODO: drop "schema" options from the option bag, it must be passed through tableName instead.
   async createTable(tableName, attributes, options, model) {
     let sql = '';
 
@@ -167,10 +167,8 @@ export class Db2QueryInterface extends QueryInterface {
       !tableName.schema
       && (options.schema || Boolean(model) && model._schema)
     ) {
-      tableName = this.queryGenerator.addSchema({
-        tableName,
-        _schema: Boolean(model) && model._schema || options.schema,
-      });
+      tableName = this.queryGenerator.extractTableDetails(tableName);
+      tableName.schema = Boolean(model) && model._schema || options.schema || tableName.schema;
     }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable', withoutForeignKeyConstraints: options.withoutForeignKeyConstraints });

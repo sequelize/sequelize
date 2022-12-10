@@ -1,18 +1,20 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
-import { isString } from './utils';
+import { isString } from './utils/check.js';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
+import { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method';
 import { injectReplacements, mapBindParameters } from './utils/sql';
+import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
+import { importModels } from './import-models.js';
 
-const retry = require('retry-as-promised');
 const _ = require('lodash');
-const Utils = require('./utils');
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
 const { Deferrable } = require('./deferrable');
@@ -217,7 +219,7 @@ export class Sequelize extends SequelizeTypeScript {
 
     Sequelize.hooks.runSync('beforeInit', options);
 
-    // @ts-expect-error
+    // @ts-expect-error -- doesn't exist
     if (options.pool === false) {
       throw new Error('Support for pool:false was removed in v4.0');
     }
@@ -240,6 +242,7 @@ export class Sequelize extends SequelizeTypeScript {
       native: false,
       replication: false,
       ssl: undefined,
+      // TODO [=7]: print a deprecation warning if quoteIdentifiers is set to false
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -250,11 +253,12 @@ export class Sequelize extends SequelizeTypeScript {
       },
       transactionType: TRANSACTION_TYPES.DEFERRED,
       isolationLevel: null,
-      databaseVersion: 0,
+      databaseVersion: null,
       noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
+      disableAlsTransactions: false,
       ...options,
       pool: _.defaults(options.pool || {}, {
         max: 5,
@@ -264,6 +268,11 @@ export class Sequelize extends SequelizeTypeScript {
         evict: 1000,
       }),
     };
+
+    // TODO: remove & assign property directly once this constructor has been migrated to the SequelizeTypeScript class
+    if (!this.options.disableAlsTransactions) {
+      this._setupTransactionAls();
+    }
 
     if (!this.options.dialect) {
       throw new Error('Dialect needs to be explicitly supplied as of v4.0.0');
@@ -405,6 +414,10 @@ export class Sequelize extends SequelizeTypeScript {
     this.models = {};
     this.modelManager = new ModelManager(this);
     this.connectionManager = this.dialect.connectionManager;
+
+    if (options.models) {
+      this.addModels(options.models);
+    }
 
     Sequelize.hooks.runSync('afterInit', this);
   }
@@ -675,8 +688,8 @@ Use Sequelize#query if you wish to use replacements.`);
     const retryOptions = { ...this.options.retry, ...options.retry };
 
     return await retry(async () => {
-      if (options.transaction === undefined && Sequelize._cls) {
-        options.transaction = Sequelize._cls.get('transaction');
+      if (options.transaction === undefined) {
+        options.transaction = this.getCurrentAlsTransaction();
       }
 
       checkTransaction();
@@ -1023,9 +1036,30 @@ Use Sequelize#query if you wish to use replacements.`);
 
   }
 
-  // TODO: rename to getDatabaseVersion
-  async databaseVersion(options) {
+  /**
+   * Fetches the version of the database
+   *
+   * @param {object} [options] Query options
+   *
+   * @returns {Promise<string>} current version of the dialect
+   */
+  async fetchDatabaseVersion(options) {
     return await this.getQueryInterface().databaseVersion(options);
+  }
+
+  /**
+   * Throws if the database version hasn't been loaded yet. It is automatically loaded the first time Sequelize connects to your database.
+   *
+   * You can use {@link Sequelize#authenticate} to cause a first connection.
+   *
+   * @returns {string} current version of the dialect that is internally loaded
+   */
+  getDatabaseVersion() {
+    if (this.options.databaseVersion == null) {
+      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
+    }
+
+    return this.options.databaseVersion;
   }
 
   /**
@@ -1043,151 +1077,37 @@ Use Sequelize#query if you wish to use replacements.`);
 
   static fn = fn;
 
+  static Fn = Fn;
+
   static col = col;
+
+  static Col = Col;
 
   static cast = cast;
 
+  static Cast = Cast;
+
   static literal = literal;
+
+  static Literal = Literal;
+
+  static json = json;
+
+  static Json = Json;
+
+  static where = where;
+
+  static Where = Where;
 
   static and = and;
 
   static or = or;
 
-  static json = json;
-
-  static where = where;
-
   static isModelStatic = isModelStatic;
 
   static isSameInitialModel = isSameInitialModel;
 
-  /**
-   * Start a transaction. When using transactions, you should pass the transaction in the options argument in order for the query to happen under that transaction @see {@link Transaction}
-   *
-   * If you have [CLS](https://github.com/Jeff-Lewis/cls-hooked) enabled, the transaction will automatically be passed to any query that runs within the callback
-   *
-   * @example
-   *
-   * try {
-   *   const transaction = await sequelize.transaction();
-   *   const user = await User.findOne(..., { transaction });
-   *   await user.update(..., { transaction });
-   *   await transaction.commit();
-   * } catch {
-   *   await transaction.rollback()
-   * }
-   *
-   * @example <caption>A syntax for automatically committing or rolling back based on the promise chain resolution is also supported</caption>
-   *
-   * try {
-   *   await sequelize.transaction(async transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
-   *     const user = await User.findOne(..., {transaction});
-   *     await user.update(..., {transaction});
-   *   });
-   *   // Committed
-   * } catch(err) {
-   *   // Rolled back
-   *   console.error(err);
-   * }
-   * @example <caption>To enable CLS, add it do your project, create a namespace and set it on the sequelize constructor:</caption>
-   *
-   * const cls = require('cls-hooked');
-   * const namespace = cls.createNamespace('....');
-   * const Sequelize = require('@sequelize/core');
-   * Sequelize.useCLS(namespace);
-   *
-   * // Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
-   *
-   * @param {object}   [options] Transaction options
-   * @param {string}   [options.type='DEFERRED'] See `Sequelize.Transaction.TYPES` for possible options. Sqlite only.
-   * @param {string}   [options.isolationLevel] See `Sequelize.Transaction.ISOLATION_LEVELS` for possible options
-   * @param {string}   [options.deferrable] Sets the constraints to be deferred or immediately checked. See `Sequelize.Deferrable`. PostgreSQL Only
-   * @param {Function} [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {Function} [autoCallback] The callback is called with the transaction object, and should return a promise. If the promise is resolved, the transaction commits; if the promise rejects, the transaction rolls back
-   *
-   * @returns {Promise}
-   */
-  async transaction(options, autoCallback) {
-    if (typeof options === 'function') {
-      autoCallback = options;
-      options = undefined;
-    }
-
-    const transaction = new Transaction(this, options);
-
-    if (!autoCallback) {
-      await transaction.prepareEnvironment(/* cls */ false);
-
-      return transaction;
-    }
-
-    // autoCallback provided
-    return Sequelize._clsRun(async () => {
-      await transaction.prepareEnvironment(/* cls */ true);
-
-      let result;
-      try {
-        result = await autoCallback(transaction);
-      } catch (error) {
-        try {
-          await transaction.rollback();
-        } catch {
-          // ignore, because 'rollback' will already print the error before killing the connection
-        }
-
-        throw error;
-      }
-
-      await transaction.commit();
-
-      return result;
-    });
-  }
-
-  /**
-   * Use CLS (Continuation Local Storage) with Sequelize. With Continuation
-   * Local Storage, all queries within the transaction callback will
-   * automatically receive the transaction object.
-   *
-   * CLS namespace provided is stored as `Sequelize._cls`
-   *
-   * @param {object} ns CLS namespace
-   * @returns {object} Sequelize constructor
-   */
-  static useCLS(ns) {
-    // check `ns` is valid CLS namespace
-    if (!ns || typeof ns !== 'object' || typeof ns.bind !== 'function' || typeof ns.run !== 'function') {
-      throw new Error('Must provide CLS namespace');
-    }
-
-    // save namespace as `Sequelize._cls`
-    Sequelize._cls = ns;
-
-    // return Sequelize for chaining
-    return this;
-  }
-
-  /**
-   * Run function in CLS context.
-   * If no CLS context in use, just runs the function normally
-   *
-   * @private
-   * @param {Function} fn Function to run
-   * @returns {*} Return value of function
-   */
-  static _clsRun(fn) {
-    const ns = Sequelize._cls;
-    if (!ns) {
-      return fn();
-    }
-
-    let res;
-    ns.run(context => {
-      res = fn(context);
-    });
-
-    return res;
-  }
+  static importModels = importModels;
 
   log(...args) {
     let options;
@@ -1306,11 +1226,6 @@ Object.defineProperty(Sequelize, 'version', {
 });
 
 /**
- * @private
- */
-Sequelize.Utils = Utils;
-
-/**
  * Operators symbols to be used for querying data
  *
  * @see  {@link Operators}
@@ -1397,11 +1312,11 @@ Sequelize.Deferrable = Deferrable;
 Sequelize.prototype.Association = Sequelize.Association = Association;
 
 /**
- * Provide alternative version of `inflection` module to be used by `Utils.pluralize` etc.
+ * Provide alternative version of `inflection` module to be used by `pluralize` etc.
  *
  * @param {object} _inflection - `inflection` module
  */
-Sequelize.useInflection = Utils.useInflection;
+Sequelize.useInflection = useInflection;
 
 /**
  * Expose various errors available
@@ -1435,7 +1350,7 @@ for (const error of Object.keys(sequelizeErrors)) {
  * });
  */
 export function fn(fn, ...args) {
-  return new Utils.Fn(fn, args);
+  return new Fn(fn, args);
 }
 
 /**
@@ -1450,7 +1365,7 @@ export function fn(fn, ...args) {
  * @returns {Sequelize.col}
  */
 export function col(col) {
-  return new Utils.Col(col);
+  return new Col(col);
 }
 
 /**
@@ -1464,7 +1379,7 @@ export function col(col) {
  * @returns {Sequelize.cast}
  */
 export function cast(val, type) {
-  return new Utils.Cast(val, type);
+  return new Cast(val, type);
 }
 
 /**
@@ -1477,7 +1392,7 @@ export function cast(val, type) {
  * @returns {Sequelize.literal}
  */
 export function literal(val) {
-  return new Utils.Literal(val);
+  return new Literal(val);
 }
 
 /**
@@ -1523,7 +1438,7 @@ export function or(...args) {
  * @returns {Sequelize.json}
  */
 export function json(conditionsOrPath, value) {
-  return new Utils.Json(conditionsOrPath, value);
+  return new Json(conditionsOrPath, value);
 }
 
 /**
@@ -1542,5 +1457,5 @@ export function json(conditionsOrPath, value) {
  * @since v2.0.0-dev3
  */
 export function where(attr, comparator, logic) {
-  return new Utils.Where(attr, comparator, logic);
+  return new Where(attr, comparator, logic);
 }

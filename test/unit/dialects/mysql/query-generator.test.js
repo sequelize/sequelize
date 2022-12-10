@@ -14,33 +14,6 @@ const { createSequelizeInstance } = require('../../../support');
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', () => {
     const suites = {
-      arithmeticQuery: [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\'',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\'',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\'',
-        },
-      ],
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
@@ -178,13 +151,6 @@ if (dialect === 'mysql') {
         },
       ],
 
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS `myTable`;',
-        },
-      ],
-
       selectQuery: [
         {
           arguments: ['myTable'],
@@ -209,10 +175,6 @@ if (dialect === 'mysql') {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
-          context: QueryGenerator,
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator,
         }, {
           arguments: ['myTable', { order: ['id'] }],
@@ -326,18 +288,6 @@ if (dialect === 'mysql') {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator,
-        }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true,
         }, {
           title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
           arguments: ['myTable', function (sequelize) {
@@ -673,34 +623,6 @@ if (dialect === 'mysql') {
         },
       ],
 
-      showIndexesQuery: [
-        {
-          arguments: ['User'],
-          expectation: 'SHOW INDEX FROM `User`',
-        },
-        {
-          arguments: [{ tableName: 'User', schema: 'schema' }],
-          expectation: 'SHOW INDEX FROM `schema`.`User`',
-        },
-        // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
-        // {
-        //   sequelizeOptions: {
-        //     schema: 'schema',
-        //   },
-        //   arguments: ['User'],
-        //   expectation: 'SHOW INDEX FROM `schema`.`User`',
-        // },
-        {
-          arguments: ['User', { database: 'sequelize' }],
-          // Doing this:
-          //  SHOW INDEX FROM `User` FROM `sequelize`
-          // would be incorrect because the second from specifies the SCHEMA.
-          // The database name from the credentials is not equivalent to specifying the SCHEMA.
-          // Schema and Database are synonymous in MySQL/MariaDB, and not the same as what we call a 'database' in our credentials.
-          expectation: 'SHOW INDEX FROM `User`',
-        },
-      ],
-
       removeIndexQuery: [
         {
           arguments: ['User', 'user_foo_bar'],
@@ -771,10 +693,11 @@ if (dialect === 'mysql') {
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
           const title = test.title || `MySQL correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
-          it(title, function () {
-            const sequelize = test.sequelizeOptions ? createSequelizeInstance({
+          it(title, () => {
+            const sequelize = createSequelizeInstance({
               ...test.sequelizeOptions,
-            }) : this.sequelize;
+              ...test.context && test.context.options,
+            });
 
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {
@@ -786,13 +709,7 @@ if (dialect === 'mysql') {
               }
             }
 
-            const queryGenerator = new QueryGenerator({
-              sequelize,
-              dialect: sequelize.dialect,
-            });
-
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            queryGenerator.options = { ...queryGenerator.options, ...test.context && test.context.options };
+            const queryGenerator = sequelize.queryInterface.queryGenerator;
 
             const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
