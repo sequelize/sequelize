@@ -94,6 +94,15 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
       expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(false, `hook ${hookName} should be possible to remove by name`);
     });
 
+    it('supports symbol methods', () => {
+      class MyModel extends Model {
+        @decorator
+        static [Symbol('myHook')]() {}
+      }
+
+      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(true, `hook ${hookName} incorrectly registered its hook`);
+    });
+
     it('throws on non-static hooks', () => {
       expect(() => {
         class MyModel extends Model {
@@ -102,7 +111,7 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
         }
 
         return MyModel;
-      }).to.throw(Error, /Only static methods can be used for hooks/);
+      }).to.throw(Error, /This decorator can only be used on static properties/);
     });
 
     it('throws on non-method properties', () => {
@@ -124,7 +133,7 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
         }
 
         return MyModel;
-      }).to.throw(Error, /Hook decorators can only be used on models/);
+      }).to.throw(Error, /This decorator can only be used on models/);
     });
 
     it('throws on reserved methods', () => {

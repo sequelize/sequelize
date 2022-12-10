@@ -2,6 +2,7 @@
 
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { validateDataType } from './dialects/abstract/data-types-utils';
+import { getAllOwnKeys } from './utils/object';
 import { SequelizeMethod } from './utils/sequelize-method';
 
 const _ = require('lodash');
@@ -164,17 +165,22 @@ export class InstanceValidator {
    */
   async _customValidators() {
     const validators = [];
-    _.each(this.modelInstance.constructor.options.validate, (validator, validatorType) => {
-      if (this.options.skip.includes(validatorType)) {
-        return;
+
+    const validateOptions = this.modelInstance.constructor.options.validate;
+
+    for (const validatorName of getAllOwnKeys(validateOptions)) {
+      if (this.options.skip.includes(validatorName)) {
+        continue;
       }
 
-      const valprom = this._invokeCustomValidator(validator, validatorType)
+      const validator = validateOptions[validatorName];
+
+      const valprom = this._invokeCustomValidator(validator, validatorName)
         // errors are handled in settling, stub this
         .catch(() => {});
 
       validators.push(valprom);
-    });
+    }
 
     return await Promise.all(validators);
   }
@@ -268,6 +274,9 @@ export class InstanceValidator {
       isAsync = true;
     }
 
+    // TODO [>7]: validators should receive their model as the first argument, not through "this".
+    //  Only exception to this is the @ModelValidator decorator when used on an instance method, but it is responsible for that
+    //  behavior, not this!
     if (isAsync) {
       try {
         if (optAttrDefined) {

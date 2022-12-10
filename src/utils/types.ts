@@ -63,6 +63,10 @@ export type MakeNullishOptional<T extends object> = Optional<T, NullishPropertie
  */
 export type Nullish<T> = T | null | undefined;
 
+export type NonNullish<T> = T extends null | undefined ? never : T;
+
+export type NonUndefined<T> = T extends undefined ? never : T;
+
 export type AllowArray<T> = T | T[];
 
 export type AllowReadonlyArray<T> = T | readonly T[];
