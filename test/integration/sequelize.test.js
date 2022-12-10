@@ -439,7 +439,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('fails with incorrect database credentials (1)', async function () {
         // TODO: remove this once fixed in https://github.com/brianc/node-postgres/issues/1927 or when password is not allowed to be null in our postgres implementation
-        if (dialect === 'postgres' && semver.gte(this.sequelize.options.databaseVersion, '12.0.0')) {
+        if (dialect === 'postgres' && semver.gte(this.sequelize.getDatabaseVersion(), '12.0.0')) {
           return;
         }
 
@@ -825,9 +825,28 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     }
   });
 
-  describe('databaseVersion', () => {
+  describe('fetchDatabaseVersion', () => {
     it('should database/dialect version', async function () {
-      const version = await this.sequelize.databaseVersion();
+      const version = await this.sequelize.fetchDatabaseVersion();
+      expect(typeof version).to.equal('string');
+      expect(version).to.be.ok;
+    });
+  });
+
+  describe('getDatabaseVersion', () => {
+    it('throws if no database version is set internally', () => {
+      expect(() => {
+        // ensures the version hasn't been loaded by another test yet
+        const sequelize = Support.createSequelizeInstance();
+        sequelize.getDatabaseVersion();
+      }).to.throw(
+        'The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.',
+      );
+    });
+
+    it('returns the database version if loaded', async function () {
+      await this.sequelize.authenticate();
+      const version = this.sequelize.getDatabaseVersion();
       expect(typeof version).to.equal('string');
       expect(version).to.be.ok;
     });

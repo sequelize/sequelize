@@ -141,7 +141,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const bind = Object.create(null);
     const fields = [];
     const returningModelAttributes = [];
-    const values = [];
+    const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
     let query;
@@ -197,9 +197,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           if (!this.dialect.supports.autoIncrement.defaultValue) {
             fields.splice(-1, 1);
           } else if (this.dialect.supports.DEFAULT) {
-            values.push('DEFAULT');
+            values[key] = 'DEFAULT';
           } else {
-            values.push(this.escape(null));
+            values[key] = this.escape(null);
           }
         } else {
           if (modelAttributeMap && modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true) {
@@ -207,9 +207,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           }
 
           if (value instanceof SequelizeMethod || options.bindParam === false) {
-            values.push(this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT', replacements: options.replacements }));
+            values[key] = this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT', replacements: options.replacements });
           } else {
-            values.push(this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }, bindParam));
+            values[key] = this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }, bindParam);
           }
         }
       }
@@ -230,7 +230,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         // do an update.  Instead, fall back to DO NOTHING.
         onDuplicateKeyUpdate += _.isEmpty(updateKeys) ? ' DO NOTHING ' : ` DO UPDATE SET ${updateKeys.join(',')}`;
       } else {
-        const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
+        const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=${values[attr]}`);
         // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id
         // So, if no update values were provided, fall back to the identifier columns provided in the upsertKeys array.
         // This will be the primary key in most cases, but it could be some other constraint.
@@ -254,7 +254,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       onConflictDoNothing: options.ignoreDuplicates ? this.dialect.supports.inserts.onConflictDoNothing : '',
       attributes: fields.join(','),
       output: outputFragment,
-      values: values.join(','),
+      values: Object.values(values).join(','),
       tmpTable,
     };
 
@@ -2813,6 +2813,19 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         }
 
         return this._joinKeyValue(key, this.escape(pattern, undefined, options), comparator, options.prefix);
+      }
+
+      case Op.anyKeyExists:
+      case Op.allKeysExist: {
+        if (value instanceof SequelizeMethod) {
+          return this._joinKeyValue(key, this.handleSequelizeMethod(value, undefined, undefined, options), comparator, options.prefix);
+        }
+
+        if (value.length === 0) {
+          return this._joinKeyValue(key, `ARRAY[]::text[]`, comparator, options.prefix);
+        }
+
+        return this._joinKeyValue(key, `ARRAY[${value.map(item => this.escape(item, undefined, options)).join(', ')}]`, comparator, options.prefix);
       }
     }
 

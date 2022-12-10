@@ -512,6 +512,30 @@ interface OpTypes {
    * ```
    */
   readonly values: unique symbol;
+  /**
+   * Operator ?|
+   *
+   * ```js
+   * [Op.anyKeyExists]: ['a', 'b']
+   * ```
+   * In SQL
+   * ```sql
+   * ?| ARRAY['a', 'b']
+   * ```
+   */
+  readonly anyKeyExists: unique symbol;
+  /**
+   * Operator ?&
+   *
+   * ```js
+   * [Op.allKeysExist]: ['a', 'b']
+   * ```
+   * In SQL
+   * ```sql
+   * ?& ARRAY['a', 'b']
+   * ```
+   */
+  readonly allKeysExist: unique symbol;
 }
 
 // Note: These symbols are registered in the Global Symbol Registry
@@ -563,4 +587,6 @@ export const Op: OpTypes = {
   placeholder: Symbol.for('placeholder'),
   join: Symbol.for('join'),
   match: Symbol.for('match'),
+  anyKeyExists: Symbol.for('anyKeyExists'),
+  allKeysExist: Symbol.for('allKeysExist'),
 } as OpTypes;

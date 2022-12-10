@@ -575,6 +575,39 @@ export interface WhereOperators<AttributeType = any> {
    * https://www.postgresql.org/docs/14/functions-range.html
    */
   [Op.adjacent]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
+
+  /**
+   * PG only
+   *
+   * Check if any of these array strings exist as top-level keys.
+   *
+   * @example
+   * ```typescript
+   * { jsonbAttribute: { [Op.anyKeyExists]: ['a','b'] } }
+   * // results in
+   * // "jsonbAttribute" ?| ARRAY['a','b']
+   * ```
+   *
+   * https://www.postgresql.org/docs/current/functions-json.html
+   */
+  [Op.anyKeyExists]?: string[]
+    | DynamicValues<string[]>;
+
+  /**
+   * PG only
+   *
+   * Check if all of these array strings exist as top-level keys.
+   *
+   * @example
+   * ```typescript
+   * { jsonbAttribute: { [Op.allKeysExist]: ['a','b'] } }
+   * // results in
+   * // "jsonbAttribute" ?& ARRAY['a','b']
+   * ```
+   *
+   * https://www.postgresql.org/docs/current/functions-json.html
+   */
+  [Op.allKeysExist]?: WhereOperators<AttributeType>[typeof Op.anyKeyExists];
 }
 
 /**
