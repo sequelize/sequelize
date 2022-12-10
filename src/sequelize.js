@@ -253,7 +253,7 @@ export class Sequelize extends SequelizeTypeScript {
       },
       transactionType: TRANSACTION_TYPES.DEFERRED,
       isolationLevel: null,
-      databaseVersion: 0,
+      databaseVersion: null,
       noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,
@@ -1036,9 +1036,30 @@ Use Sequelize#query if you wish to use replacements.`);
 
   }
 
-  // TODO: rename to getDatabaseVersion
-  async databaseVersion(options) {
+  /**
+   * Fetches the version of the database
+   *
+   * @param {object} [options] Query options
+   *
+   * @returns {Promise<string>} current version of the dialect
+   */
+  async fetchDatabaseVersion(options) {
     return await this.getQueryInterface().databaseVersion(options);
+  }
+
+  /**
+   * Throws if the database version hasn't been loaded yet. It is automatically loaded the first time Sequelize connects to your database.
+   *
+   * You can use {@link Sequelize#authenticate} to cause a first connection.
+   *
+   * @returns {string} current version of the dialect that is internally loaded
+   */
+  getDatabaseVersion() {
+    if (this.options.databaseVersion == null) {
+      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
+    }
+
+    return this.options.databaseVersion;
   }
 
   /**
