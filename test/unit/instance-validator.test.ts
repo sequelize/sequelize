@@ -18,11 +18,9 @@ import {
   getTestDialectTeaser,
   sequelize,
   beforeAll2,
-  disableDatabaseResetForSuite,
 } from '../support';
 
 describe(getTestDialectTeaser('InstanceValidator'), () => {
-  disableDatabaseResetForSuite();
   const vars = beforeAll2(() => {
     const User = sequelize.define('user', {
       fails: {
@@ -477,7 +475,6 @@ describe(getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('_validateAndRunHooks', () => {
-    disableDatabaseResetForSuite();
     const validatorVars = beforeAll2(() => {
       const successfulInstanceValidator = new InstanceValidator(vars.User.build());
       sinon.stub(successfulInstanceValidator, '_validate').resolves();
