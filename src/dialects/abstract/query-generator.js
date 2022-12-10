@@ -19,9 +19,9 @@ import { AbstractDataType } from './data-types';
 import { attributeTypeToSql, validateDataType } from './data-types-utils';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 
-const util = require('util');
+const util = require('node:util');
 const _ = require('lodash');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 
 const deprecations = require('../../utils/deprecations');
 const SqlString = require('../../sql-string');
@@ -2821,7 +2821,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
       case Op.anyKeyExists:
       case Op.allKeysExist: {
-        if (value instanceof Utils.SequelizeMethod) {
+        if (value instanceof SequelizeMethod) {
           return this._joinKeyValue(key, this.handleSequelizeMethod(value, undefined, undefined, options), comparator, options.prefix);
         }
 
