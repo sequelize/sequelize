@@ -139,6 +139,16 @@ describe('injectReplacements (named replacements)', () => {
     });
   });
 
+  it('does consider the token to be a bind parameter if it is located after a $ quoted string', () => {
+    const sql = injectReplacements('SELECT $$ abc $$ AS string FROM users WHERE id = :id', dialect, {
+      id: 1
+    });
+
+    expectsql(sql, {
+      default: 'SELECT $$ abc $$ AS string FROM users WHERE id = 1'
+    });
+  });
+
   it('does not consider the token to be a bind parameter if it is part of a string with a backslash escaped quote, in dialects that support backslash escape', () => {
     expectPerDialect(
       () =>
@@ -374,6 +384,14 @@ describe('injectReplacements (positional replacements)', () => {
 
     expectsql(sql, {
       default: 'SELECT z$$ 1 x$$ * FROM users'
+    });
+  });
+
+  it('does consider the token to be a bind parameter if it is located after a $ quoted string', () => {
+    const sql = injectReplacements('SELECT $$ abc $$ AS string FROM users WHERE id = ?', dialect, [1]);
+
+    expectsql(sql, {
+      default: 'SELECT $$ abc $$ AS string FROM users WHERE id = 1'
     });
   });
 
