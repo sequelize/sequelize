@@ -1,7 +1,7 @@
 import assert from 'node:assert';
+import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
-import { expect } from 'chai';
 import { expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
