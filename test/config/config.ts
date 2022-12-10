@@ -71,6 +71,7 @@ export const Config: Record<Dialect, Options> = {
     },
     minifyAliases: Boolean(env.SEQ_PG_MINIFY_ALIASES),
   },
+
   db2: {
     database: process.env.SEQ_DB2_DB || process.env.SEQ_DB || process.env.IBM_DB_DBNAME || 'testdb',
     username: process.env.SEQ_DB2_USER || process.env.SEQ_USER || process.env.IBM_DB_UID || 'db2inst1',
@@ -83,6 +84,7 @@ export const Config: Record<Dialect, Options> = {
       idle: Number(process.env.SEQ_DB2_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000),
     },
   },
+
   ibmi: {
     database: env.SEQ_IBMI_DB || env.SEQ_DB,
     username: process.env.SEQ_IBMI_USER || process.env.SEQ_USER,

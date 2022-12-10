@@ -1,9 +1,9 @@
-import type { InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
-import { DataTypes, Transaction } from '@sequelize/core';
 import { expect } from 'chai';
 import delay from 'delay';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
+import { DataTypes, Transaction } from '@sequelize/core';
+import type { InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
 import { sequelize, getTestDialectTeaser, getTestDialect, prepareTransactionTest } from './support';
 
 const dialectName = sequelize.dialect.name;

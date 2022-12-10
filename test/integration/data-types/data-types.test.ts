@@ -1,4 +1,11 @@
 import { Blob } from 'node:buffer';
+import { expect } from 'chai';
+import dayjs from 'dayjs';
+import DayjsTimezone from 'dayjs/plugin/timezone';
+import pick from 'lodash/pick';
+import moment from 'moment';
+import type { Moment } from 'moment-timezone';
+import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
 import type {
   CreationAttributes,
   CreationOptional,
@@ -6,15 +13,8 @@ import type {
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
-import { expect } from 'chai';
-import dayjs from 'dayjs';
-import DayjsTimezone from 'dayjs/plugin/timezone';
-import pick from 'lodash/pick';
-import moment from 'moment';
-import 'moment-timezone';
-import type { Moment } from 'moment-timezone';
 import { beforeAll2, disableDatabaseResetForSuite, sequelize } from '../support';
+import 'moment-timezone';
 
 dayjs.extend(DayjsTimezone);
 
@@ -65,12 +65,12 @@ describe('DataTypes', () => {
 
     it('rejects non-string values', async () => {
       await expect(vars.User.create({
-        // @ts-expect-error
+        // @ts-expect-error -- testing that this throws
         stringAttr: 12,
       })).to.be.rejectedWith(ValidationError, 'Validation error: 12 is not a valid string. Only the string type is accepted for non-binary strings.');
 
       await expect(vars.User.create({
-        // @ts-expect-error
+        // @ts-expect-error -- testing that this throws
         stringAttr: Buffer.from('abc'),
       })).to.be.rejectedWith(ValidationError, 'Validation error: <Buffer 61 62 63> is not a valid string. Only the string type is accepted for non-binary strings.');
     });
@@ -415,8 +415,7 @@ describe('DataTypes', () => {
         await testSimpleInOut(
           vars.User,
           'tsvectorAttr',
-          // TODO: .create()'s typings should accept fn, literal, and cast
-          // @ts-expect-error
+          // @ts-expect-error -- TODO: .create()'s typings should accept fn, literal, and cast
           fn('to_tsvector', 'english', 'The Fat Rats'),
           `'fat':2 'rat':3`,
         );

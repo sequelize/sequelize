@@ -1,8 +1,8 @@
-import type { ModelStatic, InferAttributes, InferCreationAttributes } from '@sequelize/core';
-import { DataTypes, QueryTypes, Model } from '@sequelize/core';
 import { expect } from 'chai';
 import delay from 'delay';
 import sinon from 'sinon';
+import { DataTypes, QueryTypes, Model } from '@sequelize/core';
+import type { ModelStatic, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import type { ModelHooks } from '../../types/model-typescript.js';
 import {
   beforeAll2, createSequelizeInstance,

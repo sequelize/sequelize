@@ -1071,7 +1071,7 @@ export interface CreateOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * If false, validations won't be run.
@@ -1129,7 +1129,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * Fetch back the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * Run validations before the row is inserted
@@ -1190,7 +1190,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
@@ -1306,7 +1306,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    *
    * @default false
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * How many rows to update
@@ -1359,7 +1359,7 @@ export interface IncrementDecrementOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
@@ -1439,7 +1439,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**

@@ -1,12 +1,12 @@
 'use strict';
 
 const glob = require('fast-glob');
-const { promisify } = require('util');
+const { promisify } = require('node:util');
 const { build } = require('esbuild');
-const fs = require('fs');
+const fs = require('node:fs');
 const copyFiles = promisify(require('copyfiles'));
-const path = require('path');
-const exec = promisify(require('child_process').exec);
+const path = require('node:path');
+const exec = promisify(require('node:child_process').exec);
 
 const stat = promisify(fs.stat);
 

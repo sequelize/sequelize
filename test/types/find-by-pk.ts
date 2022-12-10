@@ -1,5 +1,5 @@
-import type { Attributes, FindByPkOptions } from '@sequelize/core';
 import { expectTypeOf } from 'expect-type';
+import type { Attributes, FindByPkOptions } from '@sequelize/core';
 import { User } from './models/user';
 
 (async () => {

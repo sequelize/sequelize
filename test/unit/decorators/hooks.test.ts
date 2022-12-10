@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import { Model } from '@sequelize/core';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-typescript.js';
 import {
@@ -34,7 +35,6 @@ import {
   BeforeValidate,
   ValidationFailed,
 } from '@sequelize/core/decorators-legacy';
-import { expect } from 'chai';
 
 // map of hook name to hook decorator
 const hookMap: Partial<Record<keyof ModelHooks, Function>> = {

@@ -1,7 +1,7 @@
+import { expect } from 'chai';
 import type { InferAttributes } from '@sequelize/core';
 import { Model, DataTypes } from '@sequelize/core';
 import { Attribute, Unique } from '@sequelize/core/decorators-legacy';
-import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 describe(`@Attribute legacy decorator`, () => {

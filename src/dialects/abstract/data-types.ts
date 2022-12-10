@@ -103,7 +103,7 @@ export abstract class AbstractDataType<
   }
 
   getDataTypeId(): string {
-    // @ts-expect-error untyped constructor
+    // @ts-expect-error -- untyped constructor
     return this.constructor.getDataTypeId();
   }
 
@@ -293,7 +293,8 @@ export abstract class AbstractDataType<
     const replacement: this = (!subClass || subClass === DataTypeClass)
       // optimisation: re-use instance if it doesn't belong to any dialect yet.
       ? this.#dialect == null ? this : this.clone()
-      // @ts-expect-error
+      // there is a convention that all DataTypes must accept a single "options" parameter as one of their signatures, but it's impossible to enforce in typing
+      // @ts-expect-error -- see ^
       : new subClass(this.options) as this;
 
     replacement.#dialect = dialect;
@@ -310,7 +311,8 @@ export abstract class AbstractDataType<
    * Designed to re-use a DataType on another Model.
    */
   clone(): this {
-    // @ts-expect-error
+    // there is a convention that all DataTypes must accept a single "options" parameter as one of their signatures, but it's impossible to enforce in typing
+    // @ts-expect-error -- see ^
     return this._construct(this.options);
   }
 
@@ -921,7 +923,7 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
       const typeId = this.getDataTypeId();
       const dialect = this._getDialect();
 
-      // @ts-expect-error
+      // @ts-expect-error -- 'typeId' is string, but only some dataTypes are objects
       if (dialect.supports.dataTypes[typeId]?.NaN) {
         return;
       }
@@ -933,7 +935,7 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
       const typeId = this.getDataTypeId();
       const dialect = this._getDialect();
 
-      // @ts-expect-error
+      // @ts-expect-error -- 'typeId' is string, but only some dataTypes are objects
       if (dialect.supports.dataTypes[typeId]?.infinity) {
         return;
       }
@@ -2017,8 +2019,7 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     return value.map(item => this.options.type.parseDatabaseValue(item));
   }
 
-  toBindableValue(value: Array<AcceptableTypeOf<T>>, _options: StringifyOptions): string {
-    // @ts-expect-error
+  toBindableValue(value: Array<AcceptableTypeOf<T>>, _options: StringifyOptions): unknown {
     return value.map(val => this.options.type.toBindableValue(val, _options));
   }
 
@@ -2336,7 +2337,7 @@ function assertDataTypeSupported(dialect: AbstractDialect, dataType: AbstractDat
 
   if (
     typeId in dialect.supports.dataTypes
-    // @ts-expect-error
+    // @ts-expect-error -- it's possible that typeId isn't listed in the support table, but that's checked above
     && !dialect.supports.dataTypes[typeId]
   ) {
     throwUnsupportedDataType(dialect, typeId);

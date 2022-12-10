@@ -1,6 +1,6 @@
-import { Transaction } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
+import { Transaction } from '@sequelize/core';
 import { beforeAll2, getTestDialect, sequelize } from '../support';
 
 const dialectName = getTestDialect();

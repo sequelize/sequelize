@@ -1,5 +1,5 @@
-import type { Attributes, FindOptions } from '@sequelize/core';
 import { expectTypeOf } from 'expect-type';
+import type { Attributes, FindOptions } from '@sequelize/core';
 import { User } from './models/user';
 
 // These attributes exist
@@ -7,9 +7,9 @@ User.findOne({ where: { firstName: 'John' } });
 User.findOne({ where: { $firstName$: 'John' } });
 
 // These attributes do not exist
-// @ts-expect-error
+// @ts-expect-error -- this should error, if this doesn't error, findOne has a bug!
 User.findOne({ where: { blah: 'blah2' } });
-// @ts-expect-error
+// @ts-expect-error -- this should error, if this doesn't error, findOne has a bug!
 User.findOne({ where: { $blah$: 'blah2' } });
 
 // $nested.syntax$ is valid
