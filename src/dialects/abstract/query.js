@@ -155,16 +155,16 @@ export class AbstractQuery {
   }
 
   handleInsertQuery(results, metaData) {
-    if (this.instance) {
-      // add the inserted row id to the instance
-      const autoIncrementAttribute = this.model.autoIncrementAttribute;
-      let id = null;
-
-      id = id || results && results[this.getInsertIdField()];
-      id = id || metaData && metaData[this.getInsertIdField()];
-
-      this.instance[autoIncrementAttribute] = id;
+    if (!this.instance) {
+      return;
     }
+
+    const autoIncrementAttribute = this.model.modelDefinition.autoIncrementAttributeName;
+    const id = results?.[this.getInsertIdField()]
+      ?? metaData?.[this.getInsertIdField()]
+      ?? null;
+
+    this.instance[autoIncrementAttribute] = id;
   }
 
   isShowTablesQuery() {

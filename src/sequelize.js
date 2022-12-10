@@ -1166,10 +1166,8 @@ Use Sequelize#query if you wish to use replacements.`);
   normalizeAttribute(attribute) {
     if (!_.isPlainObject(attribute)) {
       attribute = { type: attribute };
-    }
-
-    if (!attribute.type) {
-      return attribute;
+    } else {
+      attribute = { ...attribute };
     }
 
     if (attribute.values) {
@@ -1193,6 +1191,10 @@ sequelize.define('MyModel', {
 
 Remove the "values" property to resolve this issue.
         `.trim());
+    }
+
+    if (!attribute.type) {
+      return attribute;
     }
 
     attribute.type = this.normalizeDataType(attribute.type);

@@ -208,8 +208,6 @@ export class QueryInterface {
    */
   // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
-    let sql = '';
-
     options = { ...options };
 
     if (options && options.uniqueKeys) {
@@ -249,7 +247,8 @@ export class QueryInterface {
       // schema override for multi-tenancy
       schema: options.schema,
     });
-    sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
+
+    const sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
     return await this.sequelize.queryRaw(sql, options);
   }

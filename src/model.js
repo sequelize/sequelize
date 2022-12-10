@@ -707,14 +707,14 @@ ${associationOwner._getAssociationDebugList()}`);
     options.hooks = options.hooks === undefined ? true : Boolean(options.hooks);
 
     const modelDefinition = this.modelDefinition;
-    const physicalAttributes = modelDefinition.physicalAttributes;
-    const columnDefs = modelDefinition.columns;
+    const physicalAttributes = getObjectFromMap(modelDefinition.physicalAttributes);
+    const columnDefs = getObjectFromMap(modelDefinition.columns);
 
     if (options.hooks) {
       await this.hooks.runAsync('beforeSync', options);
     }
 
-    const tableName = this.getTableName(options);
+    const tableName = this.table;
     if (options.schema && options.schema !== tableName.schema) {
       // Some users sync the same set of tables in different schemas for various reasons
       // They then set `searchPath` when running a query to use different schemas.
@@ -1780,11 +1780,10 @@ ${associationOwner._getAssociationDebugList()}`);
 
     try {
       // TODO: use managed sequelize.transaction() instead
-      const t = await this.sequelize.startUnmanagedTransaction(options);
-      transaction = t;
-      options.transaction = t;
+      transaction = await this.sequelize.startUnmanagedTransaction(options);
+      options.transaction = transaction;
 
-      const found = await this.findOne(defaults({ transaction }, options));
+      const found = await this.findOne(options);
       if (found !== null) {
         return [found, false];
       }
@@ -1815,7 +1814,7 @@ ${associationOwner._getAssociationDebugList()}`);
         const whereFields = flattenedWhereKeys.map(name => modelDefinition.attributes.get(name)?.columnName ?? name);
         const defaultFields = options.defaults && Object.keys(options.defaults)
           .filter(name => modelDefinition.attributes.get(name))
-          .map(name => modelDefinition.attributes.get(name)?.columnName ?? name);
+          .map(name => modelDefinition.getColumnNameLoose(name));
 
         const errFieldKeys = Object.keys(error.fields);
         const errFieldsWhereIntersects = intersects(errFieldKeys, whereFields);
