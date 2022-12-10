@@ -644,7 +644,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
   }
 
-  _getAfterSelectFragment(options) {
+  _getBeforeSelectAttributesFragment(options) {
     let fragment = '';
 
     const MINIMUM_EXECUTION_TIME_VALUE = 0;
