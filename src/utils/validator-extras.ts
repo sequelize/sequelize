@@ -2,10 +2,11 @@ import dayjs from 'dayjs';
 import origValidator from 'validator';
 import type { Attributes, Model } from '../model.js';
 
-export const validator = {
+export const Validator = {
   ...origValidator,
-  extend<T>(name: string, fn: (...args: T[]) => unknown) {
-    Object.assign(this, { [name]: fn });
+  extend(name: string, fn: (...args: unknown[]) => unknown) {
+    // @ts-expect-error -- TODO: rework custom validators to integrate nicely with TypeScript in the future
+    this[name] = fn;
 
     return this;
   },
@@ -13,22 +14,22 @@ export const validator = {
     return !/^\s*$/.test(str);
   },
   len(str: string, min: number, max: number): boolean {
-    return validator.isLength(str, {
+    return Validator.isLength(str, {
       min,
       max,
     });
   },
   isUrl(str: string): boolean {
-    return validator.isURL(str);
+    return Validator.isURL(str);
   },
   isIPv6(str: string): boolean {
-    return validator.isIP(str, 6);
+    return Validator.isIP(str, 6);
   },
   isIPv4(str: string): boolean {
-    return validator.isIP(str, 4);
+    return Validator.isIP(str, 4);
   },
   notIn(str: string, values: string[]): boolean {
-    return !validator.isIn(str, values);
+    return !Validator.isIn(str, values);
   },
   regex(str: string, pattern: string | RegExp, modifiers: string): boolean {
     str = String(str);

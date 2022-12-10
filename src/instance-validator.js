@@ -7,7 +7,7 @@ import { SequelizeMethod } from './utils/sequelize-method';
 const _ = require('lodash');
 const sequelizeError = require('./errors');
 const { BelongsTo } = require('./associations/belongs-to');
-const validator = require('./utils/validator-extras').validator;
+const validator = require('./utils/validator-extras').Validator;
 const { promisify } = require('node:util');
 
 /**

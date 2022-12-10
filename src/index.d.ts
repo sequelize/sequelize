@@ -33,7 +33,7 @@ export * from './sequelize';
 export { Sequelize as default } from './sequelize';
 export { useInflection } from './utils/string';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils';
-export type { validator } from './utils/validator-extras';
+export type { Validator } from './utils/validator-extras';
 export { Deferrable } from './deferrable';
 export type { Optional, PartlyRequired } from './utils/types.js';
 export { Col, Cast, Fn, Json, Where, Literal, SequelizeMethod } from './utils/sequelize-method.js';

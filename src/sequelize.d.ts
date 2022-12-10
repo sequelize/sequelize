@@ -24,7 +24,6 @@ import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
 import type { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method.js';
-import type { validator } from './utils/validator-extras.js';
 import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
 
 export type RetryOptions = RetryAsPromisedOptions;
@@ -685,7 +684,6 @@ export class Sequelize extends SequelizeTypeScript {
 
   static Op: typeof Op;
   static DataTypes: typeof DataTypes;
-  static Validator: typeof validator;
 
   /**
    * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.

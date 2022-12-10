@@ -17,7 +17,7 @@ import { isValidTimeZone } from '../../utils/dayjs.js';
 import { doNotUseRealDataType } from '../../utils/deprecations.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
-import { validator as Validator } from '../../utils/validator-extras';
+import { Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
 import { buildRangeParser } from '../postgres/range.js';
 import {
