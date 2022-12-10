@@ -2224,10 +2224,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
   }
 
-  _getBeforeSelectFragment(_options) {
-    return '';
-  }
-
   _getBeforeSelectAttributesFragment(_options) {
     return '';
   }
@@ -2237,8 +2233,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     this._validateSelectOptions(options);
 
-    let fragment = this._getBeforeSelectFragment(options);
-    fragment += 'SELECT';
+    let fragment = 'SELECT';
     fragment += this._getBeforeSelectAttributesFragment(options);
     fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
