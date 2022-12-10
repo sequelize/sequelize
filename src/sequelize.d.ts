@@ -1015,9 +1015,14 @@ export class Sequelize extends SequelizeTypeScript {
   normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
 
   /**
+   * Fetches the database version
+   */
+  fetchDatabaseVersion(options?: QueryRawOptions): Promise<string>;
+
+  /**
    * Returns the database version
    */
-  databaseVersion(options?: QueryRawOptions): Promise<string>;
+  getDatabaseVersion(): string;
 
   /**
    * Returns the installed version of Sequelize
