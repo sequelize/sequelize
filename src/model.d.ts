@@ -591,7 +591,7 @@ export interface WhereOperators<AttributeType = any> {
    * https://www.postgresql.org/docs/current/functions-json.html
    */
   [Op.anyKeyExists]?: string[]
-    | DynamicValues<string>;
+    | DynamicValues<string[]>;
 
   /**
    * PG only
