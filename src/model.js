@@ -2311,7 +2311,7 @@ Specify a different name for either index to resolve this issue.`);
    *
    */
   static async create(values, options = {}) {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
 
     return await this.build(values, {
       isNewRecord: true,
