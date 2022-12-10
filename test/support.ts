@@ -592,3 +592,15 @@ export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> |
 
   return out;
 }
+
+export function disableDatabaseResetForSuite() {
+  before(async () => {
+    databaseResetDisabled = true;
+    // Reset the DB a single time for the whole suite
+    await Support.clearDatabase(Support.sequelize);
+  });
+
+  after(() => {
+    databaseResetDisabled = false;
+  });
+}

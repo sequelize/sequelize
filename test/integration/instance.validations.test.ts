@@ -18,7 +18,8 @@ import {
   sequelize,
   getTestDialectTeaser,
   getTestDialect,
-  beforeEach2,
+  beforeAll2,
+  disableDatabaseResetForSuite,
 } from './support';
 
 describe(getTestDialectTeaser('InstanceValidator'), async () => {
@@ -227,7 +228,8 @@ describe(getTestDialectTeaser('InstanceValidator'), async () => {
 
   describe('#create', async () => {
     describe('generic', async () => {
-      const vars = beforeEach2(async () => {
+      disableDatabaseResetForSuite();
+      const vars = beforeAll2(async () => {
         class Project extends Model<InferAttributes<Project>, InferCreationAttributes<Project>> {
           static associations: {
             users: HasMany<Project, Task>,
@@ -348,7 +350,8 @@ describe(getTestDialectTeaser('InstanceValidator'), async () => {
       });
 
       describe('primaryKey with the name as id with arguments for its validation', async () => {
-        const vars = beforeEach2(async () => {
+        disableDatabaseResetForSuite();
+        const vars = beforeAll2(async () => {
           class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
             declare id: number | string;
           }
@@ -508,7 +511,8 @@ describe(getTestDialectTeaser('InstanceValidator'), async () => {
   });
 
   describe('not null schema validation', async () => {
-    const vars = beforeEach2(async () => {
+    disableDatabaseResetForSuite();
+    const vars = beforeAll2(async () => {
       class Project extends Model<InferAttributes<Project>, InferCreationAttributes<Project>> {
         declare name: CreationOptional<string>;
       }

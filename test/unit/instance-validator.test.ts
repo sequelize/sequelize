@@ -17,11 +17,13 @@ import { InstanceValidator } from '@sequelize/core/_non-semver-use-at-your-own-r
 import {
   getTestDialectTeaser,
   sequelize,
-  beforeEach2,
+  beforeAll2,
+  disableDatabaseResetForSuite,
 } from '../support';
 
 describe(getTestDialectTeaser('InstanceValidator'), () => {
-  const vars = beforeEach2(() => {
+  disableDatabaseResetForSuite();
+  const vars = beforeAll2(() => {
     const User = sequelize.define('user', {
       fails: {
         type: DataTypes.BOOLEAN,
@@ -475,7 +477,8 @@ describe(getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('_validateAndRunHooks', () => {
-    const validatorVars = beforeEach2(() => {
+    disableDatabaseResetForSuite();
+    const validatorVars = beforeAll2(() => {
       const successfulInstanceValidator = new InstanceValidator(vars.User.build());
       sinon.stub(successfulInstanceValidator, '_validate').resolves();
 
