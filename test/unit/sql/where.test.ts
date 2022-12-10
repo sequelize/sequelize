@@ -2256,6 +2256,117 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     if (dialectSupportsJsonB()) {
       describe('JSONB', () => {
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: ['a', 'b'],
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY['a', 'b']`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: ['a', 'b'],
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY['a', 'b']`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: literal(`ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`),
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: literal(`ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`),
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: [literal(`"gamer"`)],
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY["gamer"]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: [literal(`"gamer"`)],
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY["gamer"]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: col('label'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| "label"`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: col('labels'),
+          },
+        }, {
+          default: `[jsonbAttr] ?& "labels"`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: cast(col('labels'), 'STRING[]'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| CAST("labels" AS STRING[])`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: cast(col('labels'), 'STRING[]'),
+          },
+        }, {
+          default: `[jsonbAttr] ?& CAST("labels" AS STRING[])`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: [],
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY[]::text[]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: [],
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY[]::text[]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: fn('get_label'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| get_label()`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: fn('get_labels'),
+          },
+        }, {
+          default: `[jsonbAttr] ?& get_labels()`,
+        });
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql({ id: { [Op.eq]: json('profile.id') } }, {
