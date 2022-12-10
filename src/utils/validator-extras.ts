@@ -4,7 +4,7 @@ import type { Attributes, Model } from '../model.js';
 
 export const validator = {
   ...origValidator,
-  extend(name: string, fn: (...args: unknown[]) => unknown): unknown {
+  extend<T>(name: string, fn: (...args: T[]) => unknown) {
     Object.assign(this, { [name]: fn });
 
     return this;
@@ -87,5 +87,3 @@ export const validator = {
     return dayjs(dateString).isValid();
   },
 };
-
-export const Validator = typeof validator;

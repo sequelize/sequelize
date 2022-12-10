@@ -34,7 +34,7 @@ export * from './sequelize';
 export { Sequelize as default } from './sequelize';
 export { useInflection } from './utils';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils';
-export type { Validator } from './utils/validator-extras';
+export type { validator } from './utils/validator-extras';
 export { Deferrable } from './deferrable';
 
 /**

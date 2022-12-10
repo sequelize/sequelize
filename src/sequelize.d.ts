@@ -23,6 +23,7 @@ import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
 import type { Cast, Col, Fn, Json, Literal, Where } from './utils';
+import type { validator } from './utils/validator-extras.js';
 import type { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
 
 /**
@@ -654,6 +655,7 @@ export class Sequelize extends SequelizeTypeScript {
 
   static Op: typeof Op;
   static DataTypes: typeof DataTypes;
+  static Validator: typeof validator;
 
   /**
    * Use CLS with Sequelize.
