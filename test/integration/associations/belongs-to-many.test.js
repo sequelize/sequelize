@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [article, label, t] = await Promise.all([
           Article.create({ title: 'foo' }),
           Label.create({ text: 'bar' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await article.setLabels([label], { transaction: t });
@@ -1282,7 +1282,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [article, label, t] = await Promise.all([
           Article.create({ title: 'foo' }),
           Label.create({ text: 'bar' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await article.setLabels([label], { transaction: t });
@@ -1881,7 +1881,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         const [task, t] = await Promise.all([
           Task.create({ title: 'task' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await task.createUser({ username: 'foo' }, { transaction: t });
@@ -1981,7 +1981,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [user, task, t] = await Promise.all([
           User.create({ username: 'foo' }),
           Task.create({ title: 'task' }),
-          sequelize.transaction(),
+          sequelize.startUnmanagedTransaction(),
         ]);
 
         await task.addUser(user, { transaction: t });
@@ -2008,7 +2008,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [user, task, t] = await Promise.all([
           User.create({ username: 'foo' }),
           Task.create({ title: 'task' }),
-          sequelize.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED }),
+          sequelize.startUnmanagedTransaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED }),
         ]);
 
         await task.addUser(user, { through: { status: 'pending' } }); // Create without transaction, so the old value is
@@ -3319,42 +3319,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       expect(ut1).to.have.length(1);
       expect(ut2).to.have.length(1);
-    });
-
-    it('create custom unique identifier', async function () {
-      const UserTasksLong = this.sequelize.define('table_user_task_with_very_long_name', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        id_user_very_long_field: {
-          type: DataTypes.INTEGER(1),
-        },
-        id_task_very_long_field: {
-          type: DataTypes.INTEGER(1),
-        },
-      }, {
-        tableName: 'table_user_task_with_very_long_name',
-      });
-
-      this.User.belongsToMany(this.Task, {
-        as: 'MyTasks',
-        through: {
-          model: UserTasksLong,
-          unique: 'custom_user_group_unique',
-        },
-        foreignKey: 'id_user_very_long_field',
-        otherKey: 'id_task_very_long_field',
-        inverse: {
-          as: 'MyUsers',
-        },
-      });
-
-      await this.sequelize.sync({ force: true });
-
-      expect(UserTasksLong.rawAttributes.id_user_very_long_field.unique).to.deep.equal({ name: 'custom_user_group_unique' });
-      expect(UserTasksLong.rawAttributes.id_task_very_long_field.unique).to.deep.equal({ name: 'custom_user_group_unique' });
     });
   });
 

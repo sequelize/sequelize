@@ -7,14 +7,7 @@ const expect = chai.expect;
  * Context: https://github.com/sequelize/sequelize/pull/13689
  */
 
-const nodeMajorVersion = Number(process.version.match(/(?<=^v)\d+/));
-
 describe('ESM module', () => {
-  // esm is only available in node 12 and above
-  if (nodeMajorVersion < 12) {
-    return;
-  }
-
   it('exposes the same named exports as the CJS module', async () => {
     // important: if you transpile this file, it's important
     //  that we still use both the native import() and the native require().
@@ -35,8 +28,6 @@ describe('ESM module', () => {
       // make no sense to export
       'length',
       'prototype',
-      'useCLS',
-      '_clsRun',
       'name',
       'version',
 

@@ -20,7 +20,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'foo' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await user.destroy({ transaction: t });
         const count1 = await User.count();
         const count2 = await User.count({ transaction: t });
@@ -246,6 +246,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(dayjs.utc(user.deletedAt).startOf('second').toISOString())
         .to.equal(dayjs.utc(deletedAt).startOf('second').toISOString());
       expect(user.username).to.equal('bar');
+    });
+
+    it('is disallowed if no primary key is present', async function () {
+      const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+      await Foo.sync({ force: true });
+
+      const instance = await Foo.create({});
+      await expect(instance.destroy()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
     });
 
     it('allows sql logging of delete statements', async function () {

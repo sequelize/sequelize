@@ -1,3 +1,4 @@
+import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
@@ -22,9 +23,11 @@ import type {
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
-import type { Cast, Col, Fn, Json, Literal, Where } from './utils';
+import type { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method.js';
 import type { validator } from './utils/validator-extras.js';
-import type { QueryTypes, Transaction, TransactionOptions, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
+import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
+
+export type RetryOptions = RetryAsPromisedOptions;
 
 /**
  * Additional options for table altering during sync
@@ -170,16 +173,6 @@ export interface Config {
 
 export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
 
-export interface RetryOptions {
-  match?: Array<RegExp | string | Function>;
-  max?: number;
-  timeout?: number;
-  backoffBase?: number;
-  backoffExponent?: number;
-  report?(msg: string, options: RetryOptions & { $current: number }): void;
-  name?: string;
-}
-
 /**
  * Options for the constructor of the {@link Sequelize} main class.
  */
@@ -308,6 +301,37 @@ export interface Options extends Logging {
    */
   omitNull?: boolean;
 
+  // TODO: https://github.com/sequelize/sequelize/issues/14298
+  //  Model.init should be able to omit the "sequelize" parameter and only be initialized once passed to a Sequelize instance
+  //  using this option.
+  //  Association definition methods should be able to be used on not-yet-initialized models, and be registered once the
+  //  Sequelize constructor inits.
+  /**
+   * A list of models to load and init.
+   *
+   * This option is only useful if you created your models using decorators.
+   * Models created using {@link Model.init} or {@link Sequelize#define} don't need to be specified in this option.
+   *
+   * Use {@link importModels} to load models dynamically:
+   *
+   * @example
+   * ```ts
+   * import { User } from './models/user.js';
+   *
+   * new Sequelize({
+   *   models: [User],
+   * });
+   * ```
+   *
+   * @example
+   * ```ts
+   * new Sequelize({
+   *   models: await importModels(__dirname + '/*.model.ts'),
+   * });
+   * ```
+   */
+  models?: ModelStatic[];
+
   /**
    * A flag that defines if native library shall be used or not. Currently only has an effect for postgres
    *
@@ -424,9 +448,15 @@ export interface Options extends Logging {
   // TODO: move to dialectOptions, rename to noForeignKeyEnforcement, and add integration tests with
   //  query-interface methods that temporarily disable foreign keys.
   foreignKeys?: boolean;
+
+  /**
+   * Disable the use of AsyncLocalStorage to automatically pass transactions started by {@link Sequelize#transaction}.
+   * You will need to pass transactions around manually if you disable this.
+   */
+  disableAlsTransactions?: boolean;
 }
 
-export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone'> {
+export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone' | 'disableAlsTransactions'> {
   readonly replication: NormalizedReplicationOptions;
 }
 
@@ -658,15 +688,6 @@ export class Sequelize extends SequelizeTypeScript {
   static Validator: typeof validator;
 
   /**
-   * Use CLS with Sequelize.
-   * CLS namespace provided is stored as `Sequelize._cls`
-   * and Promise is patched to use the namespace, using `cls-hooked` module.
-   *
-   * @param namespace
-   */
-  static useCLS(namespace: ContinuationLocalStorageNamespace): typeof Sequelize;
-
-  /**
    * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
    */
   Sequelize: typeof Sequelize;
@@ -683,13 +704,6 @@ export class Sequelize extends SequelizeTypeScript {
   readonly modelManager: ModelManager;
 
   readonly connectionManager: AbstractConnectionManager;
-
-  /**
-   * For internal use only.
-   *
-   * @type {ContinuationLocalStorageNamespace | undefined}
-   */
-  static readonly _cls: ContinuationLocalStorageNamespace | undefined;
 
   /**
    * Dictionary of all models linked with this instance.
@@ -824,7 +838,7 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @param modelName The name of a model defined with Sequelize.define
    */
-  model(modelName: string): ModelStatic<Model>;
+  model<M extends Model = Model>(modelName: string): ModelStatic<M>;
 
   /**
    * Checks whether a model with the given name is defined
@@ -987,57 +1001,6 @@ export class Sequelize extends SequelizeTypeScript {
    */
   authenticate(options?: QueryOptions): Promise<void>;
   validate(options?: QueryOptions): Promise<void>;
-
-  /**
-   * Start a transaction. When using transactions, you should pass the transaction in the options argument
-   * in order for the query to happen under that transaction
-   *
-   * ```js
-   *   try {
-   *     const transaction = await sequelize.transaction();
-   *     const user = await User.findOne(..., { transaction });
-   *     await user.update(..., { transaction });
-   *     await transaction.commit();
-   *   } catch(err) {
-   *     await transaction.rollback();
-   *   }
-   * })
-   * ```
-   *
-   * A syntax for automatically committing or rolling back based on the promise chain resolution is also
-   * supported:
-   *
-   * ```js
-   * try {
-   *   await sequelize.transaction(transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
-   *     const user = await User.findOne(..., {transaction});
-   *     await user.update(..., {transaction});
-   *   });
-   *   // Committed
-   * } catch(err) {
-   *   // Rolled back
-   *   console.error(err);
-   * }
-   * ```
-   *
-   * If you have [CLS](https://github.com/Jeff-Lewis/cls-hooked) enabled, the transaction
-   * will automatically be passed to any query that runs witin the callback. To enable CLS, add it do your
-   * project, create a namespace and set it on the sequelize constructor:
-   *
-   * ```js
-   * const cls = require('cls-hooked');
-   * const namespace = cls.createNamespace('....');
-   * const { Sequelize } = require('@sequelize/core');
-   * Sequelize.useCLS(namespace);
-   * ```
-   * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
-   *
-   * @param options Transaction Options
-   * @param autoCallback Callback for the transaction
-   */
-  transaction<T>(options: TransactionOptions, autoCallback: (t: Transaction) => PromiseLike<T> | T): Promise<T>;
-  transaction<T>(autoCallback: (t: Transaction) => PromiseLike<T> | T): Promise<T>;
-  transaction(options?: TransactionOptions): Promise<Transaction>;
 
   /**
    * Close all connections used by this sequelize instance, and free all references so the instance can be

@@ -14,9 +14,7 @@ export class PostgresDialect extends AbstractDialect {
     EXCEPTION: true,
     'ON DUPLICATE KEY': false,
     'ORDER NULLS': true,
-    returnValues: {
-      returning: true,
-    },
+    returnValues: 'returning',
     bulkDefault: true,
     schemas: true,
     multiDatabases: true,
@@ -65,7 +63,6 @@ export class PostgresDialect extends AbstractDialect {
     deferrableConstraints: true,
     searchPath: true,
     escapeStringConstants: true,
-    milliseconds: true,
     globalTimeZoneConfig: true,
     dropTable: {
       cascade: true,

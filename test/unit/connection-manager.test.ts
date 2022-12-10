@@ -1,7 +1,7 @@
-import type { Connection, Sequelize } from '@sequelize/core';
 import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
+import type { Connection, Sequelize } from '@sequelize/core';
 import { createSequelizeInstance } from '../support';
 
 describe('connection manager', () => {

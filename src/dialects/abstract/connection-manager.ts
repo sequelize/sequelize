@@ -3,8 +3,8 @@ import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
 import { ConnectionAcquireTimeoutError } from '../../errors';
 import type { Dialect, Sequelize, ConnectionOptions, QueryRawOptions } from '../../sequelize.js';
+import { isNodeError } from '../../utils/check.js';
 import * as deprecations from '../../utils/deprecations';
-import { isNodeError } from '../../utils/index.js';
 import { logger } from '../../utils/logger';
 import { ReplicationPool } from './replication-pool.js';
 import type { AbstractDialect } from './index.js';
@@ -209,8 +209,10 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
         // avoiding a useless round trip
         const options: QueryRawOptions = {
           logging: () => {},
-          // Cheat .query to use our private connection -- hack
-          // @ts-expect-error
+          // TODO: add "connection" parameter to QueryRawOptions? Would require a way to reuse the same connection without it going back in the pool,
+          //  something like sequelize.session(connection => {}).
+          //  this would help for SET SESSION queries, like in https://github.com/sequelize/sequelize/discussions/15377
+          // @ts-expect-error -- HACK: Cheat .query to use our private connection
           transaction: { connection },
         };
 

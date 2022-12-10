@@ -31,7 +31,6 @@ export class Db2Dialect extends AbstractDialect {
         precision: false,
       },
     },
-    milliseconds: true,
   });
 
   readonly defaultVersion = '1.0.0';

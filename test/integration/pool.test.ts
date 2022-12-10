@@ -1,9 +1,9 @@
-import type { Connection } from '@sequelize/core';
-import { Sequelize, ConnectionAcquireTimeoutError } from '@sequelize/core';
 import { expect } from 'chai';
 import delay from 'delay';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
+import { Sequelize, ConnectionAcquireTimeoutError } from '@sequelize/core';
+import type { Connection } from '@sequelize/core';
 import { createSequelizeInstance, getTestDialect, getTestDialectTeaser } from './support';
 
 const dialect = getTestDialect();
@@ -11,24 +11,24 @@ const dialect = getTestDialect();
 function assertSameConnection(newConnection: Connection, oldConnection: Connection) {
   switch (dialect) {
     case 'postgres':
-      // @ts-expect-error - processID not declared yet
+      // @ts-expect-error -- processID not declared yet
       expect(oldConnection.processID).to.be.equal(newConnection.processID).and.to.be.ok;
       break;
 
     case 'mariadb':
     case 'mysql':
-      // @ts-expect-error - threadId not declared yet
+      // @ts-expect-error -- threadId not declared yet
       expect(oldConnection.threadId).to.be.equal(newConnection.threadId).and.to.be.ok;
       break;
 
     case 'db2':
-      // @ts-expect-error - connected not declared yet
+      // @ts-expect-error -- connected not declared yet
       expect(newConnection.connected).to.equal(oldConnection.connected).and.to.be.ok;
       break;
 
     case 'mssql':
     case 'ibmi':
-      // @ts-expect-error - dummyId not declared yet
+      // @ts-expect-error -- dummyId not declared yet
       expect(newConnection.dummyId).to.equal(oldConnection.dummyId).and.to.be.ok;
       break;
 
@@ -40,29 +40,29 @@ function assertSameConnection(newConnection: Connection, oldConnection: Connecti
 function assertNewConnection(newConnection: Connection, oldConnection: Connection) {
   switch (dialect) {
     case 'postgres':
-      // @ts-expect-error - processID not declared yet
+      // @ts-expect-error -- processID not declared yet
       expect(oldConnection.processID).to.not.be.equal(newConnection.processID);
       break;
 
     case 'mariadb':
     case 'mysql':
-      // @ts-expect-error - threadId not declared yet
+      // @ts-expect-error -- threadId not declared yet
       expect(oldConnection.threadId).to.not.be.equal(newConnection.threadId);
       break;
 
     case 'db2':
-      // @ts-expect-error - connected not declared yet
+      // @ts-expect-error -- connected not declared yet
       expect(newConnection.connected).to.be.ok;
-      // @ts-expect-error - connected not declared yet
+      // @ts-expect-error -- connected not declared yet
       expect(oldConnection.connected).to.not.be.ok;
       break;
 
     case 'mssql':
     case 'ibmi':
       // Flaky test
-      // @ts-expect-error - dummyId not declared yet
+      // @ts-expect-error -- dummyId not declared yet
       expect(newConnection.dummyId).to.not.be.ok;
-      // @ts-expect-error - dummyId not declared yet
+      // @ts-expect-error -- dummyId not declared yet
       expect(oldConnection.dummyId).to.be.ok;
       break;
 
@@ -73,7 +73,7 @@ function assertNewConnection(newConnection: Connection, oldConnection: Connectio
 
 function attachMSSQLUniqueId(connection: Connection) {
   if (['mssql', 'ibmi'].includes(dialect)) {
-    // @ts-expect-error - dummyId not declared yet
+    // @ts-expect-error -- dummyId not declared yet
     connection.dummyId = Math.random();
   }
 
@@ -108,7 +108,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
         } else {
           const error: NodeJS.ErrnoException = new Error('Test ECONNRESET Error');
           error.code = 'ECONNRESET';
-          // @ts-expect-error - emit not declared yet
+          // @ts-expect-error -- emit not declared yet
           connection.emit('error', error);
         }
       }
@@ -137,28 +137,28 @@ describe(getTestDialectTeaser('Pooling'), () => {
         // should never be returned again
         switch (dialect) {
           case 'mssql': {
-            // @ts-expect-error - close not declared yet
+            // @ts-expect-error -- close not declared yet
             attachMSSQLUniqueId(connection).close();
 
             break;
           }
 
           case 'postgres': {
-            // @ts-expect-error - end not declared yet
+            // @ts-expect-error -- end not declared yet
             connection.end();
 
             break;
           }
 
           case 'db2': {
-            // @ts-expect-error - closeSync not declared yet
+            // @ts-expect-error -- closeSync not declared yet
             connection.closeSync();
 
             break;
           }
 
           default: {
-            // @ts-expect-error - close not declared yet
+            // @ts-expect-error -- close not declared yet
             connection.close();
           }
         }

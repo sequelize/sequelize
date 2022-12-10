@@ -1,7 +1,10 @@
 'use strict';
 
+import { underscore } from 'inflection';
 import { rejectInvalidOptions } from '../../utils/check';
-import { removeTrailingSemicolon } from '../../utils/string';
+import { addTicks } from '../../utils/dialect';
+import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
+import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
@@ -11,10 +14,9 @@ import {
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const Utils = require('../../utils');
-const util = require('util');
+const util = require('node:util');
 const _ = require('lodash');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
+const { IBMiQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const DataTypes = require('../../data-types');
 const { Model } = require('../../model');
 const SqlString = require('../../sql-string');
@@ -26,7 +28,7 @@ const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
-export class IBMiQueryGenerator extends AbstractQueryGenerator {
+export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
   // Version queries
   versionQuery() {
@@ -155,36 +157,6 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}`;
   }
 
-  describeTableQuery(tableName, schema) {
-    if (typeof tableName === 'object') {
-      schema = tableName.schema || schema;
-      tableName = tableName.tableName;
-    }
-
-    const sql
-    = `SELECT
-    QSYS2.SYSCOLUMNS.*,
-    QSYS2.SYSCST.CONSTRAINT_NAME,
-    QSYS2.SYSCST.CONSTRAINT_TYPE
-    FROM
-    QSYS2.SYSCOLUMNS
-    LEFT OUTER JOIN
-      QSYS2.SYSCSTCOL
-    ON
-      QSYS2.SYSCOLUMNS.TABLE_SCHEMA = QSYS2.SYSCSTCOL.TABLE_SCHEMA
-      AND
-      QSYS2.SYSCOLUMNS.TABLE_NAME = QSYS2.SYSCSTCOL.TABLE_NAME
-      AND
-      QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME
-    LEFT JOIN
-      QSYS2.SYSCST
-    ON
-      QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-    WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'} AND QSYS2.SYSCOLUMNS.TABLE_NAME = '${tableName}'`;
-
-    return sql;
-  }
-
   showTablesQuery(schema) {
     return `SELECT TABLE_NAME FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}`;
   }
@@ -276,7 +248,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Utils.Json) {
+    if (smth instanceof Json) {
       // Parse nested object
       if (smth.conditions) {
         const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.quoteIdentifier(condition.path[0])}->>'$.${_.tail(condition.path).join('.')}' = '${condition.value}'`);
@@ -320,7 +292,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
         return str;
       }
-    } else if (smth instanceof Utils.Cast) {
+    } else if (smth instanceof Cast) {
       if (/timestamp/i.test(smth.type)) {
         smth.type = 'timestamp';
       } else if (smth.json && /boolean/i.test(smth.type)) {
@@ -337,7 +309,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
   }
 
   escape(value, field, options) {
-    if (value instanceof Utils.SequelizeMethod) {
+    if (value instanceof SequelizeMethod) {
       return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
@@ -408,7 +380,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
         return this.quoteIdentifier(field);
       }
 
-      if (field instanceof Utils.SequelizeMethod) {
+      if (field instanceof SequelizeMethod) {
         return this.handleSequelizeMethod(field);
       }
 
@@ -442,7 +414,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     if (!options.name) {
       // Mostly for cases where addIndex is called directly by the user without an options object (for example in migrations)
       // All calls that go through sequelize should already have a name
-      options = Utils.nameIndex(options, options.prefix);
+      options = nameIndex(options, options.prefix);
     }
 
     options = Model._conformIndex(options);
@@ -601,58 +573,6 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
 
   // Indexes and constraints
 
-  showIndexesQuery(tableName) {
-    let table;
-    let schema;
-    if (typeof tableName === 'string') {
-      table = tableName;
-    } else {
-      table = tableName.tableName || tableName.table;
-      schema = tableName.schema;
-    }
-
-    const sql
-    = `select
-      QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME,
-      QSYS2.SYSCSTCOL.COLUMN_NAME,
-      QSYS2.SYSCST.CONSTRAINT_TYPE,
-      QSYS2.SYSCST.TABLE_SCHEMA,
-      QSYS2.SYSCST.TABLE_NAME
-    from
-      QSYS2.SYSCSTCOL
-    left outer join
-      QSYS2.SYSCST
-    on
-      QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA
-      and
-      QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME
-      and
-      QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-    where
-      QSYS2.SYSCSTCOL.TABLE_SCHEMA = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}
-      and
-      QSYS2.SYSCSTCOL.TABLE_NAME = '${table}'
-    union
-    select
-      QSYS2.SYSKEYS.INDEX_NAME AS NAME,
-      QSYS2.SYSKEYS.COLUMN_NAME,
-      CAST('INDEX' AS VARCHAR(11)),
-      QSYS2.SYSINDEXES.TABLE_SCHEMA,
-      QSYS2.SYSINDEXES.TABLE_NAME
-    from
-      QSYS2.SYSKEYS
-    left outer join
-      QSYS2.SYSINDEXES
-    on
-      QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME
-    where
-      QSYS2.SYSINDEXES.TABLE_SCHEMA = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}
-      and
-      QSYS2.SYSINDEXES.TABLE_NAME = '${table}'`;
-
-    return sql;
-  }
-
   showConstraintsQuery(table, constraintName) {
     const tableName = table.tableName || table;
     const schemaName = table.schema;
@@ -682,7 +602,7 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
     let indexName = indexNameOrAttributes;
 
     if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
+      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
     }
 
     return `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = '${indexName}') THEN DROP INDEX "${indexName}"; COMMIT; END IF; END`;
@@ -896,5 +816,5 @@ export class IBMiQueryGenerator extends AbstractQueryGenerator {
  * @deprecated use "escape" or "escapeString" on QueryGenerator
  */
 function wrapSingleQuote(identifier) {
-  return Utils.addTicks(identifier, '\'');
+  return addTicks(identifier, '\'');
 }
