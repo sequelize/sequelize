@@ -14,7 +14,7 @@ import {
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const util = require('util');
+const util = require('node:util');
 const _ = require('lodash');
 const { IBMiQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const DataTypes = require('../../data-types');

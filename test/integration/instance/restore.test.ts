@@ -1,5 +1,5 @@
-import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
+import { DataTypes } from '@sequelize/core';
 import { sequelize } from '../support';
 
 describe('Model#restore', () => {

@@ -323,8 +323,7 @@ export class HasMany<
       scope: false,
       attributes: [this.target.primaryKeyAttribute],
       raw: true,
-      // TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
       where: {
         [Op.and]: [
           where,
@@ -468,7 +467,7 @@ export class HasMany<
 
         // raw entity
         if (isPlainObject(targetInstance) && this.target.primaryKeyAttribute in targetInstance) {
-          // @ts-expect-error
+          // @ts-expect-error -- implicit any, can't be fixed
           return targetInstance[this.target.primaryKeyAttribute];
         }
 
@@ -503,8 +502,7 @@ export class HasMany<
 
     if (this.scope) {
       for (const attribute of Object.keys(this.scope)) {
-        // TODO: fix the typing of {@link AssociationScope}
-        // @ts-expect-error
+        // @ts-expect-error -- TODO: fix the typing of {@link AssociationScope}
         values[attribute] = this.scope[attribute];
         if (options.fields) {
           options.fields.push(attribute);
