@@ -2338,6 +2338,22 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         testSql({
           jsonbAttr: {
+            [Op.anyKeyExists]: [],
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY[]::text[]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: [],
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY[]::text[]`,
+        });
+
+        testSql({
+          jsonbAttr: {
             [Op.anyKeyExists]: fn('get_label'),
           },
         }, {
