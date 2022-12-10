@@ -688,13 +688,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);
     const existingConstraints = [];
-    let key;
-    let attribute;
 
-    for (key in attributes) {
-      attribute = attributes[key];
+    for (const key of Object.keys(attributes)) {
+      const attribute = { ...attributes[key] };
 
       if (attribute.references) {
         if (existingConstraints.includes(this.quoteTable(attribute.references.table))) {
@@ -709,7 +707,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
           //       few cases where MSSQL actually supports them
           attribute.onUpdate = '';
         }
-
       }
 
       if (key && !attribute.field) {

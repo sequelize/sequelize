@@ -309,34 +309,39 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
   }
 
-  escape(value, field, options) {
+  escape(value, attribute, options) {
     if (value instanceof SequelizeMethod) {
       return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
-    if (value == null || field?.type == null || typeof field.type === 'string') {
+    if (value == null || attribute?.type == null || typeof attribute.type === 'string') {
       const format = (value === null && options.where);
 
       // use default escape mechanism instead of the DataType's.
       return SqlString.escape(value, this.options.timezone, this.dialect, format);
     }
 
-    field.type = field.type.toDialectDataType(this.dialect);
+    if (!attribute.type.belongsToDialect(this.dialect)) {
+      attribute = {
+        ...attribute,
+        type: attribute.type.toDialectDataType(this.dialect),
+      };
+    }
 
     if (options.isList && Array.isArray(value)) {
       const escapeOptions = { ...options, isList: false };
 
       return `(${value.map(valueItem => {
-        return this.escape(valueItem, field, escapeOptions);
+        return this.escape(valueItem, attribute, escapeOptions);
       }).join(', ')})`;
     }
 
-    this.validate(value, field);
+    this.validate(value, attribute);
 
-    return field.type.escape(value, {
+    return attribute.type.escape(value, {
       // Users shouldn't have to worry about these args - just give them a function that takes a single arg
       escape: this.simpleEscape,
-      field,
+      field: attribute,
       timezone: this.options.timezone,
       operation: options.operation,
       dialect: this.dialect,
@@ -717,9 +722,12 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   attributesToSQL(attributes, options) {
     const result = Object.create(null);
 
-    for (const key in attributes) {
-      const attribute = attributes[key];
-      attribute.field = attribute.field || key;
+    for (const key of Object.keys(attributes)) {
+      const attribute = {
+        ...attributes[key],
+        field: attributes[key].field || key,
+      };
+
       result[attribute.field || key] = this.attributeToSQL(attribute, options);
     }
 
