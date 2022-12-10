@@ -30,6 +30,7 @@ describe('DataTypes.ENUM', () => {
       sequelize.define('omnomnom', {
         bla: {
           type: DataTypes.ENUM('a', 'b'),
+          // @ts-expect-error -- property should not be specified but we're testing that it throws
           values: ['a', 'b'],
         },
       });

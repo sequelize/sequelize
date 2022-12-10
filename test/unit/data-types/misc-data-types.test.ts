@@ -6,6 +6,7 @@ import { expectsql, sequelize, getTestDialect } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const dialectName = getTestDialect();
+const dialect = sequelize.dialect;
 
 describe('DataTypes.BOOLEAN', () => {
   testDataTypeSql('BOOLEAN', DataTypes.BOOLEAN, {
