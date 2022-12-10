@@ -32,11 +32,26 @@ jobs:
           node-version: 16.x
       - run: yarn install --frozen-lockfile
       - run: yarn docs
+  test-typings-older:
+    strategy:
+      fail-fast: false
+      matrix:
+        ts-version: ["4.1", "4.2", "4.3"]
+    name: TS Typings (${{ matrix.ts-version }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+      - run: yarn install --frozen-lockfile
+      - run: yarn add --dev typescript@~${{ matrix.ts-version }}
+      - run: yarn test-typings-older
   test-typings:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ["4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8"]
+        ts-version: ["4.4", "4.5", "4.6", "4.7", "4.8"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     steps:

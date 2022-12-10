@@ -226,6 +226,7 @@
     "----------------------------------------- static analysis -----------------------------------------": "",
     "lint": "eslint src test --quiet --fix",
     "lint-docs": "markdownlint docs",
+    "test-typings-older": "tsc --noEmit --emitDeclarationOnly false && tsc -b test/old-tsconfig.json",
     "test-typings": "tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
     "----------------------------------------- documentation -------------------------------------------": "",
     "docs": "sh docs.sh",
