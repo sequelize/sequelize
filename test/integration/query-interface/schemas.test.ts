@@ -1,7 +1,7 @@
-import type { CreateSchemaQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { expect } from 'chai';
 import { afterEach } from 'mocha';
 import { spy } from 'sinon';
+import type { CreateSchemaQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;

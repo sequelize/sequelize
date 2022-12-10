@@ -778,9 +778,10 @@ Use Sequelize#query if you wish to use replacements.`);
    * {@link Model.schema}
    *
    * @param {string} schema Name of the schema
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
+   * @param {object} [options={}] CreateSchemaQueryOptions
+   * @param {string} [options.collate=null]
+   * @param {string} [options.charset=null]
+    *
    * @returns {Promise}
    */
   async createSchema(schema, options) {

@@ -2,6 +2,7 @@ import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
+import type { CreateSchemaQueryOptions } from './dialects/abstract/query-generator';
 import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type {
   DestroyOptions,
@@ -934,7 +935,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param schema Name of the schema
    * @param options Options supplied
    */
-  createSchema(schema: string, options?: Logging): Promise<unknown>;
+  createSchema(schema: string, options?: CreateSchemaQueryOptions): Promise<void>;
 
   /**
    * Show all defined schemas
