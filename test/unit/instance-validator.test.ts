@@ -13,6 +13,7 @@ import {
   Sequelize,
   literal,
 } from '@sequelize/core';
+// @ts-expect-error -- TODO: Migrate Instance Validator to TypeScript
 import { InstanceValidator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator.js';
 import {
   getTestDialectTeaser,
@@ -215,6 +216,7 @@ describe(getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('allows me to add custom validation functions to validator.js', async () => {
+    // @ts-expect-error -- TODO: rework custom validators to integrate nicely with TypeScript in the future
     Sequelize.Validator.extend('isExactly7Characters', (val: string) => {
       return val.length === 7;
     });
