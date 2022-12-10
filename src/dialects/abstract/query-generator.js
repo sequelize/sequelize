@@ -2814,6 +2814,19 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
         return this._joinKeyValue(key, this.escape(pattern, undefined, options), comparator, options.prefix);
       }
+
+      case Op.anyKeyExists:
+      case Op.allKeysExist: {
+        if (value instanceof SequelizeMethod) {
+          return this._joinKeyValue(key, this.handleSequelizeMethod(value, undefined, undefined, options), comparator, options.prefix);
+        }
+
+        if (value.length === 0) {
+          return this._joinKeyValue(key, `ARRAY[]::text[]`, comparator, options.prefix);
+        }
+
+        return this._joinKeyValue(key, `ARRAY[${value.map(item => this.escape(item, undefined, options)).join(', ')}]`, comparator, options.prefix);
+      }
     }
 
     const escapeOptions = {
