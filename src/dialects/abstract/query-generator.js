@@ -2224,8 +2224,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
   }
 
-  _getSelectOptimizerHints(_options) {
-    return 'SELECT';
+  _getBeforeSelectFragment(_options) {
+    return '';
+  }
+
+  _getAfterSelectFragment(_options) {
+    return '';
   }
 
   selectFromTableFragment(options, model, attributes, tables, mainTableAs) {
@@ -2233,8 +2237,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     this._validateSelectOptions(options);
 
-    let fragment = this._getSelectOptimizerHints(options);
-
+    let fragment = this._getBeforeSelectFragment(options);
+    fragment += 'SELECT';
+    fragment += this._getAfterSelectFragment(options);
     fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
     if (mainTableAs) {

@@ -644,8 +644,8 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
   }
 
-  _getSelectOptimizerHints(options) {
-    let fragment = 'SELECT';
+  _getAfterSelectFragment(options) {
+    let fragment = '';
 
     const MINIMUM_EXECUTION_TIME_VALUE = 0;
     const MAXIMUM_EXECUTION_TIME_VALUE = 4_294_967_295;

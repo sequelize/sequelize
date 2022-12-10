@@ -12,8 +12,8 @@ export class MariaDbQueryGenerator extends MySqlQueryGenerator {
     return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema'];
   }
 
-  _getSelectOptimizerHints(_options) {
-    return 'SELECT';
+  _getAfterSelectFragment(_options) {
+    return '';
   }
 
   addColumnQuery(table, key, dataType, options = {}) {
