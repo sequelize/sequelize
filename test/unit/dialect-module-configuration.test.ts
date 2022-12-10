@@ -1,6 +1,6 @@
 import { join } from 'node:path';
-import { Sequelize } from '@sequelize/core';
 import { expect } from 'chai';
+import { Sequelize } from '@sequelize/core';
 import { getTestDialect, getTestDialectTeaser } from '../support';
 
 const dialect = getTestDialect();

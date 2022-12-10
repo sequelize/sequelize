@@ -1,6 +1,7 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
@@ -11,8 +12,8 @@ import { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
+import { importModels } from './import-models.js';
 
-const retry = require('retry-as-promised');
 const _ = require('lodash');
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
@@ -218,7 +219,7 @@ export class Sequelize extends SequelizeTypeScript {
 
     Sequelize.hooks.runSync('beforeInit', options);
 
-    // @ts-expect-error
+    // @ts-expect-error -- doesn't exist
     if (options.pool === false) {
       throw new Error('Support for pool:false was removed in v4.0');
     }
@@ -252,7 +253,7 @@ export class Sequelize extends SequelizeTypeScript {
       },
       transactionType: TRANSACTION_TYPES.DEFERRED,
       isolationLevel: null,
-      databaseVersion: 0,
+      databaseVersion: null,
       noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,
@@ -413,6 +414,10 @@ export class Sequelize extends SequelizeTypeScript {
     this.models = {};
     this.modelManager = new ModelManager(this);
     this.connectionManager = this.dialect.connectionManager;
+
+    if (options.models) {
+      this.addModels(options.models);
+    }
 
     Sequelize.hooks.runSync('afterInit', this);
   }
@@ -1031,9 +1036,30 @@ Use Sequelize#query if you wish to use replacements.`);
 
   }
 
-  // TODO: rename to getDatabaseVersion
-  async databaseVersion(options) {
+  /**
+   * Fetches the version of the database
+   *
+   * @param {object} [options] Query options
+   *
+   * @returns {Promise<string>} current version of the dialect
+   */
+  async fetchDatabaseVersion(options) {
     return await this.getQueryInterface().databaseVersion(options);
+  }
+
+  /**
+   * Throws if the database version hasn't been loaded yet. It is automatically loaded the first time Sequelize connects to your database.
+   *
+   * You can use {@link Sequelize#authenticate} to cause a first connection.
+   *
+   * @returns {string} current version of the dialect that is internally loaded
+   */
+  getDatabaseVersion() {
+    if (this.options.databaseVersion == null) {
+      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
+    }
+
+    return this.options.databaseVersion;
   }
 
   /**
@@ -1080,6 +1106,8 @@ Use Sequelize#query if you wish to use replacements.`);
   static isModelStatic = isModelStatic;
 
   static isSameInitialModel = isSameInitialModel;
+
+  static importModels = importModels;
 
   log(...args) {
     let options;

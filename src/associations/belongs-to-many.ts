@@ -376,8 +376,8 @@ Add your own primary key to the through model, on different attributes than the 
         uniqueKey = [this.through.model.tableName, ...keys, 'unique'].join('_');
       }
 
-      this.throughModel.rawAttributes[this.foreignKey].unique = uniqueKey;
-      this.throughModel.rawAttributes[this.otherKey].unique = uniqueKey;
+      this.throughModel.rawAttributes[this.foreignKey].unique = [{ name: uniqueKey }];
+      this.throughModel.rawAttributes[this.otherKey].unique = [{ name: uniqueKey }];
     }
 
     this.throughModel.refreshAttributes();
@@ -441,8 +441,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     const findOptions: FindOptions<Attributes<TargetModel>> = {
       ...options,
-      // TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
       where: {
         [Op.and]: [
           options?.where,
@@ -543,8 +542,7 @@ Add your own primary key to the through model, on different attributes than the 
       scope: false,
       attributes: [this.targetKey],
       joinTableAttributes: [],
-      // TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
       where: {
         [Op.and]: [
           { [this.targetKey]: { [Op.in]: targetPrimaryKeys } },
@@ -712,7 +710,7 @@ Add your own primary key to the through model, on different attributes than the 
       const attributes = { ...defaultAttributes, ...throughAttributes };
 
       if (Object.keys(attributes).some(attribute => {
-        // @ts-expect-error existingThroughRow is raw
+        // @ts-expect-error -- existingThroughRow is raw
         return attributes[attribute] !== existingThroughRow[attribute];
       })) {
         changedTargets.push(newInstance);
@@ -854,7 +852,7 @@ function normalizeThroughOptions<M extends Model>(
 
       // @ts-expect-error -- TODO: make 'schema' a public property on Model once the method has been removed (sequelize 8)
       schema: source._schema,
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: either remove or make a public readonly property
       schemaDelimiter: source._schemaDelimiter,
     }));
   }
@@ -881,7 +879,7 @@ function normalizeOptions<SourceKey extends string, TargetKey extends string, Th
     throw new TypeError('The "uniqueKey" option in belongsToMany has been renamed to through.unique');
   }
 
-  const sequelize = target.sequelize!;
+  const sequelize = target.sequelize;
 
   return normalizeBaseAssociationOptions(type, {
     ...options,

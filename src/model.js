@@ -1,6 +1,7 @@
 'use strict';
 
 import omit from 'lodash/omit';
+import { isDecoratedModel } from './decorators/shared/model';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { BaseError } from './errors';
 import { intersects } from './utils/array';
@@ -19,8 +20,8 @@ import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { SequelizeMethod } from './utils/sequelize-method';
 import { generateIndexName, singularize, pluralize, underscoredIf } from './utils/string';
 
-const assert = require('assert');
-const NodeUtil = require('util');
+const assert = require('node:assert');
+const NodeUtil = require('node:util');
 const _ = require('lodash');
 const Dottie = require('dottie');
 const { logger } = require('./utils/logger');
@@ -64,25 +65,6 @@ const nonCascadingOptions = ['include', 'attributes', 'originalAttributes', 'ord
  * @see {Sequelize#define} for more information about getters and setters
  */
 export class Model extends ModelTypeScript {
-  static get queryInterface() {
-    return this.sequelize.getQueryInterface();
-  }
-
-  static get queryGenerator() {
-    return this.queryInterface.queryGenerator;
-  }
-
-  /**
-   * A reference to the sequelize instance
-   *
-   * @property sequelize
-   *
-   * @returns {Sequelize}
-   */
-  get sequelize() {
-    return this.constructor.sequelize;
-  }
-
   /**
    * Builds a new model instance.
    *
@@ -95,6 +77,8 @@ export class Model extends ModelTypeScript {
    */
   constructor(values = {}, options = {}) {
     super();
+
+    this.constructor.assertIsInitialized();
 
     if (!this.constructor._overwrittenAttributesChecked) {
       this.constructor._overwrittenAttributesChecked = true;
@@ -871,11 +855,24 @@ Specify a different name for either index to resolve this issue.`);
    * @returns {Model}
    */
   static init(attributes, options = {}) {
-    if (!options.sequelize) {
-      throw new Error('No Sequelize instance passed');
+    // TODO: In a future major release, Model.init should be reworked to work in two steps:
+    //  - Model.init, Model.hasOne, Model.hasMany, Model.belongsTo, and Model.belongsToMany should *only* call registerModelAttributeOptions, registerModelOptions, and registerModelAssociation
+    //  - Then all models are passed to the Sequelize constructor, which actually inits the options & attributes of all models, *then* adds all associations.
+    //  - If the model is already registered, Model.hasOne, Model.hasMany, Model.belongsTo, and Model.belongsToMany should add the association immediately, so sequelize.define() continues to work
+    //  Model.init should be renamed to something else to prevent confusion (Model.configure?)
+    if (isDecoratedModel(this)) {
+      throw new Error(`Model.init cannot be used if the model uses one of Sequelize's decorators. You must pass your model to the Sequelize constructor using the "models" option instead.`);
     }
 
-    this.sequelize = options.sequelize;
+    return this._internalInit(attributes, options);
+  }
+
+  static _internalInit(attributes, options = {}) {
+    if (!options.sequelize) {
+      throw new Error('Model.init expects a Sequelize instance to be passed through the option bag, which is the second parameter.');
+    }
+
+    this._setSequelize(options.sequelize);
 
     const globalOptions = this.sequelize.options;
 
@@ -991,7 +988,7 @@ Specify a different name for either index to resolve this issue.`);
       }
 
       if (attribute.type === undefined) {
-        throw new Error(`Unrecognized datatype for attribute "${this.name}.${name}"`);
+        throw new Error(`Attribute "${this.name}.${name}" does not specify its DataType.`);
       }
 
       if (attribute.allowNull !== false && _.get(attribute, 'validate.notNull')) {
@@ -1175,36 +1172,46 @@ Specify a different name for either index to resolve this issue.`);
         }
 
         if (Object.prototype.hasOwnProperty.call(definition, 'unique') && definition.unique) {
-          if (typeof definition.unique === 'string') {
-            definition.unique = {
-              name: definition.unique,
-            };
-          } else if (definition.unique === true) {
-            definition.unique = {};
+          if (!Array.isArray(definition.unique)) {
+            definition.unique = [definition.unique];
           }
 
-          const index = definition.unique.name && this.uniqueKeys[definition.unique.name]
-            ? this.uniqueKeys[definition.unique.name]
-            : { fields: [] };
+          for (let i = 0; i < definition.unique.length; i++) {
+            let unique = definition.unique[i];
 
-          index.fields.push(definition.field);
-          index.msg = index.msg || definition.unique.msg || null;
+            if (typeof unique === 'string') {
+              unique = {
+                name: unique,
+              };
+            } else if (unique === true) {
+              unique = {};
+            }
 
-          // TODO: remove this 'column'? It does not work with composite indexes, and is only used by db2 which should use fields instead.
-          index.column = name;
+            definition.unique[i] = unique;
 
-          index.customIndex = definition.unique !== true;
-          index.unique = true;
+            const index = unique.name && this.uniqueKeys[unique.name]
+              ? this.uniqueKeys[unique.name]
+              : { fields: [] };
 
-          if (definition.unique.name) {
-            index.name = definition.unique.name;
-          } else {
-            this._nameIndex(index);
+            index.fields.push(definition.field);
+            index.msg = index.msg || unique.msg || null;
+
+            // TODO: remove this 'column'? It does not work with composite indexes, and is only used by db2 which should use fields instead.
+            index.column = name;
+
+            index.customIndex = unique !== true;
+            index.unique = true;
+
+            if (unique.name) {
+              index.name = unique.name;
+            } else {
+              this._nameIndex(index);
+            }
+
+            unique.name ??= index.name;
+
+            this.uniqueKeys[index.name] = index;
           }
-
-          definition.unique.name ??= index.name;
-
-          this.uniqueKeys[index.name] = index;
         }
 
         if (Object.prototype.hasOwnProperty.call(definition, 'validate')) {
@@ -1745,6 +1752,7 @@ Specify a different name for either index to resolve this issue.`);
     model._initialModel = this;
     Object.defineProperty(model, 'name', { value: this.name });
 
+    model._setSequelize(this.sequelize);
     model.rawAttributes = _.mapValues(this.rawAttributes, attributeDefinition => {
       return {
         ...attributeDefinition,

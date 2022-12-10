@@ -3,7 +3,7 @@
 const Support = require('../../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
-const util = require('util');
+const util = require('node:util');
 const _ = require('lodash');
 
 const expectsql = Support.expectsql;

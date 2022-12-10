@@ -115,8 +115,9 @@ export class BelongsTo<
     // For Db2 server, a reference column of a FOREIGN KEY must be unique
     // else, server throws SQL0573N error. Hence, setting it here explicitly
     // for non primary columns.
-    if (target.sequelize!.options.dialect === 'db2' && this.target.getAttributes()[this.targetKey].primaryKey !== true) {
+    if (target.sequelize.options.dialect === 'db2' && this.target.getAttributes()[this.targetKey].primaryKey !== true) {
       // TODO: throw instead
+      // @ts-expect-error -- pending removal, not worth typing
       this.target.getAttributes()[this.targetKey].unique = true;
     }
 

@@ -1,4 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { initDecoratedModel } from './decorators/shared/model.js';
+import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { AbstractQuery } from './dialects/abstract/query.js';
 import {
   legacyBuildHasHook,
@@ -31,17 +33,16 @@ export interface SequelizeHooks extends ModelHooks {
    * A hook that is run before a connection is created
    */
   beforeConnect(config: ConnectionOptions): AsyncHookReturn;
-  // TODO: set type of Connection once DataType-TS PR is merged
 
   /**
    * A hook that is run after a connection is created
    */
-  afterConnect(connection: unknown, config: ConnectionOptions): AsyncHookReturn;
+  afterConnect(connection: Connection, config: ConnectionOptions): AsyncHookReturn;
 
   /**
    * A hook that is run before a connection is disconnected
    */
-  beforeDisconnect(connection: unknown): AsyncHookReturn;
+  beforeDisconnect(connection: Connection): AsyncHookReturn;
 
   /**
    * A hook that is run after a connection is disconnected
@@ -90,7 +91,7 @@ type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
 
 // DO NOT EXPORT THIS CLASS!
 // This is a temporary class to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
-export class SequelizeTypeScript {
+export abstract class SequelizeTypeScript {
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);
   }
@@ -180,6 +181,18 @@ export class SequelizeTypeScript {
 
   private _setupTransactionAls() {
     this.#transactionAls = new AsyncLocalStorage<Transaction>();
+  }
+
+  addModels(models: ModelStatic[]) {
+    for (const model of models) {
+      initDecoratedModel(
+        model,
+        // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
+        this,
+      );
+    }
+
+    // TODO: https://github.com/sequelize/sequelize/issues/15334 -- register associations declared by decorators
   }
 
   /**

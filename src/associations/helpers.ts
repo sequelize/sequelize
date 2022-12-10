@@ -60,7 +60,6 @@ export function addForeignKeyConstraints(
  * @param mixinTargetPrototype Model prototype
  * @param methods Method names to inject
  * @param aliases Mapping between model and association method names
- *
  */
 export function mixinMethods<A extends Association, Aliases extends Record<string, string>>(
   association: A,
@@ -69,7 +68,7 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
   aliases?: Aliases,
 ): void {
   for (const method of methods) {
-    // @ts-expect-error
+    // @ts-expect-error -- implicit any, no way around it
     const targetMethodName = association.accessors[method];
 
     // don't override custom methods
@@ -77,13 +76,13 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
       continue;
     }
 
-    // @ts-expect-error
+    // @ts-expect-error -- implicit any, no way around it
     const realMethod = aliases?.[method] || method;
 
     Object.defineProperty(mixinTargetPrototype, targetMethodName, {
       enumerable: false,
       value(...params: any[]) {
-        // @ts-expect-error
+        // @ts-expect-error -- implicit any, no way around it
         return association[realMethod](this, ...params);
       },
     });
@@ -228,7 +227,7 @@ export function defineAssociation<
   checkNamingCollision(source, normalizedOptions.as);
   assertAssociationUnique(type, source, target, normalizedOptions, parent);
 
-  const sequelize = source.sequelize!;
+  const sequelize = source.sequelize;
   Object.defineProperty(normalizedOptions, 'sequelize', {
     configurable: true,
     get() {

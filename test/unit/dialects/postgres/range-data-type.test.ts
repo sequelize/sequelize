@@ -1,7 +1,7 @@
+import { expect } from 'chai';
 import type { Rangable } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
 import type { StringifyOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
-import { expect } from 'chai';
 import { sequelize } from '../../../support';
 
 const dialect = sequelize.dialect;
@@ -42,25 +42,25 @@ describe('[POSTGRES Specific] RANGE DataType', () => {
 
     it('should throw error when array length is not 0 or 2', () => {
       expect(() => {
-        // @ts-expect-error
+        // @ts-expect-error -- testing that invalid input throws
         integerRangeType.escape([1], stringifyOptions);
       }).to.throw();
       expect(() => {
-        // @ts-expect-error
+        // @ts-expect-error -- testing that invalid input throws
         integerRangeType.escape([1, 2, 3], stringifyOptions);
       }).to.throw();
     });
 
     it('should throw error when non-array parameter is passed', () => {
       expect(() => {
-        // @ts-expect-error
+        // @ts-expect-error -- testing that invalid input throws
         integerRangeType.escape({}, stringifyOptions);
       }).to.throw();
       expect(() => {
         integerRangeType.escape('test', stringifyOptions);
       }).to.throw();
       expect(() => {
-        // @ts-expect-error
+        // @ts-expect-error -- testing that invalid input throws
         integerRangeType.escape(undefined, stringifyOptions);
       }).to.throw();
     });
