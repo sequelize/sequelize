@@ -71,7 +71,7 @@ export function injectReplacements(
       const remainingString = sqlString.slice(i, sqlString.length);
 
       const dollarStringStartMatch = remainingString.match(/^\$(?<name>[a-z_][0-9a-z_])?(\$)/i);
-      const tagName = dollarStringStartMatch?.groups?.name;
+      const tagName = dollarStringStartMatch?.groups?.name || '';
       if (currentDollarStringTagName === tagName) {
         currentDollarStringTagName = null;
       }
