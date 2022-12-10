@@ -42,7 +42,6 @@ export const validator = {
     return !this.regex(str, pattern, modifiers);
   },
   isDecimal(str: string): boolean {
-    // eslint-disable-next-line unicorn/no-unsafe-regex
     return str !== '' && Boolean(/^(?:-?\d+)?(?:\.\d*)?(?:[Ee][+-]?\d+)?$/.test(str));
   },
   min(str: string, val: number): boolean {
