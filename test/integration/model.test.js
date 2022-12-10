@@ -2447,7 +2447,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('uses a table name as a string and references the author table', async function () {
-      const authorIdColumn = { type: DataTypes.INTEGER, references: { tableName: 'authors', key: 'id' } };
+      const authorIdColumn = { type: DataTypes.INTEGER, references: { table: 'authors', key: 'id' } };
 
       const Post = this.sequelize.define('post', { title: DataTypes.STRING, authorId: authorIdColumn });
 
@@ -2466,7 +2466,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('emits an error event as the referenced table name is invalid', async function () {
-      const authorIdColumn = { type: DataTypes.INTEGER, references: { tableName: '4uth0r5', key: 'id' } };
+      const authorIdColumn = { type: DataTypes.INTEGER, references: { table: '4uth0r5', key: 'id' } };
 
       const Post = this.sequelize.define('post', { title: DataTypes.STRING, authorId: authorIdColumn });
 

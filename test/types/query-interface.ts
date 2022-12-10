@@ -20,7 +20,7 @@ async function test() {
         onUpdate: 'CASCADE',
         references: {
           key: 'id',
-          tableName: 'another_table_name',
+          table: 'another_table_name',
         },
         type: DataTypes.INTEGER,
       },
@@ -29,7 +29,7 @@ async function test() {
         onUpdate: 'CASCADE',
         references: {
           key: 'id',
-          tableName: { schema: '<schema>', tableName: 'another_table_name' },
+          table: { schema: '<schema>', tableName: 'another_table_name' },
         },
         type: DataTypes.INTEGER,
       },
