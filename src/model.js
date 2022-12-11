@@ -714,7 +714,7 @@ ${associationOwner._getAssociationDebugList()}`);
       await this.hooks.runAsync('beforeSync', options);
     }
 
-    const tableName = this.table;
+    const tableName = { ...this.table };
     if (options.schema && options.schema !== tableName.schema) {
       // Some users sync the same set of tables in different schemas for various reasons
       // They then set `searchPath` when running a query to use different schemas.
