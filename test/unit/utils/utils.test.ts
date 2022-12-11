@@ -251,6 +251,7 @@ describe('Utils', () => {
     it('virtual attribute dependencies', () => {
       const User = sequelize.define('User', {
         createdAt: {
+          type: DataTypes.DATE,
           field: 'created_at',
         },
         active: {
@@ -271,6 +272,7 @@ describe('Utils', () => {
     it('multiple calls', () => {
       const User = sequelize.define('User', {
         createdAt: {
+          type: DataTypes.DATE,
           field: 'created_at',
         },
         active: {

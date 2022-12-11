@@ -182,7 +182,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     await User.sync({ alter: true });
 
     const alterResults = await getNonPrimaryIndexes(User);
-    expect(syncResults).to.deep.eq(alterResults, '"alter" should not create new indexes if they already exist.');
+    expect(alterResults).to.deep.eq(syncResults, '"alter" should not create new indexes if they already exist.');
   });
 
   it('creates one unique index per unique:true columns, and per entry in options.indexes', async () => {

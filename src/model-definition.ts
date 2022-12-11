@@ -1,6 +1,7 @@
 import NodeUtil from 'node:util';
 import cloneDeep from 'lodash/cloneDeep.js';
 import isPlainObject from 'lodash/isPlainObject';
+import omit from 'lodash/omit';
 import type { Association } from './associations/index.js';
 import * as DataTypes from './data-types.js';
 import { isDataTypeClass } from './dialects/abstract/data-types-utils.js';
@@ -230,7 +231,7 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/ for mo
     // Model Names must be singular!
     this.options.name.singular ??= modelOptions.modelName;
 
-    this.#sequelize.hooks.runSync('beforeDefine', attributesOptions, modelOptions);
+    this.#sequelize.hooks.runSync('beforeDefine', attributesOptions, this.options);
 
     delete modelOptions.modelName;
 
@@ -483,7 +484,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
         const columnName = rawAttribute.columnName ?? rawAttribute.field ?? underscoredIf(attributeName, this.underscored);
 
         const builtAttribute = noPrototype<NormalizedAttributeOptions>({
-          ...rawAttribute,
+          ...omit(rawAttribute, ['unique', 'index']),
           type: this.#sequelize.normalizeDataType(rawAttribute.type),
           references: normalizeReference(rawAttribute.references),
 
@@ -589,7 +590,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
         if (builtAttribute.autoIncrement) {
           if (this.#autoIncrementAttributeName) {
-            throw new Error('Invalid Instance definition. Only one autoIncrement attribute is allowed.');
+            throw new Error(`Only one autoIncrement attribute is allowed per model, but both ${NodeUtil.inspect(attributeName)} and ${NodeUtil.inspect(this.#autoIncrementAttributeName)} are marked as autoIncrement.`);
           }
 
           this.#autoIncrementAttributeName = attributeName;

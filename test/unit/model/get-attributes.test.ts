@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
-import type { BuiltModelAttributeColumnOptions, DataType } from '@sequelize/core';
+import type { NormalizedAttributeOptions, DataType } from '@sequelize/core';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
-function assertDataType(property: BuiltModelAttributeColumnOptions, dataType: DataType) {
+function assertDataType(property: NormalizedAttributeOptions, dataType: DataType) {
   expect(property.type).to.be.instanceof(dataType);
 }
 

@@ -146,6 +146,13 @@ export class ModelTypeScript {
   }
 
   /**
+   * @deprecated use {@link modelDefinition}'s {@link ModelDefinition#rawAttributes} or {@link ModelDefinition#attributes} instead.
+   */
+  get rawAttributes(): { [attribute: string]: AttributeOptions } {
+    return (this.constructor as typeof ModelTypeScript).rawAttributes;
+  }
+
+  /**
    * @deprecated use {@link modelDefinition}'s {@link ModelDefinition#columns}.
    */
   static get fieldRawAttributesMap(): { [columnName: string]: NormalizedAttributeOptions } {
@@ -294,6 +301,25 @@ export class ModelTypeScript {
     return this.modelDefinition.getIndexes();
   }
 
+  static get uniqueKeys() {
+    const indexes = this.getIndexes();
+    const uniqueKeys = Object.create(null);
+
+    for (const index of indexes) {
+      if (!index.unique) {
+        continue;
+      }
+
+      if (!index.name) {
+        continue;
+      }
+
+      uniqueKeys[index.name] = index;
+    }
+
+    return uniqueKeys;
+  }
+
   // TODO [>7]: Remove this
   private static get _indexes(): never {
     throw new Error('Model._indexes has been replaced with Model.getIndexes()');
@@ -344,11 +370,7 @@ export class ModelTypeScript {
 }
 
 export function initModel(model: ModelStatic, attributes: ModelAttributes, options: InitOptions): void {
-  if (options.modelName && options.modelName !== model.name) {
-    Object.defineProperty(model, 'name', { value: options.modelName });
-  } else {
-    options.modelName = model.name;
-  }
+  options.modelName ||= model.name;
 
   const modelDefinition = new ModelDefinition(
     attributes,
@@ -357,6 +379,8 @@ export function initModel(model: ModelStatic, attributes: ModelAttributes, optio
   );
 
   registerModelDefinition(model, modelDefinition);
+
+  Object.defineProperty(model, 'name', { value: modelDefinition.modelName });
 
   // @ts-expect-error -- TODO: type
   model._scope = model.options.defaultScope;

@@ -274,6 +274,16 @@ Caused by: "notNull" validator is only allowed with "allowNull:false"`);
 Caused by: "notNull" validator is only allowed with "allowNull:false"`);
     });
 
+    it('throws an error if 2 autoIncrements are passed', function () {
+      expect(() => {
+        this.sequelize.define('UserWithTwoAutoIncrements', {
+          userid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          userscore: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        });
+      }).to.throwWithCause(Error, `An error occurred while normalizing attribute "userscore" in model "UserWithTwoAutoIncrements".
+Caused by: Only one autoIncrement attribute is allowed per model, but both 'userscore' and 'userid' are marked as autoIncrement.`);
+    });
+
     describe('datatype warnings', () => {
       beforeEach(() => {
         sinon.spy(console, 'warn');

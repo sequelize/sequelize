@@ -70,8 +70,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('gets all associated objects with all fields', async function () {
       const john = await this.User.findOne({ where: { username: 'John' } });
       const tasks = await john.getTasks();
-      for (const attr of Object.keys(tasks[0].getAttributes())) {
-        expect(tasks[0]).to.have.property(attr);
+      for (const attributeName of this.Task.modelDefinition.attributes.keys()) {
+        expect(tasks[0]).to.have.property(attributeName);
       }
     });
 
@@ -1743,6 +1743,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Comment.belongsToMany(Tag, {
         through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
         foreignKey: 'taggable_id',
+        // taggable_id already references Post, we can't make it reference Comment
+        foreignKeyConstraints: false,
       });
 
       await this.sequelize.sync({ force: true });
@@ -1796,6 +1798,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Comment.belongsToMany(Tag, {
         through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
         foreignKey: 'taggable_id',
+        // taggable_id already references Post, we can't make it reference Comment
+        foreignKeyConstraints: false,
       });
 
       await this.sequelize.sync({ force: true });
@@ -2579,12 +2583,16 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
   describe('primary key handling for join table', () => {
     beforeEach(function () {
-      this.User = this.sequelize.define('User',
+      this.User = this.sequelize.define(
+        'User',
         { username: DataTypes.STRING },
-        { tableName: 'users' });
-      this.Task = this.sequelize.define('Task',
+        { tableName: 'users' },
+      );
+      this.Task = this.sequelize.define(
+        'Task',
         { title: DataTypes.STRING },
-        { tableName: 'tasks' });
+        { tableName: 'tasks' },
+      );
     });
 
     it('removes the primary key if it was added by sequelize', function () {
@@ -2635,6 +2643,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             autoIncrement: true,
           },
           username: DataTypes.STRING,
+          createdAt: DataTypes.DATE,
+          updatedAt: DataTypes.DATE,
         });
         await this.sequelize.queryInterface.createTable('tasks', {
           id: {
@@ -2643,12 +2653,16 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             autoIncrement: true,
           },
           title: DataTypes.STRING,
+          createdAt: DataTypes.DATE,
+          updatedAt: DataTypes.DATE,
         });
 
-        return this.sequelize.queryInterface.createTable(
-          'users_tasks',
-          { TaskId: DataTypes.INTEGER, UserId: DataTypes.INTEGER },
-        );
+        return this.sequelize.queryInterface.createTable('users_tasks', {
+          TaskId: DataTypes.INTEGER,
+          UserId: DataTypes.INTEGER,
+          createdAt: DataTypes.DATE,
+          updatedAt: DataTypes.DATE,
+        });
       });
 
       it('removes all associations', async function () {

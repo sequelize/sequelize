@@ -238,7 +238,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
       });
 
-      // !TODO: make sure hooks from "define" are merged properly
       it.skip('runs the global hook when no hook is passed', async function () {
         const Model = this.sequelize.define('M', {}, {
           hooks: {
@@ -250,7 +249,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(this.beforeCreate).to.have.been.calledOnce;
       });
 
-      // !TODO: make sure hooks from "define" are merged properly
       it.skip('does not run the global hook when the model specifies its own hook', async function () {
         const localHook = sinon.spy();
         const Model = this.sequelize.define('M', {}, {

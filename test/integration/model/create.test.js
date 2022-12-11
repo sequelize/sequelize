@@ -753,12 +753,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         password: DataTypes.STRING,
         created_time: {
           type: DataTypes.DATE(3),
-          allowNull: true,
+          allowNull: false,
           defaultValue: DataTypes.NOW,
         },
         updated_time: {
           type: DataTypes.DATE(3),
-          allowNull: true,
+          allowNull: false,
           defaultValue: DataTypes.NOW,
         },
       }, {

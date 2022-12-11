@@ -2156,19 +2156,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   _creationAttributes: TCreationAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in hooks.d.ts)
 
-  static readonly uniqueKeys: {
-    [indexName: string]: {
-      fields: string[],
-      msg: string | null,
-      /**
-       * The name of the attribute
-       */
-      name: string,
-      column: string,
-      customIndex: boolean,
-    },
-  };
-
   /**
    * Returns the attributes of the model
    */

@@ -1011,9 +1011,9 @@ export class Sequelize extends SequelizeTypeScript {
 
   normalizeAttribute(attribute: AttributeOptions | DataType): AttributeOptions;
 
-  normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
   normalizeDataType(Type: string): string;
   normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
+  normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
 
   /**
    * Fetches the database version

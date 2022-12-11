@@ -49,13 +49,11 @@ export class ModelManager {
     const models = new Map();
     const sorter = new Toposort();
 
+    const queryGenerator = this.sequelize.queryInterface.queryGenerator;
+
     for (const model of this.models) {
       let deps = [];
-      let tableName = model.getTableName();
-
-      if (_.isObject(tableName)) {
-        tableName = `${tableName.schema}.${tableName.tableName}`;
-      }
+      const tableName = queryGenerator.quoteTable(model);
 
       models.set(tableName, model);
 
@@ -63,16 +61,12 @@ export class ModelManager {
       for (const attrName of attributes.keys()) {
         const attribute = attributes.get(attrName);
 
-        if (attribute.references) {
-          let dep = attribute.references.tableName;
-
-          if (_.isObject(dep)) {
-            // TODO: use quoteTable instead, as table names could include "." as well
-            dep = `${dep.schema}.${dep.tableName}`;
-          }
-
-          deps.push(dep);
+        if (!attribute.references) {
+          continue;
         }
+
+        const dep = queryGenerator.quoteTable(attribute.references.table);
+        deps.push(dep);
       }
 
       deps = deps.filter(dep => tableName !== dep);

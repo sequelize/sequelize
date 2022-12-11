@@ -1141,6 +1141,10 @@ ${associationOwner._getAssociationDebugList()}`);
       ...optionOverrides,
     });
 
+    // This is done for legacy reasons, where in a previous design both models shared the same association objects.
+    // TODO: re-create the associations on the new model instead of sharing them.
+    Object.assign(model.modelDefinition.associations, this.modelDefinition.associations);
+
     return model;
   }
 
@@ -3141,14 +3145,12 @@ Instead of specifying a Model, either:
     ) {
       const values = Object.create(null);
       if (attributesWithGetters.size > 0) {
-        for (const attributeName2 in this.attributesWithGetters) {
+        for (const attributeName2 of attributesWithGetters) {
           if (!this._options.attributes?.includes(attributeName2)) {
             continue;
           }
 
-          if (attributesWithGetters.has(attributeName2)) {
-            values[attributeName2] = this.get(attributeName2, options);
-          }
+          values[attributeName2] = this.get(attributeName2, options);
         }
       }
 

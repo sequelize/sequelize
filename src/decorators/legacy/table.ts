@@ -12,7 +12,6 @@ export function Table(arg: any): undefined | ClassDecorator {
 
   const options: ModelOptions = { ...arg };
 
-  // eslint-disable-next-line consistent-return -- decorators
   return (target: any) => annotate(target, options);
 }
 

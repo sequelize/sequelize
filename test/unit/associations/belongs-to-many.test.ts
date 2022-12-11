@@ -927,7 +927,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(['createdAt', 'updatedAt', 'GroupId', 'UserId'].sort());
       expect(Through.getAttributes().UserId.primaryKey).to.be.true;
       expect(Through.getAttributes().GroupId.primaryKey).to.be.true;
+      // @ts-expect-error -- this property does not exist after normalization
       expect(Through.getAttributes().UserId.unique).to.be.undefined;
+      // @ts-expect-error -- this property does not exist after normalization
       expect(Through.getAttributes().GroupId.unique).to.be.undefined;
     });
 
@@ -968,8 +970,19 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(Through === MyGroups.through.model);
 
       expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(['id', 'createdAt', 'updatedAt', 'id_user_very_long_field', 'id_group_very_long_field'].sort());
-      expect(Through.getAttributes().id_user_very_long_field.unique).to.deep.equal([{ name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique' }]);
-      expect(Through.getAttributes().id_group_very_long_field.unique).to.deep.equal([{ name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique' }]);
+
+      expect(Through.getIndexes()).to.deep.equal([{
+        name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique',
+        unique: true,
+        fields: ['id_user_very_long_field', 'id_group_very_long_field'],
+        column: 'id_user_very_long_field',
+        customIndex: true,
+      }]);
+
+      // @ts-expect-error -- this property does not exist after normalization
+      expect(Through.getAttributes().id_user_very_long_field.unique).to.be.undefined;
+      // @ts-expect-error -- this property does not exist after normalization
+      expect(Through.getAttributes().id_group_very_long_field.unique).to.be.undefined;
     });
 
     it('generates unique identifier with custom name', () => {
@@ -1010,8 +1023,19 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       expect(MyUsers.through.model === UserGroup);
       expect(MyGroups.through.model === UserGroup);
-      expect(UserGroup.getAttributes().id_user_very_long_field.unique).to.deep.equal([{ name: 'custom_user_group_unique' }]);
-      expect(UserGroup.getAttributes().id_group_very_long_field.unique).to.deep.equal([{ name: 'custom_user_group_unique' }]);
+
+      expect(UserGroup.getIndexes()).to.deep.equal([{
+        name: 'custom_user_group_unique',
+        unique: true,
+        fields: ['id_user_very_long_field', 'id_group_very_long_field'],
+        column: 'id_user_very_long_field',
+        customIndex: true,
+      }]);
+
+      // @ts-expect-error -- this property does not exist after normalization
+      expect(UserGroup.getAttributes().id_user_very_long_field.unique).to.be.undefined;
+      // @ts-expect-error -- this property does not exist after normalization
+      expect(UserGroup.getAttributes().id_group_very_long_field.unique).to.be.undefined;
     });
   });
 
