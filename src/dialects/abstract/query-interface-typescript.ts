@@ -1,10 +1,12 @@
-import type { Sequelize } from '../../sequelize';
+import type { QueryRawOptions, Sequelize } from '../../sequelize';
 import type { AbstractQueryGenerator, CreateSchemaQueryOptions } from './query-generator';
 
 export interface QueryInterfaceOptions {
   sequelize: Sequelize;
   queryGenerator: AbstractQueryGenerator;
 }
+
+export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions {}
 
 export class AbstractQueryInterfaceTypeScript {
   readonly sequelize: Sequelize;
@@ -26,8 +28,8 @@ export class AbstractQueryInterfaceTypeScript {
    * @see
    * {@link Model.schema}
    */
-  async createSchema(schema: string, options?: CreateSchemaQueryOptions): Promise<void> {
+  async createSchema(schema: string, options?: CreateSchemaOptions): Promise<void> {
     const sql = this.queryGenerator.createSchemaQuery(schema, options);
-    await this.sequelize.queryRaw(sql);
+    await this.sequelize.queryRaw(sql, options);
   }
 }

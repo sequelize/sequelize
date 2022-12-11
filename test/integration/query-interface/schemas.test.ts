@@ -13,7 +13,7 @@ if (sequelize.dialect.supports.schemas) {
 
     // Clear the test schema if it's been added
     afterEach(async () => {
-      const schemaNames: string[] = await queryInterface.showAllSchemas();
+      const schemaNames = await queryInterface.showAllSchemas();
       if (schemaNames.includes(testSchema)) {
         await queryInterface.dropSchema(testSchema);
       }
@@ -24,11 +24,11 @@ if (sequelize.dialect.supports.schemas) {
       expect(preCreationSchemas).to.not.include(testSchema, 'testSchema existed before tests ran');
 
       await queryInterface.createSchema(testSchema);
-      const postCreationSchemas: string[] = await queryInterface.showAllSchemas();
+      const postCreationSchemas = await queryInterface.showAllSchemas();
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
     });
 
-    it('should pass options through to the queryInterface\'s queryGenerator', async () => {
+    it(`should pass options through to the queryInterface's queryGenerator`, async () => {
       const options: CreateSchemaQueryOptions = {
         collate: 'en_US.UTF-8',
         charset: 'utf8mb4',
