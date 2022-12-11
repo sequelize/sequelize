@@ -42,6 +42,9 @@ module.exports = {
 
     // This rule is incompatible with DataTypes
     'babel/new-cap': 'off',
+
+    // Too opinionated
+    'unicorn/prefer-set-has': 'off',
   },
   overrides: [{
     files: ['**/*.{js,mjs,cjs}'],
