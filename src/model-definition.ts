@@ -30,11 +30,6 @@ import { isModelStatic } from './utils/model-utils.js';
 import { getAllOwnEntries, noPrototype } from './utils/object.js';
 import { generateIndexName, pluralize, underscoredIf } from './utils/string.js';
 
-/*
-legacy getters to add:
-static uniqueKeys: TODO
- */
-
 export interface TimestampAttributes {
   createdAt?: string;
   updatedAt?: string;
@@ -647,9 +642,6 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
         index.column = column;
       }
     }
-
-    // @ts-expect-error -- TODO: undocumented property, research if can be deleted.
-    index.customIndex = index.unique === true;
 
     const existingIndex = this.#indexes.find(i => i.name === index.name);
     if (existingIndex == null) {

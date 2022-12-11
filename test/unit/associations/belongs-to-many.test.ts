@@ -976,7 +976,6 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         unique: true,
         fields: ['id_user_very_long_field', 'id_group_very_long_field'],
         column: 'id_user_very_long_field',
-        customIndex: true,
       }]);
 
       // @ts-expect-error -- this property does not exist after normalization
@@ -1029,7 +1028,6 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         unique: true,
         fields: ['id_user_very_long_field', 'id_group_very_long_field'],
         column: 'id_user_very_long_field',
-        customIndex: true,
       }]);
 
       // @ts-expect-error -- this property does not exist after normalization

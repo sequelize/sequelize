@@ -45,7 +45,6 @@ async function test() {
       engine: 'MYISAM', // default: 'InnoDB'
       uniqueKeys: {
         test: {
-          customIndex: true,
           fields: ['attr2', 'attr3'],
         },
       },

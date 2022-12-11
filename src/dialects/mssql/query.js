@@ -312,7 +312,8 @@ export class MsSqlQuery extends AbstractQuery {
     match = match || err.message.match(/Cannot insert duplicate key row in object .* with unique index '(.*)'/);
     if (match && match.length > 1) {
       let fields = {};
-      const uniqueKey = this.model && this.model.uniqueKeys[match[1]];
+      const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === match[1]);
+
       let message = 'Validation error';
 
       if (uniqueKey && Boolean(uniqueKey.msg)) {

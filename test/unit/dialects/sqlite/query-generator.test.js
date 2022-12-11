@@ -118,7 +118,7 @@ if (dialect === 'sqlite') {
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));',
         },
         {
-          arguments: ['myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'], customIndex: true } } }],
+          arguments: ['myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'] } } }],
           // SQLITE does not respect the index name when the index is created through CREATE TABLE
           // As such, Sequelize's createTable does not add the constraint in the Sequelize Dialect.
           // Instead, `sequelize.sync` calls CREATE INDEX after the table has been created,

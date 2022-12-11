@@ -134,13 +134,12 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
 
     if (options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
-        if (columns.customIndex) {
-          if (typeof indexName !== 'string') {
-            indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
-          }
-
-          attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+        if (typeof indexName !== 'string') {
+          indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
+
+        attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields.map(field => this.quoteIdentifier(field))
+          .join(', ')})`;
       });
     }
 

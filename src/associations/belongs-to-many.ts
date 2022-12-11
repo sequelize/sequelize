@@ -377,7 +377,7 @@ Add your own primary key to the through model, on different attributes than the 
         uniqueKey = this.through.unique;
       } else {
         const keys = [this.foreignKey, this.otherKey].sort();
-        uniqueKey = [this.through.model.tableName, ...keys, 'unique'].join('_');
+        uniqueKey = [this.through.model.table.tableName, ...keys, 'unique'].join('_');
       }
 
       throughRawAttributes[this.foreignKey].unique = [{ name: uniqueKey }];

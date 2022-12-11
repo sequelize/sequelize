@@ -158,13 +158,11 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     if (options && options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
-        if (columns.customIndex) {
-          if (!_.isString(indexName)) {
-            indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
-          }
-
-          values.attributes += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+        if (!_.isString(indexName)) {
+          indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
+
+        values.attributes += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 

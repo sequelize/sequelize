@@ -301,9 +301,15 @@ export class ModelTypeScript {
     return this.modelDefinition.getIndexes();
   }
 
+  /**
+   * Unique indexes that can be declared as part of a CREATE TABLE query.
+   */
   static get uniqueKeys() {
     const indexes = this.getIndexes();
     const uniqueKeys = Object.create(null);
+
+    // TODO: "column" should be removed from index definitions
+    const supportedOptions = ['unique', 'fields', 'column'];
 
     for (const index of indexes) {
       if (!index.unique) {
@@ -311,6 +317,18 @@ export class ModelTypeScript {
       }
 
       if (!index.name) {
+        continue;
+      }
+
+      if (!index.fields) {
+        continue;
+      }
+
+      if (!index.fields.every(field => typeof field === 'string')) {
+        continue;
+      }
+
+      if (!Object.keys(index).every(optionName => supportedOptions.includes(optionName))) {
         continue;
       }
 

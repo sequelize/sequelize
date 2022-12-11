@@ -182,21 +182,18 @@ describe(`@Attribute legacy decorator`, () => {
       {
         fields: ['firstName', 'country'],
         column: 'firstName',
-        customIndex: true,
         unique: true,
         name: 'firstName-country',
       },
       {
         fields: ['firstName', 'lastName'],
         column: 'firstName',
-        customIndex: true,
         unique: true,
         name: 'firstName-lastName',
       },
       {
         fields: ['firstName'],
         column: 'firstName',
-        customIndex: true,
         unique: true,
         name: 'users_first_name_unique',
       },

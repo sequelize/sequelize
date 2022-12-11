@@ -111,7 +111,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(User.getIndexes()).to.deep.equal([{
         fields: ['firstName'],
         column: 'firstName',
-        customIndex: true,
         unique: true,
         name: 'users_first_name_unique',
       }]);
@@ -132,7 +131,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(User.getIndexes()).to.deep.equal([{
         fields: ['firstName', 'lastName'],
         column: 'firstName',
-        customIndex: true,
         unique: true,
         name: 'firstName-lastName',
       }]);
@@ -158,19 +156,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         {
           fields: ['firstName'],
           column: 'firstName',
-          customIndex: true,
           unique: true,
           name: 'users_first_name_unique',
         }, {
           fields: ['firstName', 'lastName'],
           column: 'firstName',
-          customIndex: true,
           unique: true,
           name: 'firstName-lastName',
         }, {
           fields: ['firstName', 'country'],
           column: 'firstName',
-          customIndex: true,
           unique: true,
           name: 'firstName-country',
         },

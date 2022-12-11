@@ -219,7 +219,7 @@ export class MariaDbQuery extends AbstractQuery {
         const values = match ? match[1].split('-') : undefined;
         const fieldKey = match ? match[2] : undefined;
         const fieldVal = match ? match[1] : undefined;
-        const uniqueKey = this.model && this.model.uniqueKeys[fieldKey];
+        const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
 
         if (uniqueKey) {
           if (uniqueKey.msg) {

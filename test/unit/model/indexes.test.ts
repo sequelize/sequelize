@@ -18,7 +18,6 @@ describe('Model indexes', () => {
       expect(Model.getIndexes()).to.deep.eq([
         {
           column: 'eventData',
-          customIndex: false,
           fields: ['data'],
           using: 'gin',
           name: 'events_data',
@@ -45,13 +44,11 @@ describe('Model indexes', () => {
       {
         fields: ['firstName'],
         unique: true,
-        customIndex: true,
         name: 'ms_first_name_unique',
       },
       {
         fields: ['lastName'],
         unique: true,
-        customIndex: true,
         name: 'ms_last_name_unique',
       },
     ]);
@@ -83,7 +80,6 @@ describe('Model indexes', () => {
     expect(User.getIndexes()).to.deep.eq([
       {
         column: 'name',
-        customIndex: false,
         fields: ['name'],
         name: 'users_name',
       },
@@ -115,7 +111,6 @@ describe('Model indexes', () => {
 
     expect(User.getIndexes()).to.deep.eq([
       {
-        customIndex: false,
         fields: ['nickname', 'firstName', 'middleName', 'lastName'],
         name: 'name',
       },
@@ -156,14 +151,12 @@ describe('Model indexes', () => {
       {
         fields: ['firstName'],
         column: 'firstName',
-        customIndex: true,
         unique: true,
         name: 'users_first_name_unique',
       },
       {
         fields: ['firstName'],
         column: 'firstName',
-        customIndex: false,
         name: 'users_first_name',
       },
     ]);

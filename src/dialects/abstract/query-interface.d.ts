@@ -67,12 +67,7 @@ export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, Colla
   /**
    * Used for compound unique keys.
    */
-  uniqueKeys?: {
-    [keyName: string]: {
-      fields: string[],
-      customIndex?: boolean,
-    },
-  };
+  uniqueKeys?: { [indexName: string]: { fields: string[] } };
 }
 
 export interface QueryInterfaceDropTableOptions extends QueryRawOptions {

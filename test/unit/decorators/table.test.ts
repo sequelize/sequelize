@@ -71,13 +71,11 @@ describe(`@Table legacy decorator`, () => {
     expect(User.getIndexes()).to.deep.equal([
       {
         column: 'createdAt',
-        customIndex: false,
         fields: ['createdAt'],
         name: 'users_created_at',
       },
       {
         column: 'id',
-        customIndex: true,
         fields: ['id'],
         unique: true,
         name: 'users_id_unique',

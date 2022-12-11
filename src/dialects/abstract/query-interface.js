@@ -210,14 +210,6 @@ export class QueryInterface {
   async createTable(tableName, attributes, options, model) {
     options = { ...options };
 
-    if (options && options.uniqueKeys) {
-      _.forOwn(options.uniqueKeys, uniqueKey => {
-        if (uniqueKey.customIndex === undefined) {
-          uniqueKey.customIndex = true;
-        }
-      });
-    }
-
     if (model) {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }

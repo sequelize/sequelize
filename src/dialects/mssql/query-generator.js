@@ -196,17 +196,15 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
-        if (columns.customIndex) {
-          if (typeof indexName !== 'string') {
-            indexName = generateIndexName(tableName, columns);
-          }
-
-          attributesClauseParts.push(`CONSTRAINT ${
-            this.quoteIdentifier(indexName)
-          } UNIQUE (${
-            columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
-          })`);
+        if (typeof indexName !== 'string') {
+          indexName = generateIndexName(tableName, columns);
         }
+
+        attributesClauseParts.push(`CONSTRAINT ${
+          this.quoteIdentifier(indexName)
+        } UNIQUE (${
+          columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
+        })`);
       });
     }
 

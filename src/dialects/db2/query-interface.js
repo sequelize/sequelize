@@ -42,9 +42,7 @@ export class Db2QueryInterface extends QueryInterface {
     }
 
     // Lets combine unique keys and indexes into one
-    const indexes = _.map(model.uniqueKeys, value => {
-      return value.fields;
-    });
+    const indexes = [];
 
     for (const value of model.getIndexes()) {
       if (value.unique) {
@@ -145,14 +143,6 @@ export class Db2QueryInterface extends QueryInterface {
     let sql = '';
 
     options = { ...options };
-
-    if (options && options.uniqueKeys) {
-      _.forOwn(options.uniqueKeys, uniqueKey => {
-        if (uniqueKey.customIndex === undefined) {
-          uniqueKey.customIndex = true;
-        }
-      });
-    }
 
     if (model) {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;

@@ -356,14 +356,13 @@ export class PostgresQuery extends AbstractQuery {
             ));
           });
 
-          if (this.model && this.model.uniqueKeys) {
-            _.forOwn(this.model.uniqueKeys, constraint => {
-              if (_.isEqual(constraint.fields, Object.keys(fields)) && Boolean(constraint.msg)) {
-                message = constraint.msg;
-
-                return false;
+          if (this.model) {
+            for (const index of this.model.getIndexes()) {
+              if (index.unique && _.isEqual(index.fields, Object.keys(fields)) && index.msg) {
+                message = index.msg;
+                break;
               }
-            });
+            }
           }
 
           return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });

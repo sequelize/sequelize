@@ -125,15 +125,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     if (options.uniqueKeys) {
       _.each(options.uniqueKeys, (index, indexName) => {
-        // TODO: customIndex and column should be removed from index definitions
-        const supportedOptions = ['unique', 'customIndex', 'fields', 'column'];
-        for (const indexOptions of Object.keys(index)) {
-          // This index must be created using CREATE INDEX
-          if (!supportedOptions.includes(indexOptions)) {
-            return;
-          }
-        }
-
         if (typeof indexName !== 'string') {
           indexName = generateIndexName(tableName, index);
         }

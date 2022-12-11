@@ -110,13 +110,23 @@ export class AbstractQuery {
   }
 
   getUniqueConstraintErrorMessage(field) {
-    let message = field ? `${field} must be unique` : 'Must be unique';
+    if (!field) {
+      return 'Must be unique';
+    }
 
-    if (field && this.model) {
-      for (const key of Object.keys(this.model.uniqueKeys)) {
-        if (this.model.uniqueKeys[key].fields.includes(field.replace(/"/g, '')) && this.model.uniqueKeys[key].msg) {
-          message = this.model.uniqueKeys[key].msg;
-        }
+    const message = `${field} must be unique`;
+
+    if (!this.model) {
+      return message;
+    }
+
+    for (const index of this.model.getIndexes()) {
+      if (!index.unique) {
+        continue;
+      }
+
+      if (index.fields.includes(field.replace(/"/g, '')) && index.msg) {
+        return index.msg;
       }
     }
 

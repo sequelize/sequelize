@@ -324,7 +324,7 @@ export class Db2Query extends AbstractQuery {
       }
 
       if (this.model && Boolean(uniqueIndexName)) {
-        uniqueKey = this.model.uniqueKeys[uniqueIndexName];
+        uniqueKey = this.model.getIndexes().find(index => index.unique && index.name === uniqueIndexName);
       }
 
       if (!uniqueKey && this.options.fields) {
