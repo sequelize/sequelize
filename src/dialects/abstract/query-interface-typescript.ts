@@ -1,12 +1,6 @@
-import type { QueryRawOptions, Sequelize } from '../../sequelize';
-import type { AbstractQueryGenerator, CreateSchemaQueryOptions } from './query-generator';
-
-export interface QueryInterfaceOptions {
-  sequelize: Sequelize;
-  queryGenerator: AbstractQueryGenerator;
-}
-
-export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions {}
+import type { Sequelize } from '../../sequelize';
+import type { AbstractQueryGenerator } from './query-generator';
+import type { CreateSchemaOptions, QueryInterfaceOptions } from './query-interface-typescript.types';
 
 export class AbstractQueryInterfaceTypeScript {
   readonly sequelize: Sequelize;
