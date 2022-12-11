@@ -311,7 +311,7 @@ export class ModelTypeScript {
     const uniqueKeys = Object.create(null);
 
     // TODO: "column" should be removed from index definitions
-    const supportedOptions = ['unique', 'fields', 'column'];
+    const supportedOptions = ['unique', 'fields', 'column', 'name'];
 
     for (const index of indexes) {
       if (!index.unique) {
