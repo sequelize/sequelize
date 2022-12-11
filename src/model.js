@@ -1828,7 +1828,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
         if (errFieldsWhereIntersects) {
           _.each(error.fields, (value, key) => {
-            const name = modelDefinition.columns[key].attributeName;
+            const name = modelDefinition.columns.get(key).attributeName;
             if (value.toString() !== options.where[name].toString()) {
               throw new Error(`${this.name}#findOrCreate: value used for ${name} was not equal for both the find and the create calls, '${options.where[name]}' vs '${value}'`);
             }
