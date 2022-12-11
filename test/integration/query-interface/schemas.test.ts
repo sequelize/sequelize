@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { afterEach } from 'mocha';
 import { spy } from 'sinon';
 import type { CreateSchemaQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { sequelize } from '../support';
@@ -9,17 +8,9 @@ const queryInterface = sequelize.queryInterface;
 const testSchema = 'testSchema';
 
 if (sequelize.dialect.supports.schemas) {
-  describe('QueryInterface#{create}Schema', async () => {
+  describe('QueryInterface#createSchema', async () => {
 
-    // Clear the test schema if it's been added
-    afterEach(async () => {
-      const schemaNames = await queryInterface.showAllSchemas();
-      if (schemaNames.includes(testSchema)) {
-        await queryInterface.dropSchema(testSchema);
-      }
-    });
-
-    it('should create a schema', async () => {
+    it('creates a schema', async () => {
       const preCreationSchemas = await queryInterface.showAllSchemas();
       expect(preCreationSchemas).to.not.include(testSchema, 'testSchema existed before tests ran');
 
@@ -28,20 +19,20 @@ if (sequelize.dialect.supports.schemas) {
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
     });
 
-    it(`should pass options through to the queryInterface's queryGenerator`, async () => {
+    it(`passes options through to the queryInterface's queryGenerator`, async () => {
       const options: CreateSchemaQueryOptions = {
         collate: 'en_US.UTF-8',
         charset: 'utf8mb4',
       };
       const queryGeneratorSpy = spy(queryInterface.queryGenerator, 'createSchemaQuery');
 
-      // Dialects which don't support collate/charset will throw
       try {
         await queryInterface.createSchema(testSchema, options);
-        expect(queryGeneratorSpy.args).to.include(options);
       } catch {
-        expect(true);
+        // Dialects which don't support collate/charset will throw
       }
+
+      expect(queryGeneratorSpy.args[0]).to.include(options);
     });
   });
 }

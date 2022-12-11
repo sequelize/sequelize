@@ -3,7 +3,7 @@ import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
-import type { CreateSchemaOptions } from './dialects/abstract/query-interface-typescript';
+import type { CreateSchemaOptions } from './dialects/abstract/query-interface.types';
 import type {
   DestroyOptions,
   DropOptions,

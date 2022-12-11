@@ -1,4 +1,4 @@
-import type { QueryRawOptions, Sequelize } from 'src/sequelize';
+import type { QueryRawOptions, Sequelize } from '../../sequelize';
 import type { AbstractQueryGenerator, CreateSchemaQueryOptions } from './query-generator';
 
 export interface QueryInterfaceOptions {
@@ -6,5 +6,5 @@ export interface QueryInterfaceOptions {
   queryGenerator: AbstractQueryGenerator;
 }
 
+/** Options accepted by {@link AbstractQueryInterfaceTypeScript#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions {}
-

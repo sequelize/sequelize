@@ -1,6 +1,6 @@
 import type { Sequelize } from '../../sequelize';
 import type { AbstractQueryGenerator } from './query-generator';
-import type { CreateSchemaOptions, QueryInterfaceOptions } from './query-interface-typescript.types';
+import type { CreateSchemaOptions, QueryInterfaceOptions } from './query-interface.types';
 
 export class AbstractQueryInterfaceTypeScript {
   readonly sequelize: Sequelize;
@@ -12,15 +12,13 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Create a new database schema.
+   * Creates a new database schema.
    *
    * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
    * not a database table. In mysql and sqlite, this command will do nothing.
    *
    * @param schema
    * @param options
-   * @see
-   * {@link Model.schema}
    */
   async createSchema(schema: string, options?: CreateSchemaOptions): Promise<void> {
     const sql = this.queryGenerator.createSchemaQuery(schema, options);
