@@ -18,6 +18,7 @@ import type { Fn, Literal, Col } from '../../utils/sequelize-method.js';
 import type { DataType } from './data-types.js';
 import type { TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
+import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 interface Replaceable {
   /**
@@ -280,7 +281,7 @@ export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawO
 * This interface is available through sequelize.queryInterface. It should not be commonly used, but it's
 * referenced anyway, so it can be used.
 */
-export class QueryInterface {
+export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Returns the dialect-specific sql generator.
    *
@@ -294,13 +295,6 @@ export class QueryInterface {
   sequelize: Sequelize;
 
   constructor(sequelize: Sequelize, queryGenerator: AbstractQueryGenerator);
-
-  /**
-   * Queries the schema (table list).
-   *
-   * @param schema The schema to query. Applies only to Postgres.
-   */
-  createSchema(schema?: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Drops the specified schema (table).
@@ -319,7 +313,7 @@ export class QueryInterface {
    *
    * @param options
    */
-  showAllSchemas(options?: QueryRawOptions): Promise<object>;
+  showAllSchemas(options?: QueryRawOptions): Promise<string[]>;
 
   /**
    * Return database version
