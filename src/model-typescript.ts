@@ -27,7 +27,7 @@ import type {
   UpsertOptions,
   Sequelize,
   AbstractQueryGenerator,
-  QueryInterface,
+  AbstractQueryInterface,
 } from '.';
 
 export interface ModelHooks<M extends Model = Model, TAttributes = any> {
@@ -145,7 +145,7 @@ const staticPrivateStates = new WeakMap<typeof ModelTypeScript, { sequelize?: Se
 // DO NOT EXPORT THIS CLASS!
 // This is a temporary class to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
 export class ModelTypeScript {
-  static get queryInterface(): QueryInterface {
+  static get queryInterface(): AbstractQueryInterface {
     return this.sequelize.queryInterface;
   }
 

@@ -3,13 +3,13 @@
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
 const sequelizeErrors = require('../../errors');
-const { QueryInterface } = require('../abstract/query-interface');
+const { AbstractQueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
 
 /**
  * The interface that Sequelize uses to talk with MySQL/MariaDB database
  */
-export class MySqlQueryInterface extends QueryInterface {
+export class MySqlQueryInterface extends AbstractQueryInterface {
   /**
    * A wrapper that fixes MySQL's inability to cleanly remove columns from existing tables if they have a foreign key constraint.
    *
