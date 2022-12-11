@@ -256,8 +256,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           },
         });
-      }).to.throwWithCause(`An error occurred while normalizing attribute "name" in model "user".
-Caused by: "notNull" validator is only allowed with "allowNull:false"`);
+      }).to.throwWithCause(`"notNull" validator is only allowed with "allowNull:false"`);
 
       expect(() => {
         current.define('part', {
@@ -270,8 +269,7 @@ Caused by: "notNull" validator is only allowed with "allowNull:false"`);
             },
           },
         });
-      }).to.throwWithCause(`An error occurred while normalizing attribute "name" in model "part".
-Caused by: "notNull" validator is only allowed with "allowNull:false"`);
+      }).to.throwWithCause(`"notNull" validator is only allowed with "allowNull:false"`);
     });
 
     it('throws an error if 2 autoIncrements are passed', function () {
@@ -280,8 +278,7 @@ Caused by: "notNull" validator is only allowed with "allowNull:false"`);
           userid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           userscore: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         });
-      }).to.throwWithCause(Error, `An error occurred while normalizing attribute "userscore" in model "UserWithTwoAutoIncrements".
-Caused by: Only one autoIncrement attribute is allowed per model, but both 'userscore' and 'userid' are marked as autoIncrement.`);
+      }).to.throwWithCause(`Only one autoIncrement attribute is allowed per model, but both 'userscore' and 'userid' are marked as autoIncrement.`);
     });
 
     describe('datatype warnings', () => {
