@@ -2605,8 +2605,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('keeps the primary key if it was added by the user', function () {
-      let fk;
-
       this.UserTasks = this.sequelize.define('UserTask', {
         id: {
           type: DataTypes.INTEGER,
@@ -2629,8 +2627,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(Object.keys(this.UserTasks2.primaryKeys)).to.deep.equal(['userTasksId']);
 
       for (const model of [this.UserTasks, this.UserTasks2]) {
-        fk = Object.keys(model.uniqueKeys)[0];
-        expect(model.uniqueKeys[fk].fields.sort()).to.deep.equal(['TaskId', 'UserId']);
+        const index = model.getIndexes()[0];
+
+        expect(index.fields.sort()).to.deep.equal(['TaskId', 'UserId']);
       }
     });
 

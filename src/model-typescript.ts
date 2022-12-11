@@ -303,6 +303,8 @@ export class ModelTypeScript {
 
   /**
    * Unique indexes that can be declared as part of a CREATE TABLE query.
+   *
+   * @deprecated prefer using {@link getIndexes}, this will eventually be removed.
    */
   static get uniqueKeys() {
     const indexes = this.getIndexes();
