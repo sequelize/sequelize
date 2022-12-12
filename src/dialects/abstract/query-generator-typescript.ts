@@ -11,11 +11,11 @@ import type { AbstractDialect } from './index.js';
 export type TableNameOrModel = TableName | ModelStatic;
 
 // keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export type RemoveIndexQueryOptions = {
-  concurrently?: boolean,
-  ifExists?: boolean,
-  cascade?: boolean,
-};
+export interface RemoveIndexQueryOptions {
+  concurrently?: boolean;
+  ifExists?: boolean;
+  cascade?: boolean;
+}
 
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 
