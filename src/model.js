@@ -2162,7 +2162,7 @@ Specify a different name for either index to resolve this issue.`);
       }));
     }
 
-    return result || 0; // return 0 if count is null
+    return result ?? 0; // return 0 if count is null
   }
 
   /**
