@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     // oracle has a _bindParam function that checks if DATE was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
-    // isn't needed for other dialects 
+    // isn't needed for other dialects
     let bindParam;
     if (dialect === 'oracle') {
       bindParam = Sequelize.DATE.prototype.bindParam = sinon.spy(function(value, options) {
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const obj = await User.findAll();
     const user = obj[0];
     expect(parse).to.have.been.called;
-    // For the Oracle dialect we check if bindParam was called 
+    // For the Oracle dialect we check if bindParam was called
     // for other dalects we check if stringify was called
     dialect === 'oracle' ? expect(bindParam).to.have.been.called : expect(stringify).to.have.been.called;
 
@@ -288,12 +288,19 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const user = await User.create({ age });
     expect(BigInt(user.age).toString()).to.equal(age.toString());
 
+    // cover also bulkCreate
+    // adds two records
+    await User.bulkCreate([{ age }, { age }]);
+
     const users = await User.findAll({
       where: { age }
     });
 
-    expect(users).to.have.lengthOf(1);
-    expect(BigInt(users[0].age).toString()).to.equal(age.toString());
+    expect(users).to.have.lengthOf(3);
+    for (const usr of users) {
+      expect(BigInt(usr.age).toString()).to.equal(age.toString());
+    }
+
   });
 
   if (dialect === 'mysql') {

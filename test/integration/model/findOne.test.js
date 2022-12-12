@@ -223,6 +223,49 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(u2.name).to.equal('Johnno');
       });
 
+      it('finds entries via a bigint primary key called id', async function() {
+        const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
+          id: { type: DataTypes.BIGINT, primaryKey: true },
+          name: DataTypes.STRING
+        });
+
+        await UserPrimary.sync({ force: true });
+
+        await UserPrimary.create({
+          id: 9007199254740993n, // Number.MAX_SAFE_INTEGER + 2 (cannot be represented exactly as a number in JS)
+          name: 'Johnno'
+        });
+
+        const u2 = await UserPrimary.findByPk(9007199254740993n);
+        expect(u2.name).to.equal('Johnno');
+
+        // Getting the value back as bigint is not supported yet: https://github.com/sequelize/sequelize/issues/14296
+        // With most dialects we'll receive a string, but in some cases we have to be a bit creative to prove that we did get hold of the right record:
+        if (dialect === 'db2') {
+          // ibm_db 2.7.4+ returns BIGINT values as JS numbers, which leads to a loss of precision:
+          // https://github.com/ibmdb/node-ibm_db/issues/816
+          // It means that u2.id comes back as 9007199254740992 here :(
+          // Hopefully this will be fixed soon.
+          // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
+          const [[{ stringifiedId }]] = await this.sequelize.query(`select "id"::varchar as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
+          expect(stringifiedId).to.equal('9007199254740993');
+        } else if (dialect === 'mariadb') {
+          // With our current default config, the mariadb driver sends back a Long instance.
+          // Updating the mariadb dev dep and passing "supportBigInt: true" would get it back as a bigint,
+          // but that's potentially a big change.
+          // For now, we'll just stringify the Long and make the comparison:
+          expect(u2.id.toString()).to.equal('9007199254740993');
+        } else if (dialect === 'sqlite') {
+          // sqlite3 returns a number, so u2.id comes back as 9007199254740992 here:
+          // https://github.com/TryGhost/node-sqlite3/issues/922
+          // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
+          const [[{ stringifiedId }]] = await this.sequelize.query(`select cast("id" as text) as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
+          expect(stringifiedId).to.equal('9007199254740993');
+        } else {
+          expect(u2.id).to.equal('9007199254740993');
+        }
+      });
+
       it('always honors ZERO as primary key', async function() {
         const permutations = [
           0,

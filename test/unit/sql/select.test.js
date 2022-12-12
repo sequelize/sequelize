@@ -1017,4 +1017,72 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }).to.throw(Error, 'Support for `{where: \'raw query\'}` has been removed.');
     });
   });
+
+
+  describe('queryGenerator: selectQuery', () => {
+    const User = Support.sequelize.define('User', {
+      username: DataTypes.STRING
+    }, { timestamps: false });
+
+
+    const Project = Support.sequelize.define('Project', {
+      duration: DataTypes.BIGINT
+    }, { timestamps: false });
+
+    const ProjectContributor = Support.sequelize.define('ProjectContributor', {}, { timestamps: false });
+
+    // project owners
+    User.hasMany(Project, { as: 'projects' });
+    Project.belongsTo(User, { as: 'owner' });
+
+    // project contributors
+    Project.belongsToMany(User, {
+      through: ProjectContributor,
+      as: 'contributors'
+    });
+
+    it('supports offset without limit', () => {
+      const query = sql.selectQuery(User.tableName, {
+        model: User,
+        attributes: ['id'],
+        offset: 1
+      }, User);
+
+      expectsql(query, {
+        postgres: 'SELECT "id" FROM "Users" AS "User" OFFSET 1;',
+        mysql: 'SELECT `id` FROM `Users` AS `User` LIMIT 1, 10000000000000;',   //original 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
+        mariadb: 'SELECT `id` FROM `Users` AS `User` LIMIT 1, 10000000000000;', //original 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
+        sqlite: 'SELECT `id` FROM `Users` AS `User` LIMIT 1, 10000000000000;',  //original 'SELECT `id` FROM `Users` AS `User` LIMIT -1 OFFSET 1;'
+        oracle: 'SELECT "id" FROM "Users" "User" ORDER BY "User"."id" OFFSET 1 ROWS;',
+        snowflake: 'SELECT "id" FROM "Users" AS "User" LIMIT NULL OFFSET 1;',
+        db2: 'SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS;',
+        ibmi: 'SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS',
+        mssql: 'SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;'
+      });
+    });
+
+    it('supports querying for bigint values', () => {
+      const query = sql.selectQuery(Project.tableName, {
+        model: Project,
+        attributes: ['id'],
+        where: {
+          duration: { [Op.eq]: 9007199254740993n }
+        }
+      }, Project);
+
+      expectsql(query, {
+        postgres: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
+        mysql: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
+        mariadb: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
+        sqlite: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
+        oracle: 'SELECT "id" FROM "Projects" "Project" WHERE "Project"."duration" = 9007199254740993;',
+        snowflake: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
+        db2: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
+        ibmi: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = \'9007199254740993\'',
+        mssql: 'SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;'
+      });
+    });
+
+  });
+
 });

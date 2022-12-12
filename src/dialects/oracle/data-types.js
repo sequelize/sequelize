@@ -51,18 +51,18 @@ module.exports = BaseTypes => {
         // sending it over the wire as a string,
         // We pass it through escape function to remove un-necessary quotes
         // this.format in insert/bulkinsert query calls stringify hence we need to convert binary buffer
-        // to hex string. Since this block is used by both bind (insert/bulkinsert) and 
-        // non-bind (select query where clause) hence we need to 
+        // to hex string. Since this block is used by both bind (insert/bulkinsert) and
+        // non-bind (select query where clause) hence we need to
         // have an operation that supports both
         return options.escape(value.toString('hex'));
-      } 
+      }
       return options.escape(value);
     }
 
     _getBindDef(oracledb) {
       if (this._binary) {
         return { type: oracledb.DB_TYPE_RAW, maxSize: this._length };
-      } 
+      }
       return { type: oracledb.DB_TYPE_VARCHAR, maxSize: this._length };
     }
 
@@ -93,7 +93,7 @@ module.exports = BaseTypes => {
 
     _sanitize(value) {
       if (typeof value === 'string') {
-        // If value is a string we return true if among '1' and 'true' 
+        // If value is a string we return true if among '1' and 'true'
         // We return false if among '0' and 'false'
         // Else return the value as is and let the DB raise error for invalid values
         return value === '1' || value === 'true' ? true : value === '0' || value === 'false' ? false : value;
@@ -212,7 +212,7 @@ module.exports = BaseTypes => {
      */
     _bindParam(value, options) {
       return options.bindParam(value);
-    } 
+    }
   }
 
   DATE.prototype.escape = false;
@@ -302,6 +302,14 @@ module.exports = BaseTypes => {
     _getBindDef(oracledb) {
       return { type: oracledb.DB_TYPE_NUMBER };
     }
+
+    _sanitize(value) {
+      if (typeof value === 'bigint' || typeof value === 'number') {
+        return value.toString();
+      }
+      return value;
+    }
+
   }
 
   class NUMBER extends BaseTypes.NUMBER {
@@ -335,7 +343,7 @@ module.exports = BaseTypes => {
     _stringify(value) {
       if (value === Number.POSITIVE_INFINITY) {
         return 'inf';
-      } 
+      }
       if (value === Number.NEGATIVE_INFINITY) {
         return '-inf';
       }
@@ -348,11 +356,11 @@ module.exports = BaseTypes => {
   }
 
   class BLOB extends BaseTypes.BLOB {
-    // Generic hexify returns X'${hex}' but Oracle expects '${hex}' for BLOB datatype 
+    // Generic hexify returns X'${hex}' but Oracle expects '${hex}' for BLOB datatype
     _hexify(hex) {
       return `'${hex}'`;
     }
-    
+
     toSql() {
       return 'BLOB';
     }
@@ -438,9 +446,9 @@ module.exports = BaseTypes => {
     _bindParam(value, options) {
       if (typeof value === 'string') {
         return options.bindParam(new Date(value));
-      } 
+      }
       return options.bindParam(value);
-      
+
     }
   }
 
