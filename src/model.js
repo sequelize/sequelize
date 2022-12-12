@@ -2140,7 +2140,7 @@ Specify a different name for either index to resolve this issue.`);
     options.dataType = new DataTypes.INTEGER();
     options.includeIgnoreAttributes = false;
 
-    // No limit, offset, order or include for the options max be given to count()
+    // No limit, offset, or order for the options max be given to count() by default
     // Set them to null to prevent scopes setting those values
     options.limit = null;
     options.offset = null;
