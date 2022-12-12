@@ -11,13 +11,6 @@ const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:oracle');
 
-function stringifyIfBigint(value) {
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  return value;
-}
-
 export class OracleQuery extends AbstractQuery {
   constructor(connection, sequelize, options) {
     super(connection, sequelize, options);
@@ -44,7 +37,7 @@ export class OracleQuery extends AbstractQuery {
     // We set the oracledb
     const oracledb = this.sequelize.connectionManager.lib;
 
-    if (this.isSelectQuery() && this.model) {
+    if (this.model && this.isSelectQuery()) {
       const fInfo = {};
       const keys = Object.keys(this.model.tableAttributes);
       for (const key of keys) {
@@ -63,6 +56,35 @@ export class OracleQuery extends AbstractQuery {
     }
     return execOpts;
   }
+
+  /**
+   * convert binding values for unsupported
+   * types in connector library
+   *
+   * @param {string} bindingDictionary a string representing the key to scan
+   * @param {object} oracledb native oracle library
+   * @private
+   */
+  _convertBindAttributes(bindingDictionary, oracledb) {
+    if (this.model && this.options[bindingDictionary]) {
+      // check against model if we have some BIGINT
+      const keys = Object.keys(this.model.tableAttributes);
+      for (const key of keys) {
+        const keyValue = this.model.tableAttributes[key];
+        if (keyValue.type.key === 'BIGINT') {
+          const oldBinding = this.options[bindingDictionary][key];
+          if (oldBinding) {
+            this.options[bindingDictionary][key] = {
+              ...oldBinding,
+              type: oracledb.STRING,
+              maxSize: 10000000 //TOTALLY ARBITRARY Number to prevent query failure
+            };
+          }
+        }
+      }
+    }
+  }
+
   async run(sql, parameters) {
     // We set the oracledb
     const oracledb = this.sequelize.connectionManager.lib;
@@ -77,21 +99,10 @@ export class OracleQuery extends AbstractQuery {
       this.sql = sql;
     }
 
-    // Since the bigint primitive is not automatically translated
-    // we stringify the value as was done previously
-    if (_.isPlainObject(parameters)) {
-      const newParameters = Object.create(null);
-      for (const key of Object.keys(parameters)) {
-        newParameters[`${key}`] = stringifyIfBigint(parameters[key]);
-      }
-      parameters = newParameters;
-    } else if (_.isArray(parameters)) {
-      parameters = parameters.map(stringifyIfBigint);
-    }
-
     // When this.options.bindAttributes exists then it is an insertQuery/upsertQuery
     // So we insert the return bind direction and type
     if (this.options.outBindAttributes && (Array.isArray(parameters) || _.isPlainObject(parameters))) {
+      this._convertBindAttributes('outBindAttributes', oracledb);
       outParameters.push(...Object.values(this.options.outBindAttributes));
       // For upsertQuery we need to push the bindDef for isUpdate
       if (this.isUpsertQuery()) {
@@ -106,6 +117,7 @@ export class OracleQuery extends AbstractQuery {
       if (this.options.executeMany) {
         // Constructing BindDefs for ExecuteMany call
         // Building the bindDef for in and out binds
+        this._convertBindAttributes('inbindAttributes', oracledb);
         bindDef.push(...Object.values(this.options.inbindAttributes));
         bindDef.push(...outParameters);
         this.bindParameters = parameters;
@@ -242,6 +254,7 @@ export class OracleQuery extends AbstractQuery {
  * @param {string} dialect
  */
   static formatBindParameters(sql, values, dialect) {
+
     const replacementFunc = (match, key, values) => {
       if (values[key] !== undefined) {
         return `:${key}`;
