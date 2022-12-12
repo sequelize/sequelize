@@ -71,9 +71,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'DROP INDEX',
       options?.concurrently ? 'CONCURRENTLY' : '',
       options?.ifExists ? 'IF EXISTS' : '',
-      table?.schema && table.schema !== this.dialect.getDefaultSchema()
-        ? `${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(indexName)}`
-        : this.quoteIdentifier(indexName),
+      `${this.quoteIdentifier(table.schema!)}.${this.quoteIdentifier(indexName)}`,
       options?.cascade ? 'CASCADE' : '',
     ]);
   }
