@@ -185,6 +185,8 @@ export interface IndexOptions {
 
 export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}
 
+export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions {}
+
 export interface BaseConstraintOptions {
   name?: string;
   fields: string[];
@@ -441,12 +443,12 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   removeIndex(
     tableName: TableName,
     indexName: string,
-    options?: QueryInterfaceIndexOptions & RemoveIndexQueryOptions
+    options?: QueryInterfaceRemoveIndexOptions
   ): Promise<void>;
   removeIndex(
     tableName: TableName,
     attributes: string[],
-    options?: QueryInterfaceIndexOptions & RemoveIndexQueryOptions
+    options?: QueryInterfaceRemoveIndexOptions
   ): Promise<void>;
 
   /**
