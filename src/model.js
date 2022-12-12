@@ -2146,7 +2146,7 @@ Specify a different name for either index to resolve this issue.`);
     options.offset = null;
     options.order = null;
 
-    // if options.withoutAssociations is true, it will ignore `options.include`
+    // if options.withoutAssociations is true, it will ignore `options.include`.
     if (options.withoutAssociations) {
       options.include = null;
     }

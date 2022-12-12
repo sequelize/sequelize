@@ -1008,6 +1008,11 @@ export interface CountOptions<TAttributes = any>
    * Column on which COUNT() should be applied
    */
   col?: string;
+
+  /**
+   * if options.withoutAssociations is true, it will ignore `options.include`.
+   */
+  withoutAssociations?: boolean;
 }
 
 /**
