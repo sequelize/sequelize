@@ -36,6 +36,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.User.bulkCreate([
         { username: 'foo' },
         { username: 'bar' },
+        { username: 'baz' },
       ]);
 
       const user = await this.User.findOne();
@@ -107,14 +108,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       ]);
 
       const count0 = await this.User.count({ col: 'username' });
-      expect(count0).to.be.eql(3);
+
+      expect(count0).to.be.eql(3); // COUNT(DISTINCT username)
 
       const count = await this.User.count({
         col: 'age',
         distinct: true,
       });
 
-      expect(count).to.be.eql(2);
+      expect(count).to.be.eql(2); // COUNT(DISTINCT age)
     });
 
     it('should be able to specify NO column for COUNT() with DISTINCT', async function () {
@@ -167,7 +169,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [this.Project],
       });
 
-      expect(count0).to.be.eql(3);
+      expect(count0).to.be.eql(3); // COUNT(DISTINCT username)
 
       const count = await this.User.count({
         col: 'age',
@@ -175,7 +177,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         include: [this.Project],
       });
 
-      expect(count).to.be.eql(2);
+      expect(count).to.be.eql(2); // COUNT(DISTINCT age)
     });
 
     it('should work correctly with include and whichever raw option', async function () {

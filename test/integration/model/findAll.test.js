@@ -1340,7 +1340,7 @@ The following associations are defined on "Worker": "ToDos"`);
         expect(users[0].id).to.be.above(users[2].id);
       });
 
-      it('handles offset and limit', async function () {
+      it('handles offset and limit in findAll', async function () {
         await this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]);
         const users = await this.User.findAll({ limit: 2, offset: 2 });
         expect(users.length).to.equal(2);
@@ -1494,11 +1494,11 @@ The following associations are defined on "Worker": "ToDos"`);
       expect(info.rows.length).to.equal(2);
     });
 
-    it('handles offset', async function () {
+    it('handles offset in findAndCountAll', async function () {
       const info = await this.User.findAndCountAll({ offset: 1 });
-      expect(info.count).to.equal(3);
       expect(Array.isArray(info.rows)).to.be.ok;
-      expect(info.rows.length).to.equal(2);
+      expect(info.count).to.equal(3); // return count result
+      expect(info.rows.length).to.equal(2); // return findAll result
     });
 
     it('handles limit', async function () {
@@ -1508,10 +1508,10 @@ The following associations are defined on "Worker": "ToDos"`);
       expect(info.rows.length).to.equal(1);
     });
 
-    it('handles offset and limit', async function () {
+    it('handles offset and limit in findAndCountAll', async function () {
       const info = await this.User.findAndCountAll({ offset: 1, limit: 1 });
-      expect(info.count).to.equal(3);
       expect(Array.isArray(info.rows)).to.be.ok;
+      expect(info.count).to.equal(3);
       expect(info.rows.length).to.equal(1);
     });
 
@@ -1537,7 +1537,7 @@ The following associations are defined on "Worker": "ToDos"`);
       await election.setCitizen(alice);
       await election.setVoters([alice, bob]);
       const elections = await Election.findAndCountAll({
-        offset: 5,
+        offset: 1,
         limit: 1,
         where: {
           name: 'Some election',
@@ -1547,8 +1547,22 @@ The following associations are defined on "Worker": "ToDos"`);
           { model: Citizen, as: 'Voters' }, // Election voters
         ],
       });
-      expect(elections.count).to.equal(1);
-      expect(elections.rows.length).to.equal(0);
+      const otherElections = await Election.findAndCountAll({
+        offset: 0,
+        limit: 1,
+        where: {
+          name: 'Some other election',
+        },
+        include: [
+          'Citizen', // Election creator
+          { model: Citizen, as: 'Voters' }, // Election voters
+        ],
+      });
+
+      expect(elections.count).to.equal(1); // return count result
+      expect(elections.rows.length).to.equal(0); // return findAll result
+      expect(otherElections.count).to.equal(1);
+      expect(otherElections.rows.length).to.equal(1);
     });
 
     it('handles attributes', async function () {

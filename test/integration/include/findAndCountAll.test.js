@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ])]);
 
       // Find all projects with tasks and employees
-      const availableProjects = 3;
+      const availableProjects = 6;
       const limit = 2;
 
       const result = await Project.findAndCountAll({
@@ -165,7 +165,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         limit: 5,
       });
 
-      expect(result.count).to.be.equal(2);
+      expect(result.count).to.be.equal(5);
       expect(result.rows.length).to.be.equal(2);
     });
 
@@ -230,7 +230,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(items.length).to.equal(2);
 
       const result = result0;
-      expect(result.count).to.equal(4);
+      expect(result.count).to.equal(5);
 
       // The first two of those should be returned due to the limit (Foo
       // instances 2 and 3)
@@ -256,8 +256,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         distinct: true,
       });
 
-      // There should be 2 instances matching the query (Instances 1 and 2), see the findAll statement
-      expect(result.count).to.equal(2);
+      // It should count all the Foo data.
+      expect(result.count).to.equal(5);
 
       // The first one of those should be returned due to the limit (Foo instance 1)
       expect(result.rows.length).to.equal(1);
@@ -332,7 +332,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ],
       });
 
-      expect(result.count).to.equal(2);
+      expect(result.count).to.equal(4);
       expect(result.rows.length).to.equal(1);
     });
 

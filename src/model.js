@@ -2140,11 +2140,16 @@ Specify a different name for either index to resolve this issue.`);
     options.dataType = new DataTypes.INTEGER();
     options.includeIgnoreAttributes = false;
 
-    // No limit, offset or order for the options max be given to count()
+    // No limit, offset, order or include for the options max be given to count()
     // Set them to null to prevent scopes setting those values
     options.limit = null;
     options.offset = null;
     options.order = null;
+
+    // if options.withoutAssociations is true, it will ignore `options.include`
+    if (options.withoutAssociations) {
+      options.include = null;
+    }
 
     const result = await this.aggregate(col, 'count', options);
 
@@ -2157,7 +2162,7 @@ Specify a different name for either index to resolve this issue.`);
       }));
     }
 
-    return result;
+    return result || 0; // return 0 if count is null
   }
 
   /**
@@ -2213,6 +2218,10 @@ Specify a different name for either index to resolve this issue.`);
     if (countOptions.attributes) {
       countOptions.attributes = undefined;
     }
+
+    // findAndCountAll should count all rows
+    // without the associations included.
+    countOptions.withoutAssociations = true;
 
     const [count, rows] = await Promise.all([
       this.count(countOptions),

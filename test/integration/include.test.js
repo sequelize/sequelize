@@ -949,7 +949,7 @@ Instead of specifying a Model, either:
         ],
       });
 
-      expect(result.count).to.eql(1);
+      expect(result.count).to.eql(3);
 
       expect(result.rows.length).to.eql(1);
       expect(result.rows[0].Item.test).to.eql('def');
