@@ -119,7 +119,7 @@
     "sinon-chai": "3.7.0",
     "snowflake-sdk": "1.6.16",
     "source-map-support": "0.5.21",
-    "sqlite3": "5.1.2",
+    "sqlite3": "5.1.3",
     "tedious": "15.1.2",
     "ts-node": "10.9.1",
     "typedoc": "0.23.22",
