@@ -30,8 +30,8 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'ON pk.table_schema=c.table_schema',
       'AND pk.table_name=c.table_name',
       'AND pk.column_name=c.column_name',
-      `WHERE c.table_name = ${this.escape(table.tableName)}`,
-      `AND c.table_schema = ${this.escape(table.schema)}`,
+      `WHERE c.table_name = ${this.quoteIdentifier(table.tableName)}`,
+      `AND c.table_schema = ${this.quoteIdentifier(table.schema!)}`,
     ]);
   }
 
@@ -44,8 +44,8 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)',
       'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a , pg_namespace s',
       'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND',
-      `t.relkind = 'r' and t.relname = ${this.escape(table.tableName)}`,
-      `AND s.oid = t.relnamespace AND s.nspname = ${this.escape(table.schema)}`,
+      `t.relkind = 'r' and t.relname = ${this.quoteIdentifier(table.tableName)}`,
+      `AND s.oid = t.relnamespace AND s.nspname = ${this.quoteIdentifier(table.schema!)}`,
       'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;',
     ]);
   }

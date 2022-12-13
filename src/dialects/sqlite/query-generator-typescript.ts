@@ -12,7 +12,7 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  */
 export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
   describeTableQuery(tableName: TableNameOrModel) {
-    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)});`;
+    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)})`;
   }
 
   showIndexesQuery(tableName: TableNameOrModel) {

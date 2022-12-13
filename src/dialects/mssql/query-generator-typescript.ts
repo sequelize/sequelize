@@ -43,13 +43,13 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id',
       'AND prop.minor_id = sc.column_id',
       `AND prop.name = 'MS_Description'`,
-      `WHERE t.TABLE_NAME = ${this.escape(table.tableName)}`,
-      `AND t.TABLE_SCHEMA = ${this.escape(table.schema)}`,
+      `WHERE t.TABLE_NAME = ${this.quoteIdentifier(table.tableName)}`,
+      `AND t.TABLE_SCHEMA = ${this.quoteIdentifier(table.schema!)}`,
     ]);
   }
 
   showIndexesQuery(tableName: TableNameOrModel) {
-    return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(tableName))};`;
+    return `EXEC sys.sp_helpindex @objname = ${this.quoteTable(tableName)};`;
   }
 
   removeIndexQuery(
