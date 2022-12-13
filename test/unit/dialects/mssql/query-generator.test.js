@@ -226,6 +226,5 @@ if (current.dialect.name === 'mssql') {
         mssql: 'ALTER TABLE [myTable] DROP [myColumnKey]',
       });
     });
-
   });
 }

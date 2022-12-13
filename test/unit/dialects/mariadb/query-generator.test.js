@@ -630,15 +630,6 @@ if (dialect === 'mariadb') {
         },
       ],
 
-      removeIndexQuery: [
-        {
-          arguments: ['User', 'user_foo_bar'],
-          expectation: 'DROP INDEX `user_foo_bar` ON `User`',
-        }, {
-          arguments: ['User', ['foo', 'bar']],
-          expectation: 'DROP INDEX `user_foo_bar` ON `User`',
-        },
-      ],
       getForeignKeyQuery: [
         {
           arguments: ['User', 'email'],

@@ -96,7 +96,7 @@ export function rejectInvalidOptions(
   dialectName: string,
   allSupportableOptions: Set<string>,
   supportedOptions: Set<string>,
-  receivedOptions: Record<string, unknown>,
+  receivedOptions: object,
 ): void {
   const receivedOptionNames = Object.keys(pickBy(receivedOptions));
   const unsupportedOptions = receivedOptionNames.filter(optionName => {
