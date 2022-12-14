@@ -436,7 +436,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
     }
 
     expectsql(() => queryGenerator.getForeignKeysQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }), {
-      sqlite: 'PRAGMA foreign_key_list(`mySchemacustommyTable`);',
+      sqlite: 'PRAGMA foreign_key_list(`mySchemacustommyTable`)',
     });
   });
 
