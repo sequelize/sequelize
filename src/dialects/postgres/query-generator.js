@@ -865,18 +865,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(tableName) {
-    return 'SELECT conname as constraint_name, pg_catalog.pg_get_constraintdef(r.oid, true) as condef FROM pg_catalog.pg_constraint r '
-      + `WHERE r.conrelid = (SELECT oid FROM pg_class WHERE relname = '${tableName}' LIMIT 1) AND r.contype = 'f' ORDER BY 1;`;
-  }
-
-  /**
    * Generate common SQL prefix for getForeignKeyReferencesQuery.
    *
    * @returns {string}

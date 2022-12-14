@@ -747,68 +747,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     throwMethodUndefined('renameFunction');
   }
 
-  /**
-   * Generate SQL for ForeignKeysQuery.
-   *
-   * @param {string} condition   The condition string for query.
-   * @returns {string}
-   */
-  _getForeignKeysQuerySQL(condition) {
-    return 'SELECT R.CONSTNAME AS "constraintName", '
-        + 'TRIM(R.TABSCHEMA) AS "constraintSchema", '
-        + 'R.TABNAME AS "tableName", '
-        + 'TRIM(R.TABSCHEMA) AS "tableSchema", LISTAGG(C.COLNAME,\', \') '
-        + 'WITHIN GROUP (ORDER BY C.COLNAME) AS "columnName", '
-        + 'TRIM(R.REFTABSCHEMA) AS "referencedTableSchema", '
-        + 'R.REFTABNAME AS "referencedTableName", '
-        + 'TRIM(R.PK_COLNAMES) AS "referencedColumnName" '
-        + 'FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C '
-        + 'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA '
-        + `AND R.TABNAME = C.TABNAME${condition} GROUP BY R.REFTABSCHEMA, `
-        + 'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES';
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param {Stirng|object} table The name of the table.
-   * @param {string} schemaName   The name of the schema.
-   * @returns {string}            The generated sql query.
-   */
-  getForeignKeysQuery(table, schemaName) {
-    const tableName = table.tableName || table;
-    schemaName = table.schema || schemaName;
-    let sql = '';
-    if (tableName) {
-      sql = ` AND R.TABNAME = ${wrapSingleQuote(tableName)}`;
-    }
-
-    if (schemaName) {
-      sql += ` AND R.TABSCHEMA = ${wrapSingleQuote(schemaName)}`;
-    }
-
-    return this._getForeignKeysQuerySQL(sql);
-  }
-
-  getForeignKeyQuery(table, columnName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-    let sql = '';
-    if (tableName) {
-      sql = ` AND R.TABNAME = ${wrapSingleQuote(tableName)}`;
-    }
-
-    if (schemaName) {
-      sql += ` AND R.TABSCHEMA = ${wrapSingleQuote(schemaName)}`;
-    }
-
-    if (columnName) {
-      sql += ` AND C.COLNAME = ${wrapSingleQuote(columnName)}`;
-    }
-
-    return this._getForeignKeysQuerySQL(sql);
-  }
-
   getPrimaryKeyConstraintQuery(table, attributeName) {
     const tableName = wrapSingleQuote(table.tableName || table);
 

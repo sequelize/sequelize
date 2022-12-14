@@ -586,13 +586,6 @@ if (dialect === 'sqlite') {
             + 'ALTER TABLE `myTable_backup` RENAME TO `myTable`;',
         },
       ],
-      getForeignKeysQuery: [
-        {
-          title: 'Property quotes table names',
-          arguments: ['myTable'],
-          expectation: 'PRAGMA foreign_key_list(`myTable`)',
-        },
-      ],
       foreignKeyCheckQuery: [
         {
           title: 'Properly quotes table names',

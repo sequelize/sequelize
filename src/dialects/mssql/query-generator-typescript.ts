@@ -83,4 +83,69 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       this.quoteTable(tableName),
     ]);
   }
+
+  /**
+   * Generates an SQL query that returns all foreign keys of a table.
+   *
+   * @param   tableName   The table or associated model.
+   * @param   catalogName The catalog.
+   * @returns             The generated SQL query.
+   */
+  // TODO: is catalogName really required? If so, tests should fail if not provided
+  getForeignKeysQuery(tableName: TableNameOrModel, catalogName: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      this.#getForeignKeysQueryPrefixSQL(catalogName),
+      `WHERE TB.NAME = ${this.quoteIdentifier(table.tableName)}`,
+      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.quoteIdentifier(table.schema!)}`,
+    ]);
+  }
+
+  /**
+   * Generates an SQL query that returns the foreign key constraint of a given column.
+   *
+   * @param   tableName  The table or associated model.
+   * @param   columnName The name of the column.
+   * @returns            The generated SQL query.
+   */
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      this.#getForeignKeysQueryPrefixSQL(),
+      `WHERE TB.NAME = ${this.quoteIdentifier(table.tableName)}`,
+      `AND COL.NAME = ${this.quoteIdentifier(columnName)}`,
+      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.quoteIdentifier(table.schema!)}`,
+    ]);
+  }
+
+  #getForeignKeysQueryPrefixSQL(catalogName?: string) {
+    let quotedCatalogName;
+
+    if (catalogName) {
+      quotedCatalogName = this.quoteIdentifier(catalogName);
+    }
+
+    return [
+      'SELECT constraint_name = OBJ.NAME,',
+      'constraintName = OBJ.NAME,',
+      catalogName && `constraintCatalog = ${quotedCatalogName},`,
+      'constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),',
+      'tableName = TB.NAME, ',
+      'tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),',
+      catalogName && `tableCatalog = ${quotedCatalogName},`,
+      'columnName = COL.NAME,',
+      'referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),',
+      catalogName && `referencedCatalog = ${quotedCatalogName},`,
+      'referencedTableName = RTB.NAME',
+      'referencedColumnName = RCOL.NAME',
+      'FROM sys.foreign_key_columns FKC',
+      'INNER JOIN sys.objects OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID',
+      'INNER JOIN sys.tables TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID',
+      'INNER JOIN sys.columns COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID',
+      'INNER JOIN sys.tables RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID',
+      'INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID',
+    ];
+  }
 }

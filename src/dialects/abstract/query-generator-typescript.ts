@@ -65,6 +65,29 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`removeIndexQuery has not been implemented in ${this.dialect.name}.`);
   }
 
+  /**
+   * Generates an SQL query that returns the foreign key constraint of a given column.
+   *
+   * @param   _tableName  The table or associated model.
+   * @param   _columnName The name of the column.
+   * @returns             The generated SQL query.
+   */
+  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName: string): string {
+    throw new Error(`getForeignKeyQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Generates an SQL query that returns all foreign keys of a table.
+   *
+   * @param   _tableName   The table or associated model.
+   * @param   _catalogName The catalog. Only for MSSQL.
+   * @returns              The generated SQL query.
+   */
+  // TODO: throw if catalogName is provided, but not supported
+  getForeignKeysQuery(_tableName: TableNameOrModel, _catalogName?: string): string {
+    throw new Error(`getForeignKeysQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
   extractTableDetails(
     tableNameOrModel: TableNameOrModel,
     options?: { schema?: string, delimiter?: string },

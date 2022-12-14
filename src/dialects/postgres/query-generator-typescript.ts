@@ -75,4 +75,23 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       options?.cascade ? 'CASCADE' : '',
     ]);
   }
+
+  /**
+   * Generates an SQL query that returns all foreign keys of a table.
+   *
+   * @param   tableName The table or associated model.
+   * @returns           The generated SQL query.
+   */
+  getForeignKeysQuery(tableName: TableNameOrModel) {
+    return joinSQLFragments([
+      'SELECT conname as constraint_name,',
+      'pg_catalog.pg_get_constraintdef(r.oid, true) as condef',
+      'FROM pg_catalog.pg_constraint r',
+      'WHERE r.conrelid =',
+      '(SELECT oid FROM pg_class',
+      `WHERE relname = ${this.quoteTable(tableName)}`,
+      'LIMIT 1)',
+      `AND r.contype = 'f' ORDER BY 1`,
+    ]);
+  }
 }

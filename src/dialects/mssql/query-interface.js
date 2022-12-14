@@ -95,4 +95,47 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
 
     return await this.sequelize.queryRaw(sql, options);
   }
+
+  /**
+   * @override
+   */
+  async getForeignKeysForTables(tableNames, options) {
+    if (tableNames.length === 0) {
+      return {};
+    }
+
+    options = { ...options, type: QueryTypes.FOREIGNKEYS };
+
+    const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database), options)));
+
+    const result = {};
+
+    for (let [i, tableName] of tableNames.entries()) {
+      if (_.isObject(tableName)) {
+        tableName = `${tableName.schema}.${tableName.tableName}`;
+      }
+
+      result[tableName] = Array.isArray(results[i])
+        ? results[i].map(r => r.constraint_name)
+        : [results[i] && results[i].constraint_name];
+
+      result[tableName] = result[tableName].filter(_.identity);
+    }
+
+    return result;
+  }
+
+  /**
+   * @override
+   */
+  async getForeignKeyReferencesForTable(tableName, options) {
+    const queryOptions = {
+      ...options,
+      type: QueryTypes.FOREIGNKEYS,
+    };
+
+    const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database);
+
+    return this.sequelize.queryRaw(query, queryOptions);
+  }
 }

@@ -22,7 +22,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM',
       'SYSIBM.SYSCOLUMNS',
       `WHERE TBNAME = ${this.quoteIdentifier(table.tableName)}`,
-      table.schema !== '' ? `AND TBCREATOR = ${this.quoteIdentifier(table.schema!)}` : 'AND TBCREATOR = USER',
+      table.schema ? `AND TBCREATOR = ${this.quoteIdentifier(table.schema)}` : 'AND TBCREATOR = USER',
       ';',
     ]);
   }
@@ -34,7 +34,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType",',
       'COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES',
       `WHERE TBNAME = ${this.quoteIdentifier(table.tableName)}`,
-      table.schema !== '' ? `AND TBCREATOR = ${this.quoteIdentifier(table.schema!)}` : 'AND TBCREATOR = USER',
+      table.schema ? `AND TBCREATOR = ${this.quoteIdentifier(table.schema)}` : 'AND TBCREATOR = USER',
       'ORDER BY NAME;',
     ]);
   }
@@ -63,5 +63,49 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return `DROP INDEX ${this.quoteIdentifier(indexName)}`;
+  }
+
+  /**
+   * Generates an SQL query that returns the foreign key constraint of a given column.
+   *
+   * @param   tableName  The table or associated model.
+   * @param   columnName The name of the column.
+   * @returns            The generated SQL query.
+   */
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName: string) {
+    return this.#getForeignKeysQuerySQL(tableName, columnName);
+  }
+
+  /**
+   * Generates an SQL query that returns all foreign keys of a table.
+   *
+   * @param   tableName The table or associated model.
+   * @returns           The generated SQL query.
+   */
+  getForeignKeysQuery(tableName: TableNameOrModel) {
+    return this.#getForeignKeysQuerySQL(tableName);
+  }
+
+  #getForeignKeysQuerySQL(tableName: TableNameOrModel, columnName?: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT R.CONSTNAME AS "constraintName",',
+      'TRIM(R.TABSCHEMA) AS "constraintSchema",',
+      'R.TABNAME AS "tableName",',
+      `TRIM(R.TABSCHEMA) AS "tableSchema", LISTAGG(C.COLNAME,', ')`,
+      'WITHIN GROUP (ORDER BY C.COLNAME) AS "columnName",',
+      'TRIM(R.REFTABSCHEMA) AS "referencedTableSchema",',
+      'R.REFTABNAME AS "referencedTableName",',
+      'TRIM(R.PK_COLNAMES) AS "referencedColumnName"',
+      'FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C',
+      'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA',
+      'AND R.TABNAME = C.TABNAME',
+      `AND R.TABNAME = ${this.quoteIdentifier(table.tableName)}`,
+      table.schema && `AND R.TABSCHEMA = ${this.quoteIdentifier(table.schema)}`,
+      columnName && `AND C.COLNAME = ${this.quoteIdentifier(columnName)}`,
+      'GROUP BY R.REFTABSCHEMA,',
+      'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES',
+    ]);
   }
 }

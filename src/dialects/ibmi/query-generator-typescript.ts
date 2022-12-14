@@ -27,7 +27,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN QSYS2.SYSCST',
       'ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME',
       'WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA =',
-      table.schema !== '' ? `${this.quoteIdentifier(table.schema!)}` : 'CURRENT SCHEMA',
+      table.schema ? `${this.quoteIdentifier(table.schema)}` : 'CURRENT SCHEMA',
       'AND QSYS2.SYSCOLUMNS.TABLE_NAME =',
       `${this.quoteIdentifier(table.tableName)}`,
     ]);
@@ -42,11 +42,11 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'QSYS2.SYSCST.TABLE_NAME from QSYS2.SYSCSTCOL left outer join QSYS2.SYSCST on QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA and',
       'QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME and QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME where',
       'QSYS2.SYSCSTCOL.TABLE_SCHEMA =',
-      table.schema !== '' ? `${this.quoteIdentifier(table.schema!)}` : 'CURRENT SCHEMA',
+      table.schema ? `${this.quoteIdentifier(table.schema)}` : 'CURRENT SCHEMA',
       `and QSYS2.SYSCSTCOL.TABLE_NAME = ${this.quoteIdentifier(table.tableName)} union select QSYS2.SYSKEYS.INDEX_NAME AS NAME,`,
       `QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS`,
       'left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA =',
-      table.schema !== '' ? `${this.quoteIdentifier(table.schema!)}` : 'CURRENT SCHEMA',
+      table.schema ? `${this.quoteIdentifier(table.schema)}` : 'CURRENT SCHEMA',
       `and QSYS2.SYSINDEXES.TABLE_NAME = ${this.quoteIdentifier(table.tableName)}`,
     ]);
   }
@@ -81,6 +81,49 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'COMMIT;',
       options?.ifExists ? 'END IF;' : '',
       'END',
+    ]);
+  }
+
+  /**
+   * Generates an SQL query that returns the foreign key constraint of a given column.
+   *
+   * @param   tableName  The table or associated model.
+   * @param   columnName The name of the column.
+   * @returns            The generated SQL query.
+   */
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName: string) {
+    return this.#getForeignKeysQuerySQL(tableName, columnName);
+  }
+
+  /**
+   * Generates an SQL query that returns all foreign keys of a table.
+   *
+   * @param   tableName The table or associated model.
+   * @returns           The generated SQL query.
+   */
+  getForeignKeysQuery(tableName: TableNameOrModel) {
+    return this.#getForeignKeysQuerySQL(tableName);
+  }
+
+  #getForeignKeysQuerySQL(tableName: TableNameOrModel, columnName?: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT FK_NAME AS "constraintName",',
+      'PKTABLE_CAT AS "referencedTableCatalog",',
+      'PKTABLE_SCHEM AS "referencedTableSchema",',
+      'PKTABLE_NAME AS "referencedTableName",',
+      'PKCOLUMN_NAME AS "referencedColumnName",',
+      'FKTABLE_CAT AS "tableCatalog",',
+      'FKTABLE_SCHEM AS "tableSchema",',
+      'FKTABLE_NAME AS "tableName",',
+      'FKTABLE_SCHEM AS "tableSchema",',
+      'FKCOLUMN_NAME AS "columnName"',
+      'FROM SYSIBM.SQLFOREIGNKEYS',
+      'WHERE FKTABLE_SCHEM =',
+      table.schema ? this.quoteIdentifier(table.schema) : 'CURRENT SCHEMA',
+      `AND FKTABLE_NAME = ${this.quoteIdentifier(table.tableName)}`,
+      columnName && `AND FKCOLUMN_NAME = ${this.quoteIdentifier(columnName)}`,
     ]);
   }
 }

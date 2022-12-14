@@ -738,64 +738,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     throwMethodUndefined('renameFunction');
   }
 
-  /**
-   * Generate common SQL prefix for ForeignKeysQuery.
-   *
-   * @param {string} catalogName
-   * @returns {string}
-   */
-  _getForeignKeysQueryPrefix(catalogName) {
-    return `SELECT constraint_name = OBJ.NAME, constraintName = OBJ.NAME, ${
-      catalogName ? `constraintCatalog = '${catalogName}', ` : ''
-    }constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID), `
-      + 'tableName = TB.NAME, '
-      + `tableSchema = SCHEMA_NAME(TB.SCHEMA_ID), ${
-        catalogName ? `tableCatalog = '${catalogName}', ` : ''
-      }columnName = COL.NAME, `
-      + `referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID), ${
-        catalogName ? `referencedCatalog = '${catalogName}', ` : ''
-      }referencedTableName = RTB.NAME, `
-      + 'referencedColumnName = RCOL.NAME '
-      + 'FROM sys.foreign_key_columns FKC '
-      + 'INNER JOIN sys.objects OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID '
-      + 'INNER JOIN sys.tables TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID '
-      + 'INNER JOIN sys.columns COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID '
-      + 'INNER JOIN sys.tables RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID '
-      + 'INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID';
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys details of a table.
-   *
-   * @param {string|object} table
-   * @param {string} catalogName database name
-   * @returns {string}
-   */
-  getForeignKeysQuery(table, catalogName) {
-    const tableName = table.tableName || table;
-    let sql = `${this._getForeignKeysQueryPrefix(catalogName)
-    } WHERE TB.NAME =${wrapSingleQuote(tableName)}`;
-
-    if (table.schema) {
-      sql += ` AND SCHEMA_NAME(TB.SCHEMA_ID) =${wrapSingleQuote(table.schema)}`;
-    }
-
-    return sql;
-  }
-
-  getForeignKeyQuery(table, attributeName) {
-    const tableName = table.tableName || table;
-
-    return joinSQLFragments([
-      this._getForeignKeysQueryPrefix(),
-      'WHERE',
-      `TB.NAME =${wrapSingleQuote(tableName)}`,
-      'AND',
-      `COL.NAME =${wrapSingleQuote(attributeName)}`,
-      table.schema && `AND SCHEMA_NAME(TB.SCHEMA_ID) =${wrapSingleQuote(table.schema)}`,
-    ]);
-  }
-
   getPrimaryKeyConstraintQuery(table, attributeName) {
     const tableName = wrapSingleQuote(table.tableName || table);
 

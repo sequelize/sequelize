@@ -474,11 +474,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should get a list of foreign keys for the table', async function () {
-
       const foreignKeys = await this.sequelize.query(
         this.queryInterface.queryGenerator.getForeignKeysQuery(
           'hosts',
-          dialectName === 'db2' ? this.sequelize.config.username.toUpperCase() : this.sequelize.config.database,
+          dialectName === 'mssql' && this.sequelize.config.database,
         ),
         { type: this.sequelize.QueryTypes.FOREIGNKEYS },
       );

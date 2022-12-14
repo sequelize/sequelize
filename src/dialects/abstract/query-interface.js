@@ -664,7 +664,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     options = { ...options, type: QueryTypes.FOREIGNKEYS };
 
-    const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database), options)));
+    const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeysQuery(tableName), options)));
 
     const result = {};
 
@@ -699,7 +699,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       ...options,
       type: QueryTypes.FOREIGNKEYS,
     };
-    const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database);
+
+    const query = this.queryGenerator.getForeignKeysQuery(tableName);
 
     return this.sequelize.queryRaw(query, queryOptions);
   }

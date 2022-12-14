@@ -496,17 +496,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return sql.replace(/DEFAULT '?false'?/g, 'DEFAULT 0').replace(/DEFAULT '?true'?/g, 'DEFAULT 1');
   }
 
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {TableName} tableName  The name of the table.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(tableName) {
-    return `PRAGMA foreign_key_list(${this.quoteTable(tableName)})`;
-  }
-
   tableExistsQuery(tableName) {
     return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.extractTableDetails(tableName).tableName)};`;
   }
