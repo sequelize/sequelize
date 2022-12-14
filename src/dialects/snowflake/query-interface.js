@@ -20,10 +20,7 @@ export class SnowflakeQueryInterface extends AbstractQueryInterface {
     options = options || {};
 
     const [results] = await this.sequelize.queryRaw(
-      this.queryGenerator.getForeignKeyQuery(tableName.tableName ? tableName : {
-        tableName,
-        schema: this.sequelize.config.database,
-      }, columnName),
+      this.queryGenerator.getForeignKeyQuery(tableName, columnName),
       { raw: true, ...options },
     );
 

@@ -10,29 +10,29 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
   it('produces a query to get all foreign keys of a table', () => {
     expectsql(() => queryGenerator.getForeignKeysQuery('myTable'), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name
-        CONSTRAINT_NAME as constraintName
-        CONSTRAINT_SCHEMA as constraintSchema
-        CONSTRAINT_SCHEMA as constraintCatalog
-        TABLE_NAME as tableName
-        TABLE_SCHEMA as tableSchema
-        TABLE_SCHEMA as tableCatalog
-        COLUMN_NAME as columnName
-        REFERENCED_TABLE_SCHEMA as referencedTableSchema
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog
-        REFERENCED_TABLE_NAME as referencedTableName
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
+        CONSTRAINT_NAME as constraintName,
+        CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_SCHEMA as constraintCatalog,
+        TABLE_NAME as tableName,
+        TABLE_SCHEMA as tableSchema,
+        TABLE_SCHEMA as tableCatalog,
+        COLUMN_NAME as columnName,
+        REFERENCED_TABLE_SCHEMA as referencedTableSchema,
+        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
+        REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        where TABLE_NAME = \`myTable\`
+        where TABLE_NAME = 'myTable'
         AND CONSTRAINT_NAME != 'PRIMARY'
-        AND CONSTRAINT_SCHEMA = \`sequelize_test\`
+        AND CONSTRAINT_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `SELECT conname as constraint_name,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid =
         (SELECT oid FROM pg_class
-        WHERE relname = "myTable"
+        WHERE relname = 'public.myTable'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
       mssql: `SELECT constraint_name = OBJ.NAME,
@@ -42,7 +42,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
         columnName = COL.NAME,
         referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableName = RTB.NAME
+        referencedTableName = RTB.NAME,
         referencedColumnName = RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
@@ -95,29 +95,29 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
 
     expectsql(() => queryGenerator.getForeignKeysQuery(MyModel), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name
-        CONSTRAINT_NAME as constraintName
-        CONSTRAINT_SCHEMA as constraintSchema
-        CONSTRAINT_SCHEMA as constraintCatalog
-        TABLE_NAME as tableName
-        TABLE_SCHEMA as tableSchema
-        TABLE_SCHEMA as tableCatalog
-        COLUMN_NAME as columnName
-        REFERENCED_TABLE_SCHEMA as referencedTableSchema
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog
-        REFERENCED_TABLE_NAME as referencedTableName
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
+        CONSTRAINT_NAME as constraintName,
+        CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_SCHEMA as constraintCatalog,
+        TABLE_NAME as tableName,
+        TABLE_SCHEMA as tableSchema,
+        TABLE_SCHEMA as tableCatalog,
+        COLUMN_NAME as columnName,
+        REFERENCED_TABLE_SCHEMA as referencedTableSchema,
+        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
+        REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        where TABLE_NAME = \`myModels\`
+        where TABLE_NAME = 'myModels'
         AND CONSTRAINT_NAME != 'PRIMARY'
-        AND CONSTRAINT_SCHEMA = \`sequelize_test\`
+        AND CONSTRAINT_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `SELECT conname as constraint_name,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid =
         (SELECT oid FROM pg_class
-        WHERE relname = "myModels"
+        WHERE relname = 'public.myModels'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
       mssql: `SELECT constraint_name = OBJ.NAME,
@@ -127,7 +127,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
         columnName = COL.NAME,
         referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableName = RTB.NAME
+        referencedTableName = RTB.NAME,
         referencedColumnName = RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
@@ -178,29 +178,29 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
   it('produces a query to get all foreign keys of a table with schema in tableName object', () => {
     expectsql(() => queryGenerator.getForeignKeysQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name
-        CONSTRAINT_NAME as constraintName
-        CONSTRAINT_SCHEMA as constraintSchema
-        CONSTRAINT_SCHEMA as constraintCatalog
-        TABLE_NAME as tableName
-        TABLE_SCHEMA as tableSchema
-        TABLE_SCHEMA as tableCatalog
-        COLUMN_NAME as columnName
-        REFERENCED_TABLE_SCHEMA as referencedTableSchema
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog
-        REFERENCED_TABLE_NAME as referencedTableName
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
+        CONSTRAINT_NAME as constraintName,
+        CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_SCHEMA as constraintCatalog,
+        TABLE_NAME as tableName,
+        TABLE_SCHEMA as tableSchema,
+        TABLE_SCHEMA as tableCatalog,
+        COLUMN_NAME as columnName,
+        REFERENCED_TABLE_SCHEMA as referencedTableSchema,
+        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
+        REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        where TABLE_NAME = \`myTable\`
+        where TABLE_NAME = 'myTable'
         AND CONSTRAINT_NAME != 'PRIMARY'
-        AND CONSTRAINT_SCHEMA = \`mySchema\`
+        AND CONSTRAINT_SCHEMA = 'mySchema'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `SELECT conname as constraint_name,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid =
         (SELECT oid FROM pg_class
-        WHERE relname = "mySchema"."myTable"
+        WHERE relname = 'mySchema.myTable'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
       mssql: `SELECT constraint_name = OBJ.NAME,
@@ -210,7 +210,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
         columnName = COL.NAME,
         referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableName = RTB.NAME
+        referencedTableName = RTB.NAME,
         referencedColumnName = RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
@@ -262,29 +262,29 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
   it('produces a query to get all foreign keys of a table with default schema in tableName object', () => {
     expectsql(() => queryGenerator.getForeignKeysQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name
-        CONSTRAINT_NAME as constraintName
-        CONSTRAINT_SCHEMA as constraintSchema
-        CONSTRAINT_SCHEMA as constraintCatalog
-        TABLE_NAME as tableName
-        TABLE_SCHEMA as tableSchema
-        TABLE_SCHEMA as tableCatalog
-        COLUMN_NAME as columnName
-        REFERENCED_TABLE_SCHEMA as referencedTableSchema
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog
-        REFERENCED_TABLE_NAME as referencedTableName
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
+        CONSTRAINT_NAME as constraintName,
+        CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_SCHEMA as constraintCatalog,
+        TABLE_NAME as tableName,
+        TABLE_SCHEMA as tableSchema,
+        TABLE_SCHEMA as tableCatalog,
+        COLUMN_NAME as columnName,
+        REFERENCED_TABLE_SCHEMA as referencedTableSchema,
+        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
+        REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        where TABLE_NAME = \`myTable\`
+        where TABLE_NAME = 'myTable'
         AND CONSTRAINT_NAME != 'PRIMARY'
-        AND CONSTRAINT_SCHEMA = \`sequelize_test\`
+        AND CONSTRAINT_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `SELECT conname as constraint_name,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid =
         (SELECT oid FROM pg_class
-        WHERE relname = "myTable"
+        WHERE relname = 'public.myTable'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
       mssql: `SELECT constraint_name = OBJ.NAME,
@@ -294,7 +294,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
         columnName = COL.NAME,
         referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableName = RTB.NAME
+        referencedTableName = RTB.NAME,
         referencedColumnName = RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
@@ -348,29 +348,29 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
 
     expectsql(() => queryGeneratorSchema.getForeignKeysQuery('myTable'), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name
-        CONSTRAINT_NAME as constraintName
-        CONSTRAINT_SCHEMA as constraintSchema
-        CONSTRAINT_SCHEMA as constraintCatalog
-        TABLE_NAME as tableName
-        TABLE_SCHEMA as tableSchema
-        TABLE_SCHEMA as tableCatalog
-        COLUMN_NAME as columnName
-        REFERENCED_TABLE_SCHEMA as referencedTableSchema
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog
-        REFERENCED_TABLE_NAME as referencedTableName
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
+        CONSTRAINT_NAME as constraintName,
+        CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_SCHEMA as constraintCatalog,
+        TABLE_NAME as tableName,
+        TABLE_SCHEMA as tableSchema,
+        TABLE_SCHEMA as tableCatalog,
+        COLUMN_NAME as columnName,
+        REFERENCED_TABLE_SCHEMA as referencedTableSchema,
+        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
+        REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        where TABLE_NAME = \`myTable\`
+        where TABLE_NAME = 'myTable'
         AND CONSTRAINT_NAME != 'PRIMARY'
-        AND CONSTRAINT_SCHEMA = \`mySchema\`
+        AND CONSTRAINT_SCHEMA = 'mySchema'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `SELECT conname as constraint_name,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid =
         (SELECT oid FROM pg_class
-        WHERE relname = "mySchema"."myTable"
+        WHERE relname = 'mySchema.myTable'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
       mssql: `SELECT constraint_name = OBJ.NAME,
@@ -380,7 +380,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
         columnName = COL.NAME,
         referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableName = RTB.NAME
+        referencedTableName = RTB.NAME,
         referencedColumnName = RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
@@ -456,7 +456,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         columnName = COL.NAME,
         referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
         referencedCatalog = [myCatalog],
-        referencedTableName = RTB.NAME
+        referencedTableName = RTB.NAME,
         referencedColumnName = RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ

@@ -12,7 +12,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
         AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
-        t.relkind = 'r' and t.relname = "myTable" AND s.oid = t.relnamespace AND s.nspname = "public"
+        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
       mssql: `EXEC sys.sp_helpindex @objname = [myTable];`,
       sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
@@ -37,7 +37,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
         AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
-        t.relkind = 'r' and t.relname = "myModels" AND s.oid = t.relnamespace AND s.nspname = "public"
+        t.relkind = 'r' and t.relname = 'myModels' AND s.oid = t.relnamespace AND s.nspname = 'public'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
       mssql: `EXEC sys.sp_helpindex @objname = [myModels];`,
       sqlite: 'PRAGMA INDEX_LIST(`myModels`)',
@@ -60,7 +60,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
         AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
-        t.relkind = 'r' and t.relname = "myTable" AND s.oid = t.relnamespace AND s.nspname = "mySchema"
+        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'mySchema'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
       mssql: `EXEC sys.sp_helpindex @objname = [mySchema].[myTable];`,
       sqlite: 'PRAGMA INDEX_LIST(`mySchema.myTable`)',
@@ -83,7 +83,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
         AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
-        t.relkind = 'r' and t.relname = "myTable" AND s.oid = t.relnamespace AND s.nspname = "public"
+        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
       mssql: `EXEC sys.sp_helpindex @objname = [myTable];`,
       sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
@@ -109,7 +109,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
         AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
-        t.relkind = 'r' and t.relname = "myTable" AND s.oid = t.relnamespace AND s.nspname = "mySchema"
+        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'mySchema'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
       mssql: `EXEC sys.sp_helpindex @objname = [mySchema].[myTable];`,
       sqlite: 'PRAGMA INDEX_LIST(`mySchema.myTable`)',

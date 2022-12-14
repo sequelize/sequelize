@@ -8,17 +8,17 @@ import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/quer
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
 const GET_FOREIGN_KEYS_PREFIX = [
-  'SELECT CONSTRAINT_NAME as constraint_name',
-  'CONSTRAINT_NAME as constraintName',
-  'CONSTRAINT_SCHEMA as constraintSchema',
-  'CONSTRAINT_SCHEMA as constraintCatalog',
-  'TABLE_NAME as tableName',
-  'TABLE_SCHEMA as tableSchema',
-  'TABLE_SCHEMA as tableCatalog',
-  'COLUMN_NAME as columnName',
-  'REFERENCED_TABLE_SCHEMA as referencedTableSchema',
-  'REFERENCED_TABLE_SCHEMA as referencedTableCatalog',
-  'REFERENCED_TABLE_NAME as referencedTableName',
+  'SELECT CONSTRAINT_NAME as constraint_name,',
+  'CONSTRAINT_NAME as constraintName,',
+  'CONSTRAINT_SCHEMA as constraintSchema,',
+  'CONSTRAINT_SCHEMA as constraintCatalog,',
+  'TABLE_NAME as tableName,',
+  'TABLE_SCHEMA as tableSchema,',
+  'TABLE_SCHEMA as tableCatalog,',
+  'COLUMN_NAME as columnName,',
+  'REFERENCED_TABLE_SCHEMA as referencedTableSchema,',
+  'REFERENCED_TABLE_SCHEMA as referencedTableCatalog,',
+  'REFERENCED_TABLE_NAME as referencedTableName,',
   'REFERENCED_COLUMN_NAME as referencedColumnName',
   'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
 ];
@@ -71,8 +71,8 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   getForeignKeyQuery(tableName: TableNameOrModel, columnName: string) {
     const table = this.extractTableDetails(tableName);
 
-    const quotedTableName = this.quoteIdentifier(table.tableName);
-    const quotedSchemaName = this.quoteIdentifier(table.schema!);
+    const quotedTableName = this.escape(table.tableName);
+    const quotedSchemaName = this.escape(table.schema!);
     const quotedColumnName = this.quoteIdentifier(columnName);
 
     return joinSQLFragments([
@@ -101,8 +101,8 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       GET_FOREIGN_KEYS_PREFIX,
-      `where TABLE_NAME = ${this.quoteIdentifier(table.tableName)}`,
-      `AND CONSTRAINT_NAME != 'PRIMARY' AND CONSTRAINT_SCHEMA = ${this.quoteIdentifier(table.schema!)}`,
+      `where TABLE_NAME = ${this.escape(table.tableName)}`,
+      `AND CONSTRAINT_NAME != 'PRIMARY' AND CONSTRAINT_SCHEMA = ${this.escape(table.schema!)}`,
       'AND REFERENCED_TABLE_NAME IS NOT NULL',
     ]);
   }
