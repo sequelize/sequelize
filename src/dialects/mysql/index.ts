@@ -68,6 +68,12 @@ export class MysqlDialect extends AbstractDialect {
   readonly TICK_CHAR = '`';
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';
+  /**
+   * Max length allowed by MySQL for aliases
+   *
+   * @see https://dev.mysql.com/doc/refman/8.0/en/identifier-length.html
+   */
+  readonly MAX_ALIAS_LENGTH = 63;
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'mysql');

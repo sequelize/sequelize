@@ -52,6 +52,12 @@ export class MssqlDialect extends AbstractDialect {
   readonly queryInterface: MsSqlQueryInterface;
   readonly Query = MsSqlQuery;
   readonly dataTypesDocumentationUrl = 'https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx';
+  /**
+   * Max identifier limit in MSSQL is 128 characters.
+   *
+   * @see https://learn.microsoft.com/en-us/answers/questions/264575/character-limit-exceeding-db-limit.html
+   */
+  readonly MAX_ALIAS_LENGTH = 128;
 
   // SQL Server 2017 Express (version 14), minimum supported version, all the way
   // up to the most recent version. When increasing this version, remember to
