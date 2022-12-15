@@ -83,7 +83,7 @@ export class AbstractQueryGeneratorTypeScript {
    * @param   _catalogName The catalog. Only for MSSQL.
    * @returns              The generated SQL query.
    */
-  // TODO: throw if catalogName is provided, but not supported
+  // TODO: throw if catalogName is provided, but not supported/used
   getForeignKeysQuery(_tableName: TableNameOrModel, _catalogName?: string): string {
     throw new Error(`getForeignKeysQuery has not been implemented in ${this.dialect.name}.`);
   }

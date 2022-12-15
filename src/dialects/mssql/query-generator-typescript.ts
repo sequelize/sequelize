@@ -91,8 +91,11 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
    * @param   catalogName The catalog.
    * @returns             The generated SQL query.
    */
-  // TODO: is catalogName really required? If so, tests should fail if not provided
   getForeignKeysQuery(tableName: TableNameOrModel, catalogName: string) {
+    if (!catalogName) {
+      throw new Error('A catalog name must be provided to get all foreign keys of a table.');
+    }
+
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
