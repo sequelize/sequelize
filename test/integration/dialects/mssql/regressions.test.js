@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai');
+const _ = require('lodash');
 
 const expect = chai.expect;
 const sinon =  require('sinon');
@@ -248,6 +249,29 @@ if (dialect.startsWith('mssql')) {
 
       const record = await BooleanTable.findOne();
       expect(record.status).to.equals(value);
+    });
+
+    it('rolls back changes after inserting more than 1000 rows outside of a transaction', async function () {
+      const User = this.sequelize.define('user', {
+        username: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
+      });
+
+      await User.sync({ force: true });
+
+      try {
+        await User.bulkCreate([
+          ..._.times(1000, () => ({ username: 'John' })),
+          { username: null },
+        ]);
+      } catch {
+        // ignore
+      }
+
+      const count = await User.count();
+      expect(count).to.equal(0);
     });
   });
 }

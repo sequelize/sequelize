@@ -51,6 +51,29 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
   }
 
   /**
+    * @override
+    */
+  async bulkInsert(tableName, records, options, attributes) {
+    options = { ...options, type: QueryTypes.INSERT };
+
+    // If more than 1,000 rows are inserted outside of a transaction, we can't guarantee safe rollbacks.
+    // See https://github.com/sequelize/sequelize/issues/15426
+    if ((records.length <= 1000) || options.transaction) {
+      const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes);
+
+      // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+      delete options.replacements;
+
+      const results = await this.sequelize.queryRaw(sql, options);
+
+      return results[0];
+    }
+
+    throw new Error('MSSQL doesn\'t allow for inserting more than 1,000 rows at a time. Please run this in a transaction to ensure safe rollbacks');
+
+  }
+
+  /**
    * @override
    */
   async upsert(tableName, insertValues, updateValues, where, options) {
