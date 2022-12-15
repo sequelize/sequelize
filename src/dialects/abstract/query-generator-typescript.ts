@@ -80,11 +80,9 @@ export class AbstractQueryGeneratorTypeScript {
    * Generates an SQL query that returns all foreign keys of a table.
    *
    * @param   _tableName   The table or associated model.
-   * @param   _catalogName The catalog. Only for MSSQL.
    * @returns              The generated SQL query.
    */
-  // TODO: throw if catalogName is provided, but not supported/used
-  getForeignKeysQuery(_tableName: TableNameOrModel, _catalogName?: string): string {
+  getForeignKeysQuery(_tableName: TableNameOrModel): string {
     throw new Error(`getForeignKeysQuery has not been implemented in ${this.dialect.name}.`);
   }
 

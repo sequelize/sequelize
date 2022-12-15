@@ -88,15 +88,12 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
    * Generates an SQL query that returns all foreign keys of a table.
    *
    * @param   tableName   The table or associated model.
-   * @param   catalogName The catalog.
    * @returns             The generated SQL query.
    */
-  getForeignKeysQuery(tableName: TableNameOrModel, catalogName: string) {
-    if (!catalogName) {
-      throw new Error('A catalog name must be provided to get all foreign keys of a table.');
-    }
-
+  getForeignKeysQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
+    // TODO: research if it's possible to get the database from the provided tableName
+    const catalogName = this.sequelize.config.database;
 
     return joinSQLFragments([
       this.#getForeignKeysQueryPrefixSQL(catalogName),
