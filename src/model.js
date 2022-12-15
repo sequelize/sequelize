@@ -144,7 +144,22 @@ export class Model extends ModelTypeScript {
     let defaults;
     let key;
 
-    values = { ...values };
+    // Resolve non-enumerable getters on incoming values object
+    // https://github.com/sequelize/sequelize/issues/15337
+    const keysToCheck = new Set([
+      ...Object.keys(values),
+      ...Object.keys(this.constructor.getAttributes()),
+    ]);
+    values = Array.from(keysToCheck).reduce(
+      (obj, key) => {
+        if (key in values) {
+          obj[key] = values[key];
+        }
+
+        return obj;
+      },
+      Object.create(null),
+    );
 
     if (options.isNewRecord) {
       defaults = {};
@@ -2557,6 +2572,7 @@ Specify a different name for either index to resolve this issue.`);
     const createdAtAttr = this._timestampAttributes.createdAt;
     const updatedAtAttr = this._timestampAttributes.updatedAt;
     const hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
+
     const instance = this.build(values);
 
     options.model = this;
