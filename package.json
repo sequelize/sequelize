@@ -115,7 +115,7 @@
     "rimraf": "3.0.2",
     "semantic-release": "19.0.5",
     "semantic-release-fail-on-major-bump": "1.0.0",
-    "sinon": "15.0.0",
+    "sinon": "15.0.1",
     "sinon-chai": "3.7.0",
     "snowflake-sdk": "1.6.17",
     "source-map-support": "0.5.21",
