@@ -43,13 +43,13 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id',
       'AND prop.minor_id = sc.column_id',
       `AND prop.name = 'MS_Description'`,
-      `WHERE t.TABLE_NAME = ${this.quoteIdentifier(table.tableName)}`,
-      `AND t.TABLE_SCHEMA = ${this.quoteIdentifier(table.schema!)}`,
+      `WHERE t.TABLE_NAME = ${this.escape(table.tableName)}`,
+      `AND t.TABLE_SCHEMA = ${this.escape(table.schema!)}`,
     ]);
   }
 
   showIndexesQuery(tableName: TableNameOrModel) {
-    return `EXEC sys.sp_helpindex @objname = ${this.quoteTable(tableName)};`;
+    return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(tableName))};`;
   }
 
   removeIndexQuery(
@@ -97,8 +97,8 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       this.#getForeignKeysQueryPrefixSQL(catalogName),
-      `WHERE TB.NAME = ${this.quoteIdentifier(table.tableName)}`,
-      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.quoteIdentifier(table.schema!)}`,
+      `WHERE TB.NAME = ${this.escape(table.tableName)}`,
+      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.escape(table.schema!)}`,
     ]);
   }
 
@@ -114,9 +114,9 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       this.#getForeignKeysQueryPrefixSQL(),
-      `WHERE TB.NAME = ${this.quoteIdentifier(table.tableName)}`,
-      `AND COL.NAME = ${this.quoteIdentifier(columnName)}`,
-      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.quoteIdentifier(table.schema!)}`,
+      `WHERE TB.NAME = ${this.escape(table.tableName)}`,
+      `AND COL.NAME = ${this.escape(columnName)}`,
+      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.escape(table.schema!)}`,
     ]);
   }
 
@@ -124,7 +124,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     let quotedCatalogName;
 
     if (catalogName) {
-      quotedCatalogName = this.quoteIdentifier(catalogName);
+      quotedCatalogName = this.escape(catalogName);
     }
 
     return [

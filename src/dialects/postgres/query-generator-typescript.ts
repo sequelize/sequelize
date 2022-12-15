@@ -82,9 +82,10 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
    * @param   tableName The table or associated model.
    * @returns           The generated SQL query.
    */
+  // TODO: allow schema to be specified here as well
   getForeignKeysQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
-    const quotedTable = this.escape(`${table.schema}.${table.tableName}`);
+    const quotedTableName = this.escape(table.tableName);
 
     return joinSQLFragments([
       'SELECT conname as constraint_name,',
@@ -92,9 +93,9 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM pg_catalog.pg_constraint r',
       'WHERE r.conrelid =',
       '(SELECT oid FROM pg_class',
-      `WHERE relname = ${quotedTable}`,
+      `WHERE relname = ${quotedTableName}`,
       'LIMIT 1)',
-      `AND r.contype = 'f' ORDER BY 1`,
+      `AND r.contype = 'f' ORDER BY 1;`,
     ]);
   }
 }

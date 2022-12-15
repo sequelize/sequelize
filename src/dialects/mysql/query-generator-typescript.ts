@@ -73,7 +73,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     const quotedTableName = this.escape(table.tableName);
     const quotedSchemaName = this.escape(table.schema!);
-    const quotedColumnName = this.quoteIdentifier(columnName);
+    const quotedColumnName = this.escape(columnName);
 
     return joinSQLFragments([
       GET_FOREIGN_KEYS_PREFIX,

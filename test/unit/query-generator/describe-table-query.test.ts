@@ -56,14 +56,14 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
-        WHERE t.TABLE_NAME = [myTable] AND t.TABLE_SCHEMA = [dbo]`,
+        WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
       sqlite: 'PRAGMA TABLE_INFO(`myTable`)',
       db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
         TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
         NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
         IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
         FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = "myTable" AND TBCREATOR = USER;`,
+        WHERE TBNAME = 'myTable' AND TBCREATOR = USER;`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -76,7 +76,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN QSYS2.SYSCST
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
-        AND QSYS2.SYSCOLUMNS.TABLE_NAME = "myTable"`,
+        AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
     });
   });
 
@@ -133,14 +133,14 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
-        WHERE t.TABLE_NAME = [myModels] AND t.TABLE_SCHEMA = [dbo]`,
+        WHERE t.TABLE_NAME = N'myModels' AND t.TABLE_SCHEMA = N'dbo'`,
       sqlite: 'PRAGMA TABLE_INFO(`myModels`)',
       db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
         TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
         NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
         IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
         FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = "myModels" AND TBCREATOR = USER;`,
+        WHERE TBNAME = 'myModels' AND TBCREATOR = USER;`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -153,7 +153,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN QSYS2.SYSCST
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
-        AND QSYS2.SYSCOLUMNS.TABLE_NAME = "myModels"`,
+        AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myModels'`,
     });
   });
 
@@ -206,14 +206,14 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
-        WHERE t.TABLE_NAME = [myTable] AND t.TABLE_SCHEMA = [mySchema]`,
+        WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
       sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
       db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
         TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
         NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
         IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
         FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = "myTable" AND TBCREATOR = "mySchema";`,
+        WHERE TBNAME = 'myTable' AND TBCREATOR = 'mySchema';`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -225,8 +225,8 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME
         LEFT JOIN QSYS2.SYSCST
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-        WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = "mySchema"
-        AND QSYS2.SYSCOLUMNS.TABLE_NAME = "myTable"`,
+        WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema'
+        AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
     });
   });
 
@@ -280,14 +280,14 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
-        WHERE t.TABLE_NAME = [myTable] AND t.TABLE_SCHEMA = [dbo]`,
+        WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
       sqlite: 'PRAGMA TABLE_INFO(`myTable`)',
       db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
         TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
         NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
         IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
         FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = "myTable" AND TBCREATOR = USER;`,
+        WHERE TBNAME = 'myTable' AND TBCREATOR = USER;`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -300,7 +300,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN QSYS2.SYSCST
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
-        AND QSYS2.SYSCOLUMNS.TABLE_NAME = "myTable"`,
+        AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
     });
   });
 
@@ -358,14 +358,14 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
-        WHERE t.TABLE_NAME = [myTable] AND t.TABLE_SCHEMA = [mySchema]`,
+        WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
       sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
       db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
         TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
         NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
         IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
         FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = "myTable" AND TBCREATOR = "mySchema";`,
+        WHERE TBNAME = 'myTable' AND TBCREATOR = 'mySchema';`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -377,8 +377,8 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND QSYS2.SYSCOLUMNS.COLUMN_NAME = QSYS2.SYSCSTCOL.COLUMN_NAME
         LEFT JOIN QSYS2.SYSCST
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
-        WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = "mySchema"
-        AND QSYS2.SYSCOLUMNS.TABLE_NAME = "myTable"`,
+        WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema'
+        AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
     });
   });
 

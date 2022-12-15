@@ -32,9 +32,9 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid =
         (SELECT oid FROM pg_class
-        WHERE relname = 'public.myTable'
+        WHERE relname = 'myTable'
         LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1`,
+        AND r.contype = 'f' ORDER BY 1;`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
         constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
@@ -57,8 +57,8 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myTable]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [dbo]`,
+        WHERE TB.NAME = N'myTable'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
       sqlite: 'PRAGMA foreign_key_list(`myTable`)',
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
@@ -71,7 +71,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = "myTable"
+        AND R.TABNAME = 'myTable'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_NAME AS "constraintName",
@@ -86,7 +86,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
-        AND FKTABLE_NAME = "myTable"`,
+        AND FKTABLE_NAME = 'myTable'`,
     });
   });
 
@@ -117,9 +117,9 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid =
         (SELECT oid FROM pg_class
-        WHERE relname = 'public.myModels'
+        WHERE relname = 'myModels'
         LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1`,
+        AND r.contype = 'f' ORDER BY 1;`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
         constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
@@ -142,8 +142,8 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myModels]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [dbo]`,
+        WHERE TB.NAME = N'myModels'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
       sqlite: 'PRAGMA foreign_key_list(`myModels`)',
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
@@ -156,7 +156,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = "myModels"
+        AND R.TABNAME = 'myModels'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_NAME AS "constraintName",
@@ -171,7 +171,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
-        AND FKTABLE_NAME = "myModels"`,
+        AND FKTABLE_NAME = 'myModels'`,
     });
   });
 
@@ -200,9 +200,9 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid =
         (SELECT oid FROM pg_class
-        WHERE relname = 'mySchema.myTable'
+        WHERE relname = 'myTable'
         LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1`,
+        AND r.contype = 'f' ORDER BY 1;`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
         constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
@@ -225,8 +225,8 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myTable]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [mySchema]`,
+        WHERE TB.NAME = N'myTable'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'mySchema'`,
       sqlite: 'PRAGMA foreign_key_list(`mySchema.myTable`)',
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
@@ -239,8 +239,8 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = "myTable"
-        AND R.TABSCHEMA = "mySchema"
+        AND R.TABNAME = 'myTable'
+        AND R.TABSCHEMA = 'mySchema'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_NAME AS "constraintName",
@@ -254,8 +254,8 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FKTABLE_SCHEM AS "tableSchema",
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
-        WHERE FKTABLE_SCHEM = "mySchema"
-        AND FKTABLE_NAME = "myTable"`,
+        WHERE FKTABLE_SCHEM = 'mySchema'
+        AND FKTABLE_NAME = 'myTable'`,
     });
   });
 
@@ -284,9 +284,9 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid =
         (SELECT oid FROM pg_class
-        WHERE relname = 'public.myTable'
+        WHERE relname = 'myTable'
         LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1`,
+        AND r.contype = 'f' ORDER BY 1;`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
         constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
@@ -309,8 +309,8 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myTable]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [dbo]`,
+        WHERE TB.NAME = N'myTable'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
       sqlite: 'PRAGMA foreign_key_list(`myTable`)',
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
@@ -323,7 +323,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = "myTable"
+        AND R.TABNAME = 'myTable'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_NAME AS "constraintName",
@@ -338,7 +338,7 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
-        AND FKTABLE_NAME = "myTable"`,
+        AND FKTABLE_NAME = 'myTable'`,
     });
   });
 
@@ -370,9 +370,9 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid =
         (SELECT oid FROM pg_class
-        WHERE relname = 'mySchema.myTable'
+        WHERE relname = 'myTable'
         LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1`,
+        AND r.contype = 'f' ORDER BY 1;`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
         constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
@@ -395,8 +395,8 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myTable]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [mySchema]`,
+        WHERE TB.NAME = N'myTable'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'mySchema'`,
       sqlite: 'PRAGMA foreign_key_list(`mySchema.myTable`)',
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
@@ -409,8 +409,8 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = "myTable"
-        AND R.TABSCHEMA = "mySchema"
+        AND R.TABNAME = 'myTable'
+        AND R.TABSCHEMA = 'mySchema'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_NAME AS "constraintName",
@@ -424,8 +424,8 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         FKTABLE_SCHEM AS "tableSchema",
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
-        WHERE FKTABLE_SCHEM = "mySchema"
-        AND FKTABLE_NAME = "myTable"`,
+        WHERE FKTABLE_SCHEM = 'mySchema'
+        AND FKTABLE_NAME = 'myTable'`,
     });
   });
 
@@ -448,14 +448,14 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
     expectsql(() => queryGenerator.getForeignKeysQuery('myTable', 'myCatalog'), {
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
-        constraintCatalog = [myCatalog],
+        constraintCatalog = N'myCatalog',
         constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
         tableName = TB.NAME,
         tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog = [myCatalog],
+        tableCatalog = N'myCatalog',
         columnName = COL.NAME,
         referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedCatalog = [myCatalog],
+        referencedCatalog = N'myCatalog',
         referencedTableName = RTB.NAME,
         referencedColumnName = RCOL.NAME
         FROM sys.foreign_key_columns FKC
@@ -471,8 +471,8 @@ describe('QueryGenerator#getForeignKeysQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myTable]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [dbo]`,
+        WHERE TB.NAME = N'myTable'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
     });
   });
 

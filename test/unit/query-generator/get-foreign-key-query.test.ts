@@ -25,10 +25,10 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE (REFERENCED_TABLE_NAME = 'myTable'
         AND REFERENCED_TABLE_SCHEMA = 'sequelize_test'
-        AND REFERENCED_COLUMN_NAME = \`myColumn\`)
+        AND REFERENCED_COLUMN_NAME = 'myColumn')
         OR (TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'sequelize_test'
-        AND COLUMN_NAME = \`myColumn\`
+        AND COLUMN_NAME = 'myColumn'
         AND REFERENCED_TABLE_NAME IS NOT NULL)`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
@@ -52,9 +52,9 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myTable]
-        AND COL.NAME = [myColumn]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [dbo]`,
+        WHERE TB.NAME = N'myTable'
+        AND COL.NAME = N'myColumn'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -66,8 +66,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = "myTable"
-        AND C.COLNAME = "myColumn"
+        AND R.TABNAME = 'myTable'
+        AND C.COLNAME = 'myColumn'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_NAME AS "constraintName",
@@ -82,8 +82,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
-        AND FKTABLE_NAME = "myTable"
-        AND FKCOLUMN_NAME = "myColumn"`,
+        AND FKTABLE_NAME = 'myTable'
+        AND FKCOLUMN_NAME = 'myColumn'`,
     });
   });
 
@@ -107,10 +107,10 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE (REFERENCED_TABLE_NAME = 'myModels'
         AND REFERENCED_TABLE_SCHEMA = 'sequelize_test'
-        AND REFERENCED_COLUMN_NAME = \`myColumn\`)
+        AND REFERENCED_COLUMN_NAME = 'myColumn')
         OR (TABLE_NAME = 'myModels'
         AND TABLE_SCHEMA = 'sequelize_test'
-        AND COLUMN_NAME = \`myColumn\`
+        AND COLUMN_NAME = 'myColumn'
         AND REFERENCED_TABLE_NAME IS NOT NULL)`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
@@ -134,9 +134,9 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myModels]
-        AND COL.NAME = [myColumn]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [dbo]`,
+        WHERE TB.NAME = N'myModels'
+        AND COL.NAME = N'myColumn'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -148,8 +148,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = "myModels"
-        AND C.COLNAME = "myColumn"
+        AND R.TABNAME = 'myModels'
+        AND C.COLNAME = 'myColumn'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_NAME AS "constraintName",
@@ -164,8 +164,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
-        AND FKTABLE_NAME = "myModels"
-        AND FKCOLUMN_NAME = "myColumn"`,
+        AND FKTABLE_NAME = 'myModels'
+        AND FKCOLUMN_NAME = 'myColumn'`,
     });
   });
 
@@ -187,10 +187,10 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE (REFERENCED_TABLE_NAME = 'myTable'
         AND REFERENCED_TABLE_SCHEMA = 'mySchema'
-        AND REFERENCED_COLUMN_NAME = \`myColumn\`)
+        AND REFERENCED_COLUMN_NAME = 'myColumn')
         OR (TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'mySchema'
-        AND COLUMN_NAME = \`myColumn\`
+        AND COLUMN_NAME = 'myColumn'
         AND REFERENCED_TABLE_NAME IS NOT NULL)`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
@@ -214,9 +214,9 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myTable]
-        AND COL.NAME = [myColumn]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [mySchema]`,
+        WHERE TB.NAME = N'myTable'
+        AND COL.NAME = N'myColumn'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'mySchema'`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -228,9 +228,9 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = "myTable"
-        AND R.TABSCHEMA = "mySchema"
-        AND C.COLNAME = "myColumn"
+        AND R.TABNAME = 'myTable'
+        AND R.TABSCHEMA = 'mySchema'
+        AND C.COLNAME = 'myColumn'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_NAME AS "constraintName",
@@ -244,9 +244,9 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKTABLE_SCHEM AS "tableSchema",
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
-        WHERE FKTABLE_SCHEM = "mySchema"
-        AND FKTABLE_NAME = "myTable"
-        AND FKCOLUMN_NAME = "myColumn"`,
+        WHERE FKTABLE_SCHEM = 'mySchema'
+        AND FKTABLE_NAME = 'myTable'
+        AND FKCOLUMN_NAME = 'myColumn'`,
     });
   });
 
@@ -268,10 +268,10 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE (REFERENCED_TABLE_NAME = 'myTable'
         AND REFERENCED_TABLE_SCHEMA = 'sequelize_test'
-        AND REFERENCED_COLUMN_NAME = \`myColumn\`)
+        AND REFERENCED_COLUMN_NAME = 'myColumn')
         OR (TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'sequelize_test'
-        AND COLUMN_NAME = \`myColumn\`
+        AND COLUMN_NAME = 'myColumn'
         AND REFERENCED_TABLE_NAME IS NOT NULL)`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
@@ -295,9 +295,9 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myTable]
-        AND COL.NAME = [myColumn]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [dbo]`,
+        WHERE TB.NAME = N'myTable'
+        AND COL.NAME = N'myColumn'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -309,8 +309,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = "myTable"
-        AND C.COLNAME = "myColumn"
+        AND R.TABNAME = 'myTable'
+        AND C.COLNAME = 'myColumn'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_NAME AS "constraintName",
@@ -325,8 +325,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
-        AND FKTABLE_NAME = "myTable"
-        AND FKCOLUMN_NAME = "myColumn"`,
+        AND FKTABLE_NAME = 'myTable'
+        AND FKCOLUMN_NAME = 'myColumn'`,
     });
   });
 
@@ -351,10 +351,10 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE (REFERENCED_TABLE_NAME = 'myTable'
         AND REFERENCED_TABLE_SCHEMA = 'mySchema'
-        AND REFERENCED_COLUMN_NAME = \`myColumn\`)
+        AND REFERENCED_COLUMN_NAME = 'myColumn')
         OR (TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'mySchema'
-        AND COLUMN_NAME = \`myColumn\`
+        AND COLUMN_NAME = 'myColumn'
         AND REFERENCED_TABLE_NAME IS NOT NULL)`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
@@ -378,9 +378,9 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = [myTable]
-        AND COL.NAME = [myColumn]
-        AND SCHEMA_NAME(TB.SCHEMA_ID) = [mySchema]`,
+        WHERE TB.NAME = N'myTable'
+        AND COL.NAME = N'myColumn'
+        AND SCHEMA_NAME(TB.SCHEMA_ID) = N'mySchema'`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -392,9 +392,9 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = "myTable"
-        AND R.TABSCHEMA = "mySchema"
-        AND C.COLNAME = "myColumn"
+        AND R.TABNAME = 'myTable'
+        AND R.TABSCHEMA = 'mySchema'
+        AND C.COLNAME = 'myColumn'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_NAME AS "constraintName",
@@ -408,9 +408,9 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKTABLE_SCHEM AS "tableSchema",
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
-        WHERE FKTABLE_SCHEM = "mySchema"
-        AND FKTABLE_NAME = "myTable"
-        AND FKCOLUMN_NAME = "myColumn"`,
+        WHERE FKTABLE_SCHEM = 'mySchema'
+        AND FKTABLE_NAME = 'myTable'
+        AND FKCOLUMN_NAME = 'myColumn'`,
     });
   });
 

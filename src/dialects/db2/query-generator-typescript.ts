@@ -21,8 +21,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"',
       'FROM',
       'SYSIBM.SYSCOLUMNS',
-      `WHERE TBNAME = ${this.quoteIdentifier(table.tableName)}`,
-      table.schema ? `AND TBCREATOR = ${this.quoteIdentifier(table.schema)}` : 'AND TBCREATOR = USER',
+      `WHERE TBNAME = ${this.escape(table.tableName)}`,
+      table.schema ? `AND TBCREATOR = ${this.escape(table.schema)}` : 'AND TBCREATOR = USER',
       ';',
     ]);
   }
@@ -33,8 +33,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     return joinSQLFragments([
       'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType",',
       'COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES',
-      `WHERE TBNAME = ${this.quoteIdentifier(table.tableName)}`,
-      table.schema ? `AND TBCREATOR = ${this.quoteIdentifier(table.schema)}` : 'AND TBCREATOR = USER',
+      `WHERE TBNAME = ${this.escape(table.tableName)}`,
+      table.schema ? `AND TBCREATOR = ${this.escape(table.schema)}` : 'AND TBCREATOR = USER',
       'ORDER BY NAME;',
     ]);
   }
@@ -101,9 +101,9 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C',
       'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA',
       'AND R.TABNAME = C.TABNAME',
-      `AND R.TABNAME = ${this.quoteIdentifier(table.tableName)}`,
-      table.schema && `AND R.TABSCHEMA = ${this.quoteIdentifier(table.schema)}`,
-      columnName && `AND C.COLNAME = ${this.quoteIdentifier(columnName)}`,
+      `AND R.TABNAME = ${this.escape(table.tableName)}`,
+      table.schema && `AND R.TABSCHEMA = ${this.escape(table.schema)}`,
+      columnName && `AND C.COLNAME = ${this.escape(columnName)}`,
       'GROUP BY R.REFTABSCHEMA,',
       'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES',
     ]);
