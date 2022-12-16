@@ -1,5 +1,4 @@
 import NodeUtil from 'node:util';
-import cloneDeep from 'lodash/cloneDeep.js';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import type { Association } from './associations/index.js';
@@ -20,6 +19,7 @@ import type {
   ModelStatic,
   NormalizedAttributeOptions,
   NormalizedAttributeReferencesOptions,
+  ModelOptions,
 } from './model.js';
 import type { Sequelize } from './sequelize.js';
 import { fieldToColumn } from './utils/deprecations.js';
@@ -192,25 +192,29 @@ export class ModelDefinition {
 
     const globalOptions = this.#sequelize.options;
 
-    this.options = Object.assign(
-      // default options
-      {
-        noPrimaryKey: false,
-        timestamps: true,
-        validate: {},
-        freezeTableName: false,
-        underscored: false,
-        paranoid: false,
-        rejectOnEmpty: false,
-        schema: '',
-        schemaDelimiter: '',
-        defaultScope: {},
-        scopes: {},
-        name: {},
-        indexes: [],
-      },
-      cloneDeep(globalOptions.define) as InitOptions,
+    // caution: mergeModelOptions mutates its first input
+    this.options = mergeModelOptions(
+      Object.assign(
+        // default options
+        {
+          noPrimaryKey: false,
+          timestamps: true,
+          validate: {},
+          freezeTableName: false,
+          underscored: false,
+          paranoid: false,
+          rejectOnEmpty: false,
+          schema: '',
+          schemaDelimiter: '',
+          defaultScope: {},
+          scopes: {},
+          name: {},
+          indexes: [],
+        },
+        globalOptions.define as ModelOptions,
+      ),
       modelOptions,
+      true,
     ) as BuiltModelOptions;
 
     // @ts-expect-error -- guide to help users migrate to alternatives, these were deprecated in v6
@@ -804,4 +808,86 @@ export function normalizeReference(references: AttributeOptions['references']): 
       },
     });
   }
+}
+
+/**
+ * This method mutates the first parameter.
+ *
+ * @param existingModelOptions
+ * @param options
+ * @param overrideOnConflict
+ */
+export function mergeModelOptions(
+  existingModelOptions: ModelOptions,
+  options: ModelOptions,
+  overrideOnConflict: boolean,
+): ModelOptions {
+  // merge-able: scopes, indexes
+  for (const [optionName, optionValue] of Object.entries(options)) {
+    if (!(optionName in existingModelOptions)) {
+      // @ts-expect-error -- runtime type checking is enforced by model
+      existingModelOptions[optionName] = optionValue;
+      continue;
+    }
+
+    // These are objects. We merge their properties, unless the same key is used in both values.
+    if (optionName === 'scopes' || optionName === 'validate') {
+      for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
+        // @ts-expect-error -- dynamic type, not worth typing
+        if (existingModelOptions[optionName][subOptionName] === subOptionValue) {
+          continue;
+        }
+
+        if (!overrideOnConflict && subOptionName in existingModelOptions[optionName]!) {
+          throw new Error(`Trying to set the option ${optionName}[${JSON.stringify(subOptionName)}], but a value already exists.`);
+        }
+
+        // @ts-expect-error -- runtime type checking is enforced by model
+        existingModelOptions[optionName][subOptionName] = subOptionValue;
+      }
+
+      continue;
+    }
+
+    if (optionName === 'hooks') {
+      const existingHooks = existingModelOptions.hooks!;
+      for (const hookType of Object.keys(optionValue) as Array<keyof ModelHooks>) {
+        if (!existingHooks[hookType]) {
+          // @ts-expect-error -- type is too complex for typescript
+          existingHooks[hookType] = optionValue[hookType];
+          continue;
+        }
+
+        const existingHooksOfType = Array.isArray(existingHooks[hookType])
+          ? existingHooks[hookType]
+          : [existingHooks[hookType]];
+
+        if (!Array.isArray(optionValue[hookType])) {
+          // @ts-expect-error -- typescript doesn't like this merge algorithm.
+          existingHooks[hookType] = [...existingHooksOfType, optionValue[hookType]];
+        } else {
+          existingHooks[hookType] = [...existingHooksOfType, ...optionValue[hookType]];
+        }
+      }
+
+      continue;
+    }
+
+    // This is an array. Simple array merge.
+    if (optionName === 'indexes') {
+      existingModelOptions.indexes = [...existingModelOptions.indexes!, ...optionValue];
+
+      continue;
+    }
+
+    // @ts-expect-error -- dynamic type, not worth typing
+    if (!overrideOnConflict && optionValue !== existingModelOptions[optionName]) {
+      throw new Error(`Trying to set the option ${optionName}, but a value already exists.`);
+    }
+
+    // @ts-expect-error -- dynamic type, not worth typing
+    existingModelOptions[optionName] = optionValue;
+  }
+
+  return existingModelOptions;
 }

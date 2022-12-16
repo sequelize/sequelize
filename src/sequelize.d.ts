@@ -258,7 +258,7 @@ export interface Options extends Logging {
   /**
    * Default options for model definitions. See Model.init.
    */
-  define?: ModelOptions;
+  define?: Omit<ModelOptions, 'name' | 'modelName' | 'tableName'>;
 
   /**
    * Default options for sequelize.query

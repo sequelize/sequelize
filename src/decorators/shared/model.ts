@@ -1,4 +1,4 @@
-import type { ModelHooks } from '../../model-hooks.js';
+import { mergeModelOptions } from '../../model-definition.js';
 import { initModel } from '../../model-typescript.js';
 import type { AttributeOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
@@ -32,64 +32,10 @@ export function registerModelOptions(
   // merge-able: scopes, indexes
   const existingModelOptions = registeredOptions.get(model)!.model;
 
-  for (const [optionName, optionValue] of Object.entries(options)) {
-    if (!(optionName in existingModelOptions)) {
-      // @ts-expect-error -- runtime type checking is enforced by model
-      existingModelOptions[optionName] = optionValue;
-      continue;
-    }
-
-    // These are objects. We merge their properties, unless the same key is used in both values.
-    if (optionName === 'scopes' || optionName === 'validate') {
-      for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
-        if (subOptionName in existingModelOptions[optionName]!) {
-          throw new Error(`Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] on model ${model.name}.`);
-        }
-
-        // @ts-expect-error -- runtime type checking is enforced by model
-        existingModelOptions[optionName][subOptionName] = subOptionValue;
-      }
-
-      continue;
-    }
-
-    if (optionName === 'hooks') {
-      const existingHooks = existingModelOptions.hooks!;
-      for (const hookType of Object.keys(optionValue) as Array<keyof ModelHooks>) {
-        if (!existingHooks[hookType]) {
-          // @ts-expect-error -- type is too complex for typescript
-          existingHooks[hookType] = optionValue[hookType];
-          continue;
-        }
-
-        const existingHooksOfType = Array.isArray(existingHooks[hookType])
-          ? existingHooks[hookType]
-          : [existingHooks[hookType]];
-
-        if (!Array.isArray(optionValue[hookType])) {
-          // @ts-expect-error -- typescript doesn't like this merge algorithm.
-          optionValue[hookType] = [...existingHooksOfType, optionValue[hookType]];
-        } else {
-          existingHooks[hookType] = [...existingHooksOfType, ...optionValue[hookType]];
-        }
-      }
-
-      continue;
-    }
-
-    // This is an array. Simple array merge.
-    if (optionName === 'indexes') {
-      existingModelOptions.indexes = [...existingModelOptions.indexes!, ...optionValue];
-
-      continue;
-    }
-
-    // @ts-expect-error -- dynamic type, not worth typing
-    if (optionValue === existingModelOptions[optionName]) {
-      continue;
-    }
-
-    throw new Error(`Multiple decorators are attempting to set different values for the option ${optionName} on model ${model.name}.`);
+  try {
+    mergeModelOptions(existingModelOptions, options, false);
+  } catch (error) {
+    throw new Error(`Multiple decorators are trying to register conflicting options on model ${model.name}`, { cause: error });
   }
 }
 
