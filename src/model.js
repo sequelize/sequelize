@@ -87,7 +87,7 @@ export class Model extends ModelTypeScript {
       // this constructor is done running.
       setTimeout(() => {
         const overwrittenAttributes = [];
-        for (const key of Object.keys(this.constructor._attributeManipulation)) {
+        for (const key of this.constructor.modelDefinition.attributes.keys()) {
           if (Object.prototype.hasOwnProperty.call(this, key)) {
             overwrittenAttributes.push(key);
           }
