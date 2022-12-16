@@ -579,15 +579,6 @@ if (dialect === 'db2') {
         },
       ],
 
-      removeIndexQuery: [
-        {
-          arguments: ['User', 'user_foo_bar'],
-          expectation: 'DROP INDEX "user_foo_bar"',
-        }, {
-          arguments: ['User', ['foo', 'bar']],
-          expectation: 'DROP INDEX "user_foo_bar"',
-        },
-      ],
       getForeignKeyQuery: [
         {
           arguments: ['User', 'email'],

@@ -5,6 +5,7 @@ import { cloneDeep, getObjectFromMap } from '../../utils/object';
 import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
+import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 const _ = require('lodash');
 
@@ -15,11 +16,9 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk to all databases
  */
-// TODO: rename to AbstractQueryInterface
-export class QueryInterface {
+export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   constructor(sequelize, queryGenerator) {
-    this.sequelize = sequelize;
-    this.queryGenerator = queryGenerator;
+    super({ sequelize, queryGenerator });
   }
 
   /**
@@ -60,20 +59,6 @@ export class QueryInterface {
     const sql = this.queryGenerator.listDatabasesQuery();
 
     return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SELECT });
-  }
-
-  /**
-   * Create a schema
-   *
-   * @param {string} schema    Schema name to create
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async createSchema(schema, options) {
-    const sql = this.queryGenerator.createSchemaQuery(schema);
-
-    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**

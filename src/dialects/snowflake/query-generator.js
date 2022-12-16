@@ -444,22 +444,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  removeIndexQuery(tableName, indexNameOrAttributes) {
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
-    }
-
-    return joinSQLFragments([
-      'DROP INDEX',
-      this.quoteIdentifier(indexName),
-      'ON',
-      this.quoteTable(tableName),
-      ';',
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {

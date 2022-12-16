@@ -431,20 +431,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     ].join(' ');
   }
 
-  removeIndexQuery(tableName, indexNameOrAttributes, options) {
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = generateIndexName(tableName, { fields: indexNameOrAttributes });
-    }
-
-    return [
-      'DROP INDEX',
-      options && options.concurrently && 'CONCURRENTLY',
-      `IF EXISTS ${this.quoteIdentifiers(indexName)}`,
-    ].filter(Boolean).join(' ');
-  }
-
   addLimitAndOffset(options) {
     let fragment = '';
     if (options.limit != null) {

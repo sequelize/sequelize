@@ -297,17 +297,4 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
   });
-
-  describe('removeIndex', () => {
-    it('naming', () => {
-      expectsql(sql.removeIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
-        ibmi: 'BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = \'table_column1_column2\') THEN DROP INDEX "table_column1_column2"; COMMIT; END IF; END',
-        mariadb: 'DROP INDEX `table_column1_column2` ON `table`',
-        mysql: 'DROP INDEX `table_column1_column2` ON `table`',
-        mssql: 'DROP INDEX [table_column1_column2] ON [table]',
-        db2: 'DROP INDEX "table_column1_column2"',
-        default: 'DROP INDEX IF EXISTS [table_column1_column2]',
-      });
-    });
-  });
 });

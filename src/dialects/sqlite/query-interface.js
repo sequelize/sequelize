@@ -4,7 +4,7 @@ import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/depre
 
 const sequelizeErrors = require('../../errors');
 const { QueryTypes } = require('../../query-types');
-const { QueryInterface, QueryOptions, ColumnsDescription } = require('../abstract/query-interface');
+const { AbstractQueryInterface, QueryOptions, ColumnsDescription } = require('../abstract/query-interface');
 const { cloneDeep } = require('../../utils/object.js');
 const _ = require('lodash');
 const crypto = require('node:crypto');
@@ -12,7 +12,7 @@ const crypto = require('node:crypto');
 /**
  * The interface that Sequelize uses to talk with SQLite database
  */
-export class SqliteQueryInterface extends QueryInterface {
+export class SqliteQueryInterface extends AbstractQueryInterface {
   /**
    * A wrapper that fixes SQLite's inability to remove columns from existing tables.
    * It will create a backup of the table, drop the table afterwards and create a

@@ -5,12 +5,12 @@ import { camelizeObjectKeys } from '../../utils/object';
 
 const DataTypes = require('../../data-types');
 const { QueryTypes } = require('../../query-types');
-const { QueryInterface } = require('../abstract/query-interface');
+const { AbstractQueryInterface } = require('../abstract/query-interface');
 
 /**
  * The interface that Sequelize uses to talk with Postgres database
  */
-export class PostgresQueryInterface extends QueryInterface {
+export class PostgresQueryInterface extends AbstractQueryInterface {
   /**
    * Ensure enum and their values.
    *

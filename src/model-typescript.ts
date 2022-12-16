@@ -15,7 +15,7 @@ import type {
   ModelStatic,
   Sequelize,
   AbstractQueryGenerator,
-  QueryInterface,
+  AbstractQueryInterface,
   IndexOptions, InitOptions,
   Attributes, BrandedKeysOf, ForeignKeyBrand, ModelAttributes, Optional,
   NormalizedAttributeOptions,
@@ -26,7 +26,7 @@ import type {
 // DO NOT EXPORT THIS CLASS!
 // This is a temporary class to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
 export class ModelTypeScript {
-  static get queryInterface(): QueryInterface {
+  static get queryInterface(): AbstractQueryInterface {
     return this.sequelize.queryInterface;
   }
 

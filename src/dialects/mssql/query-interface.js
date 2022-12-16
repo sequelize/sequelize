@@ -7,12 +7,12 @@ const _ = require('lodash');
 
 const { QueryTypes } = require('../../query-types');
 const { Op } = require('../../operators');
-const { QueryInterface } = require('../abstract/query-interface');
+const { AbstractQueryInterface } = require('../abstract/query-interface');
 
 /**
  * The interface that Sequelize uses to talk with MSSQL database
  */
-export class MsSqlQueryInterface extends QueryInterface {
+export class MsSqlQueryInterface extends AbstractQueryInterface {
   /**
   * A wrapper that fixes MSSQL's inability to cleanly remove columns from existing tables if they have a default constraint.
   *

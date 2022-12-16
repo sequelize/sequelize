@@ -376,16 +376,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return `${sql};`;
   }
 
-  removeIndexQuery(tableName, indexNameOrAttributes) {
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
-    }
-
-    return `DROP INDEX IF EXISTS ${this.quoteIdentifier(indexName)}`;
-  }
-
   describeCreateTableQuery(tableName) {
     return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
   }

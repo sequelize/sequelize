@@ -1,7 +1,7 @@
-import type { QueryInterface } from '@sequelize/core';
+import type { AbstractQueryInterface } from '@sequelize/core';
 import { DataTypes, Model, fn, literal, col } from '@sequelize/core';
 
-declare let queryInterface: QueryInterface;
+declare let queryInterface: AbstractQueryInterface;
 
 async function test() {
   await queryInterface.createTable(
@@ -199,6 +199,7 @@ async function test() {
 
   await queryInterface.removeIndex('Person', 'SuperDuperIndex');
   await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex');
+  await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex', { ifExists: true });
 
   const indexes = await queryInterface.showIndex('Person');
   indexes.map(index => ({

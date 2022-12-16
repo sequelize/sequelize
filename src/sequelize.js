@@ -28,7 +28,7 @@ const { Association } = require('./associations/index');
 const Validator = require('./utils/validator-extras').validator;
 const { Op } = require('./operators');
 const deprecations = require('./utils/deprecations');
-const { QueryInterface } = require('./dialects/abstract/query-interface');
+const { AbstractQueryInterface } = require('./dialects/abstract/query-interface');
 const { BelongsTo } = require('./associations/belongs-to');
 const { HasOne } = require('./associations/has-one');
 const { BelongsToMany } = require('./associations/belongs-to-many');
@@ -446,9 +446,9 @@ export class Sequelize extends SequelizeTypeScript {
   }
 
   /**
-   * Returns an instance of QueryInterface.
+   * Returns an instance of AbstractQueryInterface.
    *
-   * @returns {QueryInterface} An instance (singleton) of QueryInterface.
+   * @returns {AbstractQueryInterface} An instance (singleton) of AbstractQueryInterface.
    */
   getQueryInterface() {
     return this.queryInterface;
@@ -784,9 +784,10 @@ Use Sequelize#query if you wish to use replacements.`);
    * {@link Model.schema}
    *
    * @param {string} schema Name of the schema
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
+   * @param {object} [options={}] CreateSchemaQueryOptions
+   * @param {string} [options.collate=null]
+   * @param {string} [options.charset=null]
+    *
    * @returns {Promise}
    */
   async createSchema(schema, options) {
@@ -1281,7 +1282,7 @@ Sequelize.prototype.Validator = Sequelize.Validator = Validator;
 
 Sequelize.Model = Model;
 
-Sequelize.QueryInterface = QueryInterface;
+Sequelize.QueryInterface = AbstractQueryInterface;
 Sequelize.BelongsTo = BelongsTo;
 Sequelize.HasOne = HasOne;
 Sequelize.HasMany = HasMany;
