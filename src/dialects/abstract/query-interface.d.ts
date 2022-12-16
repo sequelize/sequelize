@@ -81,8 +81,8 @@ export interface QueryInterfaceDropAllTablesOptions extends QueryRawOptions {
 
 export interface TableNameWithSchema {
   tableName: string;
-  schema?: string | undefined;
-  delimiter?: string | undefined;
+  schema?: string;
+  delimiter?: string;
 }
 
 export type TableName = string | TableNameWithSchema;

@@ -160,7 +160,6 @@ export class Db2QueryInterface extends QueryInterface {
       && (options.schema || modelTable?.schema)
     ) {
       tableName = this.queryGenerator.extractTableDetails(tableName);
-      tableName.schema = modelTable?.schema || options.schema;
       tableName.schema = modelTable?.schema || options.schema || tableName.schema;
     }
 

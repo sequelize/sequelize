@@ -27,7 +27,7 @@ import { toDefaultValue } from './utils/dialect.js';
 import { MapView, SetView } from './utils/immutability.js';
 import { some } from './utils/iterators.js';
 import { isModelStatic } from './utils/model-utils.js';
-import { getAllOwnEntries, noPrototype } from './utils/object.js';
+import { getAllOwnEntries, noPrototype, removeUndefined } from './utils/object.js';
 import { generateIndexName, pluralize, underscoredIf } from './utils/string.js';
 
 export interface TimestampAttributes {
@@ -245,11 +245,11 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/ for mo
         : underscoredIf(pluralize(this.modelName), this.underscored);
     }
 
-    this.#table = Object.freeze(this.sequelize.queryInterface.queryGenerator.extractTableDetails({
+    this.#table = Object.freeze(this.sequelize.queryInterface.queryGenerator.extractTableDetails(removeUndefined({
       tableName: this.options.tableName,
       schema: this.options.schema,
       delimiter: this.options.schemaDelimiter,
-    }));
+    })));
 
     // error check options
     for (const [validatorName, validator] of getAllOwnEntries(this.options.validate)) {
@@ -796,6 +796,7 @@ export function normalizeReference(references: AttributeOptions['references']): 
 
   if (model || table) {
     return Object.freeze({
+
       table: model ? model.table : table!,
       ...referencePassDown,
       get model() {
