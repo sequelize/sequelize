@@ -313,6 +313,10 @@ describe(getTestDialectTeaser('SQL'), () => {
       default: '[User].[intAttr1] = 1',
     }, { prefix: 'User' });
 
+    testSql({ dateAttr: { $gte: '2022-11-06' } }, {
+      default: new Error(`{ '$gte': '2022-11-06' } is not a valid date`),
+    });
+
     it('{ id: 1 }, { prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, {schema: \'yolo\', tableName: \'User\'})) }', () => {
       expectsql(sql.whereItemsQuery({ id: 1 }, {
         prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, {
