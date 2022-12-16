@@ -78,11 +78,27 @@ export class Model extends ModelTypeScript {
 
     this.constructor.assertIsInitialized();
 
-    // If the user declared class properties with the same name as one of the model's attributes (which happens due to typing and decorators),
-    // that class property will shadow the attribute's getter/setter (which lives on the prototype).
-    // This deletes that class property.
-    for (const attributeName of this.constructor.modelDefinition.attributes.keys()) {
-      delete this[attributeName];
+    if (!this.constructor._overwrittenAttributesChecked) {
+      this.constructor._overwrittenAttributesChecked = true;
+
+      // setTimeout is hacky but necessary.
+      // Public Class Fields declared by descendants of this class
+      // will not be available until after their call to super, so after
+      // this constructor is done running.
+      setTimeout(() => {
+        const overwrittenAttributes = [];
+        for (const key of Object.keys(this.constructor._attributeManipulation)) {
+          if (Object.prototype.hasOwnProperty.call(this, key)) {
+            overwrittenAttributes.push(key);
+          }
+        }
+
+        if (overwrittenAttributes.length > 0) {
+          logger.warn(`Model ${JSON.stringify(this.constructor.name)} is declaring public class fields for attribute(s): ${overwrittenAttributes.map(attr => JSON.stringify(attr)).join(', ')}.`
+            + '\nThese class fields are shadowing Sequelize\'s attribute getters & setters.'
+            + '\nSee https://sequelize.org/docs/v7/core-concepts/model-basics/#caveat-with-public-class-fields');
+        }
+      }, 0);
     }
 
     options = {
