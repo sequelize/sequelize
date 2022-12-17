@@ -1280,7 +1280,7 @@ Sequelize.prototype.Validator = Sequelize.Validator = Validator;
 
 Sequelize.Model = Model;
 
-Sequelize.QueryInterface = AbstractQueryInterface;
+Sequelize.AbstractQueryInterface = AbstractQueryInterface;
 Sequelize.BelongsTo = BelongsTo;
 Sequelize.HasOne = HasOne;
 Sequelize.HasMany = HasMany;
