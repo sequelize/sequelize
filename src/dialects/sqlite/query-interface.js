@@ -149,7 +149,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
    */
   async getForeignKeyReferencesForTable(tableName, options) {
     const database = this.sequelize.config.database;
-    const query = this.queryGenerator.getForeignKeysQuery(tableName);
+    const query = this.queryGenerator.getForeignKeyQuery(tableName);
     const result = await this.sequelize.queryRaw(query, options);
 
     return result.map(row => ({

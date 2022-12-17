@@ -61,49 +61,35 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `DROP INDEX ${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableName)}`;
   }
 
-  /**
-   * Generates an SQL query that returns the foreign key constraint of a given column.
-   *
-   * @param   tableName  The table or associated model.
-   * @param   columnName The name of the column.
-   * @returns            The generated SQL query.
-   */
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName: string) {
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
     const table = this.extractTableDetails(tableName);
 
-    const quotedTableName = this.escape(table.tableName);
-    const quotedSchemaName = this.escape(table.schema!);
-    const quotedColumnName = this.escape(columnName);
+    if (!columnName) {
+      return joinSQLFragments([
+        GET_FOREIGN_KEYS_PREFIX,
+        `where TABLE_NAME = ${this.escape(table.tableName)}`,
+        `AND CONSTRAINT_NAME != 'PRIMARY' AND CONSTRAINT_SCHEMA = ${this.escape(table.schema!)}`,
+        'AND REFERENCED_TABLE_NAME IS NOT NULL',
+      ]);
+    }
 
+    const escapedTableName = this.escape(table.tableName);
+    const escapedSchemaName = this.escape(table.schema!);
+    const escapedColumnName = this.escape(columnName);
+
+    // TODO: this should return the query for the foreign key constraint of the column/constraint, not the foreign keys that referece the table and column
     return joinSQLFragments([
       GET_FOREIGN_KEYS_PREFIX,
       'WHERE (',
-      `REFERENCED_TABLE_NAME = ${quotedTableName}`,
-      `AND REFERENCED_TABLE_SCHEMA = ${quotedSchemaName}`,
-      `AND REFERENCED_COLUMN_NAME = ${quotedColumnName}`,
+      `REFERENCED_TABLE_NAME = ${escapedTableName}`,
+      `AND REFERENCED_TABLE_SCHEMA = ${escapedSchemaName}`,
+      `AND REFERENCED_COLUMN_NAME = ${escapedColumnName}`,
       ') OR (',
-      `TABLE_NAME = ${quotedTableName}`,
-      `AND TABLE_SCHEMA = ${quotedSchemaName}`,
-      `AND COLUMN_NAME = ${quotedColumnName}`,
+      `TABLE_NAME = ${escapedTableName}`,
+      `AND TABLE_SCHEMA = ${escapedSchemaName}`,
+      `AND COLUMN_NAME = ${escapedColumnName}`,
       'AND REFERENCED_TABLE_NAME IS NOT NULL',
       ')',
-    ]);
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param   tableName The table or associated model.
-   * @returns           The generated SQL query.
-   */
-  getForeignKeysQuery(tableName: TableNameOrModel) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      GET_FOREIGN_KEYS_PREFIX,
-      `where TABLE_NAME = ${this.escape(table.tableName)}`,
-      `AND CONSTRAINT_NAME != 'PRIMARY' AND CONSTRAINT_SCHEMA = ${this.escape(table.schema!)}`,
-      'AND REFERENCED_TABLE_NAME IS NOT NULL',
     ]);
   }
 }

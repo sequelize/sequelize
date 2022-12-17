@@ -66,24 +66,14 @@ export class AbstractQueryGeneratorTypeScript {
   }
 
   /**
-   * Generates an SQL query that returns the foreign key constraint of a given column.
+   * Generates an SQL query that returns all foreign keys of a table or the foreign key constraint of a given column.
    *
    * @param   _tableName  The table or associated model.
-   * @param   _columnName The name of the column.
+   * @param   _columnName The name of the column. Not supported by Postgres and SQLite.
    * @returns             The generated SQL query.
    */
-  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName: string): string {
+  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): string {
     throw new Error(`getForeignKeyQuery has not been implemented in ${this.dialect.name}.`);
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param   _tableName   The table or associated model.
-   * @returns              The generated SQL query.
-   */
-  getForeignKeysQuery(_tableName: TableNameOrModel): string {
-    throw new Error(`getForeignKeysQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   extractTableDetails(

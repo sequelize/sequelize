@@ -76,25 +76,23 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param   tableName The table or associated model.
-   * @returns           The generated SQL query.
-   */
-  // TODO: allow schema to be specified here as well
-  getForeignKeysQuery(tableName: TableNameOrModel) {
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
+    if (columnName) {
+      throw new Error(`Providing a columnName in getForeignKeyQuery is not supported by ${this.dialect.name}.`);
+    }
+
     const table = this.extractTableDetails(tableName);
-    const quotedTableName = this.escape(table.tableName);
 
     return joinSQLFragments([
       'SELECT conname as constraint_name,',
       'pg_catalog.pg_get_constraintdef(r.oid, true) as condef',
       'FROM pg_catalog.pg_constraint r',
-      'WHERE r.conrelid =',
-      '(SELECT oid FROM pg_class',
-      `WHERE relname = ${quotedTableName}`,
-      'LIMIT 1)',
+      'WHERE r.conrelid IN',
+      '(SELECT oid FROM pg.catalog.pg_class',
+      `WHERE relname = ${this.escape(table.tableName)})`,
+      'AND r.connamespace =',
+      '(SELECT oid FROM pg_catalog.pg_namespace',
+      `WHERE nspname = ${this.escape(table.schema!)} LIMIT 1)`,
       `AND r.contype = 'f' ORDER BY 1;`,
     ]);
   }

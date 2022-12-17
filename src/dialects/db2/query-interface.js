@@ -18,7 +18,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
       ...options,
       type: QueryTypes.FOREIGNKEYS,
     };
-    const query = this.queryGenerator.getForeignKeysQuery(tableName);
+    const query = this.queryGenerator.getForeignKeyQuery(tableName);
 
     return this.sequelize.queryRaw(query, queryOptions);
   }

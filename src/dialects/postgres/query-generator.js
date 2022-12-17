@@ -894,7 +894,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   /**
    * Generates an SQL query that returns all foreign keys details of a table.
    *
-   * As for getForeignKeysQuery is not compatible with getForeignKeyReferencesQuery, so add a new function.
+   * As for getForeignKeyQuery is not compatible with getForeignKeyReferencesQuery, so add a new function.
    *
    * @param {string} tableName
    * @param {string} catalogName

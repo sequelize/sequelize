@@ -49,20 +49,11 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     ]);
   }
 
-  /**
-   * @override
-   */
-  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName: string): string {
-    throw new Error(`getForeignKeyQuery has not been implemented in ${this.dialect.name}.`);
-  }
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
+    if (columnName) {
+      throw new Error(`Providing a columnName in getForeignKeyQuery is not supported by ${this.dialect.name}.`);
+    }
 
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param   tableName The table or associated model.
-   * @returns           The generated SQL query.
-   */
-  getForeignKeysQuery(tableName: TableNameOrModel) {
     return `PRAGMA foreign_key_list(${this.quoteTable(tableName)})`;
   }
 }

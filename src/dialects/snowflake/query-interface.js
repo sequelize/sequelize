@@ -10,34 +10,6 @@ const { QueryTypes } = require('../../query-types');
  * The interface that Sequelize uses to talk with Snowflake database
  */
 export class SnowflakeQueryInterface extends AbstractQueryInterface {
-  /**
-   * A wrapper that fixes Snowflake's inability to cleanly remove columns from existing tables if they have a foreign key
-   * constraint.
-   *
-   * @override
-   */
-  async removeColumn(tableName, columnName, options) {
-    options = options || {};
-
-    const [results] = await this.sequelize.queryRaw(
-      this.queryGenerator.getForeignKeyQuery(tableName, columnName),
-      { raw: true, ...options },
-    );
-
-    // Exclude primary key constraint
-    if (results.length > 0 && results[0].constraint_name !== 'PRIMARY') {
-      await Promise.all(results.map(constraint => this.sequelize.queryRaw(
-        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraint_name),
-        { raw: true, ...options },
-      )));
-    }
-
-    return await this.sequelize.queryRaw(
-      this.queryGenerator.removeColumnQuery(tableName, columnName),
-      { raw: true, ...options },
-    );
-  }
-
   /** @override */
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options.bind) {

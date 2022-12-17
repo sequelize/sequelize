@@ -475,7 +475,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('should get a list of foreign keys for the table', async function () {
       const foreignKeys = await this.sequelize.query(
-        this.queryInterface.queryGenerator.getForeignKeysQuery('hosts'),
+        this.queryInterface.queryGenerator.getForeignKeyQuery('hosts'),
         { type: this.sequelize.QueryTypes.FOREIGNKEYS },
       );
 

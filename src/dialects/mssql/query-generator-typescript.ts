@@ -84,60 +84,24 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param   tableName   The table or associated model.
-   * @returns             The generated SQL query.
-   */
-  getForeignKeysQuery(tableName: TableNameOrModel) {
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
     const table = this.extractTableDetails(tableName);
-    // TODO: research if it's possible to get the database from the provided tableName
+
+    // TODO: get the database from the provided tableName (see #12449)
     const catalogName = this.sequelize.config.database;
+    const escapedCatalogName = this.escape(catalogName);
 
     return joinSQLFragments([
-      this.#getForeignKeysQueryPrefixSQL(catalogName),
-      `WHERE TB.NAME = ${this.escape(table.tableName)}`,
-      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.escape(table.schema!)}`,
-    ]);
-  }
-
-  /**
-   * Generates an SQL query that returns the foreign key constraint of a given column.
-   *
-   * @param   tableName  The table or associated model.
-   * @param   columnName The name of the column.
-   * @returns            The generated SQL query.
-   */
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName: string) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      this.#getForeignKeysQueryPrefixSQL(),
-      `WHERE TB.NAME = ${this.escape(table.tableName)}`,
-      `AND COL.NAME = ${this.escape(columnName)}`,
-      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.escape(table.schema!)}`,
-    ]);
-  }
-
-  #getForeignKeysQueryPrefixSQL(catalogName?: string) {
-    let quotedCatalogName;
-
-    if (catalogName) {
-      quotedCatalogName = this.escape(catalogName);
-    }
-
-    return [
       'SELECT constraint_name = OBJ.NAME,',
       'constraintName = OBJ.NAME,',
-      catalogName && `constraintCatalog = ${quotedCatalogName},`,
+      `constraintCatalog = ${escapedCatalogName},`,
       'constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),',
       'tableName = TB.NAME,',
       'tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),',
-      catalogName && `tableCatalog = ${quotedCatalogName},`,
+      `tableCatalog = ${escapedCatalogName},`,
       'columnName = COL.NAME,',
       'referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),',
-      catalogName && `referencedCatalog = ${quotedCatalogName},`,
+      `referencedCatalog = ${escapedCatalogName},`,
       'referencedTableName = RTB.NAME,',
       'referencedColumnName = RCOL.NAME',
       'FROM sys.foreign_key_columns FKC',
@@ -146,6 +110,9 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'INNER JOIN sys.columns COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID',
       'INNER JOIN sys.tables RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID',
       'INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID',
-    ];
+      `WHERE TB.NAME = ${this.escape(table.tableName)}`,
+      columnName && `AND COL.NAME = ${this.escape(columnName)}`,
+      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.escape(table.schema!)}`,
+    ]);
   }
 }

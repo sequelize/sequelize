@@ -22,7 +22,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM',
       'SYSIBM.SYSCOLUMNS',
       `WHERE TBNAME = ${this.escape(table.tableName)}`,
-      table.schema ? `AND TBCREATOR = ${this.escape(table.schema)}` : 'AND TBCREATOR = USER',
+      'AND TBCREATOR =',
+      table.schema ? this.escape(table.schema) : 'USER',
       ';',
     ]);
   }
@@ -34,7 +35,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType",',
       'COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES',
       `WHERE TBNAME = ${this.escape(table.tableName)}`,
-      table.schema ? `AND TBCREATOR = ${this.escape(table.schema)}` : 'AND TBCREATOR = USER',
+      'AND TBCREATOR =',
+      table.schema ? this.escape(table.schema) : 'USER',
       'ORDER BY NAME;',
     ]);
   }
@@ -65,28 +67,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `DROP INDEX ${this.quoteIdentifier(indexName)}`;
   }
 
-  /**
-   * Generates an SQL query that returns the foreign key constraint of a given column.
-   *
-   * @param   tableName  The table or associated model.
-   * @param   columnName The name of the column.
-   * @returns            The generated SQL query.
-   */
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName: string) {
-    return this.#getForeignKeysQuerySQL(tableName, columnName);
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param   tableName The table or associated model.
-   * @returns           The generated SQL query.
-   */
-  getForeignKeysQuery(tableName: TableNameOrModel) {
-    return this.#getForeignKeysQuerySQL(tableName);
-  }
-
-  #getForeignKeysQuerySQL(tableName: TableNameOrModel, columnName?: string) {
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -102,7 +83,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA',
       'AND R.TABNAME = C.TABNAME',
       `AND R.TABNAME = ${this.escape(table.tableName)}`,
-      table.schema && `AND R.TABSCHEMA = ${this.escape(table.schema)}`,
+      'AND R.TABSCHEMA =',
+      table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
       columnName && `AND C.COLNAME = ${this.escape(columnName)}`,
       'GROUP BY R.REFTABSCHEMA,',
       'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES',
