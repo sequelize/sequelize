@@ -88,7 +88,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'pg_catalog.pg_get_constraintdef(r.oid, true) as condef',
       'FROM pg_catalog.pg_constraint r',
       'WHERE r.conrelid IN',
-      '(SELECT oid FROM pg.catalog.pg_class',
+      '(SELECT oid FROM pg_catalog.pg_class',
       `WHERE relname = ${this.escape(table.tableName)})`,
       'AND r.connamespace =',
       '(SELECT oid FROM pg_catalog.pg_namespace',
