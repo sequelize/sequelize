@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const _ = require('lodash');
+const times = require('lodash/times');
 
 const expect = chai.expect;
 const sinon =  require('sinon');
@@ -251,8 +251,9 @@ if (dialect.startsWith('mssql')) {
       expect(record.status).to.equals(value);
     });
 
+    // Fixes https://github.com/sequelize/sequelize/issues/15426
     it('rolls back changes after inserting more than 1000 rows outside of a transaction', async function () {
-      const User = this.sequelize.define('user', {
+      const User = this.sequelize.define('User', {
         username: {
           type: DataTypes.STRING,
           allowNull: false,
@@ -263,7 +264,7 @@ if (dialect.startsWith('mssql')) {
 
       try {
         await User.bulkCreate([
-          ..._.times(1000, () => ({ username: 'John' })),
+          ...times(1000, () => ({ username: 'John' })),
           { username: null },
         ]);
       } catch {
