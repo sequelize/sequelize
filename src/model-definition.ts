@@ -223,7 +223,7 @@ export class ModelDefinition {
 
 If you need to use getters & setters that behave like attributes, use VIRTUAL attributes.
 If you need regular getters & setters, define your model as a class and add getter & setters.
-See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/ for more information.`);
+See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprecated-in-sequelize-v7-gettermethods-and-settermethods for more information.`);
     }
 
     this.options.name.plural ??= pluralize(modelOptions.modelName);

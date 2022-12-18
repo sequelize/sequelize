@@ -366,12 +366,11 @@ export class ModelTypeScript {
   }
 
   /**
-   * Get the table name of the model, taking schema into account. The method will return The name as a string if the model
-   * has no schema, or an object with `tableName`, `schema` and `delimiter` properties.
+   * Get the table name of the model, taking schema into account. The method will an object with `tableName`, `schema` and `delimiter` properties.
    *
    * @deprecated use {@link modelDefinition} or {@link table}.
    */
-  static getTableName() {
+  static getTableName(): TableNameWithSchema {
     // TODO no deprecation warning is issued here, as this is still used internally.
     //  Start emitting a warning once we have removed all internal usages.
 
@@ -382,6 +381,7 @@ export class ModelTypeScript {
       /**
        * @deprecated This should not be relied upon!
        */
+      // @ts-expect-error -- This toString is a hacky property that must be removed
       toString() {
         return queryGenerator.quoteTable(this);
       },
