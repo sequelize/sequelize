@@ -8,7 +8,7 @@ describe(`@Table legacy decorator`, () => {
     @Table
     class Test extends Model {}
 
-    expect(() => new Test()).to.throw(/has not been initialized/);
+    expect(() => Test.build()).to.throw(/has not been initialized/);
   });
 
   it('prevents using Model.init', () => {

@@ -11,7 +11,7 @@ describe(`@Attribute legacy decorator`, () => {
       declare id: bigint;
     }
 
-    expect(() => new Test()).to.throw(/has not been initialized/);
+    expect(() => Test.build()).to.throw(/has not been initialized/);
   });
 
   it('prevents using Model.init', () => {
@@ -54,7 +54,7 @@ describe(`@Attribute legacy decorator`, () => {
 
     sequelize.addModels([User]);
 
-    const user = new User({});
+    const user = User.build({});
     user.name = 'Peter';
 
     expect(user.name).to.equal('My name is Peter');
@@ -75,7 +75,7 @@ describe(`@Attribute legacy decorator`, () => {
 
     sequelize.addModels([User]);
 
-    const user = new User({});
+    const user = User.build({});
     user.name = 'Peter';
 
     expect(user.name).to.equal('My name is Peter');

@@ -107,7 +107,7 @@ describe('Model#changed()', () => {
 
       it('returns false when setting a value to the same object value', () => {
         for (const value of [null, 1, 'asdf', new Date(), [], {}, Buffer.from('')]) {
-          const t = new vars.User({
+          const t = vars.User.build({
             json: value,
           }, {
             isNewRecord: false,
