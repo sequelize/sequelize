@@ -292,53 +292,98 @@ export class SqliteQuery extends AbstractQuery {
   }
 
   parseConstraintsFromSql(sql) {
-    let constraints = sql.split('CONSTRAINT ');
-    let referenceTableName; let referenceTableKeys; let updateAction; let deleteAction;
-    constraints.splice(0, 1);
-    constraints = constraints.map(constraintSql => {
-      // Parse foreign key snippets
-      if (constraintSql.includes('REFERENCES')) {
-        // Parse out the constraint condition form sql string
-        updateAction = constraintSql.match(/ON UPDATE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT)/);
-        deleteAction = constraintSql.match(/ON DELETE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT)/);
-
-        if (updateAction) {
-          updateAction = updateAction[1];
+    const data = [];
+    if (/CREATE TABLE (?:`|'|")(\S+)(?:`|'|") \((.+)\)/.test(sql)) {
+      const [, tableName, attributeSQL] = sql.match(/CREATE TABLE (?:`|'|")(\S+)(?:`|'|") \((.+)\)/);
+      const { attributes, constraints, keys } = attributeSQL.split(/,(?![^(]*\))/).map(attr => attr.trim()).reduce((acc, attr) => {
+        if (attr.startsWith('CONSTRAINT')) {
+          acc.constraints.push(attr);
+        } else if (attr.startsWith('PRIMARY KEY') || attr.startsWith('FOREIGN KEY')) {
+          acc.keys.push(attr);
+        } else {
+          acc.attributes.push(attr);
         }
 
-        if (deleteAction) {
-          deleteAction = deleteAction[1];
+        return acc;
+      }, { attributes: [], constraints: [], keys: [] });
+
+      for (const attribute of attributes) {
+        if (/\bPRIMARY KEY\b/.test(attribute)) {
+          data.push({
+            constraintName: 'PRIMARY',
+            constraintType: 'PRIMARY KEY',
+            tableName,
+          });
+        } else if (/\bREFERENCES\b/.test(attribute)) {
+          const deleteAction = attribute.match(/ON DELETE (\w+)/);
+          const updateAction = attribute.match(/ON UPDATE (\w+)/);
+
+          data.push({
+            constraintName: 'FOREIGN',
+            constraintType: 'FOREIGN KEY',
+            tableName,
+            columnName: /`(\S+)`/.exec(attribute)[1],
+            referencedTableName: /REFERENCES `(\S+)`/.exec(attribute)[1],
+            referencedColumnName: /REFERENCES \S+ \(`(\S+)`\)/.exec(attribute)[1],
+            deleteAction: deleteAction ? deleteAction[1] : null,
+            updateAction: updateAction ? updateAction[1] : null,
+          });
+        } else if (/\bUNIQUE\b/.test(attribute)) {
+          data.push({
+            constraintName: 'UNIQUE',
+            constraintType: 'UNIQUE',
+            tableName,
+            columnName: /`(\S+)`/.exec(attribute)[1],
+          });
+        } else if (/\bCHECK\b/.test(attribute)) {
+          data.push({
+            constraintName: 'CHECK',
+            constraintType: 'CHECK',
+            tableName,
+            columnName: /`(\S+)`/.exec(attribute)[1],
+            definition: /CHECK (.+)/.exec(attribute)[1],
+          });
         }
-
-        const referencesRegex = /REFERENCES.+\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/;
-        const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
-        referenceTableName = removeTicks(referenceConditions[1]);
-        let columnNames = referenceConditions[2];
-        columnNames = columnNames.replace(/\(|\)/g, '').split(', ');
-        referenceTableKeys = columnNames.map(column => removeTicks(column));
       }
 
-      const constraintCondition = constraintSql.match(/\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/)[0];
-      constraintSql = constraintSql.replace(/\(.+\)/, '');
-      const constraint = constraintSql.split(' ');
-
-      if (['PRIMARY', 'FOREIGN'].includes(constraint[1])) {
-        constraint[1] += ' KEY';
+      for (const constraint of constraints) {
+        const [, constraintName, constraintType, definition] = constraint.match(/CONSTRAINT (?:`|'|")(\S+)(?:`|'|") (\w+) (.+)/);
+        data.push({
+          constraintName,
+          constraintType,
+          tableName,
+          definition,
+        });
       }
 
-      return {
-        constraintName: removeTicks(constraint[0]),
-        constraintType: constraint[1],
-        updateAction,
-        deleteAction,
-        sql: sql.replace(/"/g, '`'), // Sqlite returns double quotes for table name
-        constraintCondition,
-        referenceTableName,
-        referenceTableKeys,
-      };
-    });
+      for (const key of keys) {
+        if (key.startsWith('PRIMARY KEY')) {
+          data.push({
+            constraintName: 'PRIMARY',
+            constraintType: 'PRIMARY KEY',
+            tableName,
+          });
+        } else if (key.startsWith('FOREIGN KEY')) {
+          const deleteAction = key.match(/ON DELETE (\w+)/);
+          const updateAction = key.match(/ON UPDATE (\w+)/);
 
-    return constraints;
+          data.push({
+            constraintName: 'FOREIGN',
+            constraintType: 'FOREIGN KEY',
+            tableName,
+            columnName: /FOREIGN KEY(?:\b|\s+)\(`(\S+)`\)/.exec(key)[1],
+            referencedTableName: /REFERENCES `(\S+)`/.exec(key)[1],
+            referencedColumnName: /REFERENCES \S+ \(`(\S+)`\)/.exec(key)[1],
+            deleteAction: deleteAction ? deleteAction[1] : null,
+            updateAction: updateAction ? updateAction[1] : null,
+          });
+        }
+      }
+    } else {
+      throw new Error(`Could not parse constraints from SQL: ${sql}`);
+    }
+
+    return data;
   }
 
   formatError(err) {

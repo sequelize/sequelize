@@ -15,6 +15,16 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)});`;
   }
 
+  showConstraintsQuery(tableName: TableNameOrModel, _constraintName?: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT sql FROM sqlite_master',
+      `WHERE tbl_name = ${this.escape(table.tableName)}`,
+      ';',
+    ]);
+  }
+
   showIndexesQuery(tableName: TableNameOrModel) {
     return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
   }

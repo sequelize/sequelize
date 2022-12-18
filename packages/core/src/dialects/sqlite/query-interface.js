@@ -78,9 +78,11 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
    * @override
    */
   async removeConstraint(tableName, constraintName, options) {
-    let createTableSql;
+    const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
+    const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, { ...options, type: QueryTypes.SELECT, raw: true });
+    let createTableSql = describeCreateTable[0].sql;
 
-    const constraints = await this.showConstraint(tableName, constraintName);
+    const constraints = await this.showConstraint(tableName, constraintName, options);
     // sqlite can't show only one constraint, so we find here the one to remove
     const constraint = constraints.find(constaint => constaint.constraintName === constraintName);
 
@@ -92,9 +94,8 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
       });
     }
 
-    createTableSql = constraint.sql;
     constraint.constraintName = this.queryGenerator.quoteIdentifier(constraint.constraintName);
-    let constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType} ${constraint.constraintCondition}`;
+    let constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType} ${constraint.definition}`;
 
     if (constraint.constraintType === 'FOREIGN KEY') {
       const referenceTableName = this.queryGenerator.quoteTable(constraint.referenceTableName);

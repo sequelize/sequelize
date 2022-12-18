@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai');
+const semver = require('semver');
 
 const expect = chai.expect;
 const Support = require('./support');
@@ -633,11 +634,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           });
           let constraints = await this.queryInterface.showConstraint('users');
           constraints = constraints.map(constraint => constraint.constraintName);
-          expect(constraints).to.include('check_user_roles');
-          await this.queryInterface.removeConstraint('users', 'check_user_roles');
-          constraints = await this.queryInterface.showConstraint('users');
-          constraints = constraints.map(constraint => constraint.constraintName);
-          expect(constraints).to.not.include('check_user_roles');
+          if (dialectName === 'mysql' && semver.lt(current.getDatabaseVersion(), '8.0.16')) {
+            // MySQL 8.0.16+ has a new INFORMATION_SCHEMA.CHECK_CONSTRAINTS table
+            expect(constraints).to.not.include('check_user_roles');
+          } else {
+            await this.queryInterface.removeConstraint('users', 'check_user_roles');
+            constraints = await this.queryInterface.showConstraint('users');
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('check_user_roles');
+          }
         });
 
         it('addconstraint missing type', async function () {

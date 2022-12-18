@@ -588,16 +588,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return super.addIndexQuery(tableName, attributes, options, rawTablename);
   }
 
-  showConstraintsQuery(tableName, constraintName) {
-    let sql = `SELECT CONSTNAME AS "constraintName", TRIM(TABSCHEMA) AS "schemaName", TABNAME AS "tableName" FROM SYSCAT.TABCONST WHERE TABNAME = '${tableName}'`;
-
-    if (constraintName) {
-      sql += ` AND CONSTNAME LIKE '%${constraintName}%'`;
-    }
-
-    return `${sql} ORDER BY CONSTNAME;`;
-  }
-
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {

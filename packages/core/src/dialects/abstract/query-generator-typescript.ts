@@ -126,6 +126,10 @@ export class AbstractQueryGeneratorTypeScript {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
   }
 
+  showConstraintsQuery(_tableName: TableNameOrModel, _constraintName?: string): string {
+    throw new Error(`showConstraintsQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
   showIndexesQuery(_tableName: TableNameOrModel): string {
     throw new Error(`showIndexesQuery has not been implemented in ${this.dialect.name}.`);
   }

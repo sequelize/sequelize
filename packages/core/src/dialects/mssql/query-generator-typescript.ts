@@ -48,6 +48,43 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
+  showConstraintsQuery(tableName: TableNameOrModel, constraintName?: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT DB_NAME() AS constraintCatalog,',
+      's.[name] AS constraintSchema,',
+      'c.constraintName,',
+      `REPLACE(LEFT(c.constraintType, CHARINDEX('_CONSTRAINT', c.constraintType) - 1), '_', ' ') AS constraintType,`,
+      'DB_NAME() AS tableCatalog,',
+      's.[name] AS tableSchema,',
+      't.[name] AS tableName,',
+      'c.columnName,',
+      'c.referencedTableName,',
+      'c.referencedColumnName,',
+      'c.deleteAction,',
+      'c.updateAction,',
+      'c.definition',
+      'FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id',
+      'INNER JOIN (',
+      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnName, null AS referencedTableName',
+      ', null AS referencedColumnName, null AS deleteAction, null AS updateAction, null AS definition FROM sys.key_constraints UNION ALL',
+      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnName, null AS referencedTableName',
+      ', null AS referencedColumnName, null AS deleteAction, null AS updateAction, [definition] FROM sys.check_constraints c UNION ALL',
+      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnName, null AS referencedTableName',
+      ', null AS referencedColumnName, null AS deleteAction, null AS updateAction, [definition] FROM sys.default_constraints UNION ALL',
+      'SELECT k.[name] AS constraintName, k.[type_desc] AS constraintType, k.[parent_object_id] AS constraintTableId, fcol.[name] AS columnName',
+      ', OBJECT_NAME(k.[referenced_object_id]) AS referencedTableName, rcol.[name] AS referencedColumnName, k.[delete_referential_action_desc] AS deleteAction',
+      ', k.[update_referential_action_desc] AS updateAction, null AS definition FROM sys.foreign_keys k INNER JOIN sys.foreign_key_columns c ON k.[object_id] = c.constraint_object_id',
+      'INNER JOIN sys.columns fcol ON c.parent_column_id = fcol.column_id AND c.parent_object_id = fcol.object_id',
+      'INNER JOIN sys.columns rcol ON c.referenced_column_id = rcol.column_id AND c.referenced_object_id = rcol.object_id',
+      ') c ON t.object_id = c.constraintTableId',
+      `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
+      constraintName ? `AND c.constraintName = ${this.escape(constraintName)}` : '',
+      'ORDER BY c.constraintName',
+    ]);
+  }
+
   showIndexesQuery(tableName: TableNameOrModel) {
     return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(tableName))};`;
   }

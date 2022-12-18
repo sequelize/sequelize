@@ -375,25 +375,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  showConstraintsQuery(table, constraintName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-
-    return joinSQLFragments([
-      'SELECT CONSTRAINT_CATALOG AS constraintCatalog,',
-      'CONSTRAINT_NAME AS constraintName,',
-      'CONSTRAINT_SCHEMA AS constraintSchema,',
-      'CONSTRAINT_TYPE AS constraintType,',
-      'TABLE_NAME AS tableName,',
-      'TABLE_SCHEMA AS tableSchema',
-      'from INFORMATION_SCHEMA.TABLE_CONSTRAINTS',
-      `WHERE table_name='${tableName}'`,
-      constraintName && `AND constraint_name = '${constraintName}'`,
-      schemaName && `AND TABLE_SCHEMA = '${schemaName}'`,
-      ';',
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
