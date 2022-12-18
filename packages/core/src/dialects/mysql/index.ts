@@ -37,7 +37,6 @@ export class MysqlDialect extends AbstractDialect {
       },
       constraints: {
         dropConstraint: false,
-        check: false,
         foreignKeyChecksDisableable: true,
       },
       indexViaAlter: true,

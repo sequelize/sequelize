@@ -38,7 +38,6 @@ export class MariaDbDialect extends AbstractDialect {
       },
       constraints: {
         dropConstraint: false,
-        check: false,
         foreignKeyChecksDisableable: true,
       },
       indexViaAlter: true,

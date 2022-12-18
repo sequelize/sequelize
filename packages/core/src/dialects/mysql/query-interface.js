@@ -70,17 +70,7 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
    * @override
    */
   async removeConstraint(tableName, constraintName, options) {
-    const sql = this.queryGenerator.showConstraintsQuery(
-      tableName.tableName ? tableName : {
-        tableName,
-        schema: this.sequelize.config.database,
-      }, constraintName,
-    );
-
-    const constraints = await this.sequelize.queryRaw(sql, {
-      ...options,
-      type: this.sequelize.QueryTypes.SHOWCONSTRAINTS,
-    });
+    const constraints = await this.showConstraint(tableName, constraintName, options);
 
     const constraint = constraints[0];
     let query;
@@ -96,6 +86,8 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
 
     if (constraint.constraintType === 'FOREIGN KEY') {
       query = this.queryGenerator.dropForeignKeyQuery(tableName, constraintName);
+    } else if (constraint.constraintType === 'CHECK') {
+      query = this.queryGenerator.removeConstraintQuery(tableName, constraint.constraintName);
     } else {
       query = this.queryGenerator.removeIndexQuery(constraint.tableName, constraint.constraintName);
     }
