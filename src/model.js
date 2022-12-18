@@ -3,6 +3,7 @@
 import omit from 'lodash/omit';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { intersects } from './utils/array';
+import { noNewModel } from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
 import {
   getComplexKeys,
@@ -45,6 +46,12 @@ const validQueryKeywords = new Set(['where', 'attributes', 'paranoid', 'include'
 const nonCascadingOptions = ['include', 'attributes', 'originalAttributes', 'order', 'where', 'limit', 'offset', 'plain', 'group', 'having'];
 
 /**
+ * Used to ensure Model.build is used instead of new Model().
+ * Do not expose.
+ */
+const CONSTRUCTOR_SECRET = Symbol('model-constructor-secret');
+
+/**
  * A Model represents a table in the database. Instances of this class represent a database row.
  *
  * Model instances operate with the concept of a `dataValues` property, which stores the actual values represented by the
@@ -66,40 +73,25 @@ export class Model extends ModelTypeScript {
   /**
    * Builds a new model instance.
    *
+   * Cannot be used directly. Use {@link Model.build} instead.
+   *
    * @param {object}  [values={}] an object of key value pairs
    * @param {object}  [options] instance construction options
    * @param {boolean} [options.raw=false] If set to true, values will ignore field and virtual setters.
    * @param {boolean} [options.isNewRecord=true] Is this a new record
-   * @param {Array}   [options.include] an array of include options - Used to build prefetched/included model instances. See
-   *   `set`
+   * @param {Array}   [options.include] an array of include options - Used to build prefetched/included model instances. See `set`
+   * @param {symbol}  secret Secret used to ensure Model.build is used instead of new Model(). Don't forget to pass it up if you define a custom constructor.
    */
-  constructor(values = {}, options = {}) {
+  constructor(values = {}, options = {}, secret) {
     super();
 
-    this.constructor.assertIsInitialized();
-
-    if (!this.constructor._overwrittenAttributesChecked) {
-      this.constructor._overwrittenAttributesChecked = true;
-
-      // setTimeout is hacky but necessary.
-      // Public Class Fields declared by descendants of this class
-      // will not be available until after their call to super, so after
-      // this constructor is done running.
-      setTimeout(() => {
-        const overwrittenAttributes = [];
-        for (const key of this.constructor.modelDefinition.attributes.keys()) {
-          if (Object.prototype.hasOwnProperty.call(this, key)) {
-            overwrittenAttributes.push(key);
-          }
-        }
-
-        if (overwrittenAttributes.length > 0) {
-          logger.warn(`Model ${JSON.stringify(this.constructor.name)} is declaring public class fields for attribute(s): ${overwrittenAttributes.map(attr => JSON.stringify(attr)).join(', ')}.`
-            + '\nThese class fields are shadowing Sequelize\'s attribute getters & setters.'
-            + '\nSee https://sequelize.org/docs/v7/core-concepts/model-basics/#caveat-with-public-class-fields');
-        }
-      }, 0);
+    if (secret !== CONSTRUCTOR_SECRET) {
+      noNewModel();
+      // TODO [>=8]: throw instead of deprecation notice
+      // throw new Error(`Use ${this.constructor.name}.build() instead of new ${this.constructor.name}()`);
     }
+
+    this.constructor.assertIsInitialized();
 
     options = {
       isNewRecord: true,
@@ -1673,7 +1665,16 @@ ${associationOwner._getAssociationDebugList()}`);
       return this.bulkBuild(values, options);
     }
 
-    return new this(values, options);
+    const instance = new this(values, options, CONSTRUCTOR_SECRET);
+
+    // Our Model class adds getters and setters for attributes on the prototype,
+    // so they can be shadowed by native class properties that are defined on the class that extends Model (See #14300).
+    // This deletes the instance properties, to un-shadow the getters and setters.
+    for (const attributeName of this.modelDefinition.attributes.keys()) {
+      delete instance[attributeName];
+    }
+
+    return instance;
   }
 
   /**

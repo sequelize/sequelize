@@ -16,7 +16,7 @@ describe('QueryInterface#update', () => {
   it('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    const instance = new User();
+    const instance = User.build();
 
     await sequelize.getQueryInterface().update(
       instance,
@@ -49,7 +49,7 @@ describe('QueryInterface#update', () => {
   it('throws if a bind parameter name starts with the reserved "sequelize_" prefix', async () => {
     sinon.stub(sequelize, 'queryRaw');
 
-    const instance = new User();
+    const instance = User.build();
 
     await expect(sequelize.getQueryInterface().update(
       instance,
@@ -67,7 +67,7 @@ describe('QueryInterface#update', () => {
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    const instance = new User();
+    const instance = User.build();
 
     await sequelize.getQueryInterface().update(
       instance,
@@ -97,7 +97,7 @@ describe('QueryInterface#update', () => {
   it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    const instance = new User();
+    const instance = User.build();
 
     await sequelize.getQueryInterface().update(
       instance,
