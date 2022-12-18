@@ -277,9 +277,22 @@ export interface IndexDescription {
 }
 
 export interface ConstraintDescription {
-  constraintType: string;
+  constrainCatalog: string | null | undefined;
+  constraintSchema: string | null | undefined;
   constraintName: string;
-  tableName: string | undefined;
+  constraintType: string;
+  tableCatalog: string | null | undefined;
+  tableSchema: string | null | undefined;
+  tableName: string;
+  columnName: string | null | undefined;
+  referencedTableSchema: string | null | undefined;
+  referencedTableName: string | null | undefined;
+  referencedColumnName: string | null | undefined;
+  deleteAction: string | null | undefined;
+  updateAction: string | null | undefined;
+  definition: string | null | undefined;
+  isDeferrable: string | null | undefined;
+  initiallyDeferred: string | null | undefined;
 }
 
 export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable { }
@@ -488,7 +501,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Shows the constraint of a table
    */
-  showConstraint(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<ConstraintDescription[]>;
+  showConstraint(
+    tableName: TableNameOrModel,
+    constraintName?: string,
+    options?: QueryRawOptions
+  ): Promise<ConstraintDescription[]>;
 
   /**
    * Put a name to an index
