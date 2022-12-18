@@ -288,7 +288,9 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   describeCreateTableQuery(tableName) {
-    return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
+    const table = this.extractTableDetails(tableName);
+
+    return `SELECT sql FROM sqlite_master WHERE tbl_name=${this.escape(table.tableName)};`;
   }
 
   // TODO: this should not implement `removeColumnQuery` but a new sqlite specific function possibly called `replaceTableQuery`

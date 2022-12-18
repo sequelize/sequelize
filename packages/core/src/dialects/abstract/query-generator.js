@@ -757,6 +757,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   getConstraintSnippet(tableName, options) {
+    const table = this.extractTableDetails(tableName);
     let constraintSnippet;
     let constraintName;
 
@@ -801,12 +802,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     switch (options.type.toUpperCase()) {
       case 'UNIQUE':
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_uk`);
+        constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_uk`);
         constraintSnippet = `CONSTRAINT ${constraintName} UNIQUE (${fieldsSqlQuotedString})`;
         break;
       case 'CHECK':
         options.where = this.whereItemsQuery(options.where);
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_ck`);
+        constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_ck`);
         constraintSnippet = `CONSTRAINT ${constraintName} CHECK (${options.where})`;
         break;
       case 'DEFAULT':
@@ -818,11 +819,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           throw new Error('Default constraints are supported only for MSSQL dialect.');
         }
 
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_df`);
+        constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_df`);
         constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, options)}) FOR ${quotedFields[0]}`;
         break;
       case 'PRIMARY KEY':
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_pk`);
+        constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_pk`);
         constraintSnippet = `CONSTRAINT ${constraintName} PRIMARY KEY (${fieldsSqlQuotedString})`;
         break;
       case 'FOREIGN KEY': {
@@ -831,7 +832,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           throw new Error('references object with table and field must be specified');
         }
 
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_${references.table}_fk`);
+        constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_${references.table}_fk`);
         const quotedReferences
           = typeof references.field !== 'undefined'
           ? this.quoteIdentifier(references.field)
