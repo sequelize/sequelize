@@ -60,7 +60,7 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
       throw new Error(`MSSQL doesn't allow for inserting more than 1,000 rows at a time, so Sequelize executes the insert as multiple queries. Please run this in a transaction to ensure safe rollbacks`);
     }
 
-    await super.bulkInsert(tableName, records, options, attributes);
+    return super.bulkInsert(tableName, records, options, attributes);
   }
 
   /**
