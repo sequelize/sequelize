@@ -5617,7 +5617,7 @@ marked-terminal@^5.0.0:
     node-emoji "^1.11.0"
     supports-hyperlinks "^2.2.0"
 
-marked@^4.0.10, marked@^4.0.19:
+marked@^4.0.10, marked@^4.2.4:
   version "4.2.4"
   resolved "https://registry.yarnpkg.com/marked/-/marked-4.2.4.tgz#5a4ce6c7a1ae0c952601fce46376ee4cf1797e1c"
   integrity sha512-Wcc9ikX7Q5E4BYDPvh1C6QNSxrjC9tBgz+A/vAhp59KXUgachw++uMvMKiSW8oA85nopmPZcEvBoex/YLMsiyA==
@@ -5718,7 +5718,7 @@ minimatch@^3.0.3, minimatch@^3.0.4, minimatch@^3.0.5, minimatch@^3.1.1, minimatc
   dependencies:
     brace-expansion "^1.1.7"
 
-minimatch@^5.0.1, minimatch@^5.1.0, minimatch@~5.1.0:
+minimatch@^5.0.1, minimatch@^5.1.0, minimatch@^5.1.1, minimatch@~5.1.0:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-5.1.1.tgz#6c9dffcf9927ff2a31e74b5af11adf8b9604b022"
   integrity sha512-362NP+zlprccbEt/SkxKfRMHnNY85V74mVnpUpNyr3F35covl09Kec7/sEFLt3RA4oXmewtoaanoIf67SE5Y5g==
@@ -8577,14 +8577,14 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typedoc@0.23.22:
-  version "0.23.22"
-  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.23.22.tgz#e25281ca816cd92ecfdaf3ec336d27e7bebb69ac"
-  integrity sha512-5sJkjK60xp8A7YpcYniu3+Wf0QcgojEnhzHuCN+CkdpQkKRhOspon/9+sGTkGI8kjVkZs3KHrhltpQyVhRMVfw==
+typedoc@0.23.23:
+  version "0.23.23"
+  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.23.23.tgz#9cf95b03d2d40031d8978b55e88b0b968d69f512"
+  integrity sha512-cg1YQWj+/BU6wq74iott513U16fbrPCbyYs04PHZgvoKJIc6EY4xNobyDZh4KMfRGW8Yjv6wwIzQyoqopKOUGw==
   dependencies:
     lunr "^2.3.9"
-    marked "^4.0.19"
-    minimatch "^5.1.0"
+    marked "^4.2.4"
+    minimatch "^5.1.1"
     shiki "^0.11.1"
 
 typescript@4.9.4:
