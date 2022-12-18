@@ -26,9 +26,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           primaryKey: true,
           autoIncrement: true,
         },
-        deletedAt: {
-          type: DataTypes.DATE,
-        },
+        deletedAt: {},
       }, {
         paranoid: true,
       });

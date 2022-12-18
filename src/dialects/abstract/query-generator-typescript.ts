@@ -65,6 +65,7 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`removeIndexQuery has not been implemented in ${this.dialect.name}.`);
   }
 
+  // TODO: rename to "normalizeTable" & move to sequelize class
   extractTableDetails(
     tableNameOrModel: TableNameOrModel,
     options?: { schema?: string, delimiter?: string },
@@ -76,6 +77,9 @@ export class AbstractQueryGeneratorTypeScript {
     if (!isPlainObject(tableNameObject)) {
       throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableNameOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
     }
+
+    // @ts-expect-error -- TODO: this is added by getTableName on model, and must be removed
+    delete tableNameObject.toString;
 
     return {
       ...tableNameObject,

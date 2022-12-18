@@ -100,18 +100,18 @@ export class MySqlQuery extends AbstractQuery {
       this.handleInsertQuery(data);
 
       if (!this.instance) {
+        const modelDefinition = this.model?.modelDefinition;
+
         // handle bulkCreate AI primary key
         if (
           data.constructor.name === 'ResultSetHeader'
-          && this.model
-          && this.model.autoIncrementAttribute
-          && this.model.autoIncrementAttribute === this.model.primaryKeyAttribute
-          && this.model.rawAttributes[this.model.primaryKeyAttribute]
+          && modelDefinition?.autoIncrementAttributeName
+          && modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
         ) {
           const startId = data[this.getInsertIdField()];
           result = [];
           for (let i = BigInt(startId); i < BigInt(startId) + BigInt(data.affectedRows); i = i + 1n) {
-            result.push({ [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: typeof startId === 'string' ? i.toString() : Number(i) });
+            result.push({ [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]: typeof startId === 'string' ? i.toString() : Number(i) });
           }
         } else {
           result = data[this.getInsertIdField()];
@@ -197,7 +197,7 @@ export class MySqlQuery extends AbstractQuery {
         const values = match ? match[1].split('-') : undefined;
         const fieldKey = match ? match[2].split('.').pop() : undefined;
         const fieldVal = match ? match[1] : undefined;
-        const uniqueKey = this.model && this.model.uniqueKeys[fieldKey];
+        const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
 
         if (uniqueKey) {
           if (uniqueKey.msg) {

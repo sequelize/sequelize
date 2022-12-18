@@ -181,25 +181,19 @@ describe(`@Attribute legacy decorator`, () => {
     expect(User.getIndexes()).to.deep.equal([
       {
         fields: ['firstName', 'country'],
-        msg: null,
-        column: 'country',
-        customIndex: true,
+        column: 'firstName',
         unique: true,
         name: 'firstName-country',
       },
       {
         fields: ['firstName', 'lastName'],
-        msg: null,
-        column: 'lastName',
-        customIndex: true,
+        column: 'firstName',
         unique: true,
         name: 'firstName-lastName',
       },
       {
         fields: ['firstName'],
-        msg: null,
         column: 'firstName',
-        customIndex: true,
         unique: true,
         name: 'users_first_name_unique',
       },

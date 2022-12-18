@@ -455,14 +455,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('works with `allowNull: false` on createdAt and updatedAt columns', async function () {
         const User2 = this.sequelize.define('User2', {
           username: DataTypes.STRING,
-          createdAt: {
-            type: DataTypes.DATE,
-            allowNull: false,
-          },
-          updatedAt: {
-            type: DataTypes.DATE,
-            allowNull: false,
-          },
         }, { timestamps: true });
 
         await User2.sync();

@@ -1,7 +1,6 @@
 import assert from 'node:assert';
 import { expect } from 'chai';
 import each from 'lodash/each';
-import omit from 'lodash/omit';
 import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
 import type { ModelStatic } from '@sequelize/core';
@@ -48,11 +47,11 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     const association1 = User.hasOne(Task);
     expect(association1.foreignKey).to.equal('UserId');
-    expect(Task.rawAttributes.UserId).not.to.be.empty;
+    expect(Task.getAttributes().UserId).not.to.be.empty;
 
     const association2 = User.hasOne(Task, { as: 'Shabda' });
     expect(association2.foreignKey).to.equal('UserId');
-    expect(Task.rawAttributes.UserId).not.to.be.empty;
+    expect(Task.getAttributes().UserId).not.to.be.empty;
   });
 
   it('should not override custom methods with association mixin', () => {
@@ -92,15 +91,15 @@ describe(getTestDialectTeaser('hasOne'), () => {
         },
       });
 
-      expect(Profile.rawAttributes.uid).to.be.ok;
+      expect(Profile.getAttributes().uid).to.be.ok;
 
-      const model = Profile.rawAttributes.uid.references?.model;
+      const model = Profile.getAttributes().uid.references?.table;
       assert(typeof model === 'object');
 
-      expect(omit(model, ['toString'])).to.deep.equal(omit(User.getTableName(), ['toString']));
+      expect(model).to.deep.equal(User.table);
 
-      expect(Profile.rawAttributes.uid.references?.key).to.equal('id');
-      expect(Profile.rawAttributes.uid.allowNull).to.be.false;
+      expect(Profile.getAttributes().uid.references?.key).to.equal('id');
+      expect(Profile.getAttributes().uid.allowNull).to.be.false;
     });
 
     it('works when taking a column directly from the object', () => {
@@ -117,15 +116,15 @@ describe(getTestDialectTeaser('hasOne'), () => {
         },
       });
 
-      User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id });
+      User.hasOne(Profile, { foreignKey: Profile.getAttributes().user_id });
 
-      expect(Profile.rawAttributes.user_id).to.be.ok;
-      const targetTable = Profile.rawAttributes.user_id.references?.model;
+      expect(Profile.getAttributes().user_id).to.be.ok;
+      const targetTable = Profile.getAttributes().user_id.references?.table;
       assert(typeof targetTable === 'object');
 
-      expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
-      expect(Profile.rawAttributes.user_id.references?.key).to.equal('uid');
-      expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
+      expect(targetTable).to.deep.equal(User.table);
+      expect(Profile.getAttributes().user_id.references?.key).to.equal('uid');
+      expect(Profile.getAttributes().user_id.allowNull).to.be.false;
     });
 
     it('works when merging with an existing definition', () => {
@@ -144,14 +143,14 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
       User.hasOne(Project, { foreignKey: { allowNull: false } });
 
-      expect(Project.rawAttributes.userUid).to.be.ok;
-      expect(Project.rawAttributes.userUid.allowNull).to.be.false;
-      const targetTable = Project.rawAttributes.userUid.references?.model;
+      expect(Project.getAttributes().userUid).to.be.ok;
+      expect(Project.getAttributes().userUid.allowNull).to.be.false;
+      const targetTable = Project.getAttributes().userUid.references?.table;
       assert(typeof targetTable === 'object');
 
-      expect(omit(targetTable, 'toString')).to.deep.equal(omit(User.getTableName(), 'toString'));
-      expect(Project.rawAttributes.userUid.references?.key).to.equal('uid');
-      expect(Project.rawAttributes.userUid.defaultValue).to.equal(42);
+      expect(targetTable).to.deep.equal(User.table);
+      expect(Project.getAttributes().userUid.references?.key).to.equal('uid');
+      expect(Project.getAttributes().userUid.defaultValue).to.equal(42);
     });
   });
 
@@ -161,7 +160,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     User.hasOne(Task, { foreignKey: { allowNull: false } });
 
-    expect(Task.rawAttributes.UserId.onDelete).to.eq('CASCADE');
+    expect(Task.getAttributes().UserId.onDelete).to.eq('CASCADE');
   });
 
   it('should throw an error if an association clashes with the name of an already define attribute', () => {

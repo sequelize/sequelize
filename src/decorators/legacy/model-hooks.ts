@@ -1,7 +1,8 @@
 import upperFirst from 'lodash/upperFirst.js';
-import type { ModelHooks } from '../../model-typescript.js';
+import type { ModelHooks } from '../../model-hooks.js';
 import { Model } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
+import { registerModelOptions } from '../shared/model.js';
 import {
   createOptionallyParameterizedPropertyDecorator, throwMustBeMethod,
   throwMustBeModel,
@@ -45,7 +46,15 @@ function createHookDecorator(hookType: keyof ModelHooks) {
         );
       }
 
-      targetModel.hooks.addListener(hookType, targetMethod.bind(targetModel), options?.name);
+      const callback = targetMethod.bind(targetModel);
+
+      registerModelOptions(targetModel, {
+        hooks: {
+          [hookType]: options?.name
+            ? { name: options?.name, callback }
+            : callback,
+        },
+      });
     },
   );
 }
@@ -96,3 +105,6 @@ export const AfterUpsert = createHookDecorator('afterUpsert');
 export const BeforeValidate = createHookDecorator('beforeValidate');
 export const AfterValidate = createHookDecorator('afterValidate');
 export const ValidationFailed = createHookDecorator('validationFailed');
+
+export const BeforeDefinitionRefresh = createHookDecorator('beforeDefinitionRefresh');
+export const AfterDefinitionRefresh = createHookDecorator('afterDefinitionRefresh');

@@ -158,13 +158,11 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     if (options && options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
-        if (columns.customIndex) {
-          if (!_.isString(indexName)) {
-            indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
-          }
-
-          values.attributes += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+        if (!_.isString(indexName)) {
+          indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
+
+        values.attributes += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
@@ -447,23 +445,20 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
     const targetTableAlias = this.quoteTable(`${tableName}_target`);
     const sourceTableAlias = this.quoteTable(`${tableName}_source`);
-    const primaryKeysAttrs = [];
-    const identityAttrs = [];
+    const primaryKeysColumns = [];
+    const identityColumns = [];
     const uniqueAttrs = [];
     const tableNameQuoted = this.quoteTable(tableName);
 
     // Obtain primaryKeys, uniquekeys and identity attrs from rawAttributes as model is not passed
-    for (const key in model.rawAttributes) {
-      if (model.rawAttributes[key].primaryKey) {
-        primaryKeysAttrs.push(model.rawAttributes[key].field || key);
+    const attributes = model.modelDefinition.attributes;
+    for (const attribute of attributes.values()) {
+      if (attribute.primaryKey) {
+        primaryKeysColumns.push(attribute.columnName);
       }
 
-      if (model.rawAttributes[key].unique) {
-        uniqueAttrs.push(model.rawAttributes[key].field || key);
-      }
-
-      if (model.rawAttributes[key].autoIncrement) {
-        identityAttrs.push(model.rawAttributes[key].field || key);
+      if (attribute.autoIncrement) {
+        identityColumns.push(attribute.columnName);
       }
     }
 
@@ -472,7 +467,8 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       if (index.unique && index.fields) {
         for (const field of index.fields) {
           const fieldName = typeof field === 'string' ? field : field.name || field.attribute;
-          if (!uniqueAttrs.includes(fieldName) && model.rawAttributes[fieldName]) {
+          // TODO: "index.fields" are column names, not an attribute name. This is a bug.
+          if (!uniqueAttrs.includes(fieldName) && attributes.has(fieldName)) {
             uniqueAttrs.push(fieldName);
           }
         }
@@ -520,8 +516,8 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       // Search for primary key attribute in clauses -- Model can have two separate unique keys
       for (const key in clauses) {
         const keys = Object.keys(clauses[key]);
-        if (primaryKeysAttrs.includes(keys[0])) {
-          joinCondition = getJoinSnippet(primaryKeysAttrs).join(' AND ');
+        if (primaryKeysColumns.includes(keys[0])) {
+          joinCondition = getJoinSnippet(primaryKeysColumns).join(' AND ');
           break;
         }
       }
@@ -533,7 +529,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     // Remove the IDENTITY_INSERT Column from update
     const filteredUpdateClauses = updateKeys.filter(key => {
-      if (!identityAttrs.includes(key)) {
+      if (!identityColumns.includes(key)) {
         return true;
       }
 
@@ -655,7 +651,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
         template += `, CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }
 
-      template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
         template += ` (${this.quoteIdentifier(attribute.references.key)})`;
@@ -701,7 +697,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
       if (attribute.references) {
 
-        if (existingConstraints.includes(attribute.references.model.toString())) {
+        if (existingConstraints.includes(this.quoteTable(attribute.references.table))) {
           // no cascading constraints to a table more than once
           attribute.onDelete = '';
           attribute.onUpdate = '';
@@ -709,7 +705,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
           attribute.onDelete = '';
           attribute.onUpdate = '';
         } else {
-          existingConstraints.push(attribute.references.model.toString());
+          existingConstraints.push(this.quoteTable(attribute.references.table));
         }
       }
 

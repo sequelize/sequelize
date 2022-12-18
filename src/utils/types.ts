@@ -69,6 +69,8 @@ export type NonUndefined<T> = T extends undefined ? never : T;
 
 export type AllowArray<T> = T | T[];
 
+export type AllowLowercase<T extends string> = T | Lowercase<T>;
+
 export type AllowReadonlyArray<T> = T | readonly T[];
 
 export type ConstructorKeys<T> = ({ [P in keyof T]: T[P] extends new () => any ? P : never })[keyof T];
