@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import range from 'lodash/range';
 import sinon from 'sinon';
-import { DataTypes } from '@sequelize/core';
+import { DataTypes, Transaction } from '@sequelize/core';
 import { expectPerDialect, sequelize, toMatchRegex, toMatchSql } from '../../support';
 
 describe('QueryInterface#bulkInsert', () => {
@@ -31,9 +31,10 @@ describe('QueryInterface#bulkInsert', () => {
 
   it('uses minimal insert queries when rows >1000', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+    const transaction = new Transaction(sequelize, {});
 
     const users = range(2000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.getQueryInterface().bulkInsert(User.tableName, users);
+    await sequelize.getQueryInterface().bulkInsert(User.tableName, users, { transaction });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
