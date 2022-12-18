@@ -51,6 +51,19 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
   }
 
   /**
+    * @override
+    */
+  async bulkInsert(tableName, records, options, attributes) {
+    // If more than 1,000 rows are inserted outside of a transaction, we can't guarantee safe rollbacks.
+    // See https://github.com/sequelize/sequelize/issues/15426
+    if (records.length > 1000 && !options.transaction) {
+      throw new Error(`MSSQL doesn't allow for inserting more than 1,000 rows at a time, so Sequelize executes the insert as multiple queries. Please run this in a transaction to ensure safe rollbacks`);
+    }
+
+    return super.bulkInsert(tableName, records, options, attributes);
+  }
+
+  /**
    * @override
    */
   async upsert(tableName, insertValues, updateValues, where, options) {
