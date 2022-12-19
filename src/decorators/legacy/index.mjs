@@ -19,6 +19,13 @@ export const Unique = Pkg.Unique;
 export const Index = Pkg.Index;
 export const createIndexDecorator = Pkg.createIndexDecorator;
 
+// Association Decorators
+
+export const BelongsTo = Pkg.BelongsTo;
+export const BelongsToMany = Pkg.BelongsToMany;
+export const HasMany = Pkg.HasMany;
+export const HasOne = Pkg.HasOne;
+
 // Validation Decorators
 
 export const ValidateAttribute = Pkg.ValidateAttribute;

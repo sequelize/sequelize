@@ -271,7 +271,7 @@ export type NormalizedAssociationOptions<ForeignKey extends string>
 /**
  * Options provided when associating models
  */
-export interface AssociationOptions<ForeignKey extends string> extends Hookable {
+export interface AssociationOptions<ForeignKey extends string = string> extends Hookable {
   /**
    * The alias of this model, in singular form. See also the `name` option passed to `sequelize.define`. If
    * you create multiple associations between the same tables, you should provide an alias to be able to

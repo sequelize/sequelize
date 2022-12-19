@@ -123,7 +123,7 @@ export function registerModelAttributeOptions(
 }
 
 export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): void {
-  const { model: modelOptions, attributes: attributeOptions } = registeredOptions.get(model) ?? {};
+  const { model: modelOptions, attributes: attributeOptions = {} } = registeredOptions.get(model) ?? {};
 
   initModel(model, attributeOptions as ModelAttributes, {
     ...modelOptions,
