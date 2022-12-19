@@ -1,3 +1,4 @@
+import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
@@ -30,6 +31,8 @@ import { Transaction, TransactionOptions } from './transaction';
 import { Op } from './index';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './dialects/abstract/connection-manager';
+
+export type RetryOptions = RetryAsPromisedOptions;
 
 /**
  * Additional options for table altering during sync
@@ -170,11 +173,6 @@ export interface Config {
 }
 
 export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle';
-
-export interface RetryOptions {
-  match?: (RegExp | string | Function)[];
-  max?: number;
-}
 
 /**
  * Options for the constructor of Sequelize main class
