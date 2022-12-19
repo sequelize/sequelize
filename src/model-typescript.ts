@@ -1,3 +1,4 @@
+import { isDecoratedModel } from './decorators/shared/model.js';
 import {
   legacyBuildAddAnyHook,
   legacyBuildAddHook,
@@ -5,142 +6,22 @@ import {
   legacyBuildRemoveHook,
   legacyBuildRunHook,
 } from './hooks-legacy.js';
-import type { AsyncHookReturn } from './hooks.js';
-import { HookHandlerBuilder } from './hooks.js';
-import type { ValidationOptions } from './instance-validator.js';
+import { getModelDefinition, hasModelDefinition, ModelDefinition, registerModelDefinition } from './model-definition.js';
+import { staticModelHooks } from './model-hooks.js';
+import type { Model } from './model.js';
+import { noModelTableName } from './utils/deprecations.js';
+import { getObjectFromMap } from './utils/object.js';
 import type {
-  AfterAssociateEventData,
-  AssociationOptions,
-  BeforeAssociateEventData,
-  BulkCreateOptions,
-  CountOptions,
-  CreateOptions,
-  DestroyOptions,
-  FindOptions,
-  InstanceDestroyOptions,
-  InstanceRestoreOptions,
-  InstanceUpdateOptions,
-  Model, ModelStatic,
-  RestoreOptions,
-  SyncOptions,
-  UpdateOptions,
-  UpsertOptions,
+  ModelStatic,
   Sequelize,
   AbstractQueryGenerator,
   AbstractQueryInterface,
+  IndexOptions, InitOptions,
+  Attributes, BrandedKeysOf, ForeignKeyBrand, ModelAttributes, Optional,
+  NormalizedAttributeOptions,
+  BuiltModelOptions, AttributeOptions,
+  Association, TableNameWithSchema,
 } from '.';
-
-export interface ModelHooks<M extends Model = Model, TAttributes = any> {
-  beforeValidate(instance: M, options: ValidationOptions): AsyncHookReturn;
-  afterValidate(instance: M, options: ValidationOptions): AsyncHookReturn;
-  validationFailed(instance: M, options: ValidationOptions, error: unknown): AsyncHookReturn;
-  beforeCreate(attributes: M, options: CreateOptions<TAttributes>): AsyncHookReturn;
-  afterCreate(attributes: M, options: CreateOptions<TAttributes>): AsyncHookReturn;
-  beforeDestroy(instance: M, options: InstanceDestroyOptions): AsyncHookReturn;
-  afterDestroy(instance: M, options: InstanceDestroyOptions): AsyncHookReturn;
-  beforeRestore(instance: M, options: InstanceRestoreOptions): AsyncHookReturn;
-  afterRestore(instance: M, options: InstanceRestoreOptions): AsyncHookReturn;
-  beforeUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): AsyncHookReturn;
-  afterUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): AsyncHookReturn;
-  beforeUpsert(attributes: M, options: UpsertOptions<TAttributes>): AsyncHookReturn;
-  afterUpsert(attributes: [ M, boolean | null ], options: UpsertOptions<TAttributes>): AsyncHookReturn;
-  beforeSave(
-    instance: M,
-    options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
-  ): AsyncHookReturn;
-  afterSave(
-    instance: M,
-    options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
-  ): AsyncHookReturn;
-  beforeBulkCreate(instances: M[], options: BulkCreateOptions<TAttributes>): AsyncHookReturn;
-  afterBulkCreate(instances: readonly M[], options: BulkCreateOptions<TAttributes>): AsyncHookReturn;
-  beforeBulkDestroy(options: DestroyOptions<TAttributes>): AsyncHookReturn;
-  afterBulkDestroy(options: DestroyOptions<TAttributes>): AsyncHookReturn;
-  beforeBulkRestore(options: RestoreOptions<TAttributes>): AsyncHookReturn;
-  afterBulkRestore(options: RestoreOptions<TAttributes>): AsyncHookReturn;
-  beforeBulkUpdate(options: UpdateOptions<TAttributes>): AsyncHookReturn;
-  afterBulkUpdate(options: UpdateOptions<TAttributes>): AsyncHookReturn;
-
-  /**
-   * A hook that is run at the start of {@link Model.count}
-   */
-  beforeCount(options: CountOptions<TAttributes>): AsyncHookReturn;
-
-  /**
-   * A hook that is run before a find (select) query
-   */
-  beforeFind(options: FindOptions<TAttributes>): AsyncHookReturn;
-
-  /**
-   * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
-   *
-   * @deprecated use `beforeFind` instead
-   */
-  beforeFindAfterExpandIncludeAll(options: FindOptions<TAttributes>): AsyncHookReturn;
-
-  /**
-   * A hook that is run before a find (select) query, after all option have been normalized
-   *
-   * @deprecated use `beforeFind` instead
-   */
-  beforeFindAfterOptions(options: FindOptions<TAttributes>): AsyncHookReturn;
-  /**
-   * A hook that is run after a find (select) query
-   */
-  afterFind(instancesOrInstance: readonly M[] | M | null, options: FindOptions<TAttributes>): AsyncHookReturn;
-
-  /**
-   * A hook that is run at the start of {@link Model#sync}
-   */
-  beforeSync(options: SyncOptions): AsyncHookReturn;
-
-  /**
-   * A hook that is run at the end of {@link Model#sync}
-   */
-  afterSync(options: SyncOptions): AsyncHookReturn;
-  beforeAssociate(data: BeforeAssociateEventData, options: AssociationOptions<any>): AsyncHookReturn;
-  afterAssociate(data: AfterAssociateEventData, options: AssociationOptions<any>): AsyncHookReturn;
-}
-
-export const validModelHooks: Array<keyof ModelHooks> = [
-  'beforeValidate', 'afterValidate', 'validationFailed',
-  'beforeCreate', 'afterCreate',
-  'beforeDestroy', 'afterDestroy',
-  'beforeRestore', 'afterRestore',
-  'beforeUpdate', 'afterUpdate',
-  'beforeUpsert', 'afterUpsert',
-  'beforeSave', 'afterSave',
-  'beforeBulkCreate', 'afterBulkCreate',
-  'beforeBulkDestroy', 'afterBulkDestroy',
-  'beforeBulkRestore', 'afterBulkRestore',
-  'beforeBulkUpdate', 'afterBulkUpdate',
-  'beforeCount',
-  'beforeFind', 'beforeFindAfterExpandIncludeAll', 'beforeFindAfterOptions', 'afterFind',
-  'beforeSync', 'afterSync',
-  'beforeAssociate', 'afterAssociate',
-];
-
-const staticModelHooks = new HookHandlerBuilder<ModelHooks>(validModelHooks, async (
-  eventTarget,
-  isAsync,
-  hookName,
-  args,
-) => {
-  // This forwards hooks run on Models to the Sequelize instance's hooks.
-  const model = eventTarget as ModelStatic;
-
-  if (!model.sequelize) {
-    throw new Error('Model must be initialized before running hooks on it.');
-  }
-
-  if (isAsync) {
-    await model.sequelize.hooks.runAsync(hookName, ...args);
-  } else {
-    model.sequelize.hooks.runSync(hookName, ...args);
-  }
-});
-
-const staticPrivateStates = new WeakMap<typeof ModelTypeScript, { sequelize?: Sequelize }>();
 
 // DO NOT EXPORT THIS CLASS!
 // This is a temporary class to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
@@ -166,43 +47,143 @@ export class ModelTypeScript {
    * Accessing this property throws if the model has not been registered with a Sequelize instance yet.
    */
   static get sequelize(): Sequelize {
-    const sequelize = staticPrivateStates.get(this)?.sequelize;
-
-    if (sequelize == null) {
-      throw new Error(`Model "${this.name}" has not been initialized yet. You can check whether a model has been initialized by calling its isInitialized method.`);
-    }
-
-    return sequelize;
+    return this.modelDefinition.sequelize;
   }
 
-  static assertIsInitialized(): void {
-    const sequelize = staticPrivateStates.get(this)?.sequelize;
-
-    if (sequelize == null) {
-      throw new Error(`Model "${this.name}" has not been initialized yet. You can check whether a model has been initialized by calling its isInitialized method.`);
-    }
+  /**
+   * Returns the model definition of this model.
+   * The model definition contains all metadata about this model.
+   */
+  static get modelDefinition(): ModelDefinition {
+    // @ts-expect-error -- getModelDefinition expects ModelStatic
+    return getModelDefinition(this);
   }
 
-  static isInitialized(): boolean {
-    const sequelize = staticPrivateStates.get(this)?.sequelize;
-
-    return sequelize != null;
+  /**
+   * An object hash from alias to association object
+   */
+  static get associations(): { [associationName: string]: Association } {
+    return this.modelDefinition.associations;
   }
 
-  // TODO: make this hard-private once Model.init has been moved here
-  private static _setSequelize(sequelize: Sequelize) {
-    const privateState = staticPrivateStates.get(this) ?? {};
+  /**
+   * The name of the primary key attribute (on the JS side).
+   *
+   * @deprecated This property doesn't work for composed primary keys. Use {@link primaryKeyAttributes} instead.
+   */
+  static get primaryKeyAttribute(): string | null {
+    return this.primaryKeyAttributes[0] ?? null;
+  }
 
-    if (privateState.sequelize != null && privateState.sequelize !== sequelize) {
-      throw new Error(`Model "${this.name}" already belongs to a different Sequelize instance.`);
+  /**
+   * The name of the primary key attributes (on the JS side).
+   *
+   * @deprecated use {@link modelDefinition}.
+   */
+  static get primaryKeyAttributes(): string[] {
+    return [...this.modelDefinition.primaryKeysAttributeNames];
+  }
+
+  /**
+   * The column name of the primary key.
+   *
+   * @deprecated don't use this. It doesn't work with composite PKs. It may be removed in the future to reduce duplication.
+   *  Use the. Use {@link Model.primaryKeys} instead.
+   */
+  static get primaryKeyField(): string | null {
+    const primaryKeyAttribute = this.primaryKeyAttribute;
+    if (!primaryKeyAttribute) {
+      return null;
     }
 
-    privateState.sequelize = sequelize;
-    staticPrivateStates.set(this, privateState);
+    return this.modelDefinition.getColumnName(primaryKeyAttribute);
+  }
+
+  /**
+   * Like {@link Model.rawAttributes}, but only includes attributes that are part of the Primary Key.
+   */
+  static get primaryKeys(): { [attribute: string]: NormalizedAttributeOptions } {
+    const out = Object.create(null);
+
+    const definition = this.modelDefinition;
+
+    for (const primaryKey of definition.primaryKeysAttributeNames) {
+      out[primaryKey] = definition.attributes.get(primaryKey)!;
+    }
+
+    return out;
+  }
+
+  /**
+   * The options that the model was initialized with
+   */
+  static get options(): BuiltModelOptions {
+    return this.modelDefinition.options;
+  }
+
+  /**
+   * The name of the database table
+   *
+   * @deprecated use {@link modelDefinition} or {@link table}.
+   */
+  static get tableName(): string {
+    noModelTableName();
+
+    return this.modelDefinition.table.tableName;
+  }
+
+  static get table(): TableNameWithSchema {
+    return this.modelDefinition.table;
+  }
+
+  /**
+   * @deprecated use {@link modelDefinition}'s {@link ModelDefinition#rawAttributes} or {@link ModelDefinition#attributes} instead.
+   */
+  static get rawAttributes(): { [attribute: string]: AttributeOptions } {
+    throw new Error(`${this.name}.rawAttributes has been removed, as it has been split in two:
+- If you only need to read the final attributes, use ${this.name}.modelDefinition.attributes
+- If you need to modify the attributes, mutate ${this.name}.modelDefinition.rawAttributes, then call ${this.name}.modelDefinition.refreshAttributes()`);
+  }
+
+  /**
+   * @deprecated use {@link modelDefinition}'s {@link ModelDefinition#rawAttributes} or {@link ModelDefinition#attributes} instead.
+   */
+  get rawAttributes(): { [attribute: string]: AttributeOptions } {
+    return (this.constructor as typeof ModelTypeScript).rawAttributes;
+  }
+
+  /**
+   * @deprecated use {@link modelDefinition}'s {@link ModelDefinition#columns}.
+   */
+  static get fieldRawAttributesMap(): { [columnName: string]: NormalizedAttributeOptions } {
+    return getObjectFromMap(this.modelDefinition.columns);
+  }
+
+  /**
+   * @deprecated use {@link modelDefinition}'s {@link ModelDefinition#physicalAttributes}.
+   */
+  static get tableAttributes(): { [attribute: string]: NormalizedAttributeOptions } {
+    return getObjectFromMap(this.modelDefinition.physicalAttributes);
+  }
+
+  /**
+   * A mapping of column name to attribute name
+   *
+   * @internal
+   */
+  static get fieldAttributeMap(): { [columnName: string]: string } {
+    const out = Object.create(null);
+
+    const attributes = this.modelDefinition.attributes;
+    for (const attribute of attributes.values()) {
+      out[attribute.columnName] = attribute.attributeName;
+    }
+
+    return out;
   }
 
   static get hooks() {
-    return staticModelHooks.getFor(this);
+    return this.modelDefinition.hooks;
   }
 
   static addHook = legacyBuildAddAnyHook(staticModelHooks);
@@ -257,4 +238,211 @@ export class ModelTypeScript {
 
   static beforeAssociate = legacyBuildAddHook(staticModelHooks, 'beforeAssociate');
   static afterAssociate = legacyBuildAddHook(staticModelHooks, 'afterAssociate');
+
+  /**
+   * Initialize a model, representing a table in the DB, with attributes and options.
+   *
+   * The table columns are defined by the hash that is given as the first argument.
+   * Each attribute of the hash represents a column.
+   *
+   * @example
+   * ```javascript
+   * Project.init({
+   *   columnA: {
+   *     type: Sequelize.BOOLEAN,
+   *     validate: {
+   *       is: ['[a-z]','i'],        // will only allow letters
+   *       max: 23,                  // only allow values <= 23
+   *       isIn: {
+   *         args: [['en', 'zh']],
+   *         msg: "Must be English or Chinese"
+   *       }
+   *     },
+   *     field: 'column_a'
+   *     // Other attributes here
+   *   },
+   *   columnB: Sequelize.STRING,
+   *   columnC: 'MY VERY OWN COLUMN TYPE'
+   * }, {sequelize})
+   * ```
+   *
+   * sequelize.models.modelName // The model will now be available in models under the class name
+   *
+   * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
+   * @see https://sequelize.org/docs/v7/core-concepts/validations-and-constraints/
+   *
+   * @param attributes An object, where each attribute is a column of the table. Each column can be either a
+   *   DataType, a string or a type-description object.
+   * @param options These options are merged with the default define options provided to the Sequelize constructor
+   */
+  static init<MS extends ModelStatic, M extends InstanceType<MS>>(
+    this: MS,
+    attributes: ModelAttributes<
+      M,
+      // 'foreign keys' are optional in Model.init as they are added by association declaration methods
+      Optional<Attributes<M>, BrandedKeysOf<Attributes<M>, typeof ForeignKeyBrand>>
+    >,
+    options: InitOptions<M>,
+  ): MS {
+    if (isDecoratedModel(this)) {
+      throw new Error(`Model.init cannot be used if the model uses one of Sequelize's decorators. You must pass your model to the Sequelize constructor using the "models" option instead.`);
+    }
+
+    if (!options.sequelize) {
+      throw new Error('Model.init expects a Sequelize instance to be passed through the option bag, which is the second parameter.');
+    }
+
+    initModel(this, attributes, options);
+
+    return this;
+  }
+
+  static getIndexes(): readonly IndexOptions[] {
+    return this.modelDefinition.getIndexes();
+  }
+
+  /**
+   * Unique indexes that can be declared as part of a CREATE TABLE query.
+   *
+   * @deprecated prefer using {@link getIndexes}, this will eventually be removed.
+   */
+  static get uniqueKeys() {
+    const indexes = this.getIndexes();
+    const uniqueKeys = Object.create(null);
+
+    // TODO: "column" should be removed from index definitions
+    const supportedOptions = ['unique', 'fields', 'column', 'name'];
+
+    for (const index of indexes) {
+      if (!index.unique) {
+        continue;
+      }
+
+      if (!index.name) {
+        continue;
+      }
+
+      if (!index.fields) {
+        continue;
+      }
+
+      if (!index.fields.every(field => typeof field === 'string')) {
+        continue;
+      }
+
+      if (!Object.keys(index).every(optionName => supportedOptions.includes(optionName))) {
+        continue;
+      }
+
+      uniqueKeys[index.name] = index;
+    }
+
+    return uniqueKeys;
+  }
+
+  // TODO [>7]: Remove this
+  private static get _indexes(): never {
+    throw new Error('Model._indexes has been replaced with Model.getIndexes()');
+  }
+
+  /**
+   * Refreshes the Model's attribute definition.
+   *
+   * @deprecated use {@link modelDefinition}.
+   */
+  static refreshAttributes(): void {
+    this.modelDefinition.refreshAttributes();
+  }
+
+  static assertIsInitialized(): void {
+    if (!this.isInitialized()) {
+      throw new Error(`Model "${this.name}" has not been initialized yet. You can check whether a model has been initialized by calling its isInitialized method.`);
+    }
+  }
+
+  static isInitialized(): boolean {
+    // @ts-expect-error -- getModelDefinition expects ModelStatic
+    return hasModelDefinition(this);
+  }
+
+  /**
+   * Get the table name of the model, taking schema into account. The method will an object with `tableName`, `schema` and `delimiter` properties.
+   *
+   * @deprecated use {@link modelDefinition} or {@link table}.
+   */
+  static getTableName(): TableNameWithSchema {
+    // TODO no deprecation warning is issued here, as this is still used internally.
+    //  Start emitting a warning once we have removed all internal usages.
+
+    const queryGenerator = this.sequelize.queryInterface.queryGenerator;
+
+    return {
+      ...this.table,
+      /**
+       * @deprecated This should not be relied upon!
+       */
+      // @ts-expect-error -- This toString is a hacky property that must be removed
+      toString() {
+        return queryGenerator.quoteTable(this);
+      },
+    };
+  }
+}
+
+export function initModel(model: ModelStatic, attributes: ModelAttributes, options: InitOptions): void {
+  options.modelName ||= model.name;
+
+  const modelDefinition = new ModelDefinition(
+    attributes,
+    options,
+    model,
+  );
+
+  registerModelDefinition(model, modelDefinition);
+
+  Object.defineProperty(model, 'name', { value: modelDefinition.modelName });
+
+  // @ts-expect-error -- TODO: type
+  model._scope = model.options.defaultScope;
+  // @ts-expect-error -- TODO: type
+  model._scopeNames = ['defaultScope'];
+
+  model.sequelize.modelManager.addModel(model);
+  model.sequelize.hooks.runSync('afterDefine', model);
+
+  addAttributeGetterAndSetters(model);
+  model.hooks.addListener('afterDefinitionRefresh', () => {
+    addAttributeGetterAndSetters(model);
+  });
+}
+
+function addAttributeGetterAndSetters(model: ModelStatic) {
+  const modelDefinition = model.modelDefinition;
+
+  // TODO: temporary workaround due to cyclic import. Should not be necessary once Model is fully migrated to TypeScript.
+  const { Model: TmpModel } = require('./model.js');
+
+  // add attributes to the DAO prototype
+  for (const attribute of modelDefinition.attributes.values()) {
+    const attributeName = attribute.attributeName;
+
+    if (attributeName in TmpModel.prototype) {
+      // @ts-expect-error -- TODO: type sequelize.log
+      model.sequelize.log(`Attribute ${attributeName} in model ${model.name} is shadowing a built-in property of the Model prototype. This is not recommended. Consider renaming your attribute.`);
+
+      continue;
+    }
+
+    const attributeProperty: PropertyDescriptor = {
+      configurable: true,
+      get(this: Model) {
+        return this.get(attributeName);
+      },
+      set(this: Model, value: unknown) {
+        return this.set(attributeName, value);
+      },
+    };
+
+    Object.defineProperty(model.prototype, attributeName, attributeProperty);
+  }
 }

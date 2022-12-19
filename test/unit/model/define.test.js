@@ -20,14 +20,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         underscored: true,
       });
 
-      expect(User.rawAttributes).to.haveOwnProperty('createdAt');
-      expect(User.rawAttributes).to.haveOwnProperty('updatedAt');
+      expect(User.getAttributes()).to.haveOwnProperty('createdAt');
+      expect(User.getAttributes()).to.haveOwnProperty('updatedAt');
 
-      expect(User._timestampAttributes.createdAt).to.equal('createdAt');
-      expect(User._timestampAttributes.updatedAt).to.equal('updatedAt');
+      expect(User.modelDefinition.timestampAttributeNames.createdAt).to.equal('createdAt');
+      expect(User.modelDefinition.timestampAttributeNames.updatedAt).to.equal('updatedAt');
 
-      expect(User.rawAttributes).not.to.have.property('created_at');
-      expect(User.rawAttributes).not.to.have.property('updated_at');
+      expect(User.getAttributes()).not.to.have.property('created_at');
+      expect(User.getAttributes()).not.to.have.property('updated_at');
     });
 
     it('should throw only when id is added but primaryKey is not set', () => {
@@ -46,8 +46,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      expect(Bar.rawAttributes).to.have.property('id');
-      expect(Bar.rawAttributes.id.primaryKey).to.equal(true);
+      expect(Bar.getAttributes()).to.have.property('id');
+      expect(Bar.getAttributes().id.primaryKey).to.equal(true);
     });
 
     it('allows creating an "id" field explicitly marked as non primary key', () => {
@@ -58,8 +58,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      expect(Baz.rawAttributes).to.have.property('id');
-      expect(Baz.rawAttributes.id.primaryKey).to.equal(false);
+      expect(Baz.getAttributes()).to.have.property('id');
+      expect(Baz.getAttributes().id.primaryKey).to.equal(false);
       expect(Baz.primaryKeys).to.deep.eq({});
     });
 
@@ -68,13 +68,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         noPrimaryKey: true,
       });
 
-      expect(User.rawAttributes).not.to.have.property('id');
+      expect(User.getAttributes()).not.to.have.property('id');
     });
 
     it('should add the default `id` field PK if noPrimary is not set and no PK has been defined manually', () => {
       const User = current.define('User', {});
 
-      expect(User.rawAttributes).to.have.property('id');
+      expect(User.getAttributes()).to.have.property('id');
     });
 
     it('should not add the default `id` field PK if PK has been defined manually', () => {
@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      expect(User.rawAttributes).not.to.have.property('id');
+      expect(User.getAttributes()).not.to.have.property('id');
     });
 
     it('should support noPrimaryKey on Sequelize define option', () => {
@@ -110,9 +110,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(User.getIndexes()).to.deep.equal([{
         fields: ['firstName'],
-        msg: null,
         column: 'firstName',
-        customIndex: true,
         unique: true,
         name: 'users_first_name_unique',
       }]);
@@ -132,9 +130,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(User.getIndexes()).to.deep.equal([{
         fields: ['firstName', 'lastName'],
-        msg: null,
-        column: 'lastName',
-        customIndex: true,
+        column: 'firstName',
         unique: true,
         name: 'firstName-lastName',
       }]);
@@ -159,23 +155,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(User.getIndexes()).to.deep.equal([
         {
           fields: ['firstName'],
-          msg: null,
           column: 'firstName',
-          customIndex: true,
           unique: true,
           name: 'users_first_name_unique',
         }, {
           fields: ['firstName', 'lastName'],
-          msg: null,
-          column: 'lastName',
-          customIndex: true,
+          column: 'firstName',
           unique: true,
           name: 'firstName-lastName',
         }, {
           fields: ['firstName', 'country'],
-          msg: null,
-          column: 'country',
-          customIndex: true,
+          column: 'firstName',
           unique: true,
           name: 'firstName-country',
         },
@@ -261,7 +251,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           },
         });
-      }).to.throw('Invalid definition for "user.name", "notNull" validator is only allowed with "allowNull:false"');
+      }).to.throwWithCause(`"notNull" validator is only allowed with "allowNull:false"`);
 
       expect(() => {
         current.define('part', {
@@ -274,7 +264,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           },
         });
-      }).to.throw('Invalid definition for "part.name", "notNull" validator is only allowed with "allowNull:false"');
+      }).to.throwWithCause(`"notNull" validator is only allowed with "allowNull:false"`);
+    });
+
+    it('throws an error if 2 autoIncrements are passed', function () {
+      expect(() => {
+        this.sequelize.define('UserWithTwoAutoIncrements', {
+          userid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          userscore: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        });
+      }).to.throwWithCause(`Only one autoIncrement attribute is allowed per model, but both 'userscore' and 'userid' are marked as autoIncrement.`);
     });
 
     describe('datatype warnings', () => {

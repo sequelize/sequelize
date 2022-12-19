@@ -300,8 +300,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       Account.hasOne(User);
 
-      expect(User.rawAttributes.AccountId).to.exist;
-      expect(User.rawAttributes.AccountId.field).to.equal('account_id');
+      expect(User.getAttributes().AccountId).to.exist;
+      expect(User.getAttributes().AccountId.field).to.equal('account_id');
     });
 
     it('should use model name when using camelcase', function () {
@@ -310,8 +310,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       Account.hasOne(User);
 
-      expect(User.rawAttributes.AccountId).to.exist;
-      expect(User.rawAttributes.AccountId.field).to.equal('AccountId');
+      expect(User.getAttributes().AccountId).to.exist;
+      expect(User.getAttributes().AccountId.field).to.equal('AccountId');
     });
 
     it('should support specifying the field of a foreign key', async function () {
@@ -325,8 +325,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         },
       });
 
-      expect(User.rawAttributes.taskId).to.exist;
-      expect(User.rawAttributes.taskId.field).to.equal('task_id');
+      expect(User.getAttributes().taskId).to.exist;
+      expect(User.getAttributes().taskId.field).to.equal('task_id');
       await Task.sync({ force: true });
       await User.sync({ force: true });
 
@@ -526,7 +526,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       Group.hasOne(User);
 
       await this.sequelize.sync({ force: true });
-      expect(User.rawAttributes.GroupPKBTName.type).to.an.instanceof(DataTypes.STRING);
+      expect(User.getAttributes().GroupPKBTName.type).to.an.instanceof(DataTypes.STRING);
     });
 
     it('should support a non-primary key as the association column on a target with custom primary key', async function () {
@@ -616,7 +616,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         User.hasOne(Tasks[dataType], { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
 
         await Tasks[dataType].sync({ force: true });
-        expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
+        expect(Tasks[dataType].getAttributes().userId.type).to.be.an.instanceof(dataType);
       }));
     });
   });
@@ -634,9 +634,9 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
           },
         });
 
-        expect(Object.keys(InternetOrders.rawAttributes).length).to.equal(2);
-        expect(InternetOrders.rawAttributes.OrderId).to.be.ok;
-        expect(InternetOrders.rawAttributes.OrdersId).not.to.be.ok;
+        expect(Object.keys(InternetOrders.getAttributes()).length).to.equal(2);
+        expect(InternetOrders.getAttributes().OrderId).to.be.ok;
+        expect(InternetOrders.getAttributes().OrdersId).not.to.be.ok;
       });
     });
   });

@@ -38,9 +38,13 @@ module.exports = {
     'prefer-object-has-own': 'off',
     'unicorn/prefer-at': 'off',
     'unicorn/prefer-string-replace-all': 'off',
+    'consistent-return': 'off',
 
     // This rule is incompatible with DataTypes
     'babel/new-cap': 'off',
+
+    // Too opinionated
+    'unicorn/prefer-set-has': 'off',
   },
   overrides: [{
     files: ['**/*.{js,mjs,cjs}'],

@@ -55,7 +55,7 @@ if (current.dialect.name !== 'sqlite') {
         return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
           type: DataTypes.INTEGER,
           references: {
-            model: 'level',
+            table: 'level',
             key: 'id',
           },
           onUpdate: 'cascade',

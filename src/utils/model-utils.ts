@@ -1,5 +1,4 @@
-import type { ModelStatic } from '../model';
-import { Model } from '../model';
+import type { ModelStatic, Model } from '../model';
 
 /**
  * Returns true if the value is a model subclass.
@@ -7,7 +6,10 @@ import { Model } from '../model';
  * @param val The value whose type will be checked
  */
 export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> {
-  return typeof val === 'function' && val.prototype instanceof Model;
+  // TODO: temporary workaround due to cyclic import. Should not be necessary once Model is fully migrated to TypeScript.
+  const { Model: TmpModel } = require('../model');
+
+  return typeof val === 'function' && val.prototype instanceof TmpModel;
 }
 
 /**

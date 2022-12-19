@@ -9,7 +9,7 @@ import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { GeoJson, GeoJsonType } from '../../geo-json.js';
 import { assertIsGeoJson } from '../../geo-json.js';
-import type { BuiltModelAttributeColumnOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
+import type { NormalizedAttributeOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { makeBufferFromTypedArray } from '../../utils/buffer.js';
 import { isPlainObject, isString } from '../../utils/check.js';
@@ -70,7 +70,7 @@ export interface StringifyOptions {
   dialect: AbstractDialect;
   operation?: string;
   timezone?: string | undefined;
-  field?: BuiltModelAttributeColumnOptions;
+  field?: NormalizedAttributeOptions;
 }
 
 export interface BindParamOptions extends StringifyOptions {
@@ -273,6 +273,10 @@ export abstract class AbstractDataType<
   protected _checkOptionSupport(dialect: AbstractDialect) {
     // use "dialect.supports" to determine base support for this DataType.
     assertDataTypeSupported(dialect, this);
+  }
+
+  belongsToDialect(dialect: AbstractDialect): boolean {
+    return this.#dialect === dialect;
   }
 
   /**

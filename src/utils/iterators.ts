@@ -16,6 +16,42 @@ export function *map<In, Out>(
   }
 }
 
+export function some<In>(
+  iterable: Iterable<In>,
+  cb: (item: In) => boolean,
+): boolean {
+  for (const item of iterable) {
+    if (cb(item)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function every<In>(
+  iterable: Iterable<In>,
+  cb: (item: In) => boolean,
+): boolean {
+  for (const item of iterable) {
+    if (!cb(item)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+export function find<Val>(iterable: Iterable<Val>, cb: (item: Val) => boolean): Val | undefined {
+  for (const item of iterable) {
+    if (cb(item)) {
+      return item;
+    }
+  }
+
+  return undefined;
+}
+
 /**
  * Combines two iterables, they will be iterated in order
  *

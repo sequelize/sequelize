@@ -1,5 +1,6 @@
 'use strict';
 
+import { getObjectFromMap } from '../../utils/object';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
 const sequelizeErrors = require('../../errors');
@@ -53,7 +54,8 @@ export class SnowflakeQueryInterface extends AbstractQueryInterface {
     options.updateOnDuplicate = Object.keys(updateValues);
 
     const model = options.model;
-    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const modelDefinition = model.modelDefinition;
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, getObjectFromMap(modelDefinition.attributes), options);
 
     delete options.replacements;
     options.bind = combineBinds(options.bind, bind);

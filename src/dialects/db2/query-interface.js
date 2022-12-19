@@ -42,9 +42,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
     }
 
     // Lets combine unique keys and indexes into one
-    const indexes = _.map(model.uniqueKeys, value => {
-      return value.fields;
-    });
+    const indexes = [];
 
     for (const value of model.getIndexes()) {
       if (value.unique) {
@@ -146,14 +144,6 @@ export class Db2QueryInterface extends AbstractQueryInterface {
 
     options = { ...options };
 
-    if (options && options.uniqueKeys) {
-      _.forOwn(options.uniqueKeys, uniqueKey => {
-        if (uniqueKey.customIndex === undefined) {
-          uniqueKey.customIndex = true;
-        }
-      });
-    }
-
     if (model) {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
@@ -163,12 +153,14 @@ export class Db2QueryInterface extends AbstractQueryInterface {
       attribute => this.sequelize.normalizeAttribute(attribute),
     );
 
+    const modelTable = model?.table;
+
     if (
       !tableName.schema
-      && (options.schema || Boolean(model) && model._schema)
+      && (options.schema || modelTable?.schema)
     ) {
       tableName = this.queryGenerator.extractTableDetails(tableName);
-      tableName.schema = Boolean(model) && model._schema || options.schema || tableName.schema;
+      tableName.schema = modelTable?.schema || options.schema || tableName.schema;
     }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable', withoutForeignKeyConstraints: options.withoutForeignKeyConstraints });

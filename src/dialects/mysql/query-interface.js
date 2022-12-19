@@ -1,5 +1,6 @@
 'use strict';
 
+import { getObjectFromMap } from '../../utils/object';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
 const sequelizeErrors = require('../../errors');
@@ -48,14 +49,15 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
       assertNoReservedBind(options.bind);
     }
 
+    const modelDefinition = options.model.modelDefinition;
+
     options = { ...options };
 
     options.type = QueryTypes.UPSERT;
     options.updateOnDuplicate = Object.keys(updateValues);
-    options.upsertKeys = Object.values(options.model.primaryKeys).map(item => item.field);
+    options.upsertKeys = Array.from(modelDefinition.primaryKeysAttributeNames, pkAttrName => modelDefinition.getColumnName(pkAttrName));
 
-    const model = options.model;
-    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, getObjectFromMap(modelDefinition.attributes), options);
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;

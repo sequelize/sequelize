@@ -1,6 +1,7 @@
 'use strict';
 
-import { cloneDeep } from '../../utils/object';
+import { map } from '../../utils/iterators';
+import { cloneDeep, getObjectFromMap } from '../../utils/object';
 import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
@@ -192,17 +193,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
-    let sql = '';
-
     options = { ...options };
-
-    if (options && options.uniqueKeys) {
-      _.forOwn(options.uniqueKeys, uniqueKey => {
-        if (uniqueKey.customIndex === undefined) {
-          uniqueKey.customIndex = true;
-        }
-      });
-    }
 
     if (model) {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
@@ -216,12 +207,14 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
 
+    const modelTable = model?.table;
+
     if (
       !tableName.schema
-      && (options.schema || Boolean(model) && model._schema)
+      && (options.schema || modelTable?.schema)
     ) {
       tableName = this.queryGenerator.extractTableDetails(tableName);
-      tableName.schema = model?._schema || options.schema;
+      tableName.schema = modelTable?.schema || options.schema;
     }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, {
@@ -231,7 +224,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       // schema override for multi-tenancy
       schema: options.schema,
     });
-    sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
+
+    const sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
     return await this.sequelize.queryRaw(sql, options);
   }
@@ -841,8 +835,15 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     options = cloneDeep(options);
-    options.hasTrigger = instance && instance.constructor.options.hasTrigger;
-    const { query, bind } = this.queryGenerator.insertQuery(tableName, values, instance && instance.constructor.rawAttributes, options);
+    const modelDefinition = instance?.constructor.modelDefinition;
+
+    options.hasTrigger = modelDefinition?.options.hasTrigger;
+    const { query, bind } = this.queryGenerator.insertQuery(
+      tableName,
+      values,
+      modelDefinition && getObjectFromMap(modelDefinition.attributes),
+      options,
+    );
 
     options.type = QueryTypes.INSERT;
     options.instance = instance;
@@ -882,25 +883,22 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options = { ...options };
 
     const model = options.model;
+    const modelDefinition = model.modelDefinition;
 
     options.type = QueryTypes.UPSERT;
     options.updateOnDuplicate = Object.keys(updateValues);
     options.upsertKeys = options.conflictFields || [];
 
     if (options.upsertKeys.length === 0) {
-      const primaryKeys = Object.values(model.primaryKeys).map(item => item.field);
-      const uniqueKeys = Object.values(model.uniqueKeys).filter(c => c.fields.length > 0).map(c => c.fields);
-      const indexKeys = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
+      const primaryKeys = Array.from(
+        map(modelDefinition.primaryKeysAttributeNames, pkAttrName => modelDefinition.attributes.get(pkAttrName).columnName),
+      );
+
+      const uniqueColumnNames = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
       // For fields in updateValues, try to find a constraint or unique index
       // that includes given field. Only first matching upsert key is used.
       for (const field of options.updateOnDuplicate) {
-        const uniqueKey = uniqueKeys.find(fields => fields.includes(field));
-        if (uniqueKey) {
-          options.upsertKeys = uniqueKey;
-          break;
-        }
-
-        const indexKey = indexKeys.find(fields => fields.includes(field));
+        const indexKey = uniqueColumnNames.find(fields => fields.includes(field));
         if (indexKey) {
           options.upsertKeys = indexKey;
           break;
@@ -918,7 +916,12 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       options.upsertKeys = _.uniq(options.upsertKeys);
     }
 
-    const { bind, query } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const { bind, query } = this.queryGenerator.insertQuery(
+      tableName,
+      insertValues,
+      getObjectFromMap(modelDefinition.attributes),
+      options,
+    );
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacement;
@@ -966,10 +969,18 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       assertNoReservedBind(options.bind);
     }
 
-    options = { ...options };
-    options.hasTrigger = instance && instance.constructor.options.hasTrigger;
+    const modelDefinition = instance?.constructor.modelDefinition;
 
-    const { query, bind } = this.queryGenerator.updateQuery(tableName, values, where, options, instance.constructor.rawAttributes);
+    options = { ...options };
+    options.hasTrigger = modelDefinition?.options.hasTrigger;
+
+    const { query, bind } = this.queryGenerator.updateQuery(
+      tableName,
+      values,
+      where,
+      options,
+      modelDefinition && getObjectFromMap(modelDefinition.attributes),
+    );
 
     options.type = QueryTypes.UPDATE;
     options.instance = instance;

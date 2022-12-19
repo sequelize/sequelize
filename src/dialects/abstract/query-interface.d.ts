@@ -3,18 +3,19 @@ import type { Deferrable } from '../../deferrable';
 import type {
   Logging,
   Model,
-  ModelAttributeColumnOptions,
+  AttributeOptions,
   ModelAttributes,
   WhereOptions,
   Filterable,
   ModelStatic,
   CreationAttributes,
   Attributes,
-  BuiltModelAttributeColumnOptions,
+  NormalizedAttributeOptions,
 } from '../../model';
 import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { Transaction } from '../../transaction';
 import type { Fn, Literal, Col } from '../../utils/sequelize-method.js';
+import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
@@ -67,12 +68,7 @@ export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, Colla
   /**
    * Used for compound unique keys.
    */
-  uniqueKeys?: {
-    [keyName: string]: {
-      fields: string[],
-      customIndex?: boolean,
-    },
-  };
+  uniqueKeys?: { [indexName: string]: { fields: string[] } };
 }
 
 export interface QueryInterfaceDropTableOptions extends QueryRawOptions {
@@ -92,7 +88,7 @@ export interface TableNameWithSchema {
 
 export type TableName = string | TableNameWithSchema;
 
-export type IndexType = 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
+export type IndexType = AllowLowercase<'UNIQUE' | 'FULLTEXT' | 'SPATIAL'>;
 export type IndexMethod = 'BTREE' | 'HASH' | 'GIST' | 'SPGIST' | 'GIN' | 'BRIN' | string;
 
 export interface IndexField {
@@ -144,6 +140,11 @@ export interface IndexOptions {
   unique?: boolean;
 
   /**
+   * The message to display if the unique constraint is violated.
+   */
+  msg?: string;
+
+  /**
    * PostgreSQL will build the index without taking any write locks. Postgres only.
    *
    * @default false
@@ -153,6 +154,7 @@ export interface IndexOptions {
   /**
    * The fields to index.
    */
+  // TODO: rename to "columns"
   fields?: Array<string | IndexField | Fn | Literal>;
 
   /**
@@ -389,7 +391,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   addColumn(
     table: TableName,
     key: string,
-    attribute: ModelAttributeColumnOptions | DataType,
+    attribute: AttributeOptions | DataType,
     options?: AddColumnOptions
   ): Promise<void>;
 
@@ -408,7 +410,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   changeColumn(
     tableName: TableName,
     attributeName: string,
-    dataTypeOrOptions?: DataType | ModelAttributeColumnOptions,
+    dataTypeOrOptions?: DataType | AttributeOptions,
     options?: QiOptionsWithReplacements
   ): Promise<void>;
 
@@ -507,7 +509,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     tableName: TableName,
     records: object[],
     options?: QiOptionsWithReplacements,
-    attributes?: Record<string, ModelAttributeColumnOptions>
+    attributes?: Record<string, AttributeOptions>
   ): Promise<object | number>;
 
   /**
@@ -529,7 +531,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     values: object,
     where: WhereOptions<any>,
     options?: QiOptionsWithReplacements,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
+    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
   ): Promise<object>;
 
   /**

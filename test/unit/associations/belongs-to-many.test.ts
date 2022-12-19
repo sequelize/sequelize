@@ -208,7 +208,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       User.belongsToMany(Task, { through: 'user_task1' });
 
-      expect(sequelize.models.user_task1.rawAttributes).to.contain.all.keys(['createdAt', 'updatedAt']);
+      expect(sequelize.models.user_task1.getAttributes()).to.contain.all.keys(['createdAt', 'updatedAt']);
     });
 
     it('allows me to override the global timestamps option', () => {
@@ -217,7 +217,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       User.belongsToMany(Task, { through: { model: 'user_task2', timestamps: false } });
 
-      expect(sequelize.models.user_task2.rawAttributes).not.to.contain.any.keys(['createdAt', 'updatedAt']);
+      expect(sequelize.models.user_task2.getAttributes()).not.to.contain.any.keys(['createdAt', 'updatedAt']);
     });
 
     it('follows the global timestamps false option', () => {
@@ -232,7 +232,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       User.belongsToMany(Task, { through: 'user_task3' });
 
-      expect(sequelize2.models.user_task3.rawAttributes).not.to.contain.any.keys(['createdAt', 'updatedAt']);
+      expect(sequelize2.models.user_task3.getAttributes()).not.to.contain.any.keys(['createdAt', 'updatedAt']);
     });
   });
 
@@ -361,7 +361,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(Places.otherKey).to.equal('place_id');
       expect(Users.otherKey).to.equal('user_id');
 
-      expect(Object.keys(UserPlace.rawAttributes).length).to.equal(3); // Defined primary key and two foreign keys
+      expect(Object.keys(UserPlace.getAttributes()).length).to.equal(3); // Defined primary key and two foreign keys
     });
 
     it('should infer foreign keys (camelCase)', () => {
@@ -371,8 +371,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       expect(Children.foreignKey).to.equal('ParentId');
       expect(Children.otherKey).to.equal('ChildId');
-      expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
-      expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
+      expect(PersonChildren.getAttributes()[Children.foreignKey]).to.be.ok;
+      expect(PersonChildren.getAttributes()[Children.otherKey]).to.be.ok;
     });
 
     it('should infer foreign keys (snake_case)', () => {
@@ -382,10 +382,10 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       expect(Children.foreignKey).to.equal('ParentId');
       expect(Children.otherKey).to.equal('ChildId');
-      expect(PersonChildren.rawAttributes[Children.foreignKey]).to.be.ok;
-      expect(PersonChildren.rawAttributes[Children.otherKey]).to.be.ok;
-      expect(PersonChildren.rawAttributes[Children.foreignKey].field).to.equal('parent_id');
-      expect(PersonChildren.rawAttributes[Children.otherKey].field).to.equal('child_id');
+      expect(PersonChildren.getAttributes()[Children.foreignKey]).to.be.ok;
+      expect(PersonChildren.getAttributes()[Children.otherKey]).to.be.ok;
+      expect(PersonChildren.getAttributes()[Children.foreignKey].field).to.equal('parent_id');
+      expect(PersonChildren.getAttributes()[Children.otherKey].field).to.equal('child_id');
     });
 
     it('should create non-null foreign keys by default', () => {
@@ -394,7 +394,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       const association = A.belongsToMany(B, { through: 'AB' });
 
-      const attributes = association.throughModel.rawAttributes;
+      const attributes = association.throughModel.getAttributes();
       expect(attributes.AId.allowNull).to.be.false;
       expect(attributes.BId.allowNull).to.be.false;
     });
@@ -409,7 +409,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         otherKey: { allowNull: true },
       });
 
-      const attributes = association.throughModel.rawAttributes;
+      const attributes = association.throughModel.getAttributes();
       expect(attributes.AId.allowNull).to.be.true;
       expect(attributes.BId.allowNull).to.be.true;
     });
@@ -420,7 +420,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       const association = A.belongsToMany(B, { through: 'AB', foreignKey: {} });
 
-      const attributes = association.throughModel.rawAttributes;
+      const attributes = association.throughModel.getAttributes();
       expect(attributes.AId.onDelete).to.eq('CASCADE');
       expect(attributes.BId.onDelete).to.eq('CASCADE');
     });
@@ -467,7 +467,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(Places.targetKey).to.equal('place_id');
       expect(Users.targetKey).to.equal('user_id', 'Users.targetKey is invalid');
 
-      expect(Object.keys(UserPlace.rawAttributes).length).to.equal(3); // Defined primary key and two foreign keys
+      expect(Object.keys(UserPlace.getAttributes()).length).to.equal(3); // Defined primary key and two foreign keys
     });
   });
 
@@ -505,8 +505,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromThroughToSource.foreignKey).to.equal(TagProducts.foreignKey);
       expect(TagProducts.fromThroughToTarget.foreignKey).to.equal(TagProducts.otherKey);
 
-      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
-      expect(Object.keys(ProductTag.rawAttributes).sort()).to.deep.equal(['id', 'priority', 'productId', 'tagId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'productId', 'tagId'].sort());
     });
 
     it('should setup hasMany relations to source and target from join model with defined foreign/other keys', () => {
@@ -542,8 +542,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromSourceToThrough.foreignKey).to.equal(TagProducts.foreignKey);
       expect(TagProducts.fromTargetToThrough.foreignKey).to.equal(TagProducts.otherKey);
 
-      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
-      expect(Object.keys(ProductTag.rawAttributes).sort()).to.deep.equal(['id', 'priority', 'tagId', 'productId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'tagId', 'productId'].sort());
     });
 
     it('should setup hasOne relations to source and target from join model with defined foreign/other keys', () => {
@@ -579,8 +579,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromSourceToThroughOne.foreignKey).to.equal(TagProducts.foreignKey);
       expect(TagProducts.fromTargetToThroughOne.foreignKey).to.equal(TagProducts.otherKey);
 
-      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
-      expect(Object.keys(ProductTag.rawAttributes).sort()).to.deep.equal(['id', 'priority', 'productId', 'tagId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'productId', 'tagId'].sort());
     });
 
     it('should setup hasOne relations to source and target from join model with defined source keys', () => {
@@ -621,8 +621,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(ProductTags.fromSourceToThroughOne.sourceKey).to.equal(ProductTags.sourceKey);
       expect(ProductTags.fromTargetToThroughOne.sourceKey).to.equal(ProductTags.targetKey);
 
-      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
-      expect(Object.keys(ProductTag.rawAttributes).sort()).to.deep.equal(['id', 'priority', 'ProductProductSecondaryId', 'TagTagSecondaryId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'ProductProductSecondaryId', 'TagTagSecondaryId'].sort());
     });
 
     it('should setup belongsTo relations to source and target from join model with only foreign keys defined', () => {
@@ -658,8 +658,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromThroughToSource.foreignKey).to.equal(TagProducts.foreignKey);
       expect(TagProducts.fromThroughToTarget.foreignKey).to.equal(TagProducts.otherKey);
 
-      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
-      expect(Object.keys(ProductTag.rawAttributes).sort()).to.deep.equal(['id', 'priority', 'product_ID', 'tag_ID'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'product_ID', 'tag_ID'].sort());
     });
 
     it('should setup hasOne relations to source and target from join model with only foreign keys defined', () => {
@@ -695,8 +695,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromSourceToThroughOne.foreignKey).to.equal(TagProducts.foreignKey);
       expect(TagProducts.fromTargetToThroughOne.foreignKey).to.equal(TagProducts.otherKey);
 
-      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
-      expect(Object.keys(ProductTag.rawAttributes).sort()).to.deep.equal(['id', 'priority', 'product_ID', 'tag_ID'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'product_ID', 'tag_ID'].sort());
     });
 
     it('should setup belongsTo relations to source and target from join model with no foreign keys defined', () => {
@@ -732,8 +732,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromThroughToSource.foreignKey).to.equal(TagProducts.foreignKey);
       expect(TagProducts.fromThroughToTarget.foreignKey).to.equal(TagProducts.otherKey);
 
-      expect(Object.keys(ProductTag.rawAttributes).length).to.equal(4);
-      expect(Object.keys(ProductTag.rawAttributes).sort()).to.deep.equal(['id', 'priority', 'ProductId', 'TagId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'ProductId', 'TagId'].sort());
     });
   });
 
@@ -810,7 +810,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(UserFollowers.foreignKey).to.eq('FollowingId');
       expect(UserFollowers.otherKey).to.eq('FollowerId');
 
-      expect(Object.keys(UserFollower.rawAttributes).length).to.equal(3);
+      expect(Object.keys(UserFollower.getAttributes()).length).to.equal(3);
     });
 
     it('works with singular and plural name for self-associations', () => {
@@ -863,14 +863,14 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const MyGroups = User.associations.MyGroups as BelongsToMany;
       const throughModel = MyUsers.through.model;
 
-      expect(Object.keys(throughModel.rawAttributes).sort())
+      expect(Object.keys(throughModel.getAttributes()).sort())
         .to.deep.equal(['UserId', 'GroupId', 'createdAt', 'updatedAt'].sort());
 
       expect(throughModel === MyGroups.through.model);
-      expect(throughModel.rawAttributes.UserId.onUpdate).to.equal('RESTRICT');
-      expect(throughModel.rawAttributes.UserId.onDelete).to.equal('SET NULL');
-      expect(throughModel.rawAttributes.GroupId.onUpdate).to.equal('SET NULL');
-      expect(throughModel.rawAttributes.GroupId.onDelete).to.equal('RESTRICT');
+      expect(throughModel.getAttributes().UserId.onUpdate).to.equal('RESTRICT');
+      expect(throughModel.getAttributes().UserId.onDelete).to.equal('SET NULL');
+      expect(throughModel.getAttributes().GroupId.onUpdate).to.equal('SET NULL');
+      expect(throughModel.getAttributes().GroupId.onDelete).to.equal('RESTRICT');
     });
 
     it('work properly when through is a model', () => {
@@ -901,13 +901,13 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       const Through = MyUsers.through.model;
 
-      expect(Object.keys(Through.rawAttributes).sort())
+      expect(Object.keys(Through.getAttributes()).sort())
         .to.deep.equal(['UserId', 'GroupId', 'createdAt', 'updatedAt'].sort());
 
-      expect(Through.rawAttributes.UserId.onUpdate).to.equal('RESTRICT', 'UserId.onUpdate should have been RESTRICT');
-      expect(Through.rawAttributes.UserId.onDelete).to.equal('SET NULL', 'UserId.onDelete should have been SET NULL');
-      expect(Through.rawAttributes.GroupId.onUpdate).to.equal('SET NULL', 'GroupId.OnUpdate should have been SET NULL');
-      expect(Through.rawAttributes.GroupId.onDelete).to.equal('RESTRICT', 'GroupId.onDelete should have been RESTRICT');
+      expect(Through.getAttributes().UserId.onUpdate).to.equal('RESTRICT', 'UserId.onUpdate should have been RESTRICT');
+      expect(Through.getAttributes().UserId.onDelete).to.equal('SET NULL', 'UserId.onDelete should have been SET NULL');
+      expect(Through.getAttributes().GroupId.onUpdate).to.equal('SET NULL', 'GroupId.OnUpdate should have been SET NULL');
+      expect(Through.getAttributes().GroupId.onDelete).to.equal('RESTRICT', 'GroupId.onDelete should have been RESTRICT');
     });
 
     it('makes the foreign keys primary keys', () => {
@@ -924,11 +924,13 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       const Through = association.throughModel;
 
-      expect(Object.keys(Through.rawAttributes).sort()).to.deep.equal(['createdAt', 'updatedAt', 'GroupId', 'UserId'].sort());
-      expect(Through.rawAttributes.UserId.primaryKey).to.be.true;
-      expect(Through.rawAttributes.GroupId.primaryKey).to.be.true;
-      expect(Through.rawAttributes.UserId.unique).to.be.undefined;
-      expect(Through.rawAttributes.GroupId.unique).to.be.undefined;
+      expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(['createdAt', 'updatedAt', 'GroupId', 'UserId'].sort());
+      expect(Through.getAttributes().UserId.primaryKey).to.be.true;
+      expect(Through.getAttributes().GroupId.primaryKey).to.be.true;
+      // @ts-expect-error -- this property does not exist after normalization
+      expect(Through.getAttributes().UserId.unique).to.be.undefined;
+      // @ts-expect-error -- this property does not exist after normalization
+      expect(Through.getAttributes().GroupId.unique).to.be.undefined;
     });
 
     it('generates unique identifier with very long length', () => {
@@ -967,9 +969,19 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Through = MyUsers.through.model;
       expect(Through === MyGroups.through.model);
 
-      expect(Object.keys(Through.rawAttributes).sort()).to.deep.equal(['id', 'createdAt', 'updatedAt', 'id_user_very_long_field', 'id_group_very_long_field'].sort());
-      expect(Through.rawAttributes.id_user_very_long_field.unique).to.deep.equal([{ name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique' }]);
-      expect(Through.rawAttributes.id_group_very_long_field.unique).to.deep.equal([{ name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique' }]);
+      expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(['id', 'createdAt', 'updatedAt', 'id_user_very_long_field', 'id_group_very_long_field'].sort());
+
+      expect(Through.getIndexes()).to.deep.equal([{
+        name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique',
+        unique: true,
+        fields: ['id_user_very_long_field', 'id_group_very_long_field'],
+        column: 'id_user_very_long_field',
+      }]);
+
+      // @ts-expect-error -- this property does not exist after normalization
+      expect(Through.getAttributes().id_user_very_long_field.unique).to.be.undefined;
+      // @ts-expect-error -- this property does not exist after normalization
+      expect(Through.getAttributes().id_group_very_long_field.unique).to.be.undefined;
     });
 
     it('generates unique identifier with custom name', () => {
@@ -1010,8 +1022,18 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       expect(MyUsers.through.model === UserGroup);
       expect(MyGroups.through.model === UserGroup);
-      expect(UserGroup.rawAttributes.id_user_very_long_field.unique).to.deep.equal([{ name: 'custom_user_group_unique' }]);
-      expect(UserGroup.rawAttributes.id_group_very_long_field.unique).to.deep.equal([{ name: 'custom_user_group_unique' }]);
+
+      expect(UserGroup.getIndexes()).to.deep.equal([{
+        name: 'custom_user_group_unique',
+        unique: true,
+        fields: ['id_user_very_long_field', 'id_group_very_long_field'],
+        column: 'id_user_very_long_field',
+      }]);
+
+      // @ts-expect-error -- this property does not exist after normalization
+      expect(UserGroup.getAttributes().id_user_very_long_field.unique).to.be.undefined;
+      // @ts-expect-error -- this property does not exist after normalization
+      expect(UserGroup.getAttributes().id_group_very_long_field.unique).to.be.undefined;
     });
   });
 
