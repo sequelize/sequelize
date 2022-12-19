@@ -1,7 +1,9 @@
 import { isDataType } from '../../dialects/abstract/data-types-utils.js';
 import type { DataType } from '../../dialects/abstract/data-types.js';
-import type { AttributeOptions } from '../../model.js';
+import type { AttributeIndexOptions, AttributeOptions } from '../../model.js';
 import { columnToAttribute } from '../../utils/deprecations.js';
+import { underscore } from '../../utils/string.js';
+import type { NonUndefined } from '../../utils/types.js';
 import { createOptionalAttributeOptionsDecorator, createRequiredAttributeOptionsDecorator } from './attribute-utils.js';
 import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
 
@@ -55,4 +57,35 @@ export const Default = createRequiredAttributeOptionsDecorator<unknown>('Default
 /**
  * Sets the name of the column (in the database) this attribute maps to.
  */
-export const ColumnName = createRequiredAttributeOptionsDecorator<string>('ColumnName', (columnName: string) => ({ field: columnName }));
+export const ColumnName = createRequiredAttributeOptionsDecorator<string>('ColumnName', (columnName: string) => ({ columnName }));
+
+type IndexAttributeOption = NonUndefined<AttributeIndexOptions['attribute']>;
+
+export function createIndexDecorator(decoratorName: string, options: Omit<AttributeIndexOptions, 'attribute'> = {}) {
+  return createOptionalAttributeOptionsDecorator<IndexAttributeOption>(
+    decoratorName,
+    {},
+    (indexField: IndexAttributeOption): Partial<AttributeOptions> => {
+      const index: AttributeIndexOptions = {
+        ...options,
+        // TODO: default index name should be generated using https://github.com/sequelize/sequelize/issues/15312
+        name: options.name || underscore(decoratorName),
+        attribute: indexField,
+      };
+
+      return { index };
+    },
+  );
+}
+
+type IndexDecoratorOptions = NonUndefined<AttributeOptions['index']>;
+
+export const Index = createOptionalAttributeOptionsDecorator<IndexDecoratorOptions>(
+  'Index',
+  {},
+  (indexField: IndexDecoratorOptions): Partial<AttributeOptions> => {
+    return {
+      index: indexField,
+    };
+  },
+);

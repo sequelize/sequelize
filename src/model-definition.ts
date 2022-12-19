@@ -566,6 +566,10 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           for (const index of indexes) {
             const jsonbIndexDefaults = rawAttribute.type instanceof DataTypes.JSONB ? { using: 'gin' } : undefined;
 
+            if (!index) {
+              continue;
+            }
+
             if (index === true || typeof index === 'string') {
               attributeIndexes.push({
                 fields: [builtAttribute.columnName],
@@ -575,13 +579,22 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
             } else {
               // @ts-expect-error -- forbidden property
               if (index.fields) {
-                throw new Error('"fields" cannot be specified for indexes defined on attributes. Use the "indexes" option on the table definition instead.');
+                throw new Error('"fields" cannot be specified for indexes defined on attributes. Use the "indexes" option on the table definition instead. You can also customize how this attribute is part of the index by specifying the "attribute" option on the index.');
               }
+
+              const { attribute: indexAttributeOptions, ...indexOptions } = index;
 
               attributeIndexes.push({
                 ...jsonbIndexDefaults,
-                ...index,
-                fields: [builtAttribute.columnName],
+                ...indexOptions,
+                fields: [
+                  indexAttributeOptions
+                    ? {
+                      ...indexAttributeOptions,
+                      name: builtAttribute.columnName,
+                    }
+                  : builtAttribute.columnName,
+                ],
               });
             }
           }
