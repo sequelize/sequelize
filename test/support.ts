@@ -163,8 +163,8 @@ export function createSequelizeInstance(options: Options = {}): Sequelize {
     pool: config.pool,
     dialectOptions: options.dialectOptions || config.dialectOptions || {},
     minifyAliases: options.minifyAliases || config.minifyAliases,
-    // the test suite was written before ALS was turned on by default.
-    disableAlsTransactions: true,
+    // the test suite was written before CLS was turned on by default.
+    disableClsTransactions: true,
   });
 
   if (process.env.DIALECT === 'postgres-native') {

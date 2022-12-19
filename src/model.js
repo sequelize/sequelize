@@ -31,7 +31,7 @@ const { QueryTypes } = require('./query-types');
 const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
 const { Op } = require('./operators');
-const { _validateIncludedElements, combineIncludes, throwInvalidInclude, setTransactionFromAls } = require('./model-internals');
+const { _validateIncludedElements, combineIncludes, throwInvalidInclude, setTransactionFromCls } = require('./model-internals');
 const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -1195,7 +1195,7 @@ ${associationOwner._getAssociationDebugList()}`);
     tableNames[this.getTableName(options)] = true;
     options = cloneDeep(options);
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     _.defaults(options, { hooks: true, model: this });
 
@@ -1512,7 +1512,7 @@ ${associationOwner._getAssociationDebugList()}`);
     options = cloneDeep(options);
     options = _.defaults(options, { hooks: true });
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     options.raw = true;
     if (options.hooks) {
@@ -1793,7 +1793,7 @@ ${associationOwner._getAssociationDebugList()}`);
       }
     }
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     const internalTransaction = !options.transaction;
     let values;
@@ -1954,7 +1954,7 @@ ${associationOwner._getAssociationDebugList()}`);
       ...cloneDeep(options),
     };
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     const modelDefinition = this.modelDefinition;
 
@@ -2061,7 +2061,7 @@ ${associationOwner._getAssociationDebugList()}`);
     const now = new Date();
     options = cloneDeep(options);
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     options.model = this;
 
@@ -2424,7 +2424,7 @@ ${associationOwner._getAssociationDebugList()}`);
   static async destroy(options) {
     options = cloneDeep(options);
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     this._injectScope(options);
 
@@ -2523,7 +2523,7 @@ ${associationOwner._getAssociationDebugList()}`);
       ...options,
     };
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     options.type = QueryTypes.RAW;
     options.model = this;
@@ -2586,7 +2586,7 @@ ${associationOwner._getAssociationDebugList()}`);
   static async update(values, options) {
     options = cloneDeep(options);
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     this._injectScope(options);
     this._optionsMustContainWhere(options);
@@ -3515,7 +3515,7 @@ Instead of specifying a Model, either:
       validate: true,
     });
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     const modelDefinition = this.constructor.modelDefinition;
 
@@ -3896,7 +3896,7 @@ Instead of specifying a Model, either:
       ...options,
     };
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     const modelDefinition = this.constructor.modelDefinition;
 
@@ -3979,7 +3979,7 @@ Instead of specifying a Model, either:
       ...options,
     };
 
-    setTransactionFromAls(options, this.sequelize);
+    setTransactionFromCls(options, this.sequelize);
 
     // Run before hook
     if (options.hooks) {
