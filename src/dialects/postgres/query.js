@@ -11,12 +11,13 @@ const debug = logger.debugContext('sql:pg');
 export class PostgresQuery extends AbstractQuery {
   async run(sql, parameters) {
     const { connection } = this;
+    const shouldMinifyAliases = (parameters || {}).shouldMinifyAliases;
 
     if (!_.isEmpty(this.options.searchPath)) {
       sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
     }
 
-    if (this.sequelize.options.minifyAliases && this.options.includeAliases) {
+    if ((this.sequelize.options.minifyAliases || shouldMinifyAliases) && this.options.includeAliases) {
       for (const [alias, original] of _.toPairs(this.options.includeAliases)
         // Sorting to replace the longest aliases first to prevent alias collision
         .sort((a, b) => b[1].length - a[1].length)) {
@@ -74,7 +75,7 @@ export class PostgresQuery extends AbstractQuery {
       )
       : queryResult.rowCount || 0;
 
-    if (this.sequelize.options.minifyAliases && this.options.aliasesMapping) {
+    if ((this.sequelize.options.minifyAliases || shouldMinifyAliases) && this.options.aliasesMapping) {
       rows = rows
         .map(row => _.toPairs(row)
           .reduce((acc, [key, value]) => {

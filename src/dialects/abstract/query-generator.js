@@ -1165,6 +1165,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   selectQuery(tableName, options, model) {
     options = options || {};
     const limit = options.limit;
+    const shouldMinifyAlias = options.minifyAlias;
     const mainQueryItems = [];
     const subQueryItems = [];
     const subQuery = options.subQuery === undefined ? limit && options.hasMultiAssociation : options.subQuery;
@@ -1189,7 +1190,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let query;
 
     // Aliases can be passed through subqueries and we don't want to reset them
-    if (this.options.minifyAliases && !options.aliasesMapping) {
+    if ((this.options.minifyAliases || shouldMinifyAlias) && !options.aliasesMapping) {
       options.aliasesMapping = new Map();
       options.aliasesByTable = {};
       options.includeAliases = new Map();
@@ -1233,7 +1234,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           continue;
         }
 
-        const joinQueries = this.generateInclude(include, { externalAs: mainTable.as, internalAs: mainTable.as }, topLevelInfo, { replacements: options.replacements });
+        const joinQueries = this.generateInclude(include, { externalAs: mainTable.as, internalAs: mainTable.as }, topLevelInfo, { replacements: options.replacements, minifyAlias: shouldMinifyAlias });
 
         subJoinQueries = subJoinQueries.concat(joinQueries.subQuery);
         mainJoinQueries = mainJoinQueries.concat(joinQueries.mainQuery);
@@ -1481,6 +1482,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   escapeAttributes(attributes, options, mainTableAs) {
     const quotedMainTableAs = mainTableAs && this.quoteIdentifier(mainTableAs);
+    const shouldMinifyAlias = (options || {}).minifyAlias || false;
 
     return attributes && attributes.map(attr => {
       let addTable = true;
@@ -1505,7 +1507,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         let alias = attr[1];
 
-        if (this.options.minifyAliases) {
+        if (this.options.minifyAliases || shouldMinifyAlias) {
           alias = this._getMinifiedAlias(alias, mainTableAs, options);
         }
 
@@ -1527,6 +1529,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       mainQuery: [],
       subQuery: [],
     };
+    const shouldMinifyAlias = (options || {}).minifyAlias || false;
     const mainChildIncludes = [];
     const subChildIncludes = [];
     let requiredMismatch = false;
@@ -1595,7 +1598,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         let alias = `${includeAs.externalAs}.${attrAs}`;
 
-        if (this.options.minifyAliases) {
+        if (this.options.minifyAliases || shouldMinifyAlias) {
           alias = this._getMinifiedAlias(alias, includeAs.internalAs, topLevelInfo.options);
         }
 
@@ -1618,7 +1621,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     let joinQuery;
     if (include.through) {
-      joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, topLevelInfo);
+      joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, { ...topLevelInfo, minifyAlias: shouldMinifyAlias });
     } else {
       this._generateSubQueryFilter(include, includeAs, topLevelInfo);
       joinQuery = this.generateJoin(include, topLevelInfo, options);
@@ -1715,7 +1718,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   _getAliasForField(tableName, field, options) {
-    if (this.options.minifyAliases && options.aliasesByTable[`${tableName}${field}`]) {
+    if ((this.options.minifyAliases || options.minifyAlias) && options.aliasesByTable[`${tableName}${field}`]) {
       return options.aliasesByTable[`${tableName}${field}`];
     }
 
@@ -1731,6 +1734,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   generateJoin(include, topLevelInfo, options) {
     const association = include.association;
     const parent = include.parent;
+    const shouldMinifyAlias = (options || {}).minifyAlias || false;
     const parentIsTop = Boolean(parent) && !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
     let $parent;
     let joinWhere;
@@ -1814,7 +1818,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    if (this.options.minifyAliases && asRight.length > 63) {
+    if ((this.options.minifyAliases || shouldMinifyAlias) && asRight.length > 63) {
       const alias = `%${topLevelInfo.options.includeAliases.size}`;
 
       topLevelInfo.options.includeAliases.set(alias, asRight);
@@ -1901,13 +1905,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo) {
     const through = include.through;
+    const shouldMinifyAlias = (topLevelInfo || {}).minifyAlias || false;
     const throughTable = through.model.getTableName();
     const throughAs = `${includeAs.internalAs}->${through.as}`;
     const externalThroughAs = `${includeAs.externalAs}.${through.as}`;
     const throughAttributes = through.attributes.map(attr => {
       let alias = `${externalThroughAs}.${Array.isArray(attr) ? attr[1] : attr}`;
 
-      if (this.options.minifyAliases) {
+      if (this.options.minifyAliases || shouldMinifyAlias) {
         alias = this._getMinifiedAlias(alias, throughAs, topLevelInfo.options);
       }
 
@@ -1938,7 +1943,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let throughWhere;
     let targetWhere;
 
-    if (this.options.minifyAliases && throughAs.length > 63) {
+    if ((this.options.minifyAliases || shouldMinifyAlias) && throughAs.length > 63) {
       topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, throughAs);
       if (includeAs.internalAs.length > 63) {
         topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, includeAs.internalAs);
