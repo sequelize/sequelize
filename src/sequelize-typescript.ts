@@ -292,12 +292,12 @@ export abstract class SequelizeTypeScript {
       return result;
     };
 
-    const als = this.#transactionCls;
-    if (!als) {
+    const cls = this.#transactionCls;
+    if (!cls) {
       return wrappedCallback();
     }
 
-    return als.run(transaction, wrappedCallback);
+    return cls.run(transaction, wrappedCallback);
   }
 
   /**

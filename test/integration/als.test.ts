@@ -11,7 +11,7 @@ import {
   sequelize,
 } from './support';
 
-describe('AsyncLocalStorage Transactions (ALS)', () => {
+describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
   if (!sequelize.dialect.supports.transactions) {
     return;
   }
@@ -19,7 +19,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
   disableDatabaseResetForSuite();
 
   const vars = beforeAll2(async () => {
-    const alsSequelize = await prepareTransactionTest(createSequelizeInstance({
+    const clsSequelize = await prepareTransactionTest(createSequelizeInstance({
       disableClsTransactions: false,
     }));
 
@@ -29,18 +29,18 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
 
     User.init({
       name: DataTypes.STRING,
-    }, { sequelize: alsSequelize });
-    await alsSequelize.sync({ force: true });
+    }, { sequelize: clsSequelize });
+    await clsSequelize.sync({ force: true });
 
-    return { alsSequelize, User };
+    return { clsSequelize, User };
   });
 
   describe('context', () => {
-    it('does not use ALS on manually managed transactions', async () => {
-      const transaction = await vars.alsSequelize.startUnmanagedTransaction();
+    it('does not use AsyncLocalStorage on manually managed transactions', async () => {
+      const transaction = await vars.clsSequelize.startUnmanagedTransaction();
 
       try {
-        expect(vars.alsSequelize.getCurrentClsTransaction()).to.equal(undefined);
+        expect(vars.clsSequelize.getCurrentClsTransaction()).to.equal(undefined);
       } finally {
         await transaction.rollback();
       }
@@ -50,11 +50,11 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
       let t1id;
       let t2id;
       await Promise.all([
-        vars.alsSequelize.transaction(async () => {
-          t1id = vars.alsSequelize.getCurrentClsTransaction()!.id;
+        vars.clsSequelize.transaction(async () => {
+          t1id = vars.clsSequelize.getCurrentClsTransaction()!.id;
         }),
-        vars.alsSequelize.transaction(async () => {
-          t2id = vars.alsSequelize.getCurrentClsTransaction()!.id;
+        vars.clsSequelize.transaction(async () => {
+          t2id = vars.clsSequelize.getCurrentClsTransaction()!.id;
         }),
       ]);
       expect(t1id).to.be.ok;
@@ -63,13 +63,13 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
     });
 
     it('supports nested promise chains', async () => {
-      await vars.alsSequelize.transaction(async () => {
-        const tid = vars.alsSequelize.getCurrentClsTransaction()!.id;
+      await vars.clsSequelize.transaction(async () => {
+        const tid = vars.clsSequelize.getCurrentClsTransaction()!.id;
 
         await vars.User.findAll();
 
-        expect(vars.alsSequelize.getCurrentClsTransaction()!.id).to.be.ok;
-        expect(vars.alsSequelize.getCurrentClsTransaction()!.id).to.equal(tid);
+        expect(vars.clsSequelize.getCurrentClsTransaction()!.id).to.be.ok;
+        expect(vars.clsSequelize.getCurrentClsTransaction()!.id).to.equal(tid);
       });
     });
 
@@ -80,10 +80,10 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
       let transactionSetup = false;
       let transactionEnded = false;
 
-      const alsTask = vars.alsSequelize.transaction(async () => {
+      const clsTask = vars.clsSequelize.transaction(async () => {
         transactionSetup = true;
         await delay(500);
-        expect(vars.alsSequelize.getCurrentClsTransaction()).to.be.ok;
+        expect(vars.clsSequelize.getCurrentClsTransaction()).to.be.ok;
         transactionEnded = true;
       });
 
@@ -98,16 +98,16 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
       });
       expect(transactionEnded).not.to.be.ok;
 
-      expect(vars.alsSequelize.getCurrentClsTransaction()).not.to.be.ok;
+      expect(vars.clsSequelize.getCurrentClsTransaction()).not.to.be.ok;
 
       // Just to make sure it didn't change between our last check and the assertion
       expect(transactionEnded).not.to.be.ok;
-      await alsTask; // ensure we don't leak the promise
+      await clsTask; // ensure we don't leak the promise
     });
 
     it('does not leak variables to the following promise chain', async () => {
-      await vars.alsSequelize.transaction(() => {});
-      expect(vars.alsSequelize.getCurrentClsTransaction()).not.to.be.ok;
+      await vars.clsSequelize.transaction(() => {});
+      expect(vars.clsSequelize.getCurrentClsTransaction()).not.to.be.ok;
     });
 
     it('does not leak outside findOrCreate', async () => {
@@ -132,7 +132,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
     });
 
     it('automatically uses the transaction in all calls', async () => {
-      await vars.alsSequelize.transaction(async () => {
+      await vars.clsSequelize.transaction(async () => {
         await vars.User.create({ name: 'bob' });
 
         return Promise.all([
@@ -143,7 +143,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
     });
 
     it('automagically uses the transaction in all calls with async/await', async () => {
-      await vars.alsSequelize.transaction(async () => {
+      await vars.clsSequelize.transaction(async () => {
         await vars.User.create({ name: 'bob' });
         expect(await vars.User.findAll({ transaction: null })).to.have.length(0);
         expect(await vars.User.findAll({})).to.have.length(1);
@@ -152,10 +152,10 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
   });
 
   it('promises returned by sequelize.query are correctly patched', async () => {
-    await vars.alsSequelize.transaction(async t => {
-      await vars.alsSequelize.query('select 1', { type: QueryTypes.SELECT });
+    await vars.clsSequelize.transaction(async t => {
+      await vars.clsSequelize.query('select 1', { type: QueryTypes.SELECT });
 
-      return expect(vars.alsSequelize.getCurrentClsTransaction()).to.equal(t);
+      return expect(vars.clsSequelize.getCurrentClsTransaction()).to.equal(t);
     });
   });
 
@@ -172,7 +172,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
 
     function testHooks<T extends Model>({ method, hooks: hookNames, optionPos, execute, getModel }: Params<T>) {
       it(`passes the transaction to hooks {${hookNames.join(',')}} when calling ${method}`, async () => {
-        await vars.alsSequelize.transaction(async transaction => {
+        await vars.clsSequelize.transaction(async transaction => {
           const hooks = Object.create(null);
 
           for (const hookName of hookNames) {
@@ -199,7 +199,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
           for (const [hookName, spy] of Object.entries(hooks)) {
             expect(
               spy,
-              `hook ${hookName} did not receive the transaction from ALS.`,
+              `hook ${hookName} did not receive the transaction from AsyncLocalStorage.`,
             ).to.have.been.calledWith(...spyMatcher);
           }
         });
@@ -362,7 +362,7 @@ describe('AsyncLocalStorage Transactions (ALS)', () => {
 
     describe('paranoid restore', () => {
       const vars2 = beforeAll2(async () => {
-        const ParanoidUser = vars.alsSequelize.define('ParanoidUser', {
+        const ParanoidUser = vars.clsSequelize.define('ParanoidUser', {
           name: DataTypes.STRING,
         }, { paranoid: true });
 
