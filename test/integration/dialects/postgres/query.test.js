@@ -18,7 +18,7 @@ if (dialect.startsWith('postgres')) {
     const executeTest = async (options, test) => {
       const sequelize = Support.createSequelizeInstance(options);
 
-      const User = sequelize.define('User', { name: DataTypes.STRING, updatedAt: DataTypes.DATE }, { underscored: true });
+      const User = sequelize.define('User', { name: DataTypes.STRING }, { underscored: true });
       const Team = sequelize.define('Team', { name: DataTypes.STRING });
       const Sponsor = sequelize.define('Sponsor', { name: DataTypes.STRING });
       const Task = sequelize.define('Task', { title: DataTypes.STRING });

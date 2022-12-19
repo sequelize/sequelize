@@ -78,6 +78,12 @@ export class HookHandler<HookConfig extends {}> {
     return this.#listeners.count(hookName) > 0;
   }
 
+  getListenerCount(hookName: keyof HookConfig): number {
+    this.#assertValidHookName(hookName);
+
+    return this.#listeners.count(hookName);
+  }
+
   runSync<HookName extends keyof HookConfig>(
     hookName: HookName,
     ...args: HookConfig[HookName] extends (...args2: any) => any
@@ -141,7 +147,7 @@ export class HookHandler<HookConfig extends {}> {
   }
 
   addListeners(listeners: {
-    [Key in keyof HookConfig]?: AllowArray<HookConfig[Key]>
+    [Key in keyof HookConfig]?: AllowArray<HookConfig[Key] | { name: string | symbol, callback: HookConfig[Key] }>
   }) {
     for (const hookName of this.#validHookNames) {
       const hookListeners = listeners[hookName];
@@ -151,7 +157,11 @@ export class HookHandler<HookConfig extends {}> {
 
       const hookListenersArray = Array.isArray(hookListeners) ? hookListeners : [hookListeners];
       for (const listener of hookListenersArray) {
-        this.addListener(hookName, listener);
+        if (typeof listener === 'function') {
+          this.addListener(hookName, listener);
+        } else {
+          this.addListener(hookName, listener.callback, listener.name);
+        }
       }
     }
   }

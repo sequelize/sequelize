@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import type { InferAttributes } from '@sequelize/core';
 import { Model, DataTypes } from '@sequelize/core';
-import { Attribute, Unique } from '@sequelize/core/decorators-legacy';
+import { Table, Attribute, Unique, AutoIncrement, PrimaryKey, NotNull, AllowNull, Comment, Default, ColumnName } from '@sequelize/core/decorators-legacy';
 import { sequelize } from '../../support';
 
 describe(`@Attribute legacy decorator`, () => {
@@ -11,7 +11,7 @@ describe(`@Attribute legacy decorator`, () => {
       declare id: bigint;
     }
 
-    expect(() => new Test()).to.throw(/has not been initialized/);
+    expect(() => Test.build()).to.throw(/has not been initialized/);
   });
 
   it('prevents using Model.init', () => {
@@ -54,7 +54,7 @@ describe(`@Attribute legacy decorator`, () => {
 
     sequelize.addModels([User]);
 
-    const user = new User({});
+    const user = User.build({});
     user.name = 'Peter';
 
     expect(user.name).to.equal('My name is Peter');
@@ -75,7 +75,7 @@ describe(`@Attribute legacy decorator`, () => {
 
     sequelize.addModels([User]);
 
-    const user = new User({});
+    const user = User.build({});
     user.name = 'Peter';
 
     expect(user.name).to.equal('My name is Peter');
@@ -181,28 +181,223 @@ describe(`@Attribute legacy decorator`, () => {
     expect(User.getIndexes()).to.deep.equal([
       {
         fields: ['firstName', 'country'],
-        msg: null,
-        column: 'country',
-        customIndex: true,
+        column: 'firstName',
         unique: true,
         name: 'firstName-country',
       },
       {
         fields: ['firstName', 'lastName'],
-        msg: null,
-        column: 'lastName',
-        customIndex: true,
+        column: 'firstName',
         unique: true,
         name: 'firstName-lastName',
       },
       {
         fields: ['firstName'],
-        msg: null,
         column: 'firstName',
-        customIndex: true,
         unique: true,
         name: 'users_first_name_unique',
       },
     ]);
+  });
+});
+
+describe('@AllowNull legacy decorator', () => {
+  it('sets allowNull to true', () => {
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.STRING)
+      @AllowNull
+      declare name: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getAttributes().name.allowNull).to.equal(true);
+  });
+
+  it('accepts a boolean', () => {
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.STRING)
+      @AllowNull(false)
+      declare name: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getAttributes().name.allowNull).to.equal(false);
+  });
+});
+
+describe('@NotNull legacy decorator', () => {
+  it('sets allowNull to false', () => {
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.STRING)
+      @NotNull
+      declare name: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getAttributes().name.allowNull).to.equal(false);
+  });
+
+  it('accepts a boolean', () => {
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.STRING)
+      @NotNull(false)
+      declare name: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getAttributes().name.allowNull).to.equal(true);
+  });
+});
+
+describe('@AutoIncrement legacy decorator', () => {
+  it('sets autoIncrement to true', () => {
+    @Table({ noPrimaryKey: true })
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.INTEGER)
+      @AutoIncrement
+      declare int: number;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getAttributes().int.autoIncrement).to.equal(true);
+  });
+});
+
+describe('@PrimaryKey legacy decorator', () => {
+  it('sets primaryKey to true', () => {
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.INTEGER)
+      @PrimaryKey
+      declare int: number;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getAttributes().int.primaryKey).to.equal(true);
+  });
+});
+
+describe('@Comment legacy decorator', () => {
+  it('sets comment', () => {
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.INTEGER)
+      @Comment('This is a comment')
+      declare int: number;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getAttributes().int.comment).to.equal('This is a comment');
+  });
+
+  it('requires a parameter', () => {
+    expect(() => {
+      class User extends Model<InferAttributes<User>> {
+        @Attribute(DataTypes.INTEGER)
+        // @ts-expect-error -- testing that this rejects
+        @Comment()
+        declare int: number;
+      }
+
+      return User;
+    }).to.throw();
+  });
+
+  it('requires being called', () => {
+    expect(() => {
+      class User extends Model<InferAttributes<User>> {
+        @Attribute(DataTypes.INTEGER)
+        // @ts-expect-error -- testing that this throws
+        @Comment
+        declare int: number;
+      }
+
+      return User;
+    }).to.throw();
+  });
+});
+
+describe('@Default legacy decorator', () => {
+  it('sets defaultValue', () => {
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.INTEGER)
+      @Default(1)
+      declare int: number;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getAttributes().int.defaultValue).to.equal(1);
+  });
+
+  it('requires a parameter', () => {
+    expect(() => {
+      class User extends Model<InferAttributes<User>> {
+        @Attribute(DataTypes.INTEGER)
+        // @ts-expect-error -- testing that this throws
+        @Default()
+        declare int: number;
+      }
+
+      return User;
+    }).to.throw();
+  });
+
+  it('requires being called', () => {
+    expect(() => {
+      class User extends Model<InferAttributes<User>> {
+        @Attribute(DataTypes.INTEGER)
+        // @ts-expect-error -- testing that this throws
+        @Default
+        declare int: number;
+      }
+
+      return User;
+    }).to.throw();
+  });
+});
+
+describe('@ColumnName legacy decorator', () => {
+  it('sets to which column the attribute maps', () => {
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.INTEGER)
+      @ColumnName('userId')
+      declare int: number;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getAttributes().int.field).to.equal('userId');
+  });
+
+  it('requires a parameter', () => {
+    expect(() => {
+      class User extends Model<InferAttributes<User>> {
+        @Attribute(DataTypes.INTEGER)
+        // @ts-expect-error -- testing that this throws
+        @ColumnName()
+        declare int: number;
+      }
+
+      return User;
+    }).to.throw();
+  });
+
+  it('requires being called', () => {
+    expect(() => {
+      class User extends Model<InferAttributes<User>> {
+        @Attribute(DataTypes.INTEGER)
+        // @ts-expect-error -- testing that this throws
+        @ColumnName
+        declare int: number;
+      }
+
+      return User;
+    }).to.throw();
   });
 });

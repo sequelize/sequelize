@@ -166,7 +166,7 @@ describe('DataType Methods', () => {
     it(`updating a model calls 'parseDatabaseValue' on returned values`, async () => {
       const user = await models.User.create({ name: 'foo' });
       user.name = 'bob';
-      await user.save({ returning: true, logging: true });
+      await user.save({ returning: true });
 
       expect(user.name).to.eq(customValueSymbol, 'parseDatabaseValue has not been called');
     });

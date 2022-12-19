@@ -18,7 +18,7 @@ export const and = Pkg.and;
 export const or = Pkg.or;
 
 // export * from './lib/query-interface';
-export const QueryInterface = Pkg.QueryInterface;
+export const AbstractQueryInterface = Pkg.AbstractQueryInterface;
 
 // export * from './lib/model';
 export const Model = Pkg.Model;

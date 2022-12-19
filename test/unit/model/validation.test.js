@@ -410,9 +410,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       describe('update', () => {
         it('should throw when passing string', async () => {
-          await expect(User.update({
-            integer: 'jan',
-          }, { where: {} })).to.be.rejectedWith(Sequelize.ValidationError)
+          await expect(
+            User.update({ integer: 'jan' }, { where: {} }),
+          ).to.be.rejectedWith(Sequelize.ValidationError)
             .which.eventually.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)

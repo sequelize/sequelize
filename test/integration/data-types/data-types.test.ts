@@ -998,6 +998,9 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'dateAttr', date, date);
       await testSimpleInOut(vars.User, 'dateAttr', '2022-01-01T00:00:00Z', date);
 
+      // parses DateOnly string inputs as UTC, not local time
+      await testSimpleInOut(vars.User, 'dateAttr', '2022-01-01', date);
+
       // timestamp
       await testSimpleInOut(vars.User, 'dateAttr', 1_640_995_200_000, date);
     });

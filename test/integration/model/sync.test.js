@@ -182,7 +182,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     await User.sync({ alter: true });
 
     const alterResults = await getNonPrimaryIndexes(User);
-    expect(syncResults).to.deep.eq(alterResults, '"alter" should not create new indexes if they already exist.');
+    expect(alterResults).to.deep.eq(syncResults, '"alter" should not create new indexes if they already exist.');
   });
 
   it('creates one unique index per unique:true columns, and per entry in options.indexes', async () => {
@@ -576,17 +576,18 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       {
         const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
 
-        expect(aFks.length).to.eq(1);
+        expect(aFks).to.have.length(1);
         expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_IMMEDIATE);
       }
 
-      A.rawAttributes.BId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
+      A.modelDefinition.rawAttributes.BId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
+      A.modelDefinition.refreshAttributes();
       await sequelize.sync({ alter: true });
 
       {
-        const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
+        const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.table);
 
-        expect(aFks.length).to.eq(1);
+        expect(aFks).to.have.length(1);
         expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_DEFERRED);
       }
     });

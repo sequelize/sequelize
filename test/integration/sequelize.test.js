@@ -233,63 +233,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
-  describe('set', () => {
-    it('should be configurable with global functions', function () {
-      const defaultSetterMethod = sinon.spy();
-      const overrideSetterMethod = sinon.spy();
-      const defaultGetterMethod = sinon.spy();
-      const overrideGetterMethod = sinon.spy();
-      const customSetterMethod = sinon.spy();
-      const customOverrideSetterMethod = sinon.spy();
-      const customGetterMethod = sinon.spy();
-      const customOverrideGetterMethod = sinon.spy();
-
-      this.sequelize.options.define = {
-        setterMethods: {
-          default: defaultSetterMethod,
-          override: overrideSetterMethod,
-        },
-        getterMethods: {
-          default: defaultGetterMethod,
-          override: overrideGetterMethod,
-        },
-      };
-      const testEntity = this.sequelize.define('TestEntity', {}, {
-        setterMethods: {
-          custom: customSetterMethod,
-          override: customOverrideSetterMethod,
-        },
-        getterMethods: {
-          custom: customGetterMethod,
-          override: customOverrideGetterMethod,
-        },
-      });
-
-      // Create Instance to test
-      const instance = testEntity.build();
-
-      // Call Getters
-      instance.default;
-      instance.custom;
-      instance.override;
-
-      expect(defaultGetterMethod).to.have.been.calledOnce;
-      expect(customGetterMethod).to.have.been.calledOnce;
-      expect(overrideGetterMethod.callCount).to.be.eql(0);
-      expect(customOverrideGetterMethod).to.have.been.calledOnce;
-
-      // Call Setters
-      instance.default = 'test';
-      instance.custom = 'test';
-      instance.override = 'test';
-
-      expect(defaultSetterMethod).to.have.been.calledOnce;
-      expect(customSetterMethod).to.have.been.calledOnce;
-      expect(overrideSetterMethod.callCount).to.be.eql(0);
-      expect(customOverrideSetterMethod).to.have.been.calledOnce;
-    });
-  });
-
   if (['mysql', 'mariadb'].includes(dialect)) {
     describe('set', () => {
       it('should return an promised error if transaction isn\'t defined', async function () {
@@ -640,9 +583,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             for (const option of Object.keys(customAttributes[attribute])) {
               const optionValue = customAttributes[attribute][option];
               if (typeof optionValue === 'function' && optionValue() instanceof DataTypes.ABSTRACT) {
-                expect(Picture.rawAttributes[attribute][option] instanceof optionValue).to.be.ok;
+                expect(Picture.getAttributes()[attribute][option] instanceof optionValue).to.be.ok;
               } else {
-                expect(Picture.rawAttributes[attribute][option]).to.be.equal(optionValue);
+                expect(Picture.getAttributes()[attribute][option]).to.be.equal(optionValue);
               }
             }
           }

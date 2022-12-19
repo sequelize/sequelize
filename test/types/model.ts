@@ -157,11 +157,6 @@ MyModel.init({
   ],
   sequelize,
   tableName: 'my_model',
-  getterMethods: {
-    multiply() {
-      return this.int * 2;
-    },
-  },
 });
 
 /**

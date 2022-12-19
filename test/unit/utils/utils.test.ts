@@ -249,11 +249,7 @@ describe('Utils', () => {
 
   describe('mapFinderOptions', () => {
     it('virtual attribute dependencies', () => {
-      expect(mapFinderOptions({
-        attributes: [
-          'active',
-        ],
-      }, sequelize.define('User', {
+      const User = sequelize.define('User', {
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at',
@@ -261,7 +257,11 @@ describe('Utils', () => {
         active: {
           type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt']),
         },
-      })).attributes).to.eql([
+      });
+
+      expect(
+        mapFinderOptions({ attributes: ['active'] }, User).attributes,
+      ).to.eql([
         [
           'created_at',
           'createdAt',

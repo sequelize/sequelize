@@ -172,13 +172,11 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
     if (options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
-        if (columns.customIndex) {
-          if (typeof indexName !== 'string') {
-            indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
-          }
-
-          attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+        if (typeof indexName !== 'string') {
+          indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
+
+        attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
@@ -446,22 +444,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  removeIndexQuery(tableName, indexNameOrAttributes) {
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
-    }
-
-    return joinSQLFragments([
-      'DROP INDEX',
-      this.quoteIdentifier(indexName),
-      'ON',
-      this.quoteTable(tableName),
-      ';',
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
@@ -515,7 +497,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }
 
-      template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
         template += ` (${this.quoteIdentifier(attribute.references.key)})`;

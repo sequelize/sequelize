@@ -14,7 +14,7 @@ import type {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/associations';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import type { ValidationOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator';
-import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-typescript.js';
+import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import type { SemiDeepWritable } from './type-helpers/deep-writable';
 
 {

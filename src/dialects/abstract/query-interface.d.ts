@@ -3,21 +3,23 @@ import type { Deferrable } from '../../deferrable';
 import type {
   Logging,
   Model,
-  ModelAttributeColumnOptions,
+  AttributeOptions,
   ModelAttributes,
   WhereOptions,
   Filterable,
   ModelStatic,
   CreationAttributes,
   Attributes,
-  BuiltModelAttributeColumnOptions,
+  NormalizedAttributeOptions,
 } from '../../model';
 import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { Transaction } from '../../transaction';
 import type { Fn, Literal, Col } from '../../utils/sequelize-method.js';
+import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
-import type { TableNameOrModel } from './query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
+import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 interface Replaceable {
   /**
@@ -66,12 +68,7 @@ export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, Colla
   /**
    * Used for compound unique keys.
    */
-  uniqueKeys?: {
-    [keyName: string]: {
-      fields: string[],
-      customIndex?: boolean,
-    },
-  };
+  uniqueKeys?: { [indexName: string]: { fields: string[] } };
 }
 
 export interface QueryInterfaceDropTableOptions extends QueryRawOptions {
@@ -91,7 +88,7 @@ export interface TableNameWithSchema {
 
 export type TableName = string | TableNameWithSchema;
 
-export type IndexType = 'UNIQUE' | 'FULLTEXT' | 'SPATIAL';
+export type IndexType = AllowLowercase<'UNIQUE' | 'FULLTEXT' | 'SPATIAL'>;
 export type IndexMethod = 'BTREE' | 'HASH' | 'GIST' | 'SPGIST' | 'GIN' | 'BRIN' | string;
 
 export interface IndexField {
@@ -143,6 +140,11 @@ export interface IndexOptions {
   unique?: boolean;
 
   /**
+   * The message to display if the unique constraint is violated.
+   */
+  msg?: string;
+
+  /**
    * PostgreSQL will build the index without taking any write locks. Postgres only.
    *
    * @default false
@@ -183,6 +185,8 @@ export interface IndexOptions {
 }
 
 export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}
+
+export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions {}
 
 export interface BaseConstraintOptions {
   name?: string;
@@ -280,7 +284,7 @@ export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawO
 * This interface is available through sequelize.queryInterface. It should not be commonly used, but it's
 * referenced anyway, so it can be used.
 */
-export class QueryInterface {
+export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Returns the dialect-specific sql generator.
    *
@@ -294,13 +298,6 @@ export class QueryInterface {
   sequelize: Sequelize;
 
   constructor(sequelize: Sequelize, queryGenerator: AbstractQueryGenerator);
-
-  /**
-   * Queries the schema (table list).
-   *
-   * @param schema The schema to query. Applies only to Postgres.
-   */
-  createSchema(schema?: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Drops the specified schema (table).
@@ -319,7 +316,7 @@ export class QueryInterface {
    *
    * @param options
    */
-  showAllSchemas(options?: QueryRawOptions): Promise<object>;
+  showAllSchemas(options?: QueryRawOptions): Promise<string[]>;
 
   /**
    * Return database version
@@ -393,7 +390,7 @@ export class QueryInterface {
   addColumn(
     table: TableName,
     key: string,
-    attribute: ModelAttributeColumnOptions | DataType,
+    attribute: AttributeOptions | DataType,
     options?: AddColumnOptions
   ): Promise<void>;
 
@@ -412,7 +409,7 @@ export class QueryInterface {
   changeColumn(
     tableName: TableName,
     attributeName: string,
-    dataTypeOrOptions?: DataType | ModelAttributeColumnOptions,
+    dataTypeOrOptions?: DataType | AttributeOptions,
     options?: QiOptionsWithReplacements
   ): Promise<void>;
 
@@ -444,8 +441,16 @@ export class QueryInterface {
   /**
    * Removes an index of a table
    */
-  removeIndex(tableName: TableName, indexName: string, options?: QueryInterfaceIndexOptions): Promise<void>;
-  removeIndex(tableName: TableName, attributes: string[], options?: QueryInterfaceIndexOptions): Promise<void>;
+  removeIndex(
+    tableName: TableName,
+    indexName: string,
+    options?: QueryInterfaceRemoveIndexOptions
+  ): Promise<void>;
+  removeIndex(
+    tableName: TableName,
+    attributes: string[],
+    options?: QueryInterfaceRemoveIndexOptions
+  ): Promise<void>;
 
   /**
    * Adds constraints to a table
@@ -503,7 +508,7 @@ export class QueryInterface {
     tableName: TableName,
     records: object[],
     options?: QiOptionsWithReplacements,
-    attributes?: Record<string, ModelAttributeColumnOptions>
+    attributes?: Record<string, AttributeOptions>
   ): Promise<object | number>;
 
   /**
@@ -525,7 +530,7 @@ export class QueryInterface {
     values: object,
     where: WhereOptions<any>,
     options?: QiOptionsWithReplacements,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
+    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
   ): Promise<object>;
 
   /**

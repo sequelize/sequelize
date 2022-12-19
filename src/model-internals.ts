@@ -1,4 +1,5 @@
 import NodeUtil from 'node:util';
+import type { IndexOptions } from './dialects/abstract/query-interface.js';
 import { EagerLoadingError } from './errors';
 import type { Transactionable } from './model';
 import type { Sequelize } from './sequelize';
@@ -151,4 +152,19 @@ export function setTransactionFromCls(options: Transactionable, sequelize: Seque
   if (options.transaction === undefined) {
     options.transaction = sequelize.getCurrentClsTransaction();
   }
+}
+
+export function conformIndex(index: IndexOptions): IndexOptions {
+  if (!index.fields) {
+    throw new Error('Missing "fields" property for index definition');
+  }
+
+  index = { ...index };
+
+  if (index.type && index.type.toLowerCase() === 'unique') {
+    index.unique = true;
+    delete index.type;
+  }
+
+  return index;
 }

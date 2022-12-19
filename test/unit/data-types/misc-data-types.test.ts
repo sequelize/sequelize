@@ -46,7 +46,7 @@ describe('DataTypes.ENUM', () => {
       anEnum: DataTypes.ENUM('value 1', 'value 2'),
     });
 
-    const enumType = User.rawAttributes.anEnum.type;
+    const enumType = User.getAttributes().anEnum.type;
     assert(typeof enumType !== 'string');
 
     expectsql(enumType.toSql({ dialect }), {
