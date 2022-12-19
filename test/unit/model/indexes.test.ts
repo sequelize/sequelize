@@ -161,4 +161,46 @@ describe('Model indexes', () => {
       },
     ]);
   });
+
+  it('supports configuring the index attribute options', () => {
+    const User = sequelize.define('User', {
+      firstName: {
+        type: DataTypes.STRING,
+        columnName: 'first_name',
+        index: {
+          name: 'first_last_name',
+          unique: true,
+          attribute: {
+            collate: 'en_US',
+            operator: 'text_pattern_ops',
+            order: 'DESC',
+          },
+        },
+      },
+      lastName: {
+        type: DataTypes.STRING,
+        columnName: 'last_name',
+        index: {
+          name: 'first_last_name',
+          unique: true,
+        },
+      },
+    });
+
+    expect(User.getIndexes()).to.deep.eq([
+      {
+        fields: [
+          {
+            name: 'first_name',
+            collate: 'en_US',
+            operator: 'text_pattern_ops',
+            order: 'DESC',
+          },
+          'last_name',
+        ],
+        unique: true,
+        name: 'first_last_name',
+      },
+    ]);
+  });
 });

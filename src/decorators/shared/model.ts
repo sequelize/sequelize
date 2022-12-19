@@ -95,18 +95,19 @@ export function registerModelAttributeOptions(
       continue;
     }
 
-    if (optionName === 'unique') {
-      if (!existingOptions.unique) {
-        existingOptions.unique = [];
-      } else if (!Array.isArray(existingOptions.unique)) {
-        existingOptions.unique = [existingOptions.unique];
+    if (optionName === 'index' || optionName === 'unique') {
+      if (!existingOptions[optionName]) {
+        existingOptions[optionName] = [];
+      } else if (!Array.isArray(existingOptions[optionName])) {
+        // @ts-expect-error -- runtime type checking is enforced by model
+        existingOptions[optionName] = [existingOptions[optionName]];
       }
 
       if (Array.isArray(optionValue)) {
-        existingOptions.unique = [...existingOptions.unique, ...optionValue];
-      } else {
         // @ts-expect-error -- runtime type checking is enforced by model
-        existingOptions.unique = [...existingOptions.unique, optionValue];
+        existingOptions[optionName] = [...existingOptions[optionName], ...optionValue];
+      } else {
+        existingOptions[optionName] = [...existingOptions[optionName], optionValue];
       }
 
       continue;

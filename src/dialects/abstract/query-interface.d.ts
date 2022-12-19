@@ -154,6 +154,7 @@ export interface IndexOptions {
   /**
    * The fields to index.
    */
+  // TODO: rename to "columns"
   fields?: Array<string | IndexField | Fn | Literal>;
 
   /**
