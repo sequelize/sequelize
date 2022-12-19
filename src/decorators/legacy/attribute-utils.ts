@@ -43,7 +43,7 @@ export function createOptionalAttributeOptionsDecorator<T>(
   callback: (
     option: T,
     target: Object,
-    propertyName: string | symbol,
+    propertyName: string,
     propertyDescriptor: PropertyDescriptor | undefined,
   ) => Partial<AttributeOptions>,
 ): OptionalParameterizedPropertyDecorator<T> {
@@ -51,6 +51,10 @@ export function createOptionalAttributeOptionsDecorator<T>(
     decoratorName,
     defaultValue,
     (decoratorOption, target, propertyName, propertyDescriptor) => {
+      if (typeof propertyName === 'symbol') {
+        throw new TypeError('Symbol Model Attributes are not currently supported. We welcome a PR that implements this feature.');
+      }
+
       const attributeOptions = callback(decoratorOption, target, propertyName, propertyDescriptor);
 
       annotate(decoratorName, target, propertyName, propertyDescriptor, attributeOptions);
@@ -61,14 +65,10 @@ export function createOptionalAttributeOptionsDecorator<T>(
 function annotate(
   decoratorName: string,
   target: Object,
-  propertyName: string | symbol,
+  propertyName: string,
   propertyDescriptor: PropertyDescriptor | undefined,
   options: Partial<AttributeOptions>,
 ): void {
-  if (typeof propertyName === 'symbol') {
-    throw new TypeError('Symbol Model Attributes are not currently supported. We welcome a PR that implements this feature.');
-  }
-
   if (typeof target === 'function') {
     throwMustBeInstanceProperty(decoratorName, target, propertyName);
   }

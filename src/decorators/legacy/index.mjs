@@ -16,6 +16,8 @@ export const Default = Pkg.Default;
 export const NotNull = Pkg.NotNull;
 export const PrimaryKey = Pkg.PrimaryKey;
 export const Unique = Pkg.Unique;
+export const Index = Pkg.Index;
+export const createIndexDecorator = Pkg.createIndexDecorator;
 
 // Validation Decorators
 
