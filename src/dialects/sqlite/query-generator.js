@@ -307,60 +307,59 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   attributesToSQL(attributes, options) {
     const result = {};
     for (const name in attributes) {
-      const dataType = attributes[name];
-      const fieldName = dataType.field || name;
+      const attribute = attributes[name];
+      const columnName = attribute.field || attribute.columnName || name;
 
-      if (_.isObject(dataType)) {
-        let sql = dataType.type.toString();
+      if (_.isObject(attribute)) {
+        let sql = attribute.type.toString();
 
-        if (dataType.allowNull === false) {
+        if (attribute.allowNull === false) {
           sql += ' NOT NULL';
         }
 
-        if (defaultValueSchemable(dataType.defaultValue)) {
+        if (defaultValueSchemable(attribute.defaultValue)) {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
-          sql += ` DEFAULT ${this.escape(dataType.defaultValue, dataType, options)}`;
+          sql += ` DEFAULT ${this.escape(attribute.defaultValue, attribute, options)}`;
         }
 
-        if (dataType.unique === true) {
+        if (attribute.unique === true) {
           sql += ' UNIQUE';
         }
 
-        if (dataType.primaryKey) {
+        if (attribute.primaryKey) {
           sql += ' PRIMARY KEY';
 
-          if (dataType.autoIncrement) {
+          if (attribute.autoIncrement) {
             sql += ' AUTOINCREMENT';
           }
         }
 
-        if (dataType.references) {
-          const referencesTable = this.quoteTable(dataType.references.model);
+        if (attribute.references) {
+          const referencesTable = this.quoteTable(attribute.references.table);
 
           let referencesKey;
-          if (dataType.references.key) {
-            referencesKey = this.quoteIdentifier(dataType.references.key);
+          if (attribute.references.key) {
+            referencesKey = this.quoteIdentifier(attribute.references.key);
           } else {
             referencesKey = this.quoteIdentifier('id');
           }
 
           sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
 
-          if (dataType.onDelete) {
-            sql += ` ON DELETE ${dataType.onDelete.toUpperCase()}`;
+          if (attribute.onDelete) {
+            sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
           }
 
-          if (dataType.onUpdate) {
-            sql += ` ON UPDATE ${dataType.onUpdate.toUpperCase()}`;
+          if (attribute.onUpdate) {
+            sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
           }
-
         }
 
-        result[fieldName] = sql;
+        result[columnName] = sql;
       } else {
-        result[fieldName] = dataType;
+        result[columnName] = attribute;
       }
     }
 

@@ -124,18 +124,17 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let attributesClause = attrStr.join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns, indexName) => {
-        if (columns.customIndex) {
-          if (typeof indexName !== 'string') {
-            indexName = generateIndexName(tableName, columns);
-          }
-
-          attributesClause += `, CONSTRAINT ${
-            this.quoteIdentifier(indexName)
-          } UNIQUE (${
-            columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
-          })`;
+      _.each(options.uniqueKeys, (index, indexName) => {
+        if (typeof indexName !== 'string') {
+          indexName = generateIndexName(tableName, index);
         }
+
+        attributesClause += `, CONSTRAINT ${
+          this.quoteIdentifier(indexName)
+        } UNIQUE (${
+          index.fields.map(field => this.quoteIdentifier(field))
+            .join(', ')
+        })`;
       });
     }
 
@@ -508,14 +507,14 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       if (options.schema) {
         schema = options.schema;
       } else if (
-        (!attribute.references.model || typeof attribute.references.model === 'string')
+        (!attribute.references.table || typeof attribute.references.table === 'string')
         && options.table
         && options.table.schema
       ) {
         schema = options.table.schema;
       }
 
-      const referencesTable = this.extractTableDetails(attribute.references.model, { schema });
+      const referencesTable = this.extractTableDetails(attribute.references.table, { schema });
 
       let referencesKey;
 

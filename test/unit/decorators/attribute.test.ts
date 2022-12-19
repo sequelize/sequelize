@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import type { InferAttributes } from '@sequelize/core';
 import { Model, DataTypes } from '@sequelize/core';
-import { Table, Attribute, Unique, AutoIncrement, PrimaryKey, NotNull, AllowNull, Comment, Default, ColumnName } from '@sequelize/core/decorators-legacy';
+import { Table, Attribute, Unique, AutoIncrement, PrimaryKey, NotNull, AllowNull, Comment, Default, ColumnName, Index, createIndexDecorator } from '@sequelize/core/decorators-legacy';
 import { sequelize } from '../../support';
 
 describe(`@Attribute legacy decorator`, () => {
@@ -11,7 +11,7 @@ describe(`@Attribute legacy decorator`, () => {
       declare id: bigint;
     }
 
-    expect(() => new Test()).to.throw(/has not been initialized/);
+    expect(() => Test.build()).to.throw(/has not been initialized/);
   });
 
   it('prevents using Model.init', () => {
@@ -54,7 +54,7 @@ describe(`@Attribute legacy decorator`, () => {
 
     sequelize.addModels([User]);
 
-    const user = new User({});
+    const user = User.build({});
     user.name = 'Peter';
 
     expect(user.name).to.equal('My name is Peter');
@@ -75,7 +75,7 @@ describe(`@Attribute legacy decorator`, () => {
 
     sequelize.addModels([User]);
 
-    const user = new User({});
+    const user = User.build({});
     user.name = 'Peter';
 
     expect(user.name).to.equal('My name is Peter');
@@ -181,27 +181,140 @@ describe(`@Attribute legacy decorator`, () => {
     expect(User.getIndexes()).to.deep.equal([
       {
         fields: ['firstName', 'country'],
-        msg: null,
-        column: 'country',
-        customIndex: true,
+        column: 'firstName',
         unique: true,
         name: 'firstName-country',
       },
       {
         fields: ['firstName', 'lastName'],
-        msg: null,
-        column: 'lastName',
-        customIndex: true,
+        column: 'firstName',
         unique: true,
         name: 'firstName-lastName',
       },
       {
         fields: ['firstName'],
-        msg: null,
         column: 'firstName',
-        customIndex: true,
         unique: true,
         name: 'users_first_name_unique',
+      },
+    ]);
+  });
+
+  it('merges "index"', () => {
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.STRING)
+      @Attribute({
+        index: 'firstName-lastName',
+      })
+      @Index({
+        name: 'firstName-country',
+      })
+      @Index
+      @ColumnName('first_name')
+      declare firstName: string;
+
+      @Attribute(DataTypes.STRING)
+      @Index({
+        name: 'firstName-lastName',
+        attribute: {
+          collate: 'en_US',
+        },
+      })
+      declare lastName: string;
+
+      @Attribute(DataTypes.STRING)
+      @Index('firstName-country')
+      declare country: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getIndexes()).to.deep.equal([
+      {
+        fields: ['first_name'],
+        column: 'firstName',
+        name: 'users_first_name',
+      },
+      {
+        fields: ['first_name', 'country'],
+        column: 'firstName',
+        name: 'firstName-country',
+      },
+      {
+        fields: [
+          'first_name',
+          {
+            collate: 'en_US',
+            name: 'lastName',
+          },
+        ],
+        column: 'firstName',
+        name: 'firstName-lastName',
+      },
+    ]);
+  });
+});
+
+describe('createIndexDecorator', () => {
+  it('makes it possible to create a composite index with options', () => {
+    const MyIndex = createIndexDecorator('MyIndex', {
+      name: 'my_custom_index',
+      type: 'fulltext',
+      where: { name: null },
+    });
+
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.STRING)
+      @MyIndex
+      @ColumnName('first_name')
+      declare firstName: string;
+
+      @Attribute(DataTypes.STRING)
+      @MyIndex({
+        order: 'DESC',
+      })
+      declare lastName: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getIndexes()).to.deep.equal([
+      {
+        fields: [
+          {
+            name: 'first_name',
+          },
+          {
+            name: 'lastName',
+            order: 'DESC',
+          },
+        ],
+        name: 'my_custom_index',
+        type: 'fulltext',
+        where: { name: null },
+      },
+    ]);
+  });
+
+  it('uses a snake-case version of the decorator name as the default index name', () => {
+    const MyIndex = createIndexDecorator('MyIndex');
+
+    class User extends Model<InferAttributes<User>> {
+      @Attribute(DataTypes.STRING)
+      @MyIndex
+      declare firstName: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect(User.getIndexes()).to.deep.equal([
+      {
+        fields: [
+          {
+            name: 'firstName',
+          },
+        ],
+        name: 'my_index',
       },
     ]);
   });

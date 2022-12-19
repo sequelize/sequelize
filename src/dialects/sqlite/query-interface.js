@@ -36,13 +36,20 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
    *
    * @override
    */
-  async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
+  async changeColumn(tableName, columnName, dataTypeOrOptions, options) {
     options = options || {};
 
-    const fields = await this.describeTable(tableName, options);
-    Object.assign(fields[attributeName], this.normalizeAttribute(dataTypeOrOptions));
+    const columns = await this.describeTable(tableName, options);
+    for (const column of Object.values(columns)) {
+      // This is handled by copying indexes over,
+      // we don't use "unique" because it creates an index with a name
+      // we can't control
+      delete column.unique;
+    }
 
-    return this.alterTableInternal(tableName, fields, options);
+    Object.assign(columns[columnName], this.normalizeAttribute(dataTypeOrOptions));
+
+    return this.alterTableInternal(tableName, columns, options);
   }
 
   /**
@@ -241,7 +248,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
       const foreignKeys = await this.getForeignKeyReferencesForTable(tableName, options);
       for (const foreignKey of foreignKeys) {
         data[foreignKey.columnName].references = {
-          model: foreignKey.referencedTableName,
+          table: foreignKey.referencedTableName,
           key: foreignKey.referencedColumnName,
         };
 
@@ -267,17 +274,35 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
    * Workaround for sqlite's limited alter table support.
    *
    * @param {string} tableName - The table's name
-   * @param {ColumnsDescription} fields - The table's description
+   * @param {ColumnsDescription} columns - The table's description
    * @param {QueryOptions} options - Query options
    * @private
    */
-  async alterTableInternal(tableName, fields, options) {
+  async alterTableInternal(tableName, columns, options) {
     return this.withForeignKeysOff(options, async () => {
       const savepointName = this.getSavepointName();
       await this.sequelize.query(`SAVEPOINT ${savepointName};`, options);
 
       try {
-        const sql = this.queryGenerator.removeColumnQuery(tableName, fields);
+        const indexes = await this.showIndex(tableName, options);
+        for (const index of indexes) {
+          // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
+          if (!index.constraintName.startsWith('sqlite_autoindex_')) {
+            continue;
+          }
+
+          if (!index.unique) {
+            continue;
+          }
+
+          for (const field of index.fields) {
+            if (columns[field.attribute]) {
+              columns[field.attribute].unique = true;
+            }
+          }
+        }
+
+        const sql = this.queryGenerator.removeColumnQuery(tableName, columns);
         const subQueries = sql.split(';').filter(q => q !== '');
 
         for (const subQuery of subQueries) {
@@ -297,6 +322,15 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
             table: tableName,
           });
         }
+
+        await Promise.all(indexes.map(async index => {
+          // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
+          if (index.constraintName.startsWith('sqlite_autoindex_')) {
+            return;
+          }
+
+          return this.addIndex(tableName, index);
+        }));
 
         await this.sequelize.query(`RELEASE ${savepointName};`, options);
       } catch (error) {

@@ -196,17 +196,15 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
-        if (columns.customIndex) {
-          if (typeof indexName !== 'string') {
-            indexName = generateIndexName(tableName, columns);
-          }
-
-          attributesClauseParts.push(`CONSTRAINT ${
-            this.quoteIdentifier(indexName)
-          } UNIQUE (${
-            columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
-          })`);
+        if (typeof indexName !== 'string') {
+          indexName = generateIndexName(tableName, columns);
         }
+
+        attributesClauseParts.push(`CONSTRAINT ${
+          this.quoteIdentifier(indexName)
+        } UNIQUE (${
+          columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
+        })`);
       });
     }
 
@@ -460,24 +458,21 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
     const targetTableAlias = this.quoteTable(`${tableName}_target`);
     const sourceTableAlias = this.quoteTable(`${tableName}_source`);
-    const primaryKeysAttrs = [];
-    const identityAttrs = [];
-    const uniqueAttrs = [];
+    const primaryKeysColumns = [];
+    const identityColumns = [];
+    const uniqueColumns = [];
     const tableNameQuoted = this.quoteTable(tableName);
     let needIdentityInsertWrapper = false;
 
+    const modelDefinition = model.modelDefinition;
     // Obtain primaryKeys, uniquekeys and identity attrs from rawAttributes as model is not passed
-    for (const key in model.rawAttributes) {
-      if (model.rawAttributes[key].primaryKey) {
-        primaryKeysAttrs.push(model.rawAttributes[key].field || key);
+    for (const attribute of modelDefinition.attributes.values()) {
+      if (attribute.primaryKey) {
+        primaryKeysColumns.push(attribute.columnName);
       }
 
-      if (model.rawAttributes[key].unique) {
-        uniqueAttrs.push(model.rawAttributes[key].field || key);
-      }
-
-      if (model.rawAttributes[key].autoIncrement) {
-        identityAttrs.push(model.rawAttributes[key].field || key);
+      if (attribute.autoIncrement) {
+        identityColumns.push(attribute.columnName);
       }
     }
 
@@ -485,9 +480,10 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     for (const index of model.getIndexes()) {
       if (index.unique && index.fields) {
         for (const field of index.fields) {
-          const fieldName = typeof field === 'string' ? field : field.name || field.attribute;
-          if (!uniqueAttrs.includes(fieldName) && model.rawAttributes[fieldName]) {
-            uniqueAttrs.push(fieldName);
+          const columnName = typeof field === 'string' ? field : field.name || field.attribute;
+          // TODO: columnName can't be used to get an attribute from modelDefinition.attributes, this is a bug
+          if (!uniqueColumns.includes(columnName) && modelDefinition.attributes.has(columnName)) {
+            uniqueColumns.push(columnName);
           }
         }
       }
@@ -501,7 +497,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     let joinCondition;
 
     // IDENTITY_INSERT Condition
-    for (const key of identityAttrs) {
+    for (const key of identityColumns) {
       if (insertValues[key] && insertValues[key] !== null) {
         needIdentityInsertWrapper = true;
         /*
@@ -545,19 +541,19 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // Search for primary key attribute in clauses -- Model can have two separate unique keys
       for (const key in clauses) {
         const keys = Object.keys(clauses[key]);
-        if (primaryKeysAttrs.includes(keys[0])) {
-          joinCondition = getJoinSnippet(primaryKeysAttrs).join(' AND ');
+        if (primaryKeysColumns.includes(keys[0])) {
+          joinCondition = getJoinSnippet(primaryKeysColumns).join(' AND ');
           break;
         }
       }
 
       if (!joinCondition) {
-        joinCondition = getJoinSnippet(uniqueAttrs).join(' AND ');
+        joinCondition = getJoinSnippet(uniqueColumns).join(' AND ');
       }
     }
 
     // Remove the IDENTITY_INSERT Column from update
-    const filteredUpdateClauses = updateKeys.filter(key => !identityAttrs.includes(key))
+    const filteredUpdateClauses = updateKeys.filter(key => !identityColumns.includes(key))
       .map(key => {
         const value = this.escape(updateValues[key], undefined, options);
         key = this.quoteIdentifier(key);
@@ -609,7 +605,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     // handle self-referential constraints
-    if (attribute.references && attribute.Model && this.isSameTable(attribute.Model.tableName, attribute.references.model)) {
+    if (attribute.references && attribute.Model && this.isSameTable(attribute.Model.tableName, attribute.references.table)) {
       this.sequelize.log('MSSQL does not support self-referential constraints, '
           + 'we will remove it but we recommend restructuring your query');
       attribute.onDelete = '';
@@ -655,7 +651,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
-      template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
         template += ` (${this.quoteIdentifier(attribute.references.key)})`;
@@ -680,28 +676,25 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);
     const existingConstraints = [];
-    let key;
-    let attribute;
 
-    for (key in attributes) {
-      attribute = attributes[key];
+    for (const key of Object.keys(attributes)) {
+      const attribute = { ...attributes[key] };
 
       if (attribute.references) {
-        if (existingConstraints.includes(attribute.references.model.toString())) {
+        if (existingConstraints.includes(this.quoteTable(attribute.references.table))) {
           // no cascading constraints to a table more than once
           attribute.onDelete = '';
           attribute.onUpdate = '';
         } else {
-          existingConstraints.push(attribute.references.model.toString());
+          existingConstraints.push(this.quoteTable(attribute.references.table));
 
           // NOTE: this really just disables cascading updates for all
           //       definitions. Can be made more robust to support the
           //       few cases where MSSQL actually supports them
           attribute.onUpdate = '';
         }
-
       }
 
       if (key && !attribute.field) {

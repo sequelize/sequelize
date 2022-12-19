@@ -16,6 +16,8 @@ export const Default = Pkg.Default;
 export const NotNull = Pkg.NotNull;
 export const PrimaryKey = Pkg.PrimaryKey;
 export const Unique = Pkg.Unique;
+export const Index = Pkg.Index;
+export const createIndexDecorator = Pkg.createIndexDecorator;
 
 // Validation Decorators
 
@@ -86,3 +88,5 @@ export const BeforeUpdate = Pkg.BeforeUpdate;
 export const BeforeUpsert = Pkg.BeforeUpsert;
 export const BeforeValidate = Pkg.BeforeValidate;
 export const ValidationFailed = Pkg.ValidationFailed;
+export const BeforeDefinitionRefresh = Pkg.BeforeDefinitionRefresh;
+export const AfterDefinitionRefresh = Pkg.AfterDefinitionRefresh;

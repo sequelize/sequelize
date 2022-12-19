@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
 
     Person.hasMany(Person, { as: 'children', foreignKey: 'parent_id', inverse: { as: 'parent' } });
 
-    expect(Person.rawAttributes.parent_id).to.be.ok;
+    expect(Person.getAttributes().parent_id).to.be.ok;
 
     await this.sequelize.sync({ force: true });
 
@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     expect(Person.associations.Parents.otherKey).to.eq('PersonId');
     expect(Person.associations.Childs.otherKey).to.eq('ChildId');
 
-    const rawAttributes = Object.keys(this.sequelize.models.Family.rawAttributes);
+    const rawAttributes = Object.keys(this.sequelize.models.Family.getAttributes());
     expect(rawAttributes).to.have.members(['createdAt', 'updatedAt', 'PersonId', 'ChildId']);
     expect(rawAttributes.length).to.equal(4);
 
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     expect(Person.associations.Parents.otherKey).to.eq('preexisting_parent');
     expect(Person.associations.Children.otherKey).to.eq('preexisting_child');
 
-    const rawAttributes = Object.keys(Family.rawAttributes);
+    const rawAttributes = Object.keys(Family.getAttributes());
     expect(rawAttributes).to.have.members(['preexisting_parent', 'preexisting_child']);
     expect(rawAttributes.length).to.equal(2);
 

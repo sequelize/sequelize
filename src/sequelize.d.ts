@@ -1,7 +1,7 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
-import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
+import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type { CreateSchemaOptions } from './dialects/abstract/query-interface.types';
 import type {
@@ -9,7 +9,7 @@ import type {
   DropOptions,
   Logging,
   Model,
-  ModelAttributeColumnOptions,
+  AttributeOptions,
   ModelAttributes,
   ModelOptions,
   WhereOperators,
@@ -258,7 +258,7 @@ export interface Options extends Logging {
   /**
    * Default options for model definitions. See Model.init.
    */
-  define?: ModelOptions;
+  define?: Omit<ModelOptions, 'name' | 'modelName' | 'tableName'>;
 
   /**
    * Default options for sequelize.query
@@ -1010,8 +1010,11 @@ export class Sequelize extends SequelizeTypeScript {
    */
   close(): Promise<void>;
 
+  normalizeAttribute(attribute: AttributeOptions | DataType): AttributeOptions;
+
   normalizeDataType(Type: string): string;
   normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
+  normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
 
   /**
    * Fetches the database version
@@ -1099,7 +1102,7 @@ export function or<T extends any[]>(...args: T): { [Op.or]: T };
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | ModelAttributeColumnOptions;
+export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | AttributeOptions;
 
 /**
  * A way of specifying "attr = condition".

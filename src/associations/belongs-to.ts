@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
 import { cloneDataType } from '../dialects/abstract/data-types-utils.js';
@@ -12,7 +13,9 @@ import type {
   SaveOptions,
   AttributeNames,
   Attributes,
+  AttributeReferencesOptions,
 } from '../model';
+import { normalizeReference } from '../model-definition.js';
 import { Op } from '../operators';
 import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
@@ -24,7 +27,6 @@ import { HasMany } from './has-many.js';
 import { HasOne } from './has-one.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 import {
-  addForeignKeyConstraints,
   defineAssociation,
   mixinMethods, normalizeBaseAssociationOptions,
 } from './helpers';
@@ -65,6 +67,7 @@ export class BelongsTo<
   /**
    * The column name of the foreign key
    */
+  // TODO: rename to foreignKeyColumnName
   identifierField: string;
 
   /**
@@ -77,6 +80,7 @@ export class BelongsTo<
   /**
    * The column name of the target key
    */
+  // TODO: rename to targetKeyColumnName
   readonly targetKeyField: string;
 
   readonly targetKeyIsPrimary: boolean;
@@ -100,7 +104,9 @@ export class BelongsTo<
     // TODO: throw is source model has a composite primary key.
     const targetKey = options?.targetKey || (target.primaryKeyAttribute as TargetKey);
 
-    if (!target.getAttributes()[targetKey]) {
+    const targetAttributes = target.modelDefinition.attributes;
+
+    if (!targetAttributes.has(targetKey)) {
       throw new Error(`Unknown attribute "${options.targetKey}" passed as targetKey, define this attribute on model "${target.name}" first`);
     }
 
@@ -115,10 +121,9 @@ export class BelongsTo<
     // For Db2 server, a reference column of a FOREIGN KEY must be unique
     // else, server throws SQL0573N error. Hence, setting it here explicitly
     // for non primary columns.
-    if (target.sequelize.options.dialect === 'db2' && this.target.getAttributes()[this.targetKey].primaryKey !== true) {
+    if (target.sequelize.options.dialect === 'db2' && targetAttributes.get(this.targetKey)!.primaryKey !== true) {
       // TODO: throw instead
-      // @ts-expect-error -- pending removal, not worth typing
-      this.target.getAttributes()[this.targetKey].unique = true;
+      this.target.modelDefinition.rawAttributes[this.targetKey].unique = true;
     }
 
     let foreignKey: string | undefined;
@@ -139,16 +144,52 @@ export class BelongsTo<
 
     this.foreignKey = foreignKey as SourceKey;
 
-    const newForeignKeyAttribute = removeUndefined({
-      type: cloneDataType(this.target.rawAttributes[this.targetKey].type),
-      ...foreignKeyAttributeOptions,
-      allowNull: this.source.rawAttributes[this.foreignKey]?.allowNull ?? foreignKeyAttributeOptions?.allowNull,
-    });
-
-    this.targetKeyField = getColumnName(this.target.getAttributes()[this.targetKey]);
+    this.targetKeyField = getColumnName(targetAttributes.get(this.targetKey)!);
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
 
-    addForeignKeyConstraints(newForeignKeyAttribute, this.target, this.options, this.targetKeyField);
+    const targetAttribute = targetAttributes.get(this.targetKey)!;
+
+    const existingForeignKey = source.modelDefinition.rawAttributes[this.foreignKey];
+    const newForeignKeyAttribute = removeUndefined({
+      type: cloneDataType(targetAttribute.type),
+      ...foreignKeyAttributeOptions,
+      allowNull: existingForeignKey?.allowNull ?? foreignKeyAttributeOptions?.allowNull,
+    });
+
+    // FK constraints are opt-in: users must either set `foreignKeyConstraints`
+    // on the association, or request an `onDelete` or `onUpdate` behavior
+    if (options.foreignKeyConstraints !== false) {
+      const existingReference = existingForeignKey?.references
+        ? (normalizeReference(existingForeignKey.references) ?? existingForeignKey.references) as AttributeReferencesOptions
+        : undefined;
+
+      const queryGenerator = this.source.sequelize.getQueryInterface().queryGenerator;
+
+      const existingReferencedTable = existingReference?.table
+        ? queryGenerator.extractTableDetails(existingReference.table)
+        : undefined;
+
+      const newReferencedTable = queryGenerator.extractTableDetails(this.target);
+
+      const newReference: AttributeReferencesOptions = {};
+      if (existingReferencedTable) {
+        if (!isEqual(existingReferencedTable, newReferencedTable)) {
+          throw new Error(`Foreign key ${this.foreignKey} on ${this.source.name} already references ${queryGenerator.quoteTable(existingReferencedTable)}, but this association needs to make it reference ${queryGenerator.quoteTable(newReferencedTable)} instead.`);
+        }
+      } else {
+        newReference.table = newReferencedTable;
+      }
+
+      if (existingReference?.key && existingReference.key !== this.targetKeyField) {
+        throw new Error(`Foreign key ${this.foreignKey} on ${this.source.name} already references column ${existingReference.key}, but this association needs to make it reference ${this.targetKeyField} instead.`);
+      }
+
+      newReference.key = this.targetKeyField;
+
+      newForeignKeyAttribute.references = newReference;
+      newForeignKeyAttribute.onDelete ??= newForeignKeyAttribute.allowNull !== false ? 'SET NULL' : 'CASCADE';
+      newForeignKeyAttribute.onUpdate ??= newForeignKeyAttribute.onUpdate ?? 'CASCADE';
+    }
 
     this.source.mergeAttributesDefault({
       [this.foreignKey]: newForeignKeyAttribute,

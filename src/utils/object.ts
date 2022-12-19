@@ -8,6 +8,7 @@ import isUndefined from 'lodash/isUndefined.js';
 import mergeWith from 'lodash/mergeWith';
 import omitBy from 'lodash/omitBy.js';
 import { getComplexKeys } from './format';
+import type { MapView } from './immutability.js';
 import { combinedIterator, map } from './iterators.js';
 // eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { camelize } from './string';
@@ -36,7 +37,7 @@ export function mergeDefaults<T>(a: T, b: Partial<T>): T {
       return objectValue;
     }
 
-    // eslint-disable-next-line consistent-return,no-useless-return -- lodash actually wants us to return `undefined` to fallback to the default customizer.
+    // eslint-disable-next-line no-useless-return -- lodash actually wants us to return `undefined` to fallback to the default customizer.
     return;
   });
 }
@@ -75,7 +76,6 @@ export function merge(...args: object[]): object {
   return result;
 }
 
-/* eslint-disable consistent-return -- lodash actually wants us to return `undefined` to fallback to the default customizer. */
 export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
   return cloneDeepWith(obj || {}, elem => {
     // Do not try to customize cloning of arrays or POJOs
@@ -221,6 +221,16 @@ export function removeUndefined<T extends {}>(val: T): NoUndefinedField<T> {
   return omitBy(val, isUndefined) as NoUndefinedField<T>;
 }
 
+export function getObjectFromMap<K extends PropertyKey, V>(aMap: Map<K, V> | MapView<K, V>): Record<K, V> {
+  const record = Object.create(null);
+
+  for (const key of aMap.keys()) {
+    record[key] = aMap.get(key);
+  }
+
+  return record;
+}
+
 /**
  * Returns all own keys of an object, including non-enumerable ones and symbols.
  *
@@ -235,7 +245,18 @@ export function getAllOwnKeys(object: object): IterableIterator<string | symbol>
 
 /**
  * Returns all own entries of an object, including non-enumerable ones and symbols.
+ *
+ * @param obj
  */
-export function getAllOwnEntries<T>(object: { [s: PropertyKey]: T }): IterableIterator<[key: string | symbol, value: T]> {
-  return map(getAllOwnKeys(object), key => [key, object[key]]);
+export function getAllOwnEntries<T>(obj: { [s: PropertyKey]: T }): IterableIterator<[key: string | symbol, value: T]>;
+export function getAllOwnEntries(obj: object): IterableIterator<[key: string | symbol, value: unknown]>;
+export function getAllOwnEntries(obj: object): IterableIterator<[key: string | symbol, value: unknown]> {
+  // @ts-expect-error -- obj[key] is implicitly any
+  return map(getAllOwnKeys(obj), key => [key, obj[key]]);
+}
+
+export function noPrototype<T extends object>(obj: T): T {
+  Object.setPrototypeOf(obj, null);
+
+  return obj;
 }

@@ -1,10 +1,12 @@
-import type { ModelAttributeColumnOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';
+import { mergeModelOptions } from '../../model-definition.js';
+import { initModel } from '../../model-typescript.js';
+import type { AttributeOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { getAllOwnEntries } from '../../utils/object.js';
 
 interface RegisteredOptions {
   model: ModelOptions;
-  attributes: { [key: string]: Partial<ModelAttributeColumnOptions> };
+  attributes: { [key: string]: Partial<AttributeOptions> };
 }
 
 const registeredOptions = new WeakMap<ModelStatic, RegisteredOptions>();
@@ -27,43 +29,14 @@ export function registerModelOptions(
     return;
   }
 
-  // merge-able: scopes, indexes, setterMethods, getterMethods
+  // merge-able: scopes, indexes
   const existingModelOptions = registeredOptions.get(model)!.model;
 
-  for (const [optionName, optionValue] of Object.entries(options)) {
-    if (!(optionName in existingModelOptions)) {
-      // @ts-expect-error -- runtime type checking is enforced by model
-      existingModelOptions[optionName] = optionValue;
-      continue;
-    }
-
-    // These are objects. We merge their properties, unless the same key is used in both values.
-    if (optionName === 'scopes' || optionName === 'setterMethods' || optionName === 'getterMethods' || optionName === 'validate') {
-      for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
-        if (subOptionName in existingModelOptions[optionName]!) {
-          throw new Error(`Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] on model ${model.name}.`);
-        }
-
-        // @ts-expect-error -- runtime type checking is enforced by model
-        existingModelOptions[optionName][subOptionName] = subOptionValue;
-      }
-
-      continue;
-    }
-
-    // This is an array. Simple array merge.
-    if (optionName === 'indexes') {
-      existingModelOptions.indexes = [...existingModelOptions.indexes!, ...optionValue];
-
-      continue;
-    }
-
-    // @ts-expect-error -- dynamic type, not worth typing
-    if (optionValue === existingModelOptions[optionName]) {
-      continue;
-    }
-
-    throw new Error(`Multiple decorators are attempting to set different values for the option ${optionName} on model ${model.name}.`);
+  try {
+    mergeModelOptions(existingModelOptions, options, false);
+  } catch (error) {
+    // TODO [TS 4.8]: remove this "as Error" cast once support for TS < 4.8 is dropped, as the typing of "cause" has been fixed in TS 4.8
+    throw new Error(`Multiple decorators are trying to register conflicting options on model ${model.name}`, { cause: error as Error });
   }
 }
 
@@ -78,7 +51,7 @@ export function registerModelOptions(
 export function registerModelAttributeOptions(
   model: ModelStatic,
   attributeName: string,
-  options: Partial<ModelAttributeColumnOptions>,
+  options: Partial<AttributeOptions>,
 ): void {
   if (!registeredOptions.has(model)) {
     registeredOptions.set(model, {
@@ -122,18 +95,19 @@ export function registerModelAttributeOptions(
       continue;
     }
 
-    if (optionName === 'unique') {
-      if (!existingOptions.unique) {
-        existingOptions.unique = [];
-      } else if (!Array.isArray(existingOptions.unique)) {
-        existingOptions.unique = [existingOptions.unique];
+    if (optionName === 'index' || optionName === 'unique') {
+      if (!existingOptions[optionName]) {
+        existingOptions[optionName] = [];
+      } else if (!Array.isArray(existingOptions[optionName])) {
+        // @ts-expect-error -- runtime type checking is enforced by model
+        existingOptions[optionName] = [existingOptions[optionName]];
       }
 
       if (Array.isArray(optionValue)) {
-        existingOptions.unique = [...existingOptions.unique, ...optionValue];
-      } else {
         // @ts-expect-error -- runtime type checking is enforced by model
-        existingOptions.unique = [...existingOptions.unique, optionValue];
+        existingOptions[optionName] = [...existingOptions[optionName], ...optionValue];
+      } else {
+        existingOptions[optionName] = [...existingOptions[optionName], optionValue];
       }
 
       continue;
@@ -151,9 +125,7 @@ export function registerModelAttributeOptions(
 export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): void {
   const { model: modelOptions, attributes: attributeOptions } = registeredOptions.get(model) ?? {};
 
-  // model.init will ensure all required attributeOptions have been specified.
-  // @ts-expect-error -- secret method
-  model._internalInit(attributeOptions as ModelAttributes, {
+  initModel(model, attributeOptions as ModelAttributes, {
     ...modelOptions,
     sequelize,
   });

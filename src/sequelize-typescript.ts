@@ -11,8 +11,8 @@ import {
 } from './hooks-legacy.js';
 import type { AsyncHookReturn, HookHandler } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
-import type { ModelHooks } from './model-typescript.js';
-import { validModelHooks } from './model-typescript.js';
+import type { ModelHooks } from './model-hooks.js';
+import { validModelHooks } from './model-hooks.js';
 import type { ConnectionOptions, Options, Sequelize } from './sequelize.js';
 import type { TransactionOptions } from './transaction.js';
 import { Transaction } from './transaction.js';

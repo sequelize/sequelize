@@ -1,6 +1,7 @@
 'use strict';
 
 import { underscore } from 'inflection';
+import { conformIndex } from '../../model-internals';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
 import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
@@ -109,13 +110,11 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
           return true;
         }
 
-        if (columns.customIndex) {
-          if (typeof indexName !== 'string') {
-            indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
-          }
-
-          attributesClause += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+        if (typeof indexName !== 'string') {
+          indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
+
+        attributesClause += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
@@ -308,34 +307,39 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
   }
 
-  escape(value, field, options) {
+  escape(value, attribute, options) {
     if (value instanceof SequelizeMethod) {
       return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
-    if (value == null || field?.type == null || typeof field.type === 'string') {
+    if (value == null || attribute?.type == null || typeof attribute.type === 'string') {
       const format = (value === null && options.where);
 
       // use default escape mechanism instead of the DataType's.
       return SqlString.escape(value, this.options.timezone, this.dialect, format);
     }
 
-    field.type = field.type.toDialectDataType(this.dialect);
+    if (!attribute.type.belongsToDialect(this.dialect)) {
+      attribute = {
+        ...attribute,
+        type: attribute.type.toDialectDataType(this.dialect),
+      };
+    }
 
     if (options.isList && Array.isArray(value)) {
       const escapeOptions = { ...options, isList: false };
 
       return `(${value.map(valueItem => {
-        return this.escape(valueItem, field, escapeOptions);
+        return this.escape(valueItem, attribute, escapeOptions);
       }).join(', ')})`;
     }
 
-    this.validate(value, field);
+    this.validate(value, attribute);
 
-    return field.type.escape(value, {
+    return attribute.type.escape(value, {
       // Users shouldn't have to worry about these args - just give them a function that takes a single arg
       escape: this.simpleEscape,
-      field,
+      field: attribute,
       timezone: this.options.timezone,
       operation: options.operation,
       dialect: this.dialect,
@@ -417,7 +421,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       options = nameIndex(options, options.prefix);
     }
 
-    options = Model._conformIndex(options);
+    options = conformIndex(options);
 
     if (!this.dialect.supports.index.type) {
       delete options.type;
@@ -683,7 +687,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         template += ` ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }
 
-      template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
         template += ` (${this.quoteIdentifier(attribute.references.key)})`;
@@ -706,9 +710,12 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   attributesToSQL(attributes, options) {
     const result = Object.create(null);
 
-    for (const key in attributes) {
-      const attribute = attributes[key];
-      attribute.field = attribute.field || key;
+    for (const key of Object.keys(attributes)) {
+      const attribute = {
+        ...attributes[key],
+        field: attributes[key].field || key,
+      };
+
       result[attribute.field || key] = this.attributeToSQL(attribute, options);
     }
 

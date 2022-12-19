@@ -226,41 +226,28 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
 
-    describe('using define hooks', () => {
-      beforeEach(function () {
-        this.beforeCreate = sinon.spy();
-        this.sequelize = Support.createSequelizeInstance({
-          define: {
-            hooks: {
-              beforeCreate: this.beforeCreate,
-            },
-          },
-        });
-      });
-
-      it('runs the global hook when no hook is passed', async function () {
-        const Model = this.sequelize.define('M', {}, {
+    it('registers both the global define hook, and the local hook', async () => {
+      const globalHook = sinon.spy();
+      const sequelize = Support.createSequelizeInstance({
+        define: {
           hooks: {
-            beforeUpdate: _.noop, // Just to make sure we can define other hooks without overwriting the global one
+            beforeCreate: globalHook,
           },
-        });
-
-        await Model.runHooks('beforeCreate');
-        expect(this.beforeCreate).to.have.been.calledOnce;
+        },
       });
 
-      it('does not run the global hook when the model specifies its own hook', async function () {
-        const localHook = sinon.spy();
-        const Model = this.sequelize.define('M', {}, {
-          hooks: {
-            beforeCreate: localHook,
-          },
-        });
+      const localHook = sinon.spy();
 
-        await Model.runHooks('beforeCreate');
-        expect(this.beforeCreate).not.to.have.been.called;
-        expect(localHook).to.have.been.calledOnce;
+      const Model = sequelize.define('M', {}, {
+        hooks: {
+          beforeUpdate: _.noop, // Just to make sure we can define other hooks without overwriting the global one
+          beforeCreate: localHook,
+        },
       });
+
+      await Model.runHooks('beforeCreate');
+      expect(globalHook).to.have.been.calledOnce;
+      expect(localHook).to.have.been.calledOnce;
     });
   });
 

@@ -233,24 +233,29 @@ export class PostgresQueryInterface extends AbstractQueryInterface {
   async dropTable(tableName, options) {
     await super.dropTable(tableName, options);
     const promises = [];
-    const instanceTable = this.sequelize.modelManager.getModel(tableName, { attribute: 'tableName' });
+    // TODO: we support receiving the model class instead of getting it from modelManager. More than one model can use the same table.
+    const model = this.sequelize.modelManager.getModel(tableName, { attribute: 'tableName' });
 
-    if (!instanceTable) {
+    if (!model) {
       // Do nothing when model is not available
       return;
     }
 
     const getTableName = (!options || !options.schema || options.schema === 'public' ? '' : `${options.schema}_`) + tableName;
 
-    const keys = Object.keys(instanceTable.rawAttributes);
-    const keyLen = keys.length;
+    const attributes = model.modelDefinition.attributes;
 
-    for (let i = 0; i < keyLen; i++) {
-      if (instanceTable.rawAttributes[keys[i]].type instanceof DataTypes.ENUM) {
-        const sql = this.queryGenerator.pgEnumDrop(getTableName, keys[i]);
-        options.supportsSearchPath = false;
-        promises.push(this.sequelize.queryRaw(sql, { ...options, raw: true }));
+    for (const attribute of attributes.values()) {
+      if (!(attribute.type instanceof DataTypes.ENUM)) {
+        continue;
       }
+
+      const sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
+      promises.push(this.sequelize.queryRaw(sql, {
+        ...options,
+        raw: true,
+        supportsSearchPath: false,
+      }));
     }
 
     await Promise.all(promises);

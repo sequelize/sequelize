@@ -79,49 +79,49 @@ if (dialect === 'snowflake') {
         },
         // New references style
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' } } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("id")' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar', key: 'pk' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar', key: 'pk' } } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("pk")' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE' } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("id") ON UPDATE RESTRICT' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { table: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER NOT NULL AUTOINCREMENT DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT' },
         },
 
         // Variants when quoteIdentifiers is false
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' } } }],
           expectation: { id: 'INTEGER REFERENCES Bar (id)' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar', key: 'pk' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar', key: 'pk' } } }],
           expectation: { id: 'INTEGER REFERENCES Bar (pk)' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE' } }],
           expectation: { id: 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER REFERENCES Bar (id) ON UPDATE RESTRICT' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { table: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER NOT NULL AUTOINCREMENT DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT' },
           context: { options: { quoteIdentifiers: false } },
         },
@@ -169,7 +169,7 @@ if (dialect === 'snowflake') {
           expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER, FOREIGN KEY ("otherId") REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION);',
         },
         {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'], customIndex: true }] }],
+          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'] }] }],
           expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), UNIQUE "uniq_myTable_title_name" ("title", "name"));',
         },
         // Variants when quoteIdentifiers is false
@@ -224,7 +224,7 @@ if (dialect === 'snowflake') {
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'], customIndex: true }] }],
+          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'] }] }],
           expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255), UNIQUE uniq_myTable_title_name (title, name));',
           context: { options: { quoteIdentifiers: false } },
         },
@@ -491,18 +491,6 @@ if (dialect === 'snowflake') {
           expectation: 'SELECT "test".* FROM (SELECT * FROM "myTable" AS "test" HAVING "creationYear" > 2002) AS "test";',
           context: QueryGenerator,
           needsSequelize: true,
-        }, {
-          title: 'Contains fields with "." characters.',
-          arguments: ['myTable', {
-            attributes: ['foo.bar.baz'],
-            model: {
-              rawAttributes: {
-                'foo.bar.baz': {},
-              },
-            },
-          }],
-          expectation: 'SELECT "foo.bar.baz" FROM "myTable";',
-          context: QueryGenerator,
         },
 
         // Variants when quoteIdentifiers is false
@@ -755,18 +743,6 @@ if (dialect === 'snowflake') {
           expectation: 'SELECT test.* FROM (SELECT * FROM myTable AS test HAVING creationYear > 2002) AS test;',
           context: { options: { quoteIdentifiers: false } },
           needsSequelize: true,
-        }, {
-          title: 'Contains fields with "." characters.',
-          arguments: ['myTable', {
-            attributes: ['foo.bar.baz'],
-            model: {
-              rawAttributes: {
-                'foo.bar.baz': {},
-              },
-            },
-          }],
-          expectation: 'SELECT "foo.bar.baz" FROM myTable;',
-          context: { options: { quoteIdentifiers: false } },
         },
       ],
 

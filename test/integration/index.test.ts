@@ -86,7 +86,7 @@ describe(getTestDialectTeaser('Indexes'), () => {
     });
 
     it('throws an error with missing column names', async () => {
-      sequelize.define('user', {
+      const User = sequelize.define('user', {
         username: DataTypes.STRING,
         first_name: DataTypes.STRING,
         last_name: DataTypes.STRING,
@@ -94,14 +94,8 @@ describe(getTestDialectTeaser('Indexes'), () => {
         indexes: [{ name: 'user_username', fields: ['username'], include: ['first_name', 'last_name', 'email'], unique: true }],
       });
 
-      try {
-        await sequelize.sync({ force: true });
-        expect.fail('This should have failed');
-      } catch (error: any) {
-        expect(error).to.be.instanceOf(DatabaseError);
-        expect(error.message).to.match(/\s|^Column name 'email' does not exist in the target table or view.$/);
-      }
-
+      await expect(User.sync({ force: true }))
+        .to.be.rejectedWith(DatabaseError, /\s|^Column name 'email' does not exist in the target table or view.$/);
     });
 
     it('throws an error with invalid column type', async () => {

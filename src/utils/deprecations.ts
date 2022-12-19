@@ -19,3 +19,6 @@ export const doNotUseRealDataType = deprecate(noop, 'Sequelize 7 has normalized 
 export const noSchemaParameter = deprecate(noop, 'The schema parameter in QueryInterface#describeTable has been deprecated, use a TableNameWithSchema object to specify the schema or set the schema globally in the options.', 'SEQUELIZE0015');
 export const noSchemaDelimiterParameter = deprecate(noop, 'The schemaDelimiter parameter in QueryInterface#describeTable has been deprecated, use a TableNameWithSchema object to specify the schemaDelimiter.', 'SEQUELIZE0016');
 export const columnToAttribute = deprecate(noop, 'The @Column decorator has been renamed to @Attribute.', 'SEQUELIZE0017');
+export const fieldToColumn = deprecate(noop, 'The "field" option in attribute definitions has been renamed to "columnName".', 'SEQUELIZE0018');
+export const noModelTableName = deprecate(noop, 'Model.tableName has been replaced with the more complete Model.modelDefinition.table, or Model.table', 'SEQUELIZE0019');
+export const noNewModel = deprecate(noop, `Do not use "new YourModel()" to instantiate a model. Use "YourModel.build()" instead. The previous option is being removed to resolve a conflict with class properties. See https://github.com/sequelize/sequelize/issues/14300#issuecomment-1355188077 for more information.`, 'SEQUELIZE0020');
