@@ -102,8 +102,6 @@ export function BelongsToMany(
   };
 }
 
-// export const HasMany = createAssociationDecorator<HasManyOptions<string, string>>('HasMany');
-// export const BelongsToMany = createAssociationDecorator<BelongsToManyOptions<string, string>>('BelongsToMany');
 
 export function initDecoratedAssociations(model: ModelStatic, sequelize: Sequelize): void {
   const associations = registeredAssociations.get(model);
