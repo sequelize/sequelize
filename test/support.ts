@@ -592,3 +592,7 @@ export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> |
 
   return out;
 }
+
+export function typeTest(_name: string, _callback: () => void): void {
+  // This function doesn't do anything. a type test is only checked by TSC and never runs.
+}

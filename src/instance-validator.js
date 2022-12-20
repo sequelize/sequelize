@@ -4,10 +4,10 @@ import { AbstractDataType } from './dialects/abstract/data-types';
 import { validateDataType } from './dialects/abstract/data-types-utils';
 import { getAllOwnKeys } from './utils/object';
 import { SequelizeMethod } from './utils/sequelize-method';
+import { BelongsTo } from './associations/belongs-to';
 
 const _ = require('lodash');
 const sequelizeError = require('./errors');
-const { BelongsTo } = require('./associations/belongs-to');
 const validator = require('./utils/validator-extras').validator;
 const { promisify } = require('node:util');
 

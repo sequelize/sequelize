@@ -300,3 +300,9 @@ export function normalizeForeignKeyOptions<T extends string>(foreignKey: Associa
     fieldName: undefined,
   });
 }
+
+export type MaybeForwardedModelStatic<M extends Model = Model> = ModelStatic<M> | ((sequelize: Sequelize) => ModelStatic<M>);
+
+export function getForwardedModel(model: MaybeForwardedModelStatic, sequelize: Sequelize): ModelStatic {
+  return typeof model === 'function' && !isModelStatic(model) ? model(sequelize) : model;
+}

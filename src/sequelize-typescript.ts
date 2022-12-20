@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
 import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { AbstractQuery } from './dialects/abstract/query.js';
@@ -192,7 +193,13 @@ export abstract class SequelizeTypeScript {
       );
     }
 
-    // TODO: https://github.com/sequelize/sequelize/issues/15334 -- register associations declared by decorators
+    for (const model of models) {
+      initDecoratedAssociations(
+        model,
+        // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
+        this,
+      );
+    }
   }
 
   /**

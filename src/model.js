@@ -3,7 +3,13 @@
 import omit from 'lodash/omit';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { intersects } from './utils/array';
-import { noNewModel } from './utils/deprecations';
+import {
+  noDoubleNestedGroup,
+  noModelDropSchema,
+  noNewModel,
+  schemaRenamedToWithSchema,
+  scopeRenamedToWithScope,
+} from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
 import {
   getComplexKeys,
@@ -18,21 +24,20 @@ import { isWhereEmpty } from './utils/query-builder-utils';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { SequelizeMethod } from './utils/sequelize-method';
+import { Association, BelongsTo, BelongsToMany, HasMany, HasOne } from './associations';
+import { AssociationSecret } from './associations/helpers';
+import { Op } from './operators';
+import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
+import { QueryTypes } from './query-types';
 
 const assert = require('node:assert');
 const NodeUtil = require('node:util');
 const _ = require('lodash');
 const Dottie = require('dottie');
 const { logger } = require('./utils/logger');
-const { BelongsTo, BelongsToMany, Association, HasMany, HasOne } = require('./associations');
-const { AssociationSecret } = require('./associations/helpers');
 const { InstanceValidator } = require('./instance-validator');
-const { QueryTypes } = require('./query-types');
 const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
-const { Op } = require('./operators');
-const { _validateIncludedElements, combineIncludes, throwInvalidInclude, setTransactionFromCls } = require('./model-internals');
-const { noDoubleNestedGroup, scopeRenamedToWithScope, schemaRenamedToWithSchema, noModelDropSchema } = require('./utils/deprecations');
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -79,8 +84,10 @@ export class Model extends ModelTypeScript {
    * @param {object}  [options] instance construction options
    * @param {boolean} [options.raw=false] If set to true, values will ignore field and virtual setters.
    * @param {boolean} [options.isNewRecord=true] Is this a new record
-   * @param {Array}   [options.include] an array of include options - Used to build prefetched/included model instances. See `set`
-   * @param {symbol}  secret Secret used to ensure Model.build is used instead of new Model(). Don't forget to pass it up if you define a custom constructor.
+   * @param {Array}   [options.include] an array of include options - Used to build prefetched/included model instances. See
+   *   `set`
+   * @param {symbol}  secret Secret used to ensure Model.build is used instead of new Model(). Don't forget to pass it up if
+   *   you define a custom constructor.
    */
   constructor(values = {}, options = {}, secret) {
     super();
