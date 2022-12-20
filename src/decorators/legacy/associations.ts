@@ -102,7 +102,6 @@ export function BelongsToMany(
   };
 }
 
-
 export function initDecoratedAssociations(model: ModelStatic, sequelize: Sequelize): void {
   const associations = registeredAssociations.get(model);
 
