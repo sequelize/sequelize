@@ -57,7 +57,7 @@
     "moment": "^2.29.1",
     "moment-timezone": "^0.5.34",
     "pg-connection-string": "^2.5.0",
-    "retry-as-promised": "^6.1.0",
+    "retry-as-promised": "^7.0.3",
     "semver": "^7.3.5",
     "sequelize-pool": "^7.1.0",
     "toposort-class": "^1.0.1",
