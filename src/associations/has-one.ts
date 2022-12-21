@@ -259,6 +259,7 @@ because, as this is a hasOne association, the foreign key we need to update is l
 
     const alreadyAssociated = !oldInstance || !associatedInstanceOrPk ? false
       : associatedInstanceOrPk instanceof Model ? associatedInstanceOrPk.equals(oldInstance)
+      // @ts-expect-error -- TODO: what if the target has no primary key?
       : oldInstance.get(this.target.primaryKeyAttribute) === associatedInstanceOrPk;
 
     if (alreadyAssociated) {
@@ -286,6 +287,7 @@ because, as this is a hasOne association, the foreign key we need to update is l
         associatedInstance = associatedInstanceOrPk as T;
       } else {
         const tmpInstance = Object.create(null);
+        // @ts-expect-error -- TODO: what if the target has no primary key?
         tmpInstance[this.target.primaryKeyAttribute] = associatedInstanceOrPk;
         associatedInstance = this.target.build(tmpInstance, {
           isNewRecord: false,

@@ -324,7 +324,7 @@ export class Db2Query extends AbstractQuery {
       }
 
       if (this.model && Boolean(uniqueIndexName)) {
-        uniqueKey = this.model.uniqueKeys[uniqueIndexName];
+        uniqueKey = this.model.getIndexes().find(index => index.unique && index.name === uniqueIndexName);
       }
 
       if (!uniqueKey && this.options.fields) {
@@ -332,6 +332,7 @@ export class Db2Query extends AbstractQuery {
       }
 
       if (uniqueKey) {
+        // TODO: DB2 uses a custom "column" property, but it should use "fields" instead, so column can be removed
         if (this.options.where
           && this.options.where[uniqueKey.column] !== undefined) {
           fields[uniqueKey.column] = this.options.where[uniqueKey.column];
@@ -457,22 +458,21 @@ export class Db2Query extends AbstractQuery {
   }
 
   handleInsertQuery(results, metaData) {
-    if (this.instance) {
-      // add the inserted row id to the instance
-      const autoIncrementAttribute = this.model.autoIncrementAttribute;
-      let id = null;
-      let autoIncrementAttributeAlias = null;
-
-      if (Object.prototype.hasOwnProperty.call(this.model.rawAttributes, autoIncrementAttribute)
-          && this.model.rawAttributes[autoIncrementAttribute].field !== undefined) {
-        autoIncrementAttributeAlias = this.model.rawAttributes[autoIncrementAttribute].field;
-      }
-
-      id = id || results && results[0][this.getInsertIdField()];
-      id = id || metaData && metaData[this.getInsertIdField()];
-      id = id || results && results[0][autoIncrementAttribute];
-      id = id || autoIncrementAttributeAlias && results && results[0][autoIncrementAttributeAlias];
-      this.instance[autoIncrementAttribute] = id;
+    if (!this.instance) {
+      return;
     }
+
+    const modelDefinition = this.model.modelDefinition;
+    if (!modelDefinition.autoIncrementAttributeName) {
+      return;
+    }
+
+    const autoIncrementAttribute = modelDefinition.attributes.get(modelDefinition.autoIncrementAttributeName);
+
+    const id = (results?.[0][this.getInsertIdField()])
+      ?? (metaData?.[this.getInsertIdField()])
+      ?? (results?.[0][autoIncrementAttribute.columnName]);
+
+    this.instance[autoIncrementAttribute.attributeName] = id;
   }
 }

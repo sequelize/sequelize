@@ -1,7 +1,7 @@
-import type { QueryInterface } from '@sequelize/core';
+import type { AbstractQueryInterface } from '@sequelize/core';
 import { DataTypes, Model, fn, literal, col } from '@sequelize/core';
 
-declare let queryInterface: QueryInterface;
+declare let queryInterface: AbstractQueryInterface;
 
 async function test() {
   await queryInterface.createTable(
@@ -20,7 +20,7 @@ async function test() {
         onUpdate: 'CASCADE',
         references: {
           key: 'id',
-          model: 'another_table_name',
+          table: 'another_table_name',
         },
         type: DataTypes.INTEGER,
       },
@@ -29,20 +29,14 @@ async function test() {
         onUpdate: 'CASCADE',
         references: {
           key: 'id',
-          model: { schema: '<schema>', tableName: 'another_table_name' },
+          table: { schema: '<schema>', tableName: 'another_table_name' },
         },
         type: DataTypes.INTEGER,
-      },
-      createdAt: {
-        type: DataTypes.DATE,
       },
       id: {
         autoIncrement: true,
         primaryKey: true,
         type: DataTypes.INTEGER,
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
       },
     },
     {
@@ -51,7 +45,6 @@ async function test() {
       engine: 'MYISAM', // default: 'InnoDB'
       uniqueKeys: {
         test: {
-          customIndex: true,
           fields: ['attr2', 'attr3'],
         },
       },
@@ -206,6 +199,7 @@ async function test() {
 
   await queryInterface.removeIndex('Person', 'SuperDuperIndex');
   await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex');
+  await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex', { ifExists: true });
 
   const indexes = await queryInterface.showIndex('Person');
   indexes.map(index => ({

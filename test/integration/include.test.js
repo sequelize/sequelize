@@ -533,7 +533,7 @@ Instead of specifying a Model, either:
           },
         ],
         order: [
-          User.rawAttributes.id,
+          User.getAttributes().id,
           [Product, 'id'],
         ],
       });

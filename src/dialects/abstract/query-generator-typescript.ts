@@ -10,6 +10,15 @@ import type { AbstractDialect } from './index.js';
 
 export type TableNameOrModel = TableName | ModelStatic;
 
+// keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface RemoveIndexQueryOptions {
+  concurrently?: boolean;
+  ifExists?: boolean;
+  cascade?: boolean;
+}
+
+export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
+
 export interface QueryGeneratorOptions {
   sequelize: Sequelize;
   dialect: AbstractDialect;
@@ -48,6 +57,15 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`showIndexesQuery has not been implemented in ${this.dialect.name}.`);
   }
 
+  removeIndexQuery(
+    _tableName: TableNameOrModel,
+    _indexNameOrAttributes: string | string [],
+    _options?: RemoveIndexQueryOptions,
+  ): string {
+    throw new Error(`removeIndexQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  // TODO: rename to "normalizeTable" & move to sequelize class
   extractTableDetails(
     tableNameOrModel: TableNameOrModel,
     options?: { schema?: string, delimiter?: string },
@@ -59,6 +77,9 @@ export class AbstractQueryGeneratorTypeScript {
     if (!isPlainObject(tableNameObject)) {
       throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableNameOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
     }
+
+    // @ts-expect-error -- TODO: this is added by getTableName on model, and must be removed
+    delete tableNameObject.toString;
 
     return {
       ...tableNameObject,

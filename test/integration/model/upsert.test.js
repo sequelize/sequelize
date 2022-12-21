@@ -547,7 +547,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             deletedAt: {
               type: DataTypes.DATE,
               primaryKey: true,
-              allowNull: false,
+              allowNull: true,
               defaultValue: Number.POSITIVE_INFINITY,
             },
           }, {

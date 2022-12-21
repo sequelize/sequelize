@@ -1,14 +1,15 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
-import type { AbstractDataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
-import type { QueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
+import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
+import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
+import type { CreateSchemaOptions } from './dialects/abstract/query-interface.types';
 import type {
   DestroyOptions,
   DropOptions,
   Logging,
   Model,
-  ModelAttributeColumnOptions,
+  AttributeOptions,
   ModelAttributes,
   ModelOptions,
   WhereOperators,
@@ -257,7 +258,7 @@ export interface Options extends Logging {
   /**
    * Default options for model definitions. See Model.init.
    */
-  define?: ModelOptions;
+  define?: Omit<ModelOptions, 'name' | 'modelName' | 'tableName'>;
 
   /**
    * Default options for sequelize.query
@@ -452,10 +453,10 @@ export interface Options extends Logging {
    * Disable the use of AsyncLocalStorage to automatically pass transactions started by {@link Sequelize#transaction}.
    * You will need to pass transactions around manually if you disable this.
    */
-  disableAlsTransactions?: boolean;
+  disableClsTransactions?: boolean;
 }
 
-export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone' | 'disableAlsTransactions'> {
+export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone' | 'disableClsTransactions'> {
   readonly replication: NormalizedReplicationOptions;
 }
 
@@ -765,12 +766,12 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns the dialect-dependant QueryInterface instance.
    */
-  getQueryInterface(): QueryInterface;
+  getQueryInterface(): AbstractQueryInterface;
 
   /**
    * The QueryInterface instance, dialect dependant.
    */
-  queryInterface: QueryInterface;
+  queryInterface: AbstractQueryInterface;
 
   /**
    * Define a new model, representing a table in the DB.
@@ -934,7 +935,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param schema Name of the schema
    * @param options Options supplied
    */
-  createSchema(schema: string, options?: Logging): Promise<unknown>;
+  createSchema(schema: string, options?: CreateSchemaOptions): Promise<void>;
 
   /**
    * Show all defined schemas
@@ -1009,8 +1010,11 @@ export class Sequelize extends SequelizeTypeScript {
    */
   close(): Promise<void>;
 
+  normalizeAttribute(attribute: AttributeOptions | DataType): AttributeOptions;
+
   normalizeDataType(Type: string): string;
   normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
+  normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
 
   /**
    * Fetches the database version
@@ -1098,7 +1102,7 @@ export function or<T extends any[]>(...args: T): { [Op.or]: T };
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | ModelAttributeColumnOptions;
+export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | AttributeOptions;
 
 /**
  * A way of specifying "attr = condition".

@@ -753,12 +753,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         password: DataTypes.STRING,
         created_time: {
           type: DataTypes.DATE(3),
-          allowNull: true,
+          allowNull: false,
           defaultValue: DataTypes.NOW,
         },
         updated_time: {
           type: DataTypes.DATE(3),
-          allowNull: true,
+          allowNull: false,
           defaultValue: DataTypes.NOW,
         },
       }, {
@@ -1279,7 +1279,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const book = await b.create(data);
           expect(book.title).to.equal(data.title);
           expect(book.author).to.equal(data.author);
-          expect(books[index].rawAttributes.id.type instanceof dataTypes[index]).to.be.ok;
+          expect(books[index].getAttributes().id.type instanceof dataTypes[index]).to.be.ok;
         })());
       }
 

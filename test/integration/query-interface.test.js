@@ -347,7 +347,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.addColumn('users', 'level_id', {
         type: DataTypes.INTEGER,
         references: {
-          model: 'level',
+          table: 'level',
           key: 'id',
         },
         onUpdate: 'cascade',
@@ -449,14 +449,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         admin: {
           type: DataTypes.INTEGER,
           references: {
-            model: 'users',
+            table: 'users',
             key: 'id',
           },
         },
         operator: {
           type: DataTypes.INTEGER,
           references: {
-            model: 'users',
+            table: 'users',
             key: 'id',
           },
           onUpdate: 'cascade',
@@ -464,7 +464,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         owner: {
           type: DataTypes.INTEGER,
           references: {
-            model: 'users',
+            table: 'users',
             key: 'id',
           },
           onUpdate: 'cascade',

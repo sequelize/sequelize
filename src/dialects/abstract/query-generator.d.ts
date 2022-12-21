@@ -1,10 +1,10 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
 import type {
-  BuiltModelAttributeColumnOptions,
+  NormalizedAttributeOptions,
   FindOptions,
   Model,
-  ModelAttributeColumnOptions,
+  AttributeOptions,
   ModelStatic,
   SearchPathable,
   WhereOptions,
@@ -67,7 +67,7 @@ export type WhereItemsQueryOptions = ParameterOptions & {
   model?: ModelStatic,
   type?: QueryTypes,
   prefix?: string | Literal,
-  field?: ModelAttributeColumnOptions,
+  field?: AttributeOptions,
 };
 
 type HandleSequelizeMethodOptions = ParameterOptions & {
@@ -118,8 +118,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   generateTransactionId(): string;
   whereQuery(where: object, options?: ParameterOptions): string;
   whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
-  validate(value: unknown, field?: BuiltModelAttributeColumnOptions): void;
-  escape(value: unknown, field?: BuiltModelAttributeColumnOptions, options?: EscapeOptions): string;
+  validate(value: unknown, field?: NormalizedAttributeOptions): void;
+  escape(value: unknown, field?: NormalizedAttributeOptions, options?: EscapeOptions): string;
   quoteIdentifiers(identifiers: string): string;
   handleSequelizeMethod(
     smth: SequelizeMethod,
@@ -145,20 +145,20 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   insertQuery(
     table: TableName,
     valueHash: object,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
+    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
     options?: InsertOptions
   ): { query: string, bind?: unknown[] };
   bulkInsertQuery(
     tableName: TableName,
     newEntries: object[],
     options?: BulkInsertOptions,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions }
+    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions }
   ): string;
 
   addColumnQuery(
     table: TableName,
     columnName: string,
-    columnDefinition: ModelAttributeColumnOptions | DataType,
+    columnDefinition: AttributeOptions | DataType,
     options?: AddColumnQueryOptions,
   ): string;
 
@@ -173,7 +173,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     attrValueHash: object,
     where: WhereOptions,
     options?: UpdateOptions,
-    columnDefinitions?: { [columnName: string]: BuiltModelAttributeColumnOptions },
+    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
   ): { query: string, bind?: unknown[] };
 
   deleteQuery(

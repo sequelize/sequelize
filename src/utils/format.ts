@@ -3,13 +3,14 @@ import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type {
   Attributes,
-  BuiltModelAttributeColumnOptions,
+  NormalizedAttributeOptions,
   Model,
   ModelStatic,
   WhereOptions,
 } from '..';
 import * as DataTypes from '../data-types';
 import { Op as operators } from '../operators';
+import { isString } from './check.js';
 
 const operatorsSet = new Set(Object.values(operators));
 
@@ -39,8 +40,9 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<Attrib
       options.attributes,
     );
 
+    const modelDefinition = Model.modelDefinition;
     options.attributes = options.attributes.filter(
-      v => !Model._virtualAttributes.has(v),
+      attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
     );
   }
 
@@ -59,7 +61,7 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<Attrib
  */
 export function mapOptionFieldNames<M extends Model>(
   options: FinderOptions<Attributes<M>>,
-  Model: ModelStatic<Model>,
+  Model: ModelStatic,
 ): MappedFinderOptions<Attributes<M>> {
 
   // note: parts of Sequelize rely on this function mutating its inputs.
@@ -76,8 +78,8 @@ export function mapOptionFieldNames<M extends Model>(
       }
 
       // Map attributes to column names
-      const columnName: string | undefined = Model.rawAttributes[attributeName]?.field;
-      if (columnName && columnName !== attributeName) {
+      const columnName: string = Model.modelDefinition.getColumnNameLoose(attributeName);
+      if (columnName !== attributeName) {
         return [columnName, attributeName];
       }
 
@@ -99,10 +101,13 @@ export function mapWhereFieldNames(where: Record<PropertyKey, any>, Model: Model
     return where;
   }
 
+  const modelDefinition = Model.modelDefinition;
+
   const newWhere: Record<PropertyKey, any> = Object.create(null);
-  // TODO: note on 'as any[]'; removing the cast causes the following error on attributeNameOrOperator "TS2538: Type 'symbol' cannot be used as an index type."
-  for (const attributeNameOrOperator of getComplexKeys(where) as any[]) {
-    const rawAttribute: BuiltModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
+  for (const attributeNameOrOperator of getComplexKeys(where)) {
+    const rawAttribute: NormalizedAttributeOptions | undefined = isString(attributeNameOrOperator)
+      ? modelDefinition.attributes.get(attributeNameOrOperator)
+      : undefined;
 
     const columnNameOrOperator: PropertyKey = rawAttribute?.field ?? attributeNameOrOperator;
 
@@ -194,15 +199,16 @@ export function combineTableNames(tableName1: string, tableName2: string): strin
  */
 export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames? See https://github.com/sequelize/meetings/issues/17
   dataValues: Record<string, any>,
-  attributeNames: string[],
-  ModelClass: ModelStatic<Model>,
+  attributeNames: Iterable<string>,
+  ModelClass: ModelStatic,
 ): Record<string, any> {
   const values: Record<string, any> = Object.create(null);
+  const modelDefinition = ModelClass.modelDefinition;
 
   for (const attributeName of attributeNames) {
-    if (dataValues[attributeName] !== undefined && !ModelClass._virtualAttributes.has(attributeName)) {
+    if (dataValues[attributeName] !== undefined && !modelDefinition.virtualAttributeNames.has(attributeName)) {
       // Field name mapping
-      const columnName = ModelClass.rawAttributes[attributeName]?.field ?? attributeName;
+      const columnName = modelDefinition.getColumnNameLoose(attributeName);
 
       values[columnName] = dataValues[attributeName];
     }
@@ -251,7 +257,7 @@ export function removeNullishValuesFromHash(
   return result;
 }
 
-export function getColumnName(attribute: BuiltModelAttributeColumnOptions): string {
+export function getColumnName(attribute: NormalizedAttributeOptions): string {
   assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
 
   // field is the column name alias
