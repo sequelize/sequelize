@@ -533,7 +533,7 @@ Instead of specifying a Model, either:
           },
         ],
         order: [
-          User.rawAttributes.id,
+          User.getAttributes().id,
           [Product, 'id'],
         ],
       });
@@ -716,26 +716,40 @@ Instead of specifying a Model, either:
       });
 
       let findAttributes;
-      if (dialect === 'mssql') {
-        findAttributes = [
-          Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "PostComments.someProperty"'),
-          [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2'],
-        ];
-      } else if (dialect === 'ibmi') {
-        findAttributes = [
-          Sequelize.literal('1 AS "PostComments.someProperty"'),
-          [Sequelize.literal('1'), 'someProperty2'],
-        ];
-      } else if (dialect === 'db2') {
-        findAttributes = [
-          Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "PostComments.someProperty"'),
-          [Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2'],
-        ];
-      } else {
-        findAttributes = [
-          Sequelize.literal('EXISTS(SELECT 1) AS "PostComments.someProperty"'),
-          [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2'],
-        ];
+      switch (dialect) {
+        case 'mssql': {
+          findAttributes = [
+            Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "PostComments.someProperty"'),
+            [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2'],
+          ];
+
+          break;
+        }
+
+        case 'ibmi': {
+          findAttributes = [
+            Sequelize.literal('1 AS "PostComments.someProperty"'),
+            [Sequelize.literal('1'), 'someProperty2'],
+          ];
+
+          break;
+        }
+
+        case 'db2': {
+          findAttributes = [
+            Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "PostComments.someProperty"'),
+            [Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2'],
+          ];
+
+          break;
+        }
+
+        default: {
+          findAttributes = [
+            Sequelize.literal('EXISTS(SELECT 1) AS "PostComments.someProperty"'),
+            [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2'],
+          ];
+        }
       }
 
       findAttributes.push(['comment_title', 'commentTitle']);

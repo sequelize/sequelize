@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize, Op, AggregateError } = require('@sequelize/core');
+const { DataTypes, Sequelize, Op, AggregateError, col } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -77,15 +77,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.create({ id: 'My own ID!' })).to.have.property('id', 'My own ID!');
     });
 
-    it('throws an error if 2 autoIncrements are passed', function () {
-      expect(() => {
-        this.sequelize.define('UserWithTwoAutoIncrements', {
-          userid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-          userscore: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        });
-      }).to.throw(Error, 'Invalid Instance definition. Only one autoincrement field allowed.');
-    });
-
     it('throws an error if a custom model-wide validation is not a function', function () {
       expect(() => {
         this.sequelize.define('Foo', {
@@ -98,27 +89,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw(Error, 'Members of the validate option must be functions. Model: Foo, error with validate member notFunction');
     });
 
-    it('throws an error if a custom model-wide validation has the same name as a field', function () {
-      expect(() => {
-        this.sequelize.define('Foo', {
-          field: DataTypes.INTEGER,
-        }, {
-          validate: {
-            field() {},
-          },
-        });
-      }).to.throw(Error, 'A model validator function must not have the same name as a field. Model: Foo, field/validation name: field');
-    });
-
     it('should allow me to set a default value for createdAt and updatedAt', async function () {
       const UserTable = this.sequelize.define('UserCol', {
         aNumber: DataTypes.INTEGER,
         createdAt: {
-          type: DataTypes.DATE,
           defaultValue: dayjs('2012-01-01').toDate(),
         },
         updatedAt: {
-          type: DataTypes.DATE,
           defaultValue: dayjs('2012-01-02').toDate(),
         },
       }, { timestamps: true });
@@ -233,27 +210,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await user.destroy();
       await user.reload({ paranoid: false });
       expect(user.deletedAtThisTime).to.exist;
-    });
-
-    it('returns proper defaultValues after save when setter is set', async function () {
-      const titleSetter = sinon.spy();
-      const Task = this.sequelize.define('TaskBuild', {
-        title: {
-          type: DataTypes.STRING(50),
-          allowNull: false,
-          defaultValue: '',
-        },
-      }, {
-        setterMethods: {
-          title: titleSetter,
-        },
-      });
-
-      await Task.sync({ force: true });
-      const record = await Task.build().save();
-      expect(record.title).to.be.a('string');
-      expect(record.title).to.equal('');
-      expect(titleSetter.notCalled).to.be.ok; // The setter method should not be invoked for default values
     });
 
     it('should work with both paranoid and underscored being true', async function () {
@@ -503,7 +459,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       switch (dialectName) {
         case 'sqlite': {
-        // PRAGMA index_info does not return the primary index
+          // PRAGMA index_info does not return the primary index
           idx1 = args[0];
           idx2 = args[1];
 
@@ -553,7 +509,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         case 'postgres': {
-        // Postgres returns indexes in alphabetical order
+          // Postgres returns indexes in alphabetical order
           primary = args[2];
           idx1 = args[0];
           idx2 = args[1];
@@ -588,16 +544,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: 'ASC' },
+            // length is a bigint, which is why it's returned as a string
             {
               attribute: 'fieldA',
-              length: 5,
+              length: '5',
               // mysql & mariadb don't support DESC indexes
               order: 'ASC',
             },
           ]);
 
           expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: undefined },
+            { attribute: 'fieldC', length: undefined, order: null },
           ]);
         }
       }
@@ -669,63 +626,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       p.price = 0;
       expect(p.price).to.equal('answer = 42');
-    });
-
-    it('attaches getter and setter methods from options', function () {
-      const Product = this.sequelize.define('ProductWithSettersAndGetters2', {
-        priceInCents: DataTypes.INTEGER,
-      }, {
-        setterMethods: {
-          price(value) {
-            this.dataValues.priceInCents = value * 100;
-          },
-        },
-        getterMethods: {
-          price() {
-            return `$${this.getDataValue('priceInCents') / 100}`;
-          },
-
-          priceInCents() {
-            return this.dataValues.priceInCents;
-          },
-        },
-      });
-
-      expect(Product.build({ price: 20 }).priceInCents).to.equal(20 * 100);
-      expect(Product.build({ priceInCents: 30 * 100 }).price).to.equal(`$${30}`);
-    });
-
-    it('attaches getter and setter methods from options only if not defined in attribute', function () {
-      const Product = this.sequelize.define('ProductWithSettersAndGetters3', {
-        price1: {
-          type: DataTypes.INTEGER,
-          set(v) {
-            this.setDataValue('price1', v * 10);
-          },
-        },
-        price2: {
-          type: DataTypes.INTEGER,
-          get() {
-            return this.getDataValue('price2') * 10;
-          },
-        },
-      }, {
-        setterMethods: {
-          price1(v) {
-            this.setDataValue('price1', v * 100);
-          },
-        },
-        getterMethods: {
-          price2() {
-            return `$${this.getDataValue('price2')}`;
-          },
-        },
-      });
-
-      const p = Product.build({ price1: 1, price2: 2 });
-
-      expect(p.price1).to.equal(10);
-      expect(p.price2).to.equal(20);
     });
 
     describe('include', () => {
@@ -833,7 +733,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           foo: DataTypes.STRING,
         });
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const user = await User.findOne({ where: { username: 'foo' }, transaction: t });
         expect(user).to.not.be.null;
@@ -873,7 +773,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = sequelize.define('User', { username: DataTypes.STRING, foo: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const [user1] = await User.findOrBuild({
           where: { username: 'foo' },
@@ -1010,7 +910,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         await User.create({ username: 'foo' });
 
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.update({ username: 'bar' }, {
           where: { username: 'foo' },
           transaction: t,
@@ -1053,7 +953,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
           });
         },
-        returning: ['*'],
+        returning: [col('*')],
       });
       expect(test).to.be.true;
     });
@@ -1469,7 +1369,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
         await User.create({ username: 'foo' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.destroy({
           where: {},
           transaction: t,
@@ -1840,7 +1740,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const count1 = await User.count();
         const count2 = await User.count({ transaction: t });
@@ -1985,7 +1885,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const User = sequelize.define('User', { age: DataTypes.INTEGER });
 
           await User.sync({ force: true });
-          const t = await sequelize.transaction();
+          const t = await sequelize.startUnmanagedTransaction();
           await User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t });
           const val1 = await User[methodName]('age');
           const val2 = await User[methodName]('age', { transaction: t });
@@ -2012,16 +1912,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(test).to.be.true;
       });
 
-      it('should allow decimals', async function () {
-        const UserWithDec = this.sequelize.define('UserWithDec', {
-          value: DataTypes.DECIMAL(10, 3),
+      if (dialect.supports.dataTypes.DECIMAL) {
+        it('should allow decimals', async function () {
+          const UserWithDec = this.sequelize.define('UserWithDec', {
+            value: DataTypes.DECIMAL(10, 3),
+          });
+
+          await UserWithDec.sync({ force: true });
+
+          await UserWithDec.bulkCreate([{ value: 5.5 }, { value: 3.5 }]);
+          expect(await UserWithDec[methodName]('value')).to.equal(methodName === 'min' ? 3.5 : 5.5);
         });
-
-        await UserWithDec.sync({ force: true });
-
-        await UserWithDec.bulkCreate([{ value: 5.5 }, { value: 3.5 }]);
-        expect(await UserWithDec[methodName]('value')).to.equal(methodName === 'min' ? 3.5 : 5.5);
-      });
+      }
 
       it('should allow strings', async function () {
         await this.User.bulkCreate([{ username: 'bbb' }, { username: 'yyy' }]);
@@ -2081,16 +1983,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await this.UserWithAge.sum('order')).to.equal(8);
     });
 
-    it('should allow decimals in sum', async function () {
-      const UserWithDec = this.sequelize.define('UserWithDec', {
-        value: DataTypes.DECIMAL(10, 3),
+    if (dialect.supports.dataTypes.DECIMAL) {
+      it('should allow decimals in sum', async function () {
+        const UserWithDec = this.sequelize.define('UserWithDec', {
+          value: DataTypes.DECIMAL(10, 3),
+        });
+
+        await UserWithDec.sync({ force: true });
+
+        await UserWithDec.bulkCreate([{ value: 3.5 }, { value: 5.25 }]);
+        expect(await UserWithDec.sum('value')).to.equal(8.75);
       });
-
-      await UserWithDec.sync({ force: true });
-
-      await UserWithDec.bulkCreate([{ value: 3.5 }, { value: 5.25 }]);
-      expect(await UserWithDec.sum('value')).to.equal(8.75);
-    });
+    }
 
     it('should accept a where clause', async function () {
       const options = { where: { gender: 'male' } };
@@ -2444,7 +2348,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('uses a table name as a string and references the author table', async function () {
-      const authorIdColumn = { type: DataTypes.INTEGER, references: { model: 'authors', key: 'id' } };
+      const authorIdColumn = { type: DataTypes.INTEGER, references: { table: 'authors', key: 'id' } };
 
       const Post = this.sequelize.define('post', { title: DataTypes.STRING, authorId: authorIdColumn });
 
@@ -2462,13 +2366,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(foreignKeys[0].referencedColumnName).to.eq('id');
     });
 
-    it('emits an error event as the referenced table name is invalid', async function () {
-      const authorIdColumn = { type: DataTypes.INTEGER, references: { model: '4uth0r5', key: 'id' } };
-
-      const Post = this.sequelize.define('post', { title: DataTypes.STRING, authorId: authorIdColumn });
+    it('throws an error if the referenced table name is invalid', async function () {
+      const Post = this.sequelize.define('post', {
+        title: DataTypes.STRING,
+        authorId: DataTypes.INTEGER,
+      });
 
       this.Author.hasMany(Post);
       Post.belongsTo(this.Author);
+
+      // force Post.authorId to reference a table that does not exist
+      Post.modelDefinition.rawAttributes.authorId.references.table = '4uth0r5';
+      Post.modelDefinition.refreshAttributes();
 
       try {
         // The posts table gets dropped in the before filter.
@@ -2485,17 +2394,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           case 'mysql': {
             if (isMySQL8) {
               expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
-            } else if (semver.gte(current.options.databaseVersion, '5.6.0')) {
-              expect(error.message).to.match(/Cannot add foreign key constraint/);
             } else {
-              expect(error.message).to.match(/Can't create table/);
+              expect(error.message).to.match(/Cannot add foreign key constraint/);
             }
 
             break;
           }
 
           case 'sqlite': {
-          // the parser should not end up here ... see above
+            // the parser should not end up here ... see above
             expect(1).to.equal(2);
 
             break;
@@ -2732,7 +2639,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const sequelize = await Support.prepareTransactionTest(this.sequelize);
       const User = sequelize.define('User', { username: DataTypes.STRING });
       const testAsync = async function () {
-        const t0 = await sequelize.transaction();
+        const t0 = await sequelize.startUnmanagedTransaction();
 
         await User.create({
           username: 'foo',
@@ -2781,7 +2688,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       UserId: {
         type: DataTypes.STRING,
         references: {
-          model: 'Users',
+          tableName: 'Users',
           key: 'UUID',
         },
       },

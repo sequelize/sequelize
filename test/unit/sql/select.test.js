@@ -1,8 +1,8 @@
 'use strict';
 
-const Support = require('../support');
+const Support = require('../../support');
 const { DataTypes, Model, Op } = require('@sequelize/core');
-const util = require('util');
+const util = require('node:util');
 const chai = require('chai');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
@@ -10,6 +10,9 @@ const expect = chai.expect;
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
+
+const TICK_LEFT = Support.sequelize.dialect.TICK_CHAR_LEFT;
+const TICK_RIGHT = Support.sequelize.dialect.TICK_CHAR_RIGHT;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -336,20 +339,24 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ['first_name', 'firstName'],
           ['last_name', 'lastName'],
         ],
+        // [last_name] is not wrapped in a literal, so it's a column name and must be escaped
+        // as [[[last_name]]]
         order: [['[last_name]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
         limit: 30,
         offset: 10,
         hasMultiAssociation: true, // must be set only for mssql dialect here
         subQuery: true,
       }, {
-        default: `${'SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM ('
-                       + 'SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].[last_name] ASC'}${
+        default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC${
+          sql.addLimitAndOffset({
+            limit: 30,
+            offset: 10,
+            order: [['`user`.`last_name`', 'ASC']],
+          })
+        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC;`,
+        ibmi: `${`SELECT "user".*, "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title" FROM (SELECT "user"."id_user" AS "id", "user"."email", "user"."first_name" AS "firstName", "user"."last_name" AS "lastName" FROM "users" AS "user" ORDER BY "user"."""last_name""" ASC`}${
           sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['`user`.`last_name`', 'ASC']] })
-        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].[last_name] ASC;`,
-        ibmi: `${'SELECT "user".*, "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title" FROM ('
-                       + 'SELECT "user"."id_user" AS "id", "user"."email", "user"."first_name" AS "firstName", "user"."last_name" AS "lastName" FROM "users" AS "user" ORDER BY "user"."last_name" ASC'}${
-          sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['`user`.`last_name`', 'ASC']] })
-        }) AS "user" LEFT OUTER JOIN "post" AS "POSTS" ON "user"."id_user" = "POSTS"."user_id" ORDER BY "user"."last_name" ASC`,
+        }) AS "user" LEFT OUTER JOIN "post" AS "POSTS" ON "user"."id_user" = "POSTS"."user_id" ORDER BY "user"."""last_name""" ASC`,
       });
 
       // By default, SELECT with include of a multi association & limit will be ran as a subQuery
@@ -364,6 +371,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ['first_name', 'firstName'],
           ['last_name', 'lastName'],
         ],
+        // [last_name] is not wrapped in a literal, so it's a column name and must be escaped
+        // as [[[last_name]]]
         order: [['[last_name]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
         limit: 30,
         offset: 10,
@@ -373,7 +382,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: Support.minifySql(`SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
           FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
           ON [user].[id_user] = [POSTS].[user_id]
-          ORDER BY [user].[last_name] ASC
+          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC
           ${sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['last_name', 'ASC']], include }, User)};
         `),
       });
@@ -585,7 +594,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           subQuery: true,
         }, User), {
           default: 'SELECT [User].* FROM '
-            + '(SELECT [User].[name], [User].[age], [User].[id] AS [id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
             + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
             + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
         });
@@ -610,7 +619,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           subQuery: true,
         }, User), {
           default: 'SELECT [User].* FROM '
-            + '(SELECT [User].[name], [User].[age], [User].[id] AS [id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
             + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
             + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
         });
@@ -662,7 +671,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         subQuery: true,
       }, Company), {
         default: 'SELECT [Company].* FROM ('
-        + 'SELECT [Company].[name], [Company].[public], [Company].[id] AS [id] FROM [Company] AS [Company] '
+        + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
         + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
         + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
         + `WHERE ([Company].[scopeId] IN (42)) AND [Users->Profession].[name] = ${sql.escape('test')} AND ( `
@@ -688,9 +697,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           data: ['123'],
         },
       }, User), {
-        ibmi: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (BLOB('123'))`,
-        db2: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN ('x''313233''');`,
-        postgres: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (E'\\\\x313233');`,
+        ibmi: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (BLOB(X'313233'))`,
+        db2: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (BLOB('123'));`,
+        postgres: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN ('\\x313233');`,
         snowflake: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (X'313233');`,
         'mariadb mysql sqlite': 'SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X\'313233\');',
         mssql: 'SELECT [name], [age], [data] FROM [User] AS [User] WHERE [User].[data] IN (0x313233);',
@@ -701,16 +710,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('plain attributes (1)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: [
-            '* FROM [User]; DELETE FROM [User];SELECT [id]'
+            '* FROM [User];'
               .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-              .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+              .replace(/]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
           ],
         }), {
-          default: 'SELECT \'* FROM [User]; DELETE FROM [User];SELECT [id]\' FROM [User];',
-          ibmi: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User"',
-          db2: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
-          snowflake: 'SELECT \'* FROM "User"; DELETE FROM "User";SELECT "id"\' FROM "User";',
-          mssql: 'SELECT [* FROM User; DELETE FROM User;SELECT id] FROM [User];',
+          default: `SELECT ${TICK_LEFT}* FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT};${TICK_RIGHT} FROM ${TICK_LEFT}User${TICK_RIGHT};`,
         });
       });
 
@@ -725,11 +730,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('plain attributes (3)', () => {
         expectsql(sql.selectQuery('User', {
-          attributes: ['a\', * FROM User; DELETE FROM User;SELECT id'],
+          attributes: [`a', * FROM User; DELETE FROM User;SELECT id`],
         }), {
-          default: 'SELECT [a\', * FROM User; DELETE FROM User;SELECT id] FROM [User];',
-          mssql: 'SELECT [a, * FROM User; DELETE FROM User;SELECT id] FROM [User];',
-          ibmi: 'SELECT "a\', * FROM User; DELETE FROM User;SELECT id" FROM "User"',
+          default: `SELECT [a', * FROM User; DELETE FROM User;SELECT id] FROM [User];`,
+          mssql: `SELECT [a', * FROM User; DELETE FROM User;SELECT id] FROM [User];`,
+          ibmi: `SELECT "a', * FROM User; DELETE FROM User;SELECT id" FROM "User"`,
         });
       });
 
@@ -745,11 +750,18 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('aliased attributes (1)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: [
-            ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'myCol'],
+            // this is not wrapped in `literal()`, so it's a column name.
+            // [ & ] will be escaped as [[ & ]]
+            [
+              '* FROM [User]; DELETE FROM [User];SELECT [id]'
+                .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
+                .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+              'myCol',
+            ],
           ],
         }), {
-          default: 'SELECT [* FROM User; DELETE FROM User;SELECT id] AS [myCol] FROM [User];',
-          ibmi: 'SELECT "* FROM User; DELETE FROM User;SELECT id" AS "myCol" FROM "User"',
+          default: `SELECT [* FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT}; DELETE FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT};SELECT ${TICK_LEFT}${TICK_LEFT}id${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} AS ${TICK_LEFT}myCol] FROM [User];`,
+          ibmi: 'SELECT "* FROM ""User""; DELETE FROM ""User"";SELECT ""id""" AS "myCol" FROM "User"',
         });
       });
 
@@ -797,9 +809,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           include: _validateIncludedElements({
             include: [{
               attributes: [
+                // this is not wrapped in `literal()`, so it's a column name.
+                // [ & ] will be escaped as [[ & ]]
                 '* FROM [User]; DELETE FROM [User];SELECT [id]'
-                  .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-                  .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+                  .replace(/\[/g, TICK_LEFT)
+                  .replace(/\]/g, TICK_RIGHT),
               ],
               association: User.Posts,
             }],
@@ -807,8 +821,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).include,
           model: User,
         }, User), {
-          default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.* FROM User; DELETE FROM User;SELECT id] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
-          ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."* FROM User; DELETE FROM User;SELECT id" AS "Posts.* FROM User; DELETE FROM User;SELECT id" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
+          // expectsql fails with consecutive TICKS so we add the dialect-specific one ourself
+          default: `SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT}; DELETE FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT};SELECT ${TICK_LEFT}${TICK_LEFT}id${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} AS ${TICK_LEFT}Posts.* FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT}; DELETE FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT};SELECT ${TICK_LEFT}${TICK_LEFT}id${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} FROM ${TICK_LEFT}User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];`,
+          ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."* FROM ""User""; DELETE FROM ""User"";SELECT ""id""" AS "Posts.* FROM ""User""; DELETE FROM ""User"";SELECT ""id""" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
         });
 
         expectsql(sql.selectQuery('User', {
@@ -816,7 +831,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           include: _validateIncludedElements({
             include: [{
               attributes: [
-                ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'data'],
+                // this is not wrapped in `literal()`, so it's a column name.
+                // [ & ] will be escaped as [[ & ]]
+                ['* FROM [User]; DELETE FROM [User];SELECT [id]'
+                  .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
+                  .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'data'],
               ],
               association: User.Posts,
             }],
@@ -824,8 +843,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }).include,
           model: User,
         }, User), {
-          default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM User; DELETE FROM User;SELECT id] AS [Posts.data] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
-          ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."* FROM User; DELETE FROM User;SELECT id" AS "Posts.data" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
+          // expectsql fails with consecutive TICKS so we add the dialect-specific one ourself
+          default: `SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[* FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT}; DELETE FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT};SELECT ${TICK_LEFT}${TICK_LEFT}id${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} AS ${TICK_LEFT}Posts.data] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];`,
+          ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."* FROM ""User""; DELETE FROM ""User"";SELECT ""id""" AS "Posts.data" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
         });
 
         expectsql(sql.selectQuery('User', {

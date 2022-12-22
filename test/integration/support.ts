@@ -1,7 +1,7 @@
-import assert from 'assert';
+import assert from 'node:assert';
+import pTimeout from 'p-timeout';
 import { QueryTypes } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
-import pTimeout from 'p-timeout';
 import * as Support from '../support';
 
 // Mocha still relies on 'this' https://github.com/mochajs/mocha/issues/2657
@@ -27,16 +27,16 @@ before(async () => {
     if (!tableExists) {
       // needed by dropSchema function
       await Support.sequelize.query(`
-      CREATE TABLESPACE SYSTOOLSPACE IN IBMCATGROUP
-      MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
-      EXTENTSIZE 4;
-    `);
+        CREATE TABLESPACE SYSTOOLSPACE IN IBMCATGROUP
+        MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
+        EXTENTSIZE 4;
+      `);
 
       await Support.sequelize.query(`
-      CREATE USER TEMPORARY TABLESPACE SYSTOOLSTMPSPACE IN IBMCATGROUP
-      MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
-      EXTENTSIZE 4
-    `);
+        CREATE USER TEMPORARY TABLESPACE SYSTOOLSTMPSPACE IN IBMCATGROUP
+        MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
+        EXTENTSIZE 4
+      `);
     }
   }
 

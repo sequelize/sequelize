@@ -1,8 +1,5 @@
-import type { Class } from 'type-fest';
+import type { Class, SetRequired } from 'type-fest';
 import type {
-  AfterAssociateEventData,
-  AssociationOptions,
-  BeforeAssociateEventData,
   Association,
   BelongsTo,
   BelongsToMany,
@@ -12,31 +9,37 @@ import type {
   HasManyOptions,
   HasOne,
   HasOneOptions,
-} from './associations';
-import type { DataType } from './data-types';
+} from './associations/index';
 import type { Deferrable } from './deferrable';
-import type { IndexOptions, TableName } from './dialects/abstract/query-interface';
-import type { HookReturn, ModelHooks } from './hooks';
-import { Hooks } from './hooks';
+import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
+import type {
+  IndexOptions,
+  TableName,
+  TableNameWithSchema,
+  IndexField,
+} from './dialects/abstract/query-interface';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
+import type { ModelHooks } from './model-hooks.js';
+import { ModelTypeScript } from './model-typescript.js';
 import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import type {
-  AllowArray,
-  AllowReadonlyArray,
-  AnyFunction,
   Cast,
   Col,
   Fn,
   Json,
   Literal,
+  Where,
+} from './utils/sequelize-method.js';
+import type {
+  AllowArray,
+  AllowReadonlyArray,
+  AnyFunction,
   MakeNullishOptional,
   Nullish,
-  OmitConstructors,
-  Where,
-} from './utils';
-import type { SetRequired } from './utils/set-required';
-import type { LOCK, Op, Optional, Transaction } from './index';
+  OmitConstructors, PartlyRequired,
+} from './utils/types.js';
+import type { LOCK, Op, Transaction, TableHints } from './index';
 
 export interface Logging {
   /**
@@ -63,10 +66,10 @@ export interface Transactionable {
   /**
    * The transaction in which this query must be run.
    *
-   * If CLS is enabled and a transaction is running in the current CLS context,
+   * If {@link Options.disableClsTransactions} has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
    * that transaction will be used, unless null or a Transaction is manually specified here.
    */
-  transaction?: Transaction | null;
+  transaction?: Transaction | null | undefined;
 }
 
 export interface SearchPathable {
@@ -88,10 +91,10 @@ export interface Filterable<TAttributes = any> {
 export interface Projectable {
   /**
    * If an array: a list of the attributes that you want to select.
-   * Attributes can also be raw SQL (`literal`), `fn`, and `col`
+   * Attributes can also be raw SQL (`literal`), `fn`, `col`, and `cast`
    *
    * To rename an attribute, you can pass an array, with two elements:
-   * - The first is the name of the attribute (or `literal`, `fn`, `col`),
+   * - The first is the name of the attribute (or `literal`, `fn`, `col`, `cast`),
    * - and the second is the name to give to that attribute in the returned instance.
    *
    * If `include` is used: selects all the attributes of the model,
@@ -216,20 +219,27 @@ export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayR
 >;
 
 // number is always allowed because -Infinity & +Infinity are valid
+/**
+ * This type represents a valid input when describing a {@link RANGE}.
+ */
 export type Rangable<T> = readonly [
-  lower: T | RangePart<T | number> | number | null,
-  higher: T | RangePart<T | number> | number | null,
+  lower: T | InputRangePart<T> | number | null,
+  higher: T | InputRangePart<T> | number | null,
 ] | EmptyRange;
 
 /**
  * This type represents the output of the {@link RANGE} data type.
  */
 // number is always allowed because -Infinity & +Infinity are valid
-export type Range<T> = readonly [lower: RangePart<T | number>, higher: RangePart<T | number>] | EmptyRange;
+export type Range<T> = readonly [
+  lower: RangePart<T> | number | null,
+  higher: RangePart<T> | number | null,
+] | EmptyRange;
 
 type EmptyRange = [];
 
-type RangePart<T> = { value: T, inclusive: boolean };
+export type RangePart<T> = { value: T | number | null, inclusive: boolean };
+export type InputRangePart<T> = { value: T | number | null, inclusive?: boolean };
 
 /**
  * Internal type - prone to changes. Do not export.
@@ -570,6 +580,39 @@ export interface WhereOperators<AttributeType = any> {
    * https://www.postgresql.org/docs/14/functions-range.html
    */
   [Op.adjacent]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
+
+  /**
+   * PG only
+   *
+   * Check if any of these array strings exist as top-level keys.
+   *
+   * @example
+   * ```typescript
+   * { jsonbAttribute: { [Op.anyKeyExists]: ['a','b'] } }
+   * // results in
+   * // "jsonbAttribute" ?| ARRAY['a','b']
+   * ```
+   *
+   * https://www.postgresql.org/docs/current/functions-json.html
+   */
+  [Op.anyKeyExists]?: string[]
+    | DynamicValues<string[]>;
+
+  /**
+   * PG only
+   *
+   * Check if all of these array strings exist as top-level keys.
+   *
+   * @example
+   * ```typescript
+   * { jsonbAttribute: { [Op.allKeysExist]: ['a','b'] } }
+   * // results in
+   * // "jsonbAttribute" ?& ARRAY['a','b']
+   * ```
+   *
+   * https://www.postgresql.org/docs/current/functions-json.html
+   */
+  [Op.allKeysExist]?: WhereOperators<AttributeType>[typeof Op.anyKeyExists];
 }
 
 /**
@@ -789,7 +832,7 @@ export type Order = Fn | Col | Literal | OrderItem[];
  * Please note if this is used the aliased property will not be available on the model instance
  * as a property but only via `instance.get('alias')`.
  */
-export type ProjectionAlias = readonly [string | Literal | Fn | Col, string];
+export type ProjectionAlias = readonly [string | Literal | Fn | Col | Cast, string];
 
 export type FindAttributeOptions =
   | Array<string | ProjectionAlias | Literal>
@@ -926,6 +969,11 @@ export interface FindOptions<TAttributes = any>
    * Throws an error if the query would return 0 results.
    */
   rejectOnEmpty?: boolean | Error;
+
+  /**
+   * Use a table hint for the query, only supported in MSSQL.
+   */
+  tableHint?: TableHints;
 }
 
 export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttributes> {
@@ -1028,7 +1076,7 @@ export interface CreateOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * If false, validations won't be run.
@@ -1086,7 +1134,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * Fetch back the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * Run validations before the row is inserted
@@ -1147,7 +1195,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
@@ -1263,7 +1311,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    *
    * @default false
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * How many rows to update
@@ -1316,7 +1364,7 @@ export interface IncrementDecrementOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
@@ -1396,7 +1444,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
@@ -1408,7 +1456,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
  *
  * The validations are implemented by validator.js.
  */
-export interface ModelValidateOptions {
+export interface ColumnValidateOptions {
   /**
    * - `{ is: ['^[a-z]+$','i'] }` will only allow letters
    * - `{ is: /^[a-z]+$/i }` also only allows letters
@@ -1496,11 +1544,13 @@ export interface ModelValidateOptions {
   /**
    * won't allow null
    */
+  // TODO: remove. Already checked by allowNull
   notNull?: boolean | { msg: string };
 
   /**
    * only allows null
    */
+  // TODO: remove. Already checked by allowNull
   isNull?: boolean | { msg: string };
 
   /**
@@ -1602,20 +1652,6 @@ export interface ModelNameOptions {
 }
 
 /**
- * Interface for getterMethods in InitOptions
- */
-export interface ModelGetterOptions<M extends Model = Model> {
-  [name: string]: (this: M) => unknown;
-}
-
-/**
- * Interface for setterMethods in InitOptions
- */
-export interface ModelSetterOptions<M extends Model = Model> {
-  [name: string]: (this: M, val: any) => void;
-}
-
-/**
  * Interface for Define Scope Options
  */
 export interface ModelScopeOptions<TAttributes = any> {
@@ -1626,40 +1662,22 @@ export interface ModelScopeOptions<TAttributes = any> {
 }
 
 /**
- * General column options
- */
-export interface ColumnOptions {
-  /**
-   * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
-   * instance is saved.
-   *
-   * @default true
-   */
-  allowNull?: boolean;
-
-  /**
-   * The name of the column.
-   *
-   * If no value is provided, Sequelize will use the name of the attribute (in snake_case if {@link InitOptions.underscored} is true)
-   */
-  field?: string;
-
-  /**
-   * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
-   */
-  defaultValue?: unknown;
-}
-
-/**
  * References options for the column's attributes
  */
-export interface ModelAttributeColumnReferencesOptions {
+export interface AttributeReferencesOptions {
   /**
-   * The name of the table to reference (the sql name), or the Model to reference.
+   * The Model to reference.
+   *
+   * Ignored if {@link tableName} is specified.
    */
-  model: TableName | ModelStatic;
+  model?: ModelStatic;
 
   /**
+   * The name of the table to reference (the sql name).
+   */
+  table?: TableName;
+
+    /**
    * The column on the target model that this foreign key references
    */
   key?: string;
@@ -1672,13 +1690,20 @@ export interface ModelAttributeColumnReferencesOptions {
   deferrable?: Deferrable | Class<Deferrable>;
 }
 
+export interface NormalizedAttributeReferencesOptions extends Omit<AttributeReferencesOptions, 'model'> {
+  /**
+   * The name of the table to reference (the sql name).
+   */
+  readonly table: TableName;
+}
+
 // TODO: when merging model.d.ts with model.js, make this an enum.
 export type ReferentialAction = 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NULL' | 'NO ACTION';
 
 /**
  * Column options for the model schema attributes
  */
-export interface ModelAttributeColumnOptions<M extends Model = Model> extends ColumnOptions {
+export interface AttributeOptions<M extends Model = Model> {
   /**
    * A string or a data type.
    *
@@ -1687,11 +1712,42 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   type: DataType;
 
   /**
+   * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
+   * instance is saved.
+   *
+   * @default true
+   */
+  allowNull?: boolean;
+
+  /**
+   * @deprecated use {@link columnName} instead.
+   */
+  field?: string;
+
+  /**
+   * The name of the column.
+   *
+   * If no value is provided, Sequelize will use the name of the attribute (in snake_case if {@link InitOptions.underscored} is true)
+   */
+  columnName?: string;
+
+  /**
+   * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
+   */
+  defaultValue?: unknown;
+
+  /**
    * If true, the column will get a unique constraint. If a string is provided, the column will be part of a
    * composite unique index. If multiple columns have the same string, they will be part of the same unique
    * index
    */
-  unique?: boolean | string | { name: string, msg: string };
+  unique?: AllowArray<boolean | string | { name: string, msg?: string }>;
+
+  /**
+   * If true, an index will be created for this column.
+   * If a string is provided, the column will be part of a composite index together with the other attributes that specify the same index name.
+   */
+  index?: AllowArray<boolean | string | AttributeIndexOptions>;
 
   /**
    * If true, this attribute will be marked as primary key
@@ -1717,9 +1773,9 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * Makes this attribute a foreign key.
    * You typically don't need to use this yourself, instead use associations.
    *
-   * Setting this value to a string equivalent to setting it to `{ model: 'myString' }`.
+   * Setting this value to a string equivalent to setting it to `{ tableName: 'myString' }`.
    */
-  references?: string | ModelAttributeColumnReferencesOptions;
+  references?: string | ModelStatic | AttributeReferencesOptions;
 
   /**
    * What should happen when the referenced key is updated.
@@ -1742,22 +1798,7 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * they are asynchronous. If the validator is sync, it should throw in the case of a failed validation, it
    * it is async, the callback should be called with the error text.
    */
-  validate?: ModelValidateOptions;
-
-  /**
-   * Usage in object notation
-   *
-   * ```js
-   * class MyModel extends Model {}
-   * MyModel.init({
-   *   states: {
-   *     type:   DataTypes.ENUM,
-   *     values: ['active', 'pending', 'deleted']
-   *   }
-   * }, { sequelize })
-   * ```
-   */
-  values?: readonly string[];
+  validate?: ColumnValidateOptions;
 
   /**
    * Provide a custom getter for this column.
@@ -1772,21 +1813,44 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   set?(this: M, val: unknown): void;
 
   /**
-   * This attribute was added by sequelize. Do not use!
+   * This attribute is added by sequelize. Do not use!
    *
    * @private
    * @internal
    */
+  // TODO: use a private symbol
   _autoGenerated?: boolean;
 }
 
-export interface BuiltModelAttributeColumOptions<M extends Model = Model> extends ModelAttributeColumnOptions<M> {
+export interface AttributeIndexOptions extends Omit<IndexOptions, 'fields'> {
+  /**
+   * Configures the options for this index attribute.
+   */
+  attribute?: Omit<IndexField, 'name'>;
+}
+
+export interface NormalizedAttributeOptions<M extends Model = Model> extends Readonly<Omit<
+  PartlyRequired<AttributeOptions<M>, 'columnName'>,
+  | 'type'
+  // index and unique are always removed from attribute options, Model.getIndexes() must be used instead.
+  | 'index' | 'unique'
+>> {
+
+  /**
+   * @deprecated use {@link NormalizedAttributeOptions.attributeName} instead.
+   */
+  readonly fieldName: string;
+
   /**
    * The name of the attribute (JS side).
    */
-  fieldName: string;
+  readonly attributeName: string;
 
-  references?: ModelAttributeColumnReferencesOptions;
+  /**
+   * Like {@link AttributeOptions.type}, but normalized.
+   */
+  readonly type: string | AbstractDataType<any>;
+  readonly references?: NormalizedAttributeReferencesOptions;
 }
 
 /**
@@ -1796,7 +1860,7 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
   /**
    * The description of a database column
    */
-  [name in keyof TAttributes]: DataType | ModelAttributeColumnOptions<M>;
+  [name in keyof TAttributes]: DataType | AttributeOptions<M>;
 };
 
 /**
@@ -1863,7 +1927,7 @@ export interface ModelOptions<M extends Model = Model> {
   paranoid?: boolean;
 
   /**
-   * If true, Sequelize will snake_case the name of columns that do not have an explicit value set (using {@link ModelAttributeColumnOptions.field}).
+   * If true, Sequelize will snake_case the name of columns that do not have an explicit value set (using {@link AttributeOptions.field}).
    * The name of the table will also be snake_cased, unless {@link ModelOptions.tableName} is set, or {@link ModelOptions.freezeTableName} is true.
    *
    * @default false
@@ -1986,7 +2050,10 @@ export interface ModelOptions<M extends Model = Model> {
    * @see https://sequelize.org/docs/v7/other-topics/hooks/
    */
   hooks?: {
-    [Key in keyof ModelHooks<M, Attributes<M>>]?: AllowArray<ModelHooks<M, Attributes<M>>[Key]>
+    [Key in keyof ModelHooks<M, Attributes<M>>]?: AllowArray<
+      | ModelHooks<M, Attributes<M>>[Key]
+      | { name: string | symbol, callback: ModelHooks<M, Attributes<M>>[Key] }
+    >
   };
 
   /**
@@ -1994,17 +2061,12 @@ export interface ModelOptions<M extends Model = Model> {
    * validator function takes an argument, it is assumed to be async, and is called with a callback that
    * accepts an optional error.
    */
-  validate?: ModelValidateOptions;
-
-  /**
-   * Allows defining additional setters that will be available on model instances.
-   */
-  setterMethods?: ModelSetterOptions<M>;
-
-  /**
-   * Allows defining additional getters that will be available on model instances.
-   */
-  getterMethods?: ModelGetterOptions<M>;
+  validate?: {
+    /**
+     * Custom validation functions run on all instances of the model.
+     */
+    [name: string]: (value: unknown) => boolean,
+  };
 
   /**
    * Enable optimistic locking.
@@ -2029,7 +2091,7 @@ export interface InitOptions<M extends Model = Model> extends ModelOptions<M> {
 }
 
 export type BuiltModelName = Required<ModelNameOptions>;
-export type BuiltModelOptions<M extends Model = Model> = Omit<InitOptions<M>, 'name'> & {
+export type BuiltModelOptions<M extends Model = Model> = Omit<PartlyRequired<InitOptions<M>, 'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'>, 'name'> & {
   name: BuiltModelName,
 };
 
@@ -2067,7 +2129,7 @@ export interface ModelGetOptions {
 }
 
 export abstract class Model<TModelAttributes extends {} = any, TCreationAttributes extends {} = TModelAttributes>
-  extends Hooks<Model<TModelAttributes, TCreationAttributes>, TModelAttributes, TCreationAttributes> {
+  extends ModelTypeScript {
   /**
    * A dummy variable that doesn't exist on the real object. This exists so
    * Typescript can infer the type of the attributes in static functions. Don't
@@ -2089,6 +2151,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   _attributes: TModelAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in hooks.d.ts)
 
   /**
+   * Object that contains underlying model data
+   */
+  dataValues: TModelAttributes;
+
+  /**
    * A similar dummy variable that doesn't exist on the real object. Do not
    * try to access this in real code.
    *
@@ -2097,165 +2164,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   _creationAttributes: TCreationAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in hooks.d.ts)
 
-  /** The name of the database table */
-  static readonly tableName: string;
-
-  /**
-   * The name of the primary key attribute (on the JS side).
-   *
-   * @deprecated This property doesn't work for composed primary keys. Use {@link Model.primaryKeyAttributes} instead.
-   */
-  static readonly primaryKeyAttribute: string;
-
-  /**
-   * The column name of the primary key.
-   *
-   * @deprecated don't use this. It doesn't work with composite PKs. It may be removed in the future to reduce duplication.
-   *  Use the. Use {@link Model.primaryKeys} instead.
-   */
-  static readonly primaryKeyField: string;
-
-  /**
-   * The name of the primary key attributes (on the JS side).
-   */
-  static readonly primaryKeyAttributes: readonly string[];
-
-  /**
-   * Like {@link Model.rawAttributes}, but only includes attributes that are part of the Primary Key.
-   */
-  static readonly primaryKeys: { [attribute: string]: BuiltModelAttributeColumOptions };
-
-  static readonly uniqueKeys: {
-    [indexName: string]: {
-      fields: string[],
-      msg: string | null,
-      /**
-       * The name of the attribute
-       */
-      name: string,
-      column: string,
-      customIndex: boolean,
-    },
-  };
-
-  /**
-   * @internal
-   */
-  static readonly fieldRawAttributesMap: {
-    [columnName: string]: BuiltModelAttributeColumOptions,
-  };
-
-  /**
-   * A mapping of column name to attribute name
-   *
-   * @internal
-   */
-  static readonly fieldAttributeMap: {
-    [columnName: string]: string,
-  };
-
-  /**
-   * Like {@link Model.getAttributes}, but only includes attributes that exist in the database.
-   * i.e. virtual attributes are omitted.
-   *
-   * @internal
-   */
-  static tableAttributes: {
-    [attributeName: string]: BuiltModelAttributeColumOptions,
-  };
-
-  /**
-   * An object hash from alias to association object
-   */
-  static readonly associations: {
-    [key: string]: Association,
-  };
-
-  /**
-   * The options that the model was initialized with
-   */
-  static readonly options: BuiltModelOptions;
-
-  // TODO [>7]: Remove `rawAttributes` in v8
-  /**
-   * The attributes of the model.
-   *
-   * @deprecated use {@link Model.getAttributes} for better typings.
-   */
-  static readonly rawAttributes: { [attribute: string]: BuiltModelAttributeColumOptions };
-
   /**
    * Returns the attributes of the model
    */
   static getAttributes<M extends Model>(this: ModelStatic<M>): {
-    readonly [Key in keyof Attributes<M>]: BuiltModelAttributeColumOptions
+    readonly [Key in keyof Attributes<M>]: NormalizedAttributeOptions
   };
-
-  static getIndexes(): readonly IndexOptions[];
-
-  /**
-   * Reference to the sequelize instance the model was initialized with.
-   *
-   * Can be undefined if the Model has not been initialized yet.
-   */
-  static readonly sequelize?: Sequelize;
-
-  /**
-   * Initialize a model, representing a table in the DB, with attributes and options.
-   *
-   * The table columns are define by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
-   *
-   * ```js
-   * Project.init({
-   *   columnA: {
-   *     type: Sequelize.BOOLEAN,
-   *     validate: {
-   *       is: ['[a-z]','i'],        // will only allow letters
-   *       max: 23,                  // only allow values <= 23
-   *       isIn: {
-   *         args: [['en', 'zh']],
-   *         msg: "Must be English or Chinese"
-   *       }
-   *     },
-   *     field: 'column_a'
-   *     // Other attributes here
-   *   },
-   *   columnB: Sequelize.STRING,
-   *   columnC: 'MY VERY OWN COLUMN TYPE'
-   * }, {sequelize})
-   *
-   * sequelize.models.modelName // The model will now be available in models under the class name
-   * ```
-   *
-   * As shown above, column definitions can be either strings, a reference to one of the datatypes that are predefined on the Sequelize constructor, or an object that allows you to specify both the type of the column, and other attributes such as default values, foreign key constraints and custom setters and getters.
-   *
-   * For a list of possible data types, see https://sequelize.org/docs/v7/other-topics/other-data-types
-   *
-   * For more about getters and setters, see https://sequelize.org/docs/v7/core-concepts/getters-setters-virtuals/
-   *
-   * For more about instance and class methods, see https://sequelize.org/docs/v7/core-concepts/model-basics/#taking-advantage-of-models-being-classes
-   *
-   * For more about validation, see https://sequelize.org/docs/v7/core-concepts/validations-and-constraints/
-   *
-   * @param attributes An object, where each attribute is a column of the table. Each column can be either a DataType, a
-   *  string or a type-description object.
-   * @param options These options are merged with the default define options provided to the Sequelize constructor
-   * @returns the initialized model
-   */
-  static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
-    this: MS,
-    attributes: ModelAttributes<
-      M,
-      // 'foreign keys' are optional in Model.init as they are added by association declaration methods
-      Optional<Attributes<M>, BrandedKeysOf<Attributes<M>, typeof ForeignKeyBrand>>
-    >,
-    options: InitOptions<M>
-  ): MS;
-
-  /**
-   * Refreshes the Model's attribute definition.
-   */
-  static refreshAttributes(): void;
 
   /**
    * Checks whether an association with this name has already been registered.
@@ -2311,8 +2225,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param newAttributes
    */
   static mergeAttributesDefault(
-    newAttributes: { [key: string]: ModelAttributeColumnOptions }
-  ): BuiltModelAttributeColumOptions;
+    newAttributes: { [key: string]: AttributeOptions }
+  ): NormalizedAttributeOptions;
 
   /**
    * Creates this table in the database, if it does not already exist.
@@ -2362,11 +2276,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * The method will return The name as a string if the model has no schema,
    * or an object with `tableName`, `schema` and `delimiter` properties.
    */
-  static getTableName(): string | {
-    tableName: string,
-    schema: string,
-    delimiter: string,
-  };
+  static getTableName(): TableNameWithSchema;
 
   /**
    * Creates a copy of this model, with one or more scopes applied.
@@ -2892,374 +2802,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): Promise<[affectedRows: M[], affectedCount?: number]>;
 
   /**
-   * A hook that is run before validation
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static beforeValidate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: ValidationOptions) => HookReturn
-  ): void;
-  static beforeValidate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: ValidationOptions) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after validation
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static afterValidate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: ValidationOptions) => HookReturn
-  ): void;
-  static afterValidate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: ValidationOptions) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before creating a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with attributes, options
-   */
-  static beforeCreate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeCreate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after creating a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with attributes, options
-   */
-  static afterCreate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterCreate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: CreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before destroying a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static beforeDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
-  ): void;
-  static beforeDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after destroying a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static afterDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
-  ): void;
-  static afterDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: InstanceDestroyOptions) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before updating a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static beforeUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after updating a single instance
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static afterUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before creating or updating a single instance, It proxies `beforeCreate` and `beforeUpdate`
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static beforeSave<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeSave<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after creating or updating a single instance, It proxies `afterCreate` and `afterUpdate`
-   *
-   * @param name
-   * @param fn A callback function that is called with instance, options
-   */
-  static afterSave<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterSave<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instance: M, options: UpdateOptions<Attributes<M>> | SaveOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before creating instances in bulk
-   *
-   * @param name
-   * @param fn A callback function that is called with instances, options
-   */
-  static beforeBulkCreate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instances: M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeBulkCreate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instances: M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after creating instances in bulk
-   *
-   * @param name
-   * @param fn A callback function that is called with instances, options
-   */
-  static afterBulkCreate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instances: readonly M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterBulkCreate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instances: readonly M[], options: BulkCreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before destroying instances in bulk
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeBulkDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: BulkCreateOptions<Attributes<M>>) => HookReturn): void;
-  static beforeBulkDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: BulkCreateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after destroying instances in bulk
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static afterBulkDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: DestroyOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterBulkDestroy<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: DestroyOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after updating instances in bulk
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeBulkUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeBulkUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run after updating instances in bulk
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static afterBulkUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterBulkUpdate<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: UpdateOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before a find (select) query
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeFind<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeFind<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before a count query
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeCount<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: CountOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeCount<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: CountOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeFindAfterExpandIncludeAll<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeFindAfterExpandIncludeAll<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before a find (select) query, after all option parsing is complete
-   *
-   * @param name
-   * @param fn   A callback function that is called with options
-   */
-  static beforeFindAfterOptions<M extends Model>(
-    this: ModelStatic<M>,
-    name: string, fn: (options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static beforeFindAfterOptions<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (options: FindOptions<Attributes<M>>) => void
-  ): HookReturn;
-
-  /**
-   * A hook that is run after a find (select) query
-   *
-   * @param name
-   * @param fn   A callback function that is called with instance(s), options
-   */
-  static afterFind<M extends Model>(
-    this: ModelStatic<M>,
-    name: string,
-    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-  static afterFind<M extends Model>(
-    this: ModelStatic<M>,
-    fn: (instancesOrInstance: readonly M[] | M | null, options: FindOptions<Attributes<M>>) => HookReturn
-  ): void;
-
-  /**
-   * A hook that is run before sequelize.sync call
-   *
-   * @param fn   A callback function that is called with options passed to sequelize.sync
-   */
-  static beforeBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  static beforeBulkSync(fn: (options: SyncOptions) => HookReturn): void;
-
-  /**
-   * A hook that is run after sequelize.sync call
-   *
-   * @param fn   A callback function that is called with options passed to sequelize.sync
-   */
-  static afterBulkSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  static afterBulkSync(fn: (options: SyncOptions) => HookReturn): void;
-
-  /**
-   * A hook that is run before Model.sync call
-   *
-   * @param fn   A callback function that is called with options passed to Model.sync
-   */
-  static beforeSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  static beforeSync(fn: (options: SyncOptions) => HookReturn): void;
-
-  /**
-   * A hook that is run after Model.sync call
-   *
-   * @param fn   A callback function that is called with options passed to Model.sync
-   */
-  static afterSync(name: string, fn: (options: SyncOptions) => HookReturn): void;
-  static afterSync(fn: (options: SyncOptions) => HookReturn): void;
-
-  static beforeAssociate(name: string, fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
-  static beforeAssociate(fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
-
-  static afterAssociate(name: string, fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
-  static afterAssociate(fn: (data: BeforeAssociateEventData, options: AssociationOptions<any>) => void): void;
-
-  static runHooks(name: 'beforeAssociate', data: BeforeAssociateEventData, options: AssociationOptions<any>): void;
-  static runHooks(name: 'afterAssociate', data: AfterAssociateEventData, options: AssociationOptions<any>): void;
-
-  /**
    * Creates a 1:1 association between this model (the source) and the provided target.
    * The foreign key is added on the target model.
    *
@@ -3363,19 +2905,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static _injectDependentVirtualAttributes(attributes: string[]): string[];
 
   /**
-   * @private
-   */
-  static _virtualAttributes: Set<string>;
-
-  /**
    * Returns true if this instance has not yet been persisted to the database
    */
   isNewRecord: boolean;
-
-  /**
-   * A reference to the sequelize instance.
-   */
-  sequelize: Sequelize;
 
   /**
    * Builds a new model instance.
@@ -3447,6 +2979,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param options.raw If set to true, field and virtual setters will be ignored
    * @param options.reset Clear all previously set data values
    */
+  // TODO: 'key' accepts nested paths for JSON values (json.property)
   set<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
   set(keys: Partial<TModelAttributes>, options?: SetOptions): this;
 
@@ -3819,7 +3352,8 @@ type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, 
  * function buildModel<M extends Model>(modelClass: ModelStatic<M>, attributes: CreationAttributes<M>) {}
  * ```
  */
-export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M['_creationAttributes']>;
+// TODO: accept Fn & Literal!
+export type CreationAttributes<M extends Model> = MakeNullishOptional<M['_creationAttributes']>;
 
 /**
  * Returns the creation attributes of a given Model.
@@ -3832,6 +3366,6 @@ export type CreationAttributes<M extends Model | Hooks> = MakeNullishOptional<M[
  * function getValue<M extends Model>(modelClass: ModelStatic<M>, attribute: keyof Attributes<M>) {}
  * ```
  */
-export type Attributes<M extends Model | Hooks> = M['_attributes'];
+export type Attributes<M extends Model> = M['_attributes'];
 
-export type AttributeNames<M extends Model | Hooks> = Extract<keyof M['_attributes'], string>;
+export type AttributeNames<M extends Model> = Extract<keyof M['_attributes'], string>;

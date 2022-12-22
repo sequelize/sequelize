@@ -217,18 +217,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             },
           });
 
-          if (dialectName === 'postgres' || dialectName === 'mariadb' || dialectName === 'mysql')  {
+          if (dialectName === 'db2' || dialectName === 'postgres' || dialectName === 'mariadb' || dialectName === 'mysql')  {
             // these dialects use positional bind parameters
-            expect(createSql).to.match(/; "john", "john@gmail.com"$/);
-            expect(updateSql).to.match(/; "li", 1$/);
-          } else if (dialectName === 'db2') {
-            // TODO: db2 should be unified with the other positional parameter dialects
-            expect(createSql).to.match(/; \[ 'john', 'john@gmail.com' ]$/);
-            expect(updateSql).to.match(/; \[ 'li', 1 ]$/);
+            expect(createSql.endsWith(` with parameters [ 'john', 'john@gmail.com' ]`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
+            expect(updateSql.endsWith(` with parameters [ 'li', 1 ]`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
           } else {
             // these dialects use named bind parameters
-            expect(createSql).to.match(/; \{"sequelize_1":"john","sequelize_2":"john@gmail.com"}$/);
-            expect(updateSql).to.match(/; \{"sequelize_1":"li","sequelize_2":1}$/);
+            expect(createSql.endsWith(` with parameters { sequelize_1: 'john', sequelize_2: 'john@gmail.com' }`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
+            expect(updateSql.endsWith(` with parameters { sequelize_1: 'li', sequelize_2: 1 }`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
           }
         });
 
@@ -246,12 +242,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             },
           });
 
-          if (dialectName === 'db2') {
-            // TODO: db2 should be unified with the other positional parameter dialects
-            expect(logSql).to.match(/; \[ 'foo', 'bar' ]$/);
-          } else {
-            expect(logSql).to.match(/; ("foo", "bar"|{"(\$1|0)":"foo","(\$2|1)":"bar"})/);
-          }
+          expect(logSql.endsWith(` with parameters [ 'foo', 'bar' ]`)).to.eq(true, 'bind parameters incorrectly logged.');
         });
       });
     });
@@ -265,11 +256,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('executes select queries correctly when quoteIdentifiers is false', async function () {
-      const seq = Object.create(this.sequelize);
-
-      seq.options.quoteIdentifiers = false;
-      await seq.query(this.insertQuery);
-      const [users] = await seq.query(`select * from ${qq(this.User.tableName)}`);
+      this.sequelize.options.quoteIdentifiers = false;
+      await this.sequelize.query(this.insertQuery);
+      const [users] = await this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
       expect(users.map(u => {
         return u.username;
       })).to.include('john');
@@ -574,46 +563,48 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
+    // dialects in which the following values will be returned as bigints instead of ints
+    const isBigInt = dialectName === 'mysql';
     it('dot separated attributes when doing a raw query without nest', async function () {
       const sql = `select 1 as ${queryGenerator.quoteIdentifier('foo.bar.baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
 
       const results = await this.sequelize.query(sql, { raw: true, nest: false });
-      expect(results[0]).to.deep.equal([{ 'foo.bar.baz': 1 }]);
+      expect(results[0]).to.deep.equal([{ 'foo.bar.baz': isBigInt ? '1' : 1 }]);
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', async function () {
       const sql = `select 1 as ${queryGenerator.quoteIdentifier('foo.bar.baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
 
       const result = await this.sequelize.query(sql, { raw: true, nest: true });
-      expect(result).to.deep.equal([{ foo: { bar: { baz: 1 } } }]);
+      expect(result).to.deep.equal([{ foo: { bar: { baz: isBigInt ? '1' : 1 } } }]);
     });
 
     it('replaces token with the passed array', async function () {
-      const expected = [{ foo: 1, bar: 2 }];
+      const expected = [{ foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2 }];
       const result = await this.sequelize.query(`select ? as ${queryGenerator.quoteIdentifier('foo')}, ? as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] });
       expect(result).to.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object', async function () {
-      const expected = [{ foo: 1, bar: 2 }];
+      const expected = [{ foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2 }];
       await expect(this.sequelize.query(`select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object and ignore those which does not qualify', async function () {
-      const expected = [{ foo: 1, bar: 2, baz: '00:00' }];
+      const expected = [{ foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2, baz: '00:00' }];
       await expect(this.sequelize.query(`select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, '00:00' as ${queryGenerator.quoteIdentifier('baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object using the same key twice', async function () {
-      const expected = [{ foo: 1, bar: 2, baz: 1 }];
+      const expected = [{ foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2, baz: isBigInt ? '1' : 1 }];
       await expect(this.sequelize.query(`select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, :one as ${queryGenerator.quoteIdentifier('baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
         .to.eventually.deep.equal(expected);
     });
 
     it('replaces named parameters with the passed object having a null property', async function () {
-      const expected = [{ foo: 1, bar: null }];
+      const expected = [{ foo: isBigInt ? '1' : 1, bar: null }];
       await expect(this.sequelize.query(`select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, replacements: { one: 1, two: null } }).then(obj => obj[0]))
         .to.eventually.deep.equal(expected);
     });

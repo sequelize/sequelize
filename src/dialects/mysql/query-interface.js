@@ -1,15 +1,16 @@
 'use strict';
 
+import { getObjectFromMap } from '../../utils/object';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
 const sequelizeErrors = require('../../errors');
-const { QueryInterface } = require('../abstract/query-interface');
+const { AbstractQueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
 
 /**
  * The interface that Sequelize uses to talk with MySQL/MariaDB database
  */
-export class MySqlQueryInterface extends QueryInterface {
+export class MySqlQueryInterface extends AbstractQueryInterface {
   /**
    * A wrapper that fixes MySQL's inability to cleanly remove columns from existing tables if they have a foreign key constraint.
    *
@@ -48,14 +49,15 @@ export class MySqlQueryInterface extends QueryInterface {
       assertNoReservedBind(options.bind);
     }
 
+    const modelDefinition = options.model.modelDefinition;
+
     options = { ...options };
 
     options.type = QueryTypes.UPSERT;
     options.updateOnDuplicate = Object.keys(updateValues);
-    options.upsertKeys = Object.values(options.model.primaryKeys).map(item => item.field);
+    options.upsertKeys = Array.from(modelDefinition.primaryKeysAttributeNames, pkAttrName => modelDefinition.getColumnName(pkAttrName));
 
-    const model = options.model;
-    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, getObjectFromMap(modelDefinition.attributes), options);
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;

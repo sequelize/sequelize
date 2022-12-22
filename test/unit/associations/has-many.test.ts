@@ -1,9 +1,9 @@
-import type { ForeignKey, HasManySetAssociationsMixin, InferAttributes } from '@sequelize/core';
-import { DataTypes, Model, Op } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
+import { DataTypes, Model, Op } from '@sequelize/core';
+import type { ForeignKey, HasManySetAssociationsMixin, InferAttributes } from '@sequelize/core';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
 describe(getTestDialectTeaser('hasMany'), () => {
@@ -11,9 +11,9 @@ describe(getTestDialectTeaser('hasMany'), () => {
     const User = sequelize.define('User');
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error -- testing that invalid input results in error
       User.hasMany();
-    }).to.throw('User.hasMany called with something that\'s not a subclass of Sequelize.Model');
+    }).to.throw(`User.hasMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
 
   it('forbids alias inference in self-associations', () => {
@@ -131,7 +131,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
       const user = User.build();
 
       each(methods, (alias, method) => {
-        // @ts-expect-error
+        // @ts-expect-error -- dynamic type, not worth typing
         expect(user[method]).to.eq(originalMethod);
       });
     });
@@ -234,9 +234,9 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
       expect(findAll).to.have.been.calledOnce;
       expect(findAll.firstCall.args[0]?.where).to.have.property(foreignKey);
-      // @ts-expect-error
+      // @ts-expect-error -- not worth typing for this test
       expect(findAll.firstCall.args[0]?.where[foreignKey]).to.have.property(Op.in);
-      // @ts-expect-error
+      // @ts-expect-error -- not worth typing for this test
       expect(findAll.firstCall.args[0]?.where[foreignKey][Op.in]).to.deep.equal([idA, idB, idC]);
 
       try {

@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
 
         const user1 = await User.findOne({
@@ -311,7 +311,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user.ID).to.equal(1);
       });
 
-      if (['postgres', 'sqlite'].includes(dialect)) {
+      if (dialect.supports.dataTypes.CITEXT) {
         it('should allow case-insensitive find on CITEXT type', async function () {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
             username: DataTypes.CITEXT,

@@ -1,8 +1,8 @@
-import type { InferAttributes, Model } from '@sequelize/core';
-import { Op, literal, DataTypes, or, fn, where, cast } from '@sequelize/core';
-import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expect } from 'chai';
-import { expectsql, sequelize } from '../../support';
+import type { InferAttributes, Model } from '@sequelize/core';
+import { Op, literal, DataTypes, or, fn, where, cast, col } from '@sequelize/core';
+import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
+import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -13,7 +13,7 @@ describe('QueryGenerator#selectQuery', () => {
 
   const User = sequelize.define<TUser>('User', {
     username: DataTypes.STRING,
-  }, { timestamps: false });
+  }, { timestamps: true });
 
   interface TProject extends Model<InferAttributes<TProject>> {
     duration: bigint;
@@ -70,13 +70,27 @@ describe('QueryGenerator#selectQuery', () => {
       sqlite: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
       snowflake: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
       db2: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
-      ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = '9007199254740993'`,
+      ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993`,
       mssql: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
     });
   });
 
+  it('supports cast in attributes', () => {
+    const sql = queryGenerator.selectQuery(User.tableName, {
+      model: User,
+      attributes: [
+        'id',
+        [cast(col('createdAt'), 'varchar'), 'createdAt'],
+      ],
+    }, User);
+
+    expectsql(sql, {
+      default: `SELECT [id], CAST([createdAt] AS VARCHAR) AS [createdAt] FROM [Users] AS [User];`,
+    });
+  });
+
   describe('replacements', () => {
-    it('parses named replacements in literals', async () => {
+    it('parses named replacements in literals', () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
 
       const sql = queryGenerator.selectQuery(User.tableName, {
@@ -153,7 +167,7 @@ describe('QueryGenerator#selectQuery', () => {
     });
 
     // see the unit tests of 'injectReplacements' for more
-    it('does not parse replacements in strings in literals', async () => {
+    it('does not parse replacements in strings in literals', () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
 
       const sql = queryGenerator.selectQuery(User.tableName, {
@@ -170,7 +184,7 @@ describe('QueryGenerator#selectQuery', () => {
       });
     });
 
-    it('parses named replacements in literals in includes', async () => {
+    it('parses named replacements in literals in includes', () => {
       const sql = queryGenerator.selectQuery(User.tableName, {
         model: User,
         attributes: ['id'],
@@ -241,7 +255,7 @@ describe('QueryGenerator#selectQuery', () => {
       });
     });
 
-    it(`parses named replacements in belongsToMany includes' through tables`, async () => {
+    it(`parses named replacements in belongsToMany includes' through tables`, () => {
       const sql = queryGenerator.selectQuery(Project.tableName, {
         model: Project,
         attributes: ['id'],
@@ -294,7 +308,7 @@ describe('QueryGenerator#selectQuery', () => {
       });
     });
 
-    it('parses named replacements in literals in includes (subQuery)', async () => {
+    it('parses named replacements in literals in includes (subQuery)', () => {
       const sql = queryGenerator.selectQuery(User.tableName, {
         model: User,
         attributes: ['id'],
@@ -412,8 +426,8 @@ describe('QueryGenerator#selectQuery', () => {
       });
     });
 
-    it('rejects positional replacements, because their execution order is hard to determine', async () => {
-      await expect(
+    it('rejects positional replacements, because their execution order is hard to determine', () => {
+      expect(
         () => queryGenerator.selectQuery(User.tableName, {
           model: User,
           where: {
@@ -426,6 +440,93 @@ describe('QueryGenerator#selectQuery', () => {
       ).to.throw(`The following literal includes positional replacements (?).
 Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal("?")`);
+    });
+
+    it(`always escapes the attribute if it's provided as a string`, () => {
+      const sql = queryGenerator.selectQuery(User.tableName, {
+        model: User,
+        attributes: [
+          // these used to have special escaping logic, now they're always escaped like any other strings. col, fn, and literal can be used for advanced logic.
+          ['count(*)', 'count'],
+          '.*',
+          '*',
+          [literal('count(*)'), 'literal_count'],
+          [fn('count', '*'), 'fn_count_str'],
+          [fn('count', col('*')), 'fn_count_col'],
+          [fn('count', literal('*')), 'fn_count_lit'],
+          [col('a.b'), 'col_a_b'],
+          [col('a.*'), 'col_a_all'],
+          [col('*'), 'col_all'],
+        ],
+      }, User);
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [count(*)] AS [count],
+            [.*],
+            [*],
+            count(*) AS [literal_count],
+            count('*') AS [fn_count_str],
+            count(*) AS [fn_count_col],
+            count(*) AS [fn_count_lit],
+            [a].[b] AS [col_a_b],
+            [a].* AS [col_a_all],
+            * AS [col_all]
+          FROM [Users] AS [User];`,
+        mssql: `
+          SELECT
+            [count(*)] AS [count],
+            [.*],
+            [*],
+            count(*) AS [literal_count],
+            count(N'*') AS [fn_count_str],
+            count(*) AS [fn_count_col],
+            count(*) AS [fn_count_lit],
+            [a].[b] AS [col_a_b],
+            [a].* AS [col_a_all],
+            * AS [col_all]
+          FROM [Users] AS [User];`,
+      });
+    });
+
+    it('supports a "having" option', () => {
+      const sql = queryGenerator.selectQuery(User.tableName, {
+        model: User,
+        attributes: [
+          literal('*'),
+          [fn('YEAR', col('createdAt')), 'creationYear'],
+        ],
+        group: ['creationYear', 'title'],
+        having: { creationYear: { [Op.gt]: 2002 } },
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT *, YEAR([createdAt]) AS [creationYear] FROM [Users] AS [User] GROUP BY [creationYear], [title] HAVING [creationYear] > 2002;`,
+      });
+    });
+  });
+
+  describe('minifyAliases', () => {
+    const minifyAliasesSequelize = createSequelizeInstance({
+      minifyAliases: true,
+    });
+
+    const minifyQueryGenerator = minifyAliasesSequelize.queryInterface.queryGenerator;
+
+    it('minifies custom attributes', () => {
+      const sql = minifyQueryGenerator.selectQuery(User.tableName, {
+        model: User,
+        attributes: [
+          [literal('1'), 'customAttr'],
+        ],
+        order: ['customAttr'],
+        group: ['customAttr'],
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT 1 AS [_0] FROM [Users] AS [User] GROUP BY [_0] ORDER BY [_0];`,
+      });
     });
   });
 });

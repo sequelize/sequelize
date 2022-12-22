@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes } = require('@sequelize/core');
+const { DatabaseError, DataTypes } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Query', () => {
@@ -18,7 +18,7 @@ if (dialect.startsWith('postgres')) {
     const executeTest = async (options, test) => {
       const sequelize = Support.createSequelizeInstance(options);
 
-      const User = sequelize.define('User', { name: DataTypes.STRING, updatedAt: DataTypes.DATE }, { underscored: true });
+      const User = sequelize.define('User', { name: DataTypes.STRING }, { underscored: true });
       const Team = sequelize.define('Team', { name: DataTypes.STRING });
       const Sponsor = sequelize.define('Sponsor', { name: DataTypes.STRING });
       const Task = sequelize.define('Task', { title: DataTypes.STRING });
@@ -219,6 +219,50 @@ if (dialect.startsWith('postgres')) {
           ],
         },
         order: [['order_0', 'DESC']],
+      });
+    });
+
+    describe('Connection Invalidation', () => {
+      if (process.env.DIALECT === 'postgres-native') {
+        // native driver doesn't support statement_timeout or query_timeout
+        return;
+      }
+
+      async function setUp(clientQueryTimeoutMs) {
+        const sequelize = Support.createSequelizeInstance({
+          dialectOptions: {
+            statement_timeout: 500, // ms
+            query_timeout: clientQueryTimeoutMs,
+          },
+          pool: {
+            max: 1, // having only one helps us know whether the connection was invalidated
+            idle: 60_000,
+          },
+        });
+
+        return { sequelize, originalPid: await getConnectionPid(sequelize) };
+      }
+
+      async function getConnectionPid(sequelize) {
+        const connection = await sequelize.connectionManager.getConnection();
+        const pid = connection.processID;
+        sequelize.connectionManager.releaseConnection(connection);
+
+        return pid;
+      }
+
+      it('reuses connection after statement timeout', async () => {
+        // client timeout > statement timeout means that the query should fail with a statement timeout
+        const { sequelize, originalPid } = await setUp(10_000);
+        await expect(sequelize.query('select pg_sleep(1)')).to.eventually.be.rejectedWith(DatabaseError, 'canceling statement due to statement timeout');
+        expect(await getConnectionPid(sequelize)).to.equal(originalPid);
+      });
+
+      it('invalidates connection after client-side query timeout', async () => {
+        // client timeout < statement timeout means that the query should fail with a read timeout
+        const { sequelize, originalPid } = await setUp(250);
+        await expect(sequelize.query('select pg_sleep(1)')).to.eventually.be.rejectedWith(DatabaseError, 'Query read timeout');
+        expect(await getConnectionPid(sequelize)).to.not.equal(originalPid);
       });
     });
   });

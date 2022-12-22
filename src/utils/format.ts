@@ -1,18 +1,16 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type {
+  Attributes,
+  NormalizedAttributeOptions,
   Model,
   ModelStatic,
   WhereOptions,
-  ModelAttributeColumnOptions,
-  Attributes,
-  BuiltModelAttributeColumOptions,
 } from '..';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
+import * as DataTypes from '../data-types';
 import { Op as operators } from '../operators';
-
-const DataTypes = require('../data-types');
+import { isString } from './check.js';
 
 const operatorsSet = new Set(Object.values(operators));
 
@@ -35,15 +33,16 @@ export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 
  */
 export function mapFinderOptions<M extends Model, T extends FinderOptions<Attributes<M>>>(
   options: T,
-  Model: ModelStatic<Model>,
+  Model: ModelStatic<M>,
 ): MappedFinderOptions<Attributes<M>> {
   if (Array.isArray(options.attributes)) {
     options.attributes = Model._injectDependentVirtualAttributes(
       options.attributes,
     );
 
+    const modelDefinition = Model.modelDefinition;
     options.attributes = options.attributes.filter(
-      v => !Model._virtualAttributes.has(v),
+      attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
     );
   }
 
@@ -62,7 +61,7 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<Attrib
  */
 export function mapOptionFieldNames<M extends Model>(
   options: FinderOptions<Attributes<M>>,
-  Model: ModelStatic<Model>,
+  Model: ModelStatic,
 ): MappedFinderOptions<Attributes<M>> {
 
   // note: parts of Sequelize rely on this function mutating its inputs.
@@ -79,8 +78,8 @@ export function mapOptionFieldNames<M extends Model>(
       }
 
       // Map attributes to column names
-      const columnName: string | undefined = Model.rawAttributes[attributeName]?.field;
-      if (columnName && columnName !== attributeName) {
+      const columnName: string = Model.modelDefinition.getColumnNameLoose(attributeName);
+      if (columnName !== attributeName) {
         return [columnName, attributeName];
       }
 
@@ -97,20 +96,20 @@ export function mapOptionFieldNames<M extends Model>(
   return out;
 }
 
-export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: ModelStatic<Model>): object {
+export function mapWhereFieldNames(where: Record<PropertyKey, any>, Model: ModelStatic<Model>): object {
   if (!where) {
     return where;
   }
 
-  const newWhere: Record<string | symbol, any> = Object.create(null);
-  // TODO [2022-09-01]: note on 'as any[]': TypeScript < 4.4 does not support using Symbol for keys.
-  //  Cast can be removed in sept. 2022 when we drop support for < 4.4
-  for (const attributeNameOrOperator of getComplexKeys(where) as any[]) {
-    const rawAttribute: ModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
+  const modelDefinition = Model.modelDefinition;
 
-    // TODO [2022-09-01]: note on 'any': TypeScript < 4.4 does not support using Symbol for keys.
-    //  Cast can changed back to 'symbol | string' in sept. 2022 when we drop support for < 4.4
-    const columnNameOrOperator: any = rawAttribute?.field ?? attributeNameOrOperator;
+  const newWhere: Record<PropertyKey, any> = Object.create(null);
+  for (const attributeNameOrOperator of getComplexKeys(where)) {
+    const rawAttribute: NormalizedAttributeOptions | undefined = isString(attributeNameOrOperator)
+      ? modelDefinition.attributes.get(attributeNameOrOperator)
+      : undefined;
+
+    const columnNameOrOperator: PropertyKey = rawAttribute?.field ?? attributeNameOrOperator;
 
     if (
       isPlainObject(where[attributeNameOrOperator])
@@ -164,6 +163,17 @@ export function getComplexKeys(obj: object): Array<string | symbol> {
 }
 
 /**
+ * getComplexSize
+ *
+ * @param obj
+ * @returns Length of object properties including operators if obj is array returns its length
+ * @private
+ */
+export function getComplexSize(obj: object | any[]): number {
+  return Array.isArray(obj) ? obj.length : getComplexKeys(obj).length;
+}
+
+/**
  * getOperators
  *
  * @param obj
@@ -189,15 +199,16 @@ export function combineTableNames(tableName1: string, tableName2: string): strin
  */
 export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames? See https://github.com/sequelize/meetings/issues/17
   dataValues: Record<string, any>,
-  attributeNames: string[],
-  ModelClass: ModelStatic<Model>,
+  attributeNames: Iterable<string>,
+  ModelClass: ModelStatic,
 ): Record<string, any> {
   const values: Record<string, any> = Object.create(null);
+  const modelDefinition = ModelClass.modelDefinition;
 
   for (const attributeName of attributeNames) {
-    if (dataValues[attributeName] !== undefined && !ModelClass._virtualAttributes.has(attributeName)) {
+    if (dataValues[attributeName] !== undefined && !modelDefinition.virtualAttributeNames.has(attributeName)) {
       // Field name mapping
-      const columnName = ModelClass.rawAttributes[attributeName]?.field ?? attributeName;
+      const columnName = modelDefinition.getColumnNameLoose(attributeName);
 
       values[columnName] = dataValues[attributeName];
     }
@@ -246,24 +257,14 @@ export function removeNullishValuesFromHash(
   return result;
 }
 
-/**
- * Returns ENUM name by joining table and column name
- *
- * @param tableName
- * @param columnName
- * @private
- */
-export function generateEnumName(
-  tableName: string,
-  columnName: string,
-): string {
-  return `enum_${tableName}_${columnName}`;
-}
-
-export function getColumnName(attribute: BuiltModelAttributeColumOptions): string {
+export function getColumnName(attribute: NormalizedAttributeOptions): string {
   assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
 
   // field is the column name alias
   // if no alias is set, fieldName (the JS name) will be used instead.
   return attribute.field || attribute.fieldName;
+}
+
+export function getAttributeName(model: ModelStatic, columnName: string): string | null {
+  return Object.values(model.getAttributes()).find(attribute => attribute.field === columnName)?.fieldName ?? null;
 }

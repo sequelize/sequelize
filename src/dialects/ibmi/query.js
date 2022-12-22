@@ -1,8 +1,9 @@
 'use strict';
 
+import { find } from '../../utils/iterators';
+
 const _ = require('lodash');
 const { AbstractQuery } = require('../abstract/query');
-const parserStore = require('../parserStore')('ibmi');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 
@@ -33,10 +34,13 @@ export class IBMiQuery extends AbstractQuery {
         // parse the results to the format sequelize expects
         for (const result of results) {
           for (const column of results.columns) {
-            const typeId = column.dataType;
-            const parse = parserStore.get(typeId);
             const value = result[column.name];
-            if (value !== null && parse) {
+            if (value == null) {
+              continue;
+            }
+
+            const parse = this.sequelize.dialect.getParserForDatabaseDataType(column.dataType);
+            if (parse) {
               result[column.name] = parse(value);
             }
           }
@@ -74,9 +78,10 @@ export class IBMiQuery extends AbstractQuery {
           if (Object.prototype.hasOwnProperty.call(data[0], key)) {
             const record = data[0][key];
 
-            const attr = _.find(this.model.rawAttributes, attribute => attribute.fieldName === key || attribute.field === key);
+            const attributes = this.model.modelDefinition.attributes;
+            const attr = find(attributes.values(), attribute => attribute.attributeName === key || attribute.columnName === key);
 
-            this.instance.dataValues[attr && attr.fieldName || key] = record;
+            this.instance.dataValues[attr?.attributeName || key] = record;
           }
         }
       }

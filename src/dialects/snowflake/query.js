@@ -90,18 +90,18 @@ export class SnowflakeQuery extends AbstractQuery {
       this.handleInsertQuery(data);
 
       if (!this.instance) {
+        const modelDefinition = this.model?.modelDefinition;
+
         // handle bulkCreate AI primary key
         if (
           data.constructor.name === 'ResultSetHeader'
-          && this.model
-          && this.model.autoIncrementAttribute
-          && this.model.autoIncrementAttribute === this.model.primaryKeyAttribute
-          && this.model.rawAttributes[this.model.primaryKeyAttribute]
+          && modelDefinition?.autoIncrementAttributeName
+          && modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
         ) {
           const startId = data[this.getInsertIdField()];
           result = [];
           for (let i = startId; i < startId + data.affectedRows; i++) {
-            result.push({ [this.model.rawAttributes[this.model.primaryKeyAttribute].field]: i });
+            result.push({ [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]: i });
           }
         } else {
           result = data[this.getInsertIdField()];
@@ -113,15 +113,15 @@ export class SnowflakeQuery extends AbstractQuery {
       // Snowflake will treat tables as case-insensitive, so fix the case
       // of the returned values to match attributes
       if (this.options.raw === false && this.sequelize.options.quoteIdentifiers === false) {
-        const sfAttrMap = _.reduce(this.model.rawAttributes, (m, v, k) => {
-          m[k.toUpperCase()] = k;
+        const attrsMap = Object.create(null);
 
-          return m;
-        }, {});
+        for (const attrName of this.model.modelDefinition.attributes.keys()) {
+          attrsMap[attrName.toLowerCase()] = attrName;
+        }
 
         data = data.map(data => _.reduce(data, (prev, value, key) => {
-          if (value !== undefined && sfAttrMap[key]) {
-            prev[sfAttrMap[key]] = value;
+          if (value !== undefined && attrsMap[key]) {
+            prev[attrsMap[key]] = value;
             delete prev[key];
           }
 
@@ -197,31 +197,6 @@ export class SnowflakeQuery extends AbstractQuery {
     return result;
   }
 
-  async logWarnings(results) {
-    const warningResults = await this.run('SHOW WARNINGS');
-    const warningMessage = `Snowflake Warnings (${this.connection.uuid || 'default'}): `;
-    const messages = [];
-    for (const _warningRow of warningResults) {
-      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
-        continue;
-      }
-
-      for (const _warningResult of _warningRow) {
-        if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
-          messages.push(_warningResult.Message);
-        } else {
-          for (const _objectKey of _warningResult.keys()) {
-            messages.push([_objectKey, _warningResult[_objectKey]].join(': '));
-          }
-        }
-      }
-    }
-
-    this.sequelize.log(warningMessage + messages.join('; '), this.options);
-
-    return results;
-  }
-
   formatError(err) {
     const errCode = err.errno || err.code;
 
@@ -233,7 +208,7 @@ export class SnowflakeQuery extends AbstractQuery {
         const values = match ? match[1].split('-') : undefined;
         const fieldKey = match ? match[2] : undefined;
         const fieldVal = match ? match[1] : undefined;
-        const uniqueKey = this.model && this.model.uniqueKeys[fieldKey];
+        const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
 
         if (uniqueKey) {
           if (uniqueKey.msg) {

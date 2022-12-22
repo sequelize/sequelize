@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../support');
+const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('associations'), () => {
@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       this.A.belongsTo(this.B, reqValidForeignKey);
       this.A.belongsTo(this.C, reqValidForeignKey);
 
-      expect(this.A.rawAttributes.CId.type instanceof this.C.rawAttributes.id.type.constructor);
+      expect(this.A.getAttributes().CId.type instanceof this.C.getAttributes().id.type.constructor);
     });
 
     it('should not be overwritten for belongsToMany', function () {
@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       this.B.belongsToMany(this.A, reqValidForeignKey);
       this.A.belongsTo(this.C, reqValidForeignKey);
 
-      expect(this.A.rawAttributes.CId.type instanceof this.C.rawAttributes.id.type.constructor);
+      expect(this.A.getAttributes().CId.type instanceof this.C.getAttributes().id.type.constructor);
     });
 
     it('should not be overwritten for hasOne', function () {
@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       this.B.hasOne(this.A, reqValidForeignKey);
       this.A.belongsTo(this.C, reqValidForeignKey);
 
-      expect(this.A.rawAttributes.CId.type instanceof this.C.rawAttributes.id.type.constructor);
+      expect(this.A.getAttributes().CId.type instanceof this.C.getAttributes().id.type.constructor);
     });
 
     it('should not be overwritten for hasMany', function () {
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       this.B.hasMany(this.A, reqValidForeignKey);
       this.A.belongsTo(this.C, reqValidForeignKey);
 
-      expect(this.A.rawAttributes.CId.type instanceof this.C.rawAttributes.id.type.constructor);
+      expect(this.A.getAttributes().CId.type instanceof this.C.getAttributes().id.type.constructor);
     });
   });
 });

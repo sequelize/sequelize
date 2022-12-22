@@ -1,13 +1,7 @@
-import { Sequelize, Utils } from '@sequelize/core';
 import { expect } from 'chai';
-
-const {
-  canTreatArrayAsAnd,
-  defaultValueSchemable,
-  isColString,
-  isPrimitive,
-  isWhereEmpty,
-} = Utils;
+import { Sequelize } from '@sequelize/core';
+import { canTreatArrayAsAnd, isColString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { defaultValueSchemable, isWhereEmpty } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 
 describe('utils / check', () => {
   describe('isColString', () => {
@@ -28,27 +22,6 @@ describe('utils / check', () => {
     });
     it('should return false if no $ is present at all but value contains separator', () => {
       expect(isColString('table.col')).to.equal(false);
-    });
-  });
-
-  describe('isPrimitive', () => {
-    it('should return true if the value is a string', () => {
-      expect(isPrimitive('string')).to.equal(true);
-    });
-    it('should return true if the value is a number', () => {
-      expect(isPrimitive(1)).to.equal(true);
-    });
-    it('should return true if the value is a boolean', () => {
-      expect(isPrimitive(true)).to.equal(true);
-    });
-    it('should return false if the value is an object', () => {
-      expect(isPrimitive({})).to.equal(false);
-    });
-    it('should return false if the value is an array', () => {
-      expect(isPrimitive([])).to.equal(false);
-    });
-    it('should return false if the value is a function', () => {
-      expect(isPrimitive(() => {})).to.equal(false);
     });
   });
 

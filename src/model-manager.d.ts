@@ -1,4 +1,4 @@
-import type { Model, ModelStatic } from './model';
+import type { ModelStatic } from './model';
 import type { Sequelize } from './sequelize';
 
 export class ModelManager {
@@ -9,7 +9,8 @@ export class ModelManager {
   constructor(sequelize: Sequelize);
   addModel<T extends ModelStatic>(model: T): T;
   removeModel(model: ModelStatic): void;
-  getModel(against: unknown, options?: { attribute?: string }): typeof Model;
+  getModel(against: unknown, options?: { attribute?: string }): ModelStatic | undefined;
+  hasModel(model: ModelStatic): boolean;
 
   /**
    * Returns an array that lists every model, sorted in order

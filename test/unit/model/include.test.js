@@ -3,8 +3,8 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support   = require('../support');
-const { Sequelize, Op, Utils, DataTypes } = require('@sequelize/core');
+const Support   = require('../../support');
+const { Sequelize, Op, DataTypes } = require('@sequelize/core');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
 const current   = Support.sequelize;
@@ -208,10 +208,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [{ where: { active: false }, model: this.Project.scope('that'), as: 'projects' }],
         });
 
-        // TODO [chai@>5]: simplify once '.deep.equals' includes support for symbols (https://github.com/chaijs/chai/issues/1054)
-        expect(options.include[0]).to.have.property('where');
-        expect(Utils.getComplexKeys(options.include[0].where)).to.deep.equal([Op.and]);
-        expect(options.include[0].where[Op.and]).to.deep.equal([{ that: false }, { active: false }]);
+        expect(options.include[0].where).to.deep.equal({ [Op.and]: [{ that: false }, { active: false }] });
       });
 
       it('add the where from a scoped associated model', function () {

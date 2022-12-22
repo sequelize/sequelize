@@ -16,7 +16,7 @@ if (dialect === 'mariadb') {
           username: { type: DataTypes.STRING, unique: true },
         }, { timestamps: false });
 
-        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.rawAttributes)).to.deep.equal({
+        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.getAttributes())).to.deep.equal({
           // note: UNIQUE is not specified here because it is only specified if the option passed to attributesToSQL is
           //  'unique: true'.
           // Model.init normalizes the 'unique' to ensure a consistent index, and createTableQuery handles adding
@@ -32,7 +32,7 @@ if (dialect === 'mariadb') {
         }, { timestamps: false });
         expect(
           this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
-            User.rawAttributes,
+            User.getAttributes(),
           ),
         ).to.deep.equal({
           username: 'VARCHAR(255) DEFAULT \'foo\'',
@@ -46,7 +46,7 @@ if (dialect === 'mariadb') {
         }, { timestamps: false });
         expect(
           this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
-            User.rawAttributes,
+            User.getAttributes(),
           ),
         ).to.deep.equal({
           username: 'VARCHAR(255) NOT NULL',
@@ -60,7 +60,7 @@ if (dialect === 'mariadb') {
         }, { timestamps: false });
         expect(
           this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
-            User.rawAttributes,
+            User.getAttributes(),
           ),
         ).to.deep.equal(
           { username: 'VARCHAR(255) PRIMARY KEY' },
@@ -74,21 +74,21 @@ if (dialect === 'mariadb') {
 
         expect(
           this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
-            User1.rawAttributes,
+            User1.getAttributes(),
           ),
         ).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
-          updatedAt: 'DATETIME NOT NULL',
-          createdAt: 'DATETIME NOT NULL',
+          updatedAt: 'DATETIME(6) NOT NULL',
+          createdAt: 'DATETIME(6) NOT NULL',
         });
         expect(
           this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
-            User2.rawAttributes,
+            User2.getAttributes(),
           ),
         ).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
-          updatedAt: 'DATETIME NOT NULL',
-          createdAt: 'DATETIME NOT NULL',
+          updatedAt: 'DATETIME(6) NOT NULL',
+          createdAt: 'DATETIME(6) NOT NULL',
         });
       });
 
@@ -97,13 +97,13 @@ if (dialect === 'mariadb') {
           { paranoid: true });
         expect(
           this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
-            User.rawAttributes,
+            User.getAttributes(),
           ),
         ).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
-          deletedAt: 'DATETIME',
-          updatedAt: 'DATETIME NOT NULL',
-          createdAt: 'DATETIME NOT NULL',
+          deletedAt: 'DATETIME(6)',
+          updatedAt: 'DATETIME(6) NOT NULL',
+          createdAt: 'DATETIME(6) NOT NULL',
         });
       });
 
@@ -112,26 +112,26 @@ if (dialect === 'mariadb') {
           { paranoid: true, underscored: true });
         expect(
           this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
-            User.rawAttributes,
+            User.getAttributes(),
           ),
         ).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
-          deleted_at: 'DATETIME',
-          updated_at: 'DATETIME NOT NULL',
-          created_at: 'DATETIME NOT NULL',
+          deleted_at: 'DATETIME(6)',
+          updated_at: 'DATETIME(6) NOT NULL',
+          created_at: 'DATETIME(6) NOT NULL',
         });
       });
 
       it('omits text fields with defaultValues', function () {
         const User = this.sequelize.define(`User${Support.rand()}`,
           { name: { type: DataTypes.TEXT, defaultValue: 'helloworld' } });
-        expect(User.rawAttributes.name.type.toString()).to.equal('TEXT');
+        expect(User.getAttributes().name.type.toString()).to.equal('TEXT');
       });
 
       it('omits blobs fields with defaultValues', function () {
         const User = this.sequelize.define(`User${Support.rand()}`,
           { name: { type: DataTypes.STRING.BINARY, defaultValue: 'helloworld' } });
-        expect(User.rawAttributes.name.type.toString()).to.equal(
+        expect(User.getAttributes().name.type.toString()).to.equal(
           'VARCHAR(255) BINARY',
         );
       });

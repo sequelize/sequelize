@@ -1,5 +1,7 @@
 'use strict';
 
+import NodeUtil from 'node:util';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
@@ -96,20 +98,20 @@ export class MariaDbQuery extends AbstractQuery {
       this.handleInsertQuery(data);
 
       if (!this.instance) {
+        const modelDefinition = this.model?.modelDefinition;
+
         // handle bulkCreate AI primary key
         if (
-          this.model
-          && this.model.autoIncrementAttribute
-          && this.model.autoIncrementAttribute === this.model.primaryKeyAttribute
-          && this.model.rawAttributes[this.model.primaryKeyAttribute]
+          modelDefinition?.autoIncrementAttributeName
+          && modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
         ) {
           // ONLY TRUE IF @auto_increment_increment is set to 1 !!
           // Doesn't work with GALERA => each node will reserve increment (x for first server, x+1 for next node...)
           const startId = data[this.getInsertIdField()];
           result = new Array(data.affectedRows);
-          const pkField = this.model.rawAttributes[this.model.primaryKeyAttribute].field;
+          const pkColumnName = modelDefinition.attributes.get(this.model.primaryKeyAttribute).columnName;
           for (let i = 0; i < data.affectedRows; i++) {
-            result[i] = { [pkField]: startId + i };
+            result[i] = { [pkColumnName]: startId + i };
           }
 
           return [result, data.affectedRows];
@@ -205,31 +207,6 @@ export class MariaDbQuery extends AbstractQuery {
     }
   }
 
-  async logWarnings(results) {
-    const warningResults = await this.run('SHOW WARNINGS');
-    const warningMessage = `MariaDB Warnings (${this.connection.uuid || 'default'}): `;
-    const messages = [];
-    for (const _warningRow of warningResults) {
-      if (_warningRow === undefined || typeof _warningRow[Symbol.iterator] !== 'function') {
-        continue;
-      }
-
-      for (const _warningResult of _warningRow) {
-        if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
-          messages.push(_warningResult.Message);
-        } else {
-          for (const _objectKey of _warningResult.keys()) {
-            messages.push([_objectKey, _warningResult[_objectKey]].join(': '));
-          }
-        }
-      }
-    }
-
-    this.sequelize.log(warningMessage + messages.join('; '), this.options);
-
-    return results;
-  }
-
   formatError(err, errStack) {
     switch (err.errno) {
       case ER_DUP_ENTRY: {
@@ -242,7 +219,7 @@ export class MariaDbQuery extends AbstractQuery {
         const values = match ? match[1].split('-') : undefined;
         const fieldKey = match ? match[2] : undefined;
         const fieldVal = match ? match[1] : undefined;
-        const uniqueKey = this.model && this.model.uniqueKeys[fieldKey];
+        const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
 
         if (uniqueKey) {
           if (uniqueKey.msg) {
@@ -313,7 +290,7 @@ export class MariaDbQuery extends AbstractQuery {
           fields: [],
           name: item.Key_name,
           tableName: item.Table,
-          unique: item.Non_unique !== 1,
+          unique: item.Non_unique !== '1',
           type: item.Index_type,
         };
         result.push(currItem);
@@ -322,7 +299,13 @@ export class MariaDbQuery extends AbstractQuery {
       currItem.fields[item.Seq_in_index - 1] = {
         attribute: item.Column_name,
         length: item.Sub_part || undefined,
-        order: item.Collation === 'A' ? 'ASC' : undefined,
+        order: item.Collation === 'A' ? 'ASC'
+          : item.Collation === 'D' ? 'DESC'
+          // Not sorted
+          : item.Collation === null ? null
+          : (() => {
+            throw new Error(`Unknown index collation ${NodeUtil.inspect(item.Collation)}`);
+          })(),
       };
     }
 

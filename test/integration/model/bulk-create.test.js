@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op } = require('@sequelize/core');
+const { DataTypes, Op, col } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: DataTypes.STRING,
         });
         await User.sync({ force: true });
-        const transaction = await this.sequelize.transaction();
+        const transaction = await this.sequelize.startUnmanagedTransaction();
         await User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction });
         const count1 = await User.count();
         const count2 = await User.count({ transaction });
@@ -128,12 +128,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           field: 'user_type',
         },
         createdAt: {
-          type: DataTypes.DATE,
-          allowNull: false,
           field: 'created_at',
         },
         updatedAt: {
-          type: DataTypes.DATE,
           field: 'modified_at',
         },
       });
@@ -325,7 +322,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ], { validate: true });
       } catch (error) {
         const expectedValidationError = 'Validation len on code failed';
-        const expectedNotNullError = 'notNull Violation: Task.name cannot be null';
+        const expectedNotNullError = 'notNull violation: Task.name cannot be null';
 
         expect(error.toString()).to.include(expectedValidationError)
           .and.to.include(expectedNotNullError);
@@ -335,7 +332,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const e0name0 = errors[0].errors.get('name')[0];
 
         expect(errors[0].record.code).to.equal('1234');
-        expect(e0name0.type || e0name0.origin).to.equal('notNull Violation');
+        expect(e0name0.type || e0name0.origin).to.equal('notNull violation');
 
         expect(errors[1].record.name).to.equal('bar');
         expect(errors[1].record.code).to.equal('1');
@@ -845,7 +842,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {},
             {},
           ], {
-            returning: ['*'],
+            returning: [col('*')],
           });
 
           const actualUsers0 = await User.findAll();
@@ -881,11 +878,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
         createdAt: {
           field: 'created_at',
-          type: DataTypes.DATE,
         },
         updatedAt: {
           field: 'updated_at',
-          type: DataTypes.DATE,
         },
       });
 

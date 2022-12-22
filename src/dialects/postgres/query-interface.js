@@ -1,16 +1,16 @@
 'use strict';
 
 import { Deferrable } from '../../deferrable';
+import { camelizeObjectKeys } from '../../utils/object';
 
 const DataTypes = require('../../data-types');
 const { QueryTypes } = require('../../query-types');
-const { QueryInterface } = require('../abstract/query-interface');
-const Utils = require('../../utils');
+const { AbstractQueryInterface } = require('../abstract/query-interface');
 
 /**
  * The interface that Sequelize uses to talk with Postgres database
  */
-export class PostgresQueryInterface extends QueryInterface {
+export class PostgresQueryInterface extends AbstractQueryInterface {
   /**
    * Ensure enum and their values.
    *
@@ -35,7 +35,7 @@ export class PostgresQueryInterface extends QueryInterface {
 
       if (
         type instanceof DataTypes.ENUM
-        || type instanceof DataTypes.ARRAY && type.type instanceof DataTypes.ENUM // ARRAY sub type is ENUM
+        || type instanceof DataTypes.ARRAY && type.options.type instanceof DataTypes.ENUM // ARRAY sub type is ENUM
       ) {
         sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], options);
         promises.push(this.sequelize.queryRaw(
@@ -75,7 +75,7 @@ export class PostgresQueryInterface extends QueryInterface {
     for (i = 0; i < keyLen; i++) {
       const attribute = attributes[keys[i]];
       const type = attribute.type;
-      const enumType = type.type || type;
+      const enumType = type instanceof DataTypes.ARRAY ? type.options.type : type;
       const field = attribute.field || keys[i];
 
       if (
@@ -89,7 +89,7 @@ export class PostgresQueryInterface extends QueryInterface {
           });
         } else if (Boolean(results[enumIdx]) && Boolean(model)) {
           const enumVals = this.queryGenerator.fromArray(results[enumIdx].enum_value);
-          const vals = enumType.values;
+          const vals = enumType.options.values;
 
           // Going through already existing values allows us to make queries that depend on those values
           // We will prepend all new values between the old ones, but keep in mind - we can't change order of already existing values
@@ -142,7 +142,7 @@ export class PostgresQueryInterface extends QueryInterface {
 
     // If ENUM processed, then refresh OIDs
     if (promises.length > 0) {
-      await this.sequelize.dialect.connectionManager._refreshDynamicOIDs();
+      await this.sequelize.dialect.connectionManager.refreshDynamicOids();
     }
 
     return result;
@@ -163,7 +163,7 @@ export class PostgresQueryInterface extends QueryInterface {
     const result = await this.sequelize.queryRaw(query, queryOptions);
 
     return result.map(fkMeta => {
-      const { initiallyDeferred, isDeferrable, ...remaining } = Utils.camelizeObjectKeys(fkMeta);
+      const { initiallyDeferred, isDeferrable, ...remaining } = camelizeObjectKeys(fkMeta);
 
       return {
         ...remaining,
@@ -233,24 +233,29 @@ export class PostgresQueryInterface extends QueryInterface {
   async dropTable(tableName, options) {
     await super.dropTable(tableName, options);
     const promises = [];
-    const instanceTable = this.sequelize.modelManager.getModel(tableName, { attribute: 'tableName' });
+    // TODO: we support receiving the model class instead of getting it from modelManager. More than one model can use the same table.
+    const model = this.sequelize.modelManager.getModel(tableName, { attribute: 'tableName' });
 
-    if (!instanceTable) {
+    if (!model) {
       // Do nothing when model is not available
       return;
     }
 
     const getTableName = (!options || !options.schema || options.schema === 'public' ? '' : `${options.schema}_`) + tableName;
 
-    const keys = Object.keys(instanceTable.rawAttributes);
-    const keyLen = keys.length;
+    const attributes = model.modelDefinition.attributes;
 
-    for (let i = 0; i < keyLen; i++) {
-      if (instanceTable.rawAttributes[keys[i]].type instanceof DataTypes.ENUM) {
-        const sql = this.queryGenerator.pgEnumDrop(getTableName, keys[i]);
-        options.supportsSearchPath = false;
-        promises.push(this.sequelize.queryRaw(sql, { ...options, raw: true }));
+    for (const attribute of attributes.values()) {
+      if (!(attribute.type instanceof DataTypes.ENUM)) {
+        continue;
       }
+
+      const sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
+      promises.push(this.sequelize.queryRaw(sql, {
+        ...options,
+        raw: true,
+        supportsSearchPath: false,
+      }));
     }
 
     await Promise.all(promises);

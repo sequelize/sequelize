@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.build({ username: 'foo' }).save({ transaction: t });
         const count1 = await User.count();
         const count2 = await User.count({ transaction: t });
@@ -127,6 +127,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       }).save({
         fields: ['validateCustom'],
       });
+    });
+
+    it('is disallowed if no primary key is present', async function () {
+      const Foo = this.sequelize.define('Foo', {});
+      await Foo.sync({ force: true });
+
+      const instance = await Foo.build({}, { isNewRecord: false });
+      await expect(instance.save()).to.be.rejectedWith('You attempted to save an instance with no primary key');
     });
 
     describe('hooks', () => {
@@ -447,14 +455,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('works with `allowNull: false` on createdAt and updatedAt columns', async function () {
         const User2 = this.sequelize.define('User2', {
           username: DataTypes.STRING,
-          createdAt: {
-            type: DataTypes.DATE,
-            allowNull: false,
-          },
-          updatedAt: {
-            type: DataTypes.DATE,
-            allowNull: false,
-          },
         }, { timestamps: true });
 
         await User2.sync();
@@ -472,8 +472,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(error).to.exist;
         expect(error).to.be.instanceof(ValidationError);
         expect(error.get('validateTest')).to.be.instanceof(Array);
-        expect(error.get('validateTest')[0]).to.exist;
-        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+        expect(error.get('validateTest')[1]).to.exist;
+        expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
@@ -484,8 +484,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(error).to.exist;
         expect(error).to.be.instanceof(Object);
         expect(error.get('validateTest')).to.be.instanceof(Array);
-        expect(error.get('validateTest')[0]).to.exist;
-        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+        expect(error.get('validateTest')[1]).to.exist;
+        expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 
@@ -512,8 +512,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(error).to.be.instanceof(Object);
         expect(error.get('validateTest')).to.exist;
         expect(error.get('validateTest')).to.be.instanceof(Array);
-        expect(error.get('validateTest')[0]).to.exist;
-        expect(error.get('validateTest')[0].message).to.equal('Validation isInt on validateTest failed');
+        expect(error.get('validateTest')[1]).to.exist;
+        expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
       }
     });
 

@@ -48,13 +48,13 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
               expect(task.user_id).to.equal(1);
             });
 
-            it('does not allow the violation of the foreign key constraint if the transaction is not deffered', async function () {
+            it('does not allow the violation of the foreign key constraint if the transaction is not deferred', async function () {
               await expect(this.run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
                 deferrable: undefined,
               })).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
             });
 
-            it('allows the violation of the foreign key constraint if the transaction deferres only the foreign key constraint', async function () {
+            it('allows the violation of the foreign key constraint if the transaction deferred only the foreign key constraint', async function () {
               const taskTableName = `tasks_${Support.rand()}`;
 
               const task = await this
@@ -92,7 +92,7 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
               allowNull: false,
               type: DataTypes.INTEGER,
               references: {
-                model: userTableName,
+                table: userTableName,
                 key: 'id',
                 deferrable,
               },

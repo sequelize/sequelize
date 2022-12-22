@@ -5,7 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const { Op, DataTypes } = require('@sequelize/core');
 const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/query-generator.js');
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const customSequelize = Support.createSequelizeInstance({
   schema: 'custom',
@@ -20,44 +20,6 @@ const _ = require('lodash');
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
     const suites = {
-      arithmeticQuery: [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' RETURNING *',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' WHERE "bar" = \'biz\' RETURNING *',
-        },
-        {
-          title: 'Should use the plus operator without returning clause',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' RETURNING *',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- -1 RETURNING *',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' WHERE "bar" = \'biz\' RETURNING *',
-        },
-        {
-          title: 'Should use the minus operator without returning clause',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, { returning: false }],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\'',
-        },
-      ],
-
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
@@ -105,49 +67,49 @@ if (dialect.startsWith('postgres')) {
         },
         // New references style
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' } } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("id")' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar', key: 'pk' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar', key: 'pk' } } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("pk")' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE' } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("id") ON UPDATE RESTRICT' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { table: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT' },
         },
 
         // Variants when quoteIdentifiers is false
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' } } }],
           expectation: { id: 'INTEGER REFERENCES Bar (id)' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar', key: 'pk' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar', key: 'pk' } } }],
           expectation: { id: 'INTEGER REFERENCES Bar (pk)' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE' } }],
           expectation: { id: 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER REFERENCES Bar (id) ON UPDATE RESTRICT' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { table: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT' },
           context: { options: { quoteIdentifiers: false } },
         },
@@ -208,7 +170,7 @@ if (dialect.startsWith('postgres')) {
         },
         {
           arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title public."enum_myTable_title", name VARCHAR(255));',
+          expectation: 'CREATE TABLE IF NOT EXISTS myTable (title public.enum_myTable_title, name VARCHAR(255));',
           context: { options: { quoteIdentifiers: false } },
         },
         {
@@ -219,47 +181,6 @@ if (dialect.startsWith('postgres')) {
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION' }],
           expectation: 'CREATE TABLE IF NOT EXISTS myTable (title VARCHAR(255), name VARCHAR(255), otherId INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS "myTable";',
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
-          expectation: 'DROP TABLE IF EXISTS "mySchema"."myTable";',
-        },
-        {
-          arguments: ['myTable', { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS "myTable" CASCADE;',
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS "mySchema"."myTable" CASCADE;',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS myTable;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
-          expectation: 'DROP TABLE IF EXISTS mySchema.myTable;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: ['myTable', { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS myTable CASCADE;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS mySchema.myTable CASCADE;',
           context: { options: { quoteIdentifiers: false } },
         },
       ],
@@ -293,9 +214,6 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM "myTable" WHERE "myTable"."id" = 2;',
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS "count" FROM "foo";',
         }, {
           arguments: ['myTable', { order: ['id'] }],
           expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
@@ -428,18 +346,6 @@ if (dialect.startsWith('postgres')) {
           arguments: ['myTable', { group: ['name', 'title'] }],
           expectation: 'SELECT * FROM "myTable" GROUP BY "name", "title";',
         }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR("createdAt") AS "creationYear" FROM "myTable" GROUP BY "creationYear", "title" HAVING "creationYear" > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true,
-        }, {
           arguments: ['myTable', { limit: 10 }],
           expectation: 'SELECT * FROM "myTable" LIMIT 10;',
         }, {
@@ -458,12 +364,12 @@ if (dialect.startsWith('postgres')) {
         }, {
           title: 'buffer as where argument',
           arguments: ['myTable', { where: { field: Buffer.from('Sequelize') } }],
-          expectation: `SELECT * FROM "myTable" WHERE "myTable"."field" = E'\\\\x53657175656c697a65';`,
+          expectation: `SELECT * FROM "myTable" WHERE "myTable"."field" = '\\x53657175656c697a65';`,
           context: QueryGenerator,
         }, {
           title: 'string in array should escape \' as \'\'',
           arguments: ['myTable', { where: { aliases: { [Op.contains]: ['Queen\'s'] } } }],
-          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."aliases" @> ARRAY[\'Queen\'\'s\'];',
+          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."aliases" @> ARRAY[\'Queen\'\'s\']::VARCHAR(255)[];',
         },
 
         // Variants when quoteIdentifiers is false
@@ -490,10 +396,6 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM myTable WHERE myTable.id = 2;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS count FROM foo;',
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { order: ['id DESC'] }],
@@ -800,7 +702,7 @@ if (dialect.startsWith('postgres')) {
           expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING *;',
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { returning: ['id', 'sentToId'] }],
-          expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING "id","sentToId";',
+          expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING "id", "sentToId";',
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true, returning: true }],
           expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') ON CONFLICT DO NOTHING RETURNING *;',
@@ -1071,44 +973,6 @@ if (dialect.startsWith('postgres')) {
         },
       ],
 
-      removeIndexQuery: [
-        {
-          arguments: ['User', 'user_foo_bar'],
-          expectation: 'DROP INDEX IF EXISTS "user_foo_bar"',
-        }, {
-          arguments: ['User', ['foo', 'bar']],
-          expectation: 'DROP INDEX IF EXISTS "user_foo_bar"',
-        }, {
-          arguments: ['User', ['foo', 'bar'], { concurrently: true }],
-          expectation: 'DROP INDEX CONCURRENTLY IF EXISTS "user_foo_bar"',
-        }, {
-          arguments: ['User', 'mySchema.user_foo_bar'],
-          expectation: 'DROP INDEX IF EXISTS "mySchema"."user_foo_bar"',
-        }, {
-          arguments: ['User', 'mySchema.user_foo_bar', { concurrently: true }],
-          expectation: 'DROP INDEX CONCURRENTLY IF EXISTS "mySchema"."user_foo_bar"',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['User', 'user_foo_bar'],
-          expectation: 'DROP INDEX IF EXISTS user_foo_bar',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['User', ['foo', 'bar']],
-          expectation: 'DROP INDEX IF EXISTS user_foo_bar',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['User', 'mySchema.user_foo_bar'],
-          expectation: 'DROP INDEX IF EXISTS mySchema.user_foo_bar',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['User', 'mySchema.user_foo_bar', { concurrently: true }],
-          expectation: 'DROP INDEX CONCURRENTLY IF EXISTS mySchema.user_foo_bar',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-
       startTransactionQuery: [
         {
           arguments: [{}],
@@ -1231,31 +1095,27 @@ if (dialect.startsWith('postgres')) {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
-        beforeEach(function () {
-          this.queryGenerator = new QueryGenerator({
-            sequelize: this.sequelize,
-            dialect: this.sequelize.dialect,
-          });
-        });
-
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
           const title = test.title || `Postgres correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
-          it(title, function () {
+          it(title, () => {
+            const newSequelize = Support.createSequelizeInstance({
+              ...test.context?.options,
+            });
+
+            const queryGenerator = newSequelize.queryInterface.queryGenerator;
+
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {
-                test.arguments[1] = test.arguments[1](this.sequelize);
+                test.arguments[1] = test.arguments[1](newSequelize);
               }
 
               if (typeof test.arguments[2] === 'function') {
-                test.arguments[2] = test.arguments[2](this.sequelize);
+                test.arguments[2] = test.arguments[2](newSequelize);
               }
             }
 
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            this.queryGenerator.options = { ...this.queryGenerator.options, ...test.context && test.context.options };
-
-            const conditions = this.queryGenerator[suiteTitle](...test.arguments);
+            const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         }
@@ -1316,13 +1176,6 @@ if (dialect.startsWith('postgres')) {
             title: 'showTablesQuery defaults to the schema set in Sequelize options',
             arguments: [],
             expectation: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'custom' AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`,
-          },
-        ],
-        describeTableQuery: [
-          {
-            title: 'describeTableQuery defaults to the schema set in Sequelize options',
-            arguments: ['myTable', null],
-            expectation: `SELECT pk.constraint_type as "Constraint",c.column_name as "Field", c.column_default as "Default",c.is_nullable as "Null", (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type", (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special", (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment" FROM information_schema.columns c LEFT JOIN (SELECT tc.table_schema, tc.table_name, cu.column_name, tc.constraint_type FROM information_schema.TABLE_CONSTRAINTS tc JOIN information_schema.KEY_COLUMN_USAGE  cu ON tc.table_schema=cu.table_schema and tc.table_name=cu.table_name and tc.constraint_name=cu.constraint_name and tc.constraint_type='PRIMARY KEY') pk ON pk.table_schema=c.table_schema AND pk.table_name=c.table_name AND pk.column_name=c.column_name WHERE c.table_name = 'myTable' AND c.table_schema = 'custom'`,
           },
         ],
       };

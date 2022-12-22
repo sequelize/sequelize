@@ -1,5 +1,5 @@
-import { AssociationError } from '@sequelize/core';
 import { expect } from 'chai';
+import { AssociationError } from '@sequelize/core';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
 describe(getTestDialectTeaser('belongsTo'), () => {

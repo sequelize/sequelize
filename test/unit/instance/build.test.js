@@ -3,10 +3,11 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support   = require('../support');
+const Support   = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 
 const current   = Support.sequelize;
+const dialect = current.dialect;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('build', () => {
@@ -41,11 +42,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
       const instance = Model.build({ ip: '127.0.0.1', ip2: '0.0.0.0' });
 
-      expect(instance.get('created_time')).to.be.ok;
-      expect(instance.get('created_time')).to.be.an.instanceof(Date);
-
-      expect(instance.get('updated_time')).to.be.ok;
-      expect(instance.get('updated_time')).to.be.an.instanceof(Date);
+      expect(instance.get('created_time')).to.be.an.instanceof(Date, 'created_time should be a date');
+      expect(instance.get('updated_time')).to.be.an.instanceof(Date, 'updated_time should be a date');
 
       await instance.validate();
     });
@@ -88,18 +86,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(instance.get('number2')).to.equal(2);
     });
 
-    it('should clone the default values', () => {
-      const Model = current.define('Model', {
-        data: {
-          type: DataTypes.JSONB,
-          defaultValue: { foo: 'bar' },
-        },
-      });
-      const instance = Model.build();
-      instance.data.foo = 'biz';
+    if (dialect.supports.dataTypes.JSONB) {
+      it('should clone the default values', () => {
+        const Model = current.define('Model', {
+          data: {
+            type: DataTypes.JSONB,
+            defaultValue: { foo: 'bar' },
+          },
+        });
+        const instance = Model.build();
+        instance.data.foo = 'biz';
 
-      expect(instance.get('data')).to.eql({ foo: 'biz' });
-      expect(Model.build().get('data')).to.eql({ foo: 'bar' });
-    });
+        expect(instance.get('data')).to.eql({ foo: 'biz' });
+        expect(Model.build().get('data')).to.eql({ foo: 'bar' });
+      });
+    }
   });
 });

@@ -1,18 +1,18 @@
 'use strict';
 
+import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
 const _ = require('lodash');
 
-const Utils = require('../../utils');
 const { QueryTypes } = require('../../query-types');
 const { Op } = require('../../operators');
-const { QueryInterface } = require('../abstract/query-interface');
+const { AbstractQueryInterface } = require('../abstract/query-interface');
 
 /**
  * The interface that Sequelize uses to talk with MSSQL database
  */
-export class MsSqlQueryInterface extends QueryInterface {
+export class MsSqlQueryInterface extends AbstractQueryInterface {
   /**
   * A wrapper that fixes MSSQL's inability to cleanly remove columns from existing tables if they have a default constraint.
   *
@@ -51,6 +51,19 @@ export class MsSqlQueryInterface extends QueryInterface {
   }
 
   /**
+    * @override
+    */
+  async bulkInsert(tableName, records, options, attributes) {
+    // If more than 1,000 rows are inserted outside of a transaction, we can't guarantee safe rollbacks.
+    // See https://github.com/sequelize/sequelize/issues/15426
+    if (records.length > 1000 && !options.transaction) {
+      throw new Error(`MSSQL doesn't allow for inserting more than 1,000 rows at a time, so Sequelize executes the insert as multiple queries. Please run this in a transaction to ensure safe rollbacks`);
+    }
+
+    return super.bulkInsert(tableName, records, options, attributes);
+  }
+
+  /**
    * @override
    */
   async upsert(tableName, insertValues, updateValues, where, options) {
@@ -63,16 +76,15 @@ export class MsSqlQueryInterface extends QueryInterface {
 
     options = { ...options };
 
-    if (!Utils.isWhereEmpty(where)) {
+    if (!isWhereEmpty(where)) {
       wheres.push(where);
     }
 
     // Lets combine unique keys and indexes into one
-    let indexes = Object.values(model.uniqueKeys).map(item => item.fields);
-    indexes = indexes.concat(Object.values(model.getIndexes()).filter(item => item.unique).map(item => item.fields));
+    const uniqueColumnNames = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
 
     const attributes = Object.keys(insertValues);
-    for (const index of indexes) {
+    for (const index of uniqueColumnNames) {
       if (_.intersection(attributes, index).length === index.length) {
         where = {};
         for (const field of index) {

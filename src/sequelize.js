@@ -1,18 +1,20 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
+import retry from 'retry-as-promised';
+import { normalizeDataType } from './dialects/abstract/data-types-utils';
+import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
-import { AggregateError } from './errors';
-import { isString } from './utils';
+import { isString } from './utils/check.js';
 import { noSequelizeDataType } from './utils/deprecations';
-import { isSameInitialModel, isModelStatic } from './utils/model-utils';
+import { isModelStatic, isSameInitialModel } from './utils/model-utils';
+import { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method';
 import { injectReplacements, mapBindParameters } from './utils/sql';
+import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
+import { importModels } from './import-models.js';
 
-const retry = require('retry-as-promised');
 const _ = require('lodash');
-
-const Utils = require('./utils');
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
 const { Deferrable } = require('./deferrable');
@@ -22,12 +24,11 @@ const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
 const sequelizeErrors = require('./errors');
-const Hooks = require('./hooks');
 const { Association } = require('./associations/index');
 const Validator = require('./utils/validator-extras').validator;
 const { Op } = require('./operators');
 const deprecations = require('./utils/deprecations');
-const { QueryInterface } = require('./dialects/abstract/query-interface');
+const { AbstractQueryInterface } = require('./dialects/abstract/query-interface');
 const { BelongsTo } = require('./associations/belongs-to');
 const { HasOne } = require('./associations/has-one');
 const { BelongsToMany } = require('./associations/belongs-to-many');
@@ -37,7 +38,7 @@ require('./utils/dayjs');
 /**
  * This is the main class, the entry point to sequelize.
  */
-export class Sequelize {
+export class Sequelize extends SequelizeTypeScript {
   /**
    * Instantiate sequelize with name of database, username and password.
    *
@@ -188,13 +189,15 @@ export class Sequelize {
    * @param {number}   [options.retry.backoffExponent=1.1] Exponent to increase backoff duration after each retry.
    * @param {Function} [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
    * @param {string}   [options.retry.name='unknown'] Name used when composing error/reporting messages.
-   * @param {boolean}  [options.typeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
+   * @param {boolean}  [options.noTypeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
    * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
    * @param {boolean}  [options.minifyAliases=false] A flag that defines if aliases should be minified (mostly useful to avoid Postgres alias character limit of 64)
    * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
    */
   constructor(database, username, password, options) {
+    super();
+
     if (arguments.length === 1 && _.isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
@@ -214,9 +217,9 @@ export class Sequelize {
       });
     }
 
-    Sequelize.runHooks('beforeInit', options, options);
+    Sequelize.hooks.runSync('beforeInit', options);
 
-    // @ts-expect-error
+    // @ts-expect-error -- doesn't exist
     if (options.pool === false) {
       throw new Error('Support for pool:false was removed in v4.0');
     }
@@ -239,6 +242,7 @@ export class Sequelize {
       native: false,
       replication: false,
       ssl: undefined,
+      // TODO [=7]: print a deprecation warning if quoteIdentifiers is set to false
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -249,11 +253,12 @@ export class Sequelize {
       },
       transactionType: TRANSACTION_TYPES.DEFERRED,
       isolationLevel: null,
-      databaseVersion: 0,
-      typeValidation: false,
+      databaseVersion: null,
+      noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
+      disableClsTransactions: false,
       ...options,
       pool: _.defaults(options.pool || {}, {
         max: 5,
@@ -264,6 +269,11 @@ export class Sequelize {
       }),
     };
 
+    // TODO: remove & assign property directly once this constructor has been migrated to the SequelizeTypeScript class
+    if (!this.options.disableClsTransactions) {
+      this._setupTransactionCls();
+    }
+
     if (!this.options.dialect) {
       throw new Error('Dialect needs to be explicitly supplied as of v4.0.0');
     }
@@ -272,20 +282,19 @@ export class Sequelize {
       this.options.dialect = 'postgres';
     }
 
-    if (this.options.dialect === 'sqlite' && this.options.timezone !== '+00:00') {
-      throw new Error('Setting a custom timezone is not supported by SQLite, dates are always returned as UTC. Please remove the custom timezone parameter.');
-    }
-
-    if (this.options.dialect === 'ibmi' && this.options.timezone !== '+00:00') {
-      throw new Error('Setting a custom timezone is not supported by Db2 for i, dates are always returned as UTC. Please remove the custom timezone parameter.');
-    }
+    //     if (this.options.define.hooks) {
+    //       throw new Error(`The "define" Sequelize option cannot be used to add hooks to all models. Please remove the "hooks" property from the "define" option you passed to the Sequelize constructor.
+    // Instead of using this option, you can listen to the same event on all models by adding the listener to the Sequelize instance itself, since all model hooks are forwarded to the Sequelize instance.`);
+    //     }
 
     if (this.options.logging === true) {
       deprecations.noTrueLogging();
       this.options.logging = console.debug;
     }
 
-    this._setupHooks(options.hooks);
+    if (options.hooks) {
+      this.hooks.addListeners(options.hooks);
+    }
 
     // ==========================================
     //  REPLICATION CONFIG NORMALIZATION
@@ -385,7 +394,15 @@ export class Sequelize {
     };
 
     this.dialect = new Dialect(this);
-    this.dialect.queryGenerator.typeValidation = options.typeValidation;
+    if ('typeValidation' in options) {
+      throw new Error('The typeValidation has been renamed to noTypeValidation, and is false by default');
+    }
+
+    if (!this.dialect.supports.globalTimeZoneConfig && this.options.timezone !== '+00:00') {
+      throw new Error(`Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`);
+    }
+
+    this.dialect.queryGenerator.noTypeValidation = options.noTypeValidation;
 
     if (_.isPlainObject(this.options.operatorsAliases)) {
       deprecations.noStringOperators();
@@ -403,16 +420,11 @@ export class Sequelize {
     this.modelManager = new ModelManager(this);
     this.connectionManager = this.dialect.connectionManager;
 
-    Sequelize.runHooks('afterInit', this);
-  }
+    if (options.models) {
+      this.addModels(options.models);
+    }
 
-  /**
-   * Refresh data types and parsers.
-   *
-   * @private
-   */
-  refreshTypes() {
-    this.connectionManager.refreshTypeParser(DataTypes);
+    Sequelize.hooks.runSync('afterInit', this);
   }
 
   /**
@@ -434,9 +446,9 @@ export class Sequelize {
   }
 
   /**
-   * Returns an instance of QueryInterface.
+   * Returns an instance of AbstractQueryInterface.
    *
-   * @returns {QueryInterface} An instance (singleton) of QueryInterface.
+   * @returns {AbstractQueryInterface} An instance (singleton) of AbstractQueryInterface.
    */
   getQueryInterface() {
     return this.queryInterface;
@@ -478,7 +490,7 @@ export class Sequelize {
    *
    * sequelize.models.modelName // The model will now be available in models under the name given to define
    */
-  define(modelName, attributes, options = {}) {
+  define(modelName, attributes = {}, options = {}) {
     options.modelName = modelName;
     options.sequelize = this;
 
@@ -639,7 +651,8 @@ Use Sequelize#query if you wish to use replacements.`);
 
     // map raw fields to model attributes
     if (options.mapToModel) {
-      options.fieldMap = _.get(options, 'model.fieldAttributeMap', {});
+      // TODO: throw if model is not specified
+      options.fieldMap = options.model?.fieldAttributeMap;
     }
 
     options = _.defaults(options, {
@@ -681,8 +694,8 @@ Use Sequelize#query if you wish to use replacements.`);
     const retryOptions = { ...this.options.retry, ...options.retry };
 
     return await retry(async () => {
-      if (options.transaction === undefined && Sequelize._cls) {
-        options.transaction = Sequelize._cls.get('transaction');
+      if (options.transaction === undefined) {
+        options.transaction = this.getCurrentClsTransaction();
       }
 
       checkTransaction();
@@ -699,12 +712,12 @@ Use Sequelize#query if you wish to use replacements.`);
       const query = new this.dialect.Query(connection, this, options);
 
       try {
-        await this.runHooks('beforeQuery', options, query);
+        await this.hooks.runAsync('beforeQuery', options, query);
         checkTransaction();
 
         return await query.run(sql, bindParameters);
       } finally {
-        await this.runHooks('afterQuery', options, query);
+        await this.hooks.runAsync('afterQuery', options, query);
         if (!options.transaction) {
           this.connectionManager.releaseConnection(connection);
         }
@@ -771,9 +784,10 @@ Use Sequelize#query if you wish to use replacements.`);
    * {@link Model.schema}
    *
    * @param {string} schema Name of the schema
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
+   * @param {object} [options={}] CreateSchemaQueryOptions
+   * @param {string} [options.collate=null]
+   * @param {string} [options.charset=null]
+    *
    * @returns {Promise}
    */
   async createSchema(schema, options) {
@@ -854,7 +868,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.hooks) {
-      await this.runHooks('beforeBulkSync', options);
+      await this.hooks.runAsync('beforeBulkSync', options);
     }
 
     if (options.force) {
@@ -881,7 +895,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.hooks) {
-      await this.runHooks('afterBulkSync', options);
+      await this.hooks.runAsync('afterBulkSync', options);
     }
 
     return this;
@@ -1029,8 +1043,30 @@ Use Sequelize#query if you wish to use replacements.`);
 
   }
 
-  async databaseVersion(options) {
+  /**
+   * Fetches the version of the database
+   *
+   * @param {object} [options] Query options
+   *
+   * @returns {Promise<string>} current version of the dialect
+   */
+  async fetchDatabaseVersion(options) {
     return await this.getQueryInterface().databaseVersion(options);
+  }
+
+  /**
+   * Throws if the database version hasn't been loaded yet. It is automatically loaded the first time Sequelize connects to your database.
+   *
+   * You can use {@link Sequelize#authenticate} to cause a first connection.
+   *
+   * @returns {string} current version of the dialect that is internally loaded
+   */
+  getDatabaseVersion() {
+    if (this.options.databaseVersion == null) {
+      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
+    }
+
+    return this.options.databaseVersion;
   }
 
   /**
@@ -1048,151 +1084,37 @@ Use Sequelize#query if you wish to use replacements.`);
 
   static fn = fn;
 
+  static Fn = Fn;
+
   static col = col;
+
+  static Col = Col;
 
   static cast = cast;
 
+  static Cast = Cast;
+
   static literal = literal;
+
+  static Literal = Literal;
+
+  static json = json;
+
+  static Json = Json;
+
+  static where = where;
+
+  static Where = Where;
 
   static and = and;
 
   static or = or;
 
-  static json = json;
-
-  static where = where;
-
   static isModelStatic = isModelStatic;
 
   static isSameInitialModel = isSameInitialModel;
 
-  /**
-   * Start a transaction. When using transactions, you should pass the transaction in the options argument in order for the query to happen under that transaction @see {@link Transaction}
-   *
-   * If you have [CLS](https://github.com/Jeff-Lewis/cls-hooked) enabled, the transaction will automatically be passed to any query that runs within the callback
-   *
-   * @example
-   *
-   * try {
-   *   const transaction = await sequelize.transaction();
-   *   const user = await User.findOne(..., { transaction });
-   *   await user.update(..., { transaction });
-   *   await transaction.commit();
-   * } catch {
-   *   await transaction.rollback()
-   * }
-   *
-   * @example <caption>A syntax for automatically committing or rolling back based on the promise chain resolution is also supported</caption>
-   *
-   * try {
-   *   await sequelize.transaction(async transaction => { // Note that we pass a callback rather than awaiting the call with no arguments
-   *     const user = await User.findOne(..., {transaction});
-   *     await user.update(..., {transaction});
-   *   });
-   *   // Committed
-   * } catch(err) {
-   *   // Rolled back
-   *   console.error(err);
-   * }
-   * @example <caption>To enable CLS, add it do your project, create a namespace and set it on the sequelize constructor:</caption>
-   *
-   * const cls = require('cls-hooked');
-   * const namespace = cls.createNamespace('....');
-   * const Sequelize = require('@sequelize/core');
-   * Sequelize.useCLS(namespace);
-   *
-   * // Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
-   *
-   * @param {object}   [options] Transaction options
-   * @param {string}   [options.type='DEFERRED'] See `Sequelize.Transaction.TYPES` for possible options. Sqlite only.
-   * @param {string}   [options.isolationLevel] See `Sequelize.Transaction.ISOLATION_LEVELS` for possible options
-   * @param {string}   [options.deferrable] Sets the constraints to be deferred or immediately checked. See `Sequelize.Deferrable`. PostgreSQL Only
-   * @param {Function} [options.logging=false] A function that gets executed while running the query to log the sql.
-   * @param {Function} [autoCallback] The callback is called with the transaction object, and should return a promise. If the promise is resolved, the transaction commits; if the promise rejects, the transaction rolls back
-   *
-   * @returns {Promise}
-   */
-  async transaction(options, autoCallback) {
-    if (typeof options === 'function') {
-      autoCallback = options;
-      options = undefined;
-    }
-
-    const transaction = new Transaction(this, options);
-
-    if (!autoCallback) {
-      await transaction.prepareEnvironment(/* cls */ false);
-
-      return transaction;
-    }
-
-    // autoCallback provided
-    return Sequelize._clsRun(async () => {
-      await transaction.prepareEnvironment(/* cls */ true);
-
-      let result;
-      try {
-        result = await autoCallback(transaction);
-      } catch (error) {
-        try {
-          await transaction.rollback();
-        } catch {
-          // ignore, because 'rollback' will already print the error before killing the connection
-        }
-
-        throw error;
-      }
-
-      await transaction.commit();
-
-      return result;
-    });
-  }
-
-  /**
-   * Use CLS (Continuation Local Storage) with Sequelize. With Continuation
-   * Local Storage, all queries within the transaction callback will
-   * automatically receive the transaction object.
-   *
-   * CLS namespace provided is stored as `Sequelize._cls`
-   *
-   * @param {object} ns CLS namespace
-   * @returns {object} Sequelize constructor
-   */
-  static useCLS(ns) {
-    // check `ns` is valid CLS namespace
-    if (!ns || typeof ns !== 'object' || typeof ns.bind !== 'function' || typeof ns.run !== 'function') {
-      throw new Error('Must provide CLS namespace');
-    }
-
-    // save namespace as `Sequelize._cls`
-    Sequelize._cls = ns;
-
-    // return Sequelize for chaining
-    return this;
-  }
-
-  /**
-   * Run function in CLS context.
-   * If no CLS context in use, just runs the function normally
-   *
-   * @private
-   * @param {Function} fn Function to run
-   * @returns {*} Return value of function
-   */
-  static _clsRun(fn) {
-    const ns = Sequelize._cls;
-    if (!ns) {
-      return fn();
-    }
-
-    let res;
-    ns.run(context => {
-      res = fn(context);
-    });
-
-    return res;
-  }
+  static importModels = importModels;
 
   log(...args) {
     let options;
@@ -1239,29 +1161,37 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   normalizeDataType(Type) {
-    let type = typeof Type === 'function' ? new Type() : Type;
-    const dialectTypes = this.dialect.DataTypes || {};
-
-    if (dialectTypes[type.key]) {
-      type = dialectTypes[type.key].extend(type);
-    }
-
-    if (type instanceof DataTypes.ARRAY) {
-      if (!type.type) {
-        throw new Error('ARRAY is missing type definition for its values.');
-      }
-
-      if (dialectTypes[type.type.key]) {
-        type.type = dialectTypes[type.type.key].extend(type.type);
-      }
-    }
-
-    return type;
+    return normalizeDataType(Type, this.dialect);
   }
 
   normalizeAttribute(attribute) {
     if (!_.isPlainObject(attribute)) {
       attribute = { type: attribute };
+    } else {
+      attribute = { ...attribute };
+    }
+
+    if (attribute.values) {
+      throw new TypeError(`
+The "values" property has been removed from column definitions. The following is no longer supported:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM,
+    values: ['admin', 'user'],
+  },
+});
+
+Instead, define enum values like this:
+
+sequelize.define('MyModel', {
+  roles: {
+    type: DataTypes.ENUM(['admin', 'user']),
+  },
+});
+
+Remove the "values" property to resolve this issue.
+        `.trim());
     }
 
     if (!attribute.type) {
@@ -1269,25 +1199,6 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     attribute.type = this.normalizeDataType(attribute.type);
-
-    if (Object.prototype.hasOwnProperty.call(attribute, 'defaultValue') && typeof attribute.defaultValue === 'function'
-        && [DataTypes.NOW, DataTypes.UUIDV1, DataTypes.UUIDV4].includes(attribute.defaultValue)
-    ) {
-      attribute.defaultValue = new attribute.defaultValue();
-    }
-
-    if (attribute.type instanceof DataTypes.ENUM) {
-      // The ENUM is a special case where the type is an object containing the values
-      if (attribute.values) {
-        attribute.type.values = attribute.type.options.values = attribute.values;
-      } else {
-        attribute.values = attribute.type.values;
-      }
-
-      if (attribute.values.length === 0) {
-        throw new Error('Values for ENUM have not been defined.');
-      }
-    }
 
     return attribute;
   }
@@ -1316,13 +1227,6 @@ Object.defineProperty(Sequelize, 'version', {
     return require('../package.json').version;
   },
 });
-
-Sequelize.options = { hooks: {} };
-
-/**
- * @private
- */
-Sequelize.Utils = Utils;
 
 /**
  * Operators symbols to be used for querying data
@@ -1353,6 +1257,8 @@ Sequelize.IndexHints = IndexHints;
  */
 Sequelize.Transaction = Transaction;
 
+Sequelize.GeoJsonType = require('./geo-json').GeoJsonType;
+
 /**
  * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
  *
@@ -1376,7 +1282,7 @@ Sequelize.prototype.Validator = Sequelize.Validator = Validator;
 
 Sequelize.Model = Model;
 
-Sequelize.QueryInterface = QueryInterface;
+Sequelize.AbstractQueryInterface = AbstractQueryInterface;
 Sequelize.BelongsTo = BelongsTo;
 Sequelize.HasOne = HasOne;
 Sequelize.HasMany = HasMany;
@@ -1409,18 +1315,11 @@ Sequelize.Deferrable = Deferrable;
 Sequelize.prototype.Association = Sequelize.Association = Association;
 
 /**
- * Provide alternative version of `inflection` module to be used by `Utils.pluralize` etc.
+ * Provide alternative version of `inflection` module to be used by `pluralize` etc.
  *
  * @param {object} _inflection - `inflection` module
  */
-Sequelize.useInflection = Utils.useInflection;
-
-/**
- * Allow hooks to be defined on Sequelize + on sequelize instance as universal hooks to run on all models
- * and on Sequelize/sequelize methods e.g. Sequelize(), Sequelize#define()
- */
-Hooks.applyTo(Sequelize);
-Hooks.applyTo(Sequelize.prototype);
+Sequelize.useInflection = useInflection;
 
 /**
  * Expose various errors available
@@ -1454,7 +1353,7 @@ for (const error of Object.keys(sequelizeErrors)) {
  * });
  */
 export function fn(fn, ...args) {
-  return new Utils.Fn(fn, args);
+  return new Fn(fn, args);
 }
 
 /**
@@ -1469,7 +1368,7 @@ export function fn(fn, ...args) {
  * @returns {Sequelize.col}
  */
 export function col(col) {
-  return new Utils.Col(col);
+  return new Col(col);
 }
 
 /**
@@ -1483,7 +1382,7 @@ export function col(col) {
  * @returns {Sequelize.cast}
  */
 export function cast(val, type) {
-  return new Utils.Cast(val, type);
+  return new Cast(val, type);
 }
 
 /**
@@ -1496,7 +1395,7 @@ export function cast(val, type) {
  * @returns {Sequelize.literal}
  */
 export function literal(val) {
-  return new Utils.Literal(val);
+  return new Literal(val);
 }
 
 /**
@@ -1542,7 +1441,7 @@ export function or(...args) {
  * @returns {Sequelize.json}
  */
 export function json(conditionsOrPath, value) {
-  return new Utils.Json(conditionsOrPath, value);
+  return new Json(conditionsOrPath, value);
 }
 
 /**
@@ -1561,5 +1460,5 @@ export function json(conditionsOrPath, value) {
  * @since v2.0.0-dev3
  */
 export function where(attr, comparator, logic) {
-  return new Utils.Where(attr, comparator, logic);
+  return new Where(attr, comparator, logic);
 }

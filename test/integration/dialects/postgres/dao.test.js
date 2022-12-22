@@ -332,7 +332,7 @@ if (dialect.startsWith('postgres')) {
         await User.sync();
         const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
         expect(enums).to.have.length(1);
-        expect(enums[0].enum_value).to.equal('{neutral,happy,sad,ecstatic,meh,joyful}');
+        expect(enums[0].enum_value).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
       });
 
       it('should be able to add multiple values with different order', async function () {
@@ -348,7 +348,7 @@ if (dialect.startsWith('postgres')) {
         await User.sync();
         const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
         expect(enums).to.have.length(1);
-        expect(enums[0].enum_value).to.equal('{0,1,2,3,4,5,6,7}');
+        expect(enums[0].enum_value).to.deep.equal(['0', '1', '2', '3', '4', '5', '6', '7']);
       });
 
       describe('ARRAY(ENUM)', () => {
@@ -402,7 +402,7 @@ if (dialect.startsWith('postgres')) {
           await User.sync();
           const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
           expect(enums).to.have.length(1);
-          expect(enums[0].enum_value).to.equal('{view,access,edit,write,check,delete}');
+          expect(enums[0].enum_value).to.deep.equal(['view', 'access', 'edit', 'write', 'check', 'delete']);
         });
 
         it('should be able to insert new record', async function () {
@@ -514,7 +514,7 @@ if (dialect.startsWith('postgres')) {
             type: 'C',
             owners: ['userA', 'userB'],
             permissions: ['cosmic_ray_disk_access'],
-          })).to.be.rejectedWith(/invalid input value for enum "enum_UserEnums_permissions": "cosmic_ray_disk_access"/);
+          })).to.be.rejectedWith(`'cosmic_ray_disk_access' is not a valid choice for enum [ 'access', 'write', 'check', 'delete' ]`);
         });
 
         it('should be able to find records', async function () {

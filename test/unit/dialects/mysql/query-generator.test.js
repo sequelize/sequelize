@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -14,33 +14,6 @@ const { createSequelizeInstance } = require('../../../support');
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] QueryGenerator', () => {
     const suites = {
-      arithmeticQuery: [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\'',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\'',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\'',
-        },
-      ],
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
@@ -106,23 +79,23 @@ if (dialect === 'mysql') {
         },
         // New references style
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' } } }],
           expectation: { id: 'INTEGER REFERENCES `Bar` (`id`)' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar', key: 'pk' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar', key: 'pk' } } }],
           expectation: { id: 'INTEGER REFERENCES `Bar` (`pk`)' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE' } }],
           expectation: { id: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', allowNull: false, autoIncrement: true, defaultValue: 1, references: { table: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT' },
         },
       ],
@@ -169,19 +142,12 @@ if (dialect === 'mysql') {
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
         },
         {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'], customIndex: true }] }],
+          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'] }] }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), UNIQUE `uniq_myTable_title_name` (`title`, `name`)) ENGINE=InnoDB;',
         },
         {
           arguments: ['myTable', { id: 'INTEGER auto_increment PRIMARY KEY' }, { initialAutoIncrement: 1_000_001 }],
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
-        },
-      ],
-
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS `myTable`;',
         },
       ],
 
@@ -209,10 +175,6 @@ if (dialect === 'mysql') {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
-          context: QueryGenerator,
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator,
         }, {
           arguments: ['myTable', { order: ['id'] }],
@@ -264,7 +226,7 @@ if (dialect === 'mysql') {
               ],
             };
           }],
-          expectation: 'SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, \'lalala\', \'2011-03-27 10:01:55\') ASC;',
+          expectation: 'SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, \'lalala\', \'2011-03-27 10:01:55.000\') ASC;',
           context: QueryGenerator,
           needsSequelize: true,
         }, {
@@ -326,18 +288,6 @@ if (dialect === 'mysql') {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator,
-        }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true,
         }, {
           title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
           arguments: ['myTable', function (sequelize) {
@@ -451,18 +401,6 @@ if (dialect === 'mysql') {
           expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > 2002) AS `test`;',
           context: QueryGenerator,
           needsSequelize: true,
-        }, {
-          title: 'Contains fields with "." characters.',
-          arguments: ['myTable', {
-            attributes: ['foo.bar.baz'],
-            model: {
-              rawAttributes: {
-                'foo.bar.baz': {},
-              },
-            },
-          }],
-          expectation: 'SELECT `foo.bar.baz` FROM `myTable`;',
-          context: QueryGenerator,
         },
       ],
 
@@ -559,7 +497,7 @@ if (dialect === 'mysql') {
           expectation: 'INSERT INTO `myTable` (`name`) VALUES (\'foo\\\';DROP TABLE myTable;\'),(\'bar\');',
         }, {
           arguments: ['myTable', [{ name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES (\'foo\',\'2011-03-27 10:01:55\'),(\'bar\',\'2012-03-27 10:01:55\');',
+          expectation: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES (\'foo\',\'2011-03-27 10:01:55.000\'),(\'bar\',\'2012-03-27 10:01:55.000\');',
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1 }, { name: 'bar', foo: 2 }]],
           expectation: 'INSERT INTO `myTable` (`name`,`foo`) VALUES (\'foo\',1),(\'bar\',2);',
@@ -673,44 +611,6 @@ if (dialect === 'mysql') {
         },
       ],
 
-      showIndexesQuery: [
-        {
-          arguments: ['User'],
-          expectation: 'SHOW INDEX FROM `User`',
-        },
-        {
-          arguments: [{ tableName: 'User', schema: 'schema' }],
-          expectation: 'SHOW INDEX FROM `schema`.`User`',
-        },
-        // FIXME: enable this test once fixed (in https://github.com/sequelize/sequelize/pull/14687)
-        // {
-        //   sequelizeOptions: {
-        //     schema: 'schema',
-        //   },
-        //   arguments: ['User'],
-        //   expectation: 'SHOW INDEX FROM `schema`.`User`',
-        // },
-        {
-          arguments: ['User', { database: 'sequelize' }],
-          // Doing this:
-          //  SHOW INDEX FROM `User` FROM `sequelize`
-          // would be incorrect because the second from specifies the SCHEMA.
-          // The database name from the credentials is not equivalent to specifying the SCHEMA.
-          // Schema and Database are synonymous in MySQL/MariaDB, and not the same as what we call a 'database' in our credentials.
-          expectation: 'SHOW INDEX FROM `User`',
-        },
-      ],
-
-      removeIndexQuery: [
-        {
-          arguments: ['User', 'user_foo_bar'],
-          expectation: 'DROP INDEX `user_foo_bar` ON `User`',
-        }, {
-          arguments: ['User', ['foo', 'bar']],
-          expectation: 'DROP INDEX `user_foo_bar` ON `User`',
-        },
-      ],
-
       getForeignKeyQuery: [
         {
           arguments: ['User', 'email'],
@@ -771,10 +671,11 @@ if (dialect === 'mysql') {
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
           const title = test.title || `MySQL correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
-          it(title, function () {
-            const sequelize = test.sequelizeOptions ? createSequelizeInstance({
+          it(title, () => {
+            const sequelize = createSequelizeInstance({
               ...test.sequelizeOptions,
-            }) : this.sequelize;
+              ...test.context && test.context.options,
+            });
 
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {
@@ -786,13 +687,7 @@ if (dialect === 'mysql') {
               }
             }
 
-            const queryGenerator = new QueryGenerator({
-              sequelize,
-              dialect: sequelize.dialect,
-            });
-
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            queryGenerator.options = { ...queryGenerator.options, ...test.context && test.context.options };
+            const queryGenerator = sequelize.queryInterface.queryGenerator;
 
             const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);

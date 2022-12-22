@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support   = require('../support');
+const Support   = require('../../support');
 
 const current   = Support.sequelize;
 const { DataTypes } = require('@sequelize/core');
@@ -11,11 +11,11 @@ const sinon     = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('save', () => {
-    it('should disallow saves if no primary key values is present', async () => {
-      const Model = current.define('User', {});
-      const instance = Model.build({}, { isNewRecord: false });
+    it('is not allowed if the instance does not have a primary key defined', async () => {
+      const User = current.define('User', {});
+      const instance = User.build({}, { isNewRecord: false });
 
-      await expect(instance.save()).to.be.rejected;
+      await expect(instance.save()).to.be.rejectedWith('You attempted to save an instance with no primary key, this is not allowed since it would result in a global update');
     });
 
     describe('options tests', () => {
