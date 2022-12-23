@@ -1325,9 +1325,6 @@ Sequelize.useInflection = useInflection;
  * Expose various errors available
  */
 
-// expose alias to BaseError
-Sequelize.Error = sequelizeErrors.BaseError;
-
 for (const error of Object.keys(sequelizeErrors)) {
   Sequelize[error] = sequelizeErrors[error];
 }
