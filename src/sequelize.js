@@ -1072,14 +1072,14 @@ Use Sequelize#query if you wish to use replacements.`);
   /**
    * Get the fn for random based on the dialect
    *
-   * @returns {Sequelize.fn}
+   * @returns {Fn}
    */
   random() {
     if (['postgres', 'sqlite', 'snowflake'].includes(this.getDialect())) {
-      return this.fn('RANDOM');
+      return fn('RANDOM');
     }
 
-    return this.fn('RAND');
+    return fn('RAND');
   }
 
   static fn = fn;

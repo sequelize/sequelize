@@ -1,14 +1,12 @@
+import type { SetOptional } from 'type-fest';
 import type {
   Association, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin,
   HasManySetAssociationsMixin, HasManyAddAssociationsMixin, HasManyHasAssociationsMixin,
-  HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, ModelDefined, Optional, InferAttributes,
+  HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, ModelDefined, InferAttributes,
   InferCreationAttributes, CreationOptional, NonAttribute, ForeignKey,
 } from '@sequelize/core';
-import {
-  DataTypes, Model,
-  Sequelize,
-} from '@sequelize/core';
+import { DataTypes, Model, Sequelize } from '@sequelize/core';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 
@@ -157,7 +155,7 @@ interface NoteAttributes {
 }
 
 // You can also set multiple attributes optional at once
-type NoteCreationAttributes = Optional<NoteAttributes, 'id' | 'title'>;
+type NoteCreationAttributes = SetOptional<NoteAttributes, 'id' | 'title'>;
 
 // And with a functional approach defining a module looks like this
 const Note: ModelDefined<

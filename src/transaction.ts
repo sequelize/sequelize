@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import type { Class } from 'type-fest';
-import type { Logging, Deferrable, PartlyRequired, Connection, Sequelize } from './index.js';
+import type { RequiredBy } from './utils/types.js';
+import type { Logging, Deferrable, Connection, Sequelize } from './index.js';
 
 type AfterTransactionCommitCallback = (transaction: Transaction) => void | Promise<void>;
 
@@ -18,7 +19,7 @@ export class Transaction {
 
   private readonly _afterCommitHooks: Set<AfterTransactionCommitCallback> = new Set();
   private readonly savepoints: Transaction[] = [];
-  private readonly options: PartlyRequired<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
+  private readonly options: RequiredBy<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
   private readonly parent: Transaction | null;
   readonly id: string;
   private readonly name: string;
@@ -354,6 +355,7 @@ export class Transaction {
  * }
  * ```
  */
+// TODO [>=8]: Rename to IsolationLevel
 export enum ISOLATION_LEVELS {
   READ_UNCOMMITTED = 'READ UNCOMMITTED',
   READ_COMMITTED = 'READ COMMITTED',
@@ -361,6 +363,7 @@ export enum ISOLATION_LEVELS {
   SERIALIZABLE = 'SERIALIZABLE',
 }
 
+// TODO [>=8]: Rename to TransactionType
 export enum TRANSACTION_TYPES {
   DEFERRED = 'DEFERRED',
   IMMEDIATE = 'IMMEDIATE',
@@ -396,6 +399,7 @@ export enum TRANSACTION_TYPES {
  *
  * [Read more on transaction locks here](https://sequelize.org/docs/v7/other-topics/transactions/#locks)
  */
+// TODO [>=8]: Rename to Lock
 export enum LOCK {
   UPDATE = 'UPDATE',
   SHARE = 'SHARE',

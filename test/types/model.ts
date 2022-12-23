@@ -1,9 +1,9 @@
 import { expectTypeOf } from 'expect-type';
+import type { SetOptional } from 'type-fest';
 import type {
   Association,
   BelongsToManyGetAssociationsMixin,
   HasOne,
-  Optional,
   ModelDefined,
   CreationOptional,
   InferAttributes,
@@ -283,7 +283,7 @@ interface MyModelAttributes {
   name: string;
 }
 
-interface CreationAttributes extends Optional<MyModelAttributes, 'id'> {}
+interface CreationAttributes extends SetOptional<MyModelAttributes, 'id'> {}
 
 const ModelWithAttributes: ModelDefined<
   MyModelAttributes,

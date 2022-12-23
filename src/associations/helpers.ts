@@ -14,6 +14,7 @@ import { removeUndefined } from '../utils/object.js';
 import { pluralize, singularize } from '../utils/string.js';
 import type { OmitConstructors } from '../utils/types.js';
 import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAssociationOptions } from './base';
+import type { ThroughOptions } from './belongs-to-many.js';
 
 export function checkNamingCollision(source: ModelStatic<any>, associationName: string): void {
   if (Object.prototype.hasOwnProperty.call(source.getAttributes(), associationName)) {
@@ -67,7 +68,6 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
  * Used to prevent users from instantiating Associations themselves.
  * Instantiating associations is not safe as it mutates the Model object.
  *
- * @internal
  * @private do not expose outside sequelize
  */
 export const AssociationSecret = Symbol('AssociationConstructorPrivateKey');
@@ -132,7 +132,7 @@ ${NodeUtils.inspect(omit(existingAssociation.options as any, 'inverse'), { sorte
 }
 
 /**
- * @internal
+ * @private
  */
 enum IncompatibilityStatus {
   DIFFERENT_TYPES = 0,
@@ -305,4 +305,8 @@ export type MaybeForwardedModelStatic<M extends Model = Model> = ModelStatic<M> 
 
 export function getForwardedModel(model: MaybeForwardedModelStatic, sequelize: Sequelize): ModelStatic {
   return typeof model === 'function' && !isModelStatic(model) ? model(sequelize) : model;
+}
+
+export function isThroughOptions<M extends Model>(val: any): val is ThroughOptions<M> {
+  return isPlainObject(val) && 'model' in val;
 }

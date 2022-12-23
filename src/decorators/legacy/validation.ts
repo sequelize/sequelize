@@ -52,7 +52,7 @@ function createOptionalAttributeValidationDecorator<Key extends ValidateKeys>(
  * }
  * ```
  *
- * See also {@link ValidateModel}.
+ * See also {@link ModelValidator}.
  */
 export const ValidateAttribute = createRequiredAttributeOptionsDecorator<ColumnValidateOptions>(
   'ValidateAttribute',

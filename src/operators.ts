@@ -1,4 +1,9 @@
-interface OpTypes {
+/**
+ * This interface is the type of the {@link Op} object.
+ *
+ * This type cannot be used directly, use {@link Op} instead.
+ */
+export interface OpTypes {
   /**
    * Operator -|- (PG range is adjacent to operator)
    *
