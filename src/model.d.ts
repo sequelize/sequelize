@@ -3289,9 +3289,24 @@ declare const CreationAttributeBrand: unique symbol;
 
 /**
  * This is a Branded Type.
- * You can use it to tag attributes that can be ommited during Model Creation.
+ * You can use it to tag attributes that can be omitted during Model Creation.
+ * Use it on attributes that have a default value or are marked as autoIncrement.
  *
  * For use with {@link InferCreationAttributes}.
+ *
+ * @example
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.INTEGER)
+ *   @PrimaryKey
+ *   @AutoIncrement
+ *   declare internalId: CreationOptional<number>;
+ *
+ *   @Attribute(DataTypes.STRING)
+ *   @Default('John Doe')
+ *   declare name: CreationOptional<string>;
+ * }
+ * ```
  */
 export type CreationOptional<T> =
   // we don't brand null & undefined as they can't have properties.
