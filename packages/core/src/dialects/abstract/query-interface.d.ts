@@ -301,25 +301,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   constructor(sequelize: Sequelize, queryGenerator: AbstractQueryGenerator);
 
   /**
-   * Drops the specified schema (table).
-   *
-   * @param schema The schema to query. Applies only to Postgres.
-   */
-  dropSchema(schema?: string, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Drops all tables.
-   */
-  dropAllSchemas(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
-
-  /**
-   * Queries all table names in the database.
-   *
-   * @param options
-   */
-  showAllSchemas(options?: QueryRawOptions): Promise<string[]>;
-
-  /**
    * Return database version
    */
   databaseVersion(options?: QueryRawOptions): Promise<string>;

@@ -84,25 +84,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Drop all schemas
-   *
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async dropAllSchemas(options) {
-    options = options || {};
-
-    if (!this.queryGenerator.dialect.supports.schemas) {
-      return this.sequelize.drop(options);
-    }
-
-    const schemas = await this.showAllSchemas(options);
-
-    return Promise.all(schemas.map(schemaName => this.dropSchema(schemaName, options)));
-  }
-
-  /**
    * Show all schemas
    *
    * @param {object} [options] Query options

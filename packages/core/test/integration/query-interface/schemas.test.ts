@@ -7,7 +7,7 @@ const queryInterface = sequelize.queryInterface;
 
 const testSchema = 'testSchema';
 
-describe('QueryInterface#createSchema', async () => {
+describe('QueryInterface#{create,drop,dropAll,showAll}Schema', async () => {
   if (!sequelize.dialect.supports.schemas) {
     return;
   }
@@ -35,5 +35,28 @@ describe('QueryInterface#createSchema', async () => {
     }
 
     expect(queryGeneratorSpy.args[0]).to.include(options);
+  });
+
+  it('drops a schema', async () => {
+    await queryInterface.createSchema(testSchema);
+    const preDeletionSchemas = await queryInterface.showAllSchemas();
+    expect(preDeletionSchemas).to.include(testSchema, 'createSchema did not create testSchema');
+
+    await queryInterface.dropSchema(testSchema);
+    const postDeletionSchemas = await queryInterface.showAllSchemas();
+    expect(postDeletionSchemas).to.not.include(testSchema, 'dropSchema did not drop testSchema');
+  });
+
+  it('drops all schemas', async () => {
+    await queryInterface.dropAllSchemas();
+    const noSchemas = await queryInterface.showAllSchemas();
+    expect(noSchemas).to.be.empty;
+  });
+
+  it('shows all schemas', async () => {
+    await queryInterface.dropAllSchemas();
+    await queryInterface.createSchema(testSchema);
+    const allSchemas = await queryInterface.showAllSchemas();
+    expect(allSchemas).to.eq([testSchema]);
   });
 });
