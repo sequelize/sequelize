@@ -3037,10 +3037,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   reload(options?: FindOptions<TModelAttributes>): Promise<this>;
 
   /**
-   * Validate the attribute of this instance according to validation rules set in the model definition.
+   * Runs all validators defined for this model, including non-null validators, DataTypes validators, custom attribute validators and model-level validators.
    *
-   * Emits null if and only if validation successful; otherwise an Error instance containing
-   * `{ field name : [error msgs] }` entries.
+   * If validation fails, this method will throw a {@link ValidationError}.
    */
   validate(options?: ValidationOptions): Promise<void>;
 
