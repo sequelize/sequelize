@@ -1705,7 +1705,8 @@ export interface NormalizedAttributeReferencesOptions extends Omit<AttributeRefe
 export type ReferentialAction = 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NULL' | 'NO ACTION';
 
 /**
- * Column options for the model schema attributes
+ * Column options for the model schema attributes.
+ * Used in {@link Model.init} and {@link Sequelize#define}, and the {@link decorators-legacy~Attribute} decorator.
  */
 export interface AttributeOptions<M extends Model = Model> {
   /**
@@ -1874,7 +1875,7 @@ export type Identifier = number | bigint | string | Buffer;
 /**
  * Options for model definition.
  *
- * Used by {@link Sequelize.define} and {@link Model.init}
+ * Used by {@link Sequelize.define}, {@link Model.init}, and the {@link decorators-legacy~Table} decorator.
  *
  * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
  */
