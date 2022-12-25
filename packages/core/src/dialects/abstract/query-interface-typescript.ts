@@ -1,5 +1,5 @@
-import type { BindOrReplacements, QueryRawOptions, Sequelize } from 'src/sequelize';
 import { QueryTypes } from '../../query-types';
+import type { BindOrReplacements, QueryRawOptions, Sequelize } from '../../sequelize';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { QueryGeneratorDropSchemaQueryObject } from './query-generator.types';
 import type { CreateSchemaOptions, QueryInterfaceOptions, ShowAllSchemasOptions } from './query-interface.types';
