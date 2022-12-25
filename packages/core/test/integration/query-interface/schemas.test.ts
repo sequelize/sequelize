@@ -57,6 +57,7 @@ describe('QueryInterface#{create,drop,dropAll,showAll}Schema', async () => {
     await queryInterface.dropAllSchemas();
     await queryInterface.createSchema(testSchema);
     const allSchemas = await queryInterface.showAllSchemas();
-    expect(allSchemas).to.eq([testSchema]);
+    expect(allSchemas.length).to.eq(1);
+    expect(allSchemas[0]).to.eq(testSchema);
   });
 });
