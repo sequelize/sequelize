@@ -62,47 +62,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Drop a schema
-   *
-   * @param {string} schema    Schema name to drop
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async dropSchema(schema, options) {
-    const query = this.queryGenerator.dropSchemaQuery(schema);
-
-    let sql;
-    if (typeof query === 'object') {
-      options = { ...options, bind: query.bind };
-      sql = query.query;
-    } else {
-      sql = query;
-    }
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
-   * Show all schemas
-   *
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise<Array>}
-   */
-  async showAllSchemas(options) {
-    const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
-
-    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, {
-      ...options,
-      raw: true,
-      type: this.sequelize.QueryTypes.SELECT,
-    });
-
-    return schemaNames.flatMap(value => (value.schema_name ? value.schema_name : value));
-  }
-
-  /**
    * Return database version
    *
    * @param {object}    [options]      Query options
