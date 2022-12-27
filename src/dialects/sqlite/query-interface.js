@@ -1,16 +1,18 @@
 'use strict';
 
+import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
+
 const sequelizeErrors = require('../../errors');
 const { QueryTypes } = require('../../query-types');
-const { QueryInterface, QueryOptions, ColumnsDescription } = require('../abstract/query-interface');
-const { cloneDeep } = require('../../utils');
+const { AbstractQueryInterface, QueryOptions, ColumnsDescription } = require('../abstract/query-interface');
+const { cloneDeep } = require('../../utils/object.js');
 const _ = require('lodash');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 
 /**
  * The interface that Sequelize uses to talk with SQLite database
  */
-export class SqliteQueryInterface extends QueryInterface {
+export class SqliteQueryInterface extends AbstractQueryInterface {
   /**
    * A wrapper that fixes SQLite's inability to remove columns from existing tables.
    * It will create a backup of the table, drop the table afterwards and create a
@@ -34,13 +36,20 @@ export class SqliteQueryInterface extends QueryInterface {
    *
    * @override
    */
-  async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
+  async changeColumn(tableName, columnName, dataTypeOrOptions, options) {
     options = options || {};
 
-    const fields = await this.describeTable(tableName, options);
-    Object.assign(fields[attributeName], this.normalizeAttribute(dataTypeOrOptions));
+    const columns = await this.describeTable(tableName, options);
+    for (const column of Object.values(columns)) {
+      // This is handled by copying indexes over,
+      // we don't use "unique" because it creates an index with a name
+      // we can't control
+      delete column.unique;
+    }
 
-    return this.alterTableInternal(tableName, fields, options);
+    Object.assign(columns[columnName], this.normalizeAttribute(dataTypeOrOptions));
+
+    return this.alterTableInternal(tableName, columns, options);
   }
 
   /**
@@ -181,24 +190,36 @@ export class SqliteQueryInterface extends QueryInterface {
    * @override
    */
   async describeTable(tableName, options) {
-    let schema = null;
-    let schemaDelimiter = null;
+    let table = {};
 
-    if (typeof options === 'string') {
-      schema = options;
-    } else if (typeof options === 'object' && options !== null) {
-      schema = options.schema || null;
-      schemaDelimiter = options.schemaDelimiter || null;
+    if (typeof tableName === 'string') {
+      table.tableName = tableName;
     }
 
     if (typeof tableName === 'object' && tableName !== null) {
-      schema = tableName.schema;
-      tableName = tableName.tableName;
+      table = tableName;
     }
 
-    const sql = this.queryGenerator.describeTableQuery(tableName, schema, schemaDelimiter);
+    if (typeof options === 'string') {
+      noSchemaParameter();
+      table.schema = options;
+    }
+
+    if (typeof options === 'object' && options !== null) {
+      if (options.schema) {
+        noSchemaParameter();
+        table.schema = options.schema;
+      }
+
+      if (options.schemaDelimiter) {
+        noSchemaDelimiterParameter();
+        table.delimiter = options.schemaDelimiter;
+      }
+    }
+
+    const sql = this.queryGenerator.describeTableQuery(table);
     options = { ...options, type: QueryTypes.DESCRIBE };
-    const sqlIndexes = this.queryGenerator.showIndexesQuery(tableName);
+    const sqlIndexes = this.queryGenerator.showIndexesQuery(table);
 
     try {
       const data = await this.sequelize.queryRaw(sql, options);
@@ -208,7 +229,7 @@ export class SqliteQueryInterface extends QueryInterface {
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
       if (_.isEmpty(data)) {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       const indexes = await this.sequelize.queryRaw(sqlIndexes, options);
@@ -227,7 +248,7 @@ export class SqliteQueryInterface extends QueryInterface {
       const foreignKeys = await this.getForeignKeyReferencesForTable(tableName, options);
       for (const foreignKey of foreignKeys) {
         data[foreignKey.columnName].references = {
-          model: foreignKey.referencedTableName,
+          table: foreignKey.referencedTableName,
           key: foreignKey.referencedColumnName,
         };
 
@@ -241,7 +262,7 @@ export class SqliteQueryInterface extends QueryInterface {
       return data;
     } catch (error) {
       if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       throw error;
@@ -253,17 +274,35 @@ export class SqliteQueryInterface extends QueryInterface {
    * Workaround for sqlite's limited alter table support.
    *
    * @param {string} tableName - The table's name
-   * @param {ColumnsDescription} fields - The table's description
+   * @param {ColumnsDescription} columns - The table's description
    * @param {QueryOptions} options - Query options
    * @private
    */
-  async alterTableInternal(tableName, fields, options) {
+  async alterTableInternal(tableName, columns, options) {
     return this.withForeignKeysOff(options, async () => {
       const savepointName = this.getSavepointName();
       await this.sequelize.query(`SAVEPOINT ${savepointName};`, options);
 
       try {
-        const sql = this.queryGenerator.removeColumnQuery(tableName, fields);
+        const indexes = await this.showIndex(tableName, options);
+        for (const index of indexes) {
+          // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
+          if (!index.constraintName.startsWith('sqlite_autoindex_')) {
+            continue;
+          }
+
+          if (!index.unique) {
+            continue;
+          }
+
+          for (const field of index.fields) {
+            if (columns[field.attribute]) {
+              columns[field.attribute].unique = true;
+            }
+          }
+        }
+
+        const sql = this.queryGenerator.removeColumnQuery(tableName, columns);
         const subQueries = sql.split(';').filter(q => q !== '');
 
         for (const subQuery of subQueries) {
@@ -283,6 +322,15 @@ export class SqliteQueryInterface extends QueryInterface {
             table: tableName,
           });
         }
+
+        await Promise.all(indexes.map(async index => {
+          // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
+          if (index.constraintName.startsWith('sqlite_autoindex_')) {
+            return;
+          }
+
+          return this.addIndex(tableName, index);
+        }));
 
         await this.sequelize.query(`RELEASE ${savepointName};`, options);
       } catch (error) {

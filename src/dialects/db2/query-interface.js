@@ -5,15 +5,14 @@ import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
 const _ = require('lodash');
-const Utils = require('../../utils');
 const { Op } = require('../../operators');
-const { QueryInterface } = require('../abstract/query-interface');
+const { AbstractQueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
 
 /**
  * The interface that Sequelize uses to talk with Db2 database
  */
-export class Db2QueryInterface extends QueryInterface {
+export class Db2QueryInterface extends AbstractQueryInterface {
   async getForeignKeyReferencesForTable(tableName, options) {
     const queryOptions = {
       ...options,
@@ -43,9 +42,7 @@ export class Db2QueryInterface extends QueryInterface {
     }
 
     // Lets combine unique keys and indexes into one
-    const indexes = _.map(model.uniqueKeys, value => {
-      return value.fields;
-    });
+    const indexes = [];
 
     for (const value of model.getIndexes()) {
       if (value.unique) {
@@ -141,18 +138,11 @@ export class Db2QueryInterface extends QueryInterface {
     return response;
   }
 
+  // TODO: drop "schema" options from the option bag, it must be passed through tableName instead.
   async createTable(tableName, attributes, options, model) {
     let sql = '';
 
     options = { ...options };
-
-    if (options && options.uniqueKeys) {
-      _.forOwn(options.uniqueKeys, uniqueKey => {
-        if (uniqueKey.customIndex === undefined) {
-          uniqueKey.customIndex = true;
-        }
-      });
-    }
 
     if (model) {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
@@ -163,14 +153,14 @@ export class Db2QueryInterface extends QueryInterface {
       attribute => this.sequelize.normalizeAttribute(attribute),
     );
 
+    const modelTable = model?.table;
+
     if (
       !tableName.schema
-      && (options.schema || Boolean(model) && model._schema)
+      && (options.schema || modelTable?.schema)
     ) {
-      tableName = this.queryGenerator.addSchema({
-        tableName,
-        _schema: Boolean(model) && model._schema || options.schema,
-      });
+      tableName = this.queryGenerator.extractTableDetails(tableName);
+      tableName.schema = modelTable?.schema || options.schema || tableName.schema;
     }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable', withoutForeignKeyConstraints: options.withoutForeignKeyConstraints });

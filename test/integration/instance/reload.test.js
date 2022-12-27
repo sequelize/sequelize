@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'foo' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t });
         const user1 = await user.reload();
         expect(user1.username).to.equal('foo');
@@ -105,6 +105,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const updatedUser = await originalUser.reload();
       expect(originalUser.username).to.equal('Doe John');
       expect(updatedUser.username).to.equal('Doe John');
+    });
+
+    it('is disallowed if no primary key is present', async function () {
+      const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+      await Foo.sync({ force: true });
+
+      const instance = await Foo.create({});
+      await expect(instance.reload()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
     });
 
     it('should support updating a subset of attributes', async function () {

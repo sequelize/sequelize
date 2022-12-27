@@ -1,7 +1,7 @@
 'use strict';
 
 const { Transaction } = require('../../transaction');
-const { QueryInterface } = require('../abstract/query-interface');
+const { AbstractQueryInterface } = require('../abstract/query-interface');
 
 /**
  Returns an object that enables the `ibmi` dialect to call underlying odbc
@@ -12,7 +12,7 @@ const { QueryInterface } = require('../abstract/query-interface');
  @private
  */
 
-export class IBMiQueryInterface extends QueryInterface {
+export class IBMiQueryInterface extends AbstractQueryInterface {
 
   startTransaction(transaction, options) {
     if (!(transaction instanceof Transaction)) {

@@ -20,6 +20,7 @@ export class IBMiDialect extends AbstractDialect {
         where: true,
         functionBased: true,
         collate: false,
+        include: false,
       },
       constraints: {
         onUpdate: false,
@@ -30,7 +31,6 @@ export class IBMiDialect extends AbstractDialect {
       dataTypes: {
         COLLATE_BINARY: true,
       },
-      milliseconds: true,
     },
   );
 
@@ -62,6 +62,11 @@ export class IBMiDialect extends AbstractDialect {
 
   escapeBuffer(buffer: Buffer): string {
     return `BLOB(X'${buffer.toString('hex')}')`;
+  }
+
+  getDefaultSchema(): string {
+    // TODO: what is the default schema in IBMi?
+    return '';
   }
 
   static getDefaultPort() {

@@ -1,5 +1,5 @@
-import type { DatabaseDescription } from '@sequelize/core';
 import { expect } from 'chai';
+import type { DatabaseDescription } from '@sequelize/core';
 import { sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;

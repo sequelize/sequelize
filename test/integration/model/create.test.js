@@ -9,7 +9,7 @@ const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 
 const _ = require('lodash');
 const delay = require('delay');
-const assert = require('assert');
+const assert = require('node:assert');
 
 const pTimeout = require('p-timeout');
 
@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findOrCreate', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
 
         await this.User.findOrCreate({
           where: {
@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('supports more than one models per transaction', async function () {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
         await this.User.findOrCreate({ where: { username: 'Username' }, defaults: { data: 'some data' }, transaction: t });
         await this.Account.findOrCreate({ where: { accountName: 'accountName' }, transaction: t });
         await t.commit();
@@ -439,7 +439,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('several concurrent calls', () => {
       if (current.dialect.supports.transactions) {
         it('works with a transaction', async function () {
-          const transaction = await this.sequelize.transaction();
+          const transaction = await this.sequelize.startUnmanagedTransaction();
 
           const [first, second] = await Promise.all([
             this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
@@ -463,7 +463,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      (!['sqlite', 'mssql', 'db2', 'ibmi'].includes(dialectName) ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
+      it('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
+        if (['sqlite', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
+          return;
+        }
+
         const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
@@ -504,7 +508,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(spy).to.have.been.called;
       });
 
-      (dialectName !== 'sqlite' ? it : it.skip)('should error correctly when defaults contain a unique key without a transaction', async function () {
+      it('should error correctly when defaults contain a unique key without a transaction', async function () {
+        if (dialectName === 'sqlite') {
+          return;
+        }
+
         const User = this.sequelize.define('user', {
           objectId: {
             type: DataTypes.STRING,
@@ -557,8 +565,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })()]);
       });
 
-      // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
-      (dialectName !== 'sqlite' ? it : it.skip)('works without a transaction', async function () {
+      it('works without a transaction', async function () {
+        // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
+        if (dialectName === 'sqlite') {
+          return;
+        }
+
         const [first, second] = await Promise.all([
           this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
           this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
@@ -605,7 +617,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (current.dialect.supports.transactions) {
         it('should work with multiple concurrent calls within a transaction', async function () {
-          const t = await this.sequelize.transaction();
+          const t = await this.sequelize.startUnmanagedTransaction();
           const [
             [instance1, created1],
             [instance2, created2],
@@ -741,12 +753,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         password: DataTypes.STRING,
         created_time: {
           type: DataTypes.DATE(3),
-          allowNull: true,
+          allowNull: false,
           defaultValue: DataTypes.NOW,
         },
         updated_time: {
           type: DataTypes.DATE(3),
-          allowNull: true,
+          allowNull: false,
           defaultValue: DataTypes.NOW,
         },
       }, {
@@ -803,7 +815,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
         await this.User.create({ username: 'user' }, { transaction: t });
         const count = await this.User.count();
         expect(count).to.equal(0);
@@ -1077,7 +1089,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     if (current.dialect.supports.index.functionBased) {
-      it('doesn\'t allow duplicated records with unique function based indexes', async function () {
+      it(`doesn't allow duplicated records with unique function based indexes`, async function () {
         const User = this.sequelize.define('UserWithUniqueUsernameFunctionIndex', {
           username: DataTypes.STRING,
           email: { type: DataTypes.STRING, unique: true },
@@ -1085,8 +1097,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         try {
           await User.sync({ force: true });
-          const tableName = User.getTableName();
-          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON "${tableName}" ((lower("username")))`);
+          await this.sequelize.query(`CREATE UNIQUE INDEX lower_case_username ON ${this.sequelize.queryInterface.queryGenerator.quoteTable(User)} ((lower("username")))`);
           await User.create({ username: 'foo' });
           await User.create({ username: 'foo' });
         } catch (error) {
@@ -1162,20 +1173,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(error).to.exist;
         expect(error.get('str')[0].message).to.match(/Validation isURL on str failed/);
       }
-    });
-
-    it('raises an error if you mess up the datatype', function () {
-      expect(() => {
-        this.sequelize.define('UserBadDataType', {
-          activity_date: DataTypes.DATe,
-        });
-      }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
-
-      expect(() => {
-        this.sequelize.define('UserBadDataType', {
-          activity_date: { type: DataTypes.DATe },
-        });
-      }).to.throw(Error, 'Unrecognized datatype for attribute "UserBadDataType.activity_date"');
     });
 
     it('sets a 64 bit int in bigint', async function () {
@@ -1282,7 +1279,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const book = await b.create(data);
           expect(book.title).to.equal(data.title);
           expect(book.author).to.equal(data.author);
-          expect(books[index].rawAttributes.id.type instanceof dataTypes[index]).to.be.ok;
+          expect(books[index].getAttributes().id.type instanceof dataTypes[index]).to.be.ok;
         })());
       }
 

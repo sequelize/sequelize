@@ -1,11 +1,14 @@
 'use strict';
 
+import { map } from '../../utils/iterators';
+import { cloneDeep, getObjectFromMap } from '../../utils/object';
+import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
+import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 const _ = require('lodash');
 
-const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
 const { Transaction } = require('../../transaction');
 const { QueryTypes } = require('../../query-types');
@@ -13,11 +16,9 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk to all databases
  */
-// TODO: rename to AbstractQueryInterface
-export class QueryInterface {
+export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   constructor(sequelize, queryGenerator) {
-    this.sequelize = sequelize;
-    this.queryGenerator = queryGenerator;
+    super({ sequelize, queryGenerator });
   }
 
   /**
@@ -58,20 +59,6 @@ export class QueryInterface {
     const sql = this.queryGenerator.listDatabasesQuery();
 
     return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SELECT });
-  }
-
-  /**
-   * Create a schema
-   *
-   * @param {string} schema    Schema name to create
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async createSchema(schema, options) {
-    const sql = this.queryGenerator.createSchemaQuery(schema);
-
-    return await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -204,18 +191,9 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
+  // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
-    let sql = '';
-
     options = { ...options };
-
-    if (options && options.uniqueKeys) {
-      _.forOwn(options.uniqueKeys, uniqueKey => {
-        if (uniqueKey.customIndex === undefined) {
-          uniqueKey.customIndex = true;
-        }
-      });
-    }
 
     if (model) {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
@@ -229,22 +207,25 @@ export class QueryInterface {
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
 
+    const modelTable = model?.table;
+
     if (
       !tableName.schema
-      && (options.schema || Boolean(model) && model._schema)
+      && (options.schema || modelTable?.schema)
     ) {
-      tableName = this.queryGenerator.addSchema({
-        tableName,
-        _schema: Boolean(model) && model._schema || options.schema,
-      });
+      tableName = this.queryGenerator.extractTableDetails(tableName);
+      tableName.schema = modelTable?.schema || options.schema;
     }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
+      // schema override for multi-tenancy
+      schema: options.schema,
     });
-    sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
+
+    const sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
     return await this.sequelize.queryRaw(sql, options);
   }
@@ -275,10 +256,11 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
-  async dropTable(tableName, options) {
-    // if we're forcing we should be cascading unless explicitly stated otherwise
-    options = { ...options };
-    options.cascade = options.cascade || options.force || false;
+  async dropTable(tableName, options = {}) {
+    options.cascade = options.cascade != null ? options.cascade
+      // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
+      : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
+      : undefined;
 
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
@@ -289,7 +271,12 @@ export class QueryInterface {
     for (const tableName of tableNames) {
       // if tableName is not in the Array of tables names then don't drop it
       if (!skip.includes(tableName.tableName || tableName)) {
-        await this.dropTable(tableName, { ...options, cascade: true });
+        await this.dropTable(tableName, {
+          // enable "cascade" by default if supported by this dialect,
+          // but let the user override the default
+          cascade: this.queryGenerator.dialect.supports.dropTable.cascade ? true : undefined,
+          ...options,
+        });
       }
     }
   }
@@ -382,28 +369,41 @@ export class QueryInterface {
    * }
    * ```
    *
-   * @param {string} tableName table name
+   * @param {TableName} tableName
    * @param {object} [options] Query options
    *
    * @returns {Promise<object>}
    */
+  // TODO: allow TableNameOrModel for tableName
   async describeTable(tableName, options) {
-    let schema = null;
-    let schemaDelimiter = null;
+    let table = {};
 
-    if (typeof options === 'string') {
-      schema = options;
-    } else if (typeof options === 'object' && options !== null) {
-      schema = options.schema || null;
-      schemaDelimiter = options.schemaDelimiter || null;
+    if (typeof tableName === 'string') {
+      table.tableName = tableName;
     }
 
     if (typeof tableName === 'object' && tableName !== null) {
-      schema = tableName.schema;
-      tableName = tableName.tableName;
+      table = tableName;
     }
 
-    const sql = this.queryGenerator.describeTableQuery(tableName, schema, schemaDelimiter);
+    if (typeof options === 'string') {
+      noSchemaParameter();
+      table.schema = options;
+    }
+
+    if (typeof options === 'object' && options !== null) {
+      if (options.schema) {
+        noSchemaParameter();
+        table.schema = options.schema;
+      }
+
+      if (options.schemaDelimiter) {
+        noSchemaDelimiterParameter();
+        table.delimiter = options.schemaDelimiter;
+      }
+    }
+
+    const sql = this.queryGenerator.describeTableQuery(table);
     options = { ...options, type: QueryTypes.DESCRIBE };
 
     try {
@@ -414,13 +414,13 @@ export class QueryInterface {
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
       if (_.isEmpty(data)) {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       return data;
     } catch (error) {
       if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       throw error;
@@ -621,7 +621,7 @@ export class QueryInterface {
       rawTablename = tableName;
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options.fields = attributes;
     const sql = this.queryGenerator.addIndexQuery(tableName, options, rawTablename);
 
@@ -631,8 +631,8 @@ export class QueryInterface {
   /**
    * Show indexes on a table
    *
-   * @param {string} tableName table name
-   * @param {object} [options]   Query options
+   * @param {TableNameOrModel} tableName
+   * @param {object}    [options] Query options
    *
    * @returns {Promise<Array>}
    * @private
@@ -805,7 +805,7 @@ export class QueryInterface {
       throw new Error('Constraint type must be specified through options.type');
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
 
     const sql = this.queryGenerator.addConstraintQuery(tableName, options);
 
@@ -834,9 +834,16 @@ export class QueryInterface {
       assertNoReservedBind(options.bind);
     }
 
-    options = Utils.cloneDeep(options);
-    options.hasTrigger = instance && instance.constructor.options.hasTrigger;
-    const { query, bind } = this.queryGenerator.insertQuery(tableName, values, instance && instance.constructor.rawAttributes, options);
+    options = cloneDeep(options);
+    const modelDefinition = instance?.constructor.modelDefinition;
+
+    options.hasTrigger = modelDefinition?.options.hasTrigger;
+    const { query, bind } = this.queryGenerator.insertQuery(
+      tableName,
+      values,
+      modelDefinition && getObjectFromMap(modelDefinition.attributes),
+      options,
+    );
 
     options.type = QueryTypes.INSERT;
     options.instance = instance;
@@ -864,6 +871,10 @@ export class QueryInterface {
    *
    * @returns {Promise<boolean,?number>} Resolves an array with <created, primaryKey>
    */
+  // Note: "where" is only used by DB2 and MSSQL. This is because these dialects do not propose any "ON CONFLICT UPDATE" mechanisms
+  // The UPSERT pattern in SQL server requires providing a WHERE clause
+  // TODO: the user should be able to configure the WHERE clause for upsert instead of the current default which
+  //  is using the primary keys.
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options?.bind) {
       assertNoReservedBind(options.bind);
@@ -872,25 +883,22 @@ export class QueryInterface {
     options = { ...options };
 
     const model = options.model;
+    const modelDefinition = model.modelDefinition;
 
     options.type = QueryTypes.UPSERT;
     options.updateOnDuplicate = Object.keys(updateValues);
     options.upsertKeys = options.conflictFields || [];
 
     if (options.upsertKeys.length === 0) {
-      const primaryKeys = Object.values(model.primaryKeys).map(item => item.field);
-      const uniqueKeys = Object.values(model.uniqueKeys).filter(c => c.fields.length > 0).map(c => c.fields);
-      const indexKeys = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
+      const primaryKeys = Array.from(
+        map(modelDefinition.primaryKeysAttributeNames, pkAttrName => modelDefinition.attributes.get(pkAttrName).columnName),
+      );
+
+      const uniqueColumnNames = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
       // For fields in updateValues, try to find a constraint or unique index
       // that includes given field. Only first matching upsert key is used.
       for (const field of options.updateOnDuplicate) {
-        const uniqueKey = uniqueKeys.find(fields => fields.includes(field));
-        if (uniqueKey) {
-          options.upsertKeys = uniqueKey;
-          break;
-        }
-
-        const indexKey = indexKeys.find(fields => fields.includes(field));
+        const indexKey = uniqueColumnNames.find(fields => fields.includes(field));
         if (indexKey) {
           options.upsertKeys = indexKey;
           break;
@@ -908,7 +916,12 @@ export class QueryInterface {
       options.upsertKeys = _.uniq(options.upsertKeys);
     }
 
-    const { bind, query } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const { bind, query } = this.queryGenerator.insertQuery(
+      tableName,
+      insertValues,
+      getObjectFromMap(modelDefinition.attributes),
+      options,
+    );
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacement;
@@ -956,10 +969,18 @@ export class QueryInterface {
       assertNoReservedBind(options.bind);
     }
 
-    options = { ...options };
-    options.hasTrigger = instance && instance.constructor.options.hasTrigger;
+    const modelDefinition = instance?.constructor.modelDefinition;
 
-    const { query, bind } = this.queryGenerator.updateQuery(tableName, values, where, options, instance.constructor.rawAttributes);
+    options = { ...options };
+    options.hasTrigger = modelDefinition?.options.hasTrigger;
+
+    const { query, bind } = this.queryGenerator.updateQuery(
+      tableName,
+      values,
+      where,
+      options,
+      modelDefinition && getObjectFromMap(modelDefinition.attributes),
+    );
 
     options.type = QueryTypes.UPDATE;
     options.instance = instance;
@@ -995,9 +1016,9 @@ export class QueryInterface {
       assertNoReservedBind(options.bind);
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     if (typeof where === 'object') {
-      where = Utils.cloneDeep(where);
+      where = cloneDeep(where);
     }
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
@@ -1072,7 +1093,7 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async bulkDelete(tableName, where, options, model) {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options = _.defaults(options, { limit: null });
 
     if (options.truncate === true) {
@@ -1083,7 +1104,7 @@ export class QueryInterface {
     }
 
     if (typeof identifier === 'object') {
-      where = Utils.cloneDeep(where);
+      where = cloneDeep(where);
     }
 
     const sql = this.queryGenerator.deleteQuery(tableName, where, options, model);
@@ -1117,7 +1138,7 @@ export class QueryInterface {
   }
 
   async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options.model = model;
 
     const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
@@ -1131,7 +1152,7 @@ export class QueryInterface {
   }
 
   async rawSelect(tableName, options, attributeSelector, Model) {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options = _.defaults(options, {
       raw: true,
       plain: true,

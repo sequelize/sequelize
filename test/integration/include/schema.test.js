@@ -298,7 +298,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             },
           ],
           order: [
-            [AccUser.rawAttributes.id, 'ASC'],
+            [AccUser.getAttributes().id, 'ASC'],
           ],
         });
 

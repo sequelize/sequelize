@@ -1,8 +1,9 @@
-import type { ModelStatic } from '@sequelize/core';
-import { DataTypes } from '@sequelize/core';
+import assert from 'node:assert';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import sinon from 'sinon';
+import { DataTypes } from '@sequelize/core';
+import type { ModelStatic } from '@sequelize/core';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
 describe(getTestDialectTeaser('hasOne'), () => {
@@ -10,7 +11,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
     const User = sequelize.define('User');
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error -- testing that invalid input results in error
       User.hasOne();
     }).to.throw(`User.hasOne was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
@@ -46,11 +47,11 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     const association1 = User.hasOne(Task);
     expect(association1.foreignKey).to.equal('UserId');
-    expect(Task.rawAttributes.UserId).not.to.be.empty;
+    expect(Task.getAttributes().UserId).not.to.be.empty;
 
     const association2 = User.hasOne(Task, { as: 'Shabda' });
     expect(association2.foreignKey).to.equal('UserId');
-    expect(Task.rawAttributes.UserId).not.to.be.empty;
+    expect(Task.getAttributes().UserId).not.to.be.empty;
   });
 
   it('should not override custom methods with association mixin', () => {
@@ -73,13 +74,13 @@ describe(getTestDialectTeaser('hasOne'), () => {
     const user = User.build();
 
     each(methods, (alias, method) => {
-      // @ts-expect-error
+      // @ts-expect-error -- dynamic type, not worth typing
       expect(user[method]).to.eq(originalFunction);
     });
   });
 
   describe('allows the user to provide an attribute definition object as foreignKey', () => {
-    it('works with a column that hasn\'t been defined before', () => {
+    it(`works with a column that hasn't been defined before`, () => {
       const User = sequelize.define('user', {});
       const Profile = sequelize.define('project', {});
 
@@ -90,10 +91,15 @@ describe(getTestDialectTeaser('hasOne'), () => {
         },
       });
 
-      expect(Profile.rawAttributes.uid).to.be.ok;
-      expect(Profile.rawAttributes.uid.references?.model).to.equal(User.getTableName());
-      expect(Profile.rawAttributes.uid.references?.key).to.equal('id');
-      expect(Profile.rawAttributes.uid.allowNull).to.be.false;
+      expect(Profile.getAttributes().uid).to.be.ok;
+
+      const model = Profile.getAttributes().uid.references?.table;
+      assert(typeof model === 'object');
+
+      expect(model).to.deep.equal(User.table);
+
+      expect(Profile.getAttributes().uid.references?.key).to.equal('id');
+      expect(Profile.getAttributes().uid.allowNull).to.be.false;
     });
 
     it('works when taking a column directly from the object', () => {
@@ -110,12 +116,15 @@ describe(getTestDialectTeaser('hasOne'), () => {
         },
       });
 
-      User.hasOne(Profile, { foreignKey: Profile.rawAttributes.user_id });
+      User.hasOne(Profile, { foreignKey: Profile.getAttributes().user_id });
 
-      expect(Profile.rawAttributes.user_id).to.be.ok;
-      expect(Profile.rawAttributes.user_id.references?.model).to.equal(User.getTableName());
-      expect(Profile.rawAttributes.user_id.references?.key).to.equal('uid');
-      expect(Profile.rawAttributes.user_id.allowNull).to.be.false;
+      expect(Profile.getAttributes().user_id).to.be.ok;
+      const targetTable = Profile.getAttributes().user_id.references?.table;
+      assert(typeof targetTable === 'object');
+
+      expect(targetTable).to.deep.equal(User.table);
+      expect(Profile.getAttributes().user_id.references?.key).to.equal('uid');
+      expect(Profile.getAttributes().user_id.allowNull).to.be.false;
     });
 
     it('works when merging with an existing definition', () => {
@@ -134,11 +143,14 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
       User.hasOne(Project, { foreignKey: { allowNull: false } });
 
-      expect(Project.rawAttributes.userUid).to.be.ok;
-      expect(Project.rawAttributes.userUid.allowNull).to.be.false;
-      expect(Project.rawAttributes.userUid.references?.model).to.equal(User.getTableName());
-      expect(Project.rawAttributes.userUid.references?.key).to.equal('uid');
-      expect(Project.rawAttributes.userUid.defaultValue).to.equal(42);
+      expect(Project.getAttributes().userUid).to.be.ok;
+      expect(Project.getAttributes().userUid.allowNull).to.be.false;
+      const targetTable = Project.getAttributes().userUid.references?.table;
+      assert(typeof targetTable === 'object');
+
+      expect(targetTable).to.deep.equal(User.table);
+      expect(Project.getAttributes().userUid.references?.key).to.equal('uid');
+      expect(Project.getAttributes().userUid.defaultValue).to.equal(42);
     });
   });
 
@@ -148,7 +160,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     User.hasOne(Task, { foreignKey: { allowNull: false } });
 
-    expect(Task.rawAttributes.UserId.onDelete).to.eq('CASCADE');
+    expect(Task.getAttributes().UserId.onDelete).to.eq('CASCADE');
   });
 
   it('should throw an error if an association clashes with the name of an already define attribute', () => {

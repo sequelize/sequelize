@@ -1,31 +1,33 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils/check';
+import { removeNullishValuesFromHash } from '../../utils/format';
+import { SequelizeMethod } from '../../utils/sequelize-method';
+import { removeTrailingSemicolon, underscore } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import { rejectInvalidOptions, removeTrailingSemicolon } from '../../utils';
 import {
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
+import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
 
 const _ = require('lodash');
-const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
-const randomBytes = require('crypto').randomBytes;
+const randomBytes = require('node:crypto').randomBytes;
 const { Op } = require('../../operators');
 
-const CREATE_SCHEMA_SUPPORTED_OPTIONS = new Set();
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set([]);
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-export class Db2QueryGenerator extends AbstractQueryGenerator {
+export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
@@ -41,8 +43,8 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'createSchemaQuery',
         this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTION,
-        CREATE_SCHEMA_SUPPORTED_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -104,7 +106,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
           if (commentMatch && commentMatch.length > 2) {
             const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
             commentStr += _.template(commentTemplate, this._templateSettings)({
-              table: this.quoteIdentifier(tableName),
+              table: this.quoteTable(tableName),
               comment: this.escape(commentText, undefined, { replacements: options.replacements }),
               column: this.quoteIdentifier(attr),
             });
@@ -156,13 +158,11 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     if (options && options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
-        if (columns.customIndex) {
-          if (!_.isString(indexName)) {
-            indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
-          }
-
-          values.attributes += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+        if (!_.isString(indexName)) {
+          indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
+
+        values.attributes += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
@@ -177,26 +177,6 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     }
 
     return `${_.template(query, this._templateSettings)(values).trim()};${commentStr}`;
-  }
-
-  describeTableQuery(tableName, schema) {
-    let sql = [
-      'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",',
-      'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",',
-      'NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",',
-      'IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"',
-      'FROM',
-      'SYSIBM.SYSCOLUMNS',
-      'WHERE TBNAME =', wrapSingleQuote(tableName),
-    ].join(' ');
-
-    if (schema) {
-      sql += ` AND TBCREATOR =${wrapSingleQuote(schema)}`;
-    } else {
-      sql += ' AND TBCREATOR = USER';
-    }
-
-    return `${sql};`;
   }
 
   renameTableQuery(before, after) {
@@ -227,7 +207,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'addColumnQuery',
         this.dialect.name,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -260,7 +240,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       rejectInvalidOptions(
         'removeColumnQuery',
         this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTION,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
       );
@@ -427,7 +407,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       return sql;
     }
 
-    attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
+    attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = {};
     const values = [];
@@ -446,7 +426,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     for (const key in attrValueHash) {
       const value = attrValueHash[key];
 
-      if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
+      if (value instanceof SequelizeMethod || options.bindParam === false) {
         values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
         values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
@@ -465,23 +445,20 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
     const targetTableAlias = this.quoteTable(`${tableName}_target`);
     const sourceTableAlias = this.quoteTable(`${tableName}_source`);
-    const primaryKeysAttrs = [];
-    const identityAttrs = [];
+    const primaryKeysColumns = [];
+    const identityColumns = [];
     const uniqueAttrs = [];
     const tableNameQuoted = this.quoteTable(tableName);
 
     // Obtain primaryKeys, uniquekeys and identity attrs from rawAttributes as model is not passed
-    for (const key in model.rawAttributes) {
-      if (model.rawAttributes[key].primaryKey) {
-        primaryKeysAttrs.push(model.rawAttributes[key].field || key);
+    const attributes = model.modelDefinition.attributes;
+    for (const attribute of attributes.values()) {
+      if (attribute.primaryKey) {
+        primaryKeysColumns.push(attribute.columnName);
       }
 
-      if (model.rawAttributes[key].unique) {
-        uniqueAttrs.push(model.rawAttributes[key].field || key);
-      }
-
-      if (model.rawAttributes[key].autoIncrement) {
-        identityAttrs.push(model.rawAttributes[key].field || key);
+      if (attribute.autoIncrement) {
+        identityColumns.push(attribute.columnName);
       }
     }
 
@@ -490,7 +467,8 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       if (index.unique && index.fields) {
         for (const field of index.fields) {
           const fieldName = typeof field === 'string' ? field : field.name || field.attribute;
-          if (!uniqueAttrs.includes(fieldName) && model.rawAttributes[fieldName]) {
+          // TODO: "index.fields" are column names, not an attribute name. This is a bug.
+          if (!uniqueAttrs.includes(fieldName) && attributes.has(fieldName)) {
             uniqueAttrs.push(fieldName);
           }
         }
@@ -538,8 +516,8 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
       // Search for primary key attribute in clauses -- Model can have two separate unique keys
       for (const key in clauses) {
         const keys = Object.keys(clauses[key]);
-        if (primaryKeysAttrs.includes(keys[0])) {
-          joinCondition = getJoinSnippet(primaryKeysAttrs).join(' AND ');
+        if (primaryKeysColumns.includes(keys[0])) {
+          joinCondition = getJoinSnippet(primaryKeysColumns).join(' AND ');
           break;
         }
       }
@@ -551,7 +529,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     // Remove the IDENTITY_INSERT Column from update
     const filteredUpdateClauses = updateKeys.filter(key => {
-      if (!identityAttrs.includes(key)) {
+      if (!identityColumns.includes(key)) {
         return true;
       }
 
@@ -598,24 +576,12 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     return query.trim();
   }
 
-  showIndexesQuery(tableName) {
-    let sql = 'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = <%= tableName %>';
-    let schema;
-    if (_.isObject(tableName)) {
-      schema = tableName.schema;
-      tableName = tableName.tableName;
+  addIndexQuery(tableName, attributes, options, rawTablename) {
+    if ('include' in attributes && !attributes.unique) {
+      throw new Error('DB2 does not support non-unique indexes with INCLUDE syntax.');
     }
 
-    if (schema) {
-      sql = `${sql} AND TBCREATOR = <%= schemaName %>`;
-    }
-
-    sql = `${sql} ORDER BY NAME;`;
-
-    return _.template(sql, this._templateSettings)({
-      tableName: wrapSingleQuote(tableName),
-      schemaName: wrapSingleQuote(schema),
-    });
+    return super.addIndexQuery(tableName, attributes, options, rawTablename);
   }
 
   showConstraintsQuery(tableName, constraintName) {
@@ -626,22 +592,6 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     }
 
     return `${sql} ORDER BY CONSTNAME;`;
-  }
-
-  removeIndexQuery(tableName, indexNameOrAttributes) {
-    const sql = 'DROP INDEX <%= indexName %>';
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
-    }
-
-    const values = {
-      tableName: this.quoteIdentifiers(tableName),
-      indexName: this.quoteIdentifiers(indexName),
-    };
-
-    return _.template(sql, this._templateSettings)(values);
   }
 
   attributeToSQL(attribute, options) {
@@ -701,7 +651,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
         template += `, CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }
 
-      template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
         template += ` (${this.quoteIdentifier(attribute.references.key)})`;
@@ -747,7 +697,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
       if (attribute.references) {
 
-        if (existingConstraints.includes(attribute.references.model.toString())) {
+        if (existingConstraints.includes(this.quoteTable(attribute.references.table))) {
           // no cascading constraints to a table more than once
           attribute.onDelete = '';
           attribute.onUpdate = '';
@@ -755,7 +705,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
           attribute.onDelete = '';
           attribute.onUpdate = '';
         } else {
-          existingConstraints.push(attribute.references.model.toString());
+          existingConstraints.push(this.quoteTable(attribute.references.table));
         }
       }
 
@@ -942,7 +892,7 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
     for (const key in rawAttributes) {
       if (rawAttributes[key].unique && dataValues[key] === undefined) {
         if (rawAttributes[key].type instanceof DataTypes.DATE) {
-          dataValues[key] = Utils.now(this.dialect);
+          dataValues[key] = new Date();
         } else if (rawAttributes[key].type instanceof DataTypes.STRING) {
           dataValues[key] = `unique${uniqno++}`;
         } else if (rawAttributes[key].type instanceof DataTypes.INTEGER) {
@@ -955,26 +905,16 @@ export class Db2QueryGenerator extends AbstractQueryGenerator {
 
     return uniqno;
   }
-
-  /**
-   * Quote identifier in sql clause
-   *
-   * @param {string} identifier
-   * @param {boolean} _force
-   *
-   * @returns {string}
-   */
-  quoteIdentifier(identifier, _force) {
-    return Utils.addTicks(Utils.removeTicks(identifier, '"'), '"');
-  }
-
 }
 
-// private methods
+/**
+ * @param {string} identifier
+ * @deprecated use "escape" or "escapeString" on QueryGenerator
+ */
 function wrapSingleQuote(identifier) {
   if (identifier) {
     return `'${identifier}'`;
-    // return Utils.addTicks("'"); // It removes quote from center too.
+    // return addTicks("'"); // It removes quote from center too.
   }
 
   return '';

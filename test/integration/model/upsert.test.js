@@ -34,6 +34,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         unique: 'foobar',
         type: DataTypes.INTEGER,
       },
+      counter: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      },
       baz: {
         type: DataTypes.STRING,
         field: 'zab',
@@ -543,7 +547,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             deletedAt: {
               type: DataTypes.DATE,
               primaryKey: true,
-              allowNull: false,
+              allowNull: true,
               defaultValue: Number.POSITIVE_INFINITY,
             },
           }, {
@@ -567,6 +571,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           expect(users).to.have.lengthOf(2);
+        });
+      }
+
+      if (dialect === 'mysql' || dialect === 'mariadb') {
+        it('should allow to use calculated values on duplicate', async function () {
+          await this.User.upsert({
+            id: 1,
+            counter: this.sequelize.literal('`counter` + 1'),
+          });
+          await this.User.upsert({
+            id: 1,
+            counter: this.sequelize.literal('`counter` + 1'),
+          });
+          const user = await this.User.findByPk(1);
+          expect(user.counter).to.equal(2);
         });
       }
 

@@ -1,6 +1,6 @@
+import { expect } from 'chai';
 import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
-import { expect } from 'chai';
 import { beforeAll2, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
@@ -107,7 +107,7 @@ describe('Model#changed()', () => {
 
       it('returns false when setting a value to the same object value', () => {
         for (const value of [null, 1, 'asdf', new Date(), [], {}, Buffer.from('')]) {
-          const t = new vars.User({
+          const t = vars.User.build({
             json: value,
           }, {
             isNewRecord: false,
@@ -131,8 +131,7 @@ describe('Model#changed()', () => {
           raw: true,
         });
 
-        // TODO: fix Model#set typings to support this syntax
-        // @ts-expect-error
+        // @ts-expect-error -- TODO: fix Model#set typings to support this syntax
         user.set('json.city', 'Gothenburg');
         expect(user.changed('json')).to.equal(true);
       });
@@ -147,8 +146,7 @@ describe('Model#changed()', () => {
           raw: true,
         });
 
-        // TODO: fix Model#set typings to support this syntax
-        // @ts-expect-error
+        // @ts-expect-error -- TODO: fix Model#set typings to support this syntax
         user.set('json.city', 'Gothenburg');
         expect(user.changed('json')).to.equal(false);
       });
@@ -163,8 +161,7 @@ describe('Model#changed()', () => {
           raw: true,
         });
 
-        // TODO: fix Model#set typings to support this syntax
-        // @ts-expect-error
+        // @ts-expect-error -- TODO: fix Model#set typings to support this syntax
         user.set('json.address', { street: 'Second street', number: '1' });
         expect(user.changed('json')).to.equal(true);
       });
@@ -179,8 +176,7 @@ describe('Model#changed()', () => {
           raw: true,
         });
 
-        // TODO: fix Model#set typings to support this syntax
-        // @ts-expect-error
+        // @ts-expect-error -- TODO: fix Model#set typings to support this syntax
         user.set('json.address', { street: 'Main street', number: '40' });
         expect(user.changed('json')).to.equal(false);
       });
