@@ -252,7 +252,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           fragments.push('DO UPDATE SET', updateKeys.join(','));
         }
 
-        onDuplicateKeyUpdate = ` ${Utils.joinSQLFragments(fragments)}`;
+        onDuplicateKeyUpdate = ` ${joinSQLFragments(fragments)}`;
       } else {
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=${values[attr]}`);
         // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id
