@@ -1159,12 +1159,9 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   fields?: Array<keyof TAttributes>;
 
   /**
-   * Should each row be subject to validation before it is inserted.
-   * The whole insert will fail if one row fails validation
-   *
-   * @default false
+   * Include options. See `find` for details
    */
-  validate?: boolean;
+  include?: AllowArray<Includeable>;
 
   /**
    * Run before / after create hooks for each individual Instance?
@@ -1182,20 +1179,28 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   ignoreDuplicates?: boolean;
 
   /**
+   * Return all columns or only the specified columns for the affected rows (only for postgres)
+   */
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+
+  /**
    * Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL,
    * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5).
    */
   updateOnDuplicate?: Array<keyof TAttributes>;
 
   /**
-   * Include options. See `find` for details
+   * Primary key names used as conflict target columns during insertion.
    */
-  include?: AllowArray<Includeable>;
+  upsertKeys?: string[];
 
   /**
-   * Return all columns or only the specified columns for the affected rows (only for postgres)
+   * Should each row be subject to validation before it is inserted.
+   * The whole insert will fail if one row fails validation
+   *
+   * @default false
    */
-  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+  validate?: boolean;
 }
 
 /**

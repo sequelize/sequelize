@@ -1,9 +1,9 @@
+import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import { expect } from 'chai';
 import delay from 'delay';
 import sinon from 'sinon';
 import { DataTypes, QueryTypes, Model } from '@sequelize/core';
 import type { ModelStatic, InferAttributes, InferCreationAttributes } from '@sequelize/core';
-import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import {
   beforeAll2, createSequelizeInstance,
   disableDatabaseResetForSuite,

@@ -1,6 +1,6 @@
+import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import { expect } from 'chai';
 import { Model } from '@sequelize/core';
-import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import {
   AfterAssociate,
   AfterBulkCreate,
