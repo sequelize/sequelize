@@ -2750,8 +2750,8 @@ Specify a different name for either index to resolve this issue.`);
         if (options.updateOnDuplicate) {
           options.updateOnDuplicate = options.updateOnDuplicate.map(attr => model.rawAttributes[attr].field || attr);
 
-          if (options.conflictFields) {
-            options.upsertKeys = options.conflictFields.map(
+          if (options.conflictAttributes) {
+            options.upsertKeys = options.conflictAttributes.map(
               attr => (Object.prototype.hasOwnProperty.call(this.rawAttributes, attr)
                 ? this.rawAttributes[attr].field || attr
                 : attr),

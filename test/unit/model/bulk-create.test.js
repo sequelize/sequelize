@@ -54,10 +54,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       if (current.dialect.supports.inserts.updateOnDuplicate) {
-        it('should pass conflictFields for unknown columns directly to upsertKeys', async () => {
+        it('should pass conflictAttributes for unknown columns directly to upsertKeys', async () => {
           // Note that the model also has an id key as its primary key.
           await Model.bulkCreate([{ purchaseCount: 42 }], {
-            conflictFields: ['a', 'b', 'c'],
+            conflictAttributes: ['a', 'b', 'c'],
             updateOnDuplicate: ['purchaseCount'],
           });
 
@@ -67,10 +67,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ).to.deep.equal(['a', 'b', 'c']);
         });
 
-        it('should map conflictFields to column names', async () => {
+        it('should map conflictAttributes to column names', async () => {
           // Note that the model also has an id key as its primary key.
           await Model.bulkCreate([{ accountId: 42, purchaseCount: 3 }], {
-            conflictFields: ['accountId'],
+            conflictAttributes: ['accountId'],
             updateOnDuplicate: ['purchaseCount'],
           });
 

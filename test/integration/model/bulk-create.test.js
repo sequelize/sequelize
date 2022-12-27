@@ -747,7 +747,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         if (current.dialect.supports.inserts.conflictFields) {
-          it('should respect the conflictFields option', async function () {
+          it('should respect the conflictAttributes option', async function () {
             const Permissions = this.sequelize.define(
               'permissions',
               {
@@ -795,7 +795,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ];
 
             const initialResults = await Permissions.bulkCreate(initialPermissions, {
-              conflictFields: ['userId'],
+              conflictAttributes: ['userId'],
               updateOnDuplicate: ['permissions'],
             });
 
@@ -826,7 +826,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ];
 
             const newResults = await Permissions.bulkCreate(newPermissions, {
-              conflictFields: ['userId'],
+              conflictAttributes: ['userId'],
               updateOnDuplicate: ['permissions'],
             });
 

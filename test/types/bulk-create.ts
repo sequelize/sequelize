@@ -43,6 +43,6 @@ sequelize.transaction(async trx => {
   });
 
   const res3: TestModel[] = await TestModel.bulkCreate(newItems, {
-    conflictFields: ['testEnum', 'testString'],
+    conflictAttributes: ['testEnum', 'testString'],
   });
 });
