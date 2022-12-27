@@ -98,9 +98,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
         );
 
-        const upsertKeys = User.primaryKeyAttributes.map(
-          attr => User.rawAttributes[attr].field || attr,
-        );
+        const upsertKeys = ['user_name'];
 
         let result;
 
