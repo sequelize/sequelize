@@ -1,8 +1,8 @@
 'use strict';
 
-const Support = require('../support');
+const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
-const util        = require('util');
+const util        = require('node:util');
 
 const expectsql   = Support.expectsql;
 const current     = Support.sequelize;

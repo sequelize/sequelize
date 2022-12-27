@@ -1,5 +1,5 @@
 import NodeUtil from 'node:util';
-import _inflection from 'inflection';
+import * as _inflection from 'inflection';
 import type { IndexOptions, TableName } from '../dialects/abstract/query-interface.js';
 import { SequelizeMethod } from './sequelize-method.js';
 
@@ -120,24 +120,6 @@ ${NodeUtil.inspect(index)}`);
   }
 
   return underscore(out);
-}
-
-/**
- * Stringify a value as JSON with some differences:
- * - bigints are stringified as a json string. (`safeStringifyJson({ val: 1n })` outputs `'{ "val": "1" }'`).
- *   This is because of a decision by TC39 to not support bigint in JSON.stringify https://github.com/tc39/proposal-bigint/issues/24
- *
- * @param stringifyTarget the value to stringify.
- * @returns the resulting json.
- */
-export function safeStringifyJson(stringifyTarget: any): string {
-  return JSON.stringify(stringifyTarget, (key, value) => {
-    if (typeof value === 'bigint') {
-      return String(value);
-    }
-
-    return value;
-  });
 }
 
 export function removeTrailingSemicolon(str: string): string {

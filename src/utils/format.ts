@@ -1,18 +1,15 @@
-import assert from 'assert';
+import assert from 'node:assert';
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
 import type {
+  Attributes,
+  BuiltModelAttributeColumnOptions,
   Model,
   ModelStatic,
   WhereOptions,
-  ModelAttributeColumnOptions,
-  Attributes,
-  BuiltModelAttributeColumOptions,
 } from '..';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
+import * as DataTypes from '../data-types';
 import { Op as operators } from '../operators';
-
-const DataTypes = require('../data-types');
 
 const operatorsSet = new Set(Object.values(operators));
 
@@ -35,7 +32,7 @@ export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 
  */
 export function mapFinderOptions<M extends Model, T extends FinderOptions<Attributes<M>>>(
   options: T,
-  Model: ModelStatic<Model>,
+  Model: ModelStatic<M>,
 ): MappedFinderOptions<Attributes<M>> {
   if (Array.isArray(options.attributes)) {
     options.attributes = Model._injectDependentVirtualAttributes(
@@ -97,20 +94,17 @@ export function mapOptionFieldNames<M extends Model>(
   return out;
 }
 
-export function mapWhereFieldNames(where: Record<string | symbol, any>, Model: ModelStatic<Model>): object {
+export function mapWhereFieldNames(where: Record<PropertyKey, any>, Model: ModelStatic<Model>): object {
   if (!where) {
     return where;
   }
 
-  const newWhere: Record<string | symbol, any> = Object.create(null);
-  // TODO [2022-09-01]: note on 'as any[]': TypeScript < 4.4 does not support using Symbol for keys.
-  //  Cast can be removed in sept. 2022 when we drop support for < 4.4
+  const newWhere: Record<PropertyKey, any> = Object.create(null);
+  // TODO: note on 'as any[]'; removing the cast causes the following error on attributeNameOrOperator "TS2538: Type 'symbol' cannot be used as an index type."
   for (const attributeNameOrOperator of getComplexKeys(where) as any[]) {
-    const rawAttribute: ModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
+    const rawAttribute: BuiltModelAttributeColumnOptions | undefined = Model.rawAttributes[attributeNameOrOperator];
 
-    // TODO [2022-09-01]: note on 'any': TypeScript < 4.4 does not support using Symbol for keys.
-    //  Cast can changed back to 'symbol | string' in sept. 2022 when we drop support for < 4.4
-    const columnNameOrOperator: any = rawAttribute?.field ?? attributeNameOrOperator;
+    const columnNameOrOperator: PropertyKey = rawAttribute?.field ?? attributeNameOrOperator;
 
     if (
       isPlainObject(where[attributeNameOrOperator])
@@ -161,6 +155,17 @@ export function getComplexKeys(obj: object): Array<string | symbol> {
     ...getOperators(obj),
     ...Object.keys(obj),
   ];
+}
+
+/**
+ * getComplexSize
+ *
+ * @param obj
+ * @returns Length of object properties including operators if obj is array returns its length
+ * @private
+ */
+export function getComplexSize(obj: object | any[]): number {
+  return Array.isArray(obj) ? obj.length : getComplexKeys(obj).length;
 }
 
 /**
@@ -246,24 +251,14 @@ export function removeNullishValuesFromHash(
   return result;
 }
 
-/**
- * Returns ENUM name by joining table and column name
- *
- * @param tableName
- * @param columnName
- * @private
- */
-export function generateEnumName(
-  tableName: string,
-  columnName: string,
-): string {
-  return `enum_${tableName}_${columnName}`;
-}
-
-export function getColumnName(attribute: BuiltModelAttributeColumOptions): string {
+export function getColumnName(attribute: BuiltModelAttributeColumnOptions): string {
   assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
 
   // field is the column name alias
   // if no alias is set, fieldName (the JS name) will be used instead.
   return attribute.field || attribute.fieldName;
+}
+
+export function getAttributeName(model: ModelStatic, columnName: string): string | null {
+  return Object.values(model.getAttributes()).find(attribute => attribute.field === columnName)?.fieldName ?? null;
 }

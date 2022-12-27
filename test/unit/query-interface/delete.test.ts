@@ -1,6 +1,6 @@
-import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
+import { DataTypes } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#delete', () => {
@@ -21,7 +21,7 @@ describe('QueryInterface#delete', () => {
     await sequelize.getQueryInterface().delete(
       instance,
       User.tableName,
-      { id: ':id' },
+      { firstName: ':id' },
       {
         replacements: {
           limit: 1,
@@ -33,8 +33,8 @@ describe('QueryInterface#delete', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: `DELETE FROM [Users] WHERE [id] = ':id'`,
-      mssql: `DELETE FROM [Users] WHERE [id] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+      default: `DELETE FROM [Users] WHERE [firstName] = ':id'`,
+      mssql: `DELETE FROM [Users] WHERE [firstName] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
     });
 
     expect(firstCall.args[1]?.bind).to.be.undefined;

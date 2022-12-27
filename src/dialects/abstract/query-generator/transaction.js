@@ -1,6 +1,6 @@
 'use strict';
 
-const uuidv4 = require('uuid').v4;
+const crypto = require('node:crypto');
 
 const TransactionQueries = {
   /**
@@ -20,7 +20,7 @@ const TransactionQueries = {
   },
 
   generateTransactionId() {
-    return uuidv4();
+    return crypto.randomUUID();
   },
 
   /**

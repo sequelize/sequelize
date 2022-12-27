@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -14,100 +14,6 @@ const { createSequelizeInstance } = require('../../../support');
 if (dialect === 'mariadb') {
   describe('[MARIADB Specific] QueryGenerator', () => {
     const suites = {
-      createDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase`;',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET \'utf8mb4\';',
-        },
-        {
-          arguments: ['myDatabase', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS `myDatabase` DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-      ],
-      dropDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'DROP DATABASE IF EXISTS `myDatabase`;',
-        },
-      ],
-      createSchema: [
-        {
-          arguments: ['mySchema'],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema`;',
-        },
-        {
-          arguments: ['mySchema', { charset: 'utf8mb4' }],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema` DEFAULT CHARACTER SET \'utf8mb4\';',
-        },
-        {
-          arguments: ['mySchema', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema` DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-        {
-          arguments: ['mySchema', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE SCHEMA IF NOT EXISTS `mySchema` DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-      ],
-      dropSchema: [
-        {
-          arguments: ['mySchema'],
-          expectation: 'DROP SCHEMA IF EXISTS `mySchema`;',
-        },
-      ],
-      showSchemasQuery: [
-        {
-          arguments: [{}],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\');',
-        },
-        {
-          arguments: [{ skip: [] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\');',
-        },
-        {
-          arguments: [{ skip: ['test'] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'test\');',
-        },
-        {
-          arguments: [{ skip: ['test', 'Te\'st2'] }],
-          expectation: 'SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN (\'MYSQL\', \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'test\', \'Te\\\'st2\');',
-        },
-
-      ],
-      arithmeticQuery: [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\'',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`+ \'bar\' WHERE `bar` = \'biz\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\'',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- -1',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE `myTable` SET `foo`=`foo`- \'bar\' WHERE `bar` = \'biz\'',
-        },
-      ],
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
@@ -245,13 +151,6 @@ if (dialect === 'mariadb') {
         },
       ],
 
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS `myTable`;',
-        },
-      ],
-
       selectQuery: [
         {
           arguments: ['myTable'],
@@ -276,10 +175,6 @@ if (dialect === 'mariadb') {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
-          context: QueryGenerator,
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator,
         }, {
           arguments: ['myTable', { order: ['id'] }],
@@ -393,18 +288,6 @@ if (dialect === 'mariadb') {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator,
-        }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true,
         }, {
           title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
           arguments: ['myTable', function (sequelize) {
@@ -747,34 +630,6 @@ if (dialect === 'mariadb') {
         },
       ],
 
-      showIndexesQuery: [
-        {
-          arguments: ['User'],
-          expectation: 'SHOW INDEX FROM `User`',
-        },
-        {
-          arguments: [{ tableName: 'User', schema: 'schema' }],
-          expectation: 'SHOW INDEX FROM `schema`.`User`',
-        },
-        // FIXME: enable this test once fixed
-        // {
-        //   sequelizeOptions: {
-        //     schema: 'schema',
-        //   },
-        //   arguments: ['User'],
-        //   expectation: 'SHOW INDEX FROM `schema`.`User`',
-        // },
-        {
-          arguments: ['User', { database: 'sequelize' }],
-          // Doing this:
-          //  SHOW INDEX FROM `User` FROM `sequelize`
-          // would be incorrect because the second from specifies the SCHEMA.
-          // The database name from the credentials is not equivalent to specifying the SCHEMA.
-          // Schema and Database are synonymous in MySQL/MariaDB, and not the same as what we call a 'database' in our credentials.
-          expectation: 'SHOW INDEX FROM `User`',
-        },
-      ],
-
       removeIndexQuery: [
         {
           arguments: ['User', 'user_foo_bar'],
@@ -844,10 +699,11 @@ if (dialect === 'mariadb') {
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
           const title = test.title || `MariaDB correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
-          it(title, function () {
-            const sequelize = test.sequelizeOptions ? createSequelizeInstance({
+          it(title, () => {
+            const sequelize = createSequelizeInstance({
               ...test.sequelizeOptions,
-            }) : this.sequelize;
+              ...test.context && test.context.options,
+            });
 
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {
@@ -859,13 +715,7 @@ if (dialect === 'mariadb') {
               }
             }
 
-            const queryGenerator = new QueryGenerator({
-              sequelize,
-              _dialect: sequelize.dialect,
-            });
-
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            queryGenerator.options = { ...queryGenerator.options, ...test.context && test.context.options };
+            const queryGenerator = sequelize.dialect.queryGenerator;
 
             const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);

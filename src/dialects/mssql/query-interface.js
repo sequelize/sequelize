@@ -1,10 +1,10 @@
 'use strict';
 
+import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
 const _ = require('lodash');
 
-const Utils = require('../../utils');
 const { QueryTypes } = require('../../query-types');
 const { Op } = require('../../operators');
 const { QueryInterface } = require('../abstract/query-interface');
@@ -63,7 +63,7 @@ export class MsSqlQueryInterface extends QueryInterface {
 
     options = { ...options };
 
-    if (!Utils.isWhereEmpty(where)) {
+    if (!isWhereEmpty(where)) {
       wheres.push(where);
     }
 

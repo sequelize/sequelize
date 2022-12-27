@@ -1,5 +1,5 @@
 import { useErrorCause } from '../utils/deprecations.js';
-import type { Nullish } from '../utils/index.js';
+import type { Nullish } from '../utils/types.js';
 
 export interface SequelizeErrorOptions {
   stack?: Nullish<string>;
@@ -13,9 +13,9 @@ export interface CommonErrorProperties {
 // TODO [>=2023-04-30]:
 //  Remove me in Sequelize 8, where this is added natively by TypeScript (>= 4.6):
 //  This is a breaking change and must be done in a MAJOR release.
-export type ErrorOptions = {
-  cause?: Nullish<Error>,
-};
+export interface ErrorOptions {
+  cause?: unknown;
+}
 
 const supportsErrorCause = (() => {
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- Supported in TS 4.6, not before
@@ -33,8 +33,10 @@ const supportsErrorCause = (() => {
  *
  * This means that errors can be accessed using `Sequelize.ValidationError`
  */
-abstract class BaseError extends Error {
-  declare cause?: Error;
+class BaseError extends Error {
+  // 'cause' is incorrectly typed as Error instead of unknown in TypeScript <= 4.7.
+  // TODO [20223-05-24]: Change this type to unknown once we drop support for TypeScript <= 4.7
+  declare cause?: any;
 
   get parent(): this['cause'] {
     useErrorCause();

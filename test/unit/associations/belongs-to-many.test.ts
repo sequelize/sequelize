@@ -1,3 +1,8 @@
+import { expect } from 'chai';
+import each from 'lodash/each';
+import type { SinonStub } from 'sinon';
+import sinon from 'sinon';
+import { AssociationError, BelongsTo, DataTypes, HasMany, HasOne, Model } from '@sequelize/core';
 import type {
   BelongsToManySetAssociationsMixin,
   CreationOptional,
@@ -5,11 +10,6 @@ import type {
   InferCreationAttributes,
   BelongsToMany, ModelStatic,
 } from '@sequelize/core';
-import { AssociationError, BelongsTo, DataTypes, HasMany, HasOne, Model } from '@sequelize/core';
-import { expect } from 'chai';
-import each from 'lodash/each';
-import type { SinonStub } from 'sinon';
-import sinon from 'sinon';
 import { sequelize, getTestDialectTeaser, resetSequelizeInstance, createSequelizeInstance } from '../../support';
 
 describe(getTestDialectTeaser('belongsToMany'), () => {
@@ -21,9 +21,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     const User = sequelize.define('User');
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error -- testing that invalid input results in error
       User.belongsToMany();
-    }).to.throw('User.belongsToMany called with something that\'s not a subclass of Sequelize.Model');
+    }).to.throw(`User.belongsToMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
 
   it('should not inherit scopes from parent to join table', () => {
@@ -95,7 +95,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     const user = User.build();
 
     each(methods, (alias, method) => {
-      // @ts-expect-error
+      // @ts-expect-error -- dynamic type, not worth typing
       expect(user[method]).to.eq(originalMethod);
     });
   });
@@ -184,9 +184,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       // @ts-expect-error -- we're testing that these do throw
       const errorFunction1 = () => User.belongsToMany(Task, { through: true });
-      // @ts-expect-error
+      // @ts-expect-error -- see above
       const errorFunction2 = () => User.belongsToMany(Task, { through: undefined });
-      // @ts-expect-error
+      // @ts-expect-error -- see above
       const errorFunction3 = () => User.belongsToMany(Task, { through: null });
       for (const errorFunction of [errorFunction1, errorFunction2, errorFunction3]) {
         expect(errorFunction).to.throwWithCause(AssociationError, `${User.name}.belongsToMany(${Task.name}) requires a through model, set the "through", or "through.model" options to either a string or a model`);
@@ -968,8 +968,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(Through === MyGroups.through.model);
 
       expect(Object.keys(Through.rawAttributes).sort()).to.deep.equal(['id', 'createdAt', 'updatedAt', 'id_user_very_long_field', 'id_group_very_long_field'].sort());
-      expect(Through.rawAttributes.id_user_very_long_field.unique).to.deep.equal({ name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique' });
-      expect(Through.rawAttributes.id_group_very_long_field.unique).to.deep.equal({ name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique' });
+      expect(Through.rawAttributes.id_user_very_long_field.unique).to.deep.equal([{ name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique' }]);
+      expect(Through.rawAttributes.id_group_very_long_field.unique).to.deep.equal([{ name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique' }]);
     });
 
     it('generates unique identifier with custom name', () => {
@@ -1010,8 +1010,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       expect(MyUsers.through.model === UserGroup);
       expect(MyGroups.through.model === UserGroup);
-      expect(UserGroup.rawAttributes.id_user_very_long_field.unique).to.deep.equal({ name: 'custom_user_group_unique' });
-      expect(UserGroup.rawAttributes.id_group_very_long_field.unique).to.deep.equal({ name: 'custom_user_group_unique' });
+      expect(UserGroup.rawAttributes.id_user_very_long_field.unique).to.deep.equal([{ name: 'custom_user_group_unique' }]);
+      expect(UserGroup.rawAttributes.id_group_very_long_field.unique).to.deep.equal([{ name: 'custom_user_group_unique' }]);
     });
   });
 

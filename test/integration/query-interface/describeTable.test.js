@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('rejects when no data is available', async function () {
       await expect(
         this.queryInterface.describeTable('_some_random_missing_table'),
-      ).to.be.rejectedWith('No description found for "_some_random_missing_table" table. Check the table name and schema; remember, they _are_ case sensitive.');
+      ).to.be.rejectedWith('No description found for table _some_random_missing_table. Check the table name and schema; remember, they _are_ case sensitive.');
     });
 
     it('reads the metadata of the table', async function () {
@@ -81,6 +81,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'mssql':
           assertVal = 'NVARCHAR(255)';
           break;
+        case 'sqlite':
+          assertVal = 'TEXT';
+          break;
         case 'ibmi':
         case 'db2':
           assertVal = 'VARCHAR';
@@ -109,6 +112,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'postgres':
         case 'db2':
           assertVal = 'BOOLEAN';
+          break;
+        case 'sqlite':
+          assertVal = 'INTEGER';
           break;
         case 'mssql':
           assertVal = 'BIT';

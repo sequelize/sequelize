@@ -4,9 +4,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
+const dialect = Support.sequelize.dialect;
 const _ = require('lodash');
 const promiseProps = require('p-props');
 
@@ -15,6 +15,10 @@ const sortById = function (a, b) {
 };
 
 describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
+  if (!dialect.supports.schemas) {
+    return;
+  }
+
   describe('findAll', () => {
     afterEach(async function () {
       await this.sequelize.dropSchema('account');
@@ -1180,13 +1184,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         include: [Group],
       });
 
-      if (dialect === 'sqlite') {
-        expect(new Date(users[0].dateField).getTime()).to.equal(Date.UTC(2014, 1, 20));
-        expect(new Date(users[0].groups[0].dateField).getTime()).to.equal(Date.UTC(2014, 1, 20));
-      } else {
-        expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
-        expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
-      }
+      expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
+      expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
     });
 
   });

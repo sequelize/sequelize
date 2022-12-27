@@ -6,6 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
+const omit = require('lodash/omit');
 
 const dialect = Support.getTestDialect();
 
@@ -489,7 +490,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should sync foreign keys with custom field names', async function () {
         await this.sequelize.sync({ force: true });
         const attrs = this.Task.tableAttributes;
-        expect(attrs.user_id.references.model).to.equal('users');
+        expect(omit(attrs.user_id.references.model, 'toString'))
+          .to.deep.equal({ tableName: 'users', schema: this.sequelize.dialect.getDefaultSchema(), delimiter: '.' });
         expect(attrs.user_id.references.key).to.equal('userId');
       });
 

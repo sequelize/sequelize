@@ -1,7 +1,8 @@
+import assert from 'node:assert';
 import path from 'node:path';
+import { expect } from 'chai';
 import type { Dialect } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { expect } from 'chai';
 import { getSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();
@@ -171,7 +172,9 @@ describe('Sequelize constructor', () => {
     it('handle JSON dialectOptions in querystring parameters', () => {
       const sequelize = new Sequelize(`${dialect}://example.com:9821/dbname?options=${encodeURIComponent(`{"encrypt":true}`)}&anotherOption=1`);
 
-      expect(sequelize.options.dialectOptions.options?.encrypt).to.be.true;
+      const dialectOptionsOptions = sequelize.config.replication.write.dialectOptions?.options;
+      assert(dialectOptionsOptions !== null && typeof dialectOptionsOptions === 'object');
+      expect(dialectOptionsOptions.encrypt).to.be.true;
       expect(sequelize.options.dialectOptions.anotherOption).to.equal('1');
 
       expect(sequelize.config.replication.write).to.deep.eq({

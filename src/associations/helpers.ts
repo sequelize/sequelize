@@ -1,5 +1,5 @@
-import assert from 'assert';
-import NodeUtils from 'util';
+import assert from 'node:assert';
+import NodeUtils from 'node:util';
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject.js';
 import lowerFirst from 'lodash/lowerFirst';
@@ -9,10 +9,10 @@ import { AssociationError } from '../errors/index.js';
 import type { Model, ModelAttributeColumnOptions, ModelStatic } from '../model';
 import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
-import type { OmitConstructors } from '../utils/index.js';
-import * as Utils from '../utils/index.js';
-import { removeUndefined } from '../utils/index.js';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
+import { removeUndefined } from '../utils/object.js';
+import { pluralize, singularize } from '../utils/string.js';
+import type { OmitConstructors } from '../utils/types.js';
 import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAssociationOptions } from './base';
 
 export function checkNamingCollision(source: ModelStatic<any>, associationName: string): void {
@@ -27,7 +27,7 @@ export function checkNamingCollision(source: ModelStatic<any>, associationName: 
 
 export function addForeignKeyConstraints(
   newAttribute: ModelAttributeColumnOptions,
-  source: ModelStatic<Model>,
+  source: ModelStatic,
   options: AssociationOptions<string>,
   key: string,
 ): void {
@@ -60,7 +60,6 @@ export function addForeignKeyConstraints(
  * @param mixinTargetPrototype Model prototype
  * @param methods Method names to inject
  * @param aliases Mapping between model and association method names
- *
  */
 export function mixinMethods<A extends Association, Aliases extends Record<string, string>>(
   association: A,
@@ -69,7 +68,7 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
   aliases?: Aliases,
 ): void {
   for (const method of methods) {
-    // @ts-expect-error
+    // @ts-expect-error -- implicit any, no way around it
     const targetMethodName = association.accessors[method];
 
     // don't override custom methods
@@ -77,13 +76,13 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
       continue;
     }
 
-    // @ts-expect-error
+    // @ts-expect-error -- implicit any, no way around it
     const realMethod = aliases?.[method] || method;
 
     Object.defineProperty(mixinTargetPrototype, targetMethodName, {
       enumerable: false,
       value(...params: any[]) {
-        // @ts-expect-error
+        // @ts-expect-error -- implicit any, no way around it
         return association[realMethod](this, ...params);
       },
     });
@@ -108,7 +107,7 @@ export function getModel<M extends Model>(
       return null;
     }
 
-    return sequelize.model(model) as ModelStatic<M>;
+    return sequelize.model(model);
   }
 
   return model;
@@ -217,7 +216,7 @@ export function defineAssociation<
   construct: (opts: CleanOptions) => T,
 ): T {
   if (!isModelStatic(target)) {
-    throw new Error(`${source.name}.${lowerFirst(type.name)} called with something that's not a subclass of Sequelize.Model`);
+    throw new Error(`${source.name}.${lowerFirst(type.name)} was called with ${NodeUtils.inspect(target)} as the target model, but it is not a subclass of Sequelize's Model class`);
   }
 
   assertAssociationModelIsDefined(source);
@@ -228,7 +227,7 @@ export function defineAssociation<
   checkNamingCollision(source, normalizedOptions.as);
   assertAssociationUnique(type, source, target, normalizedOptions, parent);
 
-  const sequelize = source.sequelize!;
+  const sequelize = source.sequelize;
   Object.defineProperty(normalizedOptions, 'sequelize', {
     configurable: true,
     get() {
@@ -239,7 +238,7 @@ export function defineAssociation<
   });
 
   if (normalizedOptions.hooks) {
-    source.runHooks('beforeAssociate', { source, target, type, sequelize }, normalizedOptions);
+    source.hooks.runSync('beforeAssociate', { source, target, type, sequelize }, normalizedOptions);
   }
 
   let association;
@@ -255,7 +254,7 @@ export function defineAssociation<
   }
 
   if (normalizedOptions.hooks) {
-    source.runHooks('afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
+    source.hooks.runSync('afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
   }
 
   checkNamingCollision(source, normalizedOptions.as);
@@ -302,8 +301,8 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
       assert(typeof options.as === 'string');
       as = options.as;
       name = {
-        plural: isMultiAssociation ? options.as : Utils.pluralize(options.as),
-        singular: isMultiAssociation ? Utils.singularize(options.as) : options.as,
+        plural: isMultiAssociation ? options.as : pluralize(options.as),
+        singular: isMultiAssociation ? singularize(options.as) : options.as,
       };
     }
   } else {

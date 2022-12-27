@@ -1,8 +1,8 @@
-import type { ModelStatic } from '@sequelize/core';
-import { DataTypes, Deferrable } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import sinon from 'sinon';
+import { DataTypes, Deferrable } from '@sequelize/core';
+import type { ModelStatic } from '@sequelize/core';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
 describe(getTestDialectTeaser('belongsTo'), () => {
@@ -10,9 +10,9 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     const User = sequelize.define('User');
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error -- testing that invalid input results in error
       User.belongsTo();
-    }).to.throw('User.belongsTo called with something that\'s not a subclass of Sequelize.Model');
+    }).to.throw(`User.belongsTo was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
 
   it('warn on invalid options', () => {
@@ -44,7 +44,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     const user = User.build();
 
     each(methods, (alias, method) => {
-      // @ts-expect-error
+      // @ts-expect-error -- dynamic type, not worth typing
       expect(user[method]).to.eq(initialMethod);
     });
   });
@@ -90,8 +90,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     const A = sequelize.define('A', {
       BId: {
         type: DataTypes.INTEGER,
-        // TODO: 'references' requires a model to be specified. We should move reference.deferrable to be an option of foreignKey in belongsTo.
-        // @ts-expect-error
+        // @ts-expect-error -- TODO: 'references' requires a model to be specified. We should move reference.deferrable to be an option of foreignKey in belongsTo.
         references: {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
         },

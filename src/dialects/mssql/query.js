@@ -1,8 +1,9 @@
 'use strict';
 
+import { getAttributeName } from '../../utils/format';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const parserStore = require('../parserStore')('mssql');
 const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
@@ -134,15 +135,15 @@ export class MsSqlQuery extends AbstractQuery {
     complete();
 
     if (Array.isArray(rows)) {
+      const dialect = this.sequelize.dialect;
       rows = rows.map(columns => {
         const row = {};
         for (const column of columns) {
-          const typeid = column.metadata.type.id;
-          const parse = parserStore.get(typeid);
+          const parser = dialect.getParserForDatabaseDataType(column.metadata.type.type);
           let value = column.value;
 
-          if (value !== null & Boolean(parse)) {
-            value = parse(value);
+          if (value != null && parser) {
+            value = parser(value);
           }
 
           row[column.metadata.colName] = value;
@@ -304,6 +305,9 @@ export class MsSqlQuery extends AbstractQuery {
   formatError(err, errStack) {
     let match;
 
+    // TODO: err can be an AggregateError. When that happens, we must throw an AggregateError too instead of throwing only the second error,
+    //  or we lose important information
+
     match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'. Cannot insert duplicate key in object '.*'.(:? The duplicate key value is \((.*)\).)?/);
     match = match || err.message.match(/Cannot insert duplicate key row in object .* with unique index '(.*)'/);
     if (match && match.length > 1) {
@@ -455,37 +459,37 @@ export class MsSqlQuery extends AbstractQuery {
     }));
   }
 
-  handleInsertQuery(results, metaData) {
-    if (this.instance) {
-      // add the inserted row id to the instance
-      const autoIncrementAttribute = this.model.autoIncrementAttribute;
-      let id = null;
-      let autoIncrementAttributeAlias = null;
+  handleInsertQuery(insertedRows, metaData) {
+    if (!this.instance?.dataValues) {
+      return;
+    }
 
-      if (Object.prototype.hasOwnProperty.call(this.model.rawAttributes, autoIncrementAttribute)
-        && this.model.rawAttributes[autoIncrementAttribute].field !== undefined) {
-        autoIncrementAttributeAlias = this.model.rawAttributes[autoIncrementAttribute].field;
+    // map column names to attribute names
+    insertedRows = insertedRows.map(row => {
+      const attributes = Object.create(null);
+
+      for (const columnName of Object.keys(row)) {
+        const attributeName = getAttributeName(this.model, columnName) ?? columnName;
+
+        attributes[attributeName] = row[columnName];
       }
 
-      id = id || results && results[0][this.getInsertIdField()];
-      id = id || metaData && metaData[this.getInsertIdField()];
-      id = id || results && results[0][autoIncrementAttribute];
-      id = id || autoIncrementAttributeAlias && results && results[0][autoIncrementAttributeAlias];
+      return attributes;
+    });
 
-      this.instance[autoIncrementAttribute] = id;
+    insertedRows = this._parseDataArrayByType(insertedRows, this.model, this.options.includeMap);
 
-      if (this.instance.dataValues) {
-        for (const key in results[0]) {
-          if (Object.prototype.hasOwnProperty.call(results[0], key)) {
-            const record = results[0][key];
+    const autoIncrementAttributeName = this.model.autoIncrementAttribute;
+    let id = null;
 
-            const attr = _.find(this.model.rawAttributes, attribute => attribute.fieldName === key || attribute.field === key);
+    id = id || insertedRows && insertedRows[0][this.getInsertIdField()];
+    id = id || metaData && metaData[this.getInsertIdField()];
+    id = id || insertedRows && insertedRows[0][autoIncrementAttributeName];
 
-            this.instance.dataValues[attr && attr.fieldName || key] = record;
-          }
-        }
-      }
-
+    // assign values to existing instance
+    this.instance[autoIncrementAttributeName] = id;
+    for (const attributeName of Object.keys(insertedRows[0])) {
+      this.instance.dataValues[attributeName] = insertedRows[0][attributeName];
     }
   }
 }

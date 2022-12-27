@@ -1,10 +1,12 @@
 'use strict';
 
+import { cloneDeep } from '../../utils/object';
+import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+import { AbstractDataType } from './data-types';
 
 const _ = require('lodash');
 
-const Utils = require('../../utils');
 const DataTypes = require('../../data-types');
 const { Transaction } = require('../../transaction');
 const { QueryTypes } = require('../../query-types');
@@ -12,6 +14,7 @@ const { QueryTypes } = require('../../query-types');
 /**
  * The interface that Sequelize uses to talk to all databases
  */
+// TODO: rename to AbstractQueryInterface
 export class QueryInterface {
   constructor(sequelize, queryGenerator) {
     this.sequelize = sequelize;
@@ -47,10 +50,15 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async dropDatabase(database, options) {
-    options = options || {};
     const sql = this.queryGenerator.dropDatabaseQuery(database);
 
     return await this.sequelize.queryRaw(sql, options);
+  }
+
+  async listDatabases(options) {
+    const sql = this.queryGenerator.listDatabasesQuery();
+
+    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SELECT });
   }
 
   /**
@@ -62,8 +70,7 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async createSchema(schema, options) {
-    options = options || {};
-    const sql = this.queryGenerator.createSchema(schema);
+    const sql = this.queryGenerator.createSchemaQuery(schema);
 
     return await this.sequelize.queryRaw(sql, options);
   }
@@ -77,12 +84,11 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async dropSchema(schema, options) {
-    options = options || {};
-    const query = this.queryGenerator.dropSchema(schema);
+    const query = this.queryGenerator.dropSchemaQuery(schema);
 
     let sql;
     if (typeof query === 'object') {
-      options.bind = query.bind;
+      options = { ...options, bind: query.bind };
       sql = query.query;
     } else {
       sql = query;
@@ -101,7 +107,7 @@ export class QueryInterface {
   async dropAllSchemas(options) {
     options = options || {};
 
-    if (!this.queryGenerator._dialect.supports.schemas) {
+    if (!this.queryGenerator.dialect.supports.schemas) {
       return this.sequelize.drop(options);
     }
 
@@ -118,15 +124,13 @@ export class QueryInterface {
    * @returns {Promise<Array>}
    */
   async showAllSchemas(options) {
-    options = {
+    const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
+
+    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, {
       ...options,
       raw: true,
       type: this.sequelize.QueryTypes.SELECT,
-    };
-
-    const showSchemasSql = this.queryGenerator.showSchemasQuery(options);
-
-    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, options);
+    });
 
     return schemaNames.flatMap(value => (value.schema_name ? value.schema_name : value));
   }
@@ -140,6 +144,7 @@ export class QueryInterface {
    * @returns {Promise}
    * @private
    */
+  // TODO: rename to getDatabaseVersion
   async databaseVersion(options) {
     return await this.sequelize.queryRaw(
       this.queryGenerator.versionQuery(),
@@ -200,6 +205,7 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
+  // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
     let sql = '';
 
@@ -229,16 +235,16 @@ export class QueryInterface {
       !tableName.schema
       && (options.schema || Boolean(model) && model._schema)
     ) {
-      tableName = this.queryGenerator.addSchema({
-        tableName,
-        _schema: Boolean(model) && model._schema || options.schema,
-      });
+      tableName = this.queryGenerator.extractTableDetails(tableName);
+      tableName.schema = model?._schema || options.schema;
     }
 
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
+      // schema override for multi-tenancy
+      schema: options.schema,
     });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
@@ -271,10 +277,11 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
-  async dropTable(tableName, options) {
-    // if we're forcing we should be cascading unless explicitly stated otherwise
-    options = { ...options };
-    options.cascade = options.cascade || options.force || false;
+  async dropTable(tableName, options = {}) {
+    options.cascade = options.cascade != null ? options.cascade
+      // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
+      : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
+      : undefined;
 
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
@@ -285,7 +292,12 @@ export class QueryInterface {
     for (const tableName of tableNames) {
       // if tableName is not in the Array of tables names then don't drop it
       if (!skip.includes(tableName.tableName || tableName)) {
-        await this.dropTable(tableName, { ...options, cascade: true });
+        await this.dropTable(tableName, {
+          // enable "cascade" by default if supported by this dialect,
+          // but let the user override the default
+          cascade: this.queryGenerator.dialect.supports.dropTable.cascade ? true : undefined,
+          ...options,
+        });
       }
     }
   }
@@ -378,28 +390,41 @@ export class QueryInterface {
    * }
    * ```
    *
-   * @param {string} tableName table name
+   * @param {TableName} tableName
    * @param {object} [options] Query options
    *
    * @returns {Promise<object>}
    */
+  // TODO: allow TableNameOrModel for tableName
   async describeTable(tableName, options) {
-    let schema = null;
-    let schemaDelimiter = null;
+    let table = {};
 
-    if (typeof options === 'string') {
-      schema = options;
-    } else if (typeof options === 'object' && options !== null) {
-      schema = options.schema || null;
-      schemaDelimiter = options.schemaDelimiter || null;
+    if (typeof tableName === 'string') {
+      table.tableName = tableName;
     }
 
     if (typeof tableName === 'object' && tableName !== null) {
-      schema = tableName.schema;
-      tableName = tableName.tableName;
+      table = tableName;
     }
 
-    const sql = this.queryGenerator.describeTableQuery(tableName, schema, schemaDelimiter);
+    if (typeof options === 'string') {
+      noSchemaParameter();
+      table.schema = options;
+    }
+
+    if (typeof options === 'object' && options !== null) {
+      if (options.schema) {
+        noSchemaParameter();
+        table.schema = options.schema;
+      }
+
+      if (options.schemaDelimiter) {
+        noSchemaDelimiterParameter();
+        table.delimiter = options.schemaDelimiter;
+      }
+    }
+
+    const sql = this.queryGenerator.describeTableQuery(table);
     options = { ...options, type: QueryTypes.DESCRIBE };
 
     try {
@@ -410,13 +435,13 @@ export class QueryInterface {
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
       if (_.isEmpty(data)) {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       return data;
     } catch (error) {
       if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for "${tableName}" table. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
       throw error;
@@ -439,15 +464,25 @@ export class QueryInterface {
    *
    * @returns {Promise}
    */
-  async addColumn(table, key, attribute, options) {
+  async addColumn(table, key, attribute, options = {}) {
     if (!table || !key || !attribute) {
       throw new Error('addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
     }
 
-    options = options || {};
     attribute = this.sequelize.normalizeAttribute(attribute);
 
-    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute), options);
+    if (
+      attribute.type instanceof AbstractDataType
+      // we don't give a context if it already has one, because it could come from a Model.
+      && !attribute.type.usageContext
+    ) {
+      attribute.type.attachUsageContext({ tableName: table, columnName: key, sequelize: this.sequelize });
+    }
+
+    const { ifNotExists, ...rawQueryOptions } = options;
+    const addColumnQueryOptions = ifNotExists ? { ifNotExists } : undefined;
+
+    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute, addColumnQueryOptions), rawQueryOptions);
   }
 
   /**
@@ -458,7 +493,12 @@ export class QueryInterface {
    * @param {object} [options]      Query options
    */
   async removeColumn(tableName, attributeName, options) {
-    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName), options);
+    options = options || {};
+
+    const { ifExists, ...rawQueryOptions } = options;
+    const removeColumnQueryOptions = ifExists ? { ifExists } : undefined;
+
+    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName, removeColumnQueryOptions), rawQueryOptions);
   }
 
   normalizeAttribute(dataTypeOrOptions) {
@@ -602,7 +642,7 @@ export class QueryInterface {
       rawTablename = tableName;
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options.fields = attributes;
     const sql = this.queryGenerator.addIndexQuery(tableName, options, rawTablename);
 
@@ -612,8 +652,8 @@ export class QueryInterface {
   /**
    * Show indexes on a table
    *
-   * @param {string} tableName table name
-   * @param {object} [options]   Query options
+   * @param {TableNameOrModel} tableName
+   * @param {object}    [options] Query options
    *
    * @returns {Promise<Array>}
    * @private
@@ -786,7 +826,7 @@ export class QueryInterface {
       throw new Error('Constraint type must be specified through options.type');
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
 
     const sql = this.queryGenerator.addConstraintQuery(tableName, options);
 
@@ -815,7 +855,7 @@ export class QueryInterface {
       assertNoReservedBind(options.bind);
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options.hasTrigger = instance && instance.constructor.options.hasTrigger;
     const { query, bind } = this.queryGenerator.insertQuery(tableName, values, instance && instance.constructor.rawAttributes, options);
 
@@ -845,6 +885,10 @@ export class QueryInterface {
    *
    * @returns {Promise<boolean,?number>} Resolves an array with <created, primaryKey>
    */
+  // Note: "where" is only used by DB2 and MSSQL. This is because these dialects do not propose any "ON CONFLICT UPDATE" mechanisms
+  // The UPSERT pattern in SQL server requires providing a WHERE clause
+  // TODO: the user should be able to configure the WHERE clause for upsert instead of the current default which
+  //  is using the primary keys.
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options?.bind) {
       assertNoReservedBind(options.bind);
@@ -976,14 +1020,14 @@ export class QueryInterface {
       assertNoReservedBind(options.bind);
     }
 
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     if (typeof where === 'object') {
-      where = Utils.cloneDeep(where);
+      where = cloneDeep(where);
     }
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
     const table = _.isObject(tableName) ? tableName : { tableName };
-    const model = _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const model = options.model ? options.model : _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;
@@ -1053,7 +1097,7 @@ export class QueryInterface {
    * @returns {Promise}
    */
   async bulkDelete(tableName, where, options, model) {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options = _.defaults(options, { limit: null });
 
     if (options.truncate === true) {
@@ -1064,7 +1108,7 @@ export class QueryInterface {
     }
 
     if (typeof identifier === 'object') {
-      where = Utils.cloneDeep(where);
+      where = cloneDeep(where);
     }
 
     const sql = this.queryGenerator.deleteQuery(tableName, where, options, model);
@@ -1098,7 +1142,7 @@ export class QueryInterface {
   }
 
   async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options.model = model;
 
     const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
@@ -1112,7 +1156,7 @@ export class QueryInterface {
   }
 
   async rawSelect(tableName, options, attributeSelector, Model) {
-    options = Utils.cloneDeep(options);
+    options = cloneDeep(options);
     options = _.defaults(options, {
       raw: true,
       plain: true,

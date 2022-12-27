@@ -1,11 +1,10 @@
 import cloneDeep from 'lodash/cloneDeep';
-import each from 'lodash/each';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
 import { ConnectionAcquireTimeoutError } from '../../errors';
 import type { Dialect, Sequelize, ConnectionOptions, QueryRawOptions } from '../../sequelize.js';
+import { isNodeError } from '../../utils/check.js';
 import * as deprecations from '../../utils/deprecations';
-import { isNodeError } from '../../utils/index.js';
 import { logger } from '../../utils/logger';
 import { ReplicationPool } from './replication-pool.js';
 import type { AbstractDialect } from './index.js';
@@ -30,6 +29,8 @@ export interface GetConnectionOptions {
 }
 
 export interface Connection {
+  /** custom property we attach to different dialect connections */
+  // TODO: replace with Symbols.
   uuid?: string | undefined;
 }
 
@@ -87,23 +88,6 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     } else {
       debug(`pool created with max/min: ${config.pool.max}/${config.pool.min}, with replication`);
     }
-  }
-
-  // TODO: Update once we have DataTypes migrated to TS
-  refreshTypeParser(dataTypes: Record<string, any>) {
-    each(dataTypes, dataType => {
-      if (Object.prototype.hasOwnProperty.call(dataType, 'parse')) {
-        if (dataType.types[this.dialectName]) {
-          this._refreshTypeParser(dataType);
-        } else {
-          throw new Error(`Parse function not supported for type ${dataType.key} in dialect ${this.dialectName}`);
-        }
-      }
-    });
-  }
-
-  _refreshTypeParser(_dataType: unknown): void {
-    throw new Error(`_refreshTypeParser not implemented in ${this.constructor.name}`);
   }
 
   /**
@@ -225,8 +209,10 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
         // avoiding a useless round trip
         const options: QueryRawOptions = {
           logging: () => {},
-          // Cheat .query to use our private connection -- hack
-          // @ts-expect-error
+          // TODO: add "connection" parameter to QueryRawOptions? Would require a way to reuse the same connection without it going back in the pool,
+          //  something like sequelize.session(connection => {}).
+          //  this would help for SET SESSION queries, like in https://github.com/sequelize/sequelize/discussions/15377
+          // @ts-expect-error -- HACK: Cheat .query to use our private connection
           transaction: { connection },
         };
 
@@ -279,9 +265,9 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    * @internal
    */
   async _connect(config: ConnectionOptions): Promise<TConnection> {
-    await this.sequelize.runHooks('beforeConnect', config);
+    await this.sequelize.hooks.runAsync('beforeConnect', config);
     const connection = await this.connect(config);
-    await this.sequelize.runHooks('afterConnect', connection, config);
+    await this.sequelize.hooks.runAsync('afterConnect', connection, config);
 
     return connection;
   }
@@ -291,10 +277,11 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    *
    * @param connection
    * @private
+   * @internal
    */
   async _disconnect(connection: TConnection) {
-    await this.sequelize.runHooks('beforeDisconnect', connection);
+    await this.sequelize.hooks.runAsync('beforeDisconnect', connection);
     await this.disconnect(connection);
-    await this.sequelize.runHooks('afterDisconnect', connection);
+    await this.sequelize.hooks.runAsync('afterDisconnect', connection);
   }
 }

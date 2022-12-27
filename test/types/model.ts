@@ -1,3 +1,4 @@
+import { expectTypeOf } from 'expect-type';
 import type {
   Association,
   BelongsToManyGetAssociationsMixin,
@@ -13,7 +14,6 @@ import {
   Model,
   Sequelize,
 } from '@sequelize/core';
-import { expectTypeOf } from 'expect-type';
 
 expectTypeOf<HasOne>().toMatchTypeOf<Association>();
 
@@ -27,7 +27,7 @@ class MyModel extends Model<InferAttributes<MyModel>, InferCreationAttributes<My
   };
 
   static async customStuff() {
-    return this.sequelize!.query('select 1');
+    return this.sequelize.query('select 1');
   }
 }
 
@@ -283,15 +283,15 @@ Actor.belongsToMany(Film, {
   },
 });
 
-interface ModelAttributes {
+interface MyModelAttributes {
   id: number;
   name: string;
 }
 
-interface CreationAttributes extends Optional<ModelAttributes, 'id'> {}
+interface CreationAttributes extends Optional<MyModelAttributes, 'id'> {}
 
 const ModelWithAttributes: ModelDefined<
-  ModelAttributes,
+  MyModelAttributes,
   CreationAttributes
 > = sequelize.define('efs', {
   name: DataTypes.STRING,
@@ -303,14 +303,14 @@ const modelWithAttributes = ModelWithAttributes.build();
  * Tests for set() type
  */
 expectTypeOf(modelWithAttributes.set).toBeFunction();
-expectTypeOf(modelWithAttributes.set).parameter(0).toEqualTypeOf<Partial<ModelAttributes>>();
+expectTypeOf(modelWithAttributes.set).parameter(0).toEqualTypeOf<Partial<MyModelAttributes>>();
 
 /**
  * Tests for previous() type
  */
 expectTypeOf(modelWithAttributes.previous).toBeFunction();
 expectTypeOf(modelWithAttributes.previous).toBeCallableWith('name');
-expectTypeOf(modelWithAttributes.previous).parameter(0).toEqualTypeOf<keyof ModelAttributes>();
+expectTypeOf(modelWithAttributes.previous).parameter(0).toEqualTypeOf<keyof MyModelAttributes>();
 expectTypeOf(modelWithAttributes.previous).parameter(0).not.toEqualTypeOf<'unreferencedAttribute'>();
 expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<string | number | undefined>();
 expectTypeOf(modelWithAttributes.previous('name')).toEqualTypeOf<string | undefined>();

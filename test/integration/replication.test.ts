@@ -1,6 +1,6 @@
-import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
+import { DataTypes } from '@sequelize/core';
 import {
   beforeEach2,
   getConnectionOptionsWithoutPool,

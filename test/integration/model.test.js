@@ -4,9 +4,10 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize, Op, AggregateError } = require('@sequelize/core');
+const { DataTypes, Sequelize, Op, AggregateError, col } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
+const dialectName = Support.getTestDialect();
+const dialect = Support.sequelize.dialect;
 const sinon = require('sinon');
 const _ = require('lodash');
 const dayjs = require('dayjs');
@@ -28,7 +29,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   beforeEach(async function () {
-    isMySQL8 = dialect === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0');
+    isMySQL8 = dialectName === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0');
 
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
@@ -283,7 +284,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(index.unique).to.equal(true);
       expect(index.name).to.equal('user_name_unique');
 
-      switch (dialect) {
+      switch (dialectName) {
         case 'mariadb':
         case 'mysql': {
           expect(index.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: 'ASC' }]);
@@ -314,7 +315,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    if (dialect !== 'ibmi') {
+    if (dialectName !== 'ibmi') {
       it('allows us to customize the error message for unique constraint', async function () {
         const User = this.sequelize.define('UserWithUniqueUsername', {
           username: { type: DataTypes.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' } },
@@ -351,7 +352,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               msg: 'User and email must be unique',
               unique: true,
               method: 'BTREE',
-              fields: ['user_id', { attribute: 'email', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5 }],
+              fields: ['user_id', { attribute: 'email', collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5 }],
             }],
         });
 
@@ -460,14 +461,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'fieldB',
           {
             attribute: 'fieldA',
-            collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US',
-            order: dialect === 'ibmi' ? '' : `${isMySQL8 ? 'ASC' : 'DESC'}`,
+            collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
+            order: dialectName === 'ibmi' ? ''
+              // MySQL doesn't support DESC indexes (will throw)
+              // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
+              : (dialectName === 'mysql' || dialectName === 'mariadb') ? 'ASC'
+              : `DESC`,
             length: 5,
           },
         ],
       }];
 
-      if (!['mssql', 'db2', 'ibmi'].includes(dialect)) {
+      if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
         indices.push({
           type: 'FULLTEXT',
           fields: ['fieldC'],
@@ -496,9 +501,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       let idx2;
       let idx3;
 
-      switch (dialect) {
+      switch (dialectName) {
         case 'sqlite': {
-        // PRAGMA index_info does not return the primary index
+          // PRAGMA index_info does not return the primary index
           idx1 = args[0];
           idx2 = args[1];
 
@@ -548,7 +553,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         case 'postgres': {
-        // Postgres returns indexes in alphabetical order
+          // Postgres returns indexes in alphabetical order
           primary = args[2];
           idx1 = args[0];
           idx2 = args[1];
@@ -571,7 +576,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         default: {
-        // And finally mysql returns the primary first, and then the rest in the order they were defined
+          // And finally mysql returns the primary first, and then the rest in the order they were defined
           primary = args[0];
           idx1 = args[1];
           idx2 = args[2];
@@ -583,11 +588,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: 'ASC' },
-            { attribute: 'fieldA', length: 5, order: 'ASC' },
+            // length is a bigint, which is why it's returned as a string
+            {
+              attribute: 'fieldA',
+              length: '5',
+              // mysql & mariadb don't support DESC indexes
+              order: 'ASC',
+            },
           ]);
 
           expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: undefined },
+            { attribute: 'fieldC', length: undefined, order: null },
           ]);
         }
       }
@@ -595,7 +606,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(idx1.name).to.equal('a_b_uniq');
       expect(idx1.unique).to.be.ok;
 
-      if (!['mssql', 'db2', 'ibmi'].includes(dialect)) {
+      if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
         expect(idx2.name).to.equal('models_field_c');
         expect(idx2.unique).not.to.be.ok;
       }
@@ -823,7 +834,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           foo: DataTypes.STRING,
         });
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const user = await User.findOne({ where: { username: 'foo' }, transaction: t });
         expect(user).to.not.be.null;
@@ -863,7 +874,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = sequelize.define('User', { username: DataTypes.STRING, foo: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const [user1] = await User.findOrBuild({
           where: { username: 'foo' },
@@ -1000,7 +1011,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         await User.create({ username: 'foo' });
 
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.update({ username: 'bar' }, {
           where: { username: 'foo' },
           transaction: t,
@@ -1043,7 +1054,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
           });
         },
-        returning: ['*'],
+        returning: [col('*')],
       });
       expect(test).to.be.true;
     });
@@ -1126,7 +1137,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('updates with casting', async function () {
       await this.User.create({ username: 'John' });
       await this.User.update({
-        username: this.sequelize.cast('1', dialect === 'mssql' ? 'nvarchar' : 'char'),
+        username: this.sequelize.cast('1', dialectName === 'mssql' ? 'nvarchar' : 'char'),
       }, {
         where: { username: 'John' },
       });
@@ -1349,7 +1360,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(hookSpy).to.have.been.called;
     });
 
-    if (dialect === 'postgres') {
+    if (dialectName === 'postgres') {
       it('returns the affected rows if `options.returning` is true', async function () {
         const data = [
           { username: 'Peter', secretValue: '42' },
@@ -1373,7 +1384,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (dialect === 'mysql') {
+    if (dialectName === 'mysql') {
       it('supports limit clause', async function () {
         const data = [
           { username: 'Peter', secretValue: '42' },
@@ -1459,7 +1470,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
         await User.create({ username: 'foo' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.destroy({
           where: {},
           transaction: t,
@@ -1674,15 +1685,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.findOne({ where: { username: 'Bob' } })).to.be.null;
       const tobi = await User.findOne({ where: { username: 'Tobi' } });
       await tobi.destroy();
-      let sql = ['db2', 'ibmi'].includes(dialect) ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tobi\'';
+      let sql = ['db2', 'ibmi'].includes(dialectName) ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tobi\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tobi\'';
       let result = await this.sequelize.query(sql, { plain: true });
       expect(result.username).to.equal('Tobi');
       await User.destroy({ where: { username: 'Tony' } });
-      sql = ['db2', 'ibmi'].includes(dialect) ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tony\'';
+      sql = ['db2', 'ibmi'].includes(dialectName) ? 'SELECT * FROM "paranoidusers" WHERE "username"=\'Tony\'' : 'SELECT * FROM paranoidusers WHERE username=\'Tony\'';
       result = await this.sequelize.query(sql, { plain: true });
       expect(result.username).to.equal('Tony');
       await User.destroy({ where: { username: ['Tony', 'Max'] }, force: true });
-      sql = ['db2', 'ibmi'].includes(dialect) ? 'SELECT * FROM "paranoidusers"' : 'SELECT * FROM paranoidusers';
+      sql = ['db2', 'ibmi'].includes(dialectName) ? 'SELECT * FROM "paranoidusers"' : 'SELECT * FROM paranoidusers';
       const [users] = await this.sequelize.query(sql, { raw: true });
       expect(users).to.have.length(1);
       expect(users[0].username).to.equal('Tobi');
@@ -1702,24 +1713,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(affectedRows).to.equal(0);
     });
 
-    it('supports table schema/prefix', async function () {
-      const data = [
-        { username: 'Peter', secretValue: '42' },
-        { username: 'Paul', secretValue: '42' },
-        { username: 'Bob', secretValue: '43' },
-      ];
-      const prefixUser = this.User.schema('prefix');
+    if (dialect.supports.schemas) {
+      it('supports table schema/prefix', async function () {
+        const data = [
+          { username: 'Peter', secretValue: '42' },
+          { username: 'Paul', secretValue: '42' },
+          { username: 'Bob', secretValue: '43' },
+        ];
+        const prefixUser = this.User.schema('prefix');
 
-      await Support.dropTestSchemas(this.sequelize);
-      await this.sequelize.queryInterface.createSchema('prefix');
-      await prefixUser.sync({ force: true });
-      await prefixUser.bulkCreate(data);
-      await prefixUser.destroy({ where: { secretValue: '42' } });
-      const users = await prefixUser.findAll({ order: ['id'] });
-      expect(users.length).to.equal(1);
-      expect(users[0].username).to.equal('Bob');
-      await this.sequelize.queryInterface.dropSchema('prefix');
-    });
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.queryInterface.createSchema('prefix');
+        await prefixUser.sync({ force: true });
+        await prefixUser.bulkCreate(data);
+        await prefixUser.destroy({ where: { secretValue: '42' } });
+        const users = await prefixUser.findAll({ order: ['id'] });
+        expect(users.length).to.equal(1);
+        expect(users[0].username).to.equal('Bob');
+        await this.sequelize.queryInterface.dropSchema('prefix');
+      });
+    }
 
     it('should work if model is paranoid and only operator in where clause is a Symbol', async function () {
       const User = this.sequelize.define('User', {
@@ -1779,7 +1792,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     // sqlite can't handle multiple primary keys
-    if (dialect !== 'sqlite') {
+    if (dialectName !== 'sqlite') {
       it('correctly determines equality with multiple primary keys', async function () {
         const userKeys = this.sequelize.define('userkeys', {
           foo: { type: DataTypes.STRING, primaryKey: true },
@@ -1796,7 +1809,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   // sqlite can't handle multiple primary keys
-  if (dialect !== 'sqlite') {
+  if (dialectName !== 'sqlite') {
     describe('equalsOneOf', () => {
       beforeEach(async function () {
         this.userKey = this.sequelize.define('userKeys', {
@@ -1828,7 +1841,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const count1 = await User.count();
         const count2 = await User.count({ transaction: t });
@@ -1860,7 +1873,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(count.find(i => i.data === 'B')).to.deep.equal({ data: 'B', count: 1 });
     });
 
-    if (dialect !== 'mssql' && dialect !== 'db2' && dialect !== 'ibmi') {
+    if (dialectName !== 'mssql' && dialectName !== 'db2' && dialectName !== 'ibmi') {
       describe('aggregate', () => {
         it('allows grouping by aliased attribute', async function () {
           await this.User.aggregate('id', 'count', {
@@ -1964,12 +1977,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           order: DataTypes.INTEGER,
         });
 
-        this.UserWithDec = this.sequelize.define('UserWithDec', {
-          value: DataTypes.DECIMAL(10, 3),
-        });
-
         await this.UserWithAge.sync({ force: true });
-        await this.UserWithDec.sync({ force: true });
       });
 
       if (current.dialect.supports.transactions) {
@@ -1978,7 +1986,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const User = sequelize.define('User', { age: DataTypes.INTEGER });
 
           await User.sync({ force: true });
-          const t = await sequelize.transaction();
+          const t = await sequelize.startUnmanagedTransaction();
           await User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t });
           const val1 = await User[methodName]('age');
           const val2 = await User[methodName]('age', { transaction: t });
@@ -2005,10 +2013,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(test).to.be.true;
       });
 
-      it('should allow decimals', async function () {
-        await this.UserWithDec.bulkCreate([{ value: 5.5 }, { value: 3.5 }]);
-        expect(await this.UserWithDec[methodName]('value')).to.equal(methodName === 'min' ? 3.5 : 5.5);
-      });
+      if (dialect.supports.dataTypes.DECIMAL) {
+        it('should allow decimals', async function () {
+          const UserWithDec = this.sequelize.define('UserWithDec', {
+            value: DataTypes.DECIMAL(10, 3),
+          });
+
+          await UserWithDec.sync({ force: true });
+
+          await UserWithDec.bulkCreate([{ value: 5.5 }, { value: 3.5 }]);
+          expect(await UserWithDec[methodName]('value')).to.equal(methodName === 'min' ? 3.5 : 5.5);
+        });
+      }
 
       it('should allow strings', async function () {
         await this.User.bulkCreate([{ username: 'bbb' }, { username: 'yyy' }]);
@@ -2040,10 +2056,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         gender: DataTypes.ENUM('male', 'female'),
       });
 
-      this.UserWithDec = this.sequelize.define('UserWithDec', {
-        value: DataTypes.DECIMAL(10, 3),
-      });
-
       this.UserWithFields = this.sequelize.define('UserWithFields', {
         age: {
           type: DataTypes.INTEGER,
@@ -2058,7 +2070,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await Promise.all([
         this.UserWithAge.sync({ force: true }),
-        this.UserWithDec.sync({ force: true }),
         this.UserWithFields.sync({ force: true }),
       ]);
     });
@@ -2073,10 +2084,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await this.UserWithAge.sum('order')).to.equal(8);
     });
 
-    it('should allow decimals in sum', async function () {
-      await this.UserWithDec.bulkCreate([{ value: 3.5 }, { value: 5.25 }]);
-      expect(await this.UserWithDec.sum('value')).to.equal(8.75);
-    });
+    if (dialect.supports.dataTypes.DECIMAL) {
+      it('should allow decimals in sum', async function () {
+        const UserWithDec = this.sequelize.define('UserWithDec', {
+          value: DataTypes.DECIMAL(10, 3),
+        });
+
+        await UserWithDec.sync({ force: true });
+
+        await UserWithDec.bulkCreate([{ value: 3.5 }, { value: 5.25 }]);
+        expect(await UserWithDec.sum('value')).to.equal(8.75);
+      });
+    }
 
     it('should accept a where clause', async function () {
       const options = { where: { gender: 'male' } };
@@ -2109,51 +2128,265 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
   });
 
-  describe('schematic support', () => {
-    beforeEach(async function () {
-      this.UserPublic = this.sequelize.define('UserPublic', {
-        age: DataTypes.INTEGER,
+  if (dialect.supports.schemas) {
+    describe('schematic support', () => {
+      beforeEach(async function () {
+        this.UserPublic = this.sequelize.define('UserPublic', {
+          age: DataTypes.INTEGER,
+        });
+
+        this.UserSpecial = this.sequelize.define('UserSpecial', {
+          age: DataTypes.INTEGER,
+        });
+
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.createSchema('schema_test');
+        await this.sequelize.createSchema('special');
+        this.UserSpecialSync = await this.UserSpecial.schema('special').sync({ force: true });
       });
 
-      this.UserSpecial = this.sequelize.define('UserSpecial', {
-        age: DataTypes.INTEGER,
+      afterEach(async function () {
+        try {
+          await this.sequelize.dropSchema('schema_test');
+        } finally {
+          await this.sequelize.dropSchema('special');
+          await this.sequelize.dropSchema('prefix');
+        }
       });
 
-      await Support.dropTestSchemas(this.sequelize);
-      await this.sequelize.createSchema('schema_test');
-      await this.sequelize.createSchema('special');
-      this.UserSpecialSync = await this.UserSpecial.schema('special').sync({ force: true });
-    });
+      it('should be able to drop with schemas', async function () {
+        await this.UserSpecial.drop();
+      });
 
-    afterEach(async function () {
-      try {
-        await this.sequelize.dropSchema('schema_test');
-      } finally {
-        await this.sequelize.dropSchema('special');
-        await this.sequelize.dropSchema('prefix');
-      }
-    });
+      it('should be able to list schemas', async function () {
+        const schemas = await this.sequelize.showAllSchemas();
 
-    it('should be able to drop with schemas', async function () {
-      await this.UserSpecial.drop();
-    });
+        const expectedSchemas = {
+          // "sequelize_test" is the default schema, which some dialects will not delete
+          mysql: ['sequelize_test', 'schema_test', 'special'],
+          mariadb: ['sequelize_test', 'schema_test', 'special'],
+          ibmi: ['sequelize_test', 'schema_test', 'special'],
+          mssql: ['schema_test', 'special'],
+          postgres: ['schema_test', 'special'],
+          db2: ['schema_test', 'special '],
+        };
 
-    it('should be able to list schemas', async function () {
-      const schemas = await this.sequelize.showAllSchemas();
-      expect(schemas).to.be.instanceof(Array);
-      const expectedLengths = {
-        mssql: 2,
-        postgres: 2,
-        db2: 2,
-        mariadb: 3,
-        mysql: 1,
-        sqlite: 1,
-        ibmi: 3,
-      };
-      expect(schemas).to.have.length(expectedLengths[dialect]);
-    });
+        expect(schemas.sort()).to.deep.equal(expectedSchemas[dialectName].sort());
+      });
 
-    if (['mysql', 'sqlite'].includes(dialect)) {
+      it('should describeTable using the default schema settings', async function () {
+        const UserPublic = this.sequelize.define('Public', {
+          username: DataTypes.STRING,
+        });
+
+        let test = 0;
+
+        await UserPublic.sync({ force: true });
+        await UserPublic.schema('special').sync({ force: true });
+
+        let table = await this.sequelize.queryInterface.describeTable('Publics', {
+          logging(sql) {
+            if (dialectName === 'sqlite' && sql.includes('TABLE_INFO')) {
+              test++;
+              expect(sql).to.not.contain('special');
+            } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi'].includes(dialectName)) {
+              test++;
+              expect(sql).to.not.contain('special');
+            }
+          },
+        });
+
+        if (dialectName === 'postgres') {
+          test++;
+          expect(table.id.defaultValue).to.not.contain('special');
+        }
+
+        table = await this.sequelize.queryInterface.describeTable('Publics', {
+          schema: 'special',
+          logging(sql) {
+            if (dialectName === 'sqlite' && sql.includes('TABLE_INFO')) {
+              test++;
+              expect(sql).to.contain('special');
+            } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi'].includes(dialectName)) {
+              test++;
+              expect(sql).to.contain('special');
+            }
+          },
+        });
+
+        if (dialectName === 'postgres') {
+          test++;
+          expect(table.id.defaultValue).to.contain('special');
+        }
+
+        expect(test).to.equal(2);
+      });
+
+      it('should be able to reference a table with a schema set', async function () {
+        const UserPub = this.sequelize.define('UserPub', {
+          username: DataTypes.STRING,
+        }, { schema: 'prefix' });
+
+        const ItemPub = this.sequelize.define('ItemPub', {
+          name: DataTypes.STRING,
+        }, { schema: 'prefix' });
+
+        UserPub.hasMany(ItemPub, { foreignKeyConstraints: true });
+
+        await Support.dropTestSchemas(this.sequelize);
+        await this.sequelize.queryInterface.createSchema('prefix');
+
+        let test = false;
+
+        await UserPub.sync({ force: true });
+        await ItemPub.sync({
+          force: true,
+          logging: _.after(2, _.once(sql => {
+            test = true;
+            switch (dialectName) {
+              case 'postgres':
+              case 'db2':
+              case 'ibmi': {
+                expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
+
+                break;
+              }
+
+              case 'mssql': {
+                expect(sql).to.match(/REFERENCES\s+\[prefix]\.\[UserPubs] \(\[id]\)/);
+
+                break;
+              }
+
+              case 'mysql':
+              case 'mariadb': {
+                expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
+
+                break;
+              }
+
+              default: {
+                expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
+              }
+            }
+          })),
+        });
+
+        expect(test).to.be.true;
+      });
+
+      it('should be able to create and update records under any valid schematic', async function () {
+        let logged = 0;
+        const UserPublicSync = await this.UserPublic.sync({ force: true });
+
+        await UserPublicSync.create({ age: 3 }, {
+          logging: UserPublic => {
+            logged++;
+            switch (dialectName) {
+              case 'postgres':
+              case 'db2':
+              case 'ibmi': {
+                expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
+                expect(UserPublic).to.include('INSERT INTO "UserPublics"');
+
+                break;
+              }
+
+              case 'sqlite': {
+                expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
+                expect(UserPublic).to.include('INSERT INTO `UserPublics`');
+
+                break;
+              }
+
+              case 'mssql': {
+                expect(this.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
+                expect(UserPublic).to.include('INSERT INTO [UserPublics]');
+
+                break;
+              }
+
+              case 'mysql':
+              case 'mariadb':
+              default: {
+                expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special`.`UserSpecials`');
+                expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
+
+                break;
+              }
+            }
+          },
+        });
+
+        const UserSpecial = await this.UserSpecialSync.schema('special').create({ age: 3 }, {
+          logging(UserSpecial) {
+            logged++;
+            switch (dialectName) {
+              case 'postgres':
+              case 'db2':
+              case 'ibmi': {
+                expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
+
+                break;
+              }
+
+              case 'sqlite': {
+                expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
+
+                break;
+              }
+
+              case 'mssql': {
+                expect(UserSpecial).to.include('INSERT INTO [special].[UserSpecials]');
+
+                break;
+              }
+
+              case 'mysql':
+              case 'mariadb':
+              default: {
+                expect(UserSpecial).to.include('INSERT INTO `special`.`UserSpecials`');
+
+                break;
+              }
+            }
+          },
+        });
+
+        await UserSpecial.update({ age: 5 }, {
+          logging(user) {
+            logged++;
+            switch (dialectName) {
+              case 'postgres':
+              case 'db2':
+              case 'ibmi': {
+                expect(user).to.include('UPDATE "special"."UserSpecials"');
+
+                break;
+              }
+
+              case 'mssql': {
+                expect(user).to.include('UPDATE [special].[UserSpecials]');
+
+                break;
+              }
+
+              case 'mysql':
+              case 'mariadb':
+              default: {
+                expect(user).to.include('UPDATE `special`.`UserSpecials`');
+
+                break;
+              }
+            }
+          },
+        });
+
+        expect(logged).to.equal(3);
+      });
+    });
+  } else {
+    describe('fake schematic support', () => {
       it('should take schemaDelimiter into account if applicable', async function () {
         let test = 0;
         const UserSpecialUnderscore = this.sequelize.define('UserSpecialUnderscore', {
@@ -2180,227 +2413,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
         expect(test).to.equal(2);
       });
-    }
-
-    it('should describeTable using the default schema settings', async function () {
-      const UserPublic = this.sequelize.define('Public', {
-        username: DataTypes.STRING,
-      });
-
-      let test = 0;
-
-      await UserPublic.sync({ force: true });
-      await UserPublic.schema('special').sync({ force: true });
-
-      let table = await this.sequelize.queryInterface.describeTable('Publics', {
-        logging(sql) {
-          if (dialect === 'sqlite' && sql.includes('TABLE_INFO')) {
-            test++;
-            expect(sql).to.not.contain('special');
-          } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi'].includes(dialect)) {
-            test++;
-            expect(sql).to.not.contain('special');
-          }
-        },
-      });
-
-      if (dialect === 'postgres') {
-        test++;
-        expect(table.id.defaultValue).to.not.contain('special');
-      }
-
-      table = await this.sequelize.queryInterface.describeTable('Publics', {
-        schema: 'special',
-        logging(sql) {
-          if (dialect === 'sqlite' && sql.includes('TABLE_INFO')) {
-            test++;
-            expect(sql).to.contain('special');
-          } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi'].includes(dialect)) {
-            test++;
-            expect(sql).to.contain('special');
-          }
-        },
-      });
-
-      if (dialect === 'postgres') {
-        test++;
-        expect(table.id.defaultValue).to.contain('special');
-      }
-
-      expect(test).to.equal(2);
     });
-
-    it('should be able to reference a table with a schema set', async function () {
-      const UserPub = this.sequelize.define('UserPub', {
-        username: DataTypes.STRING,
-      }, { schema: 'prefix' });
-
-      const ItemPub = this.sequelize.define('ItemPub', {
-        name: DataTypes.STRING,
-      }, { schema: 'prefix' });
-
-      UserPub.hasMany(ItemPub, { foreignKeyConstraints: true });
-
-      if (['postgres', 'mssql', 'db2', 'mariadb', 'ibmi'].includes(dialect)) {
-        await Support.dropTestSchemas(this.sequelize);
-        await this.sequelize.queryInterface.createSchema('prefix');
-      }
-
-      let test = false;
-
-      await UserPub.sync({ force: true });
-      await ItemPub.sync({
-        force: true,
-        logging: _.after(2, _.once(sql => {
-          test = true;
-          switch (dialect) {
-            case 'postgres':
-            case 'db2':
-            case 'ibmi': {
-              expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
-
-              break;
-            }
-
-            case 'mssql': {
-              expect(sql).to.match(/REFERENCES\s+\[prefix]\.\[UserPubs] \(\[id]\)/);
-
-              break;
-            }
-
-            case 'mariadb': {
-              expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
-
-              break;
-            }
-
-            default: {
-              expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
-            }
-          }
-        })),
-      });
-
-      expect(test).to.be.true;
-    });
-
-    it('should be able to create and update records under any valid schematic', async function () {
-      let logged = 0;
-      const UserPublicSync = await this.UserPublic.sync({ force: true });
-
-      await UserPublicSync.create({ age: 3 }, {
-        logging: UserPublic => {
-          logged++;
-          switch (dialect) {
-            case 'postgres':
-            case 'db2':
-            case 'ibmi': {
-              expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
-              expect(UserPublic).to.include('INSERT INTO "UserPublics"');
-
-              break;
-            }
-
-            case 'sqlite': {
-              expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
-              expect(UserPublic).to.include('INSERT INTO `UserPublics`');
-
-              break;
-            }
-
-            case 'mssql': {
-              expect(this.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
-              expect(UserPublic).to.include('INSERT INTO [UserPublics]');
-
-              break;
-            }
-
-            case 'mariadb': {
-              expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special`.`UserSpecials`');
-              expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
-
-              break;
-            }
-
-            default: {
-              expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
-              expect(UserPublic).to.include('INSERT INTO `UserPublics`');
-            }
-          }
-        },
-      });
-
-      const UserSpecial = await this.UserSpecialSync.schema('special').create({ age: 3 }, {
-        logging(UserSpecial) {
-          logged++;
-          switch (dialect) {
-            case 'postgres':
-            case 'db2':
-            case 'ibmi': {
-              expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
-
-              break;
-            }
-
-            case 'sqlite': {
-              expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
-
-              break;
-            }
-
-            case 'mssql': {
-              expect(UserSpecial).to.include('INSERT INTO [special].[UserSpecials]');
-
-              break;
-            }
-
-            case 'mariadb': {
-              expect(UserSpecial).to.include('INSERT INTO `special`.`UserSpecials`');
-
-              break;
-            }
-
-            default: {
-              expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
-            }
-          }
-        },
-      });
-
-      await UserSpecial.update({ age: 5 }, {
-        logging(user) {
-          logged++;
-          switch (dialect) {
-            case 'postgres':
-            case 'db2':
-            case 'ibmi': {
-              expect(user).to.include('UPDATE "special"."UserSpecials"');
-
-              break;
-            }
-
-            case 'mssql': {
-              expect(user).to.include('UPDATE [special].[UserSpecials]');
-
-              break;
-            }
-
-            case 'mariadb': {
-              expect(user).to.include('UPDATE `special`.`UserSpecials`');
-
-              break;
-            }
-
-            default: {
-              expect(user).to.include('UPDATE `special.UserSpecials`');
-            }
-          }
-        },
-      });
-
-      expect(logged).to.equal(3);
-    });
-  });
+  }
 
   describe('references', () => {
     beforeEach(async function () {
@@ -2464,7 +2478,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       try {
         // The posts table gets dropped in the before filter.
         await Post.sync();
-        if (dialect === 'sqlite') {
+        if (dialectName === 'sqlite') {
           // sorry ... but sqlite is too stupid to understand whats going on ...
           expect(1).to.equal(1);
         } else {
@@ -2472,7 +2486,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(2).to.equal(1);
         }
       } catch (error) {
-        switch (dialect) {
+        switch (dialectName) {
           case 'mysql': {
             if (isMySQL8) {
               expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
@@ -2486,7 +2500,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           case 'sqlite': {
-          // the parser should not end up here ... see above
+            // the parser should not end up here ... see above
             expect(1).to.equal(2);
 
             break;
@@ -2585,7 +2599,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (dialect !== 'mssql') {
+    if (dialectName !== 'mssql') {
       // NOTE: someone remember to inform me about the intent of these tests. Are
       //       you saying that data passed in as a string is automatically converted
       //       to binary? i.e. "Sequelize" is CAST as binary, OR that actual binary
@@ -2717,13 +2731,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   });
 
-  if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
+  if (dialectName !== 'sqlite' && current.dialect.supports.transactions) {
     it('supports multiple async transactions', async function () {
       this.timeout(90_000);
       const sequelize = await Support.prepareTransactionTest(this.sequelize);
       const User = sequelize.define('User', { username: DataTypes.STRING });
       const testAsync = async function () {
-        const t0 = await sequelize.transaction();
+        const t0 = await sequelize.startUnmanagedTransaction();
 
         await User.create({
           username: 'foo',
@@ -2844,6 +2858,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await user.bulkCreate(data);
       const users1 = await user.findAll();
       expect(users1[0].username).to.equal('jon');
+    });
+
+    it('should correctly set identifiers in a column with autoIncrement with bigint values', async function () {
+      // sqlite returns bigints as numbers https://github.com/sequelize/sequelize/issues/11400
+      if (dialectName === 'sqlite') {
+        return;
+      }
+
+      const User = this.sequelize.define('User', {
+        id: {
+          type: DataTypes.BIGINT,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        username: DataTypes.STRING,
+      });
+
+      await this.sequelize.sync({ force: true });
+      await User.create({ id: '3415718944570971483', username: 'u1' });
+      const createdUsers = await User.bulkCreate([{ username: 'u2', id: '3415718944570971484' }]);
+      expect(createdUsers[0].id.toString()).to.equal('3415718944570971484');
+      const users1 = await User.findAll({ order: [['id', 'ASC']] });
+      expect(users1[0].username).to.equal('u1');
+      expect(users1[1].username).to.equal('u2');
+      expect(users1[1].id.toString()).to.equal('3415718944570971484');
     });
   });
 });

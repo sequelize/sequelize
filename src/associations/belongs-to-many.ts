@@ -27,9 +27,10 @@ import type {
 import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
 import { col, fn } from '../sequelize';
-import type { AllowArray } from '../utils';
-import { camelize, removeUndefined } from '../utils';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
+import { removeUndefined } from '../utils/object.js';
+import { camelize } from '../utils/string.js';
+import type { AllowArray } from '../utils/types.js';
 import type {
   AssociationScope,
   ForeignKeyOptions,
@@ -262,7 +263,7 @@ export class BelongsToMany<
 
     Do this:
     A.belongsToMany(B, { as: 'b', through: 'AB', inverse: { as: 'a' } });
-          `, { cause: error as Error });
+          `, { cause: error });
     }
 
     // we'll need to access their foreign key (through .otherKey) in this constructor.
@@ -375,8 +376,8 @@ Add your own primary key to the through model, on different attributes than the 
         uniqueKey = [this.through.model.tableName, ...keys, 'unique'].join('_');
       }
 
-      this.throughModel.rawAttributes[this.foreignKey].unique = uniqueKey;
-      this.throughModel.rawAttributes[this.otherKey].unique = uniqueKey;
+      this.throughModel.rawAttributes[this.foreignKey].unique = [{ name: uniqueKey }];
+      this.throughModel.rawAttributes[this.otherKey].unique = [{ name: uniqueKey }];
     }
 
     this.throughModel.refreshAttributes();
@@ -440,8 +441,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     const findOptions: FindOptions<Attributes<TargetModel>> = {
       ...options,
-      // TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
       where: {
         [Op.and]: [
           options?.where,
@@ -542,8 +542,7 @@ Add your own primary key to the through model, on different attributes than the 
       scope: false,
       attributes: [this.targetKey],
       joinTableAttributes: [],
-      // TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
       where: {
         [Op.and]: [
           { [this.targetKey]: { [Op.in]: targetPrimaryKeys } },
@@ -711,7 +710,7 @@ Add your own primary key to the through model, on different attributes than the 
       const attributes = { ...defaultAttributes, ...throughAttributes };
 
       if (Object.keys(attributes).some(attribute => {
-        // @ts-expect-error existingThroughRow is raw
+        // @ts-expect-error -- existingThroughRow is raw
         return attributes[attribute] !== existingThroughRow[attribute];
       })) {
         changedTargets.push(newInstance);
@@ -833,16 +832,16 @@ function normalizeThroughOptions<M extends Model>(
 ): NormalizedThroughOptions<M> {
   const timestamps = through.timestamps ?? sequelize.options.define?.timestamps;
 
-  let model;
+  let model: ModelStatic<M>;
 
-  if (!through || (typeof through.model !== 'string' && !isModelStatic(through.model))) {
+  if (!through || (typeof through.model !== 'string' && !isModelStatic<M>(through.model))) {
     throw new AssociationError(`${source.name}.belongsToMany(${target.name}) requires a through model, set the "through", or "through.model" options to either a string or a model`);
   }
 
   if (isModelStatic<M>(through.model)) {
     model = through.model;
   } else if (sequelize.isDefined(through.model)) {
-    model = sequelize.model(through.model) as ModelStatic<M>;
+    model = sequelize.model<M>(through.model);
   } else {
     model = sequelize.define(through.model, {} as ModelAttributes<M>, removeUndefined({
       tableName: through.model,
@@ -853,7 +852,7 @@ function normalizeThroughOptions<M extends Model>(
 
       // @ts-expect-error -- TODO: make 'schema' a public property on Model once the method has been removed (sequelize 8)
       schema: source._schema,
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: either remove or make a public readonly property
       schemaDelimiter: source._schemaDelimiter,
     }));
   }
@@ -880,7 +879,7 @@ function normalizeOptions<SourceKey extends string, TargetKey extends string, Th
     throw new TypeError('The "uniqueKey" option in belongsToMany has been renamed to through.unique');
   }
 
-  const sequelize = target.sequelize!;
+  const sequelize = target.sequelize;
 
   return normalizeBaseAssociationOptions(type, {
     ...options,

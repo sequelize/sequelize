@@ -1,12 +1,14 @@
 'use strict';
 
+import { AbstractDataType } from './dialects/abstract/data-types';
+import { validateDataType } from './dialects/abstract/data-types-utils';
+import { SequelizeMethod } from './utils/sequelize-method';
+
 const _ = require('lodash');
-const Utils = require('./utils');
 const sequelizeError = require('./errors');
-const DataTypes = require('./data-types');
 const { BelongsTo } = require('./associations/belongs-to');
 const validator = require('./utils/validator-extras').validator;
-const { promisify } = require('util');
+const { promisify } = require('node:util');
 
 /**
  * Instance Validator.
@@ -106,17 +108,16 @@ export class InstanceValidator {
    * @private
    */
   async _validateAndRunHooks() {
-    const runHooks = this.modelInstance.constructor.runHooks.bind(this.modelInstance.constructor);
-    await runHooks('beforeValidate', this.modelInstance, this.options);
+    await this.modelInstance.constructor.hooks.runAsync('beforeValidate', this.modelInstance, this.options);
 
     try {
       await this._validate();
     } catch (error) {
-      const newError = await runHooks('validationFailed', this.modelInstance, this.options, error);
+      const newError = await this.modelInstance.constructor.hooks.runAsync('validationFailed', this.modelInstance, this.options, error);
       throw newError || error;
     }
 
-    await runHooks('afterValidate', this.modelInstance, this.options);
+    await this.modelInstance.constructor.hooks.runAsync('afterValidate', this.modelInstance, this.options);
 
     return this.modelInstance;
   }
@@ -138,7 +139,7 @@ export class InstanceValidator {
 
       const value = this.modelInstance.dataValues[field];
 
-      if (value instanceof Utils.SequelizeMethod) {
+      if (value instanceof SequelizeMethod) {
         return;
       }
 
@@ -359,7 +360,7 @@ export class InstanceValidator {
 
         this.errors.push(new sequelizeError.ValidationErrorItem(
           errMsg,
-          'notNull Violation', // sequelizeError.ValidationErrorItem.Origins.CORE,
+          'notNull violation', // sequelizeError.ValidationErrorItem.Origins.CORE,
           field,
           value,
           this.modelInstance,
@@ -368,16 +369,12 @@ export class InstanceValidator {
       }
     }
 
-    if ((rawAttribute.type instanceof DataTypes.STRING || rawAttribute.type instanceof DataTypes.TEXT || rawAttribute.type instanceof DataTypes.CITEXT)
-      && (Array.isArray(value) || _.isObject(value) && !(value instanceof Utils.SequelizeMethod) && !Buffer.isBuffer(value))) {
-      this.errors.push(new sequelizeError.ValidationErrorItem(
-        `${field} cannot be an array or an object`,
-        'string violation', // sequelizeError.ValidationErrorItem.Origins.CORE,
-        field,
-        value,
-        this.modelInstance,
-        'not_a_string',
-      ));
+    const type = rawAttribute.type;
+    if (value != null && !(value instanceof SequelizeMethod) && type instanceof AbstractDataType) {
+      const error = validateDataType(type, field, this.modelInstance, value);
+      if (error) {
+        this.errors.push(error);
+      }
     }
   }
 

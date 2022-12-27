@@ -51,6 +51,8 @@ export class PostgresQuery extends AbstractQuery {
         || /Unable to set non-blocking to true/i.test(error)
         || /SSL SYSCALL error: EOF detected/i.test(error)
         || /Local: Authentication failure/i.test(error)
+        // https://github.com/sequelize/sequelize/pull/15144
+        || error.message === 'Query read timeout'
       ) {
         connection._invalid = true;
       }
@@ -114,7 +116,14 @@ export class PostgresQuery extends AbstractQuery {
 
     if (this.isShowIndexesQuery()) {
       for (const row of rows) {
-        const attributes = /on .*? (?:using .*?\s)?\(([^]*)\)/gi.exec(row.definition)[1].split(',');
+        let attributes;
+        let includeColumns = [];
+        if (/include \(([^]*)\)/gi.test(row.definition)) {
+          attributes = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi.exec(row.definition)[1].split(',');
+          includeColumns = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi.exec(row.definition)[2].split(',');
+        } else {
+          attributes = /on .*? (?:using .*?\s)?\(([^]*)\)/gi.exec(row.definition)[1].split(',');
+        }
 
         // Map column index in table to column name
         const columns = _.zipObject(
@@ -128,7 +137,8 @@ export class PostgresQuery extends AbstractQuery {
         let attribute;
 
         // Indkey is the order of attributes in the index, specified by a string of attribute indexes
-        row.fields = row.indkey.split(' ').map((indKey, index) => {
+        const indkeys = row.indkey.split(' ');
+        row.fields = indkeys.slice(0, indkeys.length - includeColumns.length).map((indKey, index) => {
           field = columns[indKey];
           // for functional indices indKey = 0
           if (!field) {
@@ -262,13 +272,19 @@ export class PostgresQuery extends AbstractQuery {
           throw new sequelizeErrors.EmptyResultError();
         }
 
-        for (const key in rows[0]) {
-          if (Object.prototype.hasOwnProperty.call(rows[0], key)) {
-            const record = rows[0][key];
+        if (rows[0]) {
+          for (const attributeOrColumnName of Object.keys(rows[0])) {
+            const attribute = _.find(this.model.rawAttributes, attribute => {
+              // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
+              return attribute.fieldName === attributeOrColumnName || attribute.field === attributeOrColumnName;
+            });
 
-            const attr = _.find(this.model.rawAttributes, attribute => attribute.fieldName === key || attribute.field === key);
+            const updatedValue = this._parseDatabaseValue(rows[0][attributeOrColumnName], attribute?.type);
 
-            this.instance.dataValues[attr && attr.fieldName || key] = record;
+            this.instance.set(attribute?.fieldName ?? attributeOrColumnName, updatedValue, {
+              raw: true,
+              comesFromDatabase: true,
+            });
           }
         }
       }

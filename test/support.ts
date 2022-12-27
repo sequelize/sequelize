@@ -1,10 +1,7 @@
-import assert from 'assert';
-import fs from 'fs';
-import path from 'path';
-import { inspect, isDeepStrictEqual } from 'util';
-import type { Dialect, Options } from '@sequelize/core';
-import { Sequelize } from '@sequelize/core';
-import { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { inspect, isDeepStrictEqual } from 'node:util';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
@@ -12,6 +9,11 @@ import defaults from 'lodash/defaults';
 import isObject from 'lodash/isObject';
 import type { ExclusiveTestFunction, PendingTestFunction, TestFunction } from 'mocha';
 import sinonChai from 'sinon-chai';
+import { Sequelize } from '@sequelize/core';
+import type { Dialect, Options } from '@sequelize/core';
+import {
+  AbstractQueryGenerator,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
 import { Config } from './config/config';
 
 const expect = chai.expect;
@@ -21,13 +23,6 @@ const distDir = path.resolve(__dirname, '../lib');
 chai.use(chaiDatetime);
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
-
-// Using util.inspect to correctly assert objects with symbols
-// Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
-chai.Assertion.addMethod('deepEqual', function deepEqual(expected, depth = 5) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
-  expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
-});
 
 /**
  * `expect(fn).to.throwWithCause()` works like `expect(fn).to.throw()`, except
@@ -168,6 +163,8 @@ export function createSequelizeInstance(options: Options = {}): Sequelize {
     pool: config.pool,
     dialectOptions: options.dialectOptions || config.dialectOptions || {},
     minifyAliases: options.minifyAliases || config.minifyAliases,
+    // the test suite was written before ALS was turned on by default.
+    disableAlsTransactions: true,
   });
 
   if (process.env.DIALECT === 'postgres-native') {
@@ -210,9 +207,7 @@ export async function clearDatabase(sequelize: Sequelize) {
 }
 
 export async function dropTestSchemas(sequelize: Sequelize) {
-  const queryInterface = sequelize.getQueryInterface();
-
-  if (!queryInterface.queryGenerator._dialect.supports.schemas) {
+  if (!sequelize.dialect.supports.schemas) {
     await sequelize.drop({});
 
     return;
@@ -221,7 +216,7 @@ export async function dropTestSchemas(sequelize: Sequelize) {
   const schemas = await sequelize.showAllSchemas();
   const schemasPromise = [];
   for (const schema of schemas) {
-    // @ts-expect-error
+    // @ts-expect-error -- TODO: type return value of "showAllSchemas"
     const schemaName = schema.name ? schema.name : schema;
     if (schemaName !== sequelize.config.database) {
       const promise = sequelize.dropSchema(schemaName);
@@ -245,16 +240,14 @@ export function getSupportedDialects() {
     .filter(file => !file.includes('.js') && !file.includes('abstract'));
 }
 
-// TODO: type once QueryGenerator has been migrated to TS
-export function getAbstractQueryGenerator(sequelize: Sequelize): unknown {
+export function getAbstractQueryGenerator(sequelize: Sequelize): AbstractQueryGenerator {
   class ModdedQueryGenerator extends AbstractQueryGenerator {
     quoteIdentifier(x: string): string {
       return x;
     }
   }
 
-  // @ts-expect-error
-  return new ModdedQueryGenerator({ sequelize, _dialect: sequelize.dialect });
+  return new ModdedQueryGenerator({ sequelize, dialect: sequelize.dialect });
 }
 
 export function getTestDialect(): Dialect {
@@ -388,16 +381,18 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(properties
   return new HasPropertiesExpectation<Obj>(properties);
 }
 
+type MaybeLazy<T> = T | (() => T);
+
 export function expectsql(
-  query: { query: string, bind: unknown } | Error,
+  query: MaybeLazy<{ query: string, bind: unknown } | Error>,
   assertions: { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> },
 ): void;
 export function expectsql(
-  query: string | Error,
+  query: MaybeLazy<string | Error>,
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: string | Error | { query: string, bind: unknown },
+  query: MaybeLazy<string | Error | { query: string, bind: unknown }>,
   assertions:
     | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
     | PartialRecord<ExpectationKey, string | Error>,
@@ -441,6 +436,18 @@ export function expectsql(
     }
   }
 
+  if (typeof query === 'function') {
+    try {
+      query = query();
+    } catch (error: unknown) {
+      if (!(error instanceof Error)) {
+        throw new TypeError('expectsql: function threw something that is not an instance of Error.');
+      }
+
+      query = error;
+    }
+  }
+
   if (expectation instanceof Error) {
     assert(query instanceof Error, `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`);
 
@@ -453,7 +460,7 @@ export function expectsql(
 
   if ('bind' in assertions) {
     const bind = assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
-    // @ts-expect-error
+    // @ts-expect-error -- too difficult to type, but this is safe
     expect(query.bind).to.deep.equal(bind);
   }
 }

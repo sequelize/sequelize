@@ -213,7 +213,7 @@ if (current.dialect.supports.transactions) {
     });
 
     it('does not allow queries after commit', async function () {
-      const t = await this.sequelize.transaction();
+      const t = await this.sequelize.startUnmanagedTransaction();
       await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
       await t.commit();
       await expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
@@ -224,7 +224,7 @@ if (current.dialect.supports.transactions) {
 
     it('does not allow queries immediately after commit call', async function () {
       await expect((async () => {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
         await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
         await Promise.all([
           expect(t.commit()).to.eventually.be.fulfilled,
@@ -239,7 +239,7 @@ if (current.dialect.supports.transactions) {
     it('does not allow queries after rollback', async function () {
       await expect(
         (async () => {
-          const t = await this.sequelize.transaction();
+          const t = await this.sequelize.startUnmanagedTransaction();
           await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
           await t.rollback();
 
@@ -260,7 +260,7 @@ if (current.dialect.supports.transactions) {
 
     it('does not allow queries immediately after rollback call', async function () {
       await expect(
-        this.sequelize.transaction().then(async t => {
+        this.sequelize.startUnmanagedTransaction().then(async t => {
           await Promise.all([
             expect(t.rollback()).to.eventually.be.fulfilled,
             expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
@@ -275,7 +275,7 @@ if (current.dialect.supports.transactions) {
     it('does not allow commits after commit', async function () {
       await expect(
         (async () => {
-          const t = await this.sequelize.transaction();
+          const t = await this.sequelize.startUnmanagedTransaction();
           await t.commit();
 
           return await t.commit();
@@ -290,7 +290,7 @@ if (current.dialect.supports.transactions) {
       await expect(
         (async () => {
           try {
-            const t = await this.sequelize.transaction();
+            const t = await this.sequelize.startUnmanagedTransaction();
             transaction = t;
             transaction.afterCommit(hook);
             await t.commit();
@@ -315,7 +315,7 @@ if (current.dialect.supports.transactions) {
 
       await expect(
         (async () => {
-          const t = await this.sequelize.transaction();
+          const t = await this.sequelize.startUnmanagedTransaction();
           t.afterCommit(hook);
           await t.rollback();
           expect(hook).to.not.have.been.called;
@@ -330,7 +330,7 @@ if (current.dialect.supports.transactions) {
 
       await expect(
         (async function () {
-          const t = await this.sequelize.transaction();
+          const t = await this.sequelize.startUnmanagedTransaction();
           t.afterCommit(hook);
           await t.commit();
         }()),
@@ -346,7 +346,7 @@ if (current.dialect.supports.transactions) {
       await expect(
         (async () => {
           try {
-            const t = await this.sequelize.transaction();
+            const t = await this.sequelize.startUnmanagedTransaction();
             transaction = t;
             transaction.afterCommit(hook);
 
@@ -372,7 +372,7 @@ if (current.dialect.supports.transactions) {
       await expect(
         (async () => {
           try {
-            const t = await this.sequelize.transaction();
+            const t = await this.sequelize.startUnmanagedTransaction();
             transaction = t;
             transaction.afterCommit(hook);
 
@@ -398,7 +398,7 @@ if (current.dialect.supports.transactions) {
       await expect(
         (async () => {
           try {
-            const t = await this.sequelize.transaction();
+            const t = await this.sequelize.startUnmanagedTransaction();
             transaction = t;
             transaction.afterCommit(hook);
 
@@ -419,7 +419,7 @@ if (current.dialect.supports.transactions) {
 
     it('does not allow commits after rollback', async function () {
       await expect((async () => {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
         await t.rollback();
 
         return await t.commit();
@@ -428,7 +428,7 @@ if (current.dialect.supports.transactions) {
 
     it('does not allow rollbacks after commit', async function () {
       await expect((async () => {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
         await t.commit();
 
         return await t.rollback();
@@ -437,7 +437,7 @@ if (current.dialect.supports.transactions) {
 
     it('does not allow rollbacks after rollback', async function () {
       await expect((async () => {
-        const t = await this.sequelize.transaction();
+        const t = await this.sequelize.startUnmanagedTransaction();
         await t.rollback();
 
         return await t.rollback();
@@ -447,7 +447,7 @@ if (current.dialect.supports.transactions) {
     it('works even if a transaction: null option is passed', async function () {
       this.sinon.spy(this.sequelize, 'queryRaw');
 
-      const t = await this.sequelize.transaction({
+      const t = await this.sequelize.startUnmanagedTransaction({
         transaction: null,
       });
 
@@ -462,7 +462,7 @@ if (current.dialect.supports.transactions) {
     it('works even if a transaction: undefined option is passed', async function () {
       this.sinon.spy(this.sequelize, 'queryRaw');
 
-      const t = await this.sequelize.transaction({
+      const t = await this.sequelize.startUnmanagedTransaction({
         transaction: undefined,
       });
 
@@ -577,16 +577,10 @@ if (current.dialect.supports.transactions) {
           );
         });
 
-        it('should release the connection for a deadlocked transaction (2/2)', async function () {
-          // TODO [>=2022-06-01]: The following code is supposed to cause a deadlock in MariaDB,
-          //  but starting with MariaDB 10.5.15, this does not happen anymore.
-          //  We think it may be a bug in MariaDB, so we temporarily disable this test for that specific version
-          //  If this still happens on newer releases, update this check, or look into why this is not working.
-          //  See https://github.com/sequelize/sequelize/issues/14174
-          if (dialect === 'mariadb' && this.sequelize.options.databaseVersion === '10.5.15') {
-            return;
-          }
-
+        // The following code is supposed to cause a deadlock in MariaDB & MySQL
+        // but starting with MariaDB 10.5.15, this does not happen anymore.
+        // See https://github.com/sequelize/sequelize/issues/14174
+        it.skip('should release the connection for a deadlocked transaction (2/2)', async function () {
           const verifyDeadlock = async () => {
             const User = this.sequelize.define('user', {
               username: DataTypes.STRING,
@@ -600,11 +594,11 @@ if (current.dialect.supports.transactions) {
             // This will cause other sessions to be able to read the row but not modify it.
             // So, if another transaction tries to update those same rows, it will wait until T1 commits (or rolls back).
             // https://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
-            const t1 = await this.sequelize.transaction();
+            const t1 = await this.sequelize.startUnmanagedTransaction();
             const t1Jan = await User.findByPk(id, { lock: t1.LOCK.SHARE, transaction: t1 });
 
             // Then we start another transaction T2 and see that it can indeed read the same row.
-            const t2 = await this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED });
+            const t2 = await this.sequelize.startUnmanagedTransaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED });
             const t2Jan = await User.findByPk(id, { transaction: t2 });
 
             // Then, we want to see that an attempt to update that row from T2 will be queued until T1 commits.
@@ -659,8 +653,8 @@ if (current.dialect.supports.transactions) {
               })(),
             ]);
 
-            expect(t1AttemptData.isFulfilled).to.be.true;
-            expect(t2AttemptData.isRejected).to.be.true;
+            expect(t1AttemptData.isFulfilled).to.eq(true, 'T1 is not fullfilled, but should have been');
+            expect(t2AttemptData.isRejected).to.eq(true, 'T2 is not rejected, but should have been');
             expect(t2AttemptData.reason.message).to.include('Deadlock found when trying to get lock; try restarting transaction');
             expect(t1.finished).to.equal('commit');
             expect(t2.finished).to.equal('rollback');
@@ -717,12 +711,12 @@ if (current.dialect.supports.transactions) {
           awesome: DataTypes.BOOLEAN,
         });
 
-        const t1 = await sequelize.transaction();
+        const t1 = await sequelize.startUnmanagedTransaction();
         await sequelize.sync({ transaction: t1 });
         const t0 = t1;
         await User.create({}, { transaction: t0 });
         await t0.commit();
-        const persistentTransaction = await sequelize.transaction();
+        const persistentTransaction = await sequelize.startUnmanagedTransaction();
         const users = await User.findAll({ transaction: persistentTransaction });
         expect(users.length).to.equal(1);
 
@@ -733,7 +727,7 @@ if (current.dialect.supports.transactions) {
     if (current.dialect.supports.transactionOptions.type) {
       describe('transaction types', () => {
         it('should support default transaction type DEFERRED', async function () {
-          const t = await this.sequelize.transaction({});
+          const t = await this.sequelize.startUnmanagedTransaction({});
 
           await t.rollback();
           expect(t.options.type).to.equal('DEFERRED');
@@ -741,7 +735,7 @@ if (current.dialect.supports.transactions) {
 
         for (const key of Object.keys(Transaction.TYPES)) {
           it(`should allow specification of ${key} type`, async function () {
-            const t = await this.sequelize.transaction({
+            const t = await this.sequelize.startUnmanagedTransaction({
               type: key,
             });
 
@@ -760,7 +754,7 @@ if (current.dialect.supports.transactions) {
         const User = sequelize.define('User', { username: DataTypes.STRING });
         await User.sync({ force: true });
         const newTransactionFunc = async function () {
-          const t = await sequelize.transaction({ type: Transaction.TYPES.EXCLUSIVE });
+          const t = await sequelize.startUnmanagedTransaction({ type: Transaction.TYPES.EXCLUSIVE });
           await User.create({}, { transaction: t });
 
           return t.commit();
@@ -776,7 +770,7 @@ if (current.dialect.supports.transactions) {
         const User = sequelize.define('User', { id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
         await User.sync({ force: true });
         const newTransactionFunc = async function () {
-          const t = await sequelize.transaction({ type: Transaction.TYPES.EXCLUSIVE, retry: { match: ['NO_MATCH'] } });
+          const t = await sequelize.startUnmanagedTransaction({ type: Transaction.TYPES.EXCLUSIVE, retry: { match: ['NO_MATCH'] } });
           // introduce delay to force the busy state race condition to fail
           await delay(1000);
           await User.create({ id: null, username: `test ${t.id}` }, { transaction: t });
@@ -843,7 +837,7 @@ if (current.dialect.supports.transactions) {
 
           await this.sequelize.sync({ force: true });
           await User.create({ username: 'jan' });
-          const transaction = await this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE });
+          const transaction = await this.sequelize.startUnmanagedTransaction({ isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE });
           await User.findAll({ transaction });
 
           await Promise.all([
@@ -878,7 +872,7 @@ if (current.dialect.supports.transactions) {
 
           await this.sequelize.sync({ force: true });
           await User.create({ username: 'jan' });
-          const t1 = await this.sequelize.transaction();
+          const t1 = await this.sequelize.startUnmanagedTransaction();
 
           const t1Jan = await User.findOne({
             where: {
@@ -888,7 +882,7 @@ if (current.dialect.supports.transactions) {
             transaction: t1,
           });
 
-          const t2 = await this.sequelize.transaction({
+          const t2 = await this.sequelize.startUnmanagedTransaction({
             isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
           });
 
@@ -936,7 +930,7 @@ if (current.dialect.supports.transactions) {
               ),
             ]);
 
-            const t1 = await this.sequelize.transaction();
+            const t1 = await this.sequelize.startUnmanagedTransaction();
 
             const results = await User.findAll({
               limit: 1,
@@ -945,7 +939,7 @@ if (current.dialect.supports.transactions) {
             });
 
             const firstUserId = results[0].id;
-            const t2 = await this.sequelize.transaction();
+            const t2 = await this.sequelize.startUnmanagedTransaction();
 
             const secondResults = await User.findAll({
               limit: 1,
@@ -1065,7 +1059,7 @@ if (current.dialect.supports.transactions) {
 
             await this.sequelize.sync({ force: true });
             await User.create({ username: 'jan' });
-            const t1 = await this.sequelize.transaction();
+            const t1 = await this.sequelize.startUnmanagedTransaction();
 
             const t1Jan = await User.findOne({
               where: {
@@ -1075,7 +1069,7 @@ if (current.dialect.supports.transactions) {
               transaction: t1,
             });
 
-            const t2 = await this.sequelize.transaction();
+            const t2 = await this.sequelize.startUnmanagedTransaction();
 
             await Promise.all([(async () => {
               await User.findOne({
@@ -1119,11 +1113,11 @@ if (current.dialect.supports.transactions) {
             // This will cause other sessions to be able to read the row but not modify it.
             // So, if another transaction tries to update those same rows, it will wait until T1 commits (or rolls back).
             // https://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
-            const t1 = await this.sequelize.transaction();
+            const t1 = await this.sequelize.startUnmanagedTransaction();
             await User.findByPk(id, { lock: t1.LOCK.SHARE, transaction: t1 });
 
             // Then we start another transaction T2 and see that it can indeed read the same row.
-            const t2 = await this.sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED });
+            const t2 = await this.sequelize.startUnmanagedTransaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED });
             const t2Jan = await User.findByPk(id, { transaction: t2 });
 
             // Then, we want to see that an attempt to update that row from T2 will be queued until T1 commits.

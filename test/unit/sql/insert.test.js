@@ -1,12 +1,14 @@
 'use strict';
 
-const Support   = require('../support');
+const Support   = require('../../support');
 const { DataTypes } = require('@sequelize/core');
+const { expect } = require('chai');
 
 const expectsql = Support.expectsql;
 const current   = Support.sequelize;
 const sql       = current.dialect.queryGenerator;
-const dialect   = Support.getTestDialect();
+const dialectName   = Support.getTestDialect();
+const dialect = current.dialect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -31,8 +33,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
-            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] INTO @tmp VALUES ($sequelize_1); SELECT * FROM @tmp;',
-            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id","user_name";',
+            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id], INSERTED.[user_name] INTO @tmp VALUES ($sequelize_1); SELECT * FROM @tmp;',
+            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id", "user_name";',
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
@@ -67,12 +69,44 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   });
 
   describe('dates', () => {
-    it('formats the date correctly when inserting', () => {
-      const timezoneSequelize = Support.createSequelizeInstance({
-        timezone: ['sqlite', 'ibmi'].includes(dialect) ? '+00:00' : 'CET',
+    if (!dialect.supports.globalTimeZoneConfig) {
+      it('rejects specifying the global timezone option', () => {
+        expect(() => Support.createSequelizeInstance({ timezone: 'CET' })).to.throw('Setting a custom timezone is not supported');
       });
+    } else {
+      it('supports the global timezone option', () => {
+        const timezoneSequelize = Support.createSequelizeInstance({
+          timezone: 'CET',
+        });
 
-      const User = timezoneSequelize.define('user', {
+        const User = timezoneSequelize.define('user', {
+          date: {
+            type: DataTypes.DATE,
+          },
+        }, {
+          timestamps: false,
+        });
+
+        expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.rawAttributes, {}),
+          {
+            query: {
+              default: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+            },
+            bind: {
+              // these dialects change the DB-side timezone, and the input doesn't specify the timezone offset, so we have to offset the value ourselves
+              // because it will be interpreted as CET by the dialect.
+              snowflake: { sequelize_1: '2015-01-20 01:00:00.000' },
+              mysql: { sequelize_1: '2015-01-20 01:00:00.000' },
+              mariadb: { sequelize_1: '2015-01-20 01:00:00.000' },
+              // These dialects do specify the offset, so they can use whichever offset they want.
+              postgres: { sequelize_1: '2015-01-20 01:00:00.000 +01:00' },
+            },
+          });
+      });
+    }
+
+    it('formats the date correctly when inserting', () => {
+      const User = current.define('user', {
         date: {
           type: DataTypes.DATE,
         },
@@ -80,7 +114,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false,
       });
 
-      expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.rawAttributes, {}),
+      expectsql(current.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.rawAttributes, {}),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1))',
@@ -92,22 +126,19 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           bind: {
             ibmi: { sequelize_1: '2015-01-20 00:00:00.000' },
+            db2: { sequelize_1: '2015-01-20 00:00:00.000' },
+            snowflake: { sequelize_1: '2015-01-20 00:00:00.000' },
+            mysql: { sequelize_1: '2015-01-20 00:00:00.000' },
+            mariadb: { sequelize_1: '2015-01-20 00:00:00.000' },
             sqlite: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
-            db2: { sequelize_1: '2015-01-20 01:00:00' },
-            mysql: { sequelize_1: '2015-01-20 01:00:00' },
-            snowflake: { sequelize_1: '2015-01-20 01:00:00' },
-            mariadb: { sequelize_1: '2015-01-20 01:00:00.000' },
-            default: { sequelize_1: '2015-01-20 01:00:00.000 +01:00' },
+            mssql: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
+            postgres: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
           },
         });
     });
 
     it('formats date correctly when sub-second precision is explicitly specified', () => {
-      const timezoneSequelize = Support.createSequelizeInstance({
-        timezone: ['sqlite', 'ibmi'].includes(dialect) ? '+00:00' : 'CET',
-      });
-
-      const User = timezoneSequelize.define('user', {
+      const User = current.define('user', {
         date: {
           type: DataTypes.DATE(3),
         },
@@ -115,7 +146,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false,
       });
 
-      expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.rawAttributes, {}),
+      expectsql(current.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.rawAttributes, {}),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1))',
@@ -127,12 +158,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
           bind: {
             ibmi: { sequelize_1: '2015-01-20 01:02:03.089' },
+            db2: { sequelize_1: '2015-01-20 01:02:03.089' },
+            snowflake: { sequelize_1: '2015-01-20 01:02:03.089' },
+            mariadb: { sequelize_1: '2015-01-20 01:02:03.089' },
+            mysql: { sequelize_1: '2015-01-20 01:02:03.089' },
             sqlite: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
-            mariadb: { sequelize_1: '2015-01-20 02:02:03.089' },
-            mysql: { sequelize_1: '2015-01-20 02:02:03.089' },
-            db2: { sequelize_1: '2015-01-20 02:02:03.089' },
-            snowflake: { sequelize_1: '2015-01-20 02:02:03.089' },
-            default: { sequelize_1: '2015-01-20 02:02:03.089 +01:00' },
+            postgres: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
+            mssql: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
           },
         });
     });

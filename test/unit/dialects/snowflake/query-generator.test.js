@@ -3,128 +3,17 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../support');
+const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
 const { Op, IndexHints } = require('@sequelize/core');
 const { SnowflakeQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/snowflake/query-generator.js');
+const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'snowflake') {
   describe('[SNOWFLAKE Specific] QueryGenerator', () => {
     const suites = {
-      createDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase";',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET \'utf8mb4\';',
-        },
-        {
-          arguments: ['myDatabase', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myDatabase'],
-          expectation: 'CREATE DATABASE IF NOT EXISTS myDatabase;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS myDatabase DEFAULT CHARACTER SET \'utf8mb4\';',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: ['myDatabase', { collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS myDatabase DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: ['myDatabase', { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' }],
-          expectation: 'CREATE DATABASE IF NOT EXISTS myDatabase DEFAULT CHARACTER SET \'utf8mb4\' DEFAULT COLLATE \'utf8mb4_unicode_ci\';',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-      dropDatabaseQuery: [
-        {
-          arguments: ['myDatabase'],
-          expectation: 'DROP DATABASE IF EXISTS "myDatabase";',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myDatabase'],
-          expectation: 'DROP DATABASE IF EXISTS myDatabase;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-      arithmeticQuery: [
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\'',
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"+ \'bar\' WHERE "bar" = \'biz\'',
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\'',
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- -1',
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE "myTable" SET "foo"="foo"- \'bar\' WHERE "bar" = \'biz\'',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          title: 'Should use the plus operator',
-          arguments: ['+', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE myTable SET foo=foo+ \'bar\'',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          title: 'Should use the plus operator with where clause',
-          arguments: ['+', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE myTable SET foo=foo+ \'bar\' WHERE bar = \'biz\'',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          title: 'Should use the minus operator',
-          arguments: ['-', 'myTable', {}, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE myTable SET foo=foo- \'bar\'',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          title: 'Should use the minus operator with negative value',
-          arguments: ['-', 'myTable', {}, { foo: -1 }, {}, {}],
-          expectation: 'UPDATE myTable SET foo=foo- -1',
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          title: 'Should use the minus operator with where clause',
-          arguments: ['-', 'myTable', { bar: 'biz' }, { foo: 'bar' }, {}, {}],
-          expectation: 'UPDATE myTable SET foo=foo- \'bar\' WHERE bar = \'biz\'',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
       attributesToSQL: [
         {
           arguments: [{ id: 'INTEGER' }],
@@ -341,20 +230,6 @@ if (dialect === 'snowflake') {
         },
       ],
 
-      dropTableQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS "myTable";',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS myTable;',
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-
       tableExistsQuery: [
         {
           arguments: ['myTable'],
@@ -390,10 +265,6 @@ if (dialect === 'snowflake') {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM "myTable" WHERE "myTable"."id" = 2;',
-          context: QueryGenerator,
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS "count" FROM "foo";',
           context: QueryGenerator,
         }, {
           arguments: ['myTable', { order: ['id'] }],
@@ -445,7 +316,7 @@ if (dialect === 'snowflake') {
               ],
             };
           }],
-          expectation: 'SELECT * FROM "myTable" ORDER BY f1("myTable"."id") DESC, f2(12, \'lalala\', \'2011-03-27 10:01:55\') ASC;',
+          expectation: `SELECT * FROM "myTable" ORDER BY f1("myTable"."id") DESC, f2(12, 'lalala', '2011-03-27 10:01:55.000') ASC;`,
           context: QueryGenerator,
           needsSequelize: true,
         }, {
@@ -507,18 +378,6 @@ if (dialect === 'snowflake') {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM "myTable" GROUP BY "name" ORDER BY "id" DESC;',
           context: QueryGenerator,
-        }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR("createdAt") AS "creationYear" FROM "myTable" GROUP BY "creationYear", "title" HAVING "creationYear" > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true,
         }, {
           title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
           arguments: ['myTable', function (sequelize) {
@@ -672,10 +531,6 @@ if (dialect === 'snowflake') {
           expectation: 'SELECT * FROM myTable WHERE myTable.id = 2;',
           context: { options: { quoteIdentifiers: false } },
         }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS count FROM foo;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
           arguments: ['myTable', { order: ['id'] }],
           expectation: 'SELECT * FROM myTable ORDER BY id;',
           context: { options: { quoteIdentifiers: false } },
@@ -725,7 +580,7 @@ if (dialect === 'snowflake') {
               ],
             };
           }],
-          expectation: 'SELECT * FROM myTable ORDER BY f1(myTable.id) DESC, f2(12, \'lalala\', \'2011-03-27 10:01:55\') ASC;',
+          expectation: `SELECT * FROM myTable ORDER BY f1(myTable.id) DESC, f2(12, 'lalala', '2011-03-27 10:01:55.000') ASC;`,
           context: { options: { quoteIdentifiers: false } },
           needsSequelize: true,
         }, {
@@ -787,18 +642,6 @@ if (dialect === 'snowflake') {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM myTable GROUP BY name ORDER BY id DESC;',
           context: { options: { quoteIdentifiers: false } },
-        }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR(createdAt) AS creationYear FROM myTable GROUP BY creationYear, title HAVING creationYear > 2002;',
-          context: { options: { quoteIdentifiers: false } },
-          needsSequelize: true,
         }, {
           title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
           arguments: ['myTable', function (sequelize) {
@@ -1112,7 +955,7 @@ if (dialect === 'snowflake') {
           expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'\';DROP TABLE myTable;\'),(\'bar\');',
         }, {
           arguments: ['myTable', [{ name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) }]],
-          expectation: 'INSERT INTO "myTable" ("name","birthday") VALUES (\'foo\',\'2011-03-27 10:01:55\'),(\'bar\',\'2012-03-27 10:01:55\');',
+          expectation: `INSERT INTO "myTable" ("name","birthday") VALUES ('foo','2011-03-27 10:01:55.000'),('bar','2012-03-27 10:01:55.000');`,
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1 }, { name: 'bar', foo: 2 }]],
           expectation: 'INSERT INTO "myTable" ("name","foo") VALUES (\'foo\',1),(\'bar\',2);',
@@ -1150,7 +993,7 @@ if (dialect === 'snowflake') {
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', [{ name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) }]],
-          expectation: 'INSERT INTO myTable (name,birthday) VALUES (\'foo\',\'2011-03-27 10:01:55\'),(\'bar\',\'2012-03-27 10:01:55\');',
+          expectation: `INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.000'),('bar','2012-03-27 10:01:55.000');`,
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1 }, { name: 'bar', foo: 2 }]],
@@ -1474,31 +1317,27 @@ if (dialect === 'snowflake') {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
-        beforeEach(function () {
-          this.queryGenerator = new QueryGenerator({
-            sequelize: this.sequelize,
-            _dialect: this.sequelize.dialect,
-          });
-        });
-
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
           const title = test.title || `SNOWFLAKE correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
-          it(title, function () {
+          it(title, () => {
+            const sequelize = createSequelizeInstance({
+              ...test.context && test.context.options,
+            });
+
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {
-                test.arguments[1] = test.arguments[1](this.sequelize);
+                test.arguments[1] = test.arguments[1](sequelize);
               }
 
               if (typeof test.arguments[2] === 'function') {
-                test.arguments[2] = test.arguments[2](this.sequelize);
+                test.arguments[2] = test.arguments[2](sequelize);
               }
             }
 
-            // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
-            this.queryGenerator.options = { ...this.queryGenerator.options, ...test.context && test.context.options };
+            const queryGenerator = sequelize.dialect.queryGenerator;
 
-            const conditions = this.queryGenerator[suiteTitle](...test.arguments);
+            const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);
           });
         }

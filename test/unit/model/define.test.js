@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../support');
+const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 const sinon = require('sinon');
 
@@ -100,6 +100,88 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(User.options.noPrimaryKey).to.equal(true);
     });
 
+    it('supports marking an attribute as unique', () => {
+      const User = current.define('User', {
+        firstName: {
+          type: DataTypes.STRING,
+          unique: true,
+        },
+      });
+
+      expect(User.getIndexes()).to.deep.equal([{
+        fields: ['firstName'],
+        msg: null,
+        column: 'firstName',
+        customIndex: true,
+        unique: true,
+        name: 'users_first_name_unique',
+      }]);
+    });
+
+    it('supports marking multiple attributes as composite unique', () => {
+      const User = current.define('User', {
+        firstName: {
+          type: DataTypes.STRING,
+          unique: 'firstName-lastName',
+        },
+        lastName: {
+          type: DataTypes.STRING,
+          unique: 'firstName-lastName',
+        },
+      });
+
+      expect(User.getIndexes()).to.deep.equal([{
+        fields: ['firstName', 'lastName'],
+        msg: null,
+        column: 'lastName',
+        customIndex: true,
+        unique: true,
+        name: 'firstName-lastName',
+      }]);
+    });
+
+    it('supports using the same attribute in multiple uniques', () => {
+      const User = current.define('User', {
+        firstName: {
+          type: DataTypes.STRING,
+          unique: [true, 'firstName-lastName', 'firstName-country'],
+        },
+        lastName: {
+          type: DataTypes.STRING,
+          unique: 'firstName-lastName',
+        },
+        country: {
+          type: DataTypes.STRING,
+          unique: 'firstName-country',
+        },
+      });
+
+      expect(User.getIndexes()).to.deep.equal([
+        {
+          fields: ['firstName'],
+          msg: null,
+          column: 'firstName',
+          customIndex: true,
+          unique: true,
+          name: 'users_first_name_unique',
+        }, {
+          fields: ['firstName', 'lastName'],
+          msg: null,
+          column: 'lastName',
+          customIndex: true,
+          unique: true,
+          name: 'firstName-lastName',
+        }, {
+          fields: ['firstName', 'country'],
+          msg: null,
+          column: 'country',
+          customIndex: true,
+          unique: true,
+          name: 'firstName-country',
+        },
+      ]);
+    });
+
     it('should throw when the attribute name is ambiguous with $nested.attribute$ syntax', () => {
       expect(() => {
         current.define('foo', {
@@ -163,7 +245,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             type: DataTypes.MY_UNKNOWN_TYPE,
           },
         });
-      }).to.throw('Unrecognized datatype for attribute "bar.name"');
+      }).to.throw('Attribute "bar.name" does not specify its DataType.');
     });
 
     it('should throw for notNull validator without allowNull', () => {
@@ -204,18 +286,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         console.warn.restore();
       });
 
-      it('warn for unsupported INTEGER options', () => {
-        current.define('A', {
+      it('warns for unsupported FLOAT options', () => {
+        // must use a new sequelize instance because warnings are only logged once per instance.
+        const newSequelize = Support.createSequelizeInstance();
+
+        newSequelize.define('A', {
           age: {
-            type: DataTypes.TINYINT.UNSIGNED,
+            type: DataTypes.FLOAT(10, 2),
           },
         });
 
-        if (['postgres', 'sqlite', 'mssql', 'db2'].includes(dialect)) {
-          expect(true).to.equal(console.warn.calledOnce);
-          expect(console.warn.args[0][0]).to.contain('does not support \'TINYINT\'');
+        if (!['mysql', 'mariadb'].includes(dialect)) {
+          expect(console.warn.called).to.eq(true, 'console.warn was not called');
+          expect(console.warn.args[0][0]).to.contain(`does not support FLOAT with scale or precision specified. These options are ignored.`);
         } else {
-          expect(false).to.equal(console.warn.calledOnce);
+          expect(console.warn.called).to.equal(false, 'console.warn was called but it should not have been');
         }
       });
     });
