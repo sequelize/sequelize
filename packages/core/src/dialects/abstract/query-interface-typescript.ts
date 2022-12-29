@@ -63,11 +63,12 @@ export class AbstractQueryInterfaceTypeScript {
   /**
    * Drop all schemas
    *
+   * @param options
    * @returns
    */
-  async dropAllSchemas(): Promise<void> {
+  async dropAllSchemas(options?: QueryRawOptions): Promise<void> {
     const schemas = await this.showAllSchemas();
-    await Promise.all(schemas.map(async schema => this.dropSchema(schema)));
+    await Promise.all(schemas.map(async schema => this.dropSchema(schema, options)));
   }
 
   /**
