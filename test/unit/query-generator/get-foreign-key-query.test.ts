@@ -38,7 +38,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         (SELECT oid FROM pg_catalog.pg_namespace
         WHERE nspname = 'public'
         LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1;`,
+        AND r.contype = 'f' ORDER BY 1`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
         constraintCatalog = N'sequelize_test',
@@ -130,7 +130,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         (SELECT oid FROM pg_catalog.pg_namespace
         WHERE nspname = 'public'
         LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1;`,
+        AND r.contype = 'f' ORDER BY 1`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
         constraintCatalog = N'sequelize_test',
@@ -220,7 +220,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         (SELECT oid FROM pg_catalog.pg_namespace
         WHERE nspname = 'mySchema'
         LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1;`,
+        AND r.contype = 'f' ORDER BY 1`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
         constraintCatalog = N'sequelize_test',
@@ -310,7 +310,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         (SELECT oid FROM pg_catalog.pg_namespace
         WHERE nspname = 'public'
         LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1;`,
+        AND r.contype = 'f' ORDER BY 1`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
         constraintCatalog = N'sequelize_test',
@@ -403,7 +403,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         (SELECT oid FROM pg_catalog.pg_namespace
         WHERE nspname = 'mySchema'
         LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1;`,
+        AND r.contype = 'f' ORDER BY 1`,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
         constraintCatalog = N'sequelize_test',
