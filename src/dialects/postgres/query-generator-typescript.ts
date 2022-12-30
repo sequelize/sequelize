@@ -93,7 +93,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND r.connamespace =',
       '(SELECT oid FROM pg_catalog.pg_namespace',
       `WHERE nspname = ${this.escape(table.schema!)} LIMIT 1)`,
-      `AND r.contype = 'f' ORDER BY 1;`,
+      `AND r.contype = 'f' ORDER BY 1`,
     ]);
   }
 }

@@ -482,9 +482,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(foreignKeys).to.have.length(3);
 
       if (dialectName === 'postgres') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(6);
-        expect(Object.keys(foreignKeys[1])).to.have.length(7);
-        expect(Object.keys(foreignKeys[2])).to.have.length(7);
+        expect(Object.keys(foreignKeys[0])).to.have.length(2);
+        expect(Object.keys(foreignKeys[1])).to.have.length(2);
+        expect(Object.keys(foreignKeys[2])).to.have.length(2);
       } else if (['sqlite', 'db2'].includes(dialectName)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
       } else if (dialectName === 'ibmi') {
