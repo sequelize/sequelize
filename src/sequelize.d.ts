@@ -453,10 +453,10 @@ export interface Options extends Logging {
    * Disable the use of AsyncLocalStorage to automatically pass transactions started by {@link Sequelize#transaction}.
    * You will need to pass transactions around manually if you disable this.
    */
-  disableAlsTransactions?: boolean;
+  disableClsTransactions?: boolean;
 }
 
-export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone' | 'disableAlsTransactions'> {
+export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone' | 'disableClsTransactions'> {
   readonly replication: NormalizedReplicationOptions;
 }
 

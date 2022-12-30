@@ -70,15 +70,15 @@
     "@types/chai": "4.3.4",
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
-    "@types/ibm_db": "2.0.11",
+    "@types/ibm_db": "2.0.12",
     "@types/lodash": "4.14.191",
     "@types/mocha": "10.0.1",
-    "@types/node": "18.11.17",
-    "@types/pg": "8.6.5",
+    "@types/node": "18.11.18",
+    "@types/pg": "8.6.6",
     "@types/semver": "7.3.13",
     "@types/sinon": "10.0.13",
     "@types/sinon-chai": "3.2.9",
-    "@types/snowflake-sdk": "1.6.10",
+    "@types/snowflake-sdk": "1.6.11",
     "@types/tedious": "4.0.9",
     "@types/uuid": "9.0.0",
     "chai": "4.3.7",
@@ -88,7 +88,7 @@
     "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.16.9",
+    "esbuild": "0.16.12",
     "eslint": "8.30.0",
     "eslint-plugin-jsdoc": "39.6.4",
     "eslint-plugin-mocha": "10.1.0",
@@ -193,7 +193,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "tag": "alpha"
+    "tag": "latest"
   },
   "scripts": {
     "----------------------------------------- static analysis -----------------------------------------": "",

@@ -258,7 +258,7 @@ export class Sequelize extends SequelizeTypeScript {
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
-      disableAlsTransactions: false,
+      disableClsTransactions: false,
       ...options,
       pool: _.defaults(options.pool || {}, {
         max: 5,
@@ -270,8 +270,8 @@ export class Sequelize extends SequelizeTypeScript {
     };
 
     // TODO: remove & assign property directly once this constructor has been migrated to the SequelizeTypeScript class
-    if (!this.options.disableAlsTransactions) {
-      this._setupTransactionAls();
+    if (!this.options.disableClsTransactions) {
+      this._setupTransactionCls();
     }
 
     if (!this.options.dialect) {
@@ -695,7 +695,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
     return await retry(async () => {
       if (options.transaction === undefined) {
-        options.transaction = this.getCurrentAlsTransaction();
+        options.transaction = this.getCurrentClsTransaction();
       }
 
       checkTransaction();
