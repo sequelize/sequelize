@@ -2,7 +2,7 @@
 
 const Support = require('../../support');
 const { DataTypes, Model, Op } = require('@sequelize/core');
-const util = require('util');
+const util = require('node:util');
 const chai = require('chai');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
@@ -594,7 +594,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           subQuery: true,
         }, User), {
           default: 'SELECT [User].* FROM '
-            + '(SELECT [User].[name], [User].[age], [User].[id] AS [id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
             + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
             + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
         });
@@ -619,7 +619,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           subQuery: true,
         }, User), {
           default: 'SELECT [User].* FROM '
-            + '(SELECT [User].[name], [User].[age], [User].[id] AS [id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
             + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
             + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
         });
@@ -671,7 +671,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         subQuery: true,
       }, Company), {
         default: 'SELECT [Company].* FROM ('
-        + 'SELECT [Company].[name], [Company].[public], [Company].[id] AS [id] FROM [Company] AS [Company] '
+        + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
         + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
         + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
         + `WHERE ([Company].[scopeId] IN (42)) AND [Users->Profession].[name] = ${sql.escape('test')} AND ( `
@@ -710,17 +710,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('plain attributes (1)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: [
-            '* FROM [User]; DELETE FROM [User];SELECT [id]'
+            '* FROM [User];'
               .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-              .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+              .replace(/]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
           ],
         }), {
-          // TODO: the attribute should be escaped as an identifier, not a string
-          default: `SELECT '* FROM [User]; DELETE FROM [User];SELECT [id]' FROM [User];`,
-          ibmi: `SELECT '* FROM "User"; DELETE FROM "User";SELECT "id"' FROM "User"`,
-          db2: `SELECT '* FROM "User"; DELETE FROM "User";SELECT "id"' FROM "User";`,
-          snowflake: `SELECT '* FROM "User"; DELETE FROM "User";SELECT "id"' FROM "User";`,
-          mssql: 'SELECT [* FROM [[User]]; DELETE FROM [[User]];SELECT [[id]]] FROM [User];',
+          default: `SELECT ${TICK_LEFT}* FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT};${TICK_RIGHT} FROM ${TICK_LEFT}User${TICK_RIGHT};`,
         });
       });
 

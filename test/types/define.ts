@@ -1,6 +1,6 @@
+import { expectTypeOf } from 'expect-type';
 import type { BuildOptions, Model, Optional } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
-import { expectTypeOf } from 'expect-type';
 import { sequelize } from './connection';
 
 // I really wouldn't recommend this, but if you want you can still use define() and interfaces

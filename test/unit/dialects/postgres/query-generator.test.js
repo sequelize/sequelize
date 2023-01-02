@@ -67,49 +67,49 @@ if (dialect.startsWith('postgres')) {
         },
         // New references style
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' } } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("id")' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar', key: 'pk' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar', key: 'pk' } } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("pk")' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE' } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER REFERENCES "Bar" ("id") ON UPDATE RESTRICT' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { table: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT' },
         },
 
         // Variants when quoteIdentifiers is false
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' } } }],
           expectation: { id: 'INTEGER REFERENCES Bar (id)' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar', key: 'pk' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar', key: 'pk' } } }],
           expectation: { id: 'INTEGER REFERENCES Bar (pk)' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE' } }],
           expectation: { id: 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER REFERENCES Bar (id) ON UPDATE RESTRICT' },
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { table: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT' },
           context: { options: { quoteIdentifiers: false } },
         },
@@ -214,9 +214,6 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM "myTable" WHERE "myTable"."id" = 2;',
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS "count" FROM "foo";',
         }, {
           arguments: ['myTable', { order: ['id'] }],
           expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
@@ -349,18 +346,6 @@ if (dialect.startsWith('postgres')) {
           arguments: ['myTable', { group: ['name', 'title'] }],
           expectation: 'SELECT * FROM "myTable" GROUP BY "name", "title";',
         }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR("createdAt") AS "creationYear" FROM "myTable" GROUP BY "creationYear", "title" HAVING "creationYear" > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true,
-        }, {
           arguments: ['myTable', { limit: 10 }],
           expectation: 'SELECT * FROM "myTable" LIMIT 10;',
         }, {
@@ -411,10 +396,6 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM myTable WHERE myTable.id = 2;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS count FROM foo;',
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: ['myTable', { order: ['id DESC'] }],
@@ -721,7 +702,7 @@ if (dialect.startsWith('postgres')) {
           expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING *;',
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { returning: ['id', 'sentToId'] }],
-          expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING "id","sentToId";',
+          expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING "id", "sentToId";',
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true, returning: true }],
           expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') ON CONFLICT DO NOTHING RETURNING *;',
@@ -988,44 +969,6 @@ if (dialect.startsWith('postgres')) {
             query: 'UPDATE mySchema.myTable SET name=$sequelize_1 WHERE name = $sequelize_2',
             bind: { sequelize_1: 'foo\';DROP TABLE mySchema.myTable;', sequelize_2: 'foo' },
           },
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-
-      removeIndexQuery: [
-        {
-          arguments: ['User', 'user_foo_bar'],
-          expectation: 'DROP INDEX IF EXISTS "user_foo_bar"',
-        }, {
-          arguments: ['User', ['foo', 'bar']],
-          expectation: 'DROP INDEX IF EXISTS "user_foo_bar"',
-        }, {
-          arguments: ['User', ['foo', 'bar'], { concurrently: true }],
-          expectation: 'DROP INDEX CONCURRENTLY IF EXISTS "user_foo_bar"',
-        }, {
-          arguments: ['User', 'mySchema.user_foo_bar'],
-          expectation: 'DROP INDEX IF EXISTS "mySchema"."user_foo_bar"',
-        }, {
-          arguments: ['User', 'mySchema.user_foo_bar', { concurrently: true }],
-          expectation: 'DROP INDEX CONCURRENTLY IF EXISTS "mySchema"."user_foo_bar"',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['User', 'user_foo_bar'],
-          expectation: 'DROP INDEX IF EXISTS user_foo_bar',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['User', ['foo', 'bar']],
-          expectation: 'DROP INDEX IF EXISTS user_foo_bar',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['User', 'mySchema.user_foo_bar'],
-          expectation: 'DROP INDEX IF EXISTS mySchema.user_foo_bar',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['User', 'mySchema.user_foo_bar', { concurrently: true }],
-          expectation: 'DROP INDEX CONCURRENTLY IF EXISTS mySchema.user_foo_bar',
           context: { options: { quoteIdentifiers: false } },
         },
       ],

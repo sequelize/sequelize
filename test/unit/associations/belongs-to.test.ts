@@ -1,8 +1,8 @@
-import type { ModelStatic } from '@sequelize/core';
-import { DataTypes, Deferrable } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import sinon from 'sinon';
+import { DataTypes, Deferrable } from '@sequelize/core';
+import type { ModelStatic } from '@sequelize/core';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
 describe(getTestDialectTeaser('belongsTo'), () => {
@@ -10,7 +10,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     const User = sequelize.define('User');
 
     expect(() => {
-      // @ts-expect-error
+      // @ts-expect-error -- testing that invalid input results in error
       User.belongsTo();
     }).to.throw(`User.belongsTo was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
@@ -44,7 +44,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     const user = User.build();
 
     each(methods, (alias, method) => {
-      // @ts-expect-error
+      // @ts-expect-error -- dynamic type, not worth typing
       expect(user[method]).to.eq(initialMethod);
     });
   });
@@ -74,7 +74,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     BarProject.belongsTo(BarUser, { foreignKey: 'userId' });
 
-    expect(BarProject.rawAttributes.userId.allowNull).to.eq(undefined, 'allowNull should be undefined');
+    expect(BarProject.getAttributes().userId.allowNull).to.eq(undefined, 'allowNull should be undefined');
   });
 
   it('sets the foreign key default onDelete to CASCADE if allowNull: false', async () => {
@@ -83,15 +83,13 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     Task.belongsTo(User, { foreignKey: { allowNull: false } });
 
-    expect(Task.rawAttributes.UserId.onDelete).to.eq('CASCADE');
+    expect(Task.getAttributes().UserId.onDelete).to.eq('CASCADE');
   });
 
   it(`does not overwrite the 'deferrable' option set in Model.init`, () => {
     const A = sequelize.define('A', {
       BId: {
         type: DataTypes.INTEGER,
-        // TODO: 'references' requires a model to be specified. We should move reference.deferrable to be an option of foreignKey in belongsTo.
-        // @ts-expect-error
         references: {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
         },
@@ -102,7 +100,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     A.belongsTo(B);
 
-    expect(A.rawAttributes.BId.references?.deferrable).to.equal(Deferrable.INITIALLY_IMMEDIATE);
+    expect(A.getAttributes().BId.references?.deferrable).to.equal(Deferrable.INITIALLY_IMMEDIATE);
   });
 
   describe('association hooks', () => {

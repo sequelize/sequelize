@@ -1,5 +1,5 @@
-import { literal } from '@sequelize/core';
 import { expect } from 'chai';
+import { literal } from '@sequelize/core';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
 describe(getTestDialectTeaser('Model.getInitialModel'), () => {

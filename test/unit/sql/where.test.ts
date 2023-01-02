@@ -1,4 +1,7 @@
 import util from 'node:util';
+import { expect } from 'chai';
+import { expectTypeOf } from 'expect-type';
+import attempt from 'lodash/attempt';
 import type {
   WhereOptions,
   WhereOperators,
@@ -12,9 +15,6 @@ import type {
 } from '@sequelize/core';
 import { DataTypes, QueryTypes, Op, literal, col, where, fn, json, cast, and, or, Model } from '@sequelize/core';
 import type { WhereItemsQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
-import { expect } from 'chai';
-import { expectTypeOf } from 'expect-type';
-import attempt from 'lodash/attempt';
 import { createTester, sequelize, expectsql, getTestDialectTeaser } from '../../support';
 
 const sql = sequelize.dialect.queryGenerator;
@@ -64,7 +64,7 @@ class TestModel extends Model<InferAttributes<TestModel>> {
 
 type TestModelWhere = WhereOptions<Attributes<TestModel>>;
 
-// @ts-expect-error - we only init a subset of datatypes based on feature support
+// @ts-expect-error -- we only init a subset of datatypes based on feature support
 TestModel.init({
   intAttr1: DataTypes.INTEGER,
   intAttr2: DataTypes.INTEGER,
@@ -280,7 +280,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       default: '',
     });
 
-    // @ts-expect-error
+    // @ts-expect-error -- not supported, testing that it throws
     testSql.skip(10, {
       default: new Error('Unexpected value "10" received. Expected an object, array or a literal()'),
     });
@@ -289,22 +289,22 @@ describe(getTestDialectTeaser('SQL'), () => {
       default: new Error('WHERE parameter "intAttr1" has invalid "undefined" value'),
     });
 
-    // @ts-expect-error user does not exist
+    // @ts-expect-error -- user does not exist
     testSql({ intAttr1: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     });
 
-    // @ts-expect-error user does not exist
+    // @ts-expect-error -- user does not exist
     testSql({ intAttr1: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     }, { type: QueryTypes.SELECT });
 
-    // @ts-expect-error user does not exist
+    // @ts-expect-error -- user does not exist
     testSql({ intAttr1: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     }, { type: QueryTypes.BULKDELETE });
 
-    // @ts-expect-error user does not exist
+    // @ts-expect-error -- user does not exist
     testSql({ intAttr1: 1, user: undefined }, {
       default: new Error('WHERE parameter "user" has invalid "undefined" value'),
     }, { type: QueryTypes.BULKUPDATE });
@@ -312,6 +312,10 @@ describe(getTestDialectTeaser('SQL'), () => {
     testSql({ intAttr1: 1 }, {
       default: '[User].[intAttr1] = 1',
     }, { prefix: 'User' });
+
+    testSql({ dateAttr: { $gte: '2022-11-06' } }, {
+      default: new Error(`{ '$gte': '2022-11-06' } is not a valid date`),
+    });
 
     it('{ id: 1 }, { prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, {schema: \'yolo\', tableName: \'User\'})) }', () => {
       expectsql(sql.whereItemsQuery({ id: 1 }, {
@@ -571,7 +575,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
 
       if (dialectSupportsArray()) {
-        // @ts-expect-error - intArrayAttr is not an array
+        // @ts-expect-error -- intArrayAttr is not an array
         const ignore: TestModelWhere = { intAttr1: { [Op.eq]: [1, 2] } };
 
         testSql({ intArrayAttr: { [Op.eq]: [1, 2] } }, {
@@ -580,7 +584,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       }
 
       {
-        // @ts-expect-error - intAttr1 is not nullable
+        // @ts-expect-error -- intAttr1 is not nullable
         const ignore: TestModelWhere = { intAttr1: { [Op.eq]: null } };
 
         // this one is
@@ -655,17 +659,17 @@ describe(getTestDialectTeaser('SQL'), () => {
         sqlite: '`booleanAttr` IS 1',
       });
 
-      // @ts-expect-error
+      // @ts-expect-error -- not supported, testing that it throws
       testSql.skip({ intAttr1: { [Op.is]: 1 } }, {
         default: new Error('Op.is expected a boolean or null, but received 1'),
       });
 
-      // @ts-expect-error
+      // @ts-expect-error -- not supported, testing that it throws
       testSql.skip({ intAttr1: { [Op.is]: { [Op.col]: 'intAttr2' } } }, {
         default: new Error('column references are not supported by Op.is'),
       });
 
-      // @ts-expect-error
+      // @ts-expect-error -- not supported, testing that it throws
       testSql.skip({ intAttr1: { [Op.is]: col('intAttr2') } }, {
         default: new Error('column references are not supported by Op.is'),
       });
@@ -674,23 +678,23 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: '[intAttr1] IS literal',
       });
 
-      // @ts-expect-error
+      // @ts-expect-error -- not supported, testing that it throws
       testSql.skip({ intAttr1: { [Op.is]: fn('UPPER', col('intAttr2')) } }, {
         default: new Error('SQL functions are not supported by Op.is'),
       });
 
-      // @ts-expect-error
+      // @ts-expect-error -- not supported, testing that it throws
       testSql.skip({ intAttr1: { [Op.is]: cast(col('intAttr2'), 'boolean') } }, {
         default: new Error('CAST is not supported by Op.is'),
       });
 
       if (dialectSupportsArray()) {
-        // @ts-expect-error
+        // @ts-expect-error -- not supported, testing that it throws
         testSql.skip({ intAttr1: { [Op.is]: { [Op.any]: [2, 3] } } }, {
           default: new Error('Op.any is not supported by Op.is'),
         });
 
-        // @ts-expect-error
+        // @ts-expect-error -- not supported, testing that it throws
         testSql.skip({ intAttr1: { [Op.is]: { [Op.all]: [2, 3, 4] } } }, {
           default: new Error('Op.all is not supported by Op.is'),
         });
@@ -859,7 +863,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           }
 
           {
-            // @ts-expect-error - this is not valid because intAttr1 is not an array and cannot be compared to arrays
+            // @ts-expect-error -- this is not valid because intAttr1 is not an array and cannot be compared to arrays
             const ignore: TestModelWhere = { intAttr1: { [Op.between]: [[1, 2], [3, 4]] } };
           }
         }
@@ -954,7 +958,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         }
 
         {
-          // @ts-expect-error
+          // @ts-expect-error -- not supported, testing that it throws
           const ignoreWrong: TestModelWhere = { intAttr1: { [Op.in]: 1 } };
           testSql.skip({ intAttr1: { [operator]: 1 } }, {
             default: new Error(`Op.${operator.description} expects an array.`),
@@ -962,7 +966,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         }
 
         {
-          // @ts-expect-error
+          // @ts-expect-error -- not supported, testing that it throws
           const ignoreWrong: TestModelWhere = { intAttr1: { [Op.in]: col('col2') } };
           testSql.skip({ intAttr1: { [operator]: col('col1') } }, {
             default: new Error(`Op.${operator.description} expects an array.`),
@@ -1091,7 +1095,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           }
 
           {
-            // @ts-expect-error
+            // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [col('col')] } };
             testSql.skip({ intArrayAttr: { [operator]: [col('col')] } }, {
               default: new Error(`Op.${operator.description} does not support arrays of cols`),
@@ -1099,7 +1103,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           }
 
           {
-            // @ts-expect-error
+            // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [col('col')] } };
             testSql.skip({ intArrayAttr: { [operator]: [col('col')] } }, {
               default: new Error(`Op.${operator.description} does not support arrays of cols`),
@@ -1107,7 +1111,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           }
 
           {
-            // @ts-expect-error
+            // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [{ [Op.col]: 'col' }] } };
             testSql.skip({ intArrayAttr: { [operator]: [{ [Op.col]: 'col' }] } }, {
               default: new Error(`Op.${operator.description} does not support arrays of cols`),
@@ -1115,7 +1119,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           }
 
           {
-            // @ts-expect-error
+            // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [literal('literal')] } };
             testSql.skip({ intArrayAttr: { [operator]: [literal('literal')] } }, {
               default: new Error(`Op.${operator.description} does not support arrays of literals`),
@@ -1123,7 +1127,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           }
 
           {
-            // @ts-expect-error
+            // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [fn('NOW')] } };
             testSql.skip({ intArrayAttr: { [operator]: [fn('NOW')] } }, {
               default: new Error(`Op.${operator.description} does not support arrays of fn`),
@@ -1131,7 +1135,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           }
 
           {
-            // @ts-expect-error
+            // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [cast(col('col'), 'string')] } };
             testSql.skip({ intArrayAttr: { [operator]: [cast(col('col'), 'string')] } }, {
               default: new Error(`Op.${operator.description} does not support arrays of cast`),
@@ -1229,7 +1233,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           }
 
           {
-            // @ts-expect-error 'intRangeAttr' is a range, but right-hand side is a regular Array
+            // @ts-expect-error -- 'intRangeAttr' is a range, but right-hand side is a regular Array
             const ignore: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2, 3] } };
             testSql.skip({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
               default: new Error('"intRangeAttr" is a range and cannot be compared to array [1, 2, 3]'),
@@ -2119,7 +2123,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         }
 
         {
-          // @ts-expect-error 'intRangeAttr' is a range, but right-hand side is a regular Array
+          // @ts-expect-error -- 'intRangeAttr' is a range, but right-hand side is a regular Array
           const ignore: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2, 3] } };
           testSql.skip({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
             default: new Error('"intRangeAttr" is a range and cannot be compared to array [1, 2, 3]'),
@@ -2256,6 +2260,117 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     if (dialectSupportsJsonB()) {
       describe('JSONB', () => {
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: ['a', 'b'],
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY['a', 'b']`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: ['a', 'b'],
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY['a', 'b']`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: literal(`ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`),
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: literal(`ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`),
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: [literal(`"gamer"`)],
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY["gamer"]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: [literal(`"gamer"`)],
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY["gamer"]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: col('label'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| "label"`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: col('labels'),
+          },
+        }, {
+          default: `[jsonbAttr] ?& "labels"`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: cast(col('labels'), 'STRING[]'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| CAST("labels" AS STRING[])`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: cast(col('labels'), 'STRING[]'),
+          },
+        }, {
+          default: `[jsonbAttr] ?& CAST("labels" AS STRING[])`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: [],
+          },
+        }, {
+          default: `[jsonbAttr] ?| ARRAY[]::text[]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: [],
+          },
+        }, {
+          default: `[jsonbAttr] ?& ARRAY[]::text[]`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.anyKeyExists]: fn('get_label'),
+          },
+        }, {
+          default: `[jsonbAttr] ?| get_label()`,
+        });
+
+        testSql({
+          jsonbAttr: {
+            [Op.allKeysExist]: fn('get_labels'),
+          },
+        }, {
+          default: `[jsonbAttr] ?& get_labels()`,
+        });
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql({ id: { [Op.eq]: json('profile.id') } }, {

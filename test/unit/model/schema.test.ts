@@ -19,16 +19,16 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
 
     describe('schema', () => {
       it('should work with no default schema', () => {
-        expect(Project._schema).to.equal(current.dialect.getDefaultSchema());
+        expect(Project.table.schema).to.equal(current.dialect.getDefaultSchema());
       });
 
       it('should apply default schema from define', () => {
-        expect(Company._schema).to.equal('default');
+        expect(Company.table.schema).to.equal('default');
       });
 
       it('returns the same model if the schema is equal', () => {
         // eslint-disable-next-line no-self-compare
-        assert(Project.withSchema('newSchema') === Project.withSchema('newSchema'));
+        assert(Project.withSchema('newSchema') === Project.withSchema('newSchema'), 'withSchema should have returned the same model if the schema is equal');
       });
 
       it('returns a new model if the schema is equal, but scope is different', () => {
@@ -41,41 +41,41 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able to override the default schema', () => {
-        expect(Company.schema('newSchema')._schema).to.equal('newSchema');
+        expect(Company.schema('newSchema').table.schema).to.equal('newSchema');
       });
 
       it('should be able nullify schema', () => {
-        expect(Company.schema(null)._schema).to.equal(current.dialect.getDefaultSchema());
+        expect(Company.schema(null).table.schema).to.equal(current.dialect.getDefaultSchema());
       });
 
       it('should support multiple, coexistent schema models', () => {
         const schema1 = Company.schema('schema1');
         const schema2 = Company.schema('schema1');
 
-        expect(schema1._schema).to.equal('schema1');
-        expect(schema2._schema).to.equal('schema1');
+        expect(schema1.table.schema).to.equal('schema1');
+        expect(schema2.table.schema).to.equal('schema1');
       });
     });
 
     describe('schema delimiter', () => {
       it('should work with no default schema delimiter', () => {
-        expect(Project._schemaDelimiter).to.equal('');
+        expect(Project.table.delimiter).to.equal('.');
       });
 
       it('should apply default schema delimiter from define', () => {
-        expect(Company._schemaDelimiter).to.equal('&');
+        expect(Company.table.delimiter).to.equal('&');
       });
 
       it('should be able to override the default schema delimiter', () => {
-        expect(Company.schema(Company._schema, '^')._schemaDelimiter).to.equal('^');
+        expect(Company.schema(Company.table.schema, '^').table.delimiter).to.equal('^');
       });
 
       it('should support multiple, coexistent schema delimiter models', () => {
-        const schema1 = Company.schema(Company._schema, '$');
-        const schema2 = Company.schema(Company._schema, '#');
+        const schema1 = Company.schema(Company.table.schema, '$');
+        const schema2 = Company.schema(Company.table.schema, '#');
 
-        expect(schema1._schemaDelimiter).to.equal('$');
-        expect(schema2._schemaDelimiter).to.equal('#');
+        expect(schema1.table.delimiter).to.equal('$');
+        expect(schema2.table.delimiter).to.equal('#');
       });
     });
   }

@@ -38,3 +38,4 @@ export { Deferrable } from './deferrable';
 export type { Optional, PartlyRequired } from './utils/types.js';
 export { Col, Cast, Fn, Json, Where, Literal, SequelizeMethod } from './utils/sequelize-method.js';
 export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
+export { importModels } from './import-models.js';

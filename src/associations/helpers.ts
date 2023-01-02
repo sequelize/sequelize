@@ -6,7 +6,7 @@ import lowerFirst from 'lodash/lowerFirst';
 import omit from 'lodash/omit';
 import type { Class } from 'type-fest';
 import { AssociationError } from '../errors/index.js';
-import type { Model, ModelAttributeColumnOptions, ModelStatic } from '../model';
+import type { Model, ModelStatic } from '../model';
 import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
@@ -25,32 +25,6 @@ export function checkNamingCollision(source: ModelStatic<any>, associationName: 
   }
 }
 
-export function addForeignKeyConstraints(
-  newAttribute: ModelAttributeColumnOptions,
-  source: ModelStatic,
-  options: AssociationOptions<string>,
-  key: string,
-): void {
-  // FK constraints are opt-in: users must either set `foreignKeyConstraints`
-  // on the association, or request an `onDelete` or `onUpdate` behavior
-
-  if (options.foreignKeyConstraints !== false) {
-    // Find primary keys: composite keys not supported with this approach
-    const primaryKeys = Object.keys(source.primaryKeys)
-      .map(primaryKeyAttribute => source.getAttributes()[primaryKeyAttribute].field || primaryKeyAttribute);
-
-    if (primaryKeys.length === 1 || !primaryKeys.includes(key)) {
-      newAttribute.references = {
-        model: source.getTableName(),
-        key: key || primaryKeys[0],
-      };
-
-      newAttribute.onDelete = newAttribute.onDelete ?? (newAttribute.allowNull !== false ? 'SET NULL' : 'CASCADE');
-      newAttribute.onUpdate = newAttribute.onUpdate ?? 'CASCADE';
-    }
-  }
-}
-
 /**
  * Mixin (inject) association methods to model prototype
  *
@@ -60,7 +34,6 @@ export function addForeignKeyConstraints(
  * @param mixinTargetPrototype Model prototype
  * @param methods Method names to inject
  * @param aliases Mapping between model and association method names
- *
  */
 export function mixinMethods<A extends Association, Aliases extends Record<string, string>>(
   association: A,
@@ -69,7 +42,7 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
   aliases?: Aliases,
 ): void {
   for (const method of methods) {
-    // @ts-expect-error
+    // @ts-expect-error -- implicit any, no way around it
     const targetMethodName = association.accessors[method];
 
     // don't override custom methods
@@ -77,13 +50,13 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
       continue;
     }
 
-    // @ts-expect-error
+    // @ts-expect-error -- implicit any, no way around it
     const realMethod = aliases?.[method] || method;
 
     Object.defineProperty(mixinTargetPrototype, targetMethodName, {
       enumerable: false,
       value(...params: any[]) {
-        // @ts-expect-error
+        // @ts-expect-error -- implicit any, no way around it
         return association[realMethod](this, ...params);
       },
     });
@@ -228,7 +201,7 @@ export function defineAssociation<
   checkNamingCollision(source, normalizedOptions.as);
   assertAssociationUnique(type, source, target, normalizedOptions, parent);
 
-  const sequelize = source.sequelize!;
+  const sequelize = source.sequelize;
   Object.defineProperty(normalizedOptions, 'sequelize', {
     configurable: true,
     get() {
@@ -326,4 +299,10 @@ export function normalizeForeignKeyOptions<T extends string>(foreignKey: Associa
     name: foreignKey?.name ?? foreignKey?.fieldName,
     fieldName: undefined,
   });
+}
+
+export type MaybeForwardedModelStatic<M extends Model = Model> = ModelStatic<M> | ((sequelize: Sequelize) => ModelStatic<M>);
+
+export function getForwardedModel(model: MaybeForwardedModelStatic, sequelize: Sequelize): ModelStatic {
+  return typeof model === 'function' && !isModelStatic(model) ? model(sequelize) : model;
 }

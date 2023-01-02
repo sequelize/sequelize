@@ -12,7 +12,7 @@ import {
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const util = require('util');
+const util = require('node:util');
 const DataTypes = require('../../data-types');
 const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const semver = require('semver');
@@ -97,8 +97,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
     options = { ...options };
 
-    // Postgres 9.0 does not support CREATE TABLE IF NOT EXISTS, 9.1 and above do
-    const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
     const attrStr = [];
     let comments = '';
     let columnComments = '';
@@ -126,18 +124,17 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let attributesClause = attrStr.join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns, indexName) => {
-        if (columns.customIndex) {
-          if (typeof indexName !== 'string') {
-            indexName = generateIndexName(tableName, columns);
-          }
-
-          attributesClause += `, CONSTRAINT ${
-            this.quoteIdentifier(indexName)
-          } UNIQUE (${
-            columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
-          })`;
+      _.each(options.uniqueKeys, (index, indexName) => {
+        if (typeof indexName !== 'string') {
+          indexName = generateIndexName(tableName, index);
         }
+
+        attributesClause += `, CONSTRAINT ${
+          this.quoteIdentifier(indexName)
+        } UNIQUE (${
+          index.fields.map(field => this.quoteIdentifier(field))
+            .join(', ')
+        })`;
       });
     }
 
@@ -153,7 +150,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       attributesClause += `, PRIMARY KEY (${pks})`;
     }
 
-    return `CREATE TABLE ${databaseVersion === 0 || semver.gte(databaseVersion, '9.1.0') ? 'IF NOT EXISTS ' : ''}${quotedTable} (${attributesClause})${comments}${columnComments};`;
+    return `CREATE TABLE IF NOT EXISTS ${quotedTable} (${attributesClause})${comments}${columnComments};`;
   }
 
   dropTableQuery(tableName, options) {
@@ -434,20 +431,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     ].join(' ');
   }
 
-  removeIndexQuery(tableName, indexNameOrAttributes, options) {
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = generateIndexName(tableName, { fields: indexNameOrAttributes });
-    }
-
-    return [
-      'DROP INDEX',
-      options && options.concurrently && 'CONCURRENTLY',
-      `IF EXISTS ${this.quoteIdentifiers(indexName)}`,
-    ].filter(Boolean).join(' ');
-  }
-
   addLimitAndOffset(options) {
     let fragment = '';
     if (options.limit != null) {
@@ -524,14 +507,14 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       if (options.schema) {
         schema = options.schema;
       } else if (
-        (!attribute.references.model || typeof attribute.references.model === 'string')
+        (!attribute.references.table || typeof attribute.references.table === 'string')
         && options.table
         && options.table.schema
       ) {
         schema = options.table.schema;
       }
 
-      const referencesTable = this.extractTableDetails(attribute.references.model, { schema });
+      const referencesTable = this.extractTableDetails(attribute.references.table, { schema });
 
       let referencesKey;
 
@@ -818,11 +801,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
   pgEnumAdd(tableName, attr, value, options) {
     const enumName = this.pgEnumName(tableName, attr);
-    let sql = `ALTER TYPE ${enumName} ADD VALUE `;
-
-    if (semver.gte(this.sequelize.options.databaseVersion, '9.3.0')) {
-      sql += 'IF NOT EXISTS ';
-    }
+    let sql = `ALTER TYPE ${enumName} ADD VALUE IF NOT EXISTS `;
 
     sql += this.escape(value);
 

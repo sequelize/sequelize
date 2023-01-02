@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import { cast, col, DataTypes, fn, Op, Where, Json } from '@sequelize/core';
 import type { AbstractQueryGenerator } from '@sequelize/core';
 import { canTreatArrayAsAnd } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
@@ -6,7 +7,6 @@ import { mapFinderOptions, mapOptionFieldNames } from '@sequelize/core/_non-semv
 import { defaults, merge, cloneDeep, flattenObjectDeep } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { underscoredIf, camelizeIf, pluralize, singularize } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
-import { expect } from 'chai';
 import { sequelize, getTestDialect, expectsql } from '../../support';
 
 const dialect = sequelize.dialect;
@@ -71,7 +71,7 @@ describe('Utils', () => {
       expect(() => {
         const arr: unknown[] = [];
 
-        // @ts-expect-error
+        // @ts-expect-error -- type error normal, you're not supposed to add methods to array instances.
         arr.clone = function clone() {
           throw new Error('clone method called');
         };
@@ -177,10 +177,9 @@ describe('Utils', () => {
       const merged = merge({}, { include: [{ model: User }] });
       const merged2 = merge({}, { user: User });
 
-      // TODO: merge's return type is bad, to improve
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: merge's return type is bad, to improve
       expect(merged.include[0].model).to.equal(User);
-      // @ts-expect-error
+      // @ts-expect-error -- see above
       expect(merged2.user).to.equal(User);
     });
   });
@@ -250,11 +249,7 @@ describe('Utils', () => {
 
   describe('mapFinderOptions', () => {
     it('virtual attribute dependencies', () => {
-      expect(mapFinderOptions({
-        attributes: [
-          'active',
-        ],
-      }, sequelize.define('User', {
+      const User = sequelize.define('User', {
         createdAt: {
           type: DataTypes.DATE,
           field: 'created_at',
@@ -262,7 +257,11 @@ describe('Utils', () => {
         active: {
           type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt']),
         },
-      })).attributes).to.eql([
+      });
+
+      expect(
+        mapFinderOptions({ attributes: ['active'] }, User).attributes,
+      ).to.eql([
         [
           'created_at',
           'createdAt',
@@ -283,7 +282,7 @@ describe('Utils', () => {
 
       expect(
         mapFinderOptions(
-          // @ts-expect-error
+          // @ts-expect-error -- TODO: improve mapFinderOptions typing
           mapFinderOptions({
             attributes: [
               'active',

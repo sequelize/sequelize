@@ -1,6 +1,6 @@
+import { expect } from 'chai';
 import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
-import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 const dialect = sequelize.dialect;

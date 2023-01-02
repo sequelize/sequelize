@@ -1,6 +1,6 @@
-import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import size from 'lodash/size';
+import { DataTypes } from '@sequelize/core';
 import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('Model'), () => {
@@ -10,12 +10,12 @@ describe(getTestDialectTeaser('Model'), () => {
         name: DataTypes.STRING,
       });
 
-      expect(Model.primaryKeyAttribute).not.to.be.undefined;
+      expect(Model.primaryKeyAttribute).to.equal('id');
       expect(size(Model.primaryKeys)).to.equal(1);
 
       Model.removeAttribute('id');
 
-      expect(Model.primaryKeyAttribute).to.be.undefined;
+      expect(Model.primaryKeyAttribute).to.be.null;
       expect(size(Model.primaryKeys)).to.equal(0);
     });
 
