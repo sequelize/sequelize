@@ -1,0 +1,13 @@
+version: '3.3'
+services:
+    db2-latest:
+        container_name: sequelize-db2-latest
+        restart: always
+        privileged: true
+        ports:
+            - '50000:50000'
+        environment:
+            - DBNAME=$SEQ_DB
+        volumes:
+            - '/Docker:/database'
+        image: 'ibmcom/db2-amd64:11.5.8.0'
