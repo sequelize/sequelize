@@ -24,9 +24,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        where TABLE_NAME = 'myTable'
-        AND CONSTRAINT_NAME != 'PRIMARY'
-        AND CONSTRAINT_SCHEMA = 'sequelize_test'
+        WHERE TABLE_NAME = 'myTable'
+        AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `SELECT conname as constraint_name,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
@@ -116,9 +115,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        where TABLE_NAME = 'myModels'
-        AND CONSTRAINT_NAME != 'PRIMARY'
-        AND CONSTRAINT_SCHEMA = 'sequelize_test'
+        WHERE TABLE_NAME = 'myModels'
+        AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `SELECT conname as constraint_name,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
@@ -206,9 +204,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        where TABLE_NAME = 'myTable'
-        AND CONSTRAINT_NAME != 'PRIMARY'
-        AND CONSTRAINT_SCHEMA = 'mySchema'
+        WHERE TABLE_NAME = 'myTable'
+        AND TABLE_SCHEMA = 'mySchema'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `SELECT conname as constraint_name,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
@@ -296,9 +293,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        where TABLE_NAME = 'myTable'
-        AND CONSTRAINT_NAME != 'PRIMARY'
-        AND CONSTRAINT_SCHEMA = 'sequelize_test'
+        WHERE TABLE_NAME = 'myTable'
+        AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `SELECT conname as constraint_name,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
@@ -389,9 +385,8 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        where TABLE_NAME = 'myTable'
-        AND CONSTRAINT_NAME != 'PRIMARY'
-        AND CONSTRAINT_SCHEMA = 'mySchema'
+        WHERE TABLE_NAME = 'myTable'
+        AND TABLE_SCHEMA = 'mySchema'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `SELECT conname as constraint_name,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
@@ -490,13 +485,10 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        WHERE (REFERENCED_TABLE_NAME = 'myTable'
-        AND REFERENCED_TABLE_SCHEMA = 'sequelize_test'
-        AND REFERENCED_COLUMN_NAME = 'myColumn')
-        OR (TABLE_NAME = 'myTable'
+        WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND COLUMN_NAME = 'myColumn'
-        AND REFERENCED_TABLE_NAME IS NOT NULL)`,
+        AND REFERENCED_TABLE_NAME IS NOT NULL`,
       'postgres sqlite': notSupportedError,
       mssql: `SELECT constraint_name = OBJ.NAME,
         constraintName = OBJ.NAME,
