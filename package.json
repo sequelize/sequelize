@@ -226,7 +226,7 @@
     "stop-mysql": "bash dev/mysql/oldest/stop.sh; bash dev/mysql/latest/stop.sh",
     "stop-postgres": "bash dev/postgres/oldest/stop.sh; bash dev/postgres/latest/stop.sh",
     "stop-mssql": "bash dev/mssql/oldest/stop.sh; bash dev/mssql/latest/stop.sh",
-    "stop-db2": "bash dev/db2/oldest/stop.sh",
+    "stop-db2": "bash dev/db2/oldest/stop.sh; bash dev/db2/latest/stop.sh",
     "stop-all": "concurrently \"npm:stop-*(!all|db2)\" && npm run stop-db2",
     "----------------------------------------- unit tests ---------------------------------------------": "",
     "test-unit-mariadb": "cross-env DIALECT=mariadb yarn test-unit",

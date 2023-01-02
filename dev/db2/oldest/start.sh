@@ -2,11 +2,6 @@
 set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
-export DIALECT=db2
-SEQ_DB="${SEQ_DB:-testdb}"
-# db2 db names must be uppercase
-SEQ_DB=$(echo "$SEQ_DB" | awk '{print toupper($0)}')
-
 mkdir -p Docker
 if [ ! "$(sudo docker ps -q -f name=sequelize-db2-oldest)" ]; then
     if [ "$(sudo docker ps -aq -f status=exited -f name=sequelize-db2-oldest)" ];
