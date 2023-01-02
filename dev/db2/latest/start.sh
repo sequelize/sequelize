@@ -15,6 +15,7 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
     sudo docker rm -f db2server
 		sudo rm -rf /Docker
 	fi
+  # TODO: use docker compose so renovate can automatically update this version
 	sudo docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env "DBNAME=$SEQ_DB" --env-file ../.env_list -v /Docker:/database ibmcom/db2-amd64:11.5.8.0
 	count=1
 	while true
