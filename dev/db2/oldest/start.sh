@@ -2,21 +2,26 @@
 set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
+export DIALECT=db2
+SEQ_DB="${SEQ_DB:-testdb}"
+# db2 db names must be uppercase
+SEQ_DB=$(echo "$SEQ_DB" | awk '{print toupper($0)}')
+
 mkdir -p Docker
-if [ ! "$(sudo docker ps -q -f name=sequelize-db2-oldest)" ]; then
-    if [ "$(sudo docker ps -aq -f status=exited -f name=sequelize-db2-oldest)" ];
+if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
+    if [ "$(sudo docker ps -aq -f status=exited -f name=db2server)" ];
 	then
     # cleanup
-    docker compose -p sequelize-db2-oldest down --remove-orphans
+    sudo docker rm -f db2server
 		sudo rm -rf /Docker
 	fi
-	docker compose -p sequelize-db2-oldest up -d
+	sudo docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env "DBNAME=$SEQ_DB" --env-file ../.env_list -v /Docker:/database ibmcom/db2-amd64:11.5.6.0a
 	count=1
 	while true
 	do
-	  if (sudo docker logs sequelize-db2-oldest | grep 'Setup has completed')
+	  if (sudo docker logs db2server | grep 'Setup has completed')
 	  then
-		sudo docker exec sequelize-db2-oldest bash -c "su db2inst1 & disown"
+		sudo docker exec db2server bash -c "su db2inst1 & disown"
 		break
 	  fi
 	  if [ $count -gt 30 ]; then
