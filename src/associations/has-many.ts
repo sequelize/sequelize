@@ -13,9 +13,10 @@ import type {
 } from '../model';
 import { Op } from '../operators';
 import { col, fn } from '../sequelize';
-import type { AllowArray } from '../utils';
-import { isPlainObject, removeUndefined } from '../utils';
+import { isPlainObject } from '../utils/check.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
+import { removeUndefined } from '../utils/object.js';
+import type { AllowArray } from '../utils/types.js';
 import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';
 import { BelongsTo } from './belongs-to.js';
@@ -312,6 +313,7 @@ export class HasMany<
         }
 
         return {
+          // @ts-expect-error -- TODO: what if the target has no primary key?
           [this.target.primaryKeyAttribute]: instance,
         };
       }),
@@ -320,10 +322,10 @@ export class HasMany<
     const findOptions: HasManyGetAssociationsMixinOptions<T> = {
       ...options,
       scope: false,
+      // @ts-expect-error -- TODO: what if the target has no primary key?
       attributes: [this.target.primaryKeyAttribute],
       raw: true,
-      // TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
-      // @ts-expect-error
+      // @ts-expect-error -- TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
       where: {
         [Op.and]: [
           where,
@@ -379,7 +381,9 @@ export class HasMany<
       } as UpdateValues<T>;
 
       const updateWhere = {
+        // @ts-expect-error -- TODO: what if the target has no primary key?
         [this.target.primaryKeyAttribute]: unassociatedObjects.map(unassociatedObject => {
+          // @ts-expect-error -- TODO: what if the target has no primary key?
           return unassociatedObject.get(this.target.primaryKeyAttribute);
         }),
       };
@@ -421,7 +425,9 @@ export class HasMany<
     } as UpdateValues<T>;
 
     const where = {
+      // @ts-expect-error -- TODO: what if the target has no primary key?
       [this.target.primaryKeyAttribute]: targetInstances.map(unassociatedObject => {
+        // @ts-expect-error -- TODO: what if the target has no primary key?
         return unassociatedObject.get(this.target.primaryKeyAttribute);
       }),
     };
@@ -460,14 +466,17 @@ export class HasMany<
 
     const where = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
+      // @ts-expect-error -- TODO: what if the target has no primary key?
       [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => {
         if (targetInstance instanceof this.target) {
+          // @ts-expect-error -- TODO: what if the target has no primary key?
           return (targetInstance as T).get(this.target.primaryKeyAttribute);
         }
 
         // raw entity
+        // @ts-expect-error -- TODO: what if the target has no primary key?
         if (isPlainObject(targetInstance) && this.target.primaryKeyAttribute in targetInstance) {
-          // @ts-expect-error
+          // @ts-expect-error -- implicit any, can't be fixed
           return targetInstance[this.target.primaryKeyAttribute];
         }
 
@@ -502,8 +511,7 @@ export class HasMany<
 
     if (this.scope) {
       for (const attribute of Object.keys(this.scope)) {
-        // TODO: fix the typing of {@link AssociationScope}
-        // @ts-expect-error
+        // @ts-expect-error -- TODO: fix the typing of {@link AssociationScope}
         values[attribute] = this.scope[attribute];
         if (options.fields) {
           options.fields.push(attribute);

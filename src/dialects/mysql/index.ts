@@ -53,7 +53,6 @@ export class MysqlDialect extends AbstractDialect {
       },
       jsonOperations: true,
       REGEXP: true,
-      milliseconds: true,
       globalTimeZoneConfig: true,
     },
   );

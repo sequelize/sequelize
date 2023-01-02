@@ -18,7 +18,7 @@ export function isNodeError(val: unknown): val is NodeJS.ErrnoException {
  */
 export function isErrorWithStringCode(val: unknown): val is Error & { code: string } {
   return val instanceof Error
-    // @ts-expect-error
+    // @ts-expect-error -- 'code' doesn't exist on Error, but it's dynamically added by Node
     && typeof val.code === 'string';
 }
 
@@ -96,7 +96,7 @@ export function rejectInvalidOptions(
   dialectName: string,
   allSupportableOptions: Set<string>,
   supportedOptions: Set<string>,
-  receivedOptions: Record<string, unknown>,
+  receivedOptions: object,
 ): void {
   const receivedOptionNames = Object.keys(pickBy(receivedOptions));
   const unsupportedOptions = receivedOptionNames.filter(optionName => {

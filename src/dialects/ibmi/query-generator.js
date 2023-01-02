@@ -1,7 +1,11 @@
 'use strict';
 
+import { underscore } from 'inflection';
+import { conformIndex } from '../../model-internals';
 import { rejectInvalidOptions } from '../../utils/check';
-import { removeTrailingSemicolon } from '../../utils/string';
+import { addTicks } from '../../utils/dialect';
+import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
+import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
@@ -11,8 +15,7 @@ import {
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const Utils = require('../../utils');
-const util = require('util');
+const util = require('node:util');
 const _ = require('lodash');
 const { IBMiQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const DataTypes = require('../../data-types');
@@ -107,13 +110,11 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
           return true;
         }
 
-        if (columns.customIndex) {
-          if (typeof indexName !== 'string') {
-            indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
-          }
-
-          attributesClause += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+        if (typeof indexName !== 'string') {
+          indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
+
+        attributesClause += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
@@ -246,7 +247,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Utils.Json) {
+    if (smth instanceof Json) {
       // Parse nested object
       if (smth.conditions) {
         const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.quoteIdentifier(condition.path[0])}->>'$.${_.tail(condition.path).join('.')}' = '${condition.value}'`);
@@ -290,7 +291,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
         return str;
       }
-    } else if (smth instanceof Utils.Cast) {
+    } else if (smth instanceof Cast) {
       if (/timestamp/i.test(smth.type)) {
         smth.type = 'timestamp';
       } else if (smth.json && /boolean/i.test(smth.type)) {
@@ -306,34 +307,39 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
   }
 
-  escape(value, field, options) {
-    if (value instanceof Utils.SequelizeMethod) {
+  escape(value, attribute, options) {
+    if (value instanceof SequelizeMethod) {
       return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
-    if (value == null || field?.type == null || typeof field.type === 'string') {
+    if (value == null || attribute?.type == null || typeof attribute.type === 'string') {
       const format = (value === null && options.where);
 
       // use default escape mechanism instead of the DataType's.
       return SqlString.escape(value, this.options.timezone, this.dialect, format);
     }
 
-    field.type = field.type.toDialectDataType(this.dialect);
+    if (!attribute.type.belongsToDialect(this.dialect)) {
+      attribute = {
+        ...attribute,
+        type: attribute.type.toDialectDataType(this.dialect),
+      };
+    }
 
     if (options.isList && Array.isArray(value)) {
       const escapeOptions = { ...options, isList: false };
 
       return `(${value.map(valueItem => {
-        return this.escape(valueItem, field, escapeOptions);
+        return this.escape(valueItem, attribute, escapeOptions);
       }).join(', ')})`;
     }
 
-    this.validate(value, field);
+    this.validate(value, attribute);
 
-    return field.type.escape(value, {
+    return attribute.type.escape(value, {
       // Users shouldn't have to worry about these args - just give them a function that takes a single arg
       escape: this.simpleEscape,
-      field,
+      field: attribute,
       timezone: this.options.timezone,
       operation: options.operation,
       dialect: this.dialect,
@@ -378,7 +384,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         return this.quoteIdentifier(field);
       }
 
-      if (field instanceof Utils.SequelizeMethod) {
+      if (field instanceof SequelizeMethod) {
         return this.handleSequelizeMethod(field);
       }
 
@@ -412,10 +418,10 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     if (!options.name) {
       // Mostly for cases where addIndex is called directly by the user without an options object (for example in migrations)
       // All calls that go through sequelize should already have a name
-      options = Utils.nameIndex(options, options.prefix);
+      options = nameIndex(options, options.prefix);
     }
 
-    options = Model._conformIndex(options);
+    options = conformIndex(options);
 
     if (!this.dialect.supports.index.type) {
       delete options.type;
@@ -596,16 +602,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return sql;
   }
 
-  removeIndexQuery(tableName, indexNameOrAttributes) {
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
-    }
-
-    return `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = '${indexName}') THEN DROP INDEX "${indexName}"; COMMIT; END IF; END`;
-  }
-
   // bindParam(bind) {
   //   return value => {
   //     bind.push(value);
@@ -691,7 +687,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         template += ` ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }
 
-      template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
         template += ` (${this.quoteIdentifier(attribute.references.key)})`;
@@ -714,9 +710,12 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   attributesToSQL(attributes, options) {
     const result = Object.create(null);
 
-    for (const key in attributes) {
-      const attribute = attributes[key];
-      attribute.field = attribute.field || key;
+    for (const key of Object.keys(attributes)) {
+      const attribute = {
+        ...attributes[key],
+        field: attributes[key].field || key,
+      };
+
       result[attribute.field || key] = this.attributeToSQL(attribute, options);
     }
 
@@ -814,5 +813,5 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
  * @deprecated use "escape" or "escapeString" on QueryGenerator
  */
 function wrapSingleQuote(identifier) {
-  return Utils.addTicks(identifier, '\'');
+  return addTicks(identifier, '\'');
 }

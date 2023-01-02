@@ -1,4 +1,11 @@
 import { Blob } from 'node:buffer';
+import { expect } from 'chai';
+import dayjs from 'dayjs';
+import DayjsTimezone from 'dayjs/plugin/timezone';
+import pick from 'lodash/pick';
+import moment from 'moment';
+import type { Moment } from 'moment-timezone';
+import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
 import type {
   CreationAttributes,
   CreationOptional,
@@ -6,15 +13,8 @@ import type {
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
-import { expect } from 'chai';
-import dayjs from 'dayjs';
-import DayjsTimezone from 'dayjs/plugin/timezone';
-import pick from 'lodash/pick';
-import moment from 'moment';
-import 'moment-timezone';
-import type { Moment } from 'moment-timezone';
 import { beforeAll2, disableDatabaseResetForSuite, sequelize } from '../support';
+import 'moment-timezone';
 
 dayjs.extend(DayjsTimezone);
 
@@ -65,12 +65,12 @@ describe('DataTypes', () => {
 
     it('rejects non-string values', async () => {
       await expect(vars.User.create({
-        // @ts-expect-error
+        // @ts-expect-error -- testing that this throws
         stringAttr: 12,
       })).to.be.rejectedWith(ValidationError, 'Validation error: 12 is not a valid string. Only the string type is accepted for non-binary strings.');
 
       await expect(vars.User.create({
-        // @ts-expect-error
+        // @ts-expect-error -- testing that this throws
         stringAttr: Buffer.from('abc'),
       })).to.be.rejectedWith(ValidationError, 'Validation error: <Buffer 61 62 63> is not a valid string. Only the string type is accepted for non-binary strings.');
     });
@@ -415,8 +415,7 @@ describe('DataTypes', () => {
         await testSimpleInOut(
           vars.User,
           'tsvectorAttr',
-          // TODO: .create()'s typings should accept fn, literal, and cast
-          // @ts-expect-error
+          // @ts-expect-error -- TODO: .create()'s typings should accept fn, literal, and cast
           fn('to_tsvector', 'english', 'The Fat Rats'),
           `'fat':2 'rat':3`,
         );
@@ -998,6 +997,9 @@ describe('DataTypes', () => {
 
       await testSimpleInOut(vars.User, 'dateAttr', date, date);
       await testSimpleInOut(vars.User, 'dateAttr', '2022-01-01T00:00:00Z', date);
+
+      // parses DateOnly string inputs as UTC, not local time
+      await testSimpleInOut(vars.User, 'dateAttr', '2022-01-01', date);
 
       // timestamp
       await testSimpleInOut(vars.User, 'dateAttr', 1_640_995_200_000, date);
@@ -1661,9 +1663,9 @@ export async function testSimpleInOutRaw<M extends Model, Key extends keyof Crea
   // @ts-expect-error -- we can't guarantee that this model doesn't expect more than one property, but it's just a test util.
   const createdUser = await model.create({ [attributeName]: inVal });
 
-  const quotedTableName = model.sequelize!.queryInterface.queryGenerator.quoteIdentifier(model.tableName);
-  const quotedId = model.sequelize!.queryInterface.queryGenerator.quoteIdentifier('id');
-  const fetchedUser = await model.sequelize!.query<any>(`SELECT * FROM ${quotedTableName} WHERE ${quotedId} = :id`, {
+  const quotedTableName = model.queryGenerator.quoteIdentifier(model.tableName);
+  const quotedId = model.queryGenerator.quoteIdentifier('id');
+  const fetchedUser = await model.sequelize.query<any>(`SELECT * FROM ${quotedTableName} WHERE ${quotedId} = :id`, {
     type: QueryTypes.SELECT,
     replacements: {
       // @ts-expect-error -- it's not worth it to type .id for these internal tests.

@@ -55,23 +55,23 @@ if (dialect === 'sqlite') {
 
         // New references style
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' } } }],
           expectation: { id: 'INTEGER REFERENCES `Bar` (`id`)' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar', key: 'pk' } } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar', key: 'pk' } } }],
           expectation: { id: 'INTEGER REFERENCES `Bar` (`pk`)' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onDelete: 'CASCADE' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE' } }],
           expectation: { id: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', references: { model: 'Bar' }, onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', references: { table: 'Bar' }, onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT' },
         },
         {
-          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { model: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
+          arguments: [{ id: { type: 'INTEGER', allowNull: false, defaultValue: 1, references: { table: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' } }],
           expectation: { id: 'INTEGER NOT NULL DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT' },
         },
       ],
@@ -118,7 +118,7 @@ if (dialect === 'sqlite') {
           expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));',
         },
         {
-          arguments: ['myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'], customIndex: true } } }],
+          arguments: ['myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'] } } }],
           // SQLITE does not respect the index name when the index is created through CREATE TABLE
           // As such, Sequelize's createTable does not add the constraint in the Sequelize Dialect.
           // Instead, `sequelize.sync` calls CREATE INDEX after the table has been created,
@@ -155,10 +155,6 @@ if (dialect === 'sqlite') {
         }, {
           arguments: ['myTable', { where: 2 }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
-          context: QueryGenerator,
-        }, {
-          arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS `count` FROM `foo`;',
           context: QueryGenerator,
         }, {
           arguments: ['myTable', { order: ['id'] }],
@@ -276,18 +272,6 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator,
-        }, {
-          title: 'HAVING clause works with where-like hash',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              attributes: ['*', [sequelize.fn('YEAR', sequelize.col('createdAt')), 'creationYear']],
-              group: ['creationYear', 'title'],
-              having: { creationYear: { [Op.gt]: 2002 } },
-            };
-          }],
-          expectation: 'SELECT *, YEAR(`createdAt`) AS `creationYear` FROM `myTable` GROUP BY `creationYear`, `title` HAVING `creationYear` > 2002;',
-          context: QueryGenerator,
-          needsSequelize: true,
         }, {
           arguments: ['myTable', { limit: 10 }],
           expectation: 'SELECT * FROM `myTable` LIMIT 10;',

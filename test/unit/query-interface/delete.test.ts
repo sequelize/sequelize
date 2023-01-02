@@ -1,6 +1,6 @@
-import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
+import { DataTypes } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#delete', () => {
@@ -16,7 +16,7 @@ describe('QueryInterface#delete', () => {
   it('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    const instance = new User();
+    const instance = User.build();
 
     await sequelize.getQueryInterface().delete(
       instance,

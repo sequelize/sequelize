@@ -1,11 +1,13 @@
 'use strict';
 
-import { quoteIdentifier } from '../../utils';
+import { addTicks, removeTicks } from '../../utils/dialect';
+import { removeNullishValuesFromHash } from '../../utils/format';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
+import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
+import { underscore } from '../../utils/string';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
-const Utils = require('../../utils');
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
 const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
@@ -81,7 +83,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     //   _.each(options.uniqueKeys, (columns, indexName) => {
     //     if (columns.customIndex) {
     //       if (typeof indexName !== 'string') {
-    //         indexName = Utils.generateIndexName(tableName, columns);
+    //         indexName = generateIndexName(tableName, columns);
     //       }
     //
     //       attrStr += `, CONSTRAINT ${
@@ -196,11 +198,11 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Utils.Json) {
+    if (smth instanceof Json) {
       return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
     }
 
-    if (smth instanceof Utils.Cast && /timestamp/i.test(smth.type)) {
+    if (smth instanceof Cast && /timestamp/i.test(smth.type)) {
       smth.type = 'datetime';
     }
 
@@ -236,7 +238,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     options = options || {};
     _.defaults(options, this.options);
 
-    attrValueHash = Utils.removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
+    attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = {};
     const values = [];
@@ -255,7 +257,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     for (const key in attrValueHash) {
       const value = attrValueHash[key];
 
-      if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
+      if (value instanceof SequelizeMethod || options.bindParam === false) {
         values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
         values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
@@ -282,7 +284,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   truncateTableQuery(tableName, options = {}) {
     return [
       `DELETE FROM ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${Utils.addTicks(Utils.removeTicks(this.quoteTable(tableName), '`'), '\'')};` : '',
+      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${addTicks(removeTicks(this.quoteTable(tableName), '`'), '\'')};` : '',
     ].join('');
   }
 
@@ -305,60 +307,59 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   attributesToSQL(attributes, options) {
     const result = {};
     for (const name in attributes) {
-      const dataType = attributes[name];
-      const fieldName = dataType.field || name;
+      const attribute = attributes[name];
+      const columnName = attribute.field || attribute.columnName || name;
 
-      if (_.isObject(dataType)) {
-        let sql = dataType.type.toString();
+      if (_.isObject(attribute)) {
+        let sql = attribute.type.toString();
 
-        if (dataType.allowNull === false) {
+        if (attribute.allowNull === false) {
           sql += ' NOT NULL';
         }
 
-        if (defaultValueSchemable(dataType.defaultValue)) {
+        if (defaultValueSchemable(attribute.defaultValue)) {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
-          sql += ` DEFAULT ${this.escape(dataType.defaultValue, dataType, options)}`;
+          sql += ` DEFAULT ${this.escape(attribute.defaultValue, attribute, options)}`;
         }
 
-        if (dataType.unique === true) {
+        if (attribute.unique === true) {
           sql += ' UNIQUE';
         }
 
-        if (dataType.primaryKey) {
+        if (attribute.primaryKey) {
           sql += ' PRIMARY KEY';
 
-          if (dataType.autoIncrement) {
+          if (attribute.autoIncrement) {
             sql += ' AUTOINCREMENT';
           }
         }
 
-        if (dataType.references) {
-          const referencesTable = this.quoteTable(dataType.references.model);
+        if (attribute.references) {
+          const referencesTable = this.quoteTable(attribute.references.table);
 
           let referencesKey;
-          if (dataType.references.key) {
-            referencesKey = this.quoteIdentifier(dataType.references.key);
+          if (attribute.references.key) {
+            referencesKey = this.quoteIdentifier(attribute.references.key);
           } else {
             referencesKey = this.quoteIdentifier('id');
           }
 
           sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
 
-          if (dataType.onDelete) {
-            sql += ` ON DELETE ${dataType.onDelete.toUpperCase()}`;
+          if (attribute.onDelete) {
+            sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
           }
 
-          if (dataType.onUpdate) {
-            sql += ` ON UPDATE ${dataType.onUpdate.toUpperCase()}`;
+          if (attribute.onUpdate) {
+            sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
           }
-
         }
 
-        result[fieldName] = sql;
+        result[columnName] = sql;
       } else {
-        result[fieldName] = dataType;
+        result[columnName] = attribute;
       }
     }
 
@@ -373,16 +374,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     }
 
     return `${sql};`;
-  }
-
-  removeIndexQuery(tableName, indexNameOrAttributes) {
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = Utils.underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
-    }
-
-    return `DROP INDEX IF EXISTS ${this.quoteIdentifier(indexName)}`;
   }
 
   describeCreateTableQuery(tableName) {

@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const { Op } = require('../../../operators');
-const Utils = require('../../../utils');
+const { getOperators } = require('../../../utils/format');
 
 const OperatorHelpers = {
   OperatorMap: {
@@ -47,6 +47,8 @@ const OperatorHelpers = {
     [Op.col]: 'COL',
     [Op.placeholder]: '$$PLACEHOLDER$$',
     [Op.match]: '@@',
+    [Op.anyKeyExists]: '?|',
+    [Op.allKeysExist]: '?&',
   },
 
   OperatorsAliasMap: {},
@@ -65,7 +67,7 @@ const OperatorHelpers = {
       return orig;
     }
 
-    for (const op of Utils.getOperators(orig)) {
+    for (const op of getOperators(orig)) {
       const item = orig[op];
       if (_.isPlainObject(item)) {
         obj[op] = this._replaceAliases(item);

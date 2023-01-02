@@ -1,7 +1,7 @@
 import assert from 'node:assert';
+import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
-import { expect } from 'chai';
 import { expectsql, sequelize, getTestDialect } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -46,7 +46,7 @@ describe('DataTypes.ENUM', () => {
       anEnum: DataTypes.ENUM('value 1', 'value 2'),
     });
 
-    const enumType = User.rawAttributes.anEnum.type;
+    const enumType = User.getAttributes().anEnum.type;
     assert(typeof enumType !== 'string');
 
     expectsql(enumType.toSql({ dialect }), {
@@ -64,6 +64,7 @@ describe('DataTypes.ENUM', () => {
       sequelize.define('omnomnom', {
         bla: {
           type: DataTypes.ENUM('a', 'b'),
+          // @ts-expect-error -- property should not be specified but we're testing that it throws
           values: ['a', 'b'],
         },
       });

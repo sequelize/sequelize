@@ -248,6 +248,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.username).to.equal('bar');
     });
 
+    it('is disallowed if no primary key is present', async function () {
+      const Foo = this.sequelize.define('Foo', {}, { noPrimaryKey: true });
+      await Foo.sync({ force: true });
+
+      const instance = await Foo.create({});
+      await expect(instance.destroy()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
+    });
+
     it('allows sql logging of delete statements', async function () {
       const UserDelete = this.sequelize.define('UserDelete', {
         name: DataTypes.STRING,

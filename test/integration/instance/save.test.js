@@ -129,6 +129,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
     });
 
+    it('is disallowed if no primary key is present', async function () {
+      const Foo = this.sequelize.define('Foo', {});
+      await Foo.sync({ force: true });
+
+      const instance = await Foo.build({}, { isNewRecord: false });
+      await expect(instance.save()).to.be.rejectedWith('You attempted to save an instance with no primary key');
+    });
+
     describe('hooks', () => {
       it('should update attributes added in hooks when default fields are used', async function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {
@@ -447,14 +455,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('works with `allowNull: false` on createdAt and updatedAt columns', async function () {
         const User2 = this.sequelize.define('User2', {
           username: DataTypes.STRING,
-          createdAt: {
-            type: DataTypes.DATE,
-            allowNull: false,
-          },
-          updatedAt: {
-            type: DataTypes.DATE,
-            allowNull: false,
-          },
         }, { timestamps: true });
 
         await User2.sync();

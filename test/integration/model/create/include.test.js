@@ -352,7 +352,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           tag_id: {
             type: DataTypes.INTEGER,
             references: {
-              model: 'tags',
+              table: 'tags',
               key: 'id',
             },
           },

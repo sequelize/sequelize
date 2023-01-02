@@ -1,4 +1,4 @@
-import type { Class } from 'type-fest';
+import type { Class, SetRequired } from 'type-fest';
 import type {
   Association,
   BelongsTo,
@@ -12,28 +12,34 @@ import type {
 } from './associations/index';
 import type { Deferrable } from './deferrable';
 import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
-import type { IndexOptions, TableName, TableNameWithSchema } from './dialects/abstract/query-interface';
+import type {
+  IndexOptions,
+  TableName,
+  TableNameWithSchema,
+  IndexField,
+} from './dialects/abstract/query-interface';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
-import type { ModelHooks } from './model-typescript.js';
+import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
 import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import type {
-  AllowArray,
-  AllowReadonlyArray,
-  AnyFunction,
   Cast,
   Col,
   Fn,
   Json,
   Literal,
+  Where,
+} from './utils/sequelize-method.js';
+import type {
+  AllowArray,
+  AllowReadonlyArray,
+  AnyFunction,
   MakeNullishOptional,
   Nullish,
-  OmitConstructors,
-  Where,
-} from './utils';
-import type { SetRequired } from './utils/set-required';
-import type { LOCK, Op, Optional, Transaction, TableHints } from './index';
+  OmitConstructors, PartlyRequired,
+} from './utils/types.js';
+import type { LOCK, Op, Transaction, TableHints } from './index';
 
 export interface Logging {
   /**
@@ -60,7 +66,7 @@ export interface Transactionable {
   /**
    * The transaction in which this query must be run.
    *
-   * If {@link Options.disableAlsTransactions} has not been set to true, and a transaction is running in the current ALS context,
+   * If {@link Options.disableClsTransactions} has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
    * that transaction will be used, unless null or a Transaction is manually specified here.
    */
   transaction?: Transaction | null | undefined;
@@ -574,6 +580,39 @@ export interface WhereOperators<AttributeType = any> {
    * https://www.postgresql.org/docs/14/functions-range.html
    */
   [Op.adjacent]?: WhereOperators<AttributeType>[typeof Op.strictLeft];
+
+  /**
+   * PG only
+   *
+   * Check if any of these array strings exist as top-level keys.
+   *
+   * @example
+   * ```typescript
+   * { jsonbAttribute: { [Op.anyKeyExists]: ['a','b'] } }
+   * // results in
+   * // "jsonbAttribute" ?| ARRAY['a','b']
+   * ```
+   *
+   * https://www.postgresql.org/docs/current/functions-json.html
+   */
+  [Op.anyKeyExists]?: string[]
+    | DynamicValues<string[]>;
+
+  /**
+   * PG only
+   *
+   * Check if all of these array strings exist as top-level keys.
+   *
+   * @example
+   * ```typescript
+   * { jsonbAttribute: { [Op.allKeysExist]: ['a','b'] } }
+   * // results in
+   * // "jsonbAttribute" ?& ARRAY['a','b']
+   * ```
+   *
+   * https://www.postgresql.org/docs/current/functions-json.html
+   */
+  [Op.allKeysExist]?: WhereOperators<AttributeType>[typeof Op.anyKeyExists];
 }
 
 /**
@@ -1037,7 +1076,7 @@ export interface CreateOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * If false, validations won't be run.
@@ -1095,7 +1134,7 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
   /**
    * Fetch back the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * Run validations before the row is inserted
@@ -1156,7 +1195,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
@@ -1272,7 +1311,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    *
    * @default false
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
    * How many rows to update
@@ -1325,7 +1364,7 @@ export interface IncrementDecrementOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
@@ -1405,7 +1444,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes>;
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
@@ -1417,7 +1456,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
  *
  * The validations are implemented by validator.js.
  */
-export interface ModelValidateOptions {
+export interface ColumnValidateOptions {
   /**
    * - `{ is: ['^[a-z]+$','i'] }` will only allow letters
    * - `{ is: /^[a-z]+$/i }` also only allows letters
@@ -1505,11 +1544,13 @@ export interface ModelValidateOptions {
   /**
    * won't allow null
    */
+  // TODO: remove. Already checked by allowNull
   notNull?: boolean | { msg: string };
 
   /**
    * only allows null
    */
+  // TODO: remove. Already checked by allowNull
   isNull?: boolean | { msg: string };
 
   /**
@@ -1611,20 +1652,6 @@ export interface ModelNameOptions {
 }
 
 /**
- * Interface for getterMethods in InitOptions
- */
-export interface ModelGetterOptions<M extends Model = Model> {
-  [name: string]: (this: M) => unknown;
-}
-
-/**
- * Interface for setterMethods in InitOptions
- */
-export interface ModelSetterOptions<M extends Model = Model> {
-  [name: string]: (this: M, val: any) => void;
-}
-
-/**
  * Interface for Define Scope Options
  */
 export interface ModelScopeOptions<TAttributes = any> {
@@ -1635,40 +1662,22 @@ export interface ModelScopeOptions<TAttributes = any> {
 }
 
 /**
- * General column options
- */
-export interface ColumnOptions {
-  /**
-   * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
-   * instance is saved.
-   *
-   * @default true
-   */
-  allowNull?: boolean;
-
-  /**
-   * The name of the column.
-   *
-   * If no value is provided, Sequelize will use the name of the attribute (in snake_case if {@link InitOptions.underscored} is true)
-   */
-  field?: string;
-
-  /**
-   * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
-   */
-  defaultValue?: unknown;
-}
-
-/**
  * References options for the column's attributes
  */
-export interface ModelAttributeColumnReferencesOptions {
+export interface AttributeReferencesOptions {
   /**
-   * The name of the table to reference (the sql name), or the Model to reference.
+   * The Model to reference.
+   *
+   * Ignored if {@link tableName} is specified.
    */
-  model: TableName | ModelStatic;
+  model?: ModelStatic;
 
   /**
+   * The name of the table to reference (the sql name).
+   */
+  table?: TableName;
+
+    /**
    * The column on the target model that this foreign key references
    */
   key?: string;
@@ -1681,13 +1690,20 @@ export interface ModelAttributeColumnReferencesOptions {
   deferrable?: Deferrable | Class<Deferrable>;
 }
 
+export interface NormalizedAttributeReferencesOptions extends Omit<AttributeReferencesOptions, 'model'> {
+  /**
+   * The name of the table to reference (the sql name).
+   */
+  readonly table: TableName;
+}
+
 // TODO: when merging model.d.ts with model.js, make this an enum.
 export type ReferentialAction = 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NULL' | 'NO ACTION';
 
 /**
  * Column options for the model schema attributes
  */
-export interface ModelAttributeColumnOptions<M extends Model = Model> extends ColumnOptions {
+export interface AttributeOptions<M extends Model = Model> {
   /**
    * A string or a data type.
    *
@@ -1696,11 +1712,42 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   type: DataType;
 
   /**
+   * If false, the column will have a NOT NULL constraint, and a not null validation will be run before an
+   * instance is saved.
+   *
+   * @default true
+   */
+  allowNull?: boolean;
+
+  /**
+   * @deprecated use {@link columnName} instead.
+   */
+  field?: string;
+
+  /**
+   * The name of the column.
+   *
+   * If no value is provided, Sequelize will use the name of the attribute (in snake_case if {@link InitOptions.underscored} is true)
+   */
+  columnName?: string;
+
+  /**
+   * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
+   */
+  defaultValue?: unknown;
+
+  /**
    * If true, the column will get a unique constraint. If a string is provided, the column will be part of a
    * composite unique index. If multiple columns have the same string, they will be part of the same unique
    * index
    */
-  unique?: boolean | string | { name: string, msg: string };
+  unique?: AllowArray<boolean | string | { name: string, msg?: string }>;
+
+  /**
+   * If true, an index will be created for this column.
+   * If a string is provided, the column will be part of a composite index together with the other attributes that specify the same index name.
+   */
+  index?: AllowArray<boolean | string | AttributeIndexOptions>;
 
   /**
    * If true, this attribute will be marked as primary key
@@ -1726,9 +1773,9 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * Makes this attribute a foreign key.
    * You typically don't need to use this yourself, instead use associations.
    *
-   * Setting this value to a string equivalent to setting it to `{ model: 'myString' }`.
+   * Setting this value to a string equivalent to setting it to `{ tableName: 'myString' }`.
    */
-  references?: string | ModelAttributeColumnReferencesOptions;
+  references?: string | ModelStatic | AttributeReferencesOptions;
 
   /**
    * What should happen when the referenced key is updated.
@@ -1751,22 +1798,7 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
    * they are asynchronous. If the validator is sync, it should throw in the case of a failed validation, it
    * it is async, the callback should be called with the error text.
    */
-  validate?: ModelValidateOptions;
-
-  /**
-   * Usage in object notation
-   *
-   * ```js
-   * class MyModel extends Model {}
-   * MyModel.init({
-   *   states: {
-   *     type:   DataTypes.ENUM,
-   *     values: ['active', 'pending', 'deleted']
-   *   }
-   * }, { sequelize })
-   * ```
-   */
-  values?: readonly string[];
+  validate?: ColumnValidateOptions;
 
   /**
    * Provide a custom getter for this column.
@@ -1781,25 +1813,44 @@ export interface ModelAttributeColumnOptions<M extends Model = Model> extends Co
   set?(this: M, val: unknown): void;
 
   /**
-   * This attribute was added by sequelize. Do not use!
+   * This attribute is added by sequelize. Do not use!
    *
    * @private
    * @internal
    */
+  // TODO: use a private symbol
   _autoGenerated?: boolean;
 }
 
-export interface BuiltModelAttributeColumnOptions<M extends Model = Model> extends Omit<ModelAttributeColumnOptions<M>, 'type'> {
+export interface AttributeIndexOptions extends Omit<IndexOptions, 'fields'> {
+  /**
+   * Configures the options for this index attribute.
+   */
+  attribute?: Omit<IndexField, 'name'>;
+}
+
+export interface NormalizedAttributeOptions<M extends Model = Model> extends Readonly<Omit<
+  PartlyRequired<AttributeOptions<M>, 'columnName'>,
+  | 'type'
+  // index and unique are always removed from attribute options, Model.getIndexes() must be used instead.
+  | 'index' | 'unique'
+>> {
+
+  /**
+   * @deprecated use {@link NormalizedAttributeOptions.attributeName} instead.
+   */
+  readonly fieldName: string;
+
   /**
    * The name of the attribute (JS side).
    */
-  fieldName: string;
+  readonly attributeName: string;
 
   /**
-   * Like {@link ModelAttributeColumnOptions.type}, but normalized.
+   * Like {@link AttributeOptions.type}, but normalized.
    */
-  type: string | AbstractDataType<any>;
-  references?: ModelAttributeColumnReferencesOptions;
+  readonly type: string | AbstractDataType<any>;
+  readonly references?: NormalizedAttributeReferencesOptions;
 }
 
 /**
@@ -1809,7 +1860,7 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
   /**
    * The description of a database column
    */
-  [name in keyof TAttributes]: DataType | ModelAttributeColumnOptions<M>;
+  [name in keyof TAttributes]: DataType | AttributeOptions<M>;
 };
 
 /**
@@ -1876,7 +1927,7 @@ export interface ModelOptions<M extends Model = Model> {
   paranoid?: boolean;
 
   /**
-   * If true, Sequelize will snake_case the name of columns that do not have an explicit value set (using {@link ModelAttributeColumnOptions.field}).
+   * If true, Sequelize will snake_case the name of columns that do not have an explicit value set (using {@link AttributeOptions.field}).
    * The name of the table will also be snake_cased, unless {@link ModelOptions.tableName} is set, or {@link ModelOptions.freezeTableName} is true.
    *
    * @default false
@@ -1999,7 +2050,10 @@ export interface ModelOptions<M extends Model = Model> {
    * @see https://sequelize.org/docs/v7/other-topics/hooks/
    */
   hooks?: {
-    [Key in keyof ModelHooks<M, Attributes<M>>]?: AllowArray<ModelHooks<M, Attributes<M>>[Key]>
+    [Key in keyof ModelHooks<M, Attributes<M>>]?: AllowArray<
+      | ModelHooks<M, Attributes<M>>[Key]
+      | { name: string | symbol, callback: ModelHooks<M, Attributes<M>>[Key] }
+    >
   };
 
   /**
@@ -2007,17 +2061,12 @@ export interface ModelOptions<M extends Model = Model> {
    * validator function takes an argument, it is assumed to be async, and is called with a callback that
    * accepts an optional error.
    */
-  validate?: ModelValidateOptions;
-
-  /**
-   * Allows defining additional setters that will be available on model instances.
-   */
-  setterMethods?: ModelSetterOptions<M>;
-
-  /**
-   * Allows defining additional getters that will be available on model instances.
-   */
-  getterMethods?: ModelGetterOptions<M>;
+  validate?: {
+    /**
+     * Custom validation functions run on all instances of the model.
+     */
+    [name: string]: (value: unknown) => boolean,
+  };
 
   /**
    * Enable optimistic locking.
@@ -2042,7 +2091,7 @@ export interface InitOptions<M extends Model = Model> extends ModelOptions<M> {
 }
 
 export type BuiltModelName = Required<ModelNameOptions>;
-export type BuiltModelOptions<M extends Model = Model> = Omit<InitOptions<M>, 'name'> & {
+export type BuiltModelOptions<M extends Model = Model> = Omit<PartlyRequired<InitOptions<M>, 'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'>, 'name'> & {
   name: BuiltModelName,
 };
 
@@ -2115,165 +2164,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   _creationAttributes: TCreationAttributes; // TODO [>6]: make this a non-exported symbol (same as the one in hooks.d.ts)
 
-  /** The name of the database table */
-  static readonly tableName: string;
-
-  /**
-   * The name of the primary key attribute (on the JS side).
-   *
-   * @deprecated This property doesn't work for composed primary keys. Use {@link Model.primaryKeyAttributes} instead.
-   */
-  static readonly primaryKeyAttribute: string;
-
-  /**
-   * The column name of the primary key.
-   *
-   * @deprecated don't use this. It doesn't work with composite PKs. It may be removed in the future to reduce duplication.
-   *  Use the. Use {@link Model.primaryKeys} instead.
-   */
-  static readonly primaryKeyField: string;
-
-  /**
-   * The name of the primary key attributes (on the JS side).
-   */
-  static readonly primaryKeyAttributes: readonly string[];
-
-  /**
-   * Like {@link Model.rawAttributes}, but only includes attributes that are part of the Primary Key.
-   */
-  static readonly primaryKeys: { [attribute: string]: BuiltModelAttributeColumnOptions };
-
-  static readonly uniqueKeys: {
-    [indexName: string]: {
-      fields: string[],
-      msg: string | null,
-      /**
-       * The name of the attribute
-       */
-      name: string,
-      column: string,
-      customIndex: boolean,
-    },
-  };
-
-  /**
-   * @internal
-   */
-  static readonly fieldRawAttributesMap: {
-    [columnName: string]: BuiltModelAttributeColumnOptions,
-  };
-
-  /**
-   * A mapping of column name to attribute name
-   *
-   * @internal
-   */
-  static readonly fieldAttributeMap: {
-    [columnName: string]: string,
-  };
-
-  /**
-   * Like {@link Model.getAttributes}, but only includes attributes that exist in the database.
-   * i.e. virtual attributes are omitted.
-   *
-   * @internal
-   */
-  static tableAttributes: {
-    [attributeName: string]: BuiltModelAttributeColumnOptions,
-  };
-
-  /**
-   * An object hash from alias to association object
-   */
-  static readonly associations: {
-    [key: string]: Association,
-  };
-
-  /**
-   * The options that the model was initialized with
-   */
-  static readonly options: BuiltModelOptions;
-
-  // TODO [>7]: Remove `rawAttributes` in v8
-  /**
-   * The attributes of the model.
-   *
-   * @deprecated use {@link Model.getAttributes} for better typings.
-   */
-  static readonly rawAttributes: { [attribute: string]: BuiltModelAttributeColumnOptions };
-
   /**
    * Returns the attributes of the model
    */
   static getAttributes<M extends Model>(this: ModelStatic<M>): {
-    readonly [Key in keyof Attributes<M>]: BuiltModelAttributeColumnOptions
+    readonly [Key in keyof Attributes<M>]: NormalizedAttributeOptions
   };
-
-  static getIndexes(): readonly IndexOptions[];
-
-  /**
-   * Reference to the sequelize instance the model was initialized with.
-   *
-   * Can be undefined if the Model has not been initialized yet.
-   */
-  static readonly sequelize?: Sequelize;
-
-  /**
-   * Initialize a model, representing a table in the DB, with attributes and options.
-   *
-   * The table columns are define by the hash that is given as the second argument. Each attribute of the hash represents a column. A short table definition might look like this:
-   *
-   * ```js
-   * Project.init({
-   *   columnA: {
-   *     type: Sequelize.BOOLEAN,
-   *     validate: {
-   *       is: ['[a-z]','i'],        // will only allow letters
-   *       max: 23,                  // only allow values <= 23
-   *       isIn: {
-   *         args: [['en', 'zh']],
-   *         msg: "Must be English or Chinese"
-   *       }
-   *     },
-   *     field: 'column_a'
-   *     // Other attributes here
-   *   },
-   *   columnB: Sequelize.STRING,
-   *   columnC: 'MY VERY OWN COLUMN TYPE'
-   * }, {sequelize})
-   *
-   * sequelize.models.modelName // The model will now be available in models under the class name
-   * ```
-   *
-   * As shown above, column definitions can be either strings, a reference to one of the datatypes that are predefined on the Sequelize constructor, or an object that allows you to specify both the type of the column, and other attributes such as default values, foreign key constraints and custom setters and getters.
-   *
-   * For a list of possible data types, see https://sequelize.org/docs/v7/other-topics/other-data-types
-   *
-   * For more about getters and setters, see https://sequelize.org/docs/v7/core-concepts/getters-setters-virtuals/
-   *
-   * For more about instance and class methods, see https://sequelize.org/docs/v7/core-concepts/model-basics/#taking-advantage-of-models-being-classes
-   *
-   * For more about validation, see https://sequelize.org/docs/v7/core-concepts/validations-and-constraints/
-   *
-   * @param attributes An object, where each attribute is a column of the table. Each column can be either a DataType, a
-   *  string or a type-description object.
-   * @param options These options are merged with the default define options provided to the Sequelize constructor
-   * @returns the initialized model
-   */
-  static init<MS extends ModelStatic<Model>, M extends InstanceType<MS>>(
-    this: MS,
-    attributes: ModelAttributes<
-      M,
-      // 'foreign keys' are optional in Model.init as they are added by association declaration methods
-      Optional<Attributes<M>, BrandedKeysOf<Attributes<M>, typeof ForeignKeyBrand>>
-    >,
-    options: InitOptions<M>
-  ): MS;
-
-  /**
-   * Refreshes the Model's attribute definition.
-   */
-  static refreshAttributes(): void;
 
   /**
    * Checks whether an association with this name has already been registered.
@@ -2329,8 +2225,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * @param newAttributes
    */
   static mergeAttributesDefault(
-    newAttributes: { [key: string]: ModelAttributeColumnOptions }
-  ): BuiltModelAttributeColumnOptions;
+    newAttributes: { [key: string]: AttributeOptions }
+  ): NormalizedAttributeOptions;
 
   /**
    * Creates this table in the database, if it does not already exist.
@@ -3009,19 +2905,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static _injectDependentVirtualAttributes(attributes: string[]): string[];
 
   /**
-   * @private
-   */
-  static _virtualAttributes: Set<string>;
-
-  /**
    * Returns true if this instance has not yet been persisted to the database
    */
   isNewRecord: boolean;
-
-  /**
-   * A reference to the sequelize instance.
-   */
-  sequelize: Sequelize;
 
   /**
    * Builds a new model instance.

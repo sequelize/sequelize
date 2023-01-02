@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('beforeDefine hook can alter attributes', function () {
-      expect(this.model.rawAttributes.type).to.be.ok;
+      expect(this.model.getAttributes().type).to.be.ok;
     });
 
     it('afterDefine hook can alter options', function () {
