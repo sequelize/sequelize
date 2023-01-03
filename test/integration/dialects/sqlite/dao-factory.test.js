@@ -30,7 +30,7 @@ if (dialect === 'sqlite') {
       describe(`with storage "${storage}"`, () => {
         after(() => {
           if (storage === dbFile) {
-            require('fs').writeFileSync(dbFile, '');
+            require('node:fs').writeFileSync(dbFile, '');
           }
         });
 

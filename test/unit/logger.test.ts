@@ -1,7 +1,7 @@
-import { inspect as nodeInspect } from 'util';
-import { Logger, logger as defaultLogger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { inspect as nodeInspect } from 'node:util';
 import { expect } from 'chai';
 import sinon from 'sinon';
+import { Logger, logger as defaultLogger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 
 describe('logger', () => {
   let oldWarn: typeof console.warn;

@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { promisify } from 'util';
+import fs from 'node:fs';
+import path from 'node:path';
+import { promisify } from 'node:util';
 import type { Database } from 'sqlite3';
 import { ConnectionError } from '../../errors/index.js';
 import type { Sequelize } from '../../sequelize.js';
@@ -88,6 +88,8 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
       this.connections.set(connectionCacheKey, connectionInstance);
     });
 
+    await this._initDatabaseVersion(connection);
+
     if (this.sequelize.config.password) {
       // Make it possible to define and use password for sqlite encryption plugin like sqlcipher
       connection.run(`PRAGMA KEY=${this.sequelize.escape(this.sequelize.config.password)}`);
@@ -101,6 +103,8 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
 
     return connection;
   }
+
+  async disconnect(_connection: SqliteConnection): Promise<void> {}
 
   async releaseConnection(connection: SqliteConnection, force?: boolean): Promise<void> {
     if (connection.filename === ':memory:' && force !== true) {

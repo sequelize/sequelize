@@ -1,6 +1,6 @@
 'use strict';
 
-const util = require('util');
+const util = require('node:util');
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -45,14 +45,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         allowNull: false,
       },
       createdAt: {
-        type: DataTypes.DATE,
         field: 'created_at',
-        allowNull: false,
       },
       updatedAt: {
-        type: DataTypes.DATE,
         field: 'updated_at',
-        allowNull: true,
       },
     }, {
       tableName: 'user',
@@ -72,14 +68,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         allowNull: false,
       },
       createdAt: {
-        type: DataTypes.DATE,
         field: 'created_at',
-        allowNull: false,
       },
       updatedAt: {
-        type: DataTypes.DATE,
         field: 'updated_at',
-        allowNull: true,
       },
     }, {
       tableName: 'project',
@@ -104,14 +96,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         allowNull: false,
       },
       createdAt: {
-        type: DataTypes.DATE,
         field: 'created_at',
-        allowNull: false,
       },
       updatedAt: {
-        type: DataTypes.DATE,
         field: 'updated_at',
-        allowNull: true,
       },
     }, {
       tableName: 'project_user',
@@ -136,14 +124,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         allowNull: false,
       },
       createdAt: {
-        type: DataTypes.DATE,
         field: 'created_at',
-        allowNull: false,
       },
       updatedAt: {
-        type: DataTypes.DATE,
         field: 'updated_at',
-        allowNull: true,
       },
     }, {
       tableName: 'task',
@@ -168,14 +152,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         allowNull: false,
       },
       createdAt: {
-        type: DataTypes.DATE,
         field: 'created_at',
-        allowNull: false,
       },
       updatedAt: {
-        type: DataTypes.DATE,
         field: 'updated_at',
-        allowNull: true,
       },
     }, {
       tableName: 'subtask',

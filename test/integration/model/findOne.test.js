@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
 
         const user1 = await User.findOne({

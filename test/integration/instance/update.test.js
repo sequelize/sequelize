@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'foo' });
-        const t = await sequelize.transaction();
+        const t = await sequelize.startUnmanagedTransaction();
         await user.update({ username: 'bar' }, { transaction: t });
         const users1 = await User.findAll();
         const users2 = await User.findAll({ transaction: t });
@@ -134,8 +134,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
         email: DataTypes.STRING,
-        createdAt: { type: DataTypes.DATE(6), allowNull: false },
-        updatedAt: { type: DataTypes.DATE(6), allowNull: false },
       }, {
         timestamps: true,
       });
@@ -174,12 +172,22 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should save attributes affected by setters', async function () {
-      const user = this.User.build();
+      const user = await this.User.create();
       await user.update({ validateSideEffect: 5 });
       expect(user.validateSideEffect).to.be.equal(5);
       await user.reload();
       expect(user.validateSideAffected).to.be.equal(10);
       expect(user.validateSideEffect).not.to.be.ok;
+    });
+
+    it('fails if the update was made to a new record which is not persisted', async function () {
+      const Foo = this.sequelize.define('Foo', {
+        name: { type: DataTypes.STRING },
+      }, { noPrimaryKey: true });
+      await Foo.sync({ force: true });
+
+      const instance = Foo.build({ name: 'FooBar' }, { isNewRecord: true });
+      await expect(instance.update()).to.be.rejectedWith('You attempted to update an instance that is not persisted.');
     });
 
     describe('hooks', () => {

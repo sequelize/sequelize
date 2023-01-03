@@ -1,10 +1,10 @@
-import type { Connection } from '@sequelize/core';
-import type { GetConnectionOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
-import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/replication-pool.js';
 import chai from 'chai';
 import { Pool } from 'sequelize-pool';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
+import type { Connection } from '@sequelize/core';
+import type { GetConnectionOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
+import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/replication-pool.js';
 import { Config } from '../../../config/config';
 import { getTestDialect, getTestDialectTeaser, createSequelizeInstance } from '../../support';
 
@@ -80,7 +80,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
     const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
     // @ts-expect-error -- internal method, no typings
     sandbox.stub(connectionManager, '_disconnect').resolves();
-    sandbox.stub(sequelize, 'databaseVersion').resolves(sequelize.dialect.defaultVersion);
+    sandbox.stub(sequelize, 'fetchDatabaseVersion').resolves(sequelize.dialect.defaultVersion);
 
     const queryOptions: GetConnectionOptions = {
       type: 'read',
@@ -111,7 +111,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       const sequelize = createSequelizeInstance();
       const connectionManager = sequelize.connectionManager;
 
-      sandbox.stub(sequelize, 'databaseVersion').resolves('0.0.1');
+      sandbox.stub(sequelize, 'fetchDatabaseVersion').resolves('0.0.1');
 
       const res: Connection = {};
 
@@ -162,7 +162,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       sandbox.stub(connectionManager, '_disconnect').resolves();
 
       sandbox
-        .stub(sequelize, 'databaseVersion')
+        .stub(sequelize, 'fetchDatabaseVersion')
         .resolves(sequelize.dialect.defaultVersion);
 
       const queryOptions: GetConnectionOptions = {
