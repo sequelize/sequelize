@@ -49,17 +49,30 @@ describe('QueryInterface#{create,drop,dropAll,showAll}Schema', async () => {
 
   it('drops all schemas', async () => {
     await queryInterface.createSchema(testSchema);
-    // Let's keep the test database to not affect other tests
+    // Let's keep the test database so we don't affect other tests
     await queryInterface.dropAllSchemas({
       skip: [sequelize.config.database],
     });
     const schemasPostWipe = await queryInterface.showAllSchemas();
-    expect(schemasPostWipe).to.deep.eq([sequelize.config.database]);
+
+    const expected = _stripExpectedSchemas(schemasPostWipe);
+    expect(schemasPostWipe).to.deep.eq(expected);
   });
 
   it('shows all schemas', async () => {
     await queryInterface.createSchema(testSchema);
     const allSchemas = await queryInterface.showAllSchemas();
-    expect([sequelize.config.database, testSchema]).to.deep.eq(allSchemas);
+
+    const expected = _stripExpectedSchemas([sequelize.config.database, testSchema]);
+    expect(allSchemas.sort()).to.deep.eq(expected.sort());
   });
+
+  // Remove the test database from schemas if the database doesn't support it
+  const _stripExpectedSchemas = (schemas: string[]) => {
+    if (sequelize.dialect.name === 'postgres') {
+      return schemas.filter(schema => schema !== sequelize.config.database);
+    }
+
+    return schemas;
+  };
 });
