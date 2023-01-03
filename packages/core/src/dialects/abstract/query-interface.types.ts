@@ -12,6 +12,10 @@ export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOp
 }
 
 /** Options accepted by {@link AbstractQueryInterfaceTypeScript#createSchema} */
-export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions {}
+export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
 
-export interface ShowAllSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions {}
+export interface ShowAllSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
+
+export interface DropAllSchemasOptions extends QueryRawOptions {
+  skip?: string[]; // List of schemas to skip dropping (i.e., schemas to keep)
+}

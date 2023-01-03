@@ -2,7 +2,7 @@ import { QueryTypes } from '../../query-types';
 import type { BindOrReplacements, QueryRawOptions, Sequelize } from '../../sequelize';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { QueryGeneratorDropSchemaQueryObject } from './query-generator.types';
-import type { CreateSchemaOptions, QueryInterfaceOptions, ShowAllSchemasOptions } from './query-interface.types';
+import type { CreateSchemaOptions, DropAllSchemasOptions, QueryInterfaceOptions, ShowAllSchemasOptions } from './query-interface.types';
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -66,9 +66,15 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options
    * @returns
    */
-  async dropAllSchemas(options?: QueryRawOptions): Promise<void> {
+  async dropAllSchemas(options?: DropAllSchemasOptions): Promise<void> {
     const schemas = await this.showAllSchemas();
-    await Promise.all(schemas.map(async schema => this.dropSchema(schema, options)));
+
+    let schemasToDrop = schemas;
+    if (options && options.skip) {
+      schemasToDrop = schemas.filter(schema => !options.skip!.includes(schema));
+    }
+
+    await Promise.all(schemasToDrop.map(async schema => this.dropSchema(schema, options)));
   }
 
   /**

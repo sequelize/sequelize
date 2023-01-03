@@ -48,16 +48,18 @@ describe('QueryInterface#{create,drop,dropAll,showAll}Schema', async () => {
   });
 
   it('drops all schemas', async () => {
-    await queryInterface.dropAllSchemas();
-    const noSchemas = await queryInterface.showAllSchemas();
-    expect(noSchemas).to.be.empty;
+    await queryInterface.createSchema(testSchema);
+    // Let's keep the test database to not affect other tests
+    await queryInterface.dropAllSchemas({
+      skip: [sequelize.config.database],
+    });
+    const schemasPostWipe = await queryInterface.showAllSchemas();
+    expect(schemasPostWipe).to.deep.eq([sequelize.config.database]);
   });
 
   it('shows all schemas', async () => {
-    await queryInterface.dropAllSchemas();
     await queryInterface.createSchema(testSchema);
     const allSchemas = await queryInterface.showAllSchemas();
-    expect(allSchemas.length).to.eq(1);
-    expect(allSchemas[0]).to.eq(testSchema);
+    expect([sequelize.config.database, testSchema]).to.deep.eq(allSchemas);
   });
 });
