@@ -12,7 +12,7 @@ import { expectsql, sequelize } from '../../support';
  * Make use of the default expectation and tick replacements instead of setting an expectation for each dialect individually
  */
 
-describe('QueryGenerator#createSchemaQuery', () => {
+describe('QueryGenerator#createTableQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 
   it('createTableQuery', () => {
