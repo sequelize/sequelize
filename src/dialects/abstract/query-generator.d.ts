@@ -8,6 +8,8 @@ import type {
   ModelStatic,
   SearchPathable,
   WhereOptions,
+  ModelAttributes,
+  CreationAttributes,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
 import type { Literal, SequelizeMethod, Col } from '../../utils/sequelize-method.js';
@@ -87,6 +89,19 @@ export interface CreateDatabaseQueryOptions {
 export interface CreateSchemaQueryOptions {
   collate?: string;
   charset?: string;
+}
+
+export interface CreateTableQueryOptions {
+  collate?: string;
+  charset?: string;
+  engine?: string;
+  rowFormat?: string;
+  initialAutoIncrement?: number;
+  /**
+   * Used for compound unique keys.
+   */
+  uniqueKeys?: Array<{ fields: string[] }>
+   | { [indexName: string]: { fields: string[] } };
 }
 
 // keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
@@ -192,6 +207,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: ArithmeticQueryOptions,
   ): string;
 
+  createTableQuery<M extends Model>(
+    tableName: TableName,
+    attributes: ModelAttributes<M, CreationAttributes<M>>,
+    options?: CreateTableQueryOptions
+  ): string;
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;

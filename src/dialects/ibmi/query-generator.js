@@ -90,7 +90,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     let attributesClause = attrStr.join(', ');
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
-    if (options.uniqueKeys) {
+    if (options?.uniqueKeys) {
       // only need to sort primary keys once, don't do it in place
       const sortedPrimaryKeys = [...primaryKeys];
       sortedPrimaryKeys.sort();
