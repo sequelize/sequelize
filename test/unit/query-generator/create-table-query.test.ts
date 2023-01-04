@@ -29,7 +29,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
@@ -42,7 +41,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery({ tableName: 'myTable', schema: 'mySchema' }, { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
       mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
@@ -55,7 +53,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER', bigint: 'BIGINT', smallint: 'SMALLINT' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER, `bigint` BIGINT, `smallint` SMALLINT) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "bigint" BIGINT, "smallint" SMALLINT);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [bigint] BIGINT, [smallint] SMALLINT);`,
@@ -68,7 +65,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { serial: 'INTEGER SERIAL', bigserial: 'BIGINT SERIAL', smallserial: 'SMALLINT SERIAL' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`serial` INTEGER SERIAL, `bigserial` BIGINT SERIAL, `smallserial` SMALLINT SERIAL) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("serial"  SERIAL, "bigserial"  BIGSERIAL, "smallserial"  SMALLSERIAL);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([serial] INTEGER SERIAL, [bigserial] BIGINT SERIAL, [smallserial] SMALLINT SERIAL);`,
@@ -81,7 +77,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Test', foo: 'INTEGER COMMENT Foo Comment' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER COMMENT Test, `foo` INTEGER COMMENT Foo Comment) ENGINE=InnoDB;',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER , "foo" INTEGER ); COMMENT ON COLUMN "myTable"."int" IS 'Test'; COMMENT ON COLUMN "myTable"."foo" IS 'Foo Comment';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [foo] INTEGER); EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Test',
@@ -96,7 +91,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { data: 'BLOB' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BLOB);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] BLOB);`,
@@ -109,7 +103,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { data: 'LONGBLOB' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" LONGBLOB);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] LONGBLOB);`,
@@ -122,7 +115,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { data: 'BLOB(16M)' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB(16M)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BLOB(16M));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] BLOB(16M));`,
@@ -135,7 +127,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { data: sequelize.normalizeDataType(DataTypes.BLOB).toSql({ dialect: sequelize.dialect }) }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] VARBINARY(MAX));`,
@@ -148,7 +139,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { data: sequelize.normalizeDataType(DataTypes.BLOB('long')).toSql({ dialect: sequelize.dialect }) }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] VARBINARY(MAX));`,
@@ -161,7 +151,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" "public"."enum_myTable_title", "name" VARCHAR(255));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] ENUM("A", "B", "C"), [name] VARCHAR(255));`,
@@ -174,7 +163,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { engine: 'MyISAM' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=MyISAM;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
@@ -187,7 +175,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'utf8', collate: 'utf8_unicode_ci' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
@@ -200,7 +187,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'latin1' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
@@ -213,7 +199,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }, { charset: 'latin1' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" "public"."enum_myTable_title", "name" VARCHAR(255));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] ENUM("A", "B", "C"), [name] VARCHAR(255));`,
@@ -226,7 +211,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { rowFormat: 'default' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB ROW_FORMAT=default;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
@@ -239,7 +223,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `id` INTEGER , PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "id" INTEGER , PRIMARY KEY ("id"));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [id] INTEGER, PRIMARY KEY ([id]));`,
@@ -252,7 +235,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [otherId] INTEGER, FOREIGN KEY ([otherId]) REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);`,
@@ -265,7 +247,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [otherId] INTEGER, FOREIGN KEY ([otherId]) REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION);`,
@@ -278,7 +259,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);',
       mssql: 'IF OBJECT_ID(N\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [otherId] INTEGER, FOREIGN KEY ([otherId]) REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);',
@@ -291,7 +271,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'] }] }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), UNIQUE `uniq_myTable_title_name` (`title`, `name`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), CONSTRAINT "my_table_title_name" UNIQUE ("title", "name"));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), CONSTRAINT [my_table_title_name] UNIQUE ([title], [name]));`,
@@ -304,7 +283,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER auto_increment PRIMARY KEY' }, { initialAutoIncrement: 1_000_001 }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER auto_increment, PRIMARY KEY ("id"));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] INTEGER auto_increment, PRIMARY KEY ([id]));`,
@@ -317,7 +295,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR BINARY(255)', number: 'INTEGER(5) UNSIGNED PRIMARY KEY ' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER(5) UNSIGNED, PRIMARY KEY (`number`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR BINARY(255), "number" INTEGER(5) UNSIGNED, PRIMARY KEY ("number"));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR BINARY(255), [number] INTEGER(5) UNSIGNED, PRIMARY KEY ([number]));`,
@@ -331,7 +308,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER AUTOINCREMENT, `name` VARCHAR(255), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), PRIMARY KEY ("id"));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] INTEGER AUTOINCREMENT, [name] VARCHAR(255), PRIMARY KEY ([id]));`,
@@ -344,7 +320,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER(4) PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER(4) AUTOINCREMENT, `name` VARCHAR(255), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER(4) AUTOINCREMENT, "name" VARCHAR(255), PRIMARY KEY ("id"));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] INTEGER(4) AUTOINCREMENT, [name] VARCHAR(255), PRIMARY KEY ([id]));`,
@@ -357,7 +332,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'SMALLINT(4) PRIMARY KEY AUTOINCREMENT UNSIGNED', name: 'VARCHAR(255)' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` SMALLINT(4) AUTOINCREMENT UNSIGNED, `name` VARCHAR(255), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" SMALLINT(4) AUTOINCREMENT UNSIGNED, "name" VARCHAR(255), PRIMARY KEY ("id"));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] SMALLINT(4) AUTOINCREMENT UNSIGNED, [name] VARCHAR(255), PRIMARY KEY ([id]));`,
@@ -370,7 +344,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'] } } }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE `uniqueConstraint` (`name`, `surname`), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255), CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id"));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] INTEGER AUTOINCREMENT, [name] VARCHAR(255), [surname] VARCHAR(255), CONSTRAINT [uniqueConstraint] UNIQUE ([name], [surname]), PRIMARY KEY ([id]));`,
@@ -388,7 +361,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { foo1: 'INTEGER PRIMARY KEY NOT NULL', foo2: 'INTEGER PRIMARY KEY NOT NULL' }), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`foo1` INTEGER NOT NULL, `foo2` INTEGER NOT NULL, PRIMARY KEY (`foo1`, `foo2`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("foo1" INTEGER NOT NULL, "foo2" INTEGER NOT NULL, PRIMARY KEY ("foo1","foo2"));',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([foo1] INTEGER NOT NULL, [foo2] INTEGER NOT NULL, PRIMARY KEY ([foo1], [foo2]));`,
@@ -401,7 +373,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery with comments', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER COMMENT Foo Bar, `varchar` VARCHAR(50) UNIQUE COMMENT Bar Foo) ENGINE=InnoDB;',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "varchar" VARCHAR(50) UNIQUE); COMMENT ON COLUMN "myTable"."int" IS 'Foo Bar'; COMMENT ON COLUMN "myTable"."varchar" IS 'Bar Foo';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar',
@@ -416,7 +387,6 @@ describe('QueryGenerator#createSchemaQuery', () => {
 
   it('createTableQuery with comments and table object', () => {
     expectsql(queryGenerator.createTableQuery({ tableName: 'myTable' }, { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), {
-      default: 'TBD',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER COMMENT Foo Bar, `varchar` VARCHAR(50) UNIQUE COMMENT Bar Foo) ENGINE=InnoDB;',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "varchar" VARCHAR(50) UNIQUE); COMMENT ON COLUMN "myTable"."int" IS 'Foo Bar'; COMMENT ON COLUMN "myTable"."varchar" IS 'Bar Foo';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar',
