@@ -233,63 +233,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
-  describe('set', () => {
-    it('should be configurable with global functions', function () {
-      const defaultSetterMethod = sinon.spy();
-      const overrideSetterMethod = sinon.spy();
-      const defaultGetterMethod = sinon.spy();
-      const overrideGetterMethod = sinon.spy();
-      const customSetterMethod = sinon.spy();
-      const customOverrideSetterMethod = sinon.spy();
-      const customGetterMethod = sinon.spy();
-      const customOverrideGetterMethod = sinon.spy();
-
-      this.sequelize.options.define = {
-        setterMethods: {
-          default: defaultSetterMethod,
-          override: overrideSetterMethod,
-        },
-        getterMethods: {
-          default: defaultGetterMethod,
-          override: overrideGetterMethod,
-        },
-      };
-      const testEntity = this.sequelize.define('TestEntity', {}, {
-        setterMethods: {
-          custom: customSetterMethod,
-          override: customOverrideSetterMethod,
-        },
-        getterMethods: {
-          custom: customGetterMethod,
-          override: customOverrideGetterMethod,
-        },
-      });
-
-      // Create Instance to test
-      const instance = testEntity.build();
-
-      // Call Getters
-      instance.default;
-      instance.custom;
-      instance.override;
-
-      expect(defaultGetterMethod).to.have.been.calledOnce;
-      expect(customGetterMethod).to.have.been.calledOnce;
-      expect(overrideGetterMethod.callCount).to.be.eql(0);
-      expect(customOverrideGetterMethod).to.have.been.calledOnce;
-
-      // Call Setters
-      instance.default = 'test';
-      instance.custom = 'test';
-      instance.override = 'test';
-
-      expect(defaultSetterMethod).to.have.been.calledOnce;
-      expect(customSetterMethod).to.have.been.calledOnce;
-      expect(overrideSetterMethod.callCount).to.be.eql(0);
-      expect(customOverrideSetterMethod).to.have.been.calledOnce;
-    });
-  });
-
   if (['mysql', 'mariadb'].includes(dialect)) {
     describe('set', () => {
       it('should return an promised error if transaction isn\'t defined', async function () {
@@ -439,7 +382,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('fails with incorrect database credentials (1)', async function () {
         // TODO: remove this once fixed in https://github.com/brianc/node-postgres/issues/1927 or when password is not allowed to be null in our postgres implementation
-        if (dialect === 'postgres' && semver.gte(this.sequelize.options.databaseVersion, '12.0.0')) {
+        if (dialect === 'postgres' && semver.gte(this.sequelize.getDatabaseVersion(), '12.0.0')) {
           return;
         }
 
@@ -640,9 +583,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             for (const option of Object.keys(customAttributes[attribute])) {
               const optionValue = customAttributes[attribute][option];
               if (typeof optionValue === 'function' && optionValue() instanceof DataTypes.ABSTRACT) {
-                expect(Picture.rawAttributes[attribute][option] instanceof optionValue).to.be.ok;
+                expect(Picture.getAttributes()[attribute][option] instanceof optionValue).to.be.ok;
               } else {
-                expect(Picture.rawAttributes[attribute][option]).to.be.equal(optionValue);
+                expect(Picture.getAttributes()[attribute][option]).to.be.equal(optionValue);
               }
             }
           }
@@ -825,9 +768,28 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     }
   });
 
-  describe('databaseVersion', () => {
+  describe('fetchDatabaseVersion', () => {
     it('should database/dialect version', async function () {
-      const version = await this.sequelize.databaseVersion();
+      const version = await this.sequelize.fetchDatabaseVersion();
+      expect(typeof version).to.equal('string');
+      expect(version).to.be.ok;
+    });
+  });
+
+  describe('getDatabaseVersion', () => {
+    it('throws if no database version is set internally', () => {
+      expect(() => {
+        // ensures the version hasn't been loaded by another test yet
+        const sequelize = Support.createSequelizeInstance();
+        sequelize.getDatabaseVersion();
+      }).to.throw(
+        'The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.',
+      );
+    });
+
+    it('returns the database version if loaded', async function () {
+      await this.sequelize.authenticate();
+      const version = this.sequelize.getDatabaseVersion();
       expect(typeof version).to.equal('string');
       expect(version).to.be.ok;
     });

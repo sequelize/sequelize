@@ -1,15 +1,16 @@
 'use strict';
 
+import { getObjectFromMap } from '../../utils/object';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
 const sequelizeErrors = require('../../errors');
-const { QueryInterface } = require('../abstract/query-interface');
+const { AbstractQueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
 
 /**
  * The interface that Sequelize uses to talk with Snowflake database
  */
-export class SnowflakeQueryInterface extends QueryInterface {
+export class SnowflakeQueryInterface extends AbstractQueryInterface {
   /**
    * A wrapper that fixes Snowflake's inability to cleanly remove columns from existing tables if they have a foreign key
    * constraint.
@@ -53,7 +54,8 @@ export class SnowflakeQueryInterface extends QueryInterface {
     options.updateOnDuplicate = Object.keys(updateValues);
 
     const model = options.model;
-    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, model.rawAttributes, options);
+    const modelDefinition = model.modelDefinition;
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, getObjectFromMap(modelDefinition.attributes), options);
 
     delete options.replacements;
     options.bind = combineBinds(options.bind, bind);

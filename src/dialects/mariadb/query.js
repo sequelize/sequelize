@@ -98,20 +98,20 @@ export class MariaDbQuery extends AbstractQuery {
       this.handleInsertQuery(data);
 
       if (!this.instance) {
+        const modelDefinition = this.model?.modelDefinition;
+
         // handle bulkCreate AI primary key
         if (
-          this.model
-          && this.model.autoIncrementAttribute
-          && this.model.autoIncrementAttribute === this.model.primaryKeyAttribute
-          && this.model.rawAttributes[this.model.primaryKeyAttribute]
+          modelDefinition?.autoIncrementAttributeName
+          && modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
         ) {
           // ONLY TRUE IF @auto_increment_increment is set to 1 !!
           // Doesn't work with GALERA => each node will reserve increment (x for first server, x+1 for next node...)
           const startId = data[this.getInsertIdField()];
           result = new Array(data.affectedRows);
-          const pkField = this.model.rawAttributes[this.model.primaryKeyAttribute].field;
+          const pkColumnName = modelDefinition.attributes.get(this.model.primaryKeyAttribute).columnName;
           for (let i = 0; i < data.affectedRows; i++) {
-            result[i] = { [pkField]: startId + i };
+            result[i] = { [pkColumnName]: startId + i };
           }
 
           return [result, data.affectedRows];
@@ -219,7 +219,7 @@ export class MariaDbQuery extends AbstractQuery {
         const values = match ? match[1].split('-') : undefined;
         const fieldKey = match ? match[2] : undefined;
         const fieldVal = match ? match[1] : undefined;
-        const uniqueKey = this.model && this.model.uniqueKeys[fieldKey];
+        const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
 
         if (uniqueKey) {
           if (uniqueKey.msg) {

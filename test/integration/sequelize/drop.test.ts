@@ -9,7 +9,6 @@ describe('Sequelize#drop', () => {
     const A = sequelize.define('A', {
       BId: {
         type: DataTypes.INTEGER,
-        // @ts-expect-error -- TODO: references requires a model to be specified. We should move reference.deferrable to be an option of foreignKey in belongsTo.
         references: {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
         },
@@ -19,7 +18,6 @@ describe('Sequelize#drop', () => {
     const B = sequelize.define('B', {
       AId: {
         type: DataTypes.INTEGER,
-        // @ts-expect-error -- TODO: references requires a model to be specified. We should move reference.deferrable to be an option of foreignKey in belongsTo.
         references: {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
         },

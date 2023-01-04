@@ -163,8 +163,8 @@ export function createSequelizeInstance(options: Options = {}): Sequelize {
     pool: config.pool,
     dialectOptions: options.dialectOptions || config.dialectOptions || {},
     minifyAliases: options.minifyAliases || config.minifyAliases,
-    // the test suite was written before ALS was turned on by default.
-    disableAlsTransactions: true,
+    // the test suite was written before CLS was turned on by default.
+    disableClsTransactions: true,
   });
 
   if (process.env.DIALECT === 'postgres-native') {
@@ -361,6 +361,20 @@ export function toMatchSql(sql: string) {
   return new SqlExpectation(sql);
 }
 
+class RegexExpectation extends Expectation<string> {
+  constructor(private readonly regex: RegExp) {
+    super();
+  }
+
+  assert(value: string) {
+    expect(value).to.match(this.regex);
+  }
+}
+
+export function toMatchRegex(regex: RegExp) {
+  return new RegexExpectation(regex);
+}
+
 type HasPropertiesInput<Obj extends Record<string, unknown>> = {
   [K in keyof Obj]?: any | Expectation<Obj[K]> | Error;
 };
@@ -385,7 +399,10 @@ type MaybeLazy<T> = T | (() => T);
 
 export function expectsql(
   query: MaybeLazy<{ query: string, bind: unknown } | Error>,
-  assertions: { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> },
+  assertions: {
+    query: PartialRecord<ExpectationKey, string | Error>,
+    bind: PartialRecord<ExpectationKey, unknown>,
+   },
 ): void;
 export function expectsql(
   query: MaybeLazy<string | Error>,
@@ -574,4 +591,8 @@ export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> |
   });
 
   return out;
+}
+
+export function typeTest(_name: string, _callback: () => void): void {
+  // This function doesn't do anything. a type test is only checked by TSC and never runs.
 }

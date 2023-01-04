@@ -188,11 +188,12 @@ export class PostgresQuery extends AbstractQuery {
       // Postgres will treat tables as case-insensitive, so fix the case
       // of the returned values to match attributes
       if (this.options.raw === false && this.sequelize.options.quoteIdentifiers === false) {
-        const attrsMap = _.reduce(this.model.rawAttributes, (m, v, k) => {
-          m[k.toLowerCase()] = k;
+        const attrsMap = Object.create(null);
 
-          return m;
-        }, {});
+        for (const attrName of this.model.modelDefinition.attributes.keys()) {
+          attrsMap[attrName.toLowerCase()] = attrName;
+        }
+
         result = rows.map(row => {
           return _.mapKeys(row, (value, key) => {
             const targetAttr = attrsMap[key];
@@ -274,10 +275,10 @@ export class PostgresQuery extends AbstractQuery {
 
         if (rows[0]) {
           for (const attributeOrColumnName of Object.keys(rows[0])) {
-            const attribute = _.find(this.model.rawAttributes, attribute => {
-              // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
-              return attribute.fieldName === attributeOrColumnName || attribute.field === attributeOrColumnName;
-            });
+            const modelDefinition = this.model.modelDefinition;
+
+            // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
+            const attribute = modelDefinition.attributes.get(attributeOrColumnName) ?? modelDefinition.columns.get(attributeOrColumnName);
 
             const updatedValue = this._parseDatabaseValue(rows[0][attributeOrColumnName], attribute?.type);
 
@@ -355,14 +356,13 @@ export class PostgresQuery extends AbstractQuery {
             ));
           });
 
-          if (this.model && this.model.uniqueKeys) {
-            _.forOwn(this.model.uniqueKeys, constraint => {
-              if (_.isEqual(constraint.fields, Object.keys(fields)) && Boolean(constraint.msg)) {
-                message = constraint.msg;
-
-                return false;
+          if (this.model) {
+            for (const index of this.model.getIndexes()) {
+              if (index.unique && _.isEqual(index.fields, Object.keys(fields)) && index.msg) {
+                message = index.msg;
+                break;
               }
-            });
+            }
           }
 
           return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });

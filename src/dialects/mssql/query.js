@@ -308,11 +308,13 @@ export class MsSqlQuery extends AbstractQuery {
     // TODO: err can be an AggregateError. When that happens, we must throw an AggregateError too instead of throwing only the second error,
     //  or we lose important information
 
-    match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'. Cannot insert duplicate key in object '.*'.(:? The duplicate key value is \((.*)\).)?/);
-    match = match || err.message.match(/Cannot insert duplicate key row in object .* with unique index '(.*)'/);
+    match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'. Cannot insert duplicate key in object '.*'\.(:? The duplicate key value is \((.*)\).)?/s);
+    match = match || err.message.match(/Cannot insert duplicate key row in object .* with unique index '(.*)'\.(:? The duplicate key value is \((.*)\).)?/s);
+
     if (match && match.length > 1) {
       let fields = {};
-      const uniqueKey = this.model && this.model.uniqueKeys[match[1]];
+      const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === match[1]);
+
       let message = 'Validation error';
 
       if (uniqueKey && Boolean(uniqueKey.msg)) {

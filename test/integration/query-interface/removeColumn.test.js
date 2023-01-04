@@ -37,7 +37,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           manager: {
             type: DataTypes.INTEGER,
             references: {
-              model: 'users',
+              table: 'users',
               key: 'id',
             },
           },
@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               allowNull: false,
               references: {
                 key: 'id',
-                model: 'level',
+                table: 'level',
               },
               onDelete: 'CASCADE',
               onUpdate: 'CASCADE',
@@ -193,7 +193,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               allowNull: false,
               references: {
                 key: 'id',
-                model: 'level',
+                table: 'level',
               },
               onDelete: 'CASCADE',
               onUpdate: 'CASCADE',

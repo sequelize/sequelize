@@ -26,9 +26,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           primaryKey: true,
           autoIncrement: true,
         },
-        deletedAt: {
-          type: DataTypes.DATE,
-        },
+        deletedAt: {},
       }, {
         paranoid: true,
       });
@@ -46,11 +44,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         stub.restore();
       });
 
-      it('should allow reloads even if options are not given', () => {
+      it('should allow reloads even if options are not given', async () => {
         instance = Model.build({ id: 1 }, { isNewRecord: false });
-        expect(() => {
-          instance.reload();
-        }).to.not.throw();
+        await expect(instance.reload()).to.be.fulfilled;
       });
     });
   });

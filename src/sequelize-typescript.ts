@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
 import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { AbstractQuery } from './dialects/abstract/query.js';
@@ -11,8 +12,8 @@ import {
 } from './hooks-legacy.js';
 import type { AsyncHookReturn, HookHandler } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
-import type { ModelHooks } from './model-typescript.js';
-import { validModelHooks } from './model-typescript.js';
+import type { ModelHooks } from './model-hooks.js';
+import { validModelHooks } from './model-hooks.js';
 import type { ConnectionOptions, Options, Sequelize } from './sequelize.js';
 import type { TransactionOptions } from './transaction.js';
 import { Transaction } from './transaction.js';
@@ -177,10 +178,10 @@ export abstract class SequelizeTypeScript {
   beforeAssociate = legacyBuildAddHook(instanceSequelizeHooks, 'beforeAssociate');
   afterAssociate = legacyBuildAddHook(instanceSequelizeHooks, 'afterAssociate');
 
-  #transactionAls: AsyncLocalStorage<Transaction> | undefined;
+  #transactionCls: AsyncLocalStorage<Transaction> | undefined;
 
-  private _setupTransactionAls() {
-    this.#transactionAls = new AsyncLocalStorage<Transaction>();
+  private _setupTransactionCls() {
+    this.#transactionCls = new AsyncLocalStorage<Transaction>();
   }
 
   addModels(models: ModelStatic[]) {
@@ -192,16 +193,22 @@ export abstract class SequelizeTypeScript {
       );
     }
 
-    // TODO: https://github.com/sequelize/sequelize/issues/15334 -- register associations declared by decorators
+    for (const model of models) {
+      initDecoratedAssociations(
+        model,
+        // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
+        this,
+      );
+    }
   }
 
   /**
    * Returns the transaction that is associated to the current asynchronous operation.
    * This method returns undefined if no transaction is active in the current asynchronous operation,
-   * or if {@link Options.disableAlsTransactions} is true.
+   * or if {@link Options.disableClsTransactions} is true.
    */
-  getCurrentAlsTransaction(): Transaction | undefined {
-    return this.#transactionAls?.getStore();
+  getCurrentClsTransaction(): Transaction | undefined {
+    return this.#transactionCls?.getStore();
   }
 
   /**
@@ -222,12 +229,12 @@ export abstract class SequelizeTypeScript {
    * ```
    *
    * By default, Sequelize uses AsyncLocalStorage to automatically pass the transaction to all queries executed inside the callback (unless you already pass one or set the `transaction` option to null).
-   * This can be disabled by setting {@link Options.disableAlsTransactions} to true. You will then need to pass transactions to your queries manually.
+   * This can be disabled by setting {@link Options.disableClsTransactions} to true. You will then need to pass transactions to your queries manually.
    *
    * ```ts
    * const sequelize = new Sequelize({
    *   // ...
-   *   disableAlsTransactions: true,
+   *   disableClsTransactions: true,
    * })
    *
    * await sequelize.transaction(transaction => {
@@ -292,12 +299,12 @@ export abstract class SequelizeTypeScript {
       return result;
     };
 
-    const als = this.#transactionAls;
-    if (!als) {
+    const cls = this.#transactionCls;
+    if (!cls) {
       return wrappedCallback();
     }
 
-    return als.run(transaction, wrappedCallback);
+    return cls.run(transaction, wrappedCallback);
   }
 
   /**
@@ -305,7 +312,7 @@ export abstract class SequelizeTypeScript {
    * If you really want to use the manual solution, don't forget to commit or rollback your transaction once you are done with it.
    *
    * Transactions started by this method are not automatically passed to queries. You must pass the transaction object manually,
-   * even if {@link Options.disableAlsTransactions} is false.
+   * even if {@link Options.disableClsTransactions} is false.
    *
    * @example
    * ```ts
