@@ -8,6 +8,8 @@ import type {
   ModelStatic,
   SearchPathable,
   WhereOptions,
+  ModelAttributes,
+  CreationAttributes,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
 import type { Literal, SequelizeMethod, Col } from '../../utils/sequelize-method.js';
@@ -74,6 +76,17 @@ type HandleSequelizeMethodOptions = ParameterOptions & {
 
 };
 
+// TODO: remove tableName and schema when migrating to TypeScript in favour of a table that supports TableNameOrModel
+type AttributeToSQLOptions = EscapeOptions & {
+  table?: TableName,
+  tableName?: string,
+  context?: 'createTable' | 'addColumn' | 'changeColumn',
+  withoutForeignKeyConstraints?: boolean,
+  schema?: string,
+  foreignKey?: string,
+  key?: string,
+};
+
 // keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateDatabaseQueryOptions {
   collate?: string;
@@ -128,6 +141,16 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: HandleSequelizeMethodOptions,
     prepend?: boolean,
   ): string;
+
+  attributeToSQL(
+    attribute: AttributeOptions,
+    options?: AttributeToSQLOptions,
+  ): string;
+
+  attributesToSQL<M extends Model>(
+    attributes: ModelAttributes<M, CreationAttributes<M>>,
+    options?: AttributeToSQLOptions,
+  ): object;
 
   /**
    * Generates an SQL query that extract JSON property of given path.
