@@ -7,7 +7,7 @@ import { expectsql, sequelize } from '../../support';
  * Accept and test for TableNameOrModel
  * Check if createTableQuery is typed correctly
  * Check if all tests make sense, the current tests are just copied from dialect specific tests and other expectations are added
- * Give tests unique names
+ * Give tests better names
  * Make sure that all resulting queries are valid by adding integration tests for QueryInterface.createTable
  * Make use of the default expectation and tick replacements instead of setting an expectation for each dialect individually
  */
@@ -15,7 +15,7 @@ import { expectsql, sequelize } from '../../support';
 describe('QueryGenerator#createTableQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with a single INTEGER attribute', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER' }, {}), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER);',
@@ -27,7 +27,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR attributes', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
@@ -39,7 +39,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR attributes and a tableName object', () => {
     expectsql(queryGenerator.createTableQuery({ tableName: 'myTable', schema: 'mySchema' }, { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
@@ -51,7 +51,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with three different INT attributes', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER', bigint: 'BIGINT', smallint: 'SMALLINT' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER, `bigint` BIGINT, `smallint` SMALLINT) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "bigint" BIGINT, "smallint" SMALLINT);',
@@ -63,7 +63,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with three different INT SERIAL attributes', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { serial: 'INTEGER SERIAL', bigserial: 'BIGINT SERIAL', smallserial: 'SMALLINT SERIAL' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`serial` INTEGER SERIAL, `bigserial` BIGINT SERIAL, `smallserial` SMALLINT SERIAL) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("serial"  SERIAL, "bigserial"  BIGSERIAL, "smallserial"  SMALLSERIAL);',
@@ -75,7 +75,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two INTEGER attributes with comments', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Test', foo: 'INTEGER COMMENT Foo Comment' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER COMMENT Test, `foo` INTEGER COMMENT Foo Comment) ENGINE=InnoDB;',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER , "foo" INTEGER ); COMMENT ON COLUMN "myTable"."int" IS 'Test'; COMMENT ON COLUMN "myTable"."foo" IS 'Foo Comment';`,
@@ -89,7 +89,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with a BLOB attribute', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { data: 'BLOB' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BLOB);',
@@ -101,7 +101,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with a LONGBLOB attribute', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { data: 'LONGBLOB' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" LONGBLOB);',
@@ -113,7 +113,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with a BLOB(16M) attribute', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { data: 'BLOB(16M)' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB(16M)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BLOB(16M));',
@@ -125,7 +125,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with a normalized BLOB attribute', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { data: sequelize.normalizeDataType(DataTypes.BLOB).toSql({ dialect: sequelize.dialect }) }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);',
@@ -137,7 +137,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with a normalized long BLOB attribute', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { data: sequelize.normalizeDataType(DataTypes.BLOB('long')).toSql({ dialect: sequelize.dialect }) }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);',
@@ -149,7 +149,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with an ENUM and a VARCHAR attribute', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" "public"."enum_myTable_title", "name" VARCHAR(255));',
@@ -161,7 +161,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR attributes with specified engine', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { engine: 'MyISAM' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=MyISAM;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
@@ -173,7 +173,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR attributes with specified charset and collation', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'utf8', collate: 'utf8_unicode_ci' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
@@ -185,7 +185,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR attributes with specified charset', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'latin1' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
@@ -197,7 +197,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with an ENUM and a VARCHAR attribute with specified charset', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }, { charset: 'latin1' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" "public"."enum_myTable_title", "name" VARCHAR(255));',
@@ -209,7 +209,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR attributes with specified row format', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { rowFormat: 'default' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB ROW_FORMAT=default;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));',
@@ -221,7 +221,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR and a primary key INTEGER attribute', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `id` INTEGER , PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "id" INTEGER , PRIMARY KEY ("id"));',
@@ -233,7 +233,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR and a complex INTEGER attribute (no quotes)', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);',
@@ -245,7 +245,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR and a complex INTEGER attribute (double quotes)', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION);',
@@ -257,7 +257,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR and a complex INTEGER attribute (backtick quotes)', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);',
@@ -269,7 +269,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR attributes with specified unique keys', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'] }] }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), UNIQUE `uniq_myTable_title_name` (`title`, `name`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), CONSTRAINT "my_table_title_name" UNIQUE ("title", "name"));',
@@ -281,7 +281,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with an auto-incremented INTEGER with speicified initial auto increment', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER auto_increment PRIMARY KEY' }, { initialAutoIncrement: 1_000_001 }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER auto_increment, PRIMARY KEY ("id"));',
@@ -293,7 +293,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with a BINARY VARCHAR attribute and a unsigned primary key INTEGER with specified length', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR BINARY(255)', number: 'INTEGER(5) UNSIGNED PRIMARY KEY ' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER(5) UNSIGNED, PRIMARY KEY (`number`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR BINARY(255), "number" INTEGER(5) UNSIGNED, PRIMARY KEY ("number"));',
@@ -306,7 +306,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with a VARCHAR attribute and a auto-incremented primary key INTEGER', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER AUTOINCREMENT, `name` VARCHAR(255), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), PRIMARY KEY ("id"));',
@@ -318,7 +318,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with a VARCHAR attribute and a auto-incremented primary key INTEGER with specified length', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER(4) PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER(4) AUTOINCREMENT, `name` VARCHAR(255), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER(4) AUTOINCREMENT, "name" VARCHAR(255), PRIMARY KEY ("id"));',
@@ -330,7 +330,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with a VARCHAR attribute and a auto-incremented primary key SMALLINT with specified length', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'SMALLINT(4) PRIMARY KEY AUTOINCREMENT UNSIGNED', name: 'VARCHAR(255)' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` SMALLINT(4) AUTOINCREMENT UNSIGNED, `name` VARCHAR(255), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" SMALLINT(4) AUTOINCREMENT UNSIGNED, "name" VARCHAR(255), PRIMARY KEY ("id"));',
@@ -342,7 +342,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two VARCHAR attributes and a auto-incremented primary key INTEGER with specified unique contraints', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'] } } }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE `uniqueConstraint` (`name`, `surname`), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255), CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id"));',
@@ -359,7 +359,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery', () => {
+  it('produces a CREATE TABLE query with two not-null primary key INTEGER attributes', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { foo1: 'INTEGER PRIMARY KEY NOT NULL', foo2: 'INTEGER PRIMARY KEY NOT NULL' }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`foo1` INTEGER NOT NULL, `foo2` INTEGER NOT NULL, PRIMARY KEY (`foo1`, `foo2`)) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("foo1" INTEGER NOT NULL, "foo2" INTEGER NOT NULL, PRIMARY KEY ("foo1","foo2"));',
@@ -371,7 +371,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery with comments', () => {
+  it('produces a CREATE TABLE query with an INTEGER and a VARCHAR attributes, both with comments', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER COMMENT Foo Bar, `varchar` VARCHAR(50) UNIQUE COMMENT Bar Foo) ENGINE=InnoDB;',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "varchar" VARCHAR(50) UNIQUE); COMMENT ON COLUMN "myTable"."int" IS 'Foo Bar'; COMMENT ON COLUMN "myTable"."varchar" IS 'Bar Foo';`,
@@ -385,7 +385,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('createTableQuery with comments and table object', () => {
+  it('produces a CREATE TABLE query with an INTEGER and a VARCHAR attributes, both with comments, with a table name in tableName object', () => {
     expectsql(queryGenerator.createTableQuery({ tableName: 'myTable' }, { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER COMMENT Foo Bar, `varchar` VARCHAR(50) UNIQUE COMMENT Bar Foo) ENGINE=InnoDB;',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "varchar" VARCHAR(50) UNIQUE); COMMENT ON COLUMN "myTable"."int" IS 'Foo Bar'; COMMENT ON COLUMN "myTable"."varchar" IS 'Bar Foo';`,
