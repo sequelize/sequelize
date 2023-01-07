@@ -122,6 +122,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   });
 
   it(`{ id: { type: 'INTEGER', after: 'Bar' } }`, () => {
+    // @ts-expect-error -- after is not accepted in AttributeOptions so attributesToSQL might need to be typed differently
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'INTEGER', after: 'Bar' } }), {
       default: { id: 'INTEGER' },
       'mariadb mysql': { id: 'INTEGER AFTER `Bar`' },
