@@ -63,6 +63,12 @@ export class MariaDbDialect extends AbstractDialect {
   readonly TICK_CHAR_RIGHT = '`';
   readonly defaultVersion = '10.1.44'; // minimum supported version
   readonly dataTypesDocumentationUrl = 'https://mariadb.com/kb/en/library/resultset/#field-types';
+  /**
+   * MariaDB can take upto 64 characters.
+   *
+   * @see https://mariadb.com/kb/en/identifier-names/#maximum-length
+   */
+  readonly MAX_ALIAS_LENGTH = 64;
 
   readonly queryGenerator: MariaDbQueryGenerator;
   readonly connectionManager: MariaDbConnectionManager;

@@ -64,6 +64,12 @@ export class MssqlDialect extends AbstractDialect {
   readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '[';
   readonly TICK_CHAR_RIGHT = ']';
+  /**
+   * Max identifier limit in MSSQL is 128 characters.
+   *
+   * @see https://learn.microsoft.com/en-us/answers/questions/264575/character-limit-exceeding-db-limit.html
+   */
+  readonly MAX_ALIAS_LENGTH = 128;
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'mssql');

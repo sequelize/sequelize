@@ -39,6 +39,12 @@ export class Db2Dialect extends AbstractDialect {
   readonly queryGenerator: Db2QueryGenerator;
   readonly queryInterface: Db2QueryInterface;
   readonly Query = Db2Query;
+  /**
+   * Db2 trucates aliases and column name length to 30 if more than 30 UNICODE bytes
+   *
+   * @see https://www.ibm.com/docs/en/db2-for-zos/11?topic=sql-limits-in-db2-zos
+   */
+  readonly MAX_ALIAS_LENGTH = 30;
 
   /** @deprecated */
   readonly TICK_CHAR = '"';

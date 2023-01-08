@@ -192,7 +192,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {boolean}  [options.noTypeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
    * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
-   * @param {boolean}  [options.minifyAliases=false] A flag that defines if aliases should be minified (mostly useful to avoid Postgres alias character limit of 64)
+   * @param {boolean}  [options.minifyAliases=false] A flag that defines if aliases should be minified (mostly useful to avoid Postgres alias character limit of 63)
    * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
    */
   constructor(database, username, password, options) {
