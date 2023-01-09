@@ -283,7 +283,7 @@ export interface CreateTableAttributeOptions<M extends Model = Model>
   /**
    *  Apply unique constraint on a column
    */
-  unique: boolean;
+  unique?: boolean;
 }
 
 /**
