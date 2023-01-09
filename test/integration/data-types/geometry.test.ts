@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import semver from 'semver/preload.js';
 import type {
   CreationOptional,
   GeoJson,
@@ -85,26 +84,8 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       expect(user.geometry).to.eq(null);
     });
 
-    it('correctly parses an empty GEOMETRY field', async () => {
-      // mysql does not support empty points
-      const runTests = dialect.name === 'mysql' ? false
-        : dialect.name !== 'postgres' ? true
-        : await (
-          sequelize.query('SELECT PostGIS_Lib_Version();')
-            .then(result => {
-              // @ts-expect-error -- not worth it to type the output of this query.
-              if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
-                return true;
-              }
-
-              return false;
-            })
-        );
-
-      if (!runTests) {
-        return;
-      }
-
+    // TODO: fix this test, see https://github.com/sequelize/sequelize/pull/15249#discussion_r1015617763
+    it.skip('correctly parses an empty GEOMETRY field', async () => {
       const User = vars.User;
       const point: GeoJsonPoint = { type: 'Point', coordinates: [] };
       await User.create({

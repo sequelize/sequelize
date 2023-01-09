@@ -88,7 +88,7 @@ describe('QueryGenerator#insertQuery', () => {
     it('supports returning: true', () => {
       const { query } = queryGenerator.insertQuery(User.tableName, {
         firstName: 'John',
-      }, User.rawAttributes, {
+      }, User.getAttributes(), {
         returning: true,
       });
 
@@ -107,7 +107,7 @@ describe('QueryGenerator#insertQuery', () => {
     it('supports array of strings (column names)', () => {
       const { query } = queryGenerator.insertQuery(User.tableName, {
         firstName: 'John',
-      }, User.rawAttributes, {
+      }, User.getAttributes(), {
         returning: ['*', 'myColumn'],
       });
 
@@ -129,7 +129,7 @@ describe('QueryGenerator#insertQuery', () => {
       expectsql(() => {
         return queryGenerator.insertQuery(User.tableName, {
           firstName: 'John',
-        }, User.rawAttributes, {
+        }, User.getAttributes(), {
           returning: [literal('*')],
         }).query;
       }, {

@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
     it('gets all associated objects with all fields', async function () {
       const john = await this.User.findOne({ where: { username: 'John' } });
       const tasks = await john.getTasks();
-      for (const attr of Object.keys(tasks[0].rawAttributes)) {
+      for (const attr of Object.keys(tasks[0].getAttributes())) {
         expect(tasks[0]).to.have.property(attr);
       }
     });

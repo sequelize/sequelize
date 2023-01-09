@@ -196,17 +196,15 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
-        if (columns.customIndex) {
-          if (typeof indexName !== 'string') {
-            indexName = generateIndexName(tableName, columns);
-          }
-
-          attributesClauseParts.push(`CONSTRAINT ${
-            this.quoteIdentifier(indexName)
-          } UNIQUE (${
-            columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
-          })`);
+        if (typeof indexName !== 'string') {
+          indexName = generateIndexName(tableName, columns);
         }
+
+        attributesClauseParts.push(`CONSTRAINT ${
+          this.quoteIdentifier(indexName)
+        } UNIQUE (${
+          columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
+        })`);
       });
     }
 
@@ -425,24 +423,25 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       }
 
       const quotedAttributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
-      allQueries.push(tupleStr => `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr};`);
+      allQueries.push(tupleStr => `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr}`);
     }
 
     const commands = [];
     let offset = 0;
-    const batch = Math.floor(250 / (allAttributes.length + 1)) + 1;
     while (offset < Math.max(tuples.length, 1)) {
-      const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + batch));
+      // SQL Server can insert a maximum of 1000 rows at a time,
+      // This splits the insert in multiple statements to respect that limit
+      const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + 1000));
       let generatedQuery = allQueries.map(v => (typeof v === 'string' ? v : v(tupleStr))).join(';');
       if (needIdentityInsertWrapper) {
-        generatedQuery = `SET IDENTITY_INSERT ${quotedTable} ON; ${generatedQuery}; SET IDENTITY_INSERT ${quotedTable} OFF;`;
+        generatedQuery = `SET IDENTITY_INSERT ${quotedTable} ON; ${generatedQuery}; SET IDENTITY_INSERT ${quotedTable} OFF`;
       }
 
       commands.push(generatedQuery);
-      offset += batch;
+      offset += 1000;
     }
 
-    return commands.join(';');
+    return `${commands.join(';')};`;
   }
 
   updateQuery(tableName, attrValueHash, where, options = {}, attributes) {
@@ -459,24 +458,21 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
     const targetTableAlias = this.quoteTable(`${tableName}_target`);
     const sourceTableAlias = this.quoteTable(`${tableName}_source`);
-    const primaryKeysAttrs = [];
-    const identityAttrs = [];
-    const uniqueAttrs = [];
+    const primaryKeysColumns = [];
+    const identityColumns = [];
+    const uniqueColumns = [];
     const tableNameQuoted = this.quoteTable(tableName);
     let needIdentityInsertWrapper = false;
 
+    const modelDefinition = model.modelDefinition;
     // Obtain primaryKeys, uniquekeys and identity attrs from rawAttributes as model is not passed
-    for (const key in model.rawAttributes) {
-      if (model.rawAttributes[key].primaryKey) {
-        primaryKeysAttrs.push(model.rawAttributes[key].field || key);
+    for (const attribute of modelDefinition.attributes.values()) {
+      if (attribute.primaryKey) {
+        primaryKeysColumns.push(attribute.columnName);
       }
 
-      if (model.rawAttributes[key].unique) {
-        uniqueAttrs.push(model.rawAttributes[key].field || key);
-      }
-
-      if (model.rawAttributes[key].autoIncrement) {
-        identityAttrs.push(model.rawAttributes[key].field || key);
+      if (attribute.autoIncrement) {
+        identityColumns.push(attribute.columnName);
       }
     }
 
@@ -484,9 +480,10 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     for (const index of model.getIndexes()) {
       if (index.unique && index.fields) {
         for (const field of index.fields) {
-          const fieldName = typeof field === 'string' ? field : field.name || field.attribute;
-          if (!uniqueAttrs.includes(fieldName) && model.rawAttributes[fieldName]) {
-            uniqueAttrs.push(fieldName);
+          const columnName = typeof field === 'string' ? field : field.name || field.attribute;
+          // TODO: columnName can't be used to get an attribute from modelDefinition.attributes, this is a bug
+          if (!uniqueColumns.includes(columnName) && modelDefinition.attributes.has(columnName)) {
+            uniqueColumns.push(columnName);
           }
         }
       }
@@ -500,7 +497,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     let joinCondition;
 
     // IDENTITY_INSERT Condition
-    for (const key of identityAttrs) {
+    for (const key of identityColumns) {
       if (insertValues[key] && insertValues[key] !== null) {
         needIdentityInsertWrapper = true;
         /*
@@ -544,19 +541,19 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // Search for primary key attribute in clauses -- Model can have two separate unique keys
       for (const key in clauses) {
         const keys = Object.keys(clauses[key]);
-        if (primaryKeysAttrs.includes(keys[0])) {
-          joinCondition = getJoinSnippet(primaryKeysAttrs).join(' AND ');
+        if (primaryKeysColumns.includes(keys[0])) {
+          joinCondition = getJoinSnippet(primaryKeysColumns).join(' AND ');
           break;
         }
       }
 
       if (!joinCondition) {
-        joinCondition = getJoinSnippet(uniqueAttrs).join(' AND ');
+        joinCondition = getJoinSnippet(uniqueColumns).join(' AND ');
       }
     }
 
     // Remove the IDENTITY_INSERT Column from update
-    const filteredUpdateClauses = updateKeys.filter(key => !identityAttrs.includes(key))
+    const filteredUpdateClauses = updateKeys.filter(key => !identityColumns.includes(key))
       .map(key => {
         const value = this.escape(updateValues[key], undefined, options);
         key = this.quoteIdentifier(key);
@@ -600,16 +597,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return `EXEC sp_helpconstraint @objname = ${this.escape(this.quoteTable(tableName))};`;
   }
 
-  removeIndexQuery(tableName, indexNameOrAttributes) {
-    let indexName = indexNameOrAttributes;
-
-    if (typeof indexName !== 'string') {
-      indexName = underscore(`${tableName}_${indexNameOrAttributes.join('_')}`);
-    }
-
-    return `DROP INDEX ${this.quoteIdentifiers(indexName)} ON ${this.quoteIdentifiers(tableName)}`;
-  }
-
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
@@ -618,7 +605,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     // handle self-referential constraints
-    if (attribute.references && attribute.Model && this.isSameTable(attribute.Model.tableName, attribute.references.model)) {
+    if (attribute.references && attribute.Model && this.isSameTable(attribute.Model.tableName, attribute.references.table)) {
       this.sequelize.log('MSSQL does not support self-referential constraints, '
           + 'we will remove it but we recommend restructuring your query');
       attribute.onDelete = '';
@@ -664,7 +651,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
-      template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
         template += ` (${this.quoteIdentifier(attribute.references.key)})`;
@@ -689,28 +676,25 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);
     const existingConstraints = [];
-    let key;
-    let attribute;
 
-    for (key in attributes) {
-      attribute = attributes[key];
+    for (const key of Object.keys(attributes)) {
+      const attribute = { ...attributes[key] };
 
       if (attribute.references) {
-        if (existingConstraints.includes(attribute.references.model.toString())) {
+        if (existingConstraints.includes(this.quoteTable(attribute.references.table))) {
           // no cascading constraints to a table more than once
           attribute.onDelete = '';
           attribute.onUpdate = '';
         } else {
-          existingConstraints.push(attribute.references.model.toString());
+          existingConstraints.push(this.quoteTable(attribute.references.table));
 
           // NOTE: this really just disables cascading updates for all
           //       definitions. Can be made more robust to support the
           //       few cases where MSSQL actually supports them
           attribute.onUpdate = '';
         }
-
       }
 
       if (key && !attribute.field) {
@@ -889,112 +873,8 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
 
-    const dbVersion = this.sequelize.options.databaseVersion;
-    const isSQLServer2008 = semver.valid(dbVersion) && semver.lt(dbVersion, '11.0.0');
-
-    if (isSQLServer2008 && options.offset) {
-      // For earlier versions of SQL server, we need to nest several queries
-      // in order to emulate the OFFSET behavior.
-      //
-      // 1. The outermost query selects all items from the inner query block.
-      //    This is due to a limitation in SQL server with the use of computed
-      //    columns (e.g. SELECT ROW_NUMBER()...AS x) in WHERE clauses.
-      // 2. The next query handles the LIMIT and OFFSET behavior by getting
-      //    the TOP N rows of the query where the row number is > OFFSET
-      // 3. The innermost query is the actual set we want information from
-
-      const offset = options.offset || 0;
-      const isSubQuery = options.hasIncludeWhere || options.hasIncludeRequired || options.hasMultiAssociation;
-      let orders = { mainQueryOrder: [] };
-      if (options.order) {
-        orders = this.getQueryOrders(options, model, isSubQuery);
-      }
-
-      if (orders.mainQueryOrder.length === 0) {
-        orders.mainQueryOrder.push(this.quoteIdentifier(model.primaryKeyField));
-      }
-
-      const tmpTable = mainTableAs || 'OffsetTable';
-
-      if (options.include) {
-        const subQuery = options.subQuery === undefined ? options.limit && options.hasMultiAssociation : options.subQuery;
-        const mainTable = {
-          name: mainTableAs,
-          quotedName: null,
-          as: null,
-          model,
-        };
-        const topLevelInfo = {
-          names: mainTable,
-          options,
-          subQuery,
-        };
-
-        let mainJoinQueries = [];
-        for (const include of options.include) {
-          if (include.separate) {
-            continue;
-          }
-
-          const joinQueries = this.generateInclude(include, { externalAs: mainTableAs, internalAs: mainTableAs }, topLevelInfo);
-          mainJoinQueries = mainJoinQueries.concat(joinQueries.mainQuery);
-        }
-
-        return joinSQLFragments([
-          'SELECT TOP 100 PERCENT',
-          attributes.join(', '),
-          'FROM (',
-          [
-            'SELECT',
-            options.limit && `TOP ${options.limit}`,
-            '* FROM (',
-            [
-              'SELECT ROW_NUMBER() OVER (',
-              [
-                'ORDER BY',
-                orders.mainQueryOrder.join(', '),
-              ],
-              `) as row_num, ${tmpTable}.* FROM (`,
-              [
-                'SELECT DISTINCT',
-                `${tmpTable}.* FROM ${tables} AS ${tmpTable}`,
-                mainJoinQueries,
-                where && `WHERE ${where}`,
-              ],
-              `) AS ${tmpTable}`,
-            ],
-            `) AS ${tmpTable} WHERE row_num > ${offset}`,
-          ],
-          `) AS ${tmpTable}`,
-        ]);
-      }
-
-      return joinSQLFragments([
-        'SELECT TOP 100 PERCENT',
-        attributes.join(', '),
-        'FROM (',
-        [
-          'SELECT',
-          options.limit && `TOP ${options.limit}`,
-          '* FROM (',
-          [
-            'SELECT ROW_NUMBER() OVER (',
-            [
-              'ORDER BY',
-              orders.mainQueryOrder.join(', '),
-            ],
-            `) as row_num, * FROM ${tables} AS ${tmpTable}`,
-            where && `WHERE ${where}`,
-          ],
-          `) AS ${tmpTable} WHERE row_num > ${offset}`,
-        ],
-        `) AS ${tmpTable}`,
-      ]);
-    }
-
     return joinSQLFragments([
       'SELECT',
-      isSQLServer2008 && options.limit && `TOP ${options.limit}`,
       attributes.join(', '),
       `FROM ${tables}`,
       mainTableAs && `AS ${mainTableAs}`,
@@ -1003,11 +883,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   addLimitAndOffset(options, model) {
-    // Skip handling of limit and offset as postfixes for older SQL Server versions
-    if (semver.valid(this.sequelize.options.databaseVersion) && semver.lt(this.sequelize.options.databaseVersion, '11.0.0')) {
-      return '';
-    }
-
     const offset = options.offset || 0;
     const isSubQuery = options.subQuery === undefined
       ? options.hasIncludeWhere || options.hasIncludeRequired || options.hasMultiAssociation

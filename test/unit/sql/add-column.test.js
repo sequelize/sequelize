@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         return expectsql(sql.addColumnQuery(User.getTableName(), 'level_id', current.normalizeAttribute({
           type: DataTypes.INTEGER,
           references: {
-            model: 'level',
+            table: 'level',
             key: 'id',
           },
           onUpdate: 'cascade',
