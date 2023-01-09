@@ -7,8 +7,11 @@ const queryInterface = sequelize.queryInterface;
 
 const testSchema = 'testSchema';
 
-describe('QueryInterface#{create,drop,dropAll,showAll}Schema', async () => {
-  if (!sequelize.dialect.supports.schemas) {
+const dialectsWithWeirdSchemas = ['postgres', 'mssql', 'db2'];
+
+describe('QueryInterface#{create,drop,dropAll,showAll}Schema', () => {
+  const dialect = sequelize.dialect;
+  if (!dialect.supports.schemas) {
     return;
   }
 
@@ -47,32 +50,36 @@ describe('QueryInterface#{create,drop,dropAll,showAll}Schema', async () => {
     expect(postDeletionSchemas).to.not.include(testSchema, 'dropSchema did not drop testSchema');
   });
 
-  it('drops all schemas', async () => {
-    await queryInterface.createSchema(testSchema);
-    // Let's keep the test database so we don't affect other tests
-    await queryInterface.dropAllSchemas({
-      skip: [sequelize.config.database],
-    });
-    const schemasPostWipe = await queryInterface.showAllSchemas();
-
-    const expected = _stripExpectedSchemas(schemasPostWipe);
-    expect(schemasPostWipe).to.deep.eq(expected);
-  });
-
   it('shows all schemas', async () => {
     await queryInterface.createSchema(testSchema);
     const allSchemas = await queryInterface.showAllSchemas();
 
-    const expected = _stripExpectedSchemas([sequelize.config.database, testSchema]);
+    const expected = dialectsWithWeirdSchemas.includes(dialect.name)
+      ? [testSchema]
+      : [sequelize.config.database, testSchema];
     expect(allSchemas.sort()).to.deep.eq(expected.sort());
   });
 
-  // Remove the test database from schemas if the database doesn't support it
-  const _stripExpectedSchemas = (schemas: string[]) => {
-    if (sequelize.dialect.name === 'postgres') {
-      return schemas.filter(schema => schema !== sequelize.config.database);
-    }
+  describe('drops all schemas', () => {
+    it('drops all schemas except test schema', async () => {
+      await queryInterface.dropAllSchemas({
+        skip: [sequelize.config.database],
+      });
+      const postDeleteSchemas = await queryInterface.showAllSchemas();
 
-    return schemas;
-  };
+      const expected = dialectsWithWeirdSchemas.includes(dialect.name) ? [] : [sequelize.config.database];
+      expect(postDeleteSchemas).to.deep.eq(expected);
+    });
+
+    it('drops all schemas', async () => {
+      await queryInterface.dropAllSchemas();
+      const postDeleteSchemas = await queryInterface.showAllSchemas();
+      expect(postDeleteSchemas).to.be.empty;
+
+      // Recreate test schema - can't run this in an `after` block since `afterEach` runs first
+      if (!dialectsWithWeirdSchemas.includes(dialect.name)) {
+        await queryInterface.createSchema(sequelize.config.database);
+      }
+    });
+  });
 });
