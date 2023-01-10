@@ -19,14 +19,19 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Creates a new database schema.
+   * Create a new database schema.
    *
    * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
    * not a database table. In mysql and sqlite, this command will do nothing.
    *
-   * @param schema
-   * @param options
+   * @see
+   * {@link Model.schema}
    *
+   * @param schema Name of the schema
+   * @param [options={}] CreateSchemaQueryOptions
+   * @param [options.collate=null]
+   * @param [options.charset=null]
+    *
    * @returns
    */
   async createSchema(schema: string, options?: CreateSchemaOptions): Promise<void> {
@@ -35,10 +40,14 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Drops the specified schema (table).
+   * Drop a single schema
    *
-   * @param schema The schema to query. Applies only to Postgres.
-   * @param options
+   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
+   * not a database table. In mysql and sqlite, this drop a table matching the schema name
+   *
+   * @param schema Name of the schema
+   * @param [options={}] query options
+   * @param [options.logging] A function that logs sql queries, or false for no logging
    *
    * @returns
    */
@@ -61,9 +70,14 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Drop all schemas
+   * Drop all schemas.
    *
-   * @param options
+   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
+   * not a database table. In mysql and sqlite, this is the equivalent of drop all tables.
+   *
+   * @param [options={}] query options
+   * @param [options.logging] A function that logs sql queries, or false for no logging
+   *
    * @returns
    */
   async dropAllSchemas(options?: DropAllSchemasOptions): Promise<void> {
@@ -78,9 +92,13 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Show all schemas
+   * Show all defined schemas
    *
-   * @param [options] Query options
+   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
+   * not a database table. In mysql and sqlite, this will show all tables.
+   *
+   * @param [options={}] query options
+   * @param [options.logging] A function that logs sql queries, or false for no logging
    *
    * @returns
    */

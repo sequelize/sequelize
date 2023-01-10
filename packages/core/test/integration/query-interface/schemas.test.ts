@@ -79,6 +79,7 @@ describe('QueryInterface#{create,drop,dropAll,showAll}Schema', () => {
       // Recreate test schema - can't run this in an `after` block since `afterEach` runs first
       if (!dialectsWithWeirdSchemas.includes(dialect.name)) {
         await queryInterface.createSchema(sequelize.config.database);
+        await sequelize.queryRaw(`USE ${sequelize.config.database}`);
       }
     });
   });
