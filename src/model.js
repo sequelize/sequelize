@@ -647,6 +647,10 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
+      if (key === 'order') {
+        return srcValue;
+      }
+
       return _.union(objValue, srcValue);
     }
 

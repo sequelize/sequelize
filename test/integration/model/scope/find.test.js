@@ -43,6 +43,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               ],
             },
           },
+          orderScope: {
+            order: [['access_level', 'ASC'], ['email', 'ASC']],
+          },
         },
       });
 
@@ -137,6 +140,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.ScopeMe.findOne({
         include: [this.DefaultScopeExclude],
       });
+    });
+
+    it('should work when override order with a scope', async function () {
+      const rows_asc = await this.ScopeMe.scope('orderScope').findAll();
+      expect(rows_asc).to.have.length(4);
+      expect(rows_asc[0].access_level).to.equal(3);
+      expect(rows_asc[3].access_level).to.equal(10);
+
+      const rows_desc = await this.ScopeMe.scope('orderScope').findAll({
+        order: [['access_level', 'DESC'], ['email', 'DESC']],
+      });
+      expect(rows_desc).to.have.length(4);
+      expect(rows_desc[0].access_level).to.equal(10);
+      expect(rows_desc[3].access_level).to.equal(3);
     });
   });
 
