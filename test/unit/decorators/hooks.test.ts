@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { Model } from '@sequelize/core';
-import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-typescript.js';
+import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import {
   AfterAssociate,
   AfterBulkCreate,
@@ -34,7 +34,10 @@ import {
   BeforeUpsert,
   BeforeValidate,
   ValidationFailed,
+  BeforeDefinitionRefresh,
+  AfterDefinitionRefresh,
 } from '@sequelize/core/decorators-legacy';
+import { sequelize } from '../../support';
 
 // map of hook name to hook decorator
 const hookMap: Partial<Record<keyof ModelHooks, Function>> = {
@@ -70,6 +73,8 @@ const hookMap: Partial<Record<keyof ModelHooks, Function>> = {
   beforeUpsert: BeforeUpsert,
   beforeValidate: BeforeValidate,
   validationFailed: ValidationFailed,
+  beforeDefinitionRefresh: BeforeDefinitionRefresh,
+  afterDefinitionRefresh: AfterDefinitionRefresh,
 };
 
 for (const [hookName, decorator] of Object.entries(hookMap)) {
@@ -80,6 +85,8 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
         static myHook() {}
       }
 
+      sequelize.addModels([MyModel]);
+
       expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(true, `hook ${hookName} incorrectly registered its hook`);
     });
 
@@ -89,9 +96,27 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
         static myHook() {}
       }
 
+      sequelize.addModels([MyModel]);
+
       expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(true, `hook ${hookName} incorrectly registered its hook`);
+      const hookCount = MyModel.hooks.getListenerCount(hookName as keyof ModelHooks);
+
       MyModel.removeHook(hookName as keyof ModelHooks, 'my-hook');
-      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(false, `hook ${hookName} should be possible to remove by name`);
+
+      const newHookCount = MyModel.hooks.getListenerCount(hookName as keyof ModelHooks);
+
+      expect(newHookCount).to.eq(hookCount - 1, `hook ${hookName} should be possible to remove by name`);
+    });
+
+    it('supports symbol methods', () => {
+      class MyModel extends Model {
+        @decorator
+        static [Symbol('myHook')]() {}
+      }
+
+      sequelize.addModels([MyModel]);
+
+      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(true, `hook ${hookName} incorrectly registered its hook`);
     });
 
     it('throws on non-static hooks', () => {
@@ -101,8 +126,10 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
           nonStaticMethod() {}
         }
 
+        sequelize.addModels([MyModel]);
+
         return MyModel;
-      }).to.throw(Error, /Only static methods can be used for hooks/);
+      }).to.throw(Error, /This decorator can only be used on static properties/);
     });
 
     it('throws on non-method properties', () => {
@@ -111,6 +138,8 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
           @decorator
           static nonMethod = 'abc';
         }
+
+        sequelize.addModels([MyModel]);
 
         return MyModel;
       }).to.throw(Error, /is not a method/);
@@ -124,7 +153,7 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
         }
 
         return MyModel;
-      }).to.throw(Error, /Hook decorators can only be used on models/);
+      }).to.throw(Error, /This decorator can only be used on models/);
     });
 
     it('throws on reserved methods', () => {

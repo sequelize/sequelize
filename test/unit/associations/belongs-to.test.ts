@@ -74,7 +74,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     BarProject.belongsTo(BarUser, { foreignKey: 'userId' });
 
-    expect(BarProject.rawAttributes.userId.allowNull).to.eq(undefined, 'allowNull should be undefined');
+    expect(BarProject.getAttributes().userId.allowNull).to.eq(undefined, 'allowNull should be undefined');
   });
 
   it('sets the foreign key default onDelete to CASCADE if allowNull: false', async () => {
@@ -83,14 +83,13 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     Task.belongsTo(User, { foreignKey: { allowNull: false } });
 
-    expect(Task.rawAttributes.UserId.onDelete).to.eq('CASCADE');
+    expect(Task.getAttributes().UserId.onDelete).to.eq('CASCADE');
   });
 
   it(`does not overwrite the 'deferrable' option set in Model.init`, () => {
     const A = sequelize.define('A', {
       BId: {
         type: DataTypes.INTEGER,
-        // @ts-expect-error -- TODO: 'references' requires a model to be specified. We should move reference.deferrable to be an option of foreignKey in belongsTo.
         references: {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
         },
@@ -101,7 +100,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     A.belongsTo(B);
 
-    expect(A.rawAttributes.BId.references?.deferrable).to.equal(Deferrable.INITIALLY_IMMEDIATE);
+    expect(A.getAttributes().BId.references?.deferrable).to.equal(Deferrable.INITIALLY_IMMEDIATE);
   });
 
   describe('association hooks', () => {

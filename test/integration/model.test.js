@@ -77,15 +77,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.create({ id: 'My own ID!' })).to.have.property('id', 'My own ID!');
     });
 
-    it('throws an error if 2 autoIncrements are passed', function () {
-      expect(() => {
-        this.sequelize.define('UserWithTwoAutoIncrements', {
-          userid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-          userscore: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        });
-      }).to.throw(Error, 'Invalid Instance definition. Only one autoincrement field allowed.');
-    });
-
     it('throws an error if a custom model-wide validation is not a function', function () {
       expect(() => {
         this.sequelize.define('Foo', {
@@ -98,27 +89,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw(Error, 'Members of the validate option must be functions. Model: Foo, error with validate member notFunction');
     });
 
-    it('throws an error if a custom model-wide validation has the same name as a field', function () {
-      expect(() => {
-        this.sequelize.define('Foo', {
-          field: DataTypes.INTEGER,
-        }, {
-          validate: {
-            field() {},
-          },
-        });
-      }).to.throw(Error, 'A model validator function must not have the same name as a field. Model: Foo, field/validation name: field');
-    });
-
     it('should allow me to set a default value for createdAt and updatedAt', async function () {
       const UserTable = this.sequelize.define('UserCol', {
         aNumber: DataTypes.INTEGER,
         createdAt: {
-          type: DataTypes.DATE,
           defaultValue: dayjs('2012-01-01').toDate(),
         },
         updatedAt: {
-          type: DataTypes.DATE,
           defaultValue: dayjs('2012-01-02').toDate(),
         },
       }, { timestamps: true });
@@ -233,27 +210,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await user.destroy();
       await user.reload({ paranoid: false });
       expect(user.deletedAtThisTime).to.exist;
-    });
-
-    it('returns proper defaultValues after save when setter is set', async function () {
-      const titleSetter = sinon.spy();
-      const Task = this.sequelize.define('TaskBuild', {
-        title: {
-          type: DataTypes.STRING(50),
-          allowNull: false,
-          defaultValue: '',
-        },
-      }, {
-        setterMethods: {
-          title: titleSetter,
-        },
-      });
-
-      await Task.sync({ force: true });
-      const record = await Task.build().save();
-      expect(record.title).to.be.a('string');
-      expect(record.title).to.equal('');
-      expect(titleSetter.notCalled).to.be.ok; // The setter method should not be invoked for default values
     });
 
     it('should work with both paranoid and underscored being true', async function () {
@@ -670,63 +626,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       p.price = 0;
       expect(p.price).to.equal('answer = 42');
-    });
-
-    it('attaches getter and setter methods from options', function () {
-      const Product = this.sequelize.define('ProductWithSettersAndGetters2', {
-        priceInCents: DataTypes.INTEGER,
-      }, {
-        setterMethods: {
-          price(value) {
-            this.dataValues.priceInCents = value * 100;
-          },
-        },
-        getterMethods: {
-          price() {
-            return `$${this.getDataValue('priceInCents') / 100}`;
-          },
-
-          priceInCents() {
-            return this.dataValues.priceInCents;
-          },
-        },
-      });
-
-      expect(Product.build({ price: 20 }).priceInCents).to.equal(20 * 100);
-      expect(Product.build({ priceInCents: 30 * 100 }).price).to.equal(`$${30}`);
-    });
-
-    it('attaches getter and setter methods from options only if not defined in attribute', function () {
-      const Product = this.sequelize.define('ProductWithSettersAndGetters3', {
-        price1: {
-          type: DataTypes.INTEGER,
-          set(v) {
-            this.setDataValue('price1', v * 10);
-          },
-        },
-        price2: {
-          type: DataTypes.INTEGER,
-          get() {
-            return this.getDataValue('price2') * 10;
-          },
-        },
-      }, {
-        setterMethods: {
-          price1(v) {
-            this.setDataValue('price1', v * 100);
-          },
-        },
-        getterMethods: {
-          price2() {
-            return `$${this.getDataValue('price2')}`;
-          },
-        },
-      });
-
-      const p = Product.build({ price1: 1, price2: 2 });
-
-      expect(p.price1).to.equal(10);
-      expect(p.price2).to.equal(20);
     });
 
     describe('include', () => {
@@ -2449,7 +2348,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('uses a table name as a string and references the author table', async function () {
-      const authorIdColumn = { type: DataTypes.INTEGER, references: { model: 'authors', key: 'id' } };
+      const authorIdColumn = { type: DataTypes.INTEGER, references: { table: 'authors', key: 'id' } };
 
       const Post = this.sequelize.define('post', { title: DataTypes.STRING, authorId: authorIdColumn });
 
@@ -2467,13 +2366,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(foreignKeys[0].referencedColumnName).to.eq('id');
     });
 
-    it('emits an error event as the referenced table name is invalid', async function () {
-      const authorIdColumn = { type: DataTypes.INTEGER, references: { model: '4uth0r5', key: 'id' } };
-
-      const Post = this.sequelize.define('post', { title: DataTypes.STRING, authorId: authorIdColumn });
+    it('throws an error if the referenced table name is invalid', async function () {
+      const Post = this.sequelize.define('post', {
+        title: DataTypes.STRING,
+        authorId: DataTypes.INTEGER,
+      });
 
       this.Author.hasMany(Post);
       Post.belongsTo(this.Author);
+
+      // force Post.authorId to reference a table that does not exist
+      Post.modelDefinition.rawAttributes.authorId.references.table = '4uth0r5';
+      Post.modelDefinition.refreshAttributes();
 
       try {
         // The posts table gets dropped in the before filter.
@@ -2784,7 +2688,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       UserId: {
         type: DataTypes.STRING,
         references: {
-          model: 'Users',
+          tableName: 'Users',
           key: 'UUID',
         },
       },

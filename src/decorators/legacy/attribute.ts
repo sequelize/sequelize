@@ -1,92 +1,91 @@
 import { isDataType } from '../../dialects/abstract/data-types-utils.js';
 import type { DataType } from '../../dialects/abstract/data-types.js';
-import type { ModelAttributeColumnOptions, ModelStatic } from '../../model.js';
-import { Model } from '../../model.js';
+import type { AttributeIndexOptions, AttributeOptions } from '../../model.js';
 import { columnToAttribute } from '../../utils/deprecations.js';
-import { registerModelAttributeOptions } from '../shared/model.js';
+import { underscore } from '../../utils/string.js';
+import type { NonUndefined } from '../../utils/types.js';
+import { createOptionalAttributeOptionsDecorator, createRequiredAttributeOptionsDecorator } from './attribute-utils.js';
 import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
-import { makeParameterizedPropertyDecorator } from './decorator-utils.js';
 
-type AttributeDecoratorOption = DataType | Partial<ModelAttributeColumnOptions> | undefined;
+type AttributeDecoratorOption = DataType | Partial<AttributeOptions>;
 
-export const Attribute = makeParameterizedPropertyDecorator<AttributeDecoratorOption>(undefined, (
-  option: AttributeDecoratorOption,
-  target: Object,
-  propertyName: string | symbol,
-  propertyDescriptor?: PropertyDescriptor,
-) => {
-  if (!option) {
-    throw new Error('Decorator @Attribute requires an argument');
+export const Attribute = createRequiredAttributeOptionsDecorator<AttributeDecoratorOption>('Attribute', attrOptionOrDataType => {
+  if (isDataType(attrOptionOrDataType)) {
+    return {
+      type: attrOptionOrDataType,
+    };
   }
 
-  annotate(target, propertyName, propertyDescriptor, option);
+  return attrOptionOrDataType;
 });
 
 /**
  * @param optionsOrDataType
  * @deprecated use {@link Attribute} instead.
  */
-export function Column(optionsOrDataType: DataType | ModelAttributeColumnOptions): PropertyOrGetterDescriptor {
+export function Column(optionsOrDataType: DataType | AttributeOptions): PropertyOrGetterDescriptor {
   columnToAttribute();
 
   return Attribute(optionsOrDataType);
 }
 
-type UniqueOptions = NonNullable<ModelAttributeColumnOptions['unique']>;
+type UniqueOptions = NonNullable<AttributeOptions['unique']>;
 
 /**
- * Sets the unique option true for annotated property
+ * Configures the unique option of the attribute.
  */
-export const Unique = makeParameterizedPropertyDecorator<UniqueOptions>(true, (
-  option: UniqueOptions,
-  target: Object,
-  propertyName: string | symbol,
-  propertyDescriptor?: PropertyDescriptor,
-) => {
-  annotate(target, propertyName, propertyDescriptor, { unique: option });
-});
+export const Unique = createOptionalAttributeOptionsDecorator<UniqueOptions>('Unique', true, (unique: UniqueOptions) => ({ unique }));
 
-function annotate(
-  target: Object,
-  propertyName: string | symbol,
-  propertyDescriptor: PropertyDescriptor | undefined,
-  optionsOrDataType: Partial<ModelAttributeColumnOptions> | DataType,
-): void {
-  if (typeof propertyName === 'symbol') {
-    throw new TypeError('Symbol Model Attributes are not currently supported. We welcome a PR that implements this feature.');
-  }
+/**
+ * Makes the attribute accept null values. Opposite of {@link NotNull}.
+ */
+export const AllowNull = createOptionalAttributeOptionsDecorator<boolean>('AllowNull', true, (allowNull: boolean) => ({ allowNull }));
 
-  if (typeof target === 'function') {
-    throw new TypeError(
-      `Decorator @Attribute has been used on "${target.name}.${String(propertyName)}", which is static. This decorator can only be used on instance properties, setters and getters.`,
-    );
-  }
+/**
+ * Makes the attribute reject null values. Opposite of {@link AllowNull}.
+ */
+export const NotNull = createOptionalAttributeOptionsDecorator<boolean>('NotNull', true, (notNull: boolean) => ({ allowNull: !notNull }));
 
-  if (!(target instanceof Model)) {
-    throw new TypeError(
-      `Decorator @Attribute has been used on "${target.constructor.name}.${String(propertyName)}", but class "${target.constructor.name}" does not extend Model. This decorator can only be used on models.`,
-    );
-  }
+export const AutoIncrement = createOptionalAttributeOptionsDecorator<boolean>('AutoIncrement', true, (autoIncrement: boolean) => ({ autoIncrement }));
 
-  let options: Partial<ModelAttributeColumnOptions>;
+export const PrimaryKey = createOptionalAttributeOptionsDecorator<boolean>('PrimaryKey', true, (primaryKey: boolean) => ({ primaryKey }));
 
-  if (isDataType(optionsOrDataType)) {
-    options = {
-      type: optionsOrDataType,
-    };
-  } else {
-    options = { ...optionsOrDataType };
-  }
+export const Comment = createRequiredAttributeOptionsDecorator<string>('Comment', (comment: string) => ({ comment }));
 
-  if (propertyDescriptor) {
-    if (propertyDescriptor.get) {
-      options.get = propertyDescriptor.get;
-    }
+export const Default = createRequiredAttributeOptionsDecorator<unknown>('Default', (defaultValue: unknown) => ({ defaultValue }));
 
-    if (propertyDescriptor.set) {
-      options.set = propertyDescriptor.set;
-    }
-  }
+/**
+ * Sets the name of the column (in the database) this attribute maps to.
+ */
+export const ColumnName = createRequiredAttributeOptionsDecorator<string>('ColumnName', (columnName: string) => ({ columnName }));
 
-  registerModelAttributeOptions(target.constructor as ModelStatic, propertyName, options);
+type IndexAttributeOption = NonUndefined<AttributeIndexOptions['attribute']>;
+
+export function createIndexDecorator(decoratorName: string, options: Omit<AttributeIndexOptions, 'attribute'> = {}) {
+  return createOptionalAttributeOptionsDecorator<IndexAttributeOption>(
+    decoratorName,
+    {},
+    (indexField: IndexAttributeOption): Partial<AttributeOptions> => {
+      const index: AttributeIndexOptions = {
+        ...options,
+        // TODO: default index name should be generated using https://github.com/sequelize/sequelize/issues/15312
+        name: options.name || underscore(decoratorName),
+        attribute: indexField,
+      };
+
+      return { index };
+    },
+  );
 }
+
+type IndexDecoratorOptions = NonUndefined<AttributeOptions['index']>;
+
+export const Index = createOptionalAttributeOptionsDecorator<IndexDecoratorOptions>(
+  'Index',
+  {},
+  (indexField: IndexDecoratorOptions): Partial<AttributeOptions> => {
+    return {
+      index: indexField,
+    };
+  },
+);

@@ -19,7 +19,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('options tests', () => {
-      let stub; let instance;
       const Model = current.define('User', {
         id: {
           type: DataTypes.BIGINT,
@@ -28,6 +27,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         },
       });
 
+      let stub;
       before(() => {
         stub = sinon.stub(current, 'queryRaw').resolves(
           {
@@ -41,11 +41,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         stub.restore();
       });
 
-      it('should allow decrements even if options are not given', () => {
-        instance = Model.build({ id: 3 }, { isNewRecord: false });
-        expect(() => {
-          instance.decrement(['id']);
-        }).to.not.throw();
+      it('should allow decrements even if options are not given', async () => {
+        const instance = Model.build({ id: 3 }, { isNewRecord: false });
+        await expect(instance.decrement(['id'])).to.be.fulfilled;
       });
     });
   });

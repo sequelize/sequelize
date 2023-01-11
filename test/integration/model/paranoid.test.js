@@ -60,7 +60,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           type: DataTypes.STRING,
         },
         deletedAt: {
-          type: DataTypes.DATE,
           allowNull: true,
           field: 'deleted_at',
         },

@@ -33,6 +33,12 @@ function compileFor(loader) {
       format: 'cjs',
       sourcefile,
       loader,
+      tsconfigRaw: {
+        compilerOptions: {
+          target: 'node14',
+          useDefineForClassFields: true,
+        },
+      },
     });
 
     if (Object.keys(maps).length === 0) {

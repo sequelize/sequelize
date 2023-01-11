@@ -128,12 +128,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           field: 'user_type',
         },
         createdAt: {
-          type: DataTypes.DATE,
-          allowNull: false,
           field: 'created_at',
         },
         updatedAt: {
-          type: DataTypes.DATE,
           field: 'modified_at',
         },
       });
@@ -881,11 +878,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
         createdAt: {
           field: 'created_at',
-          type: DataTypes.DATE,
         },
         updatedAt: {
           field: 'updated_at',
-          type: DataTypes.DATE,
         },
       });
 
