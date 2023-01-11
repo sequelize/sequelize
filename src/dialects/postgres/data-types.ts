@@ -38,7 +38,7 @@ export class DATEONLY extends BaseTypes.DATEONLY {
 
   sanitize(value: unknown): unknown {
     if (value === Number.POSITIVE_INFINITY
-        || value === Number.NEGATIVE_INFINITY) {
+      || value === Number.NEGATIVE_INFINITY) {
       return value;
     }
 
@@ -87,7 +87,7 @@ export class DATE extends BaseTypes.DATE {
 
   validate(value: any) {
     if (value === Number.POSITIVE_INFINITY
-        || value === Number.NEGATIVE_INFINITY) {
+      || value === Number.NEGATIVE_INFINITY) {
       // valid
       return;
     }

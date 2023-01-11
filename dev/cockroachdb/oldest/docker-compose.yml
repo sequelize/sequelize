@@ -12,7 +12,7 @@ services:
       - cockroach-single:/cockroach/cockroach-data
       - ~/init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "pg_isready"]
+      test: curl --fail http://localhost:8080 || exit 1
       interval: 3s
       timeout: 1s
       retries: 10
