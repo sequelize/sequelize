@@ -22,13 +22,13 @@ export class AbstractQueryInterfaceTypeScript {
    * Create a new database schema.
    *
    * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this command will do nothing.
+   * not a database table. In mysql and mariadb, this command will instead create a database.
    *
    * @see
    * {@link Model.schema}
    *
    * @param schema Name of the schema
-   * @param [options={}] CreateSchemaQueryOptions
+   * @param [options={}]
    * @param [options.collate=null]
    * @param [options.charset=null]
     *
@@ -84,7 +84,7 @@ export class AbstractQueryInterfaceTypeScript {
     const schemas = await this.showAllSchemas();
 
     let schemasToDrop = schemas;
-    if (options && options.skip) {
+    if (options?.skip) {
       schemasToDrop = schemas.filter(schema => !options.skip!.includes(schema));
     }
 

@@ -3,14 +3,13 @@ import { spy } from 'sinon';
 import type { CreateSchemaQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { sequelize } from '../support';
 
-const queryInterface = sequelize.queryInterface;
-
+const { queryInterface, dialect } = sequelize;
 const testSchema = 'testSchema';
 
-const dialectsWithWeirdSchemas = ['postgres', 'mssql', 'db2'];
+// MySQL and MariaDB view databases and schemas as identical. Other databases consider them separate entities.
+const dialectsWithEqualDBsSchemas = ['mysql', 'mariadb'];
 
 describe('QueryInterface#{create,drop,dropAll,showAll}Schema', () => {
-  const dialect = sequelize.dialect;
   if (!dialect.supports.schemas) {
     return;
   }
@@ -54,21 +53,35 @@ describe('QueryInterface#{create,drop,dropAll,showAll}Schema', () => {
     await queryInterface.createSchema(testSchema);
     const allSchemas = await queryInterface.showAllSchemas();
 
-    const expected = dialectsWithWeirdSchemas.includes(dialect.name)
-      ? [testSchema]
-      : [sequelize.config.database, testSchema];
+    const expected = dialectsWithEqualDBsSchemas.includes(dialect.name)
+      ? [sequelize.config.database, testSchema]
+      : [testSchema];
     expect(allSchemas.sort()).to.deep.eq(expected.sort());
   });
 
   describe('drops all schemas', () => {
-    it('drops all schemas except test schema', async () => {
+    it('drops all schemas except default schema', async () => {
       await queryInterface.dropAllSchemas({
         skip: [sequelize.config.database],
       });
       const postDeleteSchemas = await queryInterface.showAllSchemas();
 
-      const expected = dialectsWithWeirdSchemas.includes(dialect.name) ? [] : [sequelize.config.database];
+      const expected = dialectsWithEqualDBsSchemas.includes(dialect.name) ? [sequelize.config.database] : [];
       expect(postDeleteSchemas).to.deep.eq(expected);
+    });
+
+    it('drops all schemas except test schema', async () => {
+      // required for testing this option with Postgres, MSSQL, DB2
+      if (!['postgres', 'mssql', 'db2'].includes(dialect.name)) {
+        return;
+      }
+
+      await queryInterface.createSchema(testSchema);
+      await queryInterface.dropAllSchemas({
+        skip: [testSchema],
+      });
+      const postDeleteSchemas = await queryInterface.showAllSchemas();
+      expect(postDeleteSchemas).to.deep.eq([testSchema]);
     });
 
     it('drops all schemas', async () => {
@@ -76,8 +89,10 @@ describe('QueryInterface#{create,drop,dropAll,showAll}Schema', () => {
       const postDeleteSchemas = await queryInterface.showAllSchemas();
       expect(postDeleteSchemas).to.be.empty;
 
-      // Recreate test schema - can't run this in an `after` block since `afterEach` runs first
-      if (!dialectsWithWeirdSchemas.includes(dialect.name)) {
+      // Removing this call will break all subsequent MariaDB/MySQL tests since the they wouldn't
+      // have a database to run against. Recreate test schema - can't run this in an `after` block
+      // since `afterEach` hooks run first and require their own database
+      if (dialectsWithEqualDBsSchemas.includes(dialect.name)) {
         await queryInterface.createSchema(sequelize.config.database);
         await sequelize.queryRaw(`USE ${sequelize.config.database}`);
       }
