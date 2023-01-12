@@ -1227,13 +1227,6 @@
   dependencies:
     "@types/ms" "*"
 
-"@types/generic-pool@*":
-  version "3.1.11"
-  resolved "https://registry.yarnpkg.com/@types/generic-pool/-/generic-pool-3.1.11.tgz#853f7c6f939fd7d782452999cafac791f70c1cf1"
-  integrity sha512-3mcD3ewmaKPbiAZglGj8We4ohlSMfw/xS+bbYUhTv/ALgqrrtJjyL4Ju9IgapXooBCTFEew5LAKQqzZV6/43xg==
-  dependencies:
-    "@types/node" "*"
-
 "@types/geojson@^7946.0.8":
   version "7946.0.10"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-7946.0.10.tgz#6dfbf5ea17142f7f9a043809f1cd4c448cb68249"
@@ -1341,13 +1334,13 @@
   resolved "https://registry.yarnpkg.com/@types/sinonjs__fake-timers/-/sinonjs__fake-timers-8.1.2.tgz#bf2e02a3dbd4aecaf95942ecd99b7402e03fad5e"
   integrity sha512-9GcLXF0/v3t80caGs5p2rRfkB+a8VBGLJZVih6CNFkx8IZ994wiKKLSRs9nuFwk1HevWs/1mnUmkApGrSGsShA==
 
-"@types/snowflake-sdk@1.6.11":
-  version "1.6.11"
-  resolved "https://registry.yarnpkg.com/@types/snowflake-sdk/-/snowflake-sdk-1.6.11.tgz#9c1991e21d3cacb6fb538db289339fa37c1e844f"
-  integrity sha512-v9GZxRDbFMBGQb+taEVdwd3i0eUH5C7QqmUmX+3qFHHzSLPxDzqpu09isxdTegN0Q2p4Oi/2mmoxk51GX7I02w==
+"@types/snowflake-sdk@1.6.12":
+  version "1.6.12"
+  resolved "https://registry.yarnpkg.com/@types/snowflake-sdk/-/snowflake-sdk-1.6.12.tgz#fe6110877ff12754fba0fc7700bdb3c6dff3fe9e"
+  integrity sha512-Ndz6x750TkuvHvdRBH8Cb7T8et2anyyY1j8kFChJ+s8FtURNRKut7DWaq9YdseKXZvqwA3ZYZxKaQRwtSq67eg==
   dependencies:
-    "@types/generic-pool" "*"
     "@types/node" "*"
+    generic-pool "^3.9.0"
 
 "@types/tedious@4.0.9":
   version "4.0.9"
@@ -3907,7 +3900,7 @@ generate-function@^2.3.1:
   dependencies:
     is-property "^1.0.2"
 
-generic-pool@^3.8.2:
+generic-pool@^3.8.2, generic-pool@^3.9.0:
   version "3.9.0"
   resolved "https://registry.yarnpkg.com/generic-pool/-/generic-pool-3.9.0.tgz#36f4a678e963f4fdb8707eab050823abc4e8f5e4"
   integrity sha512-hymDOu5B53XvN4QT9dBmZxPX4CWhBPPLguTZ9MMFeFa/Kg0xWVfylOVNlJji/E7yTZWFd/q9GO5TxDLq156D7g==
