@@ -3094,11 +3094,6 @@ escodegen@^1.8.1:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-config-prettier@^8.5.0:
-  version "8.6.0"
-  resolved "https://registry.yarnpkg.com/eslint-config-prettier/-/eslint-config-prettier-8.6.0.tgz#dec1d29ab728f4fa63061774e1672ac4e363d207"
-  integrity sha512-bAF0eLpLVqP5oEVUFKpMA+NnRFICwn9X8B5jrR9FcqnYBuPbqWEjTEspPWMj5ye6czoSLDweCzSo3Ko7gGrZaA==
-
 eslint-import-resolver-node@^0.3.6:
   version "0.3.6"
   resolved "https://registry.yarnpkg.com/eslint-import-resolver-node/-/eslint-import-resolver-node-0.3.6.tgz#4048b958395da89668252001dbd9eca6b83bacbd"
@@ -5848,13 +5843,12 @@ mute-stream@0.0.8, mute-stream@~0.0.4:
   resolved "https://registry.yarnpkg.com/mute-stream/-/mute-stream-0.0.8.tgz#1630c42b2251ff81e2a283de96a5497ea92e5e0d"
   integrity sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==
 
-mysql2@3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/mysql2/-/mysql2-3.0.0.tgz#aa454d15404c721499e9eee89b62c8b3f5e51b45"
-  integrity sha512-/bWuj8j7bZOPyMPy5qra/44bIlYqE+o/qc80SIvKuvxYl/gSJpgqHVkvQziZvfy9o6i9l7mMQaVUNYXfnUtCOQ==
+mysql2@3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/mysql2/-/mysql2-3.0.1.tgz#436db56e96d5b7fed350192387f54881658b8b44"
+  integrity sha512-Wrh5KuE0OOlm6wRwRhE2q+C8LjwwfT3sFKVauyTwMwPbOd2i0SzxMqTZPqs90ZNAEWjot5GFywje84qVn3ITYw==
   dependencies:
     denque "^2.1.0"
-    eslint-config-prettier "^8.5.0"
     generate-function "^2.3.1"
     iconv-lite "^0.6.3"
     long "^5.2.1"
