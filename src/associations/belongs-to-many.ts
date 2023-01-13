@@ -1063,8 +1063,7 @@ export type BelongsToManyGetAssociationsMixin<T extends Model> = (
  * @see BelongsToManySetAssociationsMixin
  */
 export interface BelongsToManySetAssociationsMixinOptions<TargetModel extends Model>
-  extends FindOptions<Attributes<TargetModel>>,
-    BulkCreateOptions<Attributes<TargetModel>>,
+  extends BulkCreateOptions<Attributes<TargetModel>>,
     InstanceUpdateOptions<Attributes<TargetModel>>,
     InstanceDestroyOptions {
 
@@ -1099,8 +1098,7 @@ export type BelongsToManySetAssociationsMixin<TModel extends Model, TModelPrimar
  * @see BelongsToManyAddAssociationsMixin
  */
 export interface BelongsToManyAddAssociationsMixinOptions<TModel extends Model>
-  extends FindOptions<Attributes<TModel>>,
-    BulkCreateOptions<Attributes<TModel>>,
+  extends BulkCreateOptions<Attributes<TModel>>,
     InstanceUpdateOptions<Attributes<TModel>>,
     InstanceDestroyOptions {
   through?: JoinTableAttributes;
@@ -1131,8 +1129,7 @@ export type BelongsToManyAddAssociationsMixin<T extends Model, TModelPrimaryKey>
  * @see BelongsToManyAddAssociationMixin
  */
 export interface BelongsToManyAddAssociationMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>>,
-    BulkCreateOptions<Attributes<T>>,
+  extends BulkCreateOptions<Attributes<T>>,
     InstanceUpdateOptions<Attributes<T>>,
     InstanceDestroyOptions {
   through?: JoinTableAttributes;

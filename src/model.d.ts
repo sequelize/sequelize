@@ -810,6 +810,18 @@ export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
   subQuery?: boolean;
 }
 
+export type BulkCreateIncludeable = ModelStatic | Association | BulkCreateIncludeOptions | { all: true, nested?: true }
+  | string;
+
+export interface BulkCreateIncludeOptions extends IncludeOptions {
+
+  /**
+   * Fields to update if row key already exists (on duplicate key update)? These fields apply to the model being `include`d (only supported by MySQL,
+   * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5).
+   */
+  updateOnDuplicate?: string[];
+}
+
 type OrderItemAssociation = Association | ModelStatic<Model> | { model: ModelStatic<Model>, as: string } | string;
 type OrderItemColumn = string | Col | Fn | Literal;
 export type OrderItem =
@@ -1188,9 +1200,9 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   updateOnDuplicate?: Array<keyof TAttributes>;
 
   /**
-   * Include options. See `find` for details
+   * Include options. See BulkCreateIncludeable for details.
    */
-  include?: AllowArray<Includeable>;
+  include?: AllowArray<BulkCreateIncludeable>;
 
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)

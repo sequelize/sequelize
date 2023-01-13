@@ -621,6 +621,91 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedUsers[1].jobs).to.be.ok;
         expect(persistedUsers[1].jobs.length).to.equal(2);
       });
+
+      it('supports updateOnDuplicate for associated models', async function () {
+        const dialectName = this.sequelize.dialect.name;
+
+        const Player = this.sequelize.define('Player', {
+          code: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
+          name: DataTypes.STRING,
+        });
+        const Team = this.sequelize.define('Team', {
+          code: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
+          country: DataTypes.STRING,
+        });
+        Team.hasMany(Player, { as: 'players' });
+        await this.sequelize.sync();
+
+        const bulkCreateOptions = [
+          {
+            code: 'team1',
+            country: 'countryTeam001',
+            players: [
+              {
+                code: 'player1',
+                name: 'playername1',
+              },
+            ],
+          },
+        ];
+        const includeOptions = {
+          include: [
+            {
+              model: Player,
+              as: 'players',
+              updateOnDuplicate: ['name'],
+            },
+          ],
+          updateOnDuplicate: ['country'],
+        };
+
+        if (dialectName === 'mssql' || dialectName === 'db2') {
+          expect(
+            async () => await Team.bulkCreate(
+              bulkCreateOptions,
+              includeOptions,
+            ).to.be.rejectedWith(
+              `${dialectName} does not support the updateOnDuplicate option.`,
+            ),
+          );
+        } else {
+          await Team.bulkCreate(bulkCreateOptions, includeOptions);
+
+          const preUpdatePlayer = await Player.findOne({
+            where: { code: 'player1' },
+          });
+
+          expect(preUpdatePlayer.name).to.equal('playername1');
+
+          await Team.bulkCreate(
+            [
+              {
+                code: 'team1',
+                country: 'countryTeam1',
+                players: [
+                  {
+                    code: 'player1',
+                    name: 'playername2',
+                  },
+                ],
+              },
+            ],
+            includeOptions,
+          );
+
+          const postUpdatePlayer = await Player.findOne({
+            where: { code: 'player1' },
+          });
+
+          expect(postUpdatePlayer.name).to.equal('playername2');
+        }
+      });
     });
   });
 });
