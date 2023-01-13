@@ -1196,6 +1196,11 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+
+  /**
+   * Primary key names used as conflict target columns during insertion.
+   */
+  upsertKeys?: string[];
 }
 
 /**
