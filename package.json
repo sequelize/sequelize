@@ -102,7 +102,7 @@
     "markdownlint-cli": "0.33.0",
     "mocha": "10.2.0",
     "moment": "2.29.4",
-    "mysql2": "3.0.0",
+    "mysql2": "3.0.1",
     "node-hook": "1.0.0",
     "nyc": "15.1.0",
     "odbc": "2.4.6",
