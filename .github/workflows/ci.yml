@@ -36,7 +36,7 @@ jobs:
       - name: Build sequelize
         run: yarn workspace @sequelize/core build
       - name: Compress artifact
-        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/node_modules ./packages/core/types
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/node_modules ./packages/core/types ./node_modules
       - uses: actions/upload-artifact@v3
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -52,7 +52,11 @@ jobs:
         with:
           node-version: 18.x
           cache: yarn
-      - run: yarn install --frozen-lockfile
+      - uses: actions/download-artifact@v3
+        with:
+          name: install-build-artifact-node-18
+      - name: Extract artifact
+        run: tar -xf install-build-node-18.tar
       - run: yarn lint-no-fix
   unit-test:
     strategy:
