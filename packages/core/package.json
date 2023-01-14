@@ -213,7 +213,6 @@
     "test-db2": "cross-env DIALECT=db2 yarn test",
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
-    "prepare": "yarn build && husky install",
     "build": "node ./build.js"
   },
   "support": true,

@@ -2172,7 +2172,7 @@ chai-datetime@1.8.0:
   dependencies:
     chai ">1.9.0"
 
-chai@4.3.7, chai@>1.9.0, chai@^4.3.7:
+chai@4.3.7, chai@>1.9.0:
   version "4.3.7"
   resolved "https://registry.yarnpkg.com/chai/-/chai-4.3.7.tgz#ec63f6df01829088e8bf55fca839bcd464a8ec51"
   integrity sha512-HLnAzZ2iupm25PlN0xFreAlBA5zaBSv3og0DdeGA4Ar6h6rJ3A0rolRUKJhSF2V10GZKDgWF/VmAEsNWjCRB+A==
