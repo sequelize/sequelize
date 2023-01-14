@@ -108,8 +108,6 @@ jobs:
           name: install-build-artifact-node-18
       - name: Extract artifact
         run: tar -xf install-build-node-18.tar
-      - name: Install root dependencies
-        run: yarn install --frozen-lockfile
       - run: yarn docs
   test-typings:
     strategy:

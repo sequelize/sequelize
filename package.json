@@ -8,7 +8,7 @@
     "lint-no-fix": "eslint . --quiet --report-unused-disable-directives",
     "docs": "typedoc",
     "fix-commit": "export TMPFILE=$(mktemp) && grep -v '^#' $(git rev-parse --git-dir)/COMMIT_EDITMSG > $TMPFILE && git commit -e -F $TMPFILE",
-    "----------------------------------------- local test dbs ------------------------------------------": "",
+    "------------------------------------- local test dbs --------------------------------------": "",
     "start-mariadb-oldest": "bash dev/mariadb/oldest/start.sh",
     "start-mariadb-latest": "bash dev/mariadb/latest/start.sh",
     "start-mysql-oldest": "bash dev/mysql/oldest/start.sh",
