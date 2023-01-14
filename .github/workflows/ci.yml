@@ -18,17 +18,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint:
-    name: Lint code
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: yarn
-      - run: yarn install --frozen-lockfile
-      - run: yarn lint-no-fix
   install-and-build-core:
     strategy:
       fail-fast: false
@@ -53,6 +42,18 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
           path: install-build-node-${{ matrix.node-version }}.tar
           retention-days: 1
+  lint:
+    name: Lint code
+    runs-on: ubuntu-latest
+    needs: install-and-build-core
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn lint-no-fix
   unit-test:
     strategy:
       fail-fast: false
@@ -60,7 +61,7 @@ jobs:
         node-version: [14, 18]
     name: Unit test all dialects (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
-    needs: [install-and-build-core, lint]
+    needs: lint
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -91,7 +92,7 @@ jobs:
   docs:
     name: Generate TypeDoc
     runs-on: ubuntu-latest
-    needs: install-and-build-core
+    needs: lint
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -113,7 +114,7 @@ jobs:
         ts-version: ["4.6", "4.7", "4.8", "4.9"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
-    needs: [install-and-build-core, lint]
+    needs: lint
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
