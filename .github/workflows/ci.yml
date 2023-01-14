@@ -313,7 +313,7 @@ jobs:
           name: install-build-artifact-node-18
       - name: Extract artifact
         run: tar -xf install-build-node-18.tar
-      - run: yarn add semantic-release
+      - run: yarn add semantic-release@20.0.2
       - run: yarn semantic-release
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
