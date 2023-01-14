@@ -212,12 +212,8 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Install pg-native (Node 14)
-        run: yarn add pg-native --ignore-engines
-        if: matrix.native && matrix.node-version == 14
-      - name: Install pg-native (Node 18)
-        run: yarn workspace @sequelize/core add pg-native
-        if: matrix.native && matrix.node-version == 18
+      - name: Install pg-native
+        run: yarn workspace @sequelize/core add pg-native --ignore-engines
       - run: yarn start-postgres-${{ matrix.postgres-version }}
       - name: Integration Tests
         run: yarn workspace @sequelize/core test-integration
