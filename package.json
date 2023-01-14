@@ -112,7 +112,7 @@
     "p-timeout": "4.1.0",
     "pg": "8.8.0",
     "pg-hstore": "2.3.4",
-    "rimraf": "3.0.2",
+    "rimraf": "4.0.4",
     "semantic-release": "19.0.5",
     "semantic-release-fail-on-major-bump": "1.0.0",
     "sinon": "15.0.1",
