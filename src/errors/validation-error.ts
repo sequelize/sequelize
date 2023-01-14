@@ -235,9 +235,9 @@ class ValidationError extends BaseError {
     if (stack) {
       this.stack = [
         this.stack,
-         'From original error:',
-         stack.split('\n').slice(1).join('\n')
-       ].join('\n');
+        'From original error:',
+        stack.split('\n').slice(1).join('\n'),
+      ].join('\n');
     }
   }
 

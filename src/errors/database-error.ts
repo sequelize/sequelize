@@ -40,9 +40,9 @@ class DatabaseError
 
     if (options.stack) {
       this.stack = [
-       this.stack,
+        this.stack,
         'From original error:',
-        options.stack.split('\n').slice(1).join('\n')
+        options.stack.split('\n').slice(1).join('\n'),
       ].join('\n');
     }
   }
