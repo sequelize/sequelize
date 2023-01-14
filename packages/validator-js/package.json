@@ -16,7 +16,6 @@
     "url": "https://github.com/sequelize/sequelize/issues"
   },
   "main": "index.js",
-  "author": "",
   "license": "MIT",
   "type": "commonjs",
   "publishConfig": {
