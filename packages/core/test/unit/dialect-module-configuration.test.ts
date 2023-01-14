@@ -1,4 +1,3 @@
-import { join } from 'node:path';
 import { expect } from 'chai';
 import { Sequelize } from '@sequelize/core';
 import { getTestDialect, getTestDialectTeaser } from '../support';
@@ -24,32 +23,31 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('options.dialectModulePath', () => {
-      let dialectPath = join(process.cwd(), 'node_modules');
-
+      let dialectPath: string;
       switch (dialect) {
         case 'postgres':
-          dialectPath = join(dialectPath, 'pg');
+          dialectPath = require.resolve('pg');
           break;
         case 'mysql':
-          dialectPath = join(dialectPath, 'mysql2');
+          dialectPath = require.resolve('mysql2');
           break;
         case 'mariadb':
-          dialectPath = join(dialectPath, 'mariadb');
+          dialectPath = require.resolve('mariadb');
           break;
         case 'db2':
-          dialectPath = join(dialectPath, 'ibm_db');
+          dialectPath = require.resolve('ibm_db');
           break;
         case 'mssql':
-          dialectPath = join(dialectPath, 'tedious');
+          dialectPath = require.resolve('tedious');
           break;
         case 'sqlite':
-          dialectPath = join(dialectPath, 'sqlite3');
+          dialectPath = require.resolve('sqlite3');
           break;
         case 'ibmi':
-          dialectPath = join(dialectPath, 'odbc');
+          dialectPath = require.resolve('odbc');
           break;
         case 'snowflake':
-          dialectPath = join(dialectPath, 'snowflake-sdk');
+          dialectPath = require.resolve('snowflake-sdk');
           break;
         default:
           throw new Error('Unsupported dialect');
