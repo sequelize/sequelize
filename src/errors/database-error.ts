@@ -39,7 +39,11 @@ class DatabaseError
     this.parameters = parent.parameters ?? {};
 
     if (options.stack) {
-      this.stack = options.stack;
+      this.stack = [
+       this.stack,
+        'From original error:',
+        options.stack.split('\n').slice(1).join('\n')
+      ].join('\n');
     }
   }
 }

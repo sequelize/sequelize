@@ -367,114 +367,104 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(users[0].email).to.be.equal('john@gmail.com');
     });
 
-    // Only run stacktrace tests on Node 12+, since only Node 12+ supports
-    // async stacktraces
-    const nodeVersionMatch = process.version.match(/^v(\d+)/);
-    let nodeMajorVersion = 0;
-    if (nodeVersionMatch && nodeVersionMatch[1]) {
-      nodeMajorVersion = Number.parseInt(nodeVersionMatch[1], 10);
-    }
-
-    if (nodeMajorVersion >= 12) {
-      describe('stacktraces', () => {
-        beforeEach(async function () {
-          this.UserVisit = this.sequelize.define('UserVisit', {
-            userId: {
-              type: DataTypes.STRING,
-              field: 'user_id',
-            },
-            visitedAt: {
-              type: DataTypes.DATE,
-              field: 'visited_at',
-            },
-          }, {
-            indexes: [
-              { name: 'user_id', fields: ['user_id'] },
-            ],
-          });
-
-          this.User.hasMany(this.UserVisit, { foreignKey: 'user_id' });
-
-          await this.UserVisit.sync({ force: true });
+    describe('stacktraces', () => {
+      beforeEach(async function () {
+        this.UserVisit = this.sequelize.define('UserVisit', {
+          userId: {
+            type: DataTypes.STRING,
+            field: 'user_id',
+          },
+          visitedAt: {
+            type: DataTypes.DATE,
+            field: 'visited_at',
+          },
+        }, {
+          indexes: [
+            { name: 'user_id', fields: ['user_id'] },
+          ],
         });
 
-        it('emits raw errors if requested', async function () {
-          const sql = 'SELECT 1 FROM NotFoundTable';
+        this.User.hasMany(this.UserVisit, { foreignKey: 'user_id' });
 
-          await expect(this.sequelize.query(sql, { rawErrors: false }))
-            .to.eventually.be.rejectedWith(DatabaseError);
+        await this.UserVisit.sync({ force: true });
+      });
 
-          await expect(this.sequelize.query(sql, { rawErrors: true }))
-            .to.eventually.be.rejected
-            .and.not.be.an.instanceOf(DatabaseError);
-        });
+      it('emits raw errors if requested', async function () {
+        const sql = 'SELECT 1 FROM NotFoundTable';
 
-        it('emits full stacktraces for generic database error', async function () {
-          let error = null;
-          try {
-            await this.sequelize.query(`select * from ${qq(this.User.tableName)} where ${qq('unknown_column')} = 1`);
-          } catch (error_) {
-            error = error_;
-          }
+        await expect(this.sequelize.query(sql, { rawErrors: false }))
+          .to.eventually.be.rejectedWith(DatabaseError);
 
-          expect(error).to.be.instanceOf(DatabaseError);
-          expect(error.stack).to.contain('query.test');
-        });
+        await expect(this.sequelize.query(sql, { rawErrors: true }))
+          .to.eventually.be.rejected
+          .and.not.be.an.instanceOf(DatabaseError);
+      });
 
-        it('emits full stacktraces for unique constraint error', async function () {
+      it('emits full stacktraces for generic database error', async function () {
+        let error = null;
+        try {
+          await this.sequelize.query(`select * from ${qq(this.User.tableName)} where ${qq('unknown_column')} = 1`);
+        } catch (error_) {
+          error = error_;
+        }
+
+        expect(error).to.be.instanceOf(DatabaseError);
+        expect(error.stack).to.contain('query.test');
+      });
+
+      it('emits full stacktraces for unique constraint error', async function () {
+        let query;
+        if (['db2', 'ibmi'].includes(dialectName)) {
+          query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${
+            qq('createdAt')}, ${qq('updatedAt')
+          }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+        } else {
+          query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
+            qq('createdAt')}, ${qq('updatedAt')
+          }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+        }
+
+        let error = null;
+        try {
+          // Insert 1 row
+          await this.sequelize.query(query);
+          // Try inserting a duplicate row
+          await this.sequelize.query(query);
+        } catch (error_) {
+          error = error_;
+        }
+
+        expect(error).to.be.instanceOf(UniqueConstraintError);
+        expect(error.stack).to.contain('query.test');
+      });
+
+      it('emits full stacktraces for constraint validation error', async function () {
+        let error = null;
+        try {
           let query;
           if (['db2', 'ibmi'].includes(dialectName)) {
-            query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${
-              qq('createdAt')}, ${qq('updatedAt')
-            }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+            query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
+              'createdAt',
+            )}, ${qq(
+              'updatedAt',
+            )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
           } else {
-            query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
-              qq('createdAt')}, ${qq('updatedAt')
-            }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+            query = `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
+              'createdAt',
+            )}, ${qq(
+              'updatedAt',
+            )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
           }
 
-          let error = null;
-          try {
-            // Insert 1 row
-            await this.sequelize.query(query);
-            // Try inserting a duplicate row
-            await this.sequelize.query(query);
-          } catch (error_) {
-            error = error_;
-          }
+          await this.sequelize.query(query);
+        } catch (error_) {
+          error = error_;
+        }
 
-          expect(error).to.be.instanceOf(UniqueConstraintError);
-          expect(error.stack).to.contain('query.test');
-        });
-
-        it('emits full stacktraces for constraint validation error', async function () {
-          let error = null;
-          try {
-            let query;
-            if (['db2', 'ibmi'].includes(dialectName)) {
-              query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
-                'createdAt',
-              )}, ${qq(
-                'updatedAt',
-              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-            } else {
-              query = `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
-                'createdAt',
-              )}, ${qq(
-                'updatedAt',
-              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-            }
-
-            await this.sequelize.query(query);
-          } catch (error_) {
-            error = error_;
-          }
-
-          expect(error).to.be.instanceOf(ForeignKeyConstraintError);
-          expect(error.stack).to.contain('query.test');
-        });
+        expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+        expect(error.stack).to.contain('query.test');
       });
-    }
+    });
 
     describe('rejections', () => {
       it('reject if the query is not a string', async function () {

@@ -232,9 +232,12 @@ class ValidationError extends BaseError {
         .join(',\n');
     }
 
-    // Allow overriding the stack if the original stacktrace is uninformative
     if (stack) {
-      this.stack = stack;
+      this.stack = [
+        this.stack,
+         'From original error:',
+         stack.split('\n').slice(1).join('\n')
+       ].join('\n');
     }
   }
 
