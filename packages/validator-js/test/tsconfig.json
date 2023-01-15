@@ -3,7 +3,7 @@
   "compilerOptions": {
     "types": ["node", "mocha", "sinon", "chai", "sinon-chai", "chai-as-promised"],
     "noEmit": true,
-    "experimentalDecorators": true,
+    "experimentalDecorators": true
   },
   "include": ["./types/**/*", "./**/**/*.ts"]
 }
