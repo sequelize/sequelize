@@ -1,6 +1,6 @@
 'use strict';
 
-const Support = require('../test/support');
+const Support = require('../packages/core/test/support');
 
 module.exports = {
   createSequelizeInstance(options = {}) {
