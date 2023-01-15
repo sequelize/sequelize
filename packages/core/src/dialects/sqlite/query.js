@@ -310,8 +310,10 @@ export class SqliteQuery extends AbstractQuery {
       for (const attribute of attributes) {
         if (/\bPRIMARY KEY\b/.test(attribute)) {
           data.push({
+            constraintSchema: '',
             constraintName: 'PRIMARY',
             constraintType: 'PRIMARY KEY',
+            tableSchema: '',
             tableName,
           });
         } else if (/\bREFERENCES\b/.test(attribute)) {
@@ -319,8 +321,10 @@ export class SqliteQuery extends AbstractQuery {
           const updateAction = attribute.match(/ON UPDATE (\w+)/);
 
           data.push({
+            constraintSchema: '',
             constraintName: 'FOREIGN',
             constraintType: 'FOREIGN KEY',
+            tableSchema: '',
             tableName,
             columnName: /`(\S+)`/.exec(attribute)[1],
             referencedTableName: /REFERENCES `(\S+)`/.exec(attribute)[1],
@@ -330,15 +334,19 @@ export class SqliteQuery extends AbstractQuery {
           });
         } else if (/\bUNIQUE\b/.test(attribute)) {
           data.push({
+            constraintSchema: '',
             constraintName: 'UNIQUE',
             constraintType: 'UNIQUE',
+            tableSchema: '',
             tableName,
             columnName: /`(\S+)`/.exec(attribute)[1],
           });
         } else if (/\bCHECK\b/.test(attribute)) {
           data.push({
+            constraintSchema: '',
             constraintName: 'CHECK',
             constraintType: 'CHECK',
+            tableSchema: '',
             tableName,
             columnName: /`(\S+)`/.exec(attribute)[1],
             definition: /CHECK (.+)/.exec(attribute)[1],
@@ -349,8 +357,10 @@ export class SqliteQuery extends AbstractQuery {
       for (const constraint of constraints) {
         const [, constraintName, constraintType, definition] = constraint.match(/CONSTRAINT (?:`|'|")(\S+)(?:`|'|") (\w+) (.+)/);
         data.push({
+          constraintSchema: '',
           constraintName,
           constraintType,
+          tableSchema: '',
           tableName,
           definition,
         });
@@ -359,8 +369,10 @@ export class SqliteQuery extends AbstractQuery {
       for (const key of keys) {
         if (key.startsWith('PRIMARY KEY')) {
           data.push({
+            constraintSchema: '',
             constraintName: 'PRIMARY',
             constraintType: 'PRIMARY KEY',
+            tableSchema: '',
             tableName,
           });
         } else if (key.startsWith('FOREIGN KEY')) {
@@ -368,8 +380,10 @@ export class SqliteQuery extends AbstractQuery {
           const updateAction = key.match(/ON UPDATE (\w+)/);
 
           data.push({
+            constraintSchema: '',
             constraintName: 'FOREIGN',
             constraintType: 'FOREIGN KEY',
+            tableSchema: '',
             tableName,
             columnName: /FOREIGN KEY(?:\b|\s+)\(`(\S+)`\)/.exec(key)[1],
             referencedTableName: /REFERENCES `(\S+)`/.exec(key)[1],

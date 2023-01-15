@@ -31,7 +31,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT c.CONSTNAME AS "constraintName",',
+      'SELECT c.TABSCHEMA AS "constraintSchema",',
+      'c.CONSTNAME AS "constraintName",',
       `CASE c.TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'F' THEN 'FOREIGN KEY' WHEN 'K' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END AS "constraintType",`,
       'c.TABSCHEMA AS "tableSchema",',
       'c.TABNAME AS "tableName",',
@@ -48,7 +49,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN SYSCAT.KEYCOLUSE fk ON r.REFKEYNAME = fk.CONSTNAME',
       'LEFT JOIN SYSCAT.CHECKS ck ON c.CONSTNAME = ck.CONSTNAME AND c.TABNAME = ck.TABNAME AND c.TABSCHEMA = ck.TABSCHEMA',
       `WHERE c.TABNAME = ${this.escape(table.tableName)}`,
-      'AND c.TABSCHEMA',
+      'AND c.TABSCHEMA =',
       table.schema ? this.escape(table.schema) : 'USER',
       constraintName ? `AND c.CONSTNAME = ${this.escape(constraintName)}` : '',
       'ORDER BY c.CONSTNAME',

@@ -277,22 +277,22 @@ export interface IndexDescription {
 }
 
 export interface ConstraintDescription {
-  constrainCatalog: string | null | undefined;
-  constraintSchema: string | null | undefined;
+  constrainCatalog?: string;
+  constraintSchema: string;
   constraintName: string;
   constraintType: string;
-  tableCatalog: string | null | undefined;
-  tableSchema: string | null | undefined;
+  tableCatalog?: string;
+  tableSchema: string;
   tableName: string;
-  columnName: string | null | undefined;
-  referencedTableSchema: string | null | undefined;
-  referencedTableName: string | null | undefined;
-  referencedColumnName: string | null | undefined;
-  deleteAction: string | null | undefined;
-  updateAction: string | null | undefined;
-  definition: string | null | undefined;
-  isDeferrable: string | null | undefined;
-  initiallyDeferred: string | null | undefined;
+  columnName?: string;
+  referencedTableSchema?: string;
+  referencedTableName?: string;
+  referencedColumnName?: string;
+  deleteAction?: string;
+  updateAction?: string;
+  definition?: string;
+  isDeferrable?: string;
+  initiallyDeferred?: string;
 }
 
 export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable { }
