@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "prepare": "husky install",
-    "publish-all": "lerna publish --conventional-commits --no-private --yes --create-release github",
+    "publish-all": "lerna publish --conventional-commits --no-private --yes --create-release github --no-changelog",
     "lint": "eslint . --fix --report-unused-disable-directives",
     "lint-no-fix": "eslint . --quiet --report-unused-disable-directives",
     "docs": "typedoc",
