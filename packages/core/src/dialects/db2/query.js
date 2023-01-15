@@ -1,10 +1,8 @@
 'use strict';
 
 import assert from 'node:assert';
-import util from 'node:util';
 import { AbstractQuery } from '../abstract/query';
 import { logger } from '../../utils/logger';
-import dayjs from 'dayjs';
 
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
@@ -66,7 +64,7 @@ export class Db2Query extends AbstractQuery {
       return this.formatResults();
     }
 
-    if (_.startsWith(this.sql, 'SAVE TRANSACTION')) {
+    if (this.sql.startsWith('SAVE TRANSACTION')) {
       try {
         await connection.commitTransaction(this.options.transaction.name);
         await connection.beginTransaction();
@@ -89,7 +87,7 @@ export class Db2Query extends AbstractQuery {
     let newSql = this.sql;
 
     // TODO: move this to Db2QueryGenerator
-    if ((this.isSelectQuery() || _.startsWith(SQL, 'SELECT '))
+    if ((this.isSelectQuery() || SQL.startsWith('SELECT '))
             && !SQL.includes(' FROM ', 8)) {
       if (this.sql.charAt(this.sql.length - 1) === ';') {
         newSql = this.sql.slice(0, -1);
@@ -107,7 +105,8 @@ export class Db2Query extends AbstractQuery {
 
     let res;
     try {
-      res = await stmt.execute(params);
+      // Warning: the promise version stmt.execute() does not return the same thing as stmt.execute(callback), despite the documentation.
+      res = await this.#execute(stmt, params);
     } catch (error) {
       if (error.message) {
         // eslint-disable-next-line no-ex-assign -- legacy code. TODO: reformat
@@ -143,7 +142,7 @@ export class Db2Query extends AbstractQuery {
     let metadata = [];
     let affectedRows = 0;
     if (typeof result === 'object') {
-      if (_.startsWith(this.sql, 'DELETE FROM ')) {
+      if (this.sql.startsWith('DELETE FROM ')) {
         affectedRows = result.getAffectedRowsSync();
       } else {
         data = result.fetchAllSync();
@@ -158,8 +157,7 @@ export class Db2Query extends AbstractQuery {
     if (datalen > 0) {
       const coltypes = {};
       for (const metadatum of metadata) {
-        coltypes[metadatum.SQL_DESC_NAME]
-                      = metadatum.SQL_DESC_TYPE_NAME;
+        coltypes[metadatum.SQL_DESC_NAME] = metadatum.SQL_DESC_TYPE_NAME;
       }
 
       for (let i = 0; i < datalen; i++) {
@@ -188,6 +186,18 @@ export class Db2Query extends AbstractQuery {
 
   async run(sql, parameters) {
     return await this._run(this.connection, sql, parameters);
+  }
+
+  #execute(stmt, params) {
+    return new Promise((resolve, reject) => {
+      stmt.execute(params, (err, result, outparams) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({ result, outparams });
+        }
+      });
+    });
   }
 
   filterSQLError(err, sql, connection) {
@@ -301,7 +311,7 @@ export class Db2Query extends AbstractQuery {
   handleShowConstraintsQuery(data) {
     // Remove SQL Contraints from constraints list.
     return _.remove(data, constraint => {
-      return !_.startsWith(constraint.constraintName, 'SQL');
+      return !constraint.constraintName.startsWith('SQL');
     });
   }
 
@@ -396,7 +406,7 @@ export class Db2Query extends AbstractQuery {
   isDropSchemaQuery() {
     let result = false;
 
-    if (_.startsWith(this.sql, 'CALL SYSPROC.ADMIN_DROP_SCHEMA')) {
+    if (this.sql.startsWith('CALL SYSPROC.ADMIN_DROP_SCHEMA')) {
       result = true;
     }
 

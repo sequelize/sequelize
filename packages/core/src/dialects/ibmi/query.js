@@ -2,7 +2,6 @@
 
 import { find } from '../../utils/iterators';
 
-const _ = require('lodash');
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');

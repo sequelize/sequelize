@@ -247,7 +247,7 @@ export class SqliteQuery extends AbstractQuery {
         tableName = tableName.replace(/`/g, '');
         columnTypes[tableName] = {};
 
-        const results = await this.#allSeries(conn, `PRAGMA table_info(\`${tableName}\`)`);
+        const { results } = await this.#allSeries(conn, `PRAGMA table_info(\`${tableName}\`)`);
         for (const result of results) {
           columnTypes[tableName][result.name] = result.type;
         }
