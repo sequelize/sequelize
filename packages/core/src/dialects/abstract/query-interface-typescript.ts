@@ -22,17 +22,13 @@ export class AbstractQueryInterfaceTypeScript {
    * Create a new database schema.
    *
    * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and mariadb, this command will instead create a database.
+   * not a database table. In mysql and mariadb, this command will create what they call a database.
    *
    * @see
    * {@link Model.schema}
    *
    * @param schema Name of the schema
-   * @param [options={}]
-   * @param [options.collate=null]
-   * @param [options.charset=null]
-    *
-   * @returns
+   * @param options
    */
   async createSchema(schema: string, options?: CreateSchemaOptions): Promise<void> {
     const sql = this.queryGenerator.createSchemaQuery(schema, options);
@@ -43,13 +39,10 @@ export class AbstractQueryInterfaceTypeScript {
    * Drop a single schema
    *
    * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this drop a table matching the schema name
+   * not a database table. In mysql and mariadb, this drop a table matching the schema name.
    *
    * @param schema Name of the schema
-   * @param [options={}] query options
-   * @param [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns
+   * @param options
    */
   async dropSchema(schema: string, options?: QueryRawOptions): Promise<void> {
     const dropSchemaQuery: string | QueryGeneratorDropSchemaQueryObject = this.queryGenerator.dropSchemaQuery(schema);
@@ -73,12 +66,9 @@ export class AbstractQueryInterfaceTypeScript {
    * Drop all schemas.
    *
    * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this is the equivalent of drop all tables.
+   * not a database table. In mysql and mariadb, this is the equivalent of drop all databases.
    *
-   * @param [options={}] query options
-   * @param [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns
+   * @param options
    */
   async dropAllSchemas(options?: DropAllSchemasOptions): Promise<void> {
     const schemas = await this.showAllSchemas();
@@ -95,12 +85,11 @@ export class AbstractQueryInterfaceTypeScript {
    * Show all defined schemas
    *
    * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this will show all tables.
+   * not a database table. In mysql and mariadb, this will show all databases.
    *
-   * @param [options={}] query options
-   * @param [options.logging] A function that logs sql queries, or false for no logging
+   * @param options
    *
-   * @returns
+   * @returns list of schemas
    */
   async showAllSchemas(options?: ShowAllSchemasOptions): Promise<string[]> {
     const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
