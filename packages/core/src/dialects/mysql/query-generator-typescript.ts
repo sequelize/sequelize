@@ -59,7 +59,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
         `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
         `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
         constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(constraintName)}` : '',
-        'ORDER BY c.CONSTRAINT_NAME;',
+        'ORDER BY c.CONSTRAINT_NAME',
       ]);
     }
 
@@ -81,9 +81,9 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON r.CONSTRAINT_CATALOG = kcu.CONSTRAINT_CATALOG',
       'AND r.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA AND r.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND r.TABLE_NAME = kcu.TABLE_NAME',
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
-       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
+      `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
       constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(constraintName)}` : '',
-      'ORDER BY c.CONSTRAINT_NAME;',
+      'ORDER BY c.CONSTRAINT_NAME',
     ]);
   }
 

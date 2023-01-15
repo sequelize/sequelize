@@ -33,7 +33,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
       constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(constraintName)}` : '',
-      'ORDER BY c.CONSTRAINT_NAME;',
+      'ORDER BY c.CONSTRAINT_NAME',
     ]);
   }
 

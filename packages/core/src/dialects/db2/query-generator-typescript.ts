@@ -51,7 +51,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND c.TABSCHEMA',
       table.schema ? this.escape(table.schema) : 'USER',
       constraintName ? `AND c.CONSTNAME = ${this.escape(constraintName)}` : '',
-      'ORDER BY c.CONSTNAME;',
+      'ORDER BY c.CONSTNAME',
     ]);
   }
 

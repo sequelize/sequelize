@@ -21,7 +21,6 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     return joinSQLFragments([
       'SELECT sql FROM sqlite_master',
       `WHERE tbl_name = ${this.escape(table.tableName)}`,
-      ';',
     ]);
   }
 
