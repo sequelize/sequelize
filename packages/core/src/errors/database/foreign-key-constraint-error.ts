@@ -34,7 +34,7 @@ class ForeignKeyConstraintError extends DatabaseError {
 
     const parent = options.cause ?? options.parent ?? { sql: '', name: '', message: '' };
 
-    super(parent, { stack: options.stack });
+    super(parent);
     this.name = 'SequelizeForeignKeyConstraintError';
     this.fields = options.fields;
     this.table = options.table;
