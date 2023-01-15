@@ -1,0 +1,8 @@
+{
+  "extends": "./packages/core/test/tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "module": "Node16"
+  },
+  "include": ["./dev/**/*.ts", "./sscce.ts"]
+}
