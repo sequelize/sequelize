@@ -1,7 +1,6 @@
 module.exports = {
-  tsconfig: './tsconfig.json',
   entryPointStrategy: 'packages',
-  entryPoints: ['packages/core'],
+  entryPoints: ['packages/core', 'packages/core/src/decorators/legacy/index.ts'],
   out: './.typedoc-build',
   readme: 'none',
   plugin: ['typedoc-plugin-missing-exports', 'typedoc-plugin-mdn-links', 'typedoc-plugin-carbon-ads'],

@@ -217,8 +217,8 @@
   },
   "support": true,
   "typedoc": {
-    "entryPoints": ["./src/index.d.ts", "./src/decorators/legacy/index.ts"],
+    "entryPoint": "./src/index.d.ts",
     "displayName": "@sequelize/core",
-    "tsconfig": "./tsconfig-typedoc.json"
+    "tsconfig": "./tsconfig.json"
   }
 }

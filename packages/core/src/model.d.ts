@@ -1706,8 +1706,9 @@ export type ReferentialAction = 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NU
 
 /**
  * Column options for the model schema attributes.
- * Used in {@link Model.init} and {@link Sequelize#define}, and the {@link decorators-legacy~Attribute} decorator.
+ * Used in {@link Model.init} and {@link Sequelize#define}, and the Attribute decorator.
  */
+// TODO: Link to Attribute decorator once it's possible to have multiple entry points in the docs: https://github.com/TypeStrong/typedoc/issues/2138
 export interface AttributeOptions<M extends Model = Model> {
   /**
    * A string or a data type.
@@ -1875,10 +1876,11 @@ export type Identifier = number | bigint | string | Buffer;
 /**
  * Options for model definition.
  *
- * Used by {@link Sequelize.define}, {@link Model.init}, and the {@link decorators-legacy~Table} decorator.
+ * Used by {@link Sequelize.define}, {@link Model.init}, and the Table decorator.
  *
  * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
  */
+// TODO: Link to Table decorator once it's possible to have multiple entry points in the docs: https://github.com/TypeStrong/typedoc/issues/2138
 export interface ModelOptions<M extends Model = Model> {
   /**
    * Define the default search scope to use for this model. Scopes have the same form as the options passed to
