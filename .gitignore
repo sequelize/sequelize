@@ -11,11 +11,10 @@ pnpm-lock.yaml
 .nyc_output
 coverage-*
 coverage
-test/tmp/*
-test/binary/tmp/*
+tmp
 .vscode/
 .typedoc-build
 node_modules
 *.log
-/lib
-/types
+/packages/*/lib
+/packages/*/types
