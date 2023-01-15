@@ -1,7 +1,7 @@
 {
   "extends": "./packages/core/test/tsconfig.json",
   "compilerOptions": {
-    "rootDir": ".",
+    "rootDir": "."
   },
   "include": ["./dev/**/*.ts", "./sscce.ts"]
 }
