@@ -49,7 +49,7 @@ export class SqliteQuery extends AbstractQuery {
     return ret;
   }
 
-  _handleQueryResponse(metaData, columnTypes, results) {
+  _handleQueryResponse(metaData, results) {
     let result = this.instance;
 
     // add the inserted row id to the instance
@@ -225,7 +225,7 @@ export class SqliteQuery extends AbstractQuery {
 
       complete();
 
-      return query._handleQueryResponse(response.statement, columnTypes, response.results);
+      return query._handleQueryResponse(response.statement, response.results);
     };
 
     if (method === 'all') {

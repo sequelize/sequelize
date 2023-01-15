@@ -66,7 +66,8 @@ export class Db2Query extends AbstractQuery {
 
     if (this.sql.startsWith('SAVE TRANSACTION')) {
       try {
-        await connection.commitTransaction(this.options.transaction.name);
+        // TODO: This is not a savepoint! It's unsafe and this behavior should be removed.
+        await connection.commitTransaction();
         await connection.beginTransaction();
       } catch (error) {
         throw this.formatError(error);
