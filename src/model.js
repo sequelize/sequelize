@@ -1526,15 +1526,6 @@ ${associationOwner._getAssociationDebugList()}`);
       await this.hooks.runAsync('beforeCount', options);
     }
 
-    let col = options.col || '*';
-    if (options.include) {
-      col = `${this.name}.${options.col || this.primaryKeyField}`;
-    }
-
-    if (options.distinct && col === '*') {
-      col = this.primaryKeyField;
-    }
-
     options.plain = !options.group;
     options.dataType = new DataTypes.INTEGER();
     options.includeIgnoreAttributes = false;
@@ -1544,6 +1535,30 @@ ${associationOwner._getAssociationDebugList()}`);
     options.limit = null;
     options.offset = null;
     options.order = null;
+
+    // counting grouped rows is not possible with `this.aggregate`
+    // use a subquery to get the count
+    if (options.group && options.countGroupedRows) {
+      // remove trailing semicolon for wrap query
+      const query = this.queryGenerator.selectQuery(this.getTableName(), options).slice(0, -1);
+
+      const queryCountAll = `Select COUNT(*) AS count FROM (${query}) AS Z`;
+
+      const result = await this.sequelize.query(queryCountAll);
+
+      const count = Number((result[0][0].count));
+
+      return count;
+    }
+
+    let col = options.col || '*';
+    if (options.include) {
+      col = `${this.name}.${options.col || this.primaryKeyField}`;
+    }
+
+    if (options.distinct && col === '*') {
+      col = this.primaryKeyField;
+    }
 
     const result = await this.aggregate(col, 'count', options);
 
@@ -1609,7 +1624,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const countOptions = cloneDeep(options);
 
-    if (countOptions.attributes) {
+    if (countOptions.attributes && !options.countGroupedRows) {
       countOptions.attributes = undefined;
     }
 
