@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "prepare": "husky install",
-    "publish-all": "yarn workspaces run semantic-release",
+    "publish-all": "lerna publish --conventional-commits --no-private --yes --create-release github",
     "lint": "eslint . --fix --report-unused-disable-directives",
     "lint-no-fix": "eslint . --quiet --report-unused-disable-directives",
     "docs": "typedoc",
@@ -46,30 +46,12 @@
     "eslint": "8.30.0",
     "eslint-plugin-jsdoc": "39.6.4",
     "eslint-plugin-mocha": "10.1.0",
-    "lerna": "^6.4.1",
+    "lerna": "6.4.1",
     "lint-staged": "13.1.0",
     "markdownlint-cli": "0.32.2",
-    "semantic-release": "19.0.5",
-    "semantic-release-monorepo": "7.0.5",
     "typedoc": "0.23.23"
   },
   "packageManager": "yarn@1.22.17",
-  "release": {
-    "extends": "semantic-release-monorepo",
-    "plugins": [
-      "@semantic-release/commit-analyzer",
-      "@semantic-release/release-notes-generator",
-      "@semantic-release/npm",
-      "@semantic-release/github"
-    ],
-    "branches": [
-      "v6",
-      {
-        "name": "v7",
-        "prerelease": "alpha"
-      }
-    ]
-  },
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
   }
