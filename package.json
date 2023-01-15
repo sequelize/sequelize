@@ -27,7 +27,7 @@
     "stop-db2": "bash dev/db2/oldest/stop.sh",
     "stop-all": "concurrently \"npm:stop-*(!all|db2)\" && npm run stop-db2",
     "----------------------------------------- SSCCEs ------------------------------------------": "",
-    "sscce": "node sscce.js",
+    "sscce": "ts-node sscce.ts",
     "sscce-mariadb": "cross-env DIALECT=mariadb yarn sscce",
     "sscce-mysql": "cross-env DIALECT=mysql yarn sscce",
     "sscce-postgres": "cross-env DIALECT=postgres yarn sscce",
