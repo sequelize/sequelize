@@ -46,6 +46,7 @@
     "eslint": "8.30.0",
     "eslint-plugin-jsdoc": "39.6.4",
     "eslint-plugin-mocha": "10.1.0",
+    "lerna": "^6.4.1",
     "lint-staged": "13.1.0",
     "markdownlint-cli": "0.32.2",
     "semantic-release": "19.0.5",
