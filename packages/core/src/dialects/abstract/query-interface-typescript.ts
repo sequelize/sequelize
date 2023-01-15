@@ -1,7 +1,7 @@
 import { QueryTypes } from '../../query-types';
-import type { BindOrReplacements, QueryRawOptions, Sequelize } from '../../sequelize';
+import type { QueryRawOptions, Sequelize } from '../../sequelize';
 import type { AbstractQueryGenerator } from './query-generator';
-import type { QueryGeneratorDropSchemaQueryObject } from './query-generator.types';
+import type { QueryWithBindParams } from './query-generator.types';
 import type { CreateSchemaOptions, DropAllSchemasOptions, QueryInterfaceOptions, ShowAllSchemasOptions } from './query-interface.types';
 
 // DO NOT MAKE THIS CLASS PUBLIC!
@@ -45,18 +45,16 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options
    */
   async dropSchema(schema: string, options?: QueryRawOptions): Promise<void> {
-    const dropSchemaQuery: string | QueryGeneratorDropSchemaQueryObject = this.queryGenerator.dropSchemaQuery(schema);
+    const dropSchemaQuery: string | QueryWithBindParams = this.queryGenerator.dropSchemaQuery(schema);
 
     let sql: string;
-    let queryRawOptions = options;
+    let queryRawOptions: undefined | QueryRawOptions;
     if (typeof dropSchemaQuery === 'string') {
       sql = dropSchemaQuery;
+      queryRawOptions = options;
     } else {
       sql = dropSchemaQuery.query;
-
-      // QueryRawOptions doesn't take undefined bind
-      const bind = dropSchemaQuery.bind as BindOrReplacements;
-      queryRawOptions = { ...options, bind };
+      queryRawOptions = { ...options, bind: dropSchemaQuery.bind };
     }
 
     await this.sequelize.queryRaw(sql, queryRawOptions);

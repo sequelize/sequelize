@@ -14,6 +14,7 @@ import type { Literal, SequelizeMethod, Col } from '../../utils/sequelize-method
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
+import type { QueryWithBindParams } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
 
 type ParameterOptions = {
@@ -201,7 +202,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
-  dropSchemaQuery(schemaName: string): string | { query: string, bind?: unknown[] };
+  dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
 
   listSchemasQuery(options?: ListSchemasQueryOptions): string;
 
