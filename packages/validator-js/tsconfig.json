@@ -18,5 +18,5 @@
     "stripInternal": true,
     "exactOptionalPropertyTypes": true
   },
-  "include": ["./src/**/*.ts"],
+  "include": ["./src/**/*.ts"]
 }
