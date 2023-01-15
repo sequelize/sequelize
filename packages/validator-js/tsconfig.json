@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "commonjs",
-    "moduleResolution": "node",
+    "moduleResolution": "node16",
     "allowJs": false,
     "declaration": true,
     "sourceRoot": "",
@@ -18,5 +18,5 @@
     "stripInternal": true,
     "exactOptionalPropertyTypes": true
   },
-  "include": ["./src/**/*.ts"]
+  "include": ["./src/**/*.ts"],
 }

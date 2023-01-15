@@ -77,6 +77,10 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: ESM / CJS export equivalence
+        run: yarn test-unit-esm
+      - name: Unit tests (validator.js)
+        run: yarn workspace @sequelize/validator.js test-unit
       - name: Unit tests (mariadb)
         run: yarn workspace @sequelize/core test-unit-mariadb
       - name: Unit tests (mysql)
@@ -131,7 +135,7 @@ jobs:
       - name: Install TypeScript
         run: yarn workspace @sequelize/core add typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
-        run: yarn workspace @sequelize/core test-typings
+        run: yarn test-typings
   test-db2:
     strategy:
       fail-fast: false

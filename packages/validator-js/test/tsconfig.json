@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "module": "Node16",
+    "types": ["node", "mocha", "sinon", "chai", "sinon-chai", "chai-as-promised"],
+    "noEmit": true,
+    "emitDeclarationOnly": false,
+    "exactOptionalPropertyTypes": false,
+    "experimentalDecorators": true
+  },
+  "include": ["./types/**/*", "./**/**/*.ts"]
+}
