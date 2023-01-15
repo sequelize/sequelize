@@ -51,7 +51,7 @@
     "markdownlint-cli": "0.32.2",
     "typedoc": "0.23.23"
   },
-  "packageManager": "yarn@1.22.17",
+  "packageManager": "yarn@1.22.19",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
   }
