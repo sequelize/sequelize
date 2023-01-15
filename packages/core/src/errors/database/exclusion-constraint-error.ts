@@ -23,7 +23,7 @@ class ExclusionConstraintError extends DatabaseError {
 
     const parent = options.cause ?? options.parent ?? { sql: '', name: '', message: '' };
 
-    super(parent, { stack: options.stack });
+    super(parent);
     this.message = options.message || parent.message;
     this.name = 'SequelizeExclusionConstraintError';
     this.constraint = options.constraint;

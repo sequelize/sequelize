@@ -1,10 +1,8 @@
 'use strict';
 
 import assert from 'node:assert';
-import util from 'node:util';
 import { AbstractQuery } from '../abstract/query';
 import { logger } from '../../utils/logger';
-import dayjs from 'dayjs';
 
 const sequelizeErrors = require('../../errors');
 const _ = require('lodash');
@@ -36,156 +34,171 @@ export class Db2Query extends AbstractQuery {
 
     const complete = this._logQuery(sql, debug, parameters);
 
-    const errStack = new Error().stack;
-
-    return new Promise((resolve, reject) => {
-      // TRANSACTION SUPPORT
-      if (_.startsWith(this.sql, 'BEGIN TRANSACTION')) {
-        connection.beginTransaction(err => {
-          if (err) {
-            reject(this.formatError(err, errStack));
-          } else {
-            resolve(this.formatResults());
-          }
-        });
-      } else if (_.startsWith(this.sql, 'COMMIT TRANSACTION')) {
-        connection.commitTransaction(err => {
-          if (err) {
-            reject(this.formatError(err, errStack));
-          } else {
-            resolve(this.formatResults());
-          }
-        });
-      } else if (_.startsWith(this.sql, 'ROLLBACK TRANSACTION')) {
-        connection.rollbackTransaction(err => {
-          if (err) {
-            reject(this.formatError(err, errStack));
-          } else {
-            resolve(this.formatResults());
-          }
-        });
-      } else if (_.startsWith(this.sql, 'SAVE TRANSACTION')) {
-        connection.commitTransaction(err => {
-          if (err) {
-            reject(this.formatError(err, errStack));
-          } else {
-            connection.beginTransaction(err => {
-              if (err) {
-                reject(this.formatError(err, errStack));
-              } else {
-                resolve(this.formatResults());
-              }
-            });
-          }
-        }, this.options.transaction.name);
-      } else {
-        const params = [];
-        if (parameters) {
-          _.forOwn(parameters, (value, key) => {
-            const param = this.getSQLTypeFromJsType(value, key);
-            params.push(param);
-          });
-        }
-
-        const SQL = this.sql.toUpperCase();
-        let newSql = this.sql;
-
-        // TODO: move this to Db2QueryGenerator
-        if ((this.isSelectQuery() || _.startsWith(SQL, 'SELECT '))
-            && !SQL.includes(' FROM ', 8)) {
-          if (this.sql.charAt(this.sql.length - 1) === ';') {
-            newSql = this.sql.slice(0, -1);
-          }
-
-          newSql += ' FROM SYSIBM.SYSDUMMY1;';
-        }
-
-        connection.prepare(newSql, (err, stmt) => {
-          if (err) {
-            reject(this.formatError(err, errStack));
-          }
-
-          stmt.execute(params, (err, result, outparams) => {
-            complete();
-
-            // map the INOUT parameters to the name provided by the dev
-            // this is an internal API, not yet ready for dev consumption, hence the _unsafe_ prefix.
-            if (outparams && this.options.bindParameterOrder && this.options._unsafe_db2Outparams) {
-              for (let i = 0; i < this.options.bindParameterOrder.length; i++) {
-                const paramName = this.options.bindParameterOrder[i];
-                const paramValue = outparams[i];
-
-                this.options._unsafe_db2Outparams.set(paramName, paramValue);
-              }
-            }
-
-            if (err && err.message) {
-              err = this.filterSQLError(err, this.sql, connection);
-              if (err === null) {
-                stmt.closeSync();
-                resolve(this.formatResults([], 0));
-              }
-            }
-
-            if (err) {
-              err.sql = sql;
-              stmt.closeSync();
-              reject(this.formatError(err, errStack, connection, parameters));
-            } else {
-              let data = [];
-              let metadata = [];
-              let affectedRows = 0;
-              if (typeof result === 'object') {
-                if (_.startsWith(this.sql, 'DELETE FROM ')) {
-                  affectedRows = result.getAffectedRowsSync();
-                } else {
-                  data = result.fetchAllSync();
-                  metadata = result.getColumnMetadataSync();
-                }
-
-                result.closeSync();
-              }
-
-              stmt.closeSync();
-              const datalen = data.length;
-              if (datalen > 0) {
-                const coltypes = {};
-                for (const metadatum of metadata) {
-                  coltypes[metadatum.SQL_DESC_NAME]
-                      = metadatum.SQL_DESC_TYPE_NAME;
-                }
-
-                for (let i = 0; i < datalen; i++) {
-                  for (const column in data[i]) {
-                    const value = data[i][column];
-                    if (value === null) {
-                      continue;
-                    }
-
-                    const parse = this.sequelize.dialect.getParserForDatabaseDataType(coltypes[column]);
-                    if (parse) {
-                      data[i][column] = parse(value);
-                    }
-                  }
-                }
-
-                if (outparams && outparams.length > 0) {
-                  data.unshift(outparams);
-                }
-
-                resolve(this.formatResults(data, datalen, metadata, connection));
-              } else {
-                resolve(this.formatResults(data, affectedRows));
-              }
-            }
-          });
-        });
+    if (this.sql.startsWith('BEGIN TRANSACTION')) {
+      try {
+        await connection.beginTransaction();
+      } catch (error) {
+        throw this.formatError(error);
       }
-    });
+
+      return this.formatResults();
+    }
+
+    if (this.sql.startsWith('COMMIT TRANSACTION')) {
+      try {
+        await connection.commitTransaction();
+      } catch (error) {
+        throw this.formatError(error);
+      }
+
+      return this.formatResults();
+    }
+
+    if (this.sql.startsWith('ROLLBACK TRANSACTION')) {
+      try {
+        await connection.rollbackTransaction();
+      } catch (error) {
+        throw this.formatError(error);
+      }
+
+      return this.formatResults();
+    }
+
+    if (this.sql.startsWith('SAVE TRANSACTION')) {
+      try {
+        // TODO: This is not a savepoint! It's unsafe and this behavior should be removed.
+        await connection.commitTransaction();
+        await connection.beginTransaction();
+      } catch (error) {
+        throw this.formatError(error);
+      }
+
+      return this.formatResults();
+    }
+
+    const params = [];
+    if (parameters) {
+      _.forOwn(parameters, (value, key) => {
+        const param = this.getSQLTypeFromJsType(value, key);
+        params.push(param);
+      });
+    }
+
+    const SQL = this.sql.toUpperCase();
+    let newSql = this.sql;
+
+    // TODO: move this to Db2QueryGenerator
+    if ((this.isSelectQuery() || SQL.startsWith('SELECT '))
+            && !SQL.includes(' FROM ', 8)) {
+      if (this.sql.charAt(this.sql.length - 1) === ';') {
+        newSql = this.sql.slice(0, -1);
+      }
+
+      newSql += ' FROM SYSIBM.SYSDUMMY1;';
+    }
+
+    let stmt;
+    try {
+      stmt = await connection.prepare(newSql);
+    } catch (error) {
+      throw this.formatError(error);
+    }
+
+    let res;
+    try {
+      // Warning: the promise version stmt.execute() does not return the same thing as stmt.execute(callback), despite the documentation.
+      res = await this.#execute(stmt, params);
+    } catch (error) {
+      if (error.message) {
+        // eslint-disable-next-line no-ex-assign -- legacy code. TODO: reformat
+        error = this.filterSQLError(error, this.sql, connection);
+        if (error === null) {
+          stmt.closeSync();
+
+          return this.formatResults([], 0);
+        }
+      }
+
+      error.sql = sql;
+      stmt.closeSync();
+      throw this.formatError(error, connection, parameters);
+    }
+
+    const { result, outparams } = res;
+
+    complete();
+
+    // map the INOUT parameters to the name provided by the dev
+    // this is an internal API, not yet ready for dev consumption, hence the _unsafe_ prefix.
+    if (outparams && this.options.bindParameterOrder && this.options._unsafe_db2Outparams) {
+      for (let i = 0; i < this.options.bindParameterOrder.length; i++) {
+        const paramName = this.options.bindParameterOrder[i];
+        const paramValue = outparams[i];
+
+        this.options._unsafe_db2Outparams.set(paramName, paramValue);
+      }
+    }
+
+    let data = [];
+    let metadata = [];
+    let affectedRows = 0;
+    if (typeof result === 'object') {
+      if (this.sql.startsWith('DELETE FROM ')) {
+        affectedRows = result.getAffectedRowsSync();
+      } else {
+        data = result.fetchAllSync();
+        metadata = result.getColumnMetadataSync();
+      }
+
+      result.closeSync();
+    }
+
+    stmt.closeSync();
+    const datalen = data.length;
+    if (datalen > 0) {
+      const coltypes = {};
+      for (const metadatum of metadata) {
+        coltypes[metadatum.SQL_DESC_NAME] = metadatum.SQL_DESC_TYPE_NAME;
+      }
+
+      for (let i = 0; i < datalen; i++) {
+        for (const column in data[i]) {
+          const value = data[i][column];
+          if (value === null) {
+            continue;
+          }
+
+          const parse = this.sequelize.dialect.getParserForDatabaseDataType(coltypes[column]);
+          if (parse) {
+            data[i][column] = parse(value);
+          }
+        }
+      }
+
+      if (outparams && outparams.length > 0) {
+        data.unshift(outparams);
+      }
+
+      return this.formatResults(data, datalen, metadata, connection);
+    }
+
+    return this.formatResults(data, affectedRows);
   }
 
   async run(sql, parameters) {
     return await this._run(this.connection, sql, parameters);
+  }
+
+  #execute(stmt, params) {
+    return new Promise((resolve, reject) => {
+      stmt.execute(params, (err, result, outparams) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve({ result, outparams });
+        }
+      });
+    });
   }
 
   filterSQLError(err, sql, connection) {
@@ -299,11 +312,11 @@ export class Db2Query extends AbstractQuery {
   handleShowConstraintsQuery(data) {
     // Remove SQL Contraints from constraints list.
     return _.remove(data, constraint => {
-      return !_.startsWith(constraint.constraintName, 'SQL');
+      return !constraint.constraintName.startsWith('SQL');
     });
   }
 
-  formatError(err, errStack, conn, parameters) {
+  formatError(err, conn, parameters) {
     let match;
 
     if (!(err && err.message)) {
@@ -360,7 +373,7 @@ export class Db2Query extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
+      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
     }
 
     match = err.message.match(/SQL0532N {2}A parent row cannot be deleted because the relationship "(.*)" restricts the deletion/)
@@ -371,7 +384,6 @@ export class Db2Query extends AbstractQuery {
         fields: null,
         index: match[1],
         cause: err,
-        stack: errStack,
       });
     }
 
@@ -386,17 +398,16 @@ export class Db2Query extends AbstractQuery {
         constraint,
         table,
         cause: err,
-        stack: errStack,
       });
     }
 
-    return new sequelizeErrors.DatabaseError(err, { stack: errStack });
+    return new sequelizeErrors.DatabaseError(err);
   }
 
   isDropSchemaQuery() {
     let result = false;
 
-    if (_.startsWith(this.sql, 'CALL SYSPROC.ADMIN_DROP_SCHEMA')) {
+    if (this.sql.startsWith('CALL SYSPROC.ADMIN_DROP_SCHEMA')) {
       result = true;
     }
 

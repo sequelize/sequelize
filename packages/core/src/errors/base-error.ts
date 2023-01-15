@@ -1,9 +1,4 @@
 import { useErrorCause } from '../utils/deprecations.js';
-import type { Nullish } from '../utils/types.js';
-
-export interface SequelizeErrorOptions {
-  stack?: Nullish<string>;
-}
 
 export interface CommonErrorProperties {
   /** The SQL that triggered the error */

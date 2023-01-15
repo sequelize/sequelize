@@ -25,7 +25,7 @@ class UnknownConstraintError extends DatabaseError {
 
     const parent = options.cause ?? options.parent ?? { sql: '', name: '', message: '' };
 
-    super(parent, { stack: options.stack });
+    super(parent);
     this.name = 'SequelizeUnknownConstraintError';
     this.constraint = options.constraint;
     this.fields = options.fields;
