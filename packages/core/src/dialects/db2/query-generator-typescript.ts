@@ -48,7 +48,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN SYSCAT.KEYCOLUSE fk ON r.REFKEYNAME = fk.CONSTNAME',
       'LEFT JOIN SYSCAT.CHECKS ck ON c.CONSTNAME = ck.CONSTNAME AND c.TABNAME = ck.TABNAME AND c.TABSCHEMA = ck.TABSCHEMA',
       `WHERE c.TABNAME = ${this.escape(table.tableName)}`,
-      table.schema !== '' ? `AND c.TABSCHEMA = ${this.escape(table.schema)}` : 'AND c.TABSCHEMA = USER',
+      'AND c.TABSCHEMA',
+      table.schema ? this.escape(table.schema) : 'USER',
       constraintName ? `AND c.CONSTNAME = ${this.escape(constraintName)}` : '',
       'ORDER BY c.CONSTNAME;',
     ]);

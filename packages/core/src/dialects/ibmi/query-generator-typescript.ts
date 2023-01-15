@@ -58,7 +58,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN QSYS2.SYSCHKCST ch ON c.CONSTRAINT_NAME = ch.CONSTRAINT_NAME AND c.CONSTRAINT_SCHEMA = ch.CONSTRAINT_SCHEMA',
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       'AND c.TABLE_SCHEMA =',
-      table.schema !== '' ? this.escape(table.schema) : 'CURRENT SCHEMA',
+      table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
       constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(constraintName)}` : '',
       'ORDER BY c.CONSTRAINT_NAME;',
     ]);
