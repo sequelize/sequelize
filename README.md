@@ -1,7 +1,7 @@
-<p align="center">
+<div align="center">
   <img src="logo.svg" width="100" alt="Sequelize logo" />
-  <h1 align="center"><a href="https://sequelize.org">Sequelize</a></h1>
-</p>
+  <h1 align="center" style="margin-top: 0;"><a href="https://sequelize.org">Sequelize</a></h1>
+</div>
 
 [![npm version](https://badgen.net/npm/v/@sequelize/core)](https://www.npmjs.com/package/@sequelize/core)
 [![npm downloads](https://badgen.net/npm/dm/@sequelize/core)](https://www.npmjs.com/package/@sequelize/core)

@@ -35,8 +35,10 @@ function createOptionalAttributeValidationDecorator<Key extends ValidateKeys>(
   );
 }
 
+// TODO: rename to Matches
 export const Is = createRequiredAttributeValidationDecorator('is');
 
+// TODO: rename to NotMatches
 export const Not = createRequiredAttributeValidationDecorator('not');
 
 export const IsEmail = createOptionalAttributeValidationDecorator('isEmail', true);
@@ -77,6 +79,7 @@ export const IsIn = createRequiredAttributeValidationDecorator('isIn');
 
 export const NotContains = createRequiredAttributeValidationDecorator('notContains');
 
+// TODO: rename IsLength
 export const Len = createRequiredAttributeValidationDecorator('len');
 
 export const IsUUID = createRequiredAttributeValidationDecorator('isUUID');
@@ -87,8 +90,10 @@ export const IsAfter = createRequiredAttributeValidationDecorator('isAfter');
 
 export const IsBefore = createRequiredAttributeValidationDecorator('isBefore');
 
+// TODO: rename to MaxLength
 export const Max = createRequiredAttributeValidationDecorator('max');
 
+// TODO: rename to MinLength
 export const Min = createRequiredAttributeValidationDecorator('min');
 
 export const IsArray = createOptionalAttributeValidationDecorator('isArray', true);

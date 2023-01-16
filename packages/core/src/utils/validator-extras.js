@@ -13,6 +13,7 @@ export const extensions = {
   notEmpty(str) {
     return !/^\s*$/.test(str);
   },
+  // TODO: accept { min, max } object
   len(str, min, max) {
     return this.isLength(str, min, max);
   },
@@ -87,6 +88,7 @@ validator.isNull = validator.isEmpty;
 
 // isDate removed in 7.0.0
 // https://github.com/chriso/validator.js/commit/095509fc707a4dc0e99f85131df1176ad6389fc9
+// TODO: isDate has been added back https://github.com/validatorjs/validator.js/pull/1270
 validator.isDate = function (dateString) {
   return dayjs(dateString).isValid();
 };
