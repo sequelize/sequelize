@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import type { CreateSchemaQueryOptions } from '../../../src/dialects/abstract/query-generator';
+import type { CreateSchemaQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { sequelize } from '../support';
 
 const { queryInterface, dialect } = sequelize;
@@ -12,10 +12,10 @@ const dialectsWithEqualDBsSchemas = ['mysql', 'mariadb'];
 describe('QueryInterface#{create,drop,dropAll,showAll}Schema', () => {
   if (!dialect.supports.schemas) {
     it('should throw, indicating that the method is not supported', async () => {
-      await expect(queryInterface.createSchema(testSchema)).to.be.rejectedWith(`Schemas are not supported in ${dialect}.`);
-      await expect(queryInterface.dropSchema(testSchema)).to.be.rejectedWith(`Schemas are not supported in ${dialect}.`);
-      await expect(queryInterface.dropAllSchemas()).to.be.rejectedWith(`Schemas are not supported in ${dialect}.`);
-      await expect(queryInterface.showAllSchemas()).to.be.rejectedWith(`Schemas are not supported in ${dialect}.`);
+      await expect(queryInterface.createSchema(testSchema)).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
+      await expect(queryInterface.dropSchema(testSchema)).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
+      await expect(queryInterface.dropAllSchemas()).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
+      await expect(queryInterface.showAllSchemas()).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
     });
 
     return;
@@ -67,6 +67,14 @@ describe('QueryInterface#{create,drop,dropAll,showAll}Schema', () => {
   });
 
   describe('drops all schemas', () => {
+    // Ensure test schemas are created
+    beforeEach(async () => {
+      const schemas = await queryInterface.showAllSchemas();
+      if (!schemas.includes(testSchema)) {
+        await queryInterface.createSchema(testSchema);
+      }
+    });
+
     it('drops all schemas and skips', async () => {
       await queryInterface.dropAllSchemas({
         skip: [sequelize.config.database, testSchema],
