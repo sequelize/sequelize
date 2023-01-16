@@ -1,4 +1,4 @@
-import type { BindOrReplacements } from 'src/sequelize';
+import type { BindOrReplacements } from '@sequelize/core/src/sequelize';
 
 export interface QueryWithBindParams {
   query: string;
