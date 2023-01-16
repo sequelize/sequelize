@@ -176,7 +176,7 @@
     "test-integration": "yarn mocha \"test/integration/**/*.test.[tj]s\"",
     "test-smoke": "yarn mocha \"test/smoke/**/*.test.[tj]s\" --timeout 600000",
     "teaser": "ts-node test/teaser.ts",
-    "test": "yarn prepare && yarn test-typings && yarn teaser && yarn test-unit && yarn test-integration",
+    "test": "yarn build && yarn test-typings && yarn teaser && yarn test-unit && yarn test-integration",
     "----------------------------------------- coverage ------------------------------------------------": "",
     "cover": "rimraf coverage && yarn teaser && yarn cover-integration && yarn cover-unit && yarn merge-coverage",
     "cover-integration": "cross-env COVERAGE=true nyc --reporter=lcovonly yarn mocha \"test/integration/**/*.test.[tj]s\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
