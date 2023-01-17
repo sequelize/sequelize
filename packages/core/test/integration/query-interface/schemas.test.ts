@@ -3,8 +3,9 @@ import { spy } from 'sinon';
 import type { CreateSchemaQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { sequelize } from '../support';
 
-const { queryInterface, dialect } = sequelize;
+const { dialect } = sequelize;
 const testSchema = 'testSchema';
+const queryInterface = sequelize.getQueryInterface();
 
 // MySQL and MariaDB view databases and schemas as identical. Other databases consider them separate entities.
 const dialectsWithEqualDBsSchemas = ['mysql', 'mariadb'];
@@ -96,7 +97,7 @@ describe('QueryInterface#{create,drop,dropAll,showAll}Schema', () => {
     after(async () => {
       if (dialectsWithEqualDBsSchemas.includes(dialect.name)) {
         await queryInterface.createSchema(sequelize.config.database);
-        await sequelize.queryRaw(`USE ${sequelize.config.database}`);
+        await sequelize.query(`USE ${sequelize.config.database};`);
       }
     });
   });
