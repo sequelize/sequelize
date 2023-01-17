@@ -1,6 +1,6 @@
 import { useErrorCause } from '../../utils/deprecations.js';
 import type { DatabaseErrorSubclassOptions } from '../database-error';
-import DatabaseError from '../database-error';
+import { DatabaseError } from '../database-error';
 
 export enum RelationshipType {
   parent = 'parent',
@@ -18,7 +18,7 @@ interface ForeignKeyConstraintErrorOptions {
 /**
  * Thrown when a foreign key constraint is violated in the database
  */
-class ForeignKeyConstraintError extends DatabaseError {
+export class ForeignKeyConstraintError extends DatabaseError {
   table: string | undefined;
   fields: { [field: string]: string } | undefined;
   value: unknown;
@@ -43,5 +43,3 @@ class ForeignKeyConstraintError extends DatabaseError {
     this.reltype = options.reltype;
   }
 }
-
-export default ForeignKeyConstraintError;

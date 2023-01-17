@@ -114,7 +114,7 @@ export class ModelDefinition {
   readonly #virtualAttributeNames = new Set<string>();
 
   /**
-   * The list of attributes that do not really exist in the database, as opposed to {@link physicalAttributeNames}.
+   * The list of attributes that do not really exist in the database.
    */
   readonly virtualAttributeNames = new SetView(this.#virtualAttributeNames);
 
@@ -153,7 +153,7 @@ export class ModelDefinition {
   readonly defaultValues = new MapView(this.#defaultValues);
 
   /**
-   * Final list of indexes, built by {@link refreshIndexes}
+   * Final list of indexes, built by refreshIndexes
    */
   #indexes: IndexOptions[] = [];
 

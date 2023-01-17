@@ -9361,6 +9361,23 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==
 
+typedoc-plugin-carbon-ads@1.1.6:
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/typedoc-plugin-carbon-ads/-/typedoc-plugin-carbon-ads-1.1.6.tgz#3b161cbf02f661d53b41677abcbe3b4dd28e911e"
+  integrity sha512-yIh6SVDKD1NJZyQL6gKJC0nh6PtQeHfgRJtjhxM0E5We+I1RN1fAiXqWDljbdauHxco6kqMMjmkuTEku7KeEMA==
+  dependencies:
+    typescript "^4.7.4"
+
+typedoc-plugin-mdn-links@2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/typedoc-plugin-mdn-links/-/typedoc-plugin-mdn-links-2.0.1.tgz#ab93ea8c1830ebfbc8dd4dde40d63840b1467d1b"
+  integrity sha512-NKhlev3wO/YnEOgo7WVG9KhxENaxk6n0zTrLG2zcXrkY1WryEe17n5Jjn+0IfEPAzCC0BxHzEBavWdHngBclVw==
+
+typedoc-plugin-missing-exports@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/typedoc-plugin-missing-exports/-/typedoc-plugin-missing-exports-1.0.0.tgz#7212a2cfaba7b48264df4b4110f3a5684b5c49a1"
+  integrity sha512-7s6znXnuAj1eD9KYPyzVzR1lBF5nwAY8IKccP5sdoO9crG4lpd16RoFpLsh2PccJM+I2NASpr0+/NMka6ThwVA==
+
 typedoc@0.23.23:
   version "0.23.23"
   resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.23.23.tgz#9cf95b03d2d40031d8978b55e88b0b968d69f512"
@@ -9371,7 +9388,7 @@ typedoc@0.23.23:
     minimatch "^5.1.1"
     shiki "^0.11.1"
 
-typescript@4.9.4, "typescript@^3 || ^4":
+typescript@4.9.4, "typescript@^3 || ^4", typescript@^4.7.4:
   version "4.9.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.4.tgz#a2a3d2756c079abda241d75f149df9d561091e78"
   integrity sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg==

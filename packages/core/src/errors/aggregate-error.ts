@@ -1,11 +1,11 @@
-import BaseError from './base-error';
+import { BaseError } from './base-error';
 
 /**
  * A wrapper for multiple Errors
  *
  * @param errors The aggregated errors that occurred
  */
-class AggregateError extends BaseError {
+export class AggregateError extends BaseError {
   /** the aggregated errors that occurred */
   readonly errors: Array<AggregateError | Error>;
 
@@ -27,5 +27,3 @@ class AggregateError extends BaseError {
     return message;
   }
 }
-
-export default AggregateError;

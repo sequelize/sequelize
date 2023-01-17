@@ -24,7 +24,7 @@ import {
  * }
  * ```
  *
- * See also {@link ValidateModel}.
+ * See also {@link ModelValidator}.
  */
 export const ValidateAttribute = createRequiredAttributeOptionsDecorator<ColumnValidateOptions>(
   'ValidateAttribute',

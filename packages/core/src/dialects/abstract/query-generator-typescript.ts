@@ -24,8 +24,10 @@ export interface QueryGeneratorOptions {
   dialect: AbstractDialect;
 }
 
+// DO NOT MAKE THIS CLASS PUBLIC!
 /**
- * Temporary class to ease the TypeScript migration
+ * This is a temporary class used to progressively migrate the AbstractQueryGenerator class to TypeScript by slowly moving its functions here.
+ * Always use {@link AbstractQueryGenerator} instead.
  */
 export class AbstractQueryGeneratorTypeScript {
 
