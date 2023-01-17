@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  install-and-build-core:
+  install-and-build:
     strategy:
       fail-fast: false
       matrix:
@@ -34,9 +34,9 @@ jobs:
       - name: Install dependencies and build sequelize
         run: yarn install --frozen-lockfile
       - name: Build sequelize
-        run: yarn workspace @sequelize/core build
+        run: yarn build
       - name: Compress artifact
-        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/node_modules ./packages/core/types ./node_modules
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/node_modules ./packages/core/types ./packages/validator-js/lib ./packages/validator-js/node_modules ./packages/validator-js/types ./node_modules
       - uses: actions/upload-artifact@v3
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -45,7 +45,7 @@ jobs:
   lint:
     name: Lint code
     runs-on: ubuntu-latest
-    needs: install-and-build-core
+    needs: install-and-build
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -77,6 +77,10 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: ESM / CJS export equivalence
+        run: yarn test-unit-esm
+      - name: Unit tests (validator.js)
+        run: yarn workspace @sequelize/validator.js test-unit
       - name: Unit tests (mariadb)
         run: yarn workspace @sequelize/core test-unit-mariadb
       - name: Unit tests (mysql)
@@ -131,7 +135,7 @@ jobs:
       - name: Install TypeScript
         run: yarn workspace @sequelize/core add typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
-        run: yarn workspace @sequelize/core test-typings
+        run: yarn test-typings
   test-db2:
     strategy:
       fail-fast: false

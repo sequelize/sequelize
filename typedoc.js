@@ -1,6 +1,6 @@
 module.exports = {
   entryPointStrategy: 'packages',
-  entryPoints: ['packages/core', 'packages/core/src/decorators/legacy/index.ts'],
+  entryPoints: ['packages/core', 'packages/validator-js'],
   out: './.typedoc-build',
   readme: 'none',
   plugin: ['typedoc-plugin-missing-exports', 'typedoc-plugin-mdn-links', 'typedoc-plugin-carbon-ads'],
