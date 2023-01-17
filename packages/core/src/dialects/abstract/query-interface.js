@@ -725,14 +725,17 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * - FOREIGN KEY
    * - PRIMARY KEY
    *
-   * @example <caption>UNIQUE</caption>
+   * @example UNIQUE
+   * ```ts
    * queryInterface.addConstraint('Users', {
    *   fields: ['email'],
    *   type: 'unique',
    *   name: 'custom_unique_constraint_name'
    * });
+   * ```
    *
-   * @example <caption>CHECK</caption>
+   * @example CHECK
+   * ```ts
    * queryInterface.addConstraint('Users', {
    *   fields: ['roles'],
    *   type: 'check',
@@ -740,22 +743,28 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *      roles: ['user', 'admin', 'moderator', 'guest']
    *   }
    * });
+   * ```
    *
-   * @example <caption>Default - MSSQL only</caption>
+   * @example Default - MSSQL only
+   * ```ts
    * queryInterface.addConstraint('Users', {
    *    fields: ['roles'],
    *    type: 'default',
    *    defaultValue: 'guest'
    * });
+   * ```
    *
-   * @example <caption>Primary Key</caption>
+   * @example Primary Key
+   * ```ts
    * queryInterface.addConstraint('Users', {
    *    fields: ['username'],
    *    type: 'primary key',
    *    name: 'custom_primary_constraint_name'
    * });
+   * ```
    *
-   * @example <caption>Foreign Key</caption>
+   * @example Foreign Key
+   * ```ts
    * queryInterface.addConstraint('Posts', {
    *   fields: ['username'],
    *   type: 'foreign key',
@@ -767,8 +776,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *   onDelete: 'cascade',
    *   onUpdate: 'cascade'
    * });
+   * ```
    *
-   * @example <caption>Composite Foreign Key</caption>
+   * @example Composite Foreign Key
+   * ```ts
    * queryInterface.addConstraint('TableName', {
    *   fields: ['source_column_name', 'other_source_column_name'],
    *   type: 'foreign key',
@@ -780,6 +791,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *   onDelete: 'cascade',
    *   onUpdate: 'cascade'
    * });
+   * ```
    *
    * @param {string} tableName                   Table name where you want to add a constraint
    * @param {object} options                     An object to define the constraint name, type etc

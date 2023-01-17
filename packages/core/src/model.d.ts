@@ -224,7 +224,7 @@ export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayR
 
 // number is always allowed because -Infinity & +Infinity are valid
 /**
- * This type represents a valid input when describing a {@link DataTypes.RANGE}.
+ * This type represents a valid input when describing a {@link <internal>~RANGE}.
  */
 export type Rangable<T> = readonly [
   lower: T | InputRangePart<T> | number | null,
@@ -232,7 +232,7 @@ export type Rangable<T> = readonly [
 ] | EmptyRange;
 
 /**
- * This type represents the output of the {@link DataTypes.RANGE} data type.
+ * This type represents the output of the {@link <internal>~RANGE} data type.
  */
 // number is always allowed because -Infinity & +Infinity are valid
 export type Range<T> = readonly [
@@ -2134,6 +2134,9 @@ export interface ModelGetOptions {
   raw?: boolean;
 }
 
+/**
+ * A Model represents a table in the database. Instances of this class represent a database row.
+ */
 export abstract class Model<TModelAttributes extends {} = any, TCreationAttributes extends {} = TModelAttributes>
   extends ModelTypeScript {
   /**
@@ -2750,17 +2753,17 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * The increment is done using a `SET column = column + X WHERE foo = 'bar'` query.
    *
-   * @example <caption>increment number by 1</caption>
+   * @example increment number by 1
    * ```javascript
    * Model.increment('number', { where: { foo: 'bar' });
    * ```
    *
-   * @example <caption>increment number and count by 2</caption>
+   * @example increment number and count by 2
    * ```javascript
    * Model.increment(['number', 'count'], { by: 2, where: { foo: 'bar' } });
    * ```
    *
-   * @example <caption>increment answer by 42, and decrement tries by 1</caption>
+   * @example increment answer by 42, and decrement tries by 1
    * ```javascript
    * // `by` cannot be used, as each attribute specifies its own value
    * Model.increment({ answer: 42, tries: -1}, { where: { foo: 'bar' } });

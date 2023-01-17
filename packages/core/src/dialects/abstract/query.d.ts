@@ -52,8 +52,6 @@ export interface AbstractQueryFormatBindOptions {
 export class AbstractQuery {
   /**
    * The SQL being executed by this Query.
-   *
-   * @type {string}
    */
   sql: string;
 
@@ -64,25 +62,16 @@ export class AbstractQuery {
 
   /**
    * A Sequelize connection instance.
-   *
-   * @type {Connection}
-   * @memberof AbstractQuery
    */
   connection: Connection;
 
   /**
    * If provided, returns the model instance.
-   *
-   * @type {Model}
-   * @memberof AbstractQuery
    */
   instance: Model;
 
   /**
    * Model type definition.
-   *
-   * @type {ModelStatic}
-   * @memberof AbstractQuery
    */
   model: ModelStatic;
 
@@ -91,21 +80,12 @@ export class AbstractQuery {
    */
   sequelize: Sequelize;
 
-  /**
-   *
-   * @type {AbstractQueryOptions}
-   * @memberof AbstractQuery
-   */
   options: AbstractQueryOptions;
 
   constructor(connection: Connection, sequelize: Sequelize, options?: AbstractQueryOptions);
 
   /**
    * Execute the passed sql query.
-   *
-   * Examples:
-   *
-   *     query.run('SELECT 1')
    *
    * @private
    */
@@ -158,10 +138,6 @@ export class AbstractQuery {
 
   /**
    * Sets auto increment field values (if applicable).
-   *
-   * @param results
-   * @param metaData
-   * @returns
    */
   handleInsertQuery(results?: unknown[], metaData?: unknown): void;
 
@@ -234,9 +210,6 @@ export class AbstractQuery {
   isCallQuery(): boolean;
 
   /**
-   * @param sql
-   * @param debugContext
-   * @param parameters
    * @protected
    * @returns A function to call after the query was completed.
    */
@@ -250,7 +223,7 @@ export class AbstractQuery {
    * The function takes the result of the query execution and groups
    * the associated data by the callee.
    *
-   * Example:
+   * @example
    * ```ts
    * groupJoinData([
    *   {
@@ -269,8 +242,7 @@ export class AbstractQuery {
    * ]);
    * ```
    *
-   * Result:
-   *   Something like this:
+   * Result in:
    *
    * ```ts
    * [
@@ -286,9 +258,6 @@ export class AbstractQuery {
    * ]
    * ```
    *
-   * @param {Array} rows
-   * @param {object} includeOptions
-   * @param {object} options
    * @private
    */
   static _groupJoinData(

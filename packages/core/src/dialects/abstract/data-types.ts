@@ -374,7 +374,7 @@ export interface StringTypeOptions {
 /**
  * Represents a variable length string type.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If the 'length' option is not supported by the dialect, a CHECK constraint will be added to ensure
  * the value remains within the specified length.
  * - If the 'binary' option is not supported by the dialect, a suitable binary type will be used instead.
@@ -487,7 +487,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
 /**
  * Represents a fixed length string type.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this DataType is not supported, an error will be raised.
  *
  * @example
@@ -585,7 +585,7 @@ export class TEXT extends AbstractDataType<string> {
  * Original case is preserved but acts case-insensitive when comparing values (such as when finding or unique constraints).
  * Only available in Postgres and SQLite.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this DataType is not supported, and no case-insensitive text alternative exists, an error will be raised.
  *
  * @example
@@ -830,7 +830,7 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
 /**
  * An 8-bit integer.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a SMALLINT or greater,
  *   with a CHECK constraint to ensure the value is withing the bounds of an 8-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
@@ -855,7 +855,7 @@ export class TINYINT extends BaseIntegerDataType {
 /**
  * A 16-bit integer.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a MEDIUMINT or greater,
  *   with a CHECK constraint to ensure the value is withing the bounds of an 16-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
@@ -880,7 +880,7 @@ export class SMALLINT extends BaseIntegerDataType {
 /**
  * A 24-bit integer.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a INTEGER (32 bits) or greater,
  *   with a CHECK constraint to ensure the value is withing the bounds of an 32-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
@@ -905,7 +905,7 @@ export class MEDIUMINT extends BaseIntegerDataType {
 /**
  * A 32-bit integer.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - When this type or its unsigned option is unsupported by the dialect, it will be replaced by a BIGINT,
  *   with a CHECK constraint to ensure the value is withing the bounds of an 32-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
@@ -930,7 +930,7 @@ export class INTEGER extends BaseIntegerDataType {
 /**
  * A 64-bit integer.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, an error will be raised.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
@@ -1094,7 +1094,7 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
  * A single-floating point number with a 4-byte precision.
  * If single-precision floating-point format is not supported, a double-precision floating-point number may be used instead.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * - If the precision or scale options are unsupported by the dialect, they will be discarded.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the unsigned option is unsupported, it will be replaced by a CHECK > 0 constraint.
@@ -1150,7 +1150,7 @@ export class REAL extends BaseDecimalNumberDataType {
  * Floating point number (8-byte precision).
  * Throws an error when unsupported, instead of silently falling back to a lower precision.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * - If the precision or scale options are unsupported by the dialect, they will be discarded.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the unsigned option is unsupported, it will be replaced by a CHECK > 0 constraint.
@@ -1178,7 +1178,7 @@ export class DOUBLE extends BaseDecimalNumberDataType {
 /**
  * Arbitrary/exact precision decimal number.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * - If the precision or scale options are unsupported by the dialect, they will be ignored.
  * - If the precision or scale options are not specified, and the dialect does not support unconstrained decimals, an error will be raised.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
@@ -1247,7 +1247,7 @@ export class DECIMAL extends BaseDecimalNumberDataType {
 /**
  * A boolean / tinyint column, depending on dialect
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * - If a native boolean type is not available, a dialect-specific numeric replacement (bit, tinyint) will be used instead.
  *
  * @example
@@ -1321,7 +1321,7 @@ export interface TimeOptions {
 /**
  * A time column.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, it will be replaced by a string type,
  * and a CHECK constraint to enforce a valid ISO 8601 time format.
  *
@@ -1378,7 +1378,7 @@ export type AcceptedDate = RawDate | dayjs.Dayjs | number;
 /**
  * A date and time.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, it will be replaced by a string type,
  * and a CHECK constraint to enforce a valid ISO 8601 date-only format.
  *
@@ -1488,7 +1488,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
 /**
  * A date only column (no timestamp)
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, it will be replaced by a string type,
  * and a CHECK constraint to enforce a valid ISO 8601 datetime format.
  *
@@ -1540,7 +1540,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
 /**
  * A key / value store column. Only available in Postgres.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, an error will be raised.
  *
  * @example
@@ -1583,7 +1583,7 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 /**
  * A JSON string column.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, but supports verifying a string as is valid JSON through CHECK constraints,
  * that will be used instead.
  * If neither are available, an error will be raised.
@@ -1618,7 +1618,7 @@ export class JSON extends AbstractDataType<any> {
 /**
  * A binary storage JSON column. Only available in Postgres.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, an error will be raised.
  *
  * @example
@@ -1681,7 +1681,7 @@ export interface BlobOptions {
 /**
  * Binary storage. BLOB is the "TEXT" of binary data: it allows data of arbitrary size.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
  * @example
@@ -1772,7 +1772,7 @@ const defaultRangeParser = buildRangeParser(identity);
  * Range types are data types representing a range of values of some element type (called the range's subtype).
  * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
  * @example
@@ -1904,7 +1904,7 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
  * A column storing a unique universal identifier.
  * Use with `UUIDV1` or `UUIDV4` for default values.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a GUID format.
  *
  *
@@ -2022,7 +2022,7 @@ export interface NormalizedVirtualOptions {
  * If a virtual attribute is present in `attributes` it will automatically pull in the extra fields as well.
  * Return type is mostly useful for setups that rely on types like GraphQL.
  *
- * @example <caption>Checking password length before hashing it</caption>
+ * @example Checking password length before hashing it
  * ```ts
  * sequelize.define('user', {
  *   password_hash: DataTypes.STRING,
@@ -2044,9 +2044,9 @@ export interface NormalizedVirtualOptions {
  * })
  * ```
  *
- * # In the above code the password is stored plainly in the password field so it can be validated, but is never stored in the DB.
+ * In the above code the password is stored plainly in the password field so it can be validated, but is never stored in the DB.
  *
- * @example <caption>Virtual with dependency fields</caption>
+ * @example Virtual with dependency fields
  * ```ts
  * {
  *   active: {
@@ -2116,7 +2116,7 @@ export interface EnumOptions<Member extends string> {
 /**
  * An enumeration, Postgres Only
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a list of values.
  *
  * @example
@@ -2226,7 +2226,7 @@ interface NormalizedArrayOptions {
 /**
  * An array of `type`. Only available in Postgres.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
  * @example
@@ -2345,31 +2345,31 @@ export interface GeometryOptions {
  *
  * Therefore, one can just follow the [GeoJSON spec](https://tools.ietf.org/html/rfc7946) for handling geometry objects.  See the following examples:
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
- * @example <caption>Defining a Geometry type attribute</caption>
+ * @example Defining a Geometry type attribute
  * ```ts
  * DataTypes.GEOMETRY
  * DataTypes.GEOMETRY('POINT')
  * DataTypes.GEOMETRY('POINT', 4326)
  * ```
  *
- * @example <caption>Create a new point</caption>
+ * @example Create a new point
  * ```ts
  * const point = { type: 'Point', coordinates: [-76.984722, 39.807222]}; // GeoJson format: [lng, lat]
  *
  * User.create({username: 'username', geometry: point });
  * ```
  *
- * @example <caption>Create a new linestring</caption>
+ * @example Create a new linestring
  * ```ts
  * const line = { type: 'LineString', 'coordinates': [ [100.0, 0.0], [101.0, 1.0] ] };
  *
  * User.create({username: 'username', geometry: line });
  * ```
  *
- * @example <caption>Create a new polygon</caption>
+ * @example Create a new polygon
  * ```ts
  * const polygon = { type: 'Polygon', coordinates: [
  *                 [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
@@ -2379,7 +2379,7 @@ export interface GeometryOptions {
  * User.create({username: 'username', geometry: polygon });
  * ```
  *
- * @example <caption>Create a new point with a custom SRID</caption>
+ * @example Create a new point with a custom SRID
  * ```ts
  * const point = {
  *   type: 'Point',
@@ -2390,7 +2390,7 @@ export interface GeometryOptions {
  * User.create({username: 'username', geometry: point })
  * ```
  *
- * @see {@link DataTypes.GEOGRAPHY}
+ * @see {@link <internal>~GEOGRAPHY}
  * @category DataTypes
  */
 export class GEOMETRY extends AbstractDataType<GeoJson> {
@@ -2465,10 +2465,10 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
  * Although the new geography data type can cover the globe, the geometry type is far from obsolete.
  * The geometry type has a much richer set of functions than geography, relationship checks are generally faster, and it has wider support currently across desktop and web-mapping tools
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
- * @example <caption>Defining a Geography type attribute</caption>
+ * @example Defining a Geography type attribute
  * ```ts
  * DataTypes.GEOGRAPHY
  * DataTypes.GEOGRAPHY('POINT')
@@ -2497,7 +2497,7 @@ export class GEOGRAPHY extends GEOMETRY {
  *
  * Only available for Postgres
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
  * @example
@@ -2535,7 +2535,7 @@ export class CIDR extends AbstractDataType<string> {
  *
  * Only available for Postgres
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
  * @example
@@ -2573,7 +2573,7 @@ export class INET extends AbstractDataType<string> {
  *
  * Only available for Postgres
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
  * @example
@@ -2611,7 +2611,7 @@ export class MACADDR extends AbstractDataType<string> {
  *
  * Only available for Postgres
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
  * @example

@@ -411,8 +411,6 @@ export class Sequelize extends SequelizeTypeScript {
       deprecations.noBoolOperatorAliases();
     }
 
-    this.queryInterface = this.dialect.queryInterface;
-
     /**
      * Models are stored here under the name given to `sequelize.define`
      */
@@ -432,8 +430,17 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @returns {string} The specified dialect.
    */
+  // TODO [>=8]: rename to getDialectName or remove
   getDialect() {
     return this.options.dialect;
+  }
+
+  get queryInterface() {
+    return this.dialect.queryInterface;
+  }
+
+  get queryGenerator() {
+    return this.dialect.queryGenerator;
   }
 
   /**
@@ -450,6 +457,7 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @returns {AbstractQueryInterface} An instance (singleton) of AbstractQueryInterface.
    */
+  // TODO [>=8]: deprecate & remove
   getQueryInterface() {
     return this.queryInterface;
   }
@@ -1344,10 +1352,12 @@ for (const error of Object.keys(sequelizeErrors)) {
  * @memberof Sequelize
  * @returns {Sequelize.fn}
  *
- * @example <caption>Convert a user's username to upper case</caption>
+ * @example Convert a user's username to upper case
+ * ```ts
  * instance.update({
- *   username: sequelize.fn('upper', sequelize.col('username'))
+ *   username: fn('upper', col('username'))
  * });
+ * ```
  */
 export function fn(fn, ...args) {
   return new Fn(fn, args);

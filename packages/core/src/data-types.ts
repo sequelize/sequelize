@@ -2,7 +2,7 @@
  * The classes declared in this files are the DataTypes available on the `DataTypes` namespace.
  * You can access them as follows:
  *
- * ```js
+ * ```ts
  * import { DataTypes } from '@sequelize/core';
  *
  * DataTypes.STRING;

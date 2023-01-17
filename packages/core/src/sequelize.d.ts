@@ -1,6 +1,6 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
+import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes, AbstractQueryGenerator } from '.';
 import type { AbstractDialect } from './dialects/abstract';
-import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes } from '.';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
@@ -579,7 +579,7 @@ export interface QueryOptionsWithModel<M extends Model> extends QueryOptions {
  * This is the main class, the entry point to sequelize. To use it, you just need to
  * import sequelize:
  *
- * ```js
+ * ```ts
  * import { Sequelize } from '@sequelize/core';
  * ```
  *
@@ -598,9 +598,9 @@ export class Sequelize extends SequelizeTypeScript {
    * not a strings.
    *
    * Convert a user's username to upper case
-   * ```js
+   * ```ts
    * instance.update({
-   *   username: self.sequelize.fn('upper', self.sequelize.col('username'))
+   *   username: fn('upper', col('username'))
    * })
    * ```
    *
@@ -839,6 +839,11 @@ export class Sequelize extends SequelizeTypeScript {
    * The QueryInterface instance, dialect dependant.
    */
   queryInterface: AbstractQueryInterface;
+
+  /**
+   * The QueryGenerator instance, dialect dependant.
+   */
+  queryGenerator: AbstractQueryGenerator;
 
   /**
    * Define a new model, representing a table in the DB.
@@ -1108,9 +1113,9 @@ export class Sequelize extends SequelizeTypeScript {
  * not a strings.
  *
  * Convert a user's username to upper case
- * ```js
+ * ```ts
  * instance.update({
- *   username: self.sequelize.fn('upper', self.sequelize.col('username'))
+ *   username: fn('upper', col('username'))
  * })
  * ```
  *

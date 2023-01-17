@@ -284,7 +284,8 @@ export class Transaction {
    *   lock: t1.LOCK...
    * });
    *
-   * @example <caption>Postgres also supports specific locks while eager loading by using OF:</caption>
+   * @example Postgres also supports specific locks while eager loading by using OF:
+   * ```ts
    * UserModel.findAll({
    *   where: ...,
    *   include: [TaskModel, ...],
@@ -294,10 +295,12 @@ export class Transaction {
    *     of: UserModel
    *   }
    * });
+   * ```
    *
-   * # UserModel will be locked but TaskModel won't!
+   * UserModel will be locked but TaskModel won't!
    *
-   * @example <caption>You can also skip locked rows:</caption>
+   * @example You can also skip locked rows:
+   * ```ts
    * // t1 is a transaction
    * Model.findAll({
    *   where: ...,
@@ -305,7 +308,9 @@ export class Transaction {
    *   lock: true,
    *   skipLocked: true
    * });
-   * # The query will now return any rows that aren't locked by another transaction
+   * ```
+   *
+   * The query will now return any rows that aren't locked by another transaction
    *
    * @returns possible options for row locking
    * @property UPDATE
