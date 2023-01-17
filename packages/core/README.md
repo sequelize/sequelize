@@ -1,7 +1,5 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/sequelize/sequelize/main/logo.svg" width="100" alt="Sequelize logo" />
-  <h1 align="center" style="margin-top: 0;"><a href="https://sequelize.org">Sequelize</a></h1>
-</div>
+<p align="center"><img src="logo.svg" width="100" alt="Sequelize logo" /></p>
+<h1 align="center" style="margin-top: 0;"><a href="https://sequelize.org">Sequelize</a></h1>
 
 This library contains the core functionality of Sequelize. Head to [sequelize.org](https://sequelize.org) to learn how to use Sequelize.
 

@@ -8,7 +8,7 @@
     "lint-no-fix": "eslint . --quiet --report-unused-disable-directives",
     "test-typings": "yarn workspaces run test-typings",
     "test-unit": "yarn test-unit-esm && yarn workspaces run test-unit",
-    "test-unit-esm": "mocha esm-named-exports.test.js",
+    "test-unit-esm": "mocha test/esm-named-exports.test.js",
     "build": "yarn workspaces run build",
     "docs": "typedoc",
     "fix-commit": "export TMPFILE=$(mktemp) && grep -v '^#' $(git rev-parse --git-dir)/COMMIT_EDITMSG > $TMPFILE && git commit -e -F $TMPFILE",

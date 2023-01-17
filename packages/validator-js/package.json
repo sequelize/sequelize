@@ -18,7 +18,7 @@
   "scripts": {
     "test-typings": "tsc --noEmit",
     "test-unit": "yarn mocha \"test/**/*.test.[tj]s\"",
-    "mocha": "mocha -r ../../register-esbuild.js",
+    "mocha": "mocha -r ../../test/register-esbuild.js",
     "build": "../../build-packages.mjs validator-js"
   },
   "main": "./lib/index.js",

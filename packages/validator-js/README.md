@@ -1,7 +1,5 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/sequelize/sequelize/main/logo.svg" width="100" alt="Sequelize logo" />
-  <h1 align="center" style="margin-top: 0;"><a href="https://sequelize.org">Sequelize</a></h1>
-</div>
+<p align="center"><img src="logo.svg" width="100" alt="Sequelize logo" /></p>
+<h1 align="center" style="margin-top: 0;"><a href="https://sequelize.org">Sequelize</a></h1>
 
 This library contains model attribute validators built on top of [validator.js](https://www.npmjs.com/package/validator).
 Read more about model validation in the [Sequelize documentation](https://sequelize.org/docs/v7/core-concepts/validations-and-constraints/).
