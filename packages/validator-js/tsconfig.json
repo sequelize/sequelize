@@ -16,7 +16,13 @@
     "forceConsistentCasingInFileNames": true,
     "checkJs": false,
     "stripInternal": true,
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": true,
+    "paths": {
+      "@sequelize/core": ["../core/types/index.d.ts"],
+      "@sequelize/core/_non-semver-use-at-your-own-risk_/*": ["../core/types/*"],
+      "@sequelize/core/package.json": ["../core/package.json"],
+      "@sequelize/core/decorators-legacy": ["../core/types/decorators/legacy/index.d.ts"]
+    }
   },
   "include": ["./src/**/*.ts"]
 }
