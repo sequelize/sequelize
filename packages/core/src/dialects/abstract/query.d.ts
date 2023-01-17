@@ -242,7 +242,7 @@ export class AbstractQuery {
    * ]);
    * ```
    *
-   * Result in:
+   * Results in:
    *
    * ```ts
    * [
