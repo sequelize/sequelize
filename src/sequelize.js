@@ -328,6 +328,9 @@ export class Sequelize extends SequelizeTypeScript {
       case 'snowflake':
         Dialect = require('./dialects/snowflake').SnowflakeDialect;
         break;
+      case 'cockroachdb':
+        Dialect = require('./dialects/cockroachdb').CockroachDbDialect;
+        break;
       default:
         throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
     }
@@ -494,7 +497,7 @@ export class Sequelize extends SequelizeTypeScript {
     options.modelName = modelName;
     options.sequelize = this;
 
-    const model = class extends Model {};
+    const model = class extends Model { };
 
     model.init(attributes, options);
 
@@ -757,8 +760,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
     // Generate SQL Query
     const query
-      = `SET ${
-        _.map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
+      = `SET ${_.map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
 
     return await this.query(query, options);
   }

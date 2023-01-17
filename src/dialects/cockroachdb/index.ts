@@ -1,6 +1,12 @@
 import type { Sequelize } from '../../sequelize.js';
+import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
-import { CockroachdbConnectionManager } from './connection-manager.js';
+import type { BindCollector } from '../abstract';
+import { CockroachdbConnectionManager } from './connection-manager';
+import DataTypes from './data-types.js';
+import { CockroachDbQueryGenerator } from './query-generator.js';
+import { CockroachDbQueryInterface } from './query-interface.js';
+import { CockroachDbQuery } from './query.js';
 
 export class CockroachDbDialect extends AbstractDialect {
   static readonly sipports = AbstractDialect.extendSupport({
@@ -57,7 +63,35 @@ export class CockroachDbDialect extends AbstractDialect {
     dropTable: {
       cascade: true,
     },
-  })
+  });
 
   readonly connectionManager: CockroachdbConnectionManager;
+  readonly queryGenerator: CockroachDbQueryGenerator;
+  readonly queryInterface: CockroachDbQueryInterface;
+  readonly Query = CockroachDbQuery;
+
+  readonly defaultVersion = '4.0.0';
+  readonly TICK_CHAR = '"';
+  readonly TICK_CHAR_LEFT = '"';
+  readonly TICK_CHAR_RIGHT = '"';
+  readonly dataTypesDocumentationUrl = 'https://www.cockroachlabs.com/docs/stable/data-types.html';
+
+  constructor(sequelize: Sequelize) {
+    super(sequelize, DataTypes, 'cockroachdb');
+    this.connectionManager = new CockroachdbConnectionManager(this, sequelize);
+    this.queryGenerator = new CockroachDbQueryGenerator({ dialect: this, sequelize });
+    this.queryInterface = new CockroachDbQueryInterface(sequelize, this.queryGenerator);
+  }
+
+  createBindCollector(): BindCollector {
+    return createSpecifiedOrderedBindCollector();
+  }
+
+  getDefaultSchema(): string {
+    return 'defaultdb';
+  }
+
+  static getDefaultPort(): number {
+    return 4001;
+  }
 }

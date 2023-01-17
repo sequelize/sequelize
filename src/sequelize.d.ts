@@ -171,7 +171,7 @@ export interface Config {
   readonly dialectOptions: Readonly<DialectOptions>;
 }
 
-export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
+export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi' | 'cockroachdb';
 
 /**
  * Options for the constructor of the {@link Sequelize} main class.
