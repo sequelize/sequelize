@@ -18,11 +18,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  install-and-build:
+  install-and-build-core:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14, 18]
+        node-version: [ 14, 18 ]
     name: Upload install and build artifact (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     steps:
@@ -33,8 +33,10 @@ jobs:
           cache: yarn
       - name: Install dependencies and build sequelize
         run: yarn install --frozen-lockfile
+      - name: Build sequelize
+        run: yarn workspace @sequelize/core build
       - name: Compress artifact
-        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./lib ./node_modules ./types
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/node_modules ./packages/core/types ./node_modules
       - uses: actions/upload-artifact@v3
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -43,7 +45,7 @@ jobs:
   lint:
     name: Lint code
     runs-on: ubuntu-latest
-    needs: install-and-build
+    needs: install-and-build-core
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -76,21 +78,21 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Unit tests (mariadb)
-        run: yarn test-unit-mariadb
+        run: yarn workspace @sequelize/core test-unit-mariadb
       - name: Unit tests (mysql)
-        run: yarn test-unit-mysql
+        run: yarn workspace @sequelize/core test-unit-mysql
       - name: Unit tests (postgres)
-        run: yarn test-unit-postgres
+        run: yarn workspace @sequelize/core test-unit-postgres
       - name: Unit tests (sqlite)
-        run: yarn test-unit-sqlite
+        run: yarn workspace @sequelize/core test-unit-sqlite
       - name: Unit tests (mssql)
-        run: yarn test-unit-mssql
+        run: yarn workspace @sequelize/core test-unit-mssql
       - name: Unit tests (db2)
-        run: yarn test-unit-db2
+        run: yarn workspace @sequelize/core test-unit-db2
       - name: Unit tests (ibmi)
-        run: yarn test-unit-ibmi
+        run: yarn workspace @sequelize/core test-unit-ibmi
       - name: Unit tests (snowflake)
-        run: yarn test-unit-snowflake
+        run: yarn workspace @sequelize/core test-unit-snowflake
   docs:
     name: Generate TypeDoc
     runs-on: ubuntu-latest
@@ -126,11 +128,10 @@ jobs:
           name: install-build-artifact-node-18
       - name: Extract artifact
         run: tar -xf install-build-node-18.tar
-      # This step uses npm instead of yarn to minimize the time needed. See #14171
       - name: Install TypeScript
-        run: npm install --no-save --no-audit typescript@~${{ matrix.ts-version }}
+        run: yarn workspace @sequelize/core add typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
-        run: yarn test-typings
+        run: yarn workspace @sequelize/core test-typings
   test-db2:
     strategy:
       fail-fast: false
@@ -160,7 +161,7 @@ jobs:
       - name: Install Local DB2 Copy
         run: yarn start-db2-oldest
       - name: Integration Tests
-        run: yarn test-integration
+        run: yarn workspace @sequelize/core test-integration
   test-sqlite:
     strategy:
       fail-fast: false
@@ -183,7 +184,7 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
-        run: yarn test-integration
+        run: yarn workspace @sequelize/core test-integration
   test-postgres:
     strategy:
       fail-fast: false
@@ -209,16 +210,11 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Install pg-native (Node 14)
-        run: yarn add pg-native --ignore-engines
-        if: matrix.native && matrix.node-version == 14
-      # This step uses npm instead of yarn to minimize the time needed. See #14171
-      - name: Install pg-native (Node 18)
-        run: npm install --no-save --no-audit pg-native
-        if: matrix.native && matrix.node-version == 18
+      - name: Install pg-native
+        run: yarn workspace @sequelize/core add pg-native --ignore-engines
       - run: yarn start-postgres-${{ matrix.postgres-version }}
       - name: Integration Tests
-        run: yarn test-integration
+        run: yarn workspace @sequelize/core test-integration
   test-mysql-mariadb:
     strategy:
       fail-fast: false
@@ -244,7 +240,7 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - run: yarn start-${{ matrix.dialect }}-${{ matrix.database-version }}
       - name: Integration Tests
-        run: yarn test-integration
+        run: yarn workspace @sequelize/core test-integration
   test-mssql:
     strategy:
       fail-fast: false
@@ -286,7 +282,7 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
-        run: yarn test-integration
+        run: yarn workspace @sequelize/core test-integration
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -313,7 +309,7 @@ jobs:
           name: install-build-artifact-node-18
       - name: Extract artifact
         run: tar -xf install-build-node-18.tar
-      - run: yarn semantic-release
+      - run: yarn publish-all
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
         with:
