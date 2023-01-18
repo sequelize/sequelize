@@ -10,19 +10,19 @@ const dialect   = Support.getTestDialect();
 const {
   Sequelize, OptimisticLockError, UniqueConstraintError, ValidationError, ValidationErrorItem, DatabaseError,
   ConnectionRefusedError, AccessDeniedError, HostNotFoundError, HostNotReachableError, InvalidConnectionError,
-  ConnectionTimedOutError, DataTypes, ValidationErrorItemOrigin, ConnectionError,
+  ConnectionTimedOutError, DataTypes, ValidationErrorItemOrigin, ConnectionError, BaseError,
 } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
   describe('API Surface', () => {
     it('Should have the Error constructors exposed', () => {
-      expect(Sequelize).to.have.property('Error');
+      expect(Sequelize).to.have.property('BaseError');
       expect(Sequelize).to.have.property('ValidationError');
       expect(Sequelize).to.have.property('OptimisticLockError');
     });
 
     it('Sequelize Errors instances should be instances of Error', () => {
-      const error = new Sequelize.Error();
+      const error = new BaseError();
       const errorMessage = 'error message';
       const validationError = new ValidationError(errorMessage, [
         new ValidationErrorItem('<field name> cannot be null', 'notNull violation', '<field name>', null),
@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       ]);
       const optimisticLockError = new OptimisticLockError();
 
-      expect(error).to.be.instanceOf(Sequelize.Error);
+      expect(error).to.be.instanceOf(BaseError);
       expect(error).to.be.instanceOf(Error);
       expect(error).to.have.property('name', 'SequelizeBaseError');
 

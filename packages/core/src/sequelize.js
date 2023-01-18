@@ -411,8 +411,6 @@ export class Sequelize extends SequelizeTypeScript {
       deprecations.noBoolOperatorAliases();
     }
 
-    this.queryInterface = this.dialect.queryInterface;
-
     /**
      * Models are stored here under the name given to `sequelize.define`
      */
@@ -432,8 +430,17 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @returns {string} The specified dialect.
    */
+  // TODO [>=8]: rename to getDialectName or remove
   getDialect() {
     return this.options.dialect;
+  }
+
+  get queryInterface() {
+    return this.dialect.queryInterface;
+  }
+
+  get queryGenerator() {
+    return this.dialect.queryGenerator;
   }
 
   /**
@@ -450,6 +457,7 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @returns {AbstractQueryInterface} An instance (singleton) of AbstractQueryInterface.
    */
+  // TODO [>=8]: deprecate & remove
   getQueryInterface() {
     return this.queryInterface;
   }
@@ -1074,14 +1082,14 @@ Use Sequelize#query if you wish to use replacements.`);
   /**
    * Get the fn for random based on the dialect
    *
-   * @returns {Sequelize.fn}
+   * @returns {Fn}
    */
   random() {
     if (['postgres', 'sqlite', 'snowflake'].includes(this.getDialect())) {
-      return this.fn('RANDOM');
+      return fn('RANDOM');
     }
 
-    return this.fn('RAND');
+    return fn('RAND');
   }
 
   static fn = fn;
@@ -1327,9 +1335,6 @@ Sequelize.useInflection = useInflection;
  * Expose various errors available
  */
 
-// expose alias to BaseError
-Sequelize.Error = sequelizeErrors.BaseError;
-
 for (const error of Object.keys(sequelizeErrors)) {
   Sequelize[error] = sequelizeErrors[error];
 }
@@ -1349,10 +1354,12 @@ for (const error of Object.keys(sequelizeErrors)) {
  * @memberof Sequelize
  * @returns {Sequelize.fn}
  *
- * @example <caption>Convert a user's username to upper case</caption>
+ * @example Convert a user's username to upper case
+ * ```ts
  * instance.update({
- *   username: sequelize.fn('upper', sequelize.col('username'))
+ *   username: fn('upper', col('username'))
  * });
+ * ```
  */
 export function fn(fn, ...args) {
   return new Fn(fn, args);

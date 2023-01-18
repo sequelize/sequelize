@@ -307,7 +307,7 @@ because, as this is a hasOne association, the foreign key we need to update is l
   /**
    * Create a new instance of the associated model and associate it with this.
    *
-   * See {@link Model#create} for a full explanation of options.
+   * See {@link Model.create} for a full explanation of options.
    *
    * @param sourceInstance - the source instance
    * @param values - values to create associated model instance with

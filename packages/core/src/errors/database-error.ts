@@ -1,5 +1,5 @@
 import type { CommonErrorProperties } from './base-error';
-import BaseError from './base-error';
+import { BaseError } from './base-error';
 
 export interface DatabaseErrorParent extends Error, Pick<CommonErrorProperties, 'sql'> {
   /** The parameters for the sql that triggered the error */
@@ -19,7 +19,7 @@ export interface DatabaseErrorSubclassOptions {
 /**
  * A base class for all database related errors.
  */
-class DatabaseError
+export class DatabaseError
   extends BaseError
   implements DatabaseErrorParent, CommonErrorProperties {
   sql: string;
@@ -38,5 +38,3 @@ class DatabaseError
     this.parameters = parent.parameters ?? {};
   }
 }
-
-export default DatabaseError;

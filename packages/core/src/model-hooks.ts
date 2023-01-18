@@ -55,7 +55,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   beforeFind(options: FindOptions<TAttributes>): AsyncHookReturn;
 
   /**
-   * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
+   * A hook that is run before a find (select) query, after any `{ include: {all: ...} }` options are expanded
    *
    * @deprecated use `beforeFind` instead
    */
@@ -73,12 +73,12 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterFind(instancesOrInstance: readonly M[] | M | null, options: FindOptions<TAttributes>): AsyncHookReturn;
 
   /**
-   * A hook that is run at the start of {@link Model#sync}
+   * A hook that is run at the start of {@link Model.sync}
    */
   beforeSync(options: SyncOptions): AsyncHookReturn;
 
   /**
-   * A hook that is run at the end of {@link Model#sync}
+   * A hook that is run at the end of {@link Model.sync}
    */
   afterSync(options: SyncOptions): AsyncHookReturn;
   beforeAssociate(data: BeforeAssociateEventData, options: AssociationOptions<any>): AsyncHookReturn;
