@@ -302,6 +302,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -313,6 +314,12 @@ jobs:
           name: install-build-artifact-node-18
       - name: Extract artifact
         run: tar -xf install-build-node-18.tar
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "bot@sequelize.org"
+      - name: Set npm auth token
+        run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
       - run: yarn publish-all
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
