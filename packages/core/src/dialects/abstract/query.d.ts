@@ -52,8 +52,6 @@ export interface AbstractQueryFormatBindOptions {
 export class AbstractQuery {
   /**
    * The SQL being executed by this Query.
-   *
-   * @type {string}
    */
   sql: string;
 
@@ -64,25 +62,16 @@ export class AbstractQuery {
 
   /**
    * A Sequelize connection instance.
-   *
-   * @type {Connection}
-   * @memberof AbstractQuery
    */
   connection: Connection;
 
   /**
    * If provided, returns the model instance.
-   *
-   * @type {Model}
-   * @memberof AbstractQuery
    */
   instance: Model;
 
   /**
    * Model type definition.
-   *
-   * @type {ModelStatic}
-   * @memberof AbstractQuery
    */
   model: ModelStatic;
 
@@ -91,21 +80,12 @@ export class AbstractQuery {
    */
   sequelize: Sequelize;
 
-  /**
-   *
-   * @type {AbstractQueryOptions}
-   * @memberof AbstractQuery
-   */
   options: AbstractQueryOptions;
 
   constructor(connection: Connection, sequelize: Sequelize, options?: AbstractQueryOptions);
 
   /**
    * Execute the passed sql query.
-   *
-   * Examples:
-   *
-   *     query.run('SELECT 1')
    *
    * @private
    */
@@ -129,54 +109,40 @@ export class AbstractQuery {
   /**
    * Returns the unique constraint error message for the associated field.
    *
-   * @param field {string} the field name associated with the unique constraint.
+   * @param field the field name associated with the unique constraint.
    *
-   * @returns {string} The unique constraint error message.
+   * @returns The unique constraint error message.
    * @private
    */
   private getUniqueConstraintErrorMessage(field: string): string;
 
   /**
    * Checks if the query type is RAW
-   *
-   * @returns {boolean}
    */
   isRawQuery(): boolean;
 
   /**
    * Checks if the query type is VERSION
-   *
-   * @returns {boolean}
    */
   isVersionQuery(): boolean;
 
   /**
    * Checks if the query type is UPSERT
-   *
-   * @returns {boolean}
    */
   isUpsertQuery(): boolean;
 
   /**
    * Checks if the query type is INSERT
-   *
-   * @returns {boolean}
    */
   isInsertQuery(results?: unknown[], metaData?: unknown): boolean;
 
   /**
    * Sets auto increment field values (if applicable).
-   *
-   * @param results {Array}
-   * @param metaData {object}
-   * @returns {boolean}
    */
   handleInsertQuery(results?: unknown[], metaData?: unknown): void;
 
   /**
    * Checks if the query type is SHOWTABLES
-   *
-   * @returns {boolean}
    */
   isShowTablesQuery(): boolean;
 
@@ -187,57 +153,41 @@ export class AbstractQuery {
 
   /**
    * Checks if the query type is SHOWINDEXES
-   *
-   * @returns {boolean}
    */
   isShowIndexesQuery(): boolean;
 
   /**
    * Checks if the query type is SHOWCONSTRAINTS
-   *
-   * @returns {boolean}
    */
   isShowConstraintsQuery(): boolean;
 
   /**
    * Checks if the query type is DESCRIBE
-   *
-   * @returns {boolean}
    */
   isDescribeQuery(): boolean;
 
   /**
    * Checks if the query type is SELECT
-   *
-   * @returns {boolean}
    */
   isSelectQuery(): boolean;
 
   /**
    * Checks if the query type is BULKUPDATE
-   *
-   * @returns {boolean}
    */
   isBulkUpdateQuery(): boolean;
 
   /**
    * Checks if the query type is BULKDELETE
-   *
-   * @returns {boolean}
    */
   isBulkDeleteQuery(): boolean;
 
   /**
    * Checks if the query type is FOREIGNKEYS
-   *
-   * @returns {boolean}
    */
   isForeignKeysQuery(): boolean;
 
   /**
    * Checks if the query type is UPDATE
-   *
-   * @returns {boolean}
    */
   isUpdateQuery(): boolean;
 
@@ -256,59 +206,58 @@ export class AbstractQuery {
 
   /**
    * Checks if the query starts with 'call'
-   *
-   * @returns {boolean}
    */
   isCallQuery(): boolean;
 
   /**
-   * @param {string} sql
-   * @param {Function} debugContext
-   * @param {Array|object} parameters
    * @protected
-   * @returns {Function} A function to call after the query was completed.
+   * @returns A function to call after the query was completed.
    */
-  protected _logQuery(sql: string, debugContext: ((msg: string) => any), parameters: unknown[]): () => void;
+  protected _logQuery(
+    sql: string,
+    debugContext: ((msg: string) => any),
+    parameters: unknown[] | Record<string, unknown>
+  ): () => void;
 
   /**
    * The function takes the result of the query execution and groups
    * the associated data by the callee.
    *
-   * Example:
-   *   groupJoinData([
-   *     {
-   *       some: 'data',
-   *       id: 1,
-   *       association: { foo: 'bar', id: 1 }
-   *     }, {
-   *       some: 'data',
-   *       id: 1,
-   *       association: { foo: 'bar', id: 2 }
-   *     }, {
-   *       some: 'data',
-   *       id: 1,
-   *       association: { foo: 'bar', id: 3 }
-   *     }
-   *   ])
+   * @example
+   * ```ts
+   * groupJoinData([
+   *   {
+   *     some: 'data',
+   *     id: 1,
+   *     association: { foo: 'bar', id: 1 }
+   *   }, {
+   *     some: 'data',
+   *     id: 1,
+   *     association: { foo: 'bar', id: 2 }
+   *   }, {
+   *     some: 'data',
+   *     id: 1,
+   *     association: { foo: 'bar', id: 3 }
+   *   }
+   * ]);
+   * ```
    *
-   * Result:
-   *   Something like this:
+   * Results in:
    *
-   *   [
-   *     {
-   *       some: 'data',
-   *       id: 1,
-   *       association: [
-   *         { foo: 'bar', id: 1 },
-   *         { foo: 'bar', id: 2 },
-   *         { foo: 'bar', id: 3 }
-   *       ]
-   *     }
-   *   ]
+   * ```ts
+   * [
+   *   {
+   *     some: 'data',
+   *     id: 1,
+   *     association: [
+   *       { foo: 'bar', id: 1 },
+   *       { foo: 'bar', id: 2 },
+   *       { foo: 'bar', id: 3 }
+   *     ]
+   *   }
+   * ]
+   * ```
    *
-   * @param {Array} rows
-   * @param {object} includeOptions
-   * @param {object} options
    * @private
    */
   static _groupJoinData(

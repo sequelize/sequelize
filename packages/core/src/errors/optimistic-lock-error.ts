@@ -1,5 +1,5 @@
 import type { ErrorOptions } from './base-error';
-import BaseError from './base-error';
+import { BaseError } from './base-error';
 
 interface OptimisticLockErrorOptions {
   message?: string;
@@ -15,7 +15,7 @@ interface OptimisticLockErrorOptions {
 /**
  * Thrown when attempting to update a stale model instance
  */
-class OptimisticLockError extends BaseError {
+export class OptimisticLockError extends BaseError {
   modelName: string | undefined;
   values: Record<string, unknown> | undefined;
   where: Record<string, unknown> | undefined;
@@ -31,5 +31,3 @@ class OptimisticLockError extends BaseError {
     this.where = options?.where;
   }
 }
-
-export default OptimisticLockError;

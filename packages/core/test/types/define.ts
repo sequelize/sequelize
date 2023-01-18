@@ -1,5 +1,6 @@
 import { expectTypeOf } from 'expect-type';
-import type { BuildOptions, Model, Optional } from '@sequelize/core';
+import type { SetOptional } from 'type-fest';
+import type { BuildOptions, Model } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
 import { sequelize } from './connection';
 
@@ -12,7 +13,7 @@ interface UserAttributes {
   lastName: string;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id'> {}
+interface UserCreationAttributes extends SetOptional<UserAttributes, 'id'> {}
 
 interface UserModel extends Model<UserAttributes, UserCreationAttributes>, UserAttributes {}
 

@@ -1,7 +1,7 @@
 {
   "name": "@sequelize/core",
   "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
-  "version": "0.0.0-development",
+  "version": "7.0.0-alpha.20",
   "funding": [
     {
       "type": "opencollective",
@@ -10,7 +10,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/sequelize/sequelize.git"
+    "url": "git@github.com:sequelize/sequelize.git"
   },
   "bugs": {
     "url": "https://github.com/sequelize/sequelize/issues"
@@ -83,10 +83,8 @@
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
     "concurrently": "7.6.0",
-    "copyfiles": "2.4.1",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
-    "esbuild": "0.16.10",
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
     "husky": "8.0.2",
@@ -96,7 +94,6 @@
     "mocha": "10.2.0",
     "moment": "2.29.4",
     "mysql2": "2.3.3",
-    "node-hook": "1.0.0",
     "nyc": "15.1.0",
     "odbc": "2.4.6",
     "p-map": "4.0.0",
@@ -105,15 +102,12 @@
     "p-timeout": "4.1.0",
     "pg": "8.8.0",
     "pg-hstore": "2.3.4",
-    "rimraf": "4.0.5",
+    "rimraf": "4.1.1",
     "sinon": "15.0.1",
     "sinon-chai": "3.7.0",
     "snowflake-sdk": "1.6.17",
-    "source-map-support": "0.5.21",
     "sqlite3": "5.1.4",
-    "tedious": "15.1.2",
-    "ts-node": "10.9.1",
-    "typescript": "4.9.4"
+    "tedious": "15.1.2"
   },
   "peerDependenciesMeta": {
     "pg": {
@@ -169,29 +163,30 @@
   },
   "scripts": {
     "----------------------------------------- static analysis -----------------------------------------": "",
-    "test-typings": "tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
+    "test-typings": "tsc --noEmit && tsc -b test/tsconfig.json",
     "----------------------------------------- tests ---------------------------------------------------": "",
-    "mocha": "mocha -r ./test/registerEsbuild",
-    "test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",
+    "mocha": "mocha -r ../../test/register-esbuild.js",
+    "_test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",
     "test-integration": "yarn mocha \"test/integration/**/*.test.[tj]s\"",
     "test-smoke": "yarn mocha \"test/smoke/**/*.test.[tj]s\" --timeout 600000",
     "teaser": "ts-node test/teaser.ts",
-    "test": "yarn prepare && yarn test-typings && yarn teaser && yarn test-unit && yarn test-integration",
+    "test": "yarn build && yarn test-typings && yarn teaser && yarn _test-unit && yarn test-integration",
     "----------------------------------------- coverage ------------------------------------------------": "",
     "cover": "rimraf coverage && yarn teaser && yarn cover-integration && yarn cover-unit && yarn merge-coverage",
     "cover-integration": "cross-env COVERAGE=true nyc --reporter=lcovonly yarn mocha \"test/integration/**/*.test.[tj]s\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/integration.info')\"",
     "cover-unit": "cross-env COVERAGE=true nyc --reporter=lcovonly yarn mocha \"test/unit/**/*.test.[tj]s\" && node -e \"require('fs').renameSync('coverage/lcov.info', 'coverage/unit.info')\"",
     "merge-coverage": "lcov-result-merger \"coverage/*.info\" \"coverage/lcov.info\"",
     "----------------------------------------- unit tests ---------------------------------------------": "",
-    "test-unit-mariadb": "cross-env DIALECT=mariadb yarn test-unit",
-    "test-unit-mysql": "cross-env DIALECT=mysql yarn test-unit",
-    "test-unit-postgres": "cross-env DIALECT=postgres yarn test-unit",
-    "test-unit-sqlite": "cross-env DIALECT=sqlite yarn test-unit",
-    "test-unit-mssql": "cross-env DIALECT=mssql yarn test-unit",
-    "test-unit-db2": "cross-env DIALECT=db2 yarn test-unit",
-    "test-unit-ibmi": "cross-env DIALECT=ibmi yarn test-unit",
-    "test-unit-snowflake": "cross-env DIALECT=snowflake yarn test-unit",
+    "test-unit-mariadb": "cross-env DIALECT=mariadb yarn _test-unit",
+    "test-unit-mysql": "cross-env DIALECT=mysql yarn _test-unit",
+    "test-unit-postgres": "cross-env DIALECT=postgres yarn _test-unit",
+    "test-unit-sqlite": "cross-env DIALECT=sqlite yarn _test-unit",
+    "test-unit-mssql": "cross-env DIALECT=mssql yarn _test-unit",
+    "test-unit-db2": "cross-env DIALECT=db2 yarn _test-unit",
+    "test-unit-ibmi": "cross-env DIALECT=ibmi yarn _test-unit",
+    "test-unit-snowflake": "cross-env DIALECT=snowflake yarn _test-unit",
     "test-unit-all": "yarn test-unit-mariadb && yarn test-unit-mysql && yarn test-unit-postgres && yarn test-unit-mssql && yarn test-unit-sqlite && yarn test-unit-snowflake && yarn test-unit-db2 && yarn test-unit-ibmi",
+    "test-unit": "yarn test-unit-all",
     "----------------------------------------- integration tests ---------------------------------------------": "",
     "test-integration-mariadb": "cross-env DIALECT=mariadb yarn test-integration",
     "test-integration-mysql": "cross-env DIALECT=mysql yarn test-integration",
@@ -213,12 +208,12 @@
     "test-db2": "cross-env DIALECT=db2 yarn test",
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
-    "build": "node ./build.js"
+    "build": "../../build-packages.mjs core"
   },
   "support": true,
   "typedoc": {
-    "entryPoint": "./types/index.d.ts",
+    "entryPoint": "./src/index.d.ts",
     "displayName": "@sequelize/core",
-    "tsconfig": "./tsconfig-typedoc.json"
+    "tsconfig": "./tsconfig.json"
   }
 }

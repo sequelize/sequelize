@@ -9,6 +9,30 @@ import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
 
 type AttributeDecoratorOption = DataType | Partial<AttributeOptions>;
 
+/**
+ * The `@Attribute` decorator is used to add an attribute to a model. It is used on an instance property.
+ *
+ * @example
+ * The simplest way to use it is to pass a data type as the parameter:
+ * ```ts
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.STRING)
+ *   declare firstName: string | null;
+ * }
+ * ```
+ *
+ * @example
+ * `@Attribute` also accepts an option bag, {@link index~AttributeOptions}, which allows you to configure all available attribute definition options.
+ * ```ts
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute({
+ *     type: DataTypes.STRING,
+ *     allowNull: false,
+ *   })
+ *   declare firstName: string;
+ * }
+ * ```
+ */
 export const Attribute = createRequiredAttributeOptionsDecorator<AttributeDecoratorOption>('Attribute', attrOptionOrDataType => {
   if (isDataType(attrOptionOrDataType)) {
     return {
@@ -32,30 +56,134 @@ export function Column(optionsOrDataType: DataType | AttributeOptions): Property
 type UniqueOptions = NonNullable<AttributeOptions['unique']>;
 
 /**
- * Configures the unique option of the attribute.
+ * The `@Unique` decorator is used to make an attribute unique, it is a shortcut for setting the `unique` option of the {@link Attribute} decorator.
+ * Learn more about unique constraints in our documentation.
+ *
+ * @example
+ * This makes "firstName" unique
+ * ```ts
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.STRING)
+ *   @Unique
+ *   declare firstName: string;
+ * }
+ * ```
+ *
+ * @example
+ * This creates a composite unique on columns "firstName" and "lastName"
+ * ```ts
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.STRING)
+ *   @Unique('firstName-lastName')
+ *   declare firstName: string;
+ *
+ *   @Attribute(DataTypes.STRING)
+ *   @Unique('firstName-lastName')
+ *   declare lastName: string;
+ * }
+ * ```
  */
 export const Unique = createOptionalAttributeOptionsDecorator<UniqueOptions>('Unique', true, (unique: UniqueOptions) => ({ unique }));
 
 /**
  * Makes the attribute accept null values. Opposite of {@link NotNull}.
+ * It is a shortcut for setting the `allowNull` option of the {@link Attribute} decorator to true.
+ *
+ * @example
+ * ```ts
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.STRING)
+ *   @AllowNull
+ *   declare firstName: string | null;
+ * }
+ * ```
  */
 export const AllowNull = createOptionalAttributeOptionsDecorator<boolean>('AllowNull', true, (allowNull: boolean) => ({ allowNull }));
 
 /**
  * Makes the attribute reject null values. Opposite of {@link AllowNull}.
+ * It is a shortcut for setting the `allowNull` option of the {@link Attribute} decorator to false.
+ *
+ * @example
+ * ```ts
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.STRING)
+ *   @NotNull
+ *   declare firstName: string;
+ * }
+ * ```
  */
 export const NotNull = createOptionalAttributeOptionsDecorator<boolean>('NotNull', true, (notNull: boolean) => ({ allowNull: !notNull }));
 
-export const AutoIncrement = createOptionalAttributeOptionsDecorator<boolean>('AutoIncrement', true, (autoIncrement: boolean) => ({ autoIncrement }));
-
+/**
+ * The `@PrimaryKey` decorator is used to make an attribute a primary key,
+ * it is a shortcut for setting the `primaryKey` option of the {@link Attribute} decorator to true.
+ *
+ * @example
+ * ```ts
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.INTEGER)
+ *   @PrimaryKey
+ *   declare id: number;
+ * }
+ * ```
+ */
 export const PrimaryKey = createOptionalAttributeOptionsDecorator<boolean>('PrimaryKey', true, (primaryKey: boolean) => ({ primaryKey }));
 
+/**
+ * The `@AutoIncrement` decorator is used to make an attribute auto-increment,
+ * it is a shortcut for setting the `autoIncrement` option of the {@link Attribute} decorator to true.
+ *
+ * Some dialects require the field to be a primary key.
+ *
+ * @example
+ * ```ts
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.INTEGER)
+ *   @PrimaryKey
+ *   @AutoIncrement
+ *   declare id: number;
+ * }
+ * ```
+ */
+export const AutoIncrement = createOptionalAttributeOptionsDecorator<boolean>('AutoIncrement', true, (autoIncrement: boolean) => ({ autoIncrement }));
+
+/**
+ * The `@Comment` decorator is used to set the comment on a column, it is a shortcut for setting the `comment` option of the {@link Attribute} decorator.
+ *
+ * This is only useful if you use {@link index~Sequelize#sync} to create your tables.
+ */
 export const Comment = createRequiredAttributeOptionsDecorator<string>('Comment', (comment: string) => ({ comment }));
 
+/**
+ * The `@Default` decorator is used to set a default value for an attribute, it is a shortcut for setting the `defaultValue` option of the {@link Attribute} decorator.
+ *
+ * @example
+ * ```ts
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.STRING)
+ *   @Default('John Doe')
+ *   declare firstName: string;
+ * }
+ * ```
+ */
 export const Default = createRequiredAttributeOptionsDecorator<unknown>('Default', (defaultValue: unknown) => ({ defaultValue }));
 
 /**
  * Sets the name of the column (in the database) this attribute maps to.
+ * It is a shortcut for setting the `columnName` option of the {@link Attribute} decorator.
+ *
+ * With a good naming strategy configured, you rarely need to use this decorator.
+ * Learn about naming strategies in our documentation.
+ *
+ * @example
+ * ```ts
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.STRING)
+ *   @ColumnName('first_name')
+ *   declare firstName: string;
+ * }
+ * ```
  */
 export const ColumnName = createRequiredAttributeOptionsDecorator<string>('ColumnName', (columnName: string) => ({ columnName }));
 
