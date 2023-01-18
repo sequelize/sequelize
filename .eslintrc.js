@@ -197,7 +197,14 @@ module.exports = {
           type: false,
           required: ['name'],
         },
+        category: {
+          type: false,
+          required: ['name'],
+        },
         internal: {
+          type: false,
+        },
+        hidden: {
           type: false,
         },
       },

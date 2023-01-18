@@ -23,22 +23,27 @@ const supportsErrorCause = (() => {
 /**
  * The Base Error all Sequelize Errors inherit from.
  *
- * Sequelize provides a host of custom error classes, to allow you to do easier debugging. All of these errors are exposed on the sequelize object and the sequelize constructor.
+ * Sequelize provides a host of custom error classes, to allow you to do easier debugging.
+ * All of these errors are exported by the `@sequelize/core` package.
  * All sequelize errors inherit from the base JS error object.
- *
- * This means that errors can be accessed using `Sequelize.ValidationError`
  */
-class BaseError extends Error {
+export class BaseError extends Error {
   // 'cause' is incorrectly typed as Error instead of unknown in TypeScript <= 4.7.
-  // TODO [20223-05-24]: Change this type to unknown once we drop support for TypeScript <= 4.7
+  // TODO [2023-05-24]: Change this type to unknown once we drop support for TypeScript <= 4.7
   declare cause?: any;
 
+  /**
+   * @deprecated use {@link cause}.
+   */
   get parent(): this['cause'] {
     useErrorCause();
 
     return this.cause;
   }
 
+  /**
+   * @deprecated use {@link cause}.
+   */
   get original(): this['cause'] {
     useErrorCause();
 
@@ -81,5 +86,3 @@ function getErrorMessage(error: unknown) {
 
   return String(error);
 }
-
-export default BaseError;

@@ -1,7 +1,6 @@
-import type { Optional } from '../index.js';
 import type { Model, ModelStatic, Hookable, AttributeNames, AttributeOptions } from '../model';
 import { cloneDeep } from '../utils/object.js';
-import type { AllowArray } from '../utils/types.js';
+import type { AllowArray, PartialBy } from '../utils/types.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 import { AssociationSecret } from './helpers';
 
@@ -249,7 +248,7 @@ export type MultiAssociationAccessors = {
 };
 
 /** Foreign Key Options */
-export interface ForeignKeyOptions<ForeignKey extends string> extends Optional<AttributeOptions, 'type'> {
+export interface ForeignKeyOptions<ForeignKey extends string> extends PartialBy<AttributeOptions, 'type'> {
   /**
    * The name of the foreign key attribute.
    *

@@ -1,7 +1,7 @@
 import { useErrorCause } from '../../utils/deprecations.js';
 import type { CommonErrorProperties } from '../base-error';
 import type { ValidationErrorItem } from '../validation-error';
-import ValidationError from '../validation-error';
+import { ValidationError } from '../validation-error';
 
 interface UniqueConstraintErrorParent extends Error, Pick<CommonErrorProperties, 'sql'> {}
 
@@ -20,7 +20,7 @@ export interface UniqueConstraintErrorOptions {
 /**
  * Thrown when a unique constraint is violated in the database
  */
-class UniqueConstraintError extends ValidationError {
+export class UniqueConstraintError extends ValidationError {
   /** The database specific error which triggered this one */
   declare cause?: UniqueConstraintErrorParent;
 
@@ -42,5 +42,3 @@ class UniqueConstraintError extends ValidationError {
     this.sql = parent.sql;
   }
 }
-
-export default UniqueConstraintError;

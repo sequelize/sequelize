@@ -260,11 +260,8 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    * Call dialect library to get connection
    *
    * @param config Connection config
-   *
-   * @private
-   * @internal
    */
-  async _connect(config: ConnectionOptions): Promise<TConnection> {
+  protected async _connect(config: ConnectionOptions): Promise<TConnection> {
     await this.sequelize.hooks.runAsync('beforeConnect', config);
     const connection = await this.connect(config);
     await this.sequelize.hooks.runAsync('afterConnect', connection, config);
@@ -276,10 +273,8 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    * Call dialect library to disconnect a connection
    *
    * @param connection
-   * @private
-   * @internal
    */
-  async _disconnect(connection: TConnection) {
+  protected async _disconnect(connection: TConnection) {
     await this.sequelize.hooks.runAsync('beforeDisconnect', connection);
     await this.disconnect(connection);
     await this.sequelize.hooks.runAsync('afterDisconnect', connection);

@@ -66,9 +66,6 @@ export const UnknownConstraintError = Pkg.UnknownConstraintError;
 
 export const UniqueConstraintError = Pkg.UniqueConstraintError;
 
-// export { BaseError as Error } from './lib/errors';
-export const Error = Pkg.Error;
-
 // export { useInflection } from './lib/utils';
 export const useInflection = Pkg.useInflection;
 
