@@ -11,7 +11,7 @@ const debug = logger.debugContext('sql:pg');
 export class PostgresQuery extends AbstractQuery {
   async run(sql, parameters) {
     const { connection } = this;
-    const shouldMinifyAliases = (parameters || {}).shouldMinifyAliases;
+    const shouldMinifyAliases = (parameters || {}).shouldMinifyAlias;
 
     if (!_.isEmpty(this.options.searchPath)) {
       sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
