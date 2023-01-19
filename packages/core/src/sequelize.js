@@ -505,7 +505,7 @@ export class Sequelize extends SequelizeTypeScript {
     options.modelName = modelName;
     options.sequelize = this;
 
-    const model = class extends Model { };
+    const model = class extends Model {};
 
     model.init(attributes, options);
 
