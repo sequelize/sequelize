@@ -3,13 +3,13 @@ import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
 import type { BindCollector } from '../abstract';
 import { CockroachdbConnectionManager } from './connection-manager';
-import DataTypes from './data-types.js';
-import { CockroachDbQueryGenerator } from './query-generator.js';
-import { CockroachDbQueryInterface } from './query-interface.js';
+import * as DataTypes from './data-types.js';
+import { CockroachDbQueryGenerator } from './query-generator';
+import { CockroachDbQueryInterface } from './query-interface';
 import { CockroachDbQuery } from './query.js';
 
 export class CockroachDbDialect extends AbstractDialect {
-  static readonly sipports = AbstractDialect.extendSupport({
+  static readonly supports = AbstractDialect.extendSupport({
     'DEFAULT VALUES': true,
     'ON DUPLICATE KEY': false,
     'ORDER NULLS': true,
@@ -68,6 +68,7 @@ export class CockroachDbDialect extends AbstractDialect {
   readonly connectionManager: CockroachdbConnectionManager;
   readonly queryGenerator: CockroachDbQueryGenerator;
   readonly queryInterface: CockroachDbQueryInterface;
+
   readonly Query = CockroachDbQuery;
 
   readonly defaultVersion = '4.0.0';

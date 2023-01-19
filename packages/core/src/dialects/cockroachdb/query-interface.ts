@@ -1,7 +1,8 @@
+import type { QueryRawOptions } from 'src';
 import { PostgresQueryInterface } from '../postgres/query-interface';
 
-export class CockroahcDbQueryInterface extends PostgresQueryInterface {
-  async dropSchema(schema, options) {
+export class CockroachDbQueryInterface extends PostgresQueryInterface {
+  async dropSchema(schema: string, options: QueryRawOptions) {
     if (schema === 'crdb_internal') {
       return;
     }
@@ -9,10 +10,10 @@ export class CockroahcDbQueryInterface extends PostgresQueryInterface {
     await super.dropSchema(schema, options);
   }
 
-  async removeConstraint(tableName, constraintName, options) {
+  async removeConstraint(tableName: string, constraintName: string, options: QueryRawOptions): Promise<any> {
     try {
       await super.removeConstraint(tableName, constraintName, options);
-    } catch (error) {
+    } catch (error: any) {
       if (error.message.includes('use DROP INDEX CASCADE instead')) {
         const query = this.queryGenerator.removeConstraintQuery(
           tableName,

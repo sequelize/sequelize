@@ -214,4 +214,5 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    * @param bind A mutable object to which bind parameters will be added.
    */
   bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
+  removeConstraintQuery(tableName: string, constraintName: string): string;
 }
