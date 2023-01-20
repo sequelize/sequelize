@@ -98,6 +98,10 @@ export const Config: Record<Dialect, Options> = {
     },
   },
   cockroachdb: {
-    database: process.env.SEQ_COCKROACH_DB || env.seq_DB,
+    database: env.SEQ_COCKROACH_DB || env.seq_DB || 'defaultdb',
+    port: Number(env.SEQ_COCKROACH_PORT || 26_257),
+    username: env.SEQ_COCKROACH_USER,
+    host: env.SEQ_COCKROACH_HOST || '127.0.0.1',
+    password: env.SEQ_COCKROACH_PW,
   },
 };

@@ -1,6 +1,6 @@
 import { DataTypes, Model, Sequelize } from '@sequelize/core';
 import { Attribute } from '@sequelize/core/decorators-legacy';
-import { IsLowercase } from '@sequelize/validator.js';
+import { IsLowercase } from '@sequelize/validator.js/src';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 

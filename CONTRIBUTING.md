@@ -132,6 +132,7 @@ If you have Docker installed, use any of the following commands to start fresh l
 - `yarn start-postgres-oldest` (for Postgres 11) or `yarn start-postgres-latest` (for Postgres 15)
 - `yarn start-mssql-oldest` (for MSSQL 2017) or `yarn start-mssql-latest` (for MSSQL 2022)
 - `yarn start-db2-oldest`
+- `yarn start-cockroachdb-oldest`
 
 _Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
@@ -209,6 +210,7 @@ but you will need to follow the [Conventional Commits Conventions](https://www.c
 We will then use the title of your PR as the message of the Squash Commit. It will then be used to automatically generate a changelog and calculate the next [semver](https://semver.org/) version number.
 
 We use a simple conventional commits convention:
+
 - The allowed commit types are: `docs`, `feat`, `fix`, `meta`.
 - We allow the following commit scopes (they're the list of dialects we support, plus `types` for TypeScript-only changes):
   - `postgres`
