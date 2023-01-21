@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const sponsorAlias = 'RedBullGivesYouWingsTheyAreSoHugeThatYouLiterallyAreGonnaLookLikeAnAngelDescendingFromHeaven';
 
       const executeTest = async (options, test) => {
-        const sequelize = Support.createSequelizeInstance({ ...options, logging: console.log });
+        const sequelize = Support.createSequelizeInstance(options);
 
         const Player = sequelize.define('Player', { name: DataTypes.STRING }, { underscored: true });
         const Team = sequelize.define('Team', { name: DataTypes.STRING });
