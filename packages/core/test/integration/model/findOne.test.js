@@ -51,6 +51,65 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
+    describe('minifyAlias', () => {
+      const goalAlias = 'YouNeedToWinNoMatterWhatBecauseThereAreAHellLotOfPeopleWhoAreBelievingInYou';
+      const teamAlias = 'ChicagoBulls';
+      const sponsorAlias = 'RedBullGivesYouWingsTheyAreSoHugeThatYouLiterallyAreGonnaLookLikeAnAngelDescendingFromHeaven';
+
+      const executeTest = async (options, test) => {
+        const sequelize = Support.createSequelizeInstance({ ...options, logging: console.log });
+
+        const Player = sequelize.define('Player', { name: DataTypes.STRING }, { underscored: true });
+        const Team = sequelize.define('Team', { name: DataTypes.STRING });
+        const Sponsor = sequelize.define('Sponsor', { name: DataTypes.STRING });
+        const Goal = sequelize.define('Goal', { title: DataTypes.STRING });
+
+        Player.belongsTo(Goal, { as: goalAlias, foreignKey: 'goal_id' });
+        Player.belongsToMany(Team, { as: teamAlias, foreignKey: 'teamId', otherKey: 'playerId', through: 'PlayerTeam' });
+        Team.belongsToMany(Sponsor, { as: sponsorAlias, foreignKey: 'sponsorId', otherKey: 'teamId', through: 'TeamSponsor' });
+
+        await sequelize.sync({ force: true });
+        const sponsor = await Sponsor.create({ name: 'RedBull' });
+        const team = await Team.create({ name: 'Chicago Bulls' });
+        const goal = await Goal.create({ title: 'WinWinWin' });
+        const player = await Player.create({ name: 'Michael Jordan', goal_id: goal.id, updatedAt: new Date() });
+        await player[`add${teamAlias}`](team);
+        await team[`add${sponsorAlias}`](sponsor);
+
+        const predicate = {
+          minifyAlias: true,
+          include: [
+            {
+              model: Goal,
+              as: goalAlias,
+            },
+            {
+              model: Team,
+              as: teamAlias,
+            },
+          ],
+        };
+
+        return test({ Player, Team, Sponsor, Goal }, predicate);
+      };
+
+      it('fetches a player with alias minification', async function () {
+        const options = { ...this.sequelize.options };
+
+        await executeTest(options, async db => {
+          expect((await db.Player.findOne({ minifyAlias: true })).name).to.be.equal('Michael Jordan');
+        });
+      });
+
+      it('fetches requested record with minification for only one call', async function () {
+        const options = { ...this.sequelize.options };
+
+        await executeTest(options, async (db, predicate) => {
+          expect((await db.Player.findOne(predicate))[goalAlias].title).to.be.equal('WinWinWin');
+        });
+      });
+    });
+
     describe('general / basic function', () => {
       beforeEach(async function () {
         const user = await this.User.create({ username: 'barfooz' });
