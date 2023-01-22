@@ -12,7 +12,6 @@ import {
 } from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
 import {
-  getComplexKeys,
   mapFinderOptions,
   mapOptionFieldNames,
   mapValueFieldNames,
@@ -29,6 +28,7 @@ import { AssociationSecret } from './associations/helpers';
 import { Op } from './operators';
 import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
 import { QueryTypes } from './query-types';
+import { getComplexKeys } from './utils/where';
 
 const assert = require('node:assert');
 const NodeUtil = require('node:util');

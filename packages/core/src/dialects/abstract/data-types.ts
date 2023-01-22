@@ -10,7 +10,7 @@ import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { GeoJson, GeoJsonType } from '../../geo-json.js';
 import { assertIsGeoJson } from '../../geo-json.js';
-import type { NormalizedAttributeOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
+import type { ModelStatic, Rangable, RangePart } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { makeBufferFromTypedArray } from '../../utils/buffer.js';
 import { isPlainObject, isString } from '../../utils/check.js';
@@ -22,6 +22,7 @@ import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
 import { buildRangeParser } from '../postgres/range.js';
 import {
+  attributeTypeToSql,
   dataTypeClassOrInstanceToInstance,
   isDataType,
   isDataTypeClass,
@@ -62,18 +63,9 @@ export type DataType =
   | string
   | DataTypeClassOrInstance;
 
-export interface ToSqlOptions {
-  dialect: AbstractDialect;
-}
+export type NormalizedDataType = string | DataTypeInstance;
 
-export interface StringifyOptions {
-  dialect: AbstractDialect;
-  operation?: string;
-  timezone?: string | undefined;
-  field?: NormalizedAttributeOptions;
-}
-
-export interface BindParamOptions extends StringifyOptions {
+export interface BindParamOptions {
   bindParam(value: unknown): string;
 }
 
@@ -218,16 +210,15 @@ export abstract class AbstractDataType<
    * The resulting value will be inlined as-is with no further escaping.
    *
    * @param value The value to escape.
-   * @param options Options.
    */
-  escape(value: AcceptedType, options: StringifyOptions): string {
-    const asBindValue = this.toBindableValue(value, options);
+  escape(value: AcceptedType): string {
+    const asBindValue = this.toBindableValue(value);
 
     if (!isString(asBindValue)) {
       throw new Error(`${this.constructor.name}#stringify has been overridden to return a non-string value, so ${this.constructor.name}#escape must be implemented to handle that value correctly.`);
     }
 
-    return options.dialect.escapeString(asBindValue);
+    return this._getDialect().escapeString(asBindValue);
   }
 
   /**
@@ -246,7 +237,7 @@ export abstract class AbstractDataType<
    */
   getBindParamSql(value: AcceptedType, options: BindParamOptions): string {
     // TODO: rename "options.bindParam" to "options.collectBindParam"
-    return options.bindParam(this.toBindableValue(value, options));
+    return options.bindParam(this.toBindableValue(value));
   }
 
   /**
@@ -255,15 +246,14 @@ export abstract class AbstractDataType<
    * will handle escaping.
    *
    * @param value The value to convert.
-   * @param _options Options.
    */
-  toBindableValue(value: AcceptedType, _options: StringifyOptions): unknown {
+  toBindableValue(value: AcceptedType): unknown {
     return String(value);
   }
 
   toString(): string {
     try {
-      return this.toSql({ dialect: this.usageContext?.sequelize.dialect! });
+      return this.toSql();
     } catch {
       // best effort introspection (dialect may not be available)
       return this.constructor.toString();
@@ -278,7 +268,7 @@ export abstract class AbstractDataType<
    * Returns a SQL declaration of this data type.
    * e.g. 'VARCHAR(255)', 'TEXT', etc…
    */
-  abstract toSql(options: ToSqlOptions): string;
+  abstract toSql(): string;
 
   /**
    * Override this method to emit an error or a warning if the Data Type, as it is configured, is not compatible
@@ -426,7 +416,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
     }
   }
 
-  toSql(_options: ToSqlOptions): string {
+  toSql(): string {
     // TODO: STRING should use an unlimited length type by default - https://github.com/sequelize/sequelize/issues/14259
     return joinSQLFragments([
       `VARCHAR(${this.options.length ?? 255})`,
@@ -471,12 +461,12 @@ export class STRING extends AbstractDataType<string | Buffer> {
     return new this({ binary: true });
   }
 
-  escape(value: string | Buffer, options: StringifyOptions): string {
+  escape(value: string | Buffer): string {
     if (Buffer.isBuffer(value)) {
-      return options.dialect.escapeBuffer(value);
+      return this._getDialect().escapeBuffer(value);
     }
 
-    return options.dialect.escapeString(value);
+    return this._getDialect().escapeString(value);
   }
 
   toBindableValue(value: string | Buffer): unknown {
@@ -683,10 +673,10 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
     throw new Error(`getNumberSqlTypeName has not been implemented in ${this.constructor.name}`);
   }
 
-  toSql(_options: ToSqlOptions): string {
+  toSql(): string {
     let result: string = this.getNumberSqlTypeName();
 
-    if (this.options.unsigned && this._supportsNativeUnsigned(_options.dialect)) {
+    if (this.options.unsigned && this._supportsNativeUnsigned(this._getDialect())) {
       result += ' UNSIGNED';
     }
 
@@ -715,11 +705,11 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
     }
   }
 
-  escape(value: AcceptedNumber, options: StringifyOptions): string {
-    return this.toBindableValue(value, options);
+  escape(value: AcceptedNumber): string {
+    return this.toBindableValue(value);
   }
 
-  toBindableValue(num: AcceptedNumber, _options: StringifyOptions): string {
+  toBindableValue(num: AcceptedNumber): string {
     // This should be unnecessary but since this directly returns the passed string its worth the added validation.
     this.validate(num);
 
@@ -809,13 +799,13 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
     return _dialect.supports.dataTypes.INTS.unsigned;
   }
 
-  toSql(options: ToSqlOptions): string {
+  toSql(): string {
     let result: string = this.getNumberSqlTypeName();
     if (this.options.length != null) {
       result += `(${this.options.length})`;
     }
 
-    if (this.options.unsigned && this._supportsNativeUnsigned(options.dialect)) {
+    if (this.options.unsigned && this._supportsNativeUnsigned(this._getDialect())) {
       result += ' UNSIGNED';
     }
 
@@ -1072,13 +1062,13 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     }
   }
 
-  toSql(options: ToSqlOptions): string {
+  toSql(): string {
     let sql = this.getNumberSqlTypeName();
     if (!this.isUnconstrained()) {
       sql += `(${this.options.precision}, ${this.options.scale})`;
     }
 
-    if (this.options.unsigned && this._supportsNativeUnsigned(options.dialect)) {
+    if (this.options.unsigned && this._supportsNativeUnsigned(this._getDialect())) {
       sql += ' UNSIGNED';
     }
 
@@ -1464,13 +1454,15 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     return false;
   }
 
-  protected _applyTimezone(date: AcceptedDate, options: { timezone?: string | undefined }) {
-    if (options.timezone) {
-      if (isValidTimeZone(options.timezone)) {
-        return dayjs(date).tz(options.timezone);
+  protected _applyTimezone(date: AcceptedDate) {
+    const timezone = this._getDialect().sequelize.options.timezone;
+
+    if (timezone) {
+      if (isValidTimeZone(timezone)) {
+        return dayjs(date).tz(timezone);
       }
 
-      return dayjs(date).utcOffset(options.timezone);
+      return dayjs(date).utcOffset(timezone);
     }
 
     return dayjs(date);
@@ -1478,10 +1470,9 @@ export class DATE extends AbstractDataType<AcceptedDate> {
 
   toBindableValue(
     date: AcceptedDate,
-    options: StringifyOptions,
   ) {
     // Z here means current timezone, _not_ UTC
-    return this._applyTimezone(date, options).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+    return this._applyTimezone(date).format('YYYY-MM-DD HH:mm:ss.SSS Z');
   }
 }
 
@@ -1507,7 +1498,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     return 'DATE';
   }
 
-  toBindableValue(date: AcceptedDate, _options: StringifyOptions) {
+  toBindableValue(date: AcceptedDate) {
     return dayjs.utc(date).format('YYYY-MM-DD');
   }
 
@@ -1751,10 +1742,10 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     return value;
   }
 
-  escape(value: string | Buffer, options: StringifyOptions) {
+  escape(value: string | Buffer) {
     const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
 
-    return options.dialect.escapeBuffer(buf);
+    return this._getDialect().escapeBuffer(buf);
   }
 
   getBindParamSql(value: AcceptedBlob, options: BindParamOptions) {
@@ -2210,8 +2201,8 @@ sequelize.define('MyModel', {
     }
   }
 
-  toSql(options: ToSqlOptions): string {
-    throw new Error(`ENUM has not been implemented in the ${options.dialect.name} dialect.`);
+  toSql(): string {
+    throw new Error(`ENUM has not been implemented in the ${this._getDialect().name} dialect.`);
   }
 }
 
@@ -2220,7 +2211,7 @@ export interface ArrayOptions {
 }
 
 interface NormalizedArrayOptions {
-  type: AbstractDataType<any>;
+  type: NormalizedDataType;
 }
 
 /**
@@ -2244,7 +2235,7 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
   /**
    * @param typeOrOptions type of array values
    */
-  constructor(typeOrOptions: DataTypeClassOrInstance | ArrayOptions) {
+  constructor(typeOrOptions: DataType | ArrayOptions) {
     super();
 
     const rawType = isDataType(typeOrOptions) ? typeOrOptions : typeOrOptions?.type;
@@ -2254,12 +2245,12 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     }
 
     this.options = {
-      type: dataTypeClassOrInstanceToInstance(rawType),
+      type: isString(rawType) ? rawType : dataTypeClassOrInstanceToInstance(rawType),
     };
   }
 
-  toSql(options: ToSqlOptions): string {
-    return `${this.options.type.toSql(options)}[]`;
+  toSql(): string {
+    return `${attributeTypeToSql(this.options.type)}[]`;
   }
 
   validate(value: any) {
@@ -2269,8 +2260,14 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
       );
     }
 
+    if (isString(this.options.type)) {
+      return;
+    }
+
+    const subType: AbstractDataType<any> = this.options.type;
+
     for (const item of value) {
-      this.options.type.validate(item);
+      subType.validate(item);
     }
   }
 
@@ -2279,7 +2276,13 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
       return value;
     }
 
-    return value.map(item => this.options.type.sanitize(item));
+    if (isString(this.options.type)) {
+      return;
+    }
+
+    const subType: AbstractDataType<any> = this.options.type;
+
+    return value.map(item => subType.sanitize(item));
   }
 
   parseDatabaseValue(value: unknown[]): unknown {
@@ -2288,11 +2291,23 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
       throw new Error(`DataTypes.ARRAY Received a non-array value from database: ${util.inspect(value)}`);
     }
 
-    return value.map(item => this.options.type.parseDatabaseValue(item));
+    if (isString(this.options.type)) {
+      return value;
+    }
+
+    const subType: AbstractDataType<any> = this.options.type;
+
+    return value.map(item => subType.parseDatabaseValue(item));
   }
 
-  toBindableValue(value: Array<AcceptableTypeOf<T>>, _options: StringifyOptions): unknown {
-    return value.map(val => this.options.type.toBindableValue(val, _options));
+  toBindableValue(value: Array<AcceptableTypeOf<T>>): unknown {
+    if (isString(this.options.type)) {
+      return value;
+    }
+
+    const subType: AbstractDataType<any> = this.options.type;
+
+    return value.map(val => subType.toBindableValue(val));
   }
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -2310,13 +2325,17 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
       replacement = replacement.clone();
     }
 
-    replacement.options.type = replacement.options.type.toDialectDataType(dialect);
+    if (!isString(replacement.options.type)) {
+      replacement.options.type = replacement.options.type.toDialectDataType(dialect);
+    }
 
     return replacement;
   }
 
   attachUsageContext(usageContext: DataTypeUseContext): this {
-    this.options.type.attachUsageContext(usageContext);
+    if (!isString(this.options.type)) {
+      this.options.type.attachUsageContext(usageContext);
+    }
 
     return super.attachUsageContext(usageContext);
   }

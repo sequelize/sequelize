@@ -387,7 +387,7 @@ export class InstanceValidator {
 
     const type = attribute.type;
     if (value != null && !(value instanceof SequelizeMethod) && type instanceof AbstractDataType) {
-      const error = validateDataType(type, attributeName, this.modelInstance, value);
+      const error = validateDataType(value, type, attributeName, this.modelInstance);
       if (error) {
         this.errors.push(error);
       }

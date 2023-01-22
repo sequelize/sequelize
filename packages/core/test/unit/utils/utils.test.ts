@@ -200,22 +200,22 @@ describe('Utils', () => {
 
   describe('toDefaultValue', () => {
     it('return plain data types', () => {
-      expect(() => toDefaultValue(DataTypes.UUIDV4, dialect)).to.throw();
+      expect(() => toDefaultValue(new DataTypes.UUIDV4().toDialectDataType(dialect))).to.throw();
     });
     it('return uuid v1', () => {
-      expect(/^[\da-z-]{36}$/.test(toDefaultValue(DataTypes.UUIDV1(), dialect) as string)).to.be.equal(true);
+      expect(/^[\da-z-]{36}$/.test(toDefaultValue(new DataTypes.UUIDV1().toDialectDataType(dialect)) as string)).to.be.equal(true);
     });
     it('return uuid v4', () => {
-      expect(/^[\da-z-]{36}/.test(toDefaultValue(DataTypes.UUIDV4(), dialect) as string)).to.be.equal(true);
+      expect(/^[\da-z-]{36}/.test(toDefaultValue(new DataTypes.UUIDV4().toDialectDataType(dialect)) as string)).to.be.equal(true);
     });
     it('return now', () => {
-      expect(Object.prototype.toString.call(toDefaultValue(DataTypes.NOW(), dialect))).to.be.equal('[object Date]');
+      expect(Object.prototype.toString.call(toDefaultValue(new DataTypes.NOW().toDialectDataType(dialect)))).to.be.equal('[object Date]');
     });
     it('return plain string', () => {
-      expect(toDefaultValue('Test', dialect)).to.equal('Test');
+      expect(toDefaultValue('Test')).to.equal('Test');
     });
     it('return plain object', () => {
-      expect(toDefaultValue({}, dialect)).to.deep.equal({});
+      expect(toDefaultValue({})).to.deep.equal({});
     });
   });
 

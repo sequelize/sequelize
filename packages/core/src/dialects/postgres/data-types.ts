@@ -2,13 +2,14 @@ import assert from 'node:assert';
 import wkx from 'wkx';
 import type { Rangable } from '../../model.js';
 import { isString } from '../../utils/check.js';
+import * as BaseTypes from '../abstract/data-types';
 import type {
   AcceptableTypeOf,
-  StringifyOptions,
   BindParamOptions,
   AcceptedDate,
+  AbstractDataType,
 } from '../abstract/data-types';
-import * as BaseTypes from '../abstract/data-types';
+import { attributeTypeToSql } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
 import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
@@ -24,7 +25,7 @@ function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType
 }
 
 export class DATEONLY extends BaseTypes.DATEONLY {
-  toBindableValue(value: AcceptableTypeOf<BaseTypes.DATEONLY>, options: StringifyOptions) {
+  toBindableValue(value: AcceptableTypeOf<BaseTypes.DATEONLY>) {
     if (value === Number.POSITIVE_INFINITY) {
       return 'infinity';
     }
@@ -33,7 +34,7 @@ export class DATEONLY extends BaseTypes.DATEONLY {
       return '-infinity';
     }
 
-    return super.toBindableValue(value, options);
+    return super.toBindableValue(value);
   }
 
   sanitize(value: unknown): unknown {
@@ -95,10 +96,7 @@ export class DATE extends BaseTypes.DATE {
     super.validate(value);
   }
 
-  toBindableValue(
-    value: AcceptedDate,
-    options: StringifyOptions,
-  ): string {
+  toBindableValue(value: AcceptedDate): string {
     if (value === Number.POSITIVE_INFINITY) {
       return 'infinity';
     }
@@ -107,7 +105,7 @@ export class DATE extends BaseTypes.DATE {
       return '-infinity';
     }
 
-    return super.toBindableValue(value, options);
+    return super.toBindableValue(value);
   }
 
   sanitize(value: unknown) {
@@ -258,8 +256,8 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
     return wkx.Geometry.parse(b).toGeoJSON({ shortCrs: true });
   }
 
-  toBindableValue(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: StringifyOptions): string {
-    return `ST_GeomFromGeoJSON(${options.dialect.escapeString(JSON.stringify(value))})`;
+  toBindableValue(value: AcceptableTypeOf<BaseTypes.GEOMETRY>): string {
+    return `ST_GeomFromGeoJSON(${this._getDialect().escapeString(JSON.stringify(value))})`;
   }
 
   getBindParamSql(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: BindParamOptions) {
@@ -282,11 +280,8 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
     return result;
   }
 
-  toBindableValue(
-    value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>,
-    options: StringifyOptions,
-  ) {
-    return `ST_GeomFromGeoJSON(${options.dialect.escapeString(JSON.stringify(value))})`;
+  toBindableValue(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>) {
+    return `ST_GeomFromGeoJSON(${this._getDialect().escapeString(JSON.stringify(value))})`;
   }
 
   getBindParamSql(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>, options: BindParamOptions) {
@@ -305,13 +300,14 @@ export class HSTORE extends BaseTypes.HSTORE {
 }
 
 export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = INTEGER> extends BaseTypes.RANGE<T> {
-  toBindableValue(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions) {
+  toBindableValue(values: Rangable<AcceptableTypeOf<T>>): string {
     if (!Array.isArray(values)) {
-      return this.options.subtype.toBindableValue(values, options);
+      throw new TypeError('Range values must be an array');
+      // return this.options.subtype.toBindableValue(values);
     }
 
     return RangeParser.stringify(values, rangePart => {
-      const out = this.options.subtype.toBindableValue(rangePart, options);
+      const out = this.options.subtype.toBindableValue(rangePart);
 
       if (!isString(out)) {
         throw new Error('DataTypes.RANGE only accepts types that can be stringified.');
@@ -321,75 +317,60 @@ export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = IN
     });
   }
 
-  escape(values: Rangable<AcceptableTypeOf<T>>, options: StringifyOptions): string {
-    const value = this.toBindableValue(values, options);
-    if (!Array.isArray(values)) {
-      return `'${value}'::${this.#toCastType()}`;
-    }
+  escape(values: Rangable<AcceptableTypeOf<T>>): string {
+    const value = this.toBindableValue(values);
+    const dialect = this._getDialect();
 
-    return `'${value}'`;
+    return `${dialect.escapeString(value)}::${this.toSql()}`;
   }
 
   getBindParamSql(
     values: Rangable<AcceptableTypeOf<T>>,
     options: BindParamOptions,
   ): string {
-    const value = this.toBindableValue(values, options);
-    if (!Array.isArray(values)) {
-      return `${options.bindParam(value ?? '')}::${this.#toCastType()}`;
-    }
+    const value = this.toBindableValue(values);
 
-    return options.bindParam(value);
+    return `${options.bindParam(value)}::${this.toSql()}`;
   }
 
   toSql() {
     const subTypeClass = this.options.subtype.constructor as typeof BaseTypes.AbstractDataType;
 
-    return RANGE.typeMap.subTypes[subTypeClass.getDataTypeId().toLowerCase()];
+    return RANGE.typeMap[subTypeClass.getDataTypeId().toLowerCase()];
   }
 
-  #toCastType(): string {
-    const subTypeClass = this.options.subtype.constructor as typeof BaseTypes.AbstractDataType;
-
-    return RANGE.typeMap.castTypes[subTypeClass.getDataTypeId().toLowerCase()];
-  }
-
-  static typeMap: { subTypes: Record<string, string>, castTypes: Record<string, string> } = {
-    subTypes: {
-      integer: 'int4range',
-      decimal: 'numrange',
-      date: 'tstzrange',
-      dateonly: 'daterange',
-      bigint: 'int8range',
-    },
-    castTypes: {
-      integer: 'int4',
-      decimal: 'numeric',
-      date: 'timestamptz',
-      dateonly: 'date',
-      bigint: 'int8',
-    },
+  static typeMap: Record<string, string> = {
+    integer: 'int4range',
+    decimal: 'numrange',
+    date: 'tstzrange',
+    dateonly: 'daterange',
+    bigint: 'int8range',
   };
 }
 
 export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.ARRAY<T> {
-  escape(
-    values: Array<AcceptableTypeOf<T>>,
-    options: StringifyOptions,
-  ) {
+  escape(values: Array<AcceptableTypeOf<T>>) {
     const type = this.options.type;
 
-    return `ARRAY[${values.map((value: any) => {
-      return type.escape(value, options);
-    }).join(',')}]::${type.toSql(options)}[]`;
+    const mappedValues = isString(type) ? values : values.map(value => type.escape(value));
+
+    const cast = mappedValues.length === 0 ? `::${attributeTypeToSql(type)}[]` : '';
+
+    return `ARRAY[${mappedValues.join(',')}]${cast}`;
   }
 
   getBindParamSql(
     values: Array<AcceptableTypeOf<T>>,
     options: BindParamOptions,
   ) {
+    if (isString(this.options.type)) {
+      return options.bindParam(values);
+    }
+
+    const subType: AbstractDataType<any> = this.options.type;
+
     return options.bindParam(values.map((value: any) => {
-      return this.options.type.toBindableValue(value, options);
+      return subType.toBindableValue(value);
     }));
   }
 }

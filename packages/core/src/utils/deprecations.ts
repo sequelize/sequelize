@@ -22,3 +22,4 @@ export const columnToAttribute = deprecate(noop, 'The @Column decorator has been
 export const fieldToColumn = deprecate(noop, 'The "field" option in attribute definitions has been renamed to "columnName".', 'SEQUELIZE0018');
 export const noModelTableName = deprecate(noop, 'Model.tableName has been replaced with the more complete Model.modelDefinition.table, or Model.table', 'SEQUELIZE0019');
 export const noNewModel = deprecate(noop, `Do not use "new YourModel()" to instantiate a model. Use "YourModel.build()" instead. The previous option is being removed to resolve a conflict with class properties. See https://github.com/sequelize/sequelize/issues/14300#issuecomment-1355188077 for more information.`, 'SEQUELIZE0020');
+export const noOpCol = deprecate(noop, 'Do not use Op.col, use col(), attribute(), or identifier() instead. Read more about these in the Raw Queries guide in the sequelize docs.', 'SEQUELIZE0021');

@@ -7,13 +7,15 @@ import isPlainObject from 'lodash/isPlainObject';
 import isUndefined from 'lodash/isUndefined.js';
 import mergeWith from 'lodash/mergeWith';
 import omitBy from 'lodash/omitBy.js';
-import { getComplexKeys } from './format';
 import type { MapView } from './immutability.js';
 import { combinedIterator, map } from './iterators.js';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { camelize } from './string';
+import { getComplexKeys } from './where.js';
 
 const baseIsNative = require('lodash/_baseIsNative');
+
+export const EMPTY_OBJECT = Object.freeze(Object.create(null));
+export const EMPTY_ARRAY = Object.freeze([]);
 
 /**
  * Deeply merges object `b` into `a`.

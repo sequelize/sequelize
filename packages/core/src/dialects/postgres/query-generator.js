@@ -991,4 +991,14 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     return `(${quotedColumn}${join}${pathStr})`;
   }
+
+  jsonPathExtractionQuery2(escapedValue, path) {
+    const operator = path.length === 1 ? '->>' : '#>>';
+
+    const pathSql = path.length === 1
+      ? this.escape(path[0])
+      : this.escape(path);
+
+    return escapedValue + operator + pathSql;
+  }
 }

@@ -49,7 +49,7 @@ describe('DataTypes.ENUM', () => {
     const enumType = User.getAttributes().anEnum.type;
     assert(typeof enumType !== 'string');
 
-    expectsql(enumType.toSql({ dialect }), {
+    expectsql(enumType.toSql(), {
       postgres: '"public"."enum_Users_anEnum"',
       'mysql mariadb': `ENUM('value 1', 'value 2')`,
       // SQL Server does not support enums, we use text + a check constraint instead

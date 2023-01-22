@@ -7,8 +7,6 @@ import { isValidTimeZone } from '../../utils/dayjs';
 import * as BaseTypes from '../abstract/data-types.js';
 import type {
   AcceptedDate,
-  StringifyOptions,
-  ToSqlOptions,
   BindParamOptions,
 } from '../abstract/data-types.js';
 
@@ -92,8 +90,8 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
 }
 
 export class DATE extends BaseTypes.DATE {
-  toBindableValue(date: AcceptedDate, options: StringifyOptions) {
-    date = this._applyTimezone(date, options);
+  toBindableValue(date: AcceptedDate) {
+    date = this._applyTimezone(date);
 
     return date.format('YYYY-MM-DD HH:mm:ss.SSS');
   }
@@ -119,8 +117,8 @@ export class UUID extends BaseTypes.UUID {
 }
 
 export class GEOMETRY extends BaseTypes.GEOMETRY {
-  toBindableValue(value: GeoJson, options: StringifyOptions) {
-    return `ST_GeomFromText(${options.dialect.escapeString(
+  toBindableValue(value: GeoJson) {
+    return `ST_GeomFromText(${this._getDialect().escapeString(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
   }
@@ -137,7 +135,7 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
 }
 
 export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
-  toSql(options: ToSqlOptions) {
-    return `ENUM(${this.options.values.map(value => options.dialect.escapeString(value)).join(', ')})`;
+  toSql() {
+    return `ENUM(${this.options.values.map(value => this._getDialect().escapeString(value)).join(', ')})`;
   }
 }

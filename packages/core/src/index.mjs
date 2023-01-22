@@ -14,6 +14,14 @@ export const json = Pkg.json;
 export const Json = Pkg.Json;
 export const where = Pkg.where;
 export const Where = Pkg.Where;
+export const list = Pkg.list;
+export const List = Pkg.List;
+export const identifier = Pkg.identifier;
+export const Identifier = Pkg.Identifier;
+export const JsonPath = Pkg.JsonPath;
+export const jsonPath = Pkg.jsonPath;
+export const Value = Pkg.Value;
+export const sql = Pkg.sql;
 export const and = Pkg.and;
 export const or = Pkg.or;
 

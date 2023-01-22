@@ -209,6 +209,19 @@ export interface OpTypes {
    * ```
    */
   readonly is: unique symbol;
+
+  /**
+   * Operator IS NOT
+   *
+   * ```js
+   * [Op.isNot]: null
+   * ```
+   * In SQL
+   * ```sql
+   * IS NOT null
+   * ```
+   */
+  readonly isNot: unique symbol;
   /**
    * Operator LIKE
    *
@@ -557,6 +570,7 @@ export const Op: OpTypes = {
   lt: Symbol.for('lt'),
   not: Symbol.for('not'),
   is: Symbol.for('is'),
+  isNot: Symbol.for('isNot'),
   in: Symbol.for('in'),
   notIn: Symbol.for('notIn'),
   like: Symbol.for('like'),

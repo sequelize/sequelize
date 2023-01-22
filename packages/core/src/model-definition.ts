@@ -520,7 +520,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
               = new builtAttribute.defaultValue();
           }
 
-          this.#defaultValues.set(attributeName, () => toDefaultValue(builtAttribute.defaultValue, this.sequelize.dialect));
+          this.#defaultValues.set(attributeName, () => toDefaultValue(builtAttribute.defaultValue));
         }
 
         // TODO: remove "notNull" & "isNull" validators

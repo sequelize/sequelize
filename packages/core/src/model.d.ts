@@ -10,9 +10,9 @@ import type {
   HasOne,
   HasOneOptions,
 } from './associations/index';
-import type { LOCK, Op, Transaction, TableHints } from './index';
+import type { LOCK, Op, Transaction, TableHints, WhereOptions } from './index';
 import type { Deferrable } from './deferrable';
-import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
+import type { AbstractDataType, DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
 import type {
   IndexOptions,
   TableName,
@@ -28,7 +28,6 @@ import type {
   Cast,
   Col,
   Fn,
-  Json,
   Literal,
   Where,
 } from './utils/sequelize-method.js';
@@ -168,59 +167,12 @@ export interface ScopeOptions {
 
 type InvalidInSqlArray = ColumnReference | Fn | Cast | null | Literal;
 
-/**
- * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
- * It also supports using a plain Array as an alias for `Op.and`. (unlike {@link AllowNotOrAndRecursive}).
- *
- * Example of plain-array treated as `Op.and`:
- * ```ts
- * User.findAll({ where: [{ id: 1 }, { id: 2 }] });
- * ```
- *
- * Meant to be used by {@link WhereOptions}.
- */
-type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
-  // this is the equivalent of Op.and
-  | T
-  | { [Op.or]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
-  | { [Op.and]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
-  | { [Op.not]: AllowNotOrAndWithImplicitAndArrayRecursive<T> }
-  >;
-
-/**
- * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
- * Unlike {@link AllowNotOrAndWithImplicitAndArrayRecursive}, it does not allow the 'implicit AND Array'.
- *
- * Example of plain-array NOT treated as Op.and:
- * ```ts
- * User.findAll({ where: { id: [1, 2] } });
- * ```
- *
- * Meant to be used by {@link WhereAttributeHashValue}.
- */
-type AllowNotOrAndRecursive<T> =
-  | T
-  | { [Op.or]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.and]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.not]: AllowNotOrAndRecursive<T> };
-
 type AllowAnyAll<T> =
   | T
   // Op.all: [x, z] results in ALL (ARRAY[x, z])
   // Some things cannot go in ARRAY. Op.values must be used to support them.
   | { [Op.all]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } }
   | { [Op.any]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } };
-
-/**
- * The type accepted by every `where` option
- */
-export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayRecursive<
-  | WhereAttributeHash<TAttributes>
-  | Literal
-  | Fn
-  | Where
-  | Json
->;
 
 // number is always allowed because -Infinity & +Infinity are valid
 /**
@@ -330,11 +282,8 @@ export interface WhereOperators<AttributeType = any> {
    */
   [Op.is]?: Extract<AttributeType, null | boolean> | Literal;
 
-  /**
-   * @example `[Op.not]: true` becomes `IS NOT TRUE`
-   * @example `{ col: { [Op.not]: { [Op.gt]: 5 } } }` becomes `NOT (col > 5)`
-   */
-  [Op.not]?: WhereOperators<AttributeType>[typeof Op.eq]; // accepts the same types as Op.eq ('Op.not' is not strictly the opposite of 'Op.is' due to legacy reasons)
+  /** Example: `[Op.isNot]: null,` becomes `IS NOT NULL` */
+  [Op.isNot]?: WhereOperators<AttributeType>[typeof Op.is]; // accepts the same types as Op.is
 
   /** @example `[Op.gte]: 6` becomes `>= 6` */
   [Op.gte]?: AllowAnyAll<OperatorValues<NonNullable<AttributeType>>>;
@@ -626,52 +575,6 @@ export interface WhereGeometryOptions {
   type: string;
   coordinates: ReadonlyArray<number[] | number>;
 }
-
-/**
- * A hash of attributes to describe your search.
- *
- * Possible key values:
- *
- * - An attribute name: `{ id: 1 }`
- * - A nested attribute: `{ '$projects.id$': 1 }`
- * - A JSON key: `{ 'object.key': 1 }`
- * - A cast: `{ 'id::integer': 1 }`
- *
- * - A combination of the above: `{ '$join.attribute$.json.path::integer': 1 }`
- */
-export type WhereAttributeHash<TAttributes = any> = {
-  // support 'attribute' & '$attribute$'
-  [AttributeName in keyof TAttributes as AttributeName extends string ? AttributeName | `$${AttributeName}$` : never]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
-} & {
-  [AttributeName in keyof TAttributes as AttributeName extends string ?
-    // support 'json.path', '$json$.path'
-    | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`
-    // support 'attribute::cast', '$attribute$::cast', 'json.path::cast' & '$json$.path::cast'
-    | `${AttributeName | `$${AttributeName}$` | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`}::${string}`
-  : never]?: WhereAttributeHashValue<any>;
-} & {
-  // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast'
-  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>,
-};
-
-/**
- * Types that can be compared to an attribute in a WHERE context.
- */
-export type WhereAttributeHashValue<AttributeType> =
-  | AllowNotOrAndRecursive<
-    // if the right-hand side is an array, it will be equal to Op.in
-    // otherwise it will be equal to Op.eq
-    // Exception: array attribtues always use Op.eq, never Op.in.
-    | AttributeType extends any[]
-      ? WhereOperators<AttributeType>[typeof Op.eq] | WhereOperators<AttributeType>
-      : (
-        | WhereOperators<AttributeType>[typeof Op.in]
-        | WhereOperators<AttributeType>[typeof Op.eq]
-        | WhereOperators<AttributeType>
-      )
-    >
-  // TODO: this needs a simplified version just for JSON columns
-  | WhereAttributeHash<any>; // for JSON columns
 
 /**
  * Through options for Include Options
@@ -1854,7 +1757,7 @@ export interface NormalizedAttributeOptions<M extends Model = Model> extends Rea
   /**
    * Like {@link AttributeOptions.type}, but normalized.
    */
-  readonly type: string | AbstractDataType<any>;
+  readonly type: NormalizedDataType;
   readonly references?: NormalizedAttributeReferencesOptions;
 }
 
@@ -2302,7 +2205,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withScope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
+    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereOptions<M>,
   ): ModelStatic<M>;
 
   /**
@@ -2311,7 +2214,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
+    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereOptions<M>,
   ): ModelStatic<M>;
 
   /**

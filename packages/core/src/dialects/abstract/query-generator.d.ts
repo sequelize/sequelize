@@ -7,7 +7,6 @@ import type {
   AttributeOptions,
   ModelStatic,
   SearchPathable,
-  WhereOptions,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
 import type { Literal, SequelizeMethod, Col } from '../../utils/sequelize-method.js';
@@ -15,6 +14,7 @@ import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { TableName } from './query-interface.js';
+import type { WhereOptions } from './where-sql-builder-types.js';
 
 type ParameterOptions = {
   // only named replacements are allowed
@@ -123,9 +123,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   setDeferredQuery(constraints: string[]): string;
   generateTransactionId(): string;
   whereQuery(where: object, options?: ParameterOptions): string;
-  whereItemsQuery(where: WhereOptions, options: WhereItemsQueryOptions, binding?: string): string;
-  validate(value: unknown, field?: NormalizedAttributeOptions): void;
-  escape(value: unknown, field?: NormalizedAttributeOptions, options?: EscapeOptions): string;
   quoteIdentifiers(identifiers: string): string;
   handleSequelizeMethod(
     smth: SequelizeMethod,

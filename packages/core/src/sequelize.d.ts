@@ -1,10 +1,11 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
-import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes, AbstractQueryGenerator } from '.';
+import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes, AbstractQueryGenerator, SequelizeMethod } from '.';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type { CreateSchemaOptions } from './dialects/abstract/query-interface.types';
+import type { WhereAttributeHashValue } from './dialects/abstract/where-sql-builder-types.js';
 import type {
   DestroyOptions,
   DropOptions,
@@ -20,12 +21,11 @@ import type {
   ColumnReference,
   Transactionable,
   Poolable,
-  WhereAttributeHashValue,
 } from './model';
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
-import type { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method.js';
+import type { Cast, Col, Fn, Json, Literal, QueryParts, Where } from './utils/sequelize-method.js';
 import type { RequiredBy } from './utils/types.js';
 
 export type RetryOptions = RetryAsPromisedOptions;
@@ -775,7 +775,7 @@ export class Sequelize extends SequelizeTypeScript {
    * Dictionary of all models linked with this instance.
    */
   models: {
-    [key: string]: ModelStatic<Model>,
+    [key: string]: ModelStatic,
   };
 
   /**
@@ -1056,7 +1056,7 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @param [options] The options passed to Model.destroy in addition to truncate
    */
-  truncate(options?: DestroyOptions<any>): Promise<unknown[]>;
+  truncate(options?: DestroyOptions): Promise<unknown[]>;
 
   /**
    * Drop all tables defined through this sequelize instance. This is done by calling Model.drop on each model
@@ -1174,7 +1174,7 @@ export function or<T extends any[]>(...args: T): { [Op.or]: T };
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | AttributeOptions;
+export type WhereLeftOperand = ColumnReference | QueryParts;
 
 /**
  * A way of specifying "attr = condition".
@@ -1218,8 +1218,3 @@ export function where<OpSymbol extends keyof WhereOperators>(
 ): Where;
 export function where(leftOperand: any, operator: string, rightOperand: any): Where;
 export function where(leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>): Where;
-
-type ContinuationLocalStorageNamespace = {
-  get(key: string): unknown,
-  set(key: string, value: unknown): void,
-};

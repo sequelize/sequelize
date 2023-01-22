@@ -1,4 +1,5 @@
 import upperFirst from 'lodash/upperFirst';
+import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
 import { AssociationError } from '../errors/index.js';
 import type {
   Model,
@@ -464,7 +465,7 @@ export class HasMany<
       [this.foreignKey]: null,
     } as UpdateValues<T>;
 
-    const where = {
+    const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       // @ts-expect-error -- TODO: what if the target has no primary key?
       [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => {

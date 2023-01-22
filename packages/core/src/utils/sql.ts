@@ -1,7 +1,6 @@
 import isPlainObject from 'lodash/isPlainObject';
 import type { AbstractDialect, BindCollector } from '../dialects/abstract/index.js';
 import type { BindOrReplacements } from '../sequelize.js';
-import { escape as escapeSqlValue } from '../sql-string';
 
 type OnBind = (oldName: string) => string;
 
@@ -202,7 +201,7 @@ function mapBindParametersAndReplacements(
         throw new Error(`Named replacement ":${replacementName}" has no entry in the replacement map.`);
       }
 
-      const escapedReplacement = escapeSqlValue(replacementValue, undefined, dialect, true);
+      const escapedReplacement = dialect.queryGenerator.escape(replacementValue);
 
       // add everything before the bind parameter name
       output += sqlString.slice(previousSliceEnd, i);
@@ -243,7 +242,7 @@ function mapBindParametersAndReplacements(
         throw new Error(`Positional replacement (?) ${replacementIndex} has no entry in the replacement map (replacements[${replacementIndex}] is undefined).`);
       }
 
-      const escapedReplacement = escapeSqlValue(replacementValue, undefined, dialect, true);
+      const escapedReplacement = dialect.queryGenerator.escape(replacementValue);
 
       // add everything before the bind parameter name
       output += sqlString.slice(previousSliceEnd, i);

@@ -1,14 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import isPlainObject from 'lodash/isPlainObject';
 import { v1 as uuidv1 } from 'uuid';
-import type { AbstractDialect } from '../dialects/abstract';
 import * as DataTypes from '../dialects/abstract/data-types.js';
 
-export function toDefaultValue(value: unknown, dialect: AbstractDialect): unknown {
+export function toDefaultValue(value: unknown): unknown {
   if (typeof value === 'function') {
     const tmp = value();
     if (tmp instanceof DataTypes.AbstractDataType) {
-      return tmp.toSql({ dialect });
+      return tmp.toSql();
     }
 
     return tmp;

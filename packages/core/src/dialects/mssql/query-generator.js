@@ -916,7 +916,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
             const value = Array.isArray(order) ? order[0] : order;
 
             if (value instanceof Col) {
-              return value.col;
+              return value.identifiers;
             }
 
             if (value instanceof Literal) {

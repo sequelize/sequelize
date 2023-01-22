@@ -3,12 +3,8 @@
 import NodeUtil from 'node:util';
 import { conformIndex } from '../../model-internals';
 import { getTextDataTypeForDialect } from '../../sql-string';
-import { rejectInvalidOptions, isNullish, canTreatArrayAsAnd, isColString } from '../../utils/check';
-import { TICK_CHAR } from '../../utils/dialect';
+import { rejectInvalidOptions, canTreatArrayAsAnd, isColString } from '../../utils/check';
 import {
-  getComplexKeys,
-  getComplexSize,
-  getOperators,
   mapFinderOptions,
   removeNullishValuesFromHash,
 } from '../../utils/format';
@@ -17,17 +13,15 @@ import { isModelStatic } from '../../utils/model-utils';
 import { Cast, Col, Fn, Literal, SequelizeMethod, Where } from '../../utils/sequelize-method';
 import { injectReplacements } from '../../utils/sql';
 import { nameIndex, spliceStr } from '../../utils/string';
-import { AbstractDataType } from './data-types';
-import { attributeTypeToSql, validateDataType } from './data-types-utils';
+import { getComplexKeys, getComplexSize, getOperators } from '../../utils/where';
+import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 
 const util = require('node:util');
 const _ = require('lodash');
 const crypto = require('node:crypto');
 
-const SqlString = require('../../sql-string');
 const DataTypes = require('../../data-types');
-const { Model } = require('../../model');
 const { Association } = require('../../associations/base');
 const { BelongsTo } = require('../../associations/belongs-to');
 const { BelongsToMany } = require('../../associations/belongs-to-many');
@@ -1036,49 +1030,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return this.quoteIdentifier(identifiers);
   }
 
-  /**
-   * Escape a value (e.g. a string, number or date)
-   *
-   * @param {unknown} value
-   * @param {object} attribute
-   * @param {object} options
-   * @private
-   */
-  escape(value, attribute, options = {}) {
-    if (value instanceof SequelizeMethod) {
-      return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
-    }
-
-    if (value == null || attribute?.type == null || typeof attribute.type === 'string') {
-      // use default escape mechanism instead of the DataType's.
-      return SqlString.escape(value, this.options.timezone, this.dialect);
-    }
-
-    if (!attribute.type.belongsToDialect(this.dialect)) {
-      attribute = {
-        ...attribute,
-        type: attribute.type.toDialectDataType(this.dialect),
-      };
-    }
-
-    if (options.isList && Array.isArray(value)) {
-      const escapeOptions = { ...options, isList: false };
-
-      return `(${value.map(valueItem => {
-        return this.escape(valueItem, attribute, escapeOptions);
-      }).join(', ')})`;
-    }
-
-    this.validate(value, attribute, options);
-
-    return attribute.type.escape(value, {
-      field: attribute,
-      timezone: this.options.timezone,
-      operation: options.operation,
-      dialect: this.dialect,
-    });
-  }
-
   bindParam(bind) {
     let i = 0;
 
@@ -1089,49 +1040,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       return `$${bindName}`;
     };
-  }
-
-  /*
-    Returns a bind parameter representation of a value (e.g. a string, number or date)
-    @private
-  */
-  format(value, field, options, bindParam) {
-    options = options || {};
-
-    if (value instanceof SequelizeMethod) {
-      throw new TypeError('Cannot pass SequelizeMethod as a bind parameter - use escape instead');
-    }
-
-    if (value == null || !field?.type || typeof field.type === 'string') {
-      return bindParam(value);
-    }
-
-    this.validate(value, field, options);
-
-    return field.type.getBindParamSql(value, {
-      field,
-      timezone: this.options.timezone,
-      operation: options.operation,
-      bindParam,
-      dialect: this.dialect,
-    });
-  }
-
-  /*
-    Validate a value against a field specification
-    @private
-  */
-  validate(value, field) {
-    if (this.noTypeValidation || isNullish(value)) {
-      return;
-    }
-
-    const error = field.type instanceof AbstractDataType
-      ? validateDataType(field.type, field.fieldName, null, value)
-      : null;
-    if (error) {
-      throw error;
-    }
   }
 
   /**
@@ -2377,15 +2285,15 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     }
 
     if (smth instanceof Col) {
-      if (Array.isArray(smth.col) && !factory) {
+      if (smth.identifiers.length > 1 && !factory) {
         throw new Error('Cannot call Sequelize.col() with array outside of order / group clause');
       }
 
-      if (smth.col.startsWith('*')) {
+      if (smth.identifiers.startsWith('*')) {
         return '*';
       }
 
-      return this.quote(smth.col, factory, undefined, options);
+      return this.quote(smth.identifiers, factory, undefined, options);
     }
 
     return smth.toString(this, factory);
@@ -2400,39 +2308,12 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     return '';
   }
 
-  whereItemsQuery(where, options, binding) {
-    if (
-      where === null
-      || where === undefined
-      || getComplexSize(where) === 0
-    ) {
-      // NO OP
-      return '';
-    }
-
-    if (typeof where === 'string') {
-      throw new TypeError('Support for `{where: \'raw query\'}` has been removed.');
-    }
-
-    const items = [];
-
-    binding = binding || 'AND';
-    if (binding[0] !== ' ') {
-      binding = ` ${binding} `;
-    }
-
-    if (_.isPlainObject(where)) {
-      for (const prop of getComplexKeys(where)) {
-        const item = where[prop];
-        items.push(this.whereItemQuery(prop, item, options));
-      }
-    } else {
-      items.push(this.whereItemQuery(undefined, where, options));
-    }
-
-    return items.length && items.filter(item => item && item.length).join(binding) || '';
-  }
-
+  /**
+   * @param key
+   * @param value
+   * @param options
+   * @deprecated
+   */
   whereItemQuery(key, value, options = {}) {
     if (value === undefined) {
       throw new Error(`WHERE parameter "${key}" has invalid "undefined" value`);
