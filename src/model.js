@@ -3603,8 +3603,8 @@ class Model {
       if (this._hasCustomGetters) {
         for (_key in this._customGetters) {
           if (
-            this._options.attributes
-            && !this._options.attributes.includes(_key)
+            !(this._options.attributes
+            && !this._options.attributes.includes(_key))
           ) {
             continue;
           }
