@@ -3574,7 +3574,7 @@ class Model {
 
     options = options || {};
 
-    if (key) {
+    if (key) { 
       if (Object.prototype.hasOwnProperty.call(this._customGetters, key) && !options.raw) {
         return this._customGetters[key].call(this, key, options);
       }
@@ -3602,11 +3602,21 @@ class Model {
 
       if (this._hasCustomGetters) {
         for (_key in this._customGetters) {
-          if (
-            !(this._options.attributes
-            && !this._options.attributes.includes(_key))
-          ) {
-            continue;
+          
+          const keySchemaObject = this.constructor.rawAttributes[_key];
+          //if the key is not in rawAttributes it means that _key is a "virtual getter"
+          if ( !(keySchemaObject === void 0) ) {            
+
+            //(this._options.attributes&& this._options.attributes.includes(_key))    
+            //checks if the _key is in model instance options 
+            //keySchemaObject.type.hasOwnProperty('VIRTUAL')
+            //checks if the _key is in rawAttributes and type is virtual
+            //when the _key is absent in  and neither a virtual attribute, we should iterate to next key
+            if (!(this._options.attributes
+              && this._options.attributes.includes(_key))            
+              && !Object.prototype.hasOwnProperty.call(keySchemaObject.type, 'VIRTUAL')) {
+              continue;
+            }
           }
 
           if (Object.prototype.hasOwnProperty.call(this._customGetters, _key)) {
