@@ -20,10 +20,21 @@ export class MySqlQuery extends AbstractQuery {
   }
 
   async run(sql, parameters) {
-    this.sql = sql;
     const { connection, options } = this;
+    const shouldMinifyAliases = (parameters || {}).shouldMinifyAlias;
 
     const showWarnings = this.sequelize.options.showWarnings || options.showWarnings;
+
+    if ((this.sequelize.options.minifyAliases || shouldMinifyAliases) && this.options.includeAliases) {
+      for (const [alias, original] of _.toPairs(this.options.includeAliases)
+        .sort((a, b) => b[1].length - a[1].length)) {
+        const reg = new RegExp(_.escapeRegExp(original), 'g');
+
+        sql = sql.replace(reg, alias);
+      }
+    }
+
+    this.sql = sql;
 
     const complete = this._logQuery(sql, debug, parameters);
 
@@ -66,6 +77,17 @@ export class MySqlQuery extends AbstractQuery {
       throw this.formatError(error);
     } finally {
       complete();
+    }
+
+    if ((this.sequelize.options.minifyAliases || shouldMinifyAliases) && this.options.aliasesMapping) {
+      results = results
+        .map(row => _.toPairs(row)
+          .reduce((acc, [key, value]) => {
+            const mapping = this.options.aliasesMapping.get(key);
+            acc[mapping || key] = value;
+
+            return acc;
+          }, {}));
     }
 
     if (showWarnings && results && results.warningStatus > 0) {

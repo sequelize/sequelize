@@ -1832,7 +1832,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    if ((this.options.minifyAliases || shouldMinifyAlias) && asRight.length > 63) {
+    if ((this.options.minifyAliases && asRight.length > 63) || shouldMinifyAlias) {
       const alias = `%${topLevelInfo.options.includeAliases.size}`;
 
       topLevelInfo.options.includeAliases.set(alias, asRight);
@@ -1958,7 +1958,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let throughWhere;
     let targetWhere;
 
-    if ((this.options.minifyAliases || shouldMinifyAlias) && throughAs.length > 63) {
+    if ((this.options.minifyAliases && throughAs.length > 63) || shouldMinifyAlias) {
       topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, throughAs);
       if (includeAs.internalAs.length > 63) {
         topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, includeAs.internalAs);
