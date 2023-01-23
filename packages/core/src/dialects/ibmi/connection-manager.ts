@@ -2,9 +2,9 @@ import type { Connection as OdbcConnection, NodeOdbcError } from 'odbc';
 import { ConnectionRefusedError } from '../../errors/index.js';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import { logger } from '../../utils/logger';
-import type { IBMiDialect } from './index.js';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
+import type { IBMiDialect } from './index.js';
 
 const debug = logger.debugContext('connection:ibmi');
 

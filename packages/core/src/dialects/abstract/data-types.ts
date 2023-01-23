@@ -5,7 +5,6 @@ import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
-import type { AbstractDialect } from './index.js';
 import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { GeoJson, GeoJsonType } from '../../geo-json.js';
@@ -28,6 +27,7 @@ import {
   throwUnsupportedDataType,
 } from './data-types-utils.js';
 import type { TableNameWithSchema } from './query-interface.js';
+import type { AbstractDialect } from './index.js';
 
 // TODO: try merging "validate" & "sanitize" by making sanitize coerces the type, and if it cannot, throw a ValidationError.
 //       right now, they share a lot of the same logic.

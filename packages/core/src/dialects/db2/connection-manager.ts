@@ -4,8 +4,8 @@ import type { Database as Db2LibDatabase, ConnStr } from 'ibm_db';
 import { ConnectionError, ConnectionRefusedError } from '../../errors/index.js';
 import type { Sequelize, ConnectionOptions } from '../../sequelize.js';
 import type { Connection } from '../abstract/connection-manager';
-import type { Db2Dialect } from './index.js';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
+import type { Db2Dialect } from './index.js';
 
 // TODO: once the code has been split into packages, we won't need to lazy load this anymore
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports

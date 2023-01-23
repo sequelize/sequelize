@@ -10,7 +10,6 @@ import type {
   HasOne,
   HasOneOptions,
 } from './associations/index';
-import type { LOCK, Op, Transaction, TableHints } from './index';
 import type { Deferrable } from './deferrable';
 import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
 import type {
@@ -40,6 +39,7 @@ import type {
   Nullish,
   OmitConstructors, RequiredBy,
 } from './utils/types.js';
+import type { LOCK, Op, Transaction, TableHints } from './index';
 
 export interface Logging {
   /**

@@ -3,9 +3,9 @@ import identity from 'lodash/identity';
 import wkx from 'wkx';
 import { getDataTypeParser } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { PostgresDialect } from './index.js';
 import * as Hstore from './hstore.js';
 import { buildRangeParser } from './range.js';
+import type { PostgresDialect } from './index.js';
 
 /**
  * First pass of DB value parsing: Parses based on the Postgres Type ID.
