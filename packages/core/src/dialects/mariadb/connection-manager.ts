@@ -8,13 +8,13 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors/index.js';
-import type { MariaDbDialect } from './index.js';
 import type { Sequelize, ConnectionOptions } from '../../sequelize.js';
 import { isErrorWithStringCode } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import { removeUndefined } from '../../utils/object.js';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
+import type { MariaDbDialect } from './index.js';
 
 const debug = logger.debugContext('connection:mariadb');
 

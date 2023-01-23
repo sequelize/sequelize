@@ -5,10 +5,10 @@ import type { Database } from 'sqlite3';
 import { ConnectionError } from '../../errors/index.js';
 import type { Sequelize } from '../../sequelize.js';
 import { map } from '../../utils/iterators.js';
-import type { SqliteDialect } from './index.js';
 import { logger } from '../../utils/logger';
 import type { Connection, GetConnectionOptions } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
+import type { SqliteDialect } from './index.js';
 
 const debug = logger.debugContext('connection:sqlite');
 
