@@ -114,6 +114,7 @@ describe('Sequelize constructor', () => {
         mysql: 3306,
         snowflake: 3306,
         sqlite: 0,
+        cockroachdb: 26_257,
       };
 
       expect(config.replication.write).to.deep.eq({
