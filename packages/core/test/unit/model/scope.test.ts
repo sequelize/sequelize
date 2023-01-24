@@ -2,7 +2,6 @@ import assert from 'node:assert';
 import { expect } from 'chai';
 import type { FindOptions } from '@sequelize/core';
 import { DataTypes, Op, Sequelize, col, where, literal } from '@sequelize/core';
-// eslint-disable-next-line import/order
 import { resetSequelizeInstance } from '../../support';
 
 const Support = require('../../support');

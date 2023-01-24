@@ -10,7 +10,6 @@ import omitBy from 'lodash/omitBy.js';
 import { getComplexKeys } from './format';
 import type { MapView } from './immutability.js';
 import { combinedIterator, map } from './iterators.js';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { camelize } from './string';
 
 const baseIsNative = require('lodash/_baseIsNative');

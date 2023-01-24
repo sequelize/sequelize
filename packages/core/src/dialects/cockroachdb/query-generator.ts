@@ -1,4 +1,4 @@
-import { joinSQLFragments } from 'src/utils/join-sql-fragments';
+import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import { PostgresQueryGenerator } from '../postgres/query-generator';
 

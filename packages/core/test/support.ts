@@ -278,7 +278,9 @@ export function getPoolMax(): number {
   return Config[getTestDialect()].pool?.max ?? 1;
 }
 
-type ExpectationKey = 'default' | Permutations<Dialect>;
+// type Values<T extends string> = T extends any ?
+
+type ExpectationKey = 'default' | 'cockroachdb' | Permutations<Exclude<Dialect, 'cockroachdb'>>;
 
 export type ExpectationRecord<V> = PartialRecord<ExpectationKey, V | Expectation<V> | Error>;
 
@@ -402,7 +404,7 @@ export function expectsql(
   assertions: {
     query: PartialRecord<ExpectationKey, string | Error>,
     bind: PartialRecord<ExpectationKey, unknown>,
-   },
+  },
 ): void;
 export function expectsql(
   query: MaybeLazy<string | Error>,
