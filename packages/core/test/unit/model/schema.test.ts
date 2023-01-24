@@ -1,16 +1,12 @@
 import assert from 'node:assert';
-import { literal } from '@sequelize/core';
-// eslint-disable-next-line import/order
 import { expect } from 'chai';
+import { literal } from '@sequelize/core';
+import { sequelize, getTestDialectTeaser } from '../../support';
 
-const Support = require('../../support');
-
-const current = Support.sequelize;
-
-describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
-  if (current.dialect.supports.schemas) {
-    const Project = current.define('project');
-    const Company = current.define('company', {}, {
+describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
+  if (sequelize.dialect.supports.schemas) {
+    const Project = sequelize.define('project');
+    const Company = sequelize.define('company', {}, {
       schema: 'default',
       schemaDelimiter: '&',
     });
@@ -19,7 +15,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
 
     describe('schema', () => {
       it('should work with no default schema', () => {
-        expect(Project.table.schema).to.equal(current.dialect.getDefaultSchema());
+        expect(Project.table.schema).to.equal(sequelize.dialect.getDefaultSchema());
       });
 
       it('should apply default schema from define', () => {
@@ -45,7 +41,7 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able nullify schema', () => {
-        expect(Company.schema(null).table.schema).to.equal(current.dialect.getDefaultSchema());
+        expect(Company.schema(null).table.schema).to.equal(sequelize.dialect.getDefaultSchema());
       });
 
       it('should support multiple, coexistent schema models', () => {
@@ -67,12 +63,12 @@ describe(`${Support.getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able to override the default schema delimiter', () => {
-        expect(Company.schema(Company.table.schema, '^').table.delimiter).to.equal('^');
+        expect(Company.schema(Company.table.schema!, '^').table.delimiter).to.equal('^');
       });
 
       it('should support multiple, coexistent schema delimiter models', () => {
-        const schema1 = Company.schema(Company.table.schema, '$');
-        const schema2 = Company.schema(Company.table.schema, '#');
+        const schema1 = Company.schema(Company.table.schema!, '$');
+        const schema2 = Company.schema(Company.table.schema!, '#');
 
         expect(schema1.table.delimiter).to.equal('$');
         expect(schema2.table.delimiter).to.equal('#');

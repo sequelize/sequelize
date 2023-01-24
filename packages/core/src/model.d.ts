@@ -2267,7 +2267,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withSchema<M extends Model>(
     this: ModelStatic<M>,
-    schema: string | SchemaOptions,
+    schema: string | SchemaOptions | null,
   ): ModelStatic<M>;
 
   /**
@@ -2276,7 +2276,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static schema<M extends Model>(
     this: ModelStatic<M>,
-    schema: string,
+    schema: string | null,
     options?: { schemaDelimiter?: string } | string
   ): ModelStatic<M>;
 
