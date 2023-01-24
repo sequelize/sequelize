@@ -278,12 +278,17 @@ export function getPoolMax(): number {
   return Config[getTestDialect()].pool?.max ?? 1;
 }
 
-type ExpectationKey = 'default' | Permutations<Dialect>;
+type ExpectationKey = 'default' | Permutations<Dialect, 4>;
 
 export type ExpectationRecord<V> = PartialRecord<ExpectationKey, V | Expectation<V> | Error>;
 
-type Permutations<T extends string, U extends string = T> =
-  T extends any ? (T | `${T} ${Permutations<Exclude<U, T>>}`) : never;
+type Decr = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+type Permutations<T extends string, Depth extends number, U extends string = T> = Depth extends 0
+  ? never
+  : T extends any
+    ? T | `${T} ${Permutations<Exclude<U, T>, Decr[Depth]>}`
+    : never;
 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
@@ -417,8 +422,21 @@ export function expectsql(
   const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> = 'query' in assertions ? assertions.query : assertions;
   const expectations: PartialRecord<'default' | Dialect, string | Error> = Object.create(null);
 
+  /**
+   * The list of expectations that are run against more than one dialect, which enables the transformation of
+   * identifier quoting to match the dialect.
+   */
+  const combinedExpectations = new Set<Dialect | 'default'>();
+  combinedExpectations.add('default');
+
   for (const [key, value] of Object.entries(rawExpectationMap)) {
     const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+
+    if (acceptedDialects.length > 1) {
+      for (const dialect of acceptedDialects) {
+        combinedExpectations.add(dialect);
+      }
+    }
 
     for (const dialect of acceptedDialects) {
       if (dialect === 'default' && acceptedDialects.length > 1) {
@@ -433,23 +451,20 @@ export function expectsql(
     }
   }
 
-  let expectation = expectations[sequelize.dialect.name];
-
   const dialect = sequelize.dialect;
+  const usedExpectationName = dialect.name in expectations ? dialect.name : 'default';
 
-  if (!expectation) {
-    if (expectations.default !== undefined) {
-      expectation = expectations.default;
-      if (typeof expectation === 'string') {
-        // replace [...] with the proper quote character for the dialect
-        // except for ARRAY[...]
-        expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
-        if (dialect.name === 'ibmi') {
-          expectation = expectation.trim().replace(/;$/, '');
-        }
-      }
-    } else {
-      throw new Error(`Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
+  let expectation = expectations[usedExpectationName];
+  if (expectation == null) {
+    throw new Error(`Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
+  }
+
+  if (combinedExpectations.has(usedExpectationName) && typeof expectation === 'string') {
+    // replace [...] with the proper quote character for the dialect
+    // except for ARRAY[...]
+    expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
+    if (dialect.name === 'ibmi') {
+      expectation = expectation.trim().replace(/;$/, '');
     }
   }
 
