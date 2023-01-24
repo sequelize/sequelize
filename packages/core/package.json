@@ -102,7 +102,7 @@
     "p-timeout": "4.1.0",
     "pg": "8.8.0",
     "pg-hstore": "2.3.4",
-    "rimraf": "4.1.1",
+    "rimraf": "4.1.2",
     "sinon": "15.0.1",
     "sinon-chai": "3.7.0",
     "snowflake-sdk": "1.6.17",
