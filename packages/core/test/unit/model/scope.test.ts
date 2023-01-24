@@ -265,13 +265,13 @@ describe(getTestDialectTeaser('Model'), () => {
         ],
       });
 
-      expect(Company.options.scopes.alsoUsers).to.deep.equal({
+      expect(Company.options.scopes!.alsoUsers).to.deep.equal({
         include: [
           { model: User, association: Company.associations.users, as: 'users', where: { something: 42 } },
         ],
       });
 
-      expect(Company.options.scopes.users).to.deep.equal({
+      expect(Company.options.scopes!.users).to.deep.equal({
         include: [
           { model: User, association: Company.associations.users, as: 'users' },
         ],
@@ -365,7 +365,6 @@ describe(getTestDialectTeaser('Model'), () => {
       };
 
       const TestModel = sequelize.define('testModel', {}, {
-        mergeWhereScopesWithAndOperator: true,
         scopes: testModelScopes,
       });
 

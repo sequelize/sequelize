@@ -63,12 +63,12 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('should be able to override the default schema delimiter', () => {
-        expect(Company.schema(Company.table.schema!, '^').table.delimiter).to.equal('^');
+        expect(Company.schema(Company.table.schema, '^').table.delimiter).to.equal('^');
       });
 
       it('should support multiple, coexistent schema delimiter models', () => {
-        const schema1 = Company.schema(Company.table.schema!, '$');
-        const schema2 = Company.schema(Company.table.schema!, '#');
+        const schema1 = Company.schema(Company.table.schema, '$');
+        const schema2 = Company.schema(Company.table.schema, '#');
 
         expect(schema1.table.delimiter).to.equal('$');
         expect(schema2.table.delimiter).to.equal('#');
