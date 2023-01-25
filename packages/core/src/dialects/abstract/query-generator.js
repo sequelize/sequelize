@@ -1229,7 +1229,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    attributes.main = this.escapeAttributes(attributes.main, options, mainTable.as);
+    attributes.main = this.escapeAttributes(attributes.main, { ...options, minifyAliases: shouldMinifyAlias }, mainTable.as);
     attributes.main = attributes.main || (options.include ? [`${mainTable.quotedAs}.*`] : ['*']);
 
     // If subquery, we add the mainAttributes to the subQuery and set the mainAttributes to select * from subquery
@@ -1830,7 +1830,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    if (options.minifyAliases && asRight.length > 63) {
+    if (options?.minifyAliases && asRight.length > 63) {
       const alias = `%${topLevelInfo.options.includeAliases.size}`;
 
       topLevelInfo.options.includeAliases.set(alias, asRight);
