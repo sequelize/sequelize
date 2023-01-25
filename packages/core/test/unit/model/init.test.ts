@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { Model } from '@sequelize/core';
+import { sequelize } from '../../support';
 
 describe('Uninitialized model', () => {
   class Test extends Model {}
@@ -10,5 +11,17 @@ describe('Uninitialized model', () => {
 
   it('throws when .sequelize is accessed', () => {
     expect(() => Test.sequelize).to.throw(/has not been initialized/);
+  });
+});
+
+describe('Initialized model', () => {
+  it('throws if initialized twice', () => {
+    class Test extends Model {}
+
+    Test.init({}, { sequelize });
+
+    expect(() => {
+      Test.init({}, { sequelize });
+    }).to.throw(/already been initialized/);
   });
 });
