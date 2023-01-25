@@ -2,7 +2,6 @@ import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
 import type { ModelStatic, Attributes, Model } from '../../model.js';
 import { Op } from '../../operators.js';
-import type { AbstractDialect } from './index.js';
 import type { BindOrReplacements, Sequelize } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { parseAttributeSyntax } from '../../utils/attribute.js';
@@ -31,6 +30,7 @@ import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import type { WhereBuilderOptions } from './where-sql-builder.js';
 import { PojoWhere, WhereSqlBuilder } from './where-sql-builder.js';
+import type { AbstractDialect } from './index.js';
 
 export type TableNameOrModel = TableName | ModelStatic;
 

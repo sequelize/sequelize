@@ -1,5 +1,4 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
-import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes, AbstractQueryGenerator, SequelizeMethod } from '.';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
@@ -27,6 +26,7 @@ import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
 import type { Cast, Col, Fn, Json, Literal, QueryParts, Where } from './utils/sequelize-method.js';
 import type { RequiredBy } from './utils/types.js';
+import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes, AbstractQueryGenerator } from '.';
 
 export type RetryOptions = RetryAsPromisedOptions;
 
