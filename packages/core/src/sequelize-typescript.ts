@@ -1,7 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
-import type { ModelAttributes, ModelOptions, ModelStatic, QueryOptions, SyncOptions } from '.';
 import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { AbstractQuery } from './dialects/abstract/query.js';
 import {
@@ -18,6 +17,7 @@ import { validModelHooks } from './model-hooks.js';
 import type { ConnectionOptions, Options, Sequelize } from './sequelize.js';
 import type { TransactionOptions } from './transaction.js';
 import { Transaction } from './transaction.js';
+import type { ModelAttributes, ModelOptions, ModelStatic, QueryOptions, SyncOptions } from '.';
 
 export interface SequelizeHooks extends ModelHooks {
   /**

@@ -10,7 +10,6 @@ import type {
   HasOne,
   HasOneOptions,
 } from './associations/index';
-import type { LOCK, Op, Transaction, TableHints } from './index';
 import type { Deferrable } from './deferrable';
 import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
 import type {
@@ -40,6 +39,7 @@ import type {
   Nullish,
   OmitConstructors, RequiredBy,
 } from './utils/types.js';
+import type { LOCK, Op, Transaction, TableHints } from './index';
 
 export interface Logging {
   /**
@@ -2272,7 +2272,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withSchema<M extends Model>(
     this: ModelStatic<M>,
-    schema: string | SchemaOptions,
+    schema: Nullish<string | SchemaOptions>,
   ): ModelStatic<M>;
 
   /**
@@ -2281,7 +2281,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static schema<M extends Model>(
     this: ModelStatic<M>,
-    schema: string,
+    schema: Nullish<string>,
     options?: { schemaDelimiter?: string } | string
   ): ModelStatic<M>;
 
@@ -2307,7 +2307,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withScope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>>,
   ): ModelStatic<M>;
 
   /**
@@ -2316,7 +2316,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>>,
   ): ModelStatic<M>;
 
   /**
