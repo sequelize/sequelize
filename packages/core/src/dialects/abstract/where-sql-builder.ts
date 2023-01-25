@@ -399,9 +399,6 @@ export class WhereSqlBuilder {
       && !(leftDataType instanceof DataTypes.ARRAY)
       && Array.isArray(right)
     ) {
-      // @ts-expect-error
-      console.log(new DataTypes.RANGE(leftDataType).toDialectDataType(this.dialect).escape(right));
-
       return this.formatBinaryOperation(
         left,
         operator,
@@ -415,6 +412,99 @@ export class WhereSqlBuilder {
     // RANGE contained RANGE
     // ARRAY contained ARRAY
     return this.formatBinaryOperation(left, operator, right, leftDataType, options);
+  }
+
+  protected [Op.startsWith](
+    left: WhereLeftOperand,
+    operator: symbol,
+    right: WhereLeftOperand,
+    leftDataType: NormalizedDataType | undefined,
+    options: WhereBuilderOptions,
+  ): string {
+    return this.formatSubstring(left, right, leftDataType, options, Op.like, false, true);
+  }
+
+  protected [Op.notStartsWith](
+    left: WhereLeftOperand,
+    operator: symbol,
+    right: WhereLeftOperand,
+    leftDataType: NormalizedDataType | undefined,
+    options: WhereBuilderOptions,
+  ): string {
+    return this.formatSubstring(left, right, leftDataType, options, Op.notLike, false, true);
+  }
+
+  protected [Op.endsWith](
+    left: WhereLeftOperand,
+    operator: symbol,
+    right: WhereLeftOperand,
+    leftDataType: NormalizedDataType | undefined,
+    options: WhereBuilderOptions,
+  ): string {
+    return this.formatSubstring(left, right, leftDataType, options, Op.like, true, false);
+  }
+
+  protected [Op.notEndsWith](
+    left: WhereLeftOperand,
+    operator: symbol,
+    right: WhereLeftOperand,
+    leftDataType: NormalizedDataType | undefined,
+    options: WhereBuilderOptions,
+  ): string {
+    return this.formatSubstring(left, right, leftDataType, options, Op.notLike, true, false);
+  }
+
+  protected [Op.substring](
+    left: WhereLeftOperand,
+    operator: symbol,
+    right: WhereLeftOperand,
+    leftDataType: NormalizedDataType | undefined,
+    options: WhereBuilderOptions,
+  ): string {
+    return this.formatSubstring(left, right, leftDataType, options, Op.like, true, true);
+  }
+
+  protected [Op.notSubstring](
+    left: WhereLeftOperand,
+    operator: symbol,
+    right: WhereLeftOperand,
+    leftDataType: NormalizedDataType | undefined,
+    options: WhereBuilderOptions,
+  ): string {
+    return this.formatSubstring(left, right, leftDataType, options, Op.notLike, true, true);
+  }
+
+  protected formatSubstring(
+    left: WhereLeftOperand,
+    right: WhereLeftOperand,
+    leftDataType: NormalizedDataType | undefined,
+    options: WhereBuilderOptions,
+    operator: symbol,
+    start: boolean,
+    end: boolean,
+  ) {
+    if (typeof right === 'string') {
+      const startToken = start ? '%' : '';
+      const endToken = end ? '%' : '';
+
+      return this.formatBinaryOperation(left, operator, startToken + right + endToken, leftDataType, options);
+    }
+
+    const escapedPercent = this.dialect.escapeString('%');
+    const literalBuilder: Array<string | SequelizeMethod> = [`CONCAT(`];
+    if (start) {
+      literalBuilder.push(escapedPercent, ', ');
+    }
+
+    literalBuilder.push(new Value(right));
+
+    if (end) {
+      literalBuilder.push(', ', escapedPercent);
+    }
+
+    literalBuilder.push(')');
+
+    return this.formatBinaryOperation(left, operator, new Literal(literalBuilder), leftDataType, options);
   }
 
   protected formatBinaryOperation(
