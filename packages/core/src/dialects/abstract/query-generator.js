@@ -1924,7 +1924,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const throughAttributes = through.attributes.map(attr => {
       let alias = `${externalThroughAs}.${Array.isArray(attr) ? attr[1] : attr}`;
 
-      if (options.shouldMinifyAlias) {
+      if (options.minifyAliases) {
         alias = this._getMinifiedAlias(alias, throughAs, topLevelInfo.options);
       }
 
@@ -1955,7 +1955,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let throughWhere;
     let targetWhere;
 
-    if (options.shouldMinifyAlias && throughAs.length > 63) {
+    if (options.minifyAliases && throughAs.length > 63) {
       topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, throughAs);
       if (includeAs.internalAs.length > 63) {
         topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, includeAs.internalAs);
