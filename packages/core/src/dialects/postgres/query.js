@@ -17,6 +17,8 @@ export class PostgresQuery extends AbstractQuery {
       sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
     }
 
+    // TODO: https://github.com/sequelize/sequelize/pull/15394#discussion_r1085621226
+    // This can mess up the data since the regexp can replace the original name itself
     if (shouldMinifyAliases && this.options.includeAliases) {
       for (const [alias, original] of _.toPairs(this.options.includeAliases)
         // Sorting to replace the longest aliases first to prevent alias collision

@@ -1493,7 +1493,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   escapeAttributes(attributes, options, mainTableAs) {
     const quotedMainTableAs = mainTableAs && this.quoteIdentifier(mainTableAs);
-    const shouldMinifyAlias = options?.minifyAliases ?? this.options.minifyAliases;
 
     return attributes && attributes.map(attr => {
       let addTable = true;
@@ -1518,7 +1517,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         let alias = attr[1];
 
-        if (shouldMinifyAlias) {
+        if (options.minifyAliases) {
           alias = this._getMinifiedAlias(alias, mainTableAs, options);
         }
 
@@ -1540,7 +1539,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       mainQuery: [],
       subQuery: [],
     };
-    const shouldMinifyAlias = options?.minifyAliases ?? this.options.minifyAliases;
     const mainChildIncludes = [];
     const subChildIncludes = [];
     let requiredMismatch = false;
@@ -1609,7 +1607,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         let alias = `${includeAs.externalAs}.${attrAs}`;
 
-        if (shouldMinifyAlias) {
+        if (options.minifyAliases) {
           alias = this._getMinifiedAlias(alias, includeAs.internalAs, topLevelInfo.options);
         }
 
@@ -1632,7 +1630,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     let joinQuery;
     if (include.through) {
-      joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, { ...topLevelInfo, minifyAliases: shouldMinifyAlias });
+      joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, topLevelInfo, { minifyAliases: options.minifyAliases });
     } else {
       this._generateSubQueryFilter(include, includeAs, topLevelInfo);
       joinQuery = this.generateJoin(include, topLevelInfo, options);
@@ -1918,9 +1916,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return { outputFragment, returnFields, returningFragment, tmpTable };
   }
 
-  generateThroughJoin(include, includeAs, parentTableName, topLevelInfo) {
+  generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
     const through = include.through;
-    const shouldMinifyAlias = topLevelInfo?.minifyAliases ?? this.options.minifyAliases;
     const throughTable = through.model.getTableName();
     const throughAs = `${includeAs.internalAs}->${through.as}`;
     const externalThroughAs = `${includeAs.externalAs}.${through.as}`;
@@ -1928,7 +1925,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const throughAttributes = through.attributes.map(attr => {
       let alias = `${externalThroughAs}.${Array.isArray(attr) ? attr[1] : attr}`;
 
-      if (shouldMinifyAlias) {
+      if (options.shouldMinifyAlias) {
         alias = this._getMinifiedAlias(alias, throughAs, topLevelInfo.options);
       }
 
@@ -1959,7 +1956,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let throughWhere;
     let targetWhere;
 
-    if (shouldMinifyAlias && throughAs.length > 63) {
+    if (options.shouldMinifyAlias && throughAs.length > 63) {
       topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, throughAs);
       if (includeAs.internalAs.length > 63) {
         topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, includeAs.internalAs);
