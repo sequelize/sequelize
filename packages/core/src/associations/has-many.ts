@@ -13,10 +13,10 @@ import type {
   AttributeNames, UpdateValues, Attributes,
 } from '../model';
 import { Op } from '../operators';
-import { col, fn } from '../sequelize';
 import { isPlainObject } from '../utils/check.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
+import { col, fn } from '../utils/sequelize-method.js';
 import type { AllowArray } from '../utils/types.js';
 import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';

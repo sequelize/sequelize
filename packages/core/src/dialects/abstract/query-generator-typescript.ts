@@ -271,14 +271,14 @@ export class AbstractQueryGeneratorTypeScript {
     return `${this.quoteIdentifier(associationPath.associationPath.join('->'))}.${this.quoteIdentifier(associationPath.attribute)}`;
   }
 
-  protected formatJsonPath(piece: JsonPath, options?: FormatSequelizeMethodOptions): string {
-    const value = this.escape(piece.value, options);
+  protected formatJsonPath(jsonPathVal: JsonPath, options?: FormatSequelizeMethodOptions): string {
+    const value = this.escape(jsonPathVal.value, options);
 
-    if (piece.jsonPath.length === 0) {
+    if (jsonPathVal.path.length === 0) {
       return value;
     }
 
-    return this.jsonPathExtractionQuery2(value, piece.jsonPath);
+    return this.jsonPathExtractionQuery2(value, jsonPathVal.path);
   }
 
   jsonPathExtractionQuery2(_value: string, _path: readonly string[]): string {
