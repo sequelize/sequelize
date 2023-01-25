@@ -281,7 +281,7 @@ export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawO
 export interface CreateTableAttributeOptions<M extends Model = Model>
   extends AttributeOptions<M> {
   /**
-   *  Apply unique constraint on a column
+   * Apply unique constraint on a column
    */
   unique?: boolean;
 }
