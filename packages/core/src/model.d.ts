@@ -959,7 +959,7 @@ export interface FindOptions<TAttributes = any>
   /**
    * Generate minified aliases only for this query.
    */
-  minifyAlias?: boolean;
+  minifyAliases?: boolean;
 
   /**
    * Select group rows after groups and aggregates are computed.

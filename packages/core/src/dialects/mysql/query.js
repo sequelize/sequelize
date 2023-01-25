@@ -22,7 +22,6 @@ export class MySqlQuery extends AbstractQuery {
   async run(sql, parameters) {
     this.sql = sql;
     const { connection, options } = this;
-    const shouldMinifyAliases = (parameters || {}).shouldMinifyAlias;
 
     const showWarnings = this.sequelize.options.showWarnings || options.showWarnings;
 
