@@ -1830,7 +1830,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    if (options.shouldMinifyAlias && asRight.length > 63) {
+    if (options.minifyAliases && asRight.length > 63) {
       const alias = `%${topLevelInfo.options.includeAliases.size}`;
 
       topLevelInfo.options.includeAliases.set(alias, asRight);
