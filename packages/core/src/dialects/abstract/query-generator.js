@@ -1744,7 +1744,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   generateJoin(include, topLevelInfo, options) {
     const association = include.association;
     const parent = include.parent;
-    const shouldMinifyAlias = options?.minifyAliases ?? this.options.minifyAliases;
     const parentIsTop = Boolean(parent) && !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
     let $parent;
     let joinWhere;
@@ -1831,7 +1830,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    if (shouldMinifyAlias && asRight.length > 63) {
+    if (options.shouldMinifyAlias && asRight.length > 63) {
       const alias = `%${topLevelInfo.options.includeAliases.size}`;
 
       topLevelInfo.options.includeAliases.set(alias, asRight);
