@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import type { InferAttributes, Model } from '@sequelize/core';
 import { Op, literal, DataTypes, or, fn, where, cast, col } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
-import { createSequelizeInstance, expectsql, sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -508,12 +508,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   });
 
   describe('minifyAliases', () => {
-    const minifyAliasesSequelize = createSequelizeInstance();
-
-    const minifyQueryGenerator = minifyAliasesSequelize.queryInterface.queryGenerator;
-
     it('minifies custom attributes', () => {
-      const sql = minifyQueryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.tableName, {
         minifyAliases: true,
         model: User,
         attributes: [
