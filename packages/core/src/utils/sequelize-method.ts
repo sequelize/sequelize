@@ -3,6 +3,7 @@ import type { WhereAttributeHashValue } from '../dialects/abstract/where-sql-bui
 import { PojoWhere } from '../dialects/abstract/where-sql-builder.js';
 import { Op } from '../operators.js';
 import { isPlainObject } from './check.js';
+import { noSqlJson } from './deprecations.js';
 
 /**
  * Utility functions for representing SQL functions, and columns that should be escaped.
@@ -335,6 +336,8 @@ export function json(
   conditionsOrPath: { [key: string]: any } | string,
   value?: string | number | boolean | null,
 ) {
+  noSqlJson();
+
   if (typeof conditionsOrPath === 'string') {
     const attr = attribute(conditionsOrPath);
 
