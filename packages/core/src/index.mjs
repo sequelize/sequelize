@@ -11,7 +11,6 @@ export const Cast = Pkg.Cast;
 export const literal = Pkg.literal;
 export const Literal = Pkg.Literal;
 export const json = Pkg.json;
-export const Json = Pkg.Json;
 export const where = Pkg.where;
 export const Where = Pkg.Where;
 export const list = Pkg.list;

@@ -61,7 +61,7 @@ export { useInflection } from './utils/string';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils';
 export type { Validator } from './utils/validator-extras';
 export { Deferrable } from './deferrable';
-export { Cast, cast, Col, col, Fn, fn, Json, json, Literal, literal, sql, Where, where, Identifier, identifier, JsonPath, jsonPath, List, list, Attribute, attribute, SequelizeMethod } from './utils/sequelize-method';
+export { Cast, cast, Col, col, Fn, fn, json, Literal, literal, sql, Where, where, Identifier, identifier, JsonPath, jsonPath, List, list, Attribute, attribute, SequelizeMethod } from './utils/sequelize-method';
 
 export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 export { importModels } from './import-models.js';

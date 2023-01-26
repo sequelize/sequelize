@@ -10,7 +10,7 @@ import { parseAttributeSyntax } from '../../utils/attribute.js';
 import { isPlainObject } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
-import { Attribute, JsonPath, SequelizeMethod, Col, Literal, Value, AssociationPath, Cast } from '../../utils/sequelize-method.js';
+import { Attribute, JsonPath, SequelizeMethod, Col, Literal, Value, AssociationPath, Cast, Where } from '../../utils/sequelize-method.js';
 import type { Nullish } from '../../utils/types.js';
 import { getComplexKeys, getOperators } from '../../utils/where.js';
 import type { NormalizedDataType } from './data-types.js';
@@ -109,9 +109,15 @@ export class WhereSqlBuilder {
     [Op.allKeysExist]: '?&',
   };
 
-  constructor(private readonly queryGenerator: AbstractQueryGenerator) {}
+  #jsonType: NormalizedDataType;
+  #arrayOfTextType: NormalizedDataType;
 
-  get dialect() {
+  constructor(protected readonly queryGenerator: AbstractQueryGenerator) {
+    this.#jsonType = new DataTypes.JSON().toDialectDataType(queryGenerator.dialect);
+    this.#arrayOfTextType = new DataTypes.ARRAY(new DataTypes.TEXT()).toDialectDataType(queryGenerator.dialect);
+  }
+
+  protected get dialect() {
     return this.queryGenerator.dialect;
   }
 
@@ -540,6 +546,28 @@ export class WhereSqlBuilder {
     return this.formatBinaryOperation(left, leftDataType, operator, new Literal(literalBuilder), rightDataType, options);
   }
 
+  [Op.anyKeyExists](
+    left: WhereLeftOperand,
+    leftDataType: NormalizedDataType | undefined,
+    operator: symbol,
+    right: WhereLeftOperand,
+    rightDataType: NormalizedDataType | undefined,
+    options: WhereBuilderOptions,
+  ): string {
+    return this.formatBinaryOperation(left, leftDataType, operator, right, this.#arrayOfTextType, options);
+  }
+
+  [Op.allKeysExist](
+    left: WhereLeftOperand,
+    leftDataType: NormalizedDataType | undefined,
+    operator: symbol,
+    right: WhereLeftOperand,
+    rightDataType: NormalizedDataType | undefined,
+    options: WhereBuilderOptions,
+  ): string {
+    return this.formatBinaryOperation(left, leftDataType, operator, right, this.#arrayOfTextType, options);
+  }
+
   protected formatBinaryOperation(
     left: WhereLeftOperand,
     leftDataType: NormalizedDataType | undefined,
@@ -557,7 +585,7 @@ export class WhereSqlBuilder {
     const rightSql = this.#formatOpAnyAll(right, rightDataType ?? leftDataType)
       || this.queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType });
 
-    return `${leftSql} ${this.operatorMap[operator]} ${rightSql}`;
+    return `${this.#wrapAmbiguous(left, leftSql)} ${this.operatorMap[operator]} ${this.#wrapAmbiguous(right, rightSql)}`;
   }
 
   #formatOpAnyAll(value: unknown, type: NormalizedDataType | undefined): string {
@@ -694,7 +722,7 @@ export class WhereSqlBuilder {
 
     // merge JSON paths
     if (operand instanceof JsonPath) {
-      return new JsonPath(operand, [...jsonPath, ...operand.path]);
+      return new JsonPath(operand.value, [...operand.path, ...jsonPath]);
     }
 
     return new JsonPath(operand, jsonPath);
@@ -706,18 +734,24 @@ export class WhereSqlBuilder {
     }
 
     if (operand instanceof Cast) {
+      // TODO: if operand.type is a string (= SQL Type), we look up a per-dialect mapping of SQL types to Sequelize types
       return this.dialect.sequelize.normalizeDataType(operand.type);
     }
 
     if (operand instanceof JsonPath) {
       // JsonPath can wrap Attributes
-      return this.#getOperandType(operand.value, model);
+      // If the attribute is unknown and it's not casted, we default to JSON
+      return this.#getOperandType(operand.value, model) ?? this.#jsonType;
     }
 
     if (operand instanceof AssociationPath) {
-      // !TODO: model must be retrieved from the association
-      // return this.#getOperandType(operand.attribute, model);
-      return undefined;
+      const association = model.modelDefinition.getAssociation(operand.associationPath);
+
+      if (!association) {
+        return undefined;
+      }
+
+      return this.#getOperandType(operand.attribute, association.target);
     }
 
     if (operand instanceof Attribute) {
@@ -725,6 +759,21 @@ export class WhereSqlBuilder {
     }
 
     return undefined;
+  }
+
+  #wrapAmbiguous(operand: WhereLeftOperand, sql: string): string {
+    // where() can produce ambiguous SQL when used as an operand:
+    //
+    // { booleanAttr: where(fn('lower', col('name')), Op.is, null) }
+    // produces the ambiguous SQL:
+    //   [booleanAttr] = lower([name]) IS NULL
+    // which is better written as:
+    //   [booleanAttr] = (lower([name]) IS NULL)
+    if (operand instanceof Where && sql.includes(' ')) {
+      return `(${sql})`;
+    }
+
+    return sql;
   }
 }
 
@@ -752,7 +801,7 @@ function joinWithLogicalOperator(sqlArray: string[], operator: typeof Op.and | t
 
 function wrapWithNot(sql: string): string {
   if (!sql) {
-    return '0 = 1';
+    return '';
   }
 
   if (sql.startsWith('(') && sql.endsWith(')')) {

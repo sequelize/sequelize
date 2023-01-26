@@ -263,7 +263,7 @@ export class AbstractQueryGeneratorTypeScript {
       return this.formatAssociationPath(piece);
     }
 
-    return `${piece.constructor.name} TODO`;
+    throw new Error(`Unknown sequelize method ${piece.constructor.name}`);
   }
 
   protected formatAssociationPath(associationPath: AssociationPath): string {
@@ -292,7 +292,7 @@ export class AbstractQueryGeneratorTypeScript {
   protected formatLiteral(piece: Literal, options?: FormatSequelizeMethodOptions): string {
     const sql = piece.val.map(part => {
       if (part instanceof SequelizeMethod) {
-        return this.formatSequelizeMethod(piece, options);
+        return this.formatSequelizeMethod(part, options);
       }
 
       return part;

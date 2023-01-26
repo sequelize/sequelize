@@ -754,6 +754,42 @@ Specify a different name for either index to resolve this issue.`);
 
     return attribute?.columnName ?? attributeName;
   }
+
+  /**
+   * Follows the association path and returns the association at the end of the path.
+   * For instance, say we have a model User, associated to a model Profile, associated to a model Address.
+   *
+   * If we call `User.modelDefinition.getAssociation(['profile', 'address'])`, we will get the association named `address` in the model Profile.
+   * If we call `User.modelDefinition.getAssociation(['profile'])`, we will get the association named `profile` in the model User.
+   *
+   * @param associationPath
+   */
+  getAssociation(associationPath: readonly string[] | string): Association | undefined {
+    if (typeof associationPath === 'string') {
+      return this.associations[associationPath];
+    }
+
+    return this.#getAssociationFromPathMut([...associationPath]);
+  }
+
+  #getAssociationFromPathMut(associationPath: string[]): Association | undefined {
+    if (associationPath.length === 0) {
+      return undefined;
+    }
+
+    const associationName = associationPath.shift()!;
+    const association = this.associations[associationName];
+
+    if (association == null) {
+      return undefined;
+    }
+
+    if (associationPath.length === 0) {
+      return association;
+    }
+
+    return association.target.modelDefinition.#getAssociationFromPathMut(associationPath);
+  }
 }
 
 const modelDefinitions = new WeakMap</* model class */ Function, ModelDefinition>();

@@ -1772,11 +1772,6 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
 };
 
 /**
- * Possible types for primary keys
- */
-export type Identifier = number | bigint | string | Buffer;
-
-/**
  * Options for model definition.
  *
  * Used by {@link Sequelize.define}, {@link Model.init}, and the Table decorator.
@@ -2302,22 +2297,22 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: FindByPkOptions<M> & { raw: true, rejectOnEmpty?: false }
   ): Promise<R | null>;
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M> & { raw: true }
   ): Promise<R>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M>
   ): Promise<M>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier?: Identifier,
+    identifier: unknown,
     options?: FindByPkOptions<M>
   ): Promise<M | null>;
 

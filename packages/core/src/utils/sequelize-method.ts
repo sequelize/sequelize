@@ -1,7 +1,8 @@
-import isObject from 'lodash/isObject';
-import type { Op, WhereOperators, WhereLeftOperand, DataType, WhereOptions } from '..';
+import type { WhereOperators, WhereLeftOperand, DataType, WhereOptions } from '..';
 import type { WhereAttributeHashValue } from '../dialects/abstract/where-sql-builder-types.js';
 import { PojoWhere } from '../dialects/abstract/where-sql-builder.js';
+import { Op } from '../operators.js';
+import { isPlainObject } from './check.js';
 
 /**
  * Utility functions for representing SQL functions, and columns that should be escaped.
@@ -197,6 +198,16 @@ export class Fn extends SequelizeMethod {
  * ```
  */
 export function fn(fnName: string, ...args: Fn['args']): Fn {
+  for (let i = 0; i < args.length; i++) {
+    // Users should wrap this parameter with `where` themselves, but we do it to ensure backwards compatibility
+    // with https://github.com/sequelize/sequelize/issues/6666
+    // @ts-expect-error -- backwards compatibility hack
+    if (isPlainObject(args[i]) && !(Op.col in args[i])) {
+      // @ts-expect-error -- backwards compatibility hack
+      args[i] = where(args[i]);
+    }
+  }
+
   return new Fn(fnName, args);
 }
 
@@ -250,6 +261,13 @@ export class Cast extends SequelizeMethod {
  * @param type The type to cast it to
  */
 export function cast(val: unknown, type: DataType): Cast {
+  if (isPlainObject(val) && !(Op.col in val)) {
+    // Users should wrap this parameter with `where` themselves, but we do it to ensure backwards compatibility
+    // with https://github.com/sequelize/sequelize/issues/6666
+    // @ts-expect-error -- backwards compatibility hack
+    val = where(val);
+  }
+
   return new Cast(val, type);
 }
 
@@ -306,48 +324,36 @@ export function sql(rawSql: TemplateStringsArray, ...values: unknown[]): Literal
 }
 
 /**
- * Do not use me directly. Use {@link json}
- *
- * @deprecated use {@link where}, {@link attribute}, and {@link jsonPath} instead.
- */
-export class Json extends SequelizeMethod {
-  declare private readonly brand: 'json';
-
-  private readonly conditions?: { [key: string]: any };
-  private readonly path?: string;
-  private readonly value?: string | number | boolean | null;
-
-  constructor(
-    conditionsOrPath: { [key: string]: any } | string,
-    value?: string | number | boolean | null,
-  ) {
-    super();
-
-    if (typeof conditionsOrPath === 'string') {
-      this.path = conditionsOrPath;
-
-      if (value) {
-        this.value = value;
-      }
-    } else if (isObject(conditionsOrPath)) {
-      this.conditions = conditionsOrPath;
-    }
-  }
-}
-
-/**
  * Creates an object representing nested where conditions for postgres/sqlite/mysql json data-type.
  *
  * @param conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot notation or a string using postgres/sqlite/mysql json syntax.
  * @param value An optional value to compare against. Produces a string of the form "<json path> = '<value>'".
  *
- * @deprecated use {@link where}, {@link attribute}, and {@link jsonPath} instead.
+ * @deprecated use {@link where}, {@link attribute}, and/or {@link jsonPath} instead.
  */
 export function json(
   conditionsOrPath: { [key: string]: any } | string,
   value?: string | number | boolean | null,
 ) {
-  return new Json(conditionsOrPath, value);
+  if (typeof conditionsOrPath === 'string') {
+    const attr = attribute(conditionsOrPath);
+
+    // json('profile.id') is identical to attribute('profile.id')
+    if (value === undefined) {
+      return attr;
+    }
+
+    // json('profile.id', value) is identical to where(attribute('profile.id'), value)
+    return where(attr, value);
+  }
+
+  if (value === undefined && typeof conditionsOrPath === 'string') {
+    return attribute(conditionsOrPath);
+  }
+
+  // json({ key: value }) is identical to where({ key: value })
+
+  return where(conditionsOrPath);
 }
 
 /**
@@ -451,6 +457,12 @@ export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends
     } else if (args.length === 2) {
       this.where = PojoWhere.create(args[0], args[1]);
     } else {
+      if (typeof args[1] === 'string') {
+        // TODO: link to actual page
+        throw new TypeError(`where(left, operator, right) does not accept a string as the operator. Use one of the operators available in the Op object.
+If you wish to use custom operators not provided by Sequelize, you can use the "sql" template literal tag. Refer to the documentation on custom operators on https://sequelize.org/ for more details.`);
+      }
+
       // normalize where(col, op, val)
       // to where(col, { [op]: val })
       this.where = PojoWhere.create(args[0], { [args[1]]: args[2] });
