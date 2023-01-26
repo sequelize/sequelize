@@ -614,7 +614,6 @@ Use Sequelize#query if you wish to use replacements.`);
 
     let bindParameters;
     let bindParameterOrder;
-    const shouldMinifyAlias = options.minifyAliases;
     if (options.bind != null) {
       const isBindArray = Array.isArray(options.bind);
       if (!isPlainObject(options.bind) && !isBindArray) {
@@ -724,7 +723,7 @@ Use Sequelize#query if you wish to use replacements.`);
         await this.hooks.runAsync('beforeQuery', options, query);
         checkTransaction();
 
-        return await query.run(sql, bindParameters, { shouldMinifyAlias });
+        return await query.run(sql, bindParameters, { minifyAliases: options.minifyAliases });
       } finally {
         await this.hooks.runAsync('afterQuery', options, query);
         if (!options.transaction) {

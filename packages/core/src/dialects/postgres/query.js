@@ -11,7 +11,6 @@ const debug = logger.debugContext('sql:pg');
 export class PostgresQuery extends AbstractQuery {
   async run(sql, parameters, options) {
     const { connection } = this;
-    const shouldMinifyAliases = options?.shouldMinifyAliases ?? this.sequelize.options.minifyAliases;
 
     if (!_.isEmpty(this.options.searchPath)) {
       sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
@@ -19,7 +18,7 @@ export class PostgresQuery extends AbstractQuery {
 
     // TODO: https://github.com/sequelize/sequelize/pull/15394#discussion_r1085621226
     // This can mess up the data since the regexp can replace the original name itself
-    if (shouldMinifyAliases && this.options.includeAliases) {
+    if (options?.minifyAliases && this.options.includeAliases) {
       for (const [alias, original] of _.toPairs(this.options.includeAliases)
         // Sorting to replace the longest aliases first to prevent alias collision
         .sort((a, b) => b[1].length - a[1].length)) {
@@ -76,7 +75,7 @@ export class PostgresQuery extends AbstractQuery {
       )
       : queryResult.rowCount || 0;
 
-    if (shouldMinifyAliases && this.options.aliasesMapping) {
+    if (options?.minifyAliases && this.options.aliasesMapping) {
       rows = rows
         .map(row => _.toPairs(row)
           .reduce((acc, [key, value]) => {

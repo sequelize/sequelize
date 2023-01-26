@@ -1172,7 +1172,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   selectQuery(tableName, options, model) {
     options = options || {};
     const limit = options.limit;
-    const shouldMinifyAlias = options.minifyAliases ?? this.options.minifyAliases;
     const mainQueryItems = [];
     const subQueryItems = [];
     const subQuery = options.subQuery === undefined ? limit && options.hasMultiAssociation : options.subQuery;
@@ -1197,7 +1196,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let query;
 
     // Aliases can be passed through subqueries and we don't want to reset them
-    if (shouldMinifyAlias && !options.aliasesMapping) {
+    if (options.minifyAliases && !options.aliasesMapping) {
       options.aliasesMapping = new Map();
       options.aliasesByTable = {};
       options.includeAliases = new Map();
@@ -1229,7 +1228,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    attributes.main = this.escapeAttributes(attributes.main, { ...options, minifyAliases: shouldMinifyAlias }, mainTable.as);
+    attributes.main = this.escapeAttributes(attributes.main, options, mainTable.as);
     attributes.main = attributes.main || (options.include ? [`${mainTable.quotedAs}.*`] : ['*']);
 
     // If subquery, we add the mainAttributes to the subQuery and set the mainAttributes to select * from subquery
@@ -1245,7 +1244,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           continue;
         }
 
-        const joinQueries = this.generateInclude(include, { externalAs: mainTable.as, internalAs: mainTable.as }, topLevelInfo, { replacements: options.replacements, minifyAliases: shouldMinifyAlias });
+        const joinQueries = this.generateInclude(include, { externalAs: mainTable.as, internalAs: mainTable.as }, topLevelInfo, { replacements: options.replacements, minifyAliases: options.minifyAliases });
 
         subJoinQueries = subJoinQueries.concat(joinQueries.subQuery);
         mainJoinQueries = mainJoinQueries.concat(joinQueries.mainQuery);

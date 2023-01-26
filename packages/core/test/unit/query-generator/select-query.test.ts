@@ -508,14 +508,13 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   });
 
   describe('minifyAliases', () => {
-    const minifyAliasesSequelize = createSequelizeInstance({
-      minifyAliases: true,
-    });
+    const minifyAliasesSequelize = createSequelizeInstance();
 
     const minifyQueryGenerator = minifyAliasesSequelize.queryInterface.queryGenerator;
 
     it('minifies custom attributes', () => {
       const sql = minifyQueryGenerator.selectQuery(User.tableName, {
+        minifyAliases: true,
         model: User,
         attributes: [
           [literal('1'), 'customAttr'],
