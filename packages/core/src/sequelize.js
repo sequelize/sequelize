@@ -402,11 +402,8 @@ export class Sequelize extends SequelizeTypeScript {
       throw new Error(`Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`);
     }
 
-    if (_.isPlainObject(this.options.operatorsAliases)) {
-      deprecations.noStringOperators();
-      this.dialect.queryGenerator.setOperatorsAliases(this.options.operatorsAliases);
-    } else if (typeof this.options.operatorsAliases === 'boolean') {
-      deprecations.noBoolOperatorAliases();
+    if (this.options.operatorsAliases) {
+      throw new Error('String based operators have been removed. Please use Symbol operators, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases');
     }
 
     /**

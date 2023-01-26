@@ -52,15 +52,8 @@ const OperatorHelpers = {
     [Op.allKeysExist]: '?&',
   },
 
+  // TODO: remove
   OperatorsAliasMap: {},
-
-  setOperatorsAliases(aliases) {
-    if (!aliases || _.isEmpty(aliases)) {
-      this.OperatorsAliasMap = false;
-    } else {
-      this.OperatorsAliasMap = { ...aliases };
-    }
-  },
 
   _replaceAliases(orig) {
     const obj = {};
