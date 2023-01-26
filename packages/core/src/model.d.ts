@@ -96,7 +96,7 @@ export interface Filterable<TAttributes = any> {
   where?: WhereOptions<TAttributes>;
 }
 
-export interface Projectable {
+export interface Projectable<TAttributes = any> {
   /**
    * If an array: a list of the attributes that you want to select.
    * Attributes can also be raw SQL (`literal`), `fn`, `col`, and `cast`
@@ -121,7 +121,7 @@ export interface Projectable {
    * { attributes: { exclude: ['password'] } }
    * ```
    */
-  attributes?: FindAttributeOptions;
+  attributes?: FindAttributeOptions<TAttributes>;
 }
 
 export interface Paranoid {
@@ -588,7 +588,7 @@ export interface WhereGeometryOptions {
 /**
  * Through options for Include Options
  */
-export interface IncludeThroughOptions extends Filterable<any>, Projectable {
+export interface IncludeThroughOptions extends Filterable<any>, Projectable<any> {
   /**
    * The alias for the join model, in case you want to give it a different name than the default one.
    */
@@ -620,7 +620,7 @@ export type Includeable = ModelStatic | Association | IncludeOptions | { all: tr
 /**
  * Complex include options
  */
-export interface IncludeOptions extends Filterable<any>, Projectable, Paranoid {
+export interface IncludeOptions extends Filterable<any>, Projectable<any>, Paranoid {
   /**
    * Mark the include as duplicating, will prevent a subquery from being used.
    */
@@ -753,15 +753,16 @@ export type ProjectionAlias = readonly [
   alias: string,
 ];
 
-export type FindAttributeOptions =
+export type FindAttributeOptions<TAttributes = any> =
   | Array<string | ProjectionAlias | Literal>
+  | Array<Extract<keyof TAttributes, string>>
   | {
-    exclude: string[],
-    include?: Array<string | ProjectionAlias>,
+    exclude: string[] | Array<Extract<keyof TAttributes, string>>,
+    include?: Array<string | ProjectionAlias> | Array<Extract<keyof TAttributes, string>>,
   }
   | {
-    exclude?: string[],
-    include: Array<string | ProjectionAlias>,
+    exclude?: string[] | Array<Extract<keyof TAttributes, string>>,
+    include: Array<string | ProjectionAlias> | Array<Extract<keyof TAttributes, string>>,
   };
 
 export interface IndexHint {
@@ -790,7 +791,13 @@ export interface MaxExecutionTimeHintable {
  */
 export interface FindOptions<TAttributes = any>
   extends
-  QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable, SearchPathable, MaxExecutionTimeHintable {
+  QueryOptions,
+  Filterable<TAttributes>,
+  Projectable<TAttributes>,
+  Paranoid,
+  IndexHintable,
+  SearchPathable,
+  MaxExecutionTimeHintable {
   /**
    * A list of associations to eagerly load using a left join (a single association is also supported).
    *
@@ -923,7 +930,14 @@ export interface NonNullFindByPkOptions<M extends Model> extends Omit<NonNullFin
  * Options for Model.count method
  */
 export interface CountOptions<TAttributes = any>
-  extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable, MaxExecutionTimeHintable {
+  extends
+  Logging,
+  Transactionable,
+  Filterable<TAttributes>,
+  Projectable<TAttributes>,
+  Paranoid,
+  Poolable,
+  MaxExecutionTimeHintable {
   /**
    * Include options. See `find` for details
    */
