@@ -714,10 +714,10 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
   }
 
   escape(value: AcceptedNumber): string {
-    return this.toBindableValue(value);
+    return String(this.toBindableValue(value));
   }
 
-  toBindableValue(num: AcceptedNumber): string {
+  toBindableValue(num: AcceptedNumber): string | number {
     // This should be unnecessary but since this directly returns the passed string its worth the added validation.
     this.validate(num);
 
@@ -731,7 +731,7 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
       return `${sign}Infinity`;
     }
 
-    return String(num);
+    return num;
   }
 
   getBindParamSql(value: AcceptedNumber, options: BindParamOptions): string {

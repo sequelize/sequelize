@@ -95,4 +95,14 @@ describe('fn', () => {
       mssql: `upper(N'$user')`,
     });
   });
+
+  it('accepts all sorts of values as arguments', () => {
+    const out = queryGenerator.escape(
+      fn('concat', 'user', 1, true, new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), ['baz'], fn('lower', 'user')),
+    );
+
+    expectsql(out, {
+      default: `concat('user', 1, true, '2011-03-27 10:01:55.000 +00:00', ARRAY['baz'], lower('user'))`,
+    });
+  });
 });

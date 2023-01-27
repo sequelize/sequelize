@@ -1,4 +1,5 @@
 import assert from 'node:assert';
+import isNumber from 'lodash/isNumber';
 import wkx from 'wkx';
 import type { Rangable } from '../../model.js';
 import { isString } from '../../utils/check.js';
@@ -307,10 +308,14 @@ export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = IN
     }
 
     return RangeParser.stringify(values, rangePart => {
-      const out = this.options.subtype.toBindableValue(rangePart);
+      let out = this.options.subtype.toBindableValue(rangePart);
+
+      if (isNumber(out)) {
+        out = String(out);
+      }
 
       if (!isString(out)) {
-        throw new Error('DataTypes.RANGE only accepts types that can be stringified.');
+        throw new Error('DataTypes.RANGE only accepts types that are represented by either strings or numbers.');
       }
 
       return out;

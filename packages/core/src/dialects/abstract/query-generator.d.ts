@@ -105,7 +105,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   generateTransactionId(): string;
   quoteIdentifiers(identifiers: string): string;
 
-  selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
+  selectQuery<M extends Model>(tableName: TableName, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
     table: TableName,
     valueHash: object,

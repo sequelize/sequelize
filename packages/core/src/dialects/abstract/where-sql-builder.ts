@@ -272,7 +272,6 @@ export class WhereSqlBuilder {
         }
 
         if (operator == null) {
-          // TODO: except if left is array too
           operator = Array.isArray(right) && !(leftDataType instanceof DataTypes.ARRAY) ? Op.in
             : right === null ? Op.is
             : Op.eq;

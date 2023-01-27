@@ -84,6 +84,22 @@ describe('QueryGenerator#insertQuery', () => {
     expect(bind).to.be.undefined;
   });
 
+  // This test was added due to a regression where these values were being converted to strings
+  it('binds number values', () => {
+    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+      numbers: [1, 2, 3],
+    });
+
+    expectsql(query, {
+      default: `INSERT INTO "Users" ([numbers]) VALUES ($sequelize_1);`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("numbers") VALUES ($sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("numbers") VALUES ($sequelize_1))`,
+    });
+    expect(bind).to.deep.eq({
+      sequelize_1: [1, 2, 3],
+    });
+  });
+
   describe('returning', () => {
     it('supports returning: true', () => {
       const { query } = queryGenerator.insertQuery(User.tableName, {
