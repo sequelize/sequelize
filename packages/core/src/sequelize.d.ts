@@ -22,7 +22,7 @@ import type {
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
-import type { cast, col, fn, Fn, json, literal, QueryParts, where } from './utils/sequelize-method.js';
+import type { cast, col, fn, Fn, json, literal, DynamicExpression, where } from './utils/sequelize-method.js';
 import type { RequiredBy } from './utils/types.js';
 import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes, AbstractQueryGenerator } from '.';
 
@@ -141,13 +141,6 @@ export interface NormalizedReplicationOptions {
   read: ConnectionOptions[];
 
   write: ConnectionOptions;
-}
-
-/**
- * Used to map operators to their Symbol representations
- */
-export interface OperatorsAliases {
-  [K: string]: symbol;
 }
 
 /**
@@ -383,15 +376,6 @@ export interface Options extends Logging {
    * @default false
    */
   noTypeValidation?: boolean;
-
-  /**
-   * Sets available operator aliases.
-   * See (https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#operators) for more information.
-   * WARNING: Setting this to boolean value was deprecated and is no-op.
-   *
-   * @default all aliases
-   */
-  operatorsAliases?: OperatorsAliases;
 
   /**
    * The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option.
@@ -1118,5 +1102,5 @@ export function and<T extends any[]>(...args: T): { [Op.and]: T };
  */
 export function or<T extends any[]>(...args: T): { [Op.or]: T };
 
-export type WhereLeftOperand = ColumnReference | QueryParts | unknown;
+export type WhereLeftOperand = ColumnReference | DynamicExpression | unknown;
 

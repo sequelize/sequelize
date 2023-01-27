@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import type { InferAttributes, Model } from '@sequelize/core';
-import { Op, literal, DataTypes, or, fn, where, cast, col } from '@sequelize/core';
+import { Op, literal, DataTypes, or, fn, where, cast, col, attribute } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
@@ -118,13 +118,32 @@ describe('QueryGenerator#selectQuery', () => {
     });
   });
 
+  if (sequelize.dialect.supports.jsonOperations) {
+    it('accepts json paths in attributes', () => {
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: [
+          [attribute('data.email'), 'email'],
+        ],
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT [data]->'email' AS [email] FROM [Users] AS [User];`,
+      });
+
+    });
+  }
+
   describe('replacements', () => {
     it('parses named replacements in literals', () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
 
       const sql = queryGenerator.selectQuery(User.table, {
         model: User,
-        attributes: [[fn('uppercase', literal(':attr')), 'id'], literal(':attr2')],
+        attributes: [
+          [fn('uppercase', literal(':attr')), 'id'],
+          literal(':attr2'),
+        ],
         where: {
           username: or(
             { [Op.eq]: literal(':data') },

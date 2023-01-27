@@ -42,6 +42,14 @@ export function isString(val: unknown): val is string {
   return typeof val === 'string';
 }
 
+export function isBigInt(val: unknown): val is bigint {
+  return typeof val === 'bigint';
+}
+
+export function isNumber(val: unknown): val is number {
+  return typeof val === 'number';
+}
+
 /**
  * Works like lodash's isPlainObject, but has better typings
  *

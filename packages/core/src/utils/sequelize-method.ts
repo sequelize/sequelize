@@ -13,8 +13,7 @@ import { noSqlJson } from './deprecations.js';
  */
 export class SequelizeMethod {}
 
-// TODO: JSON?
-export type QueryParts =
+export type DynamicExpression =
   | List
   | Value
   | Identifier

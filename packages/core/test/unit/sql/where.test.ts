@@ -2066,6 +2066,21 @@ Caused by: "undefined" cannot be escaped`),
           postgres: `"jsonAttr"#>ARRAY['nested','attribute'] = '4'`,
         });
 
+        // numeric path
+        testSql({ 'jsonAttr.0.attribute': 4 }, {
+          postgres: `"jsonAttr"#>ARRAY['0','attribute'] = '4'`,
+        });
+
+        // @ts-expect-error -- TODO: update typing to support this syntax
+        testSql({ 'jsonAttr[0][nested].attribute': 4 }, {
+          postgres: `"jsonAttr"#>ARRAY['0','nested','attribute'] = '4'`,
+        });
+
+        // @ts-expect-error -- TODO: update typing to support this syntax
+        testSql({ '$jsonAttr$[0][nested].attribute': 4 }, {
+          postgres: `"jsonAttr"#>ARRAY['0','nested','attribute'] = '4'`,
+        });
+
         // aliases attribute -> column correctly
         testSql({ 'aliasedJsonAttr.nested.attribute': 4 }, {
           postgres: `"aliased_json"#>ARRAY['nested','attribute'] = '4'`,

@@ -1,8 +1,7 @@
 import assert from 'node:assert';
-import isNumber from 'lodash/isNumber';
 import wkx from 'wkx';
 import type { Rangable } from '../../model.js';
-import { isString } from '../../utils/check.js';
+import { isBigInt, isNumber, isString } from '../../utils/check.js';
 import * as BaseTypes from '../abstract/data-types';
 import type {
   AcceptableTypeOf,
@@ -310,12 +309,12 @@ export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = IN
     return RangeParser.stringify(values, rangePart => {
       let out = this.options.subtype.toBindableValue(rangePart);
 
-      if (isNumber(out)) {
+      if (isNumber(out) || isBigInt(out)) {
         out = String(out);
       }
 
       if (!isString(out)) {
-        throw new Error('DataTypes.RANGE only accepts types that are represented by either strings or numbers.');
+        throw new Error('DataTypes.RANGE only accepts types that are represented by either strings, numbers or bigints.');
       }
 
       return out;

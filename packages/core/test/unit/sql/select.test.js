@@ -179,8 +179,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               FROM [users] AS [user]
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
-                AND [project_user].[project_id] = 1
-                AND [project_user].[status] = 1
+                AND ([project_user].[project_id] = 1
+                AND [project_user].[status] = 1)
               ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
             ) AS sub`,
             `SELECT * FROM (
@@ -188,8 +188,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               FROM [users] AS [user]
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
-                AND [project_user].[project_id] = 5
-                AND [project_user].[status] = 1
+                AND ([project_user].[project_id] = 5
+                AND [project_user].[status] = 1)
               ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
             ) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')

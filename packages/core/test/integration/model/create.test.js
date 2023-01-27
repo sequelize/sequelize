@@ -530,39 +530,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: 'gottlieb',
         });
 
-        return Promise.all([(async () => {
-          try {
-            await User.findOrCreate({
+        return Promise.all([
+          (async () => {
+            const error = await expect(User.findOrCreate({
               where: {
                 objectId: 'asdasdasd',
               },
               defaults: {
                 username: 'gottlieb',
               },
-            });
+            })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
-            throw new Error('I should have ben rejected');
-          } catch (error) {
-            expect(error instanceof Sequelize.UniqueConstraintError).to.be.ok;
             expect(error.fields).to.be.ok;
-          }
-        })(), (async () => {
-          try {
-            await User.findOrCreate({
+          })(),
+          (async () => {
+            const error = await expect(User.findOrCreate({
               where: {
                 objectId: 'asdasdasd',
               },
               defaults: {
                 username: 'gottlieb',
               },
-            });
-
-            throw new Error('I should have ben rejected');
-          } catch (error) {
-            expect(error instanceof Sequelize.UniqueConstraintError).to.be.ok;
+            })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
             expect(error.fields).to.be.ok;
-          }
-        })()]);
+          })(),
+        ]);
       });
 
       it('works without a transaction', async function () {

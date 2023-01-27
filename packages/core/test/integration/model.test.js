@@ -879,17 +879,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should map the correct fields when updating instance (#10589)', async function () {
       const User = this.sequelize.define('User', {
         id3: {
-          field: 'id',
+          columnName: 'id',
           type: DataTypes.INTEGER,
           primaryKey: true,
         },
         id: {
-          field: 'id2',
+          columnName: 'id2',
           type: DataTypes.INTEGER,
           allowNull: false,
         },
         id2: {
-          field: 'id3',
+          columnName: 'id3',
           type: DataTypes.INTEGER,
           allowNull: false,
         },
@@ -997,28 +997,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         } else {
           expect(user.username).to.equal('Bob');
         }
-      }
-    });
-
-    it('throws an error if where has a key with undefined value', async function () {
-      const data = [
-        { username: 'Peter', secretValue: '42' },
-        { username: 'Paul', secretValue: '42' },
-        { username: 'Bob', secretValue: '43' },
-      ];
-
-      await this.User.bulkCreate(data);
-      try {
-        await this.User.update({ username: 'Bill' }, {
-          where: {
-            secretValue: '42',
-            username: undefined,
-          },
-        });
-        throw new Error('Update should throw an error if where has a key with undefined value');
-      } catch (error) {
-        expect(error).to.be.an.instanceof(Error);
-        expect(error.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
       }
     });
 
@@ -1347,19 +1325,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const affectedRows = await User.destroy({ where: {} });
       expect(affectedRows).to.equal(2);
       expect(await User.findAll()).to.have.lengthOf(0);
-    });
-
-    it('throws an error if where has a key with undefined value', async function () {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-
-      await this.sequelize.sync({ force: true });
-      try {
-        await User.destroy({ where: { username: undefined } });
-        throw new Error('Destroy should throw an error if where has a key with undefined value');
-      } catch (error) {
-        expect(error).to.be.an.instanceof(Error);
-        expect(error.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
-      }
     });
 
     if (current.dialect.supports.transactions) {
@@ -2578,12 +2543,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       expect(res).to.have.length(2);
-    });
-
-    it('should fail when array contains strings', async function () {
-      await expect(this.User.findAll({
-        where: ['this is a mistake', ['dont do it!']],
-      })).to.eventually.be.rejectedWith(Error, 'Support for literal replacements in the `where` object has been removed.');
     });
 
     it('should not fail with an include', async function () {

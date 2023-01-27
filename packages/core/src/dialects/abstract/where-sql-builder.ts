@@ -772,7 +772,7 @@ export class WhereSqlBuilder {
   }
 }
 
-function joinWithLogicalOperator(sqlArray: string[], operator: typeof Op.and | typeof Op.or): string {
+export function joinWithLogicalOperator(sqlArray: string[], operator: typeof Op.and | typeof Op.or): string {
   const operatorSql = operator === Op.and ? ' AND ' : ' OR ';
 
   sqlArray = sqlArray.filter(val => Boolean(val));

@@ -14,6 +14,7 @@ import { Cast, Col, Fn, Literal, SequelizeMethod, Where } from '../../utils/sequ
 import { nameIndex, spliceStr } from '../../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
+import { joinWithLogicalOperator } from './where-sql-builder';
 
 const util = require('node:util');
 const _ = require('lodash');
@@ -199,11 +200,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           }
 
           values[key] = this.escape(value, {
-            // TODO: make insertQuery accept a Model instead of modelAttributes
-            model: undefined,
+            model: options.model,
             type: modelAttributeMap[key]?.type,
             replacements: options.replacements,
-            bindParam,
+            // cannot use "bindParam here, because we're using a temporary sql function
           });
         }
       }
@@ -1470,11 +1470,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         let verbatim = false;
 
         if (Array.isArray(attr) && attr.length === 2) {
-          if (attr[0] instanceof SequelizeMethod && (
-            attr[0] instanceof Literal
-            || attr[0] instanceof Cast
-            || attr[0] instanceof Fn
-          )) {
+          if (attr[0] instanceof SequelizeMethod) {
             verbatim = true;
           }
 
@@ -1681,6 +1677,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       asRight = `${asLeft}->${asRight}`;
     }
 
+    // TODO: use whereItemsQuery to generate the entire "ON" condition.
     let joinOn = `${this.quoteTable(asLeft)}.${this.quoteIdentifier(columnNameLeft)}`;
     const subqueryAttributes = [];
 
@@ -1722,11 +1719,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         replacements: options?.replacements,
       });
       if (joinWhere) {
-        if (include.or) {
-          joinOn += ` OR ${joinWhere}`;
-        } else {
-          joinOn += ` AND ${joinWhere}`;
-        }
+        joinOn = joinWithLogicalOperator([joinOn, joinWhere], include.or ? Op.or : Op.and);
       }
     }
 

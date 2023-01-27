@@ -29,6 +29,7 @@ import type {
   Fn,
   Literal,
   Where,
+  DynamicExpression,
 } from './utils/sequelize-method.js';
 import type {
   AllowArray,
@@ -739,7 +740,10 @@ export type Order = Fn | Col | Literal | OrderItem[];
  * Please note if this is used the aliased property will not be available on the model instance
  * as a property but only via `instance.get('alias')`.
  */
-export type ProjectionAlias = readonly [string | Literal | Fn | Col | Cast, string];
+export type ProjectionAlias = readonly [
+  expressionOrAttributeName: string | DynamicExpression,
+  alias: string,
+];
 
 export type FindAttributeOptions =
   | Array<string | ProjectionAlias | Literal>

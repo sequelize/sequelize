@@ -15,6 +15,7 @@ import { Attribute, Cast, JsonPath, AssociationPath } from './sequelize-method.j
  *
  * @param attrOrStr The syntax to parse
  */
+// TODO: memoize
 export function parseAttributeSyntax(attrOrStr: string | Attribute): Cast | JsonPath | AssociationPath | Attribute {
   const syntax = isString(attrOrStr) ? attrOrStr : attrOrStr.attributeName;
 
@@ -28,15 +29,15 @@ export function parseAttributeSyntax(attrOrStr: string | Attribute): Cast | Json
 
   const associationMatch = syntax.match(/^\$(?<path>.+)\$(?:$|.(?<remainder>.+))/);
 
-  let jsonPath;
+  let jsonPath: string[];
   if (associationMatch) {
     const { path: pathStr, remainder } = associationMatch.groups!;
     jsonPath = [pathStr];
     if (remainder) {
-      jsonPath.push(...remainder.split('.'));
+      jsonPath.push(...parseJsonPath(remainder));
     }
   } else {
-    jsonPath = syntax.split('.');
+    jsonPath = parseJsonPath(syntax);
   }
 
   if (jsonPath.length > 1) {
@@ -46,6 +47,10 @@ export function parseAttributeSyntax(attrOrStr: string | Attribute): Cast | Json
   }
 
   return splitAssociationPath(jsonPath[0]);
+}
+
+function parseJsonPath(syntax: string): string[] {
+  return stringToPath(syntax);
 }
 
 function splitAssociationPath(syntax: string): AssociationPath | Attribute {
@@ -59,3 +64,53 @@ function splitAssociationPath(syntax: string): AssociationPath | Attribute {
 
   return new Attribute(syntax);
 }
+
+// Source: https://github.com/lodash/lodash/blob/2da024c3b4f9947a48517639de7560457cd4ec6c/.internal/stringToPath.js
+
+const charCodeOfDot = '.'.codePointAt(0);
+const reEscapeChar = /\\(\\)?/g;
+const rePropName = new RegExp(
+  // Match anything that isn't a dot or bracket.
+  // eslint-disable-next-line no-useless-concat
+  '[^.[\\]]+' + '|'
+  // Or match property names within brackets.
+  + '\\[(?:'
+  // Match a non-string expression.
+  // eslint-disable-next-line no-useless-concat
+  + '([^"\'][^[]*)' + '|'
+  // Or match strings (supports escaping characters).
+  + '(["\'])((?:(?!\\2)[^\\\\]|\\\\.)*?)\\2'
+  // eslint-disable-next-line no-useless-concat
+  + ')\\]' + '|'
+  // Or match "" as the space between consecutive dots or empty brackets.
+  + '(?=(?:\\.|\\[\\])(?:\\.|\\[\\]|$))'
+  , 'g',
+);
+
+/**
+ * Converts `string` to a property path array.
+ *
+ * @private
+ * @param val The string to convert.
+ * @returns Returns the property path array.
+ */
+const stringToPath = (val: string): string[] => {
+  const result: string[] = [];
+  if (val.codePointAt(0) === charCodeOfDot) {
+    result.push('');
+  }
+
+  // @ts-expect-error -- 3 end parameters are rest parameters
+  val.replace(rePropName, (match: string, expression, quote, subString) => {
+    let key = match;
+    if (quote) {
+      key = subString.replace(reEscapeChar, '$1');
+    } else if (expression) {
+      key = expression.trim();
+    }
+
+    result.push(key);
+  });
+
+  return result;
+};

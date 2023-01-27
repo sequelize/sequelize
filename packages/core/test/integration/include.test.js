@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, Sequelize, or } = require('@sequelize/core');
 const _ = require('lodash');
 
 const dialect = Support.getTestDialect();
@@ -920,11 +920,12 @@ Instead of specifying a Model, either:
       expect(result[0].Item.test).to.eql('def');
     });
 
-    it('should support Sequelize.or()', async function () {
+    it('should support or()', async function () {
       await expect(this.User.findAll({
         include: [
           {
-            model: this.Item, where: Sequelize.or({
+            model: this.Item,
+            where: or({
               test: 'def',
             }, {
               test: 'abc',

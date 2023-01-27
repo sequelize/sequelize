@@ -18,7 +18,7 @@ import {
   mapWhereFieldNames,
 } from './utils/format';
 import { every, find } from './utils/iterators';
-import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap } from './utils/object';
+import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap, EMPTY_OBJECT } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
@@ -1395,7 +1395,7 @@ ${associationOwner._getAssociationDebugList()}`);
    */
   static async findByPk(param, options) {
     // return Promise resolved with null if no arguments are passed
-    if ([null, undefined].includes(param)) {
+    if (param == null) {
       return null;
     }
 
@@ -1403,6 +1403,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     if (typeof param === 'number' || typeof param === 'bigint' || typeof param === 'string' || Buffer.isBuffer(param)) {
       options.where = {
+        // TODO: support composite primary keys
         [this.primaryKeyAttribute]: param,
       };
     } else {
@@ -3075,7 +3076,7 @@ Instead of specifying a Model, either:
       );
     }
 
-    const where = {};
+    const where = Object.create(null);
 
     for (const attributeName of modelDefinition.primaryKeysAttributeNames) {
       const attrVal = this.get(attributeName, { raw: true });
@@ -3095,7 +3096,7 @@ Instead of specifying a Model, either:
       where[versionAttr] = this.get(versionAttr, { raw: true });
     }
 
-    return mapWhereFieldNames(where, this.constructor);
+    return where;
   }
 
   toString() {
@@ -3881,7 +3882,7 @@ Instead of specifying a Model, either:
       throw new Error('You attempted to update an instance that is not persisted.');
     }
 
-    options = options || {};
+    options = options ?? EMPTY_OBJECT;
     if (Array.isArray(options)) {
       options = { fields: options };
     }

@@ -48,7 +48,7 @@ if (dialect.startsWith('postgres')) {
         },
         attributes: ['id', 'username', 'email', 'settings', 'document', 'phones', 'emergency_contact', 'friends'],
         logging(sql) {
-          expect(sql).to.equal('Executing (default): SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\']::TEXT[];');
+          expect(sql).to.equal('Executing (default): SELECT "id", "username", "email", "settings", "document", "phones", "emergency_contact", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\'];');
         },
       });
     });
@@ -90,15 +90,6 @@ if (dialect.startsWith('postgres')) {
     });
 
     describe('json', () => {
-      it('should be able to retrieve a row with ->> operator', async function () {
-        await Promise.all([
-          this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
-          this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })]);
-
-        const user = await this.User.findOne({ where: json('emergency_contact->>\'name\'', 'kate'), attributes: ['username', 'emergency_contact'] });
-        expect(user.emergency_contact.name).to.equal('kate');
-      });
-
       it('should be able to query using the nested query language', async function () {
         await Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
@@ -197,32 +188,6 @@ if (dialect.startsWith('postgres')) {
           },
           logging(sql) {
             expect(sql).to.contains(' WHERE "Equipment"."utilityBelt" = \'"grapplingHook"=>"true"\';');
-          },
-        });
-      });
-
-      // TODO: move to select QueryGenerator unit tests
-      it('should not rename json fields', async function () {
-        const Equipment = this.sequelize.define('Equipment', {
-          grapplingHook: {
-            type: DataTypes.STRING,
-            field: 'grappling_hook',
-          },
-          utilityBelt: {
-            type: DataTypes.JSON,
-          },
-        });
-
-        await Equipment.sync({ force: true });
-
-        await Equipment.findAll({
-          where: {
-            utilityBelt: {
-              grapplingHook: true,
-            },
-          },
-          logging(sql) {
-            expect(sql).to.contains(' WHERE CAST(("Equipment"."utilityBelt"#>>\'{grapplingHook}\') AS BOOLEAN) = true;');
           },
         });
       });
