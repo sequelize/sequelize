@@ -215,6 +215,7 @@ export class AbstractQueryGeneratorTypeScript {
    * @param identifier
    * @param _force
    */
+  // TODO: memoize last result
   quoteIdentifier(identifier: string, _force?: boolean) {
     return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
   }
@@ -296,7 +297,6 @@ export class AbstractQueryGeneratorTypeScript {
   }
 
   protected formatAssociationPath(associationPath: AssociationPath): string {
-    // !TODO: handle association alias for current query
     return `${this.quoteIdentifier(associationPath.associationPath.join('->'))}.${this.quoteIdentifier(associationPath.attribute)}`;
   }
 
@@ -389,7 +389,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   }
 
   protected formatCol(piece: Col, options?: EscapeOptions) {
-    // !TODO: can this be removed?
+    // TODO: can this be removed?
     if (piece.identifiers.length === 1 && piece.identifiers[0].startsWith('*')) {
       return '*';
     }
@@ -397,7 +397,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     // Weird legacy behavior
     const identifiers = piece.identifiers.length === 1 ? piece.identifiers[0] : piece.identifiers;
 
-    // !TODO: use quoteIdentifiers?
+    // TODO: use quoteIdentifiers?
     // @ts-expect-error -- quote is declared on child class
     return this.quote(identifiers, options?.model, undefined, options);
   }
@@ -432,12 +432,6 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       // we handle null values ourselves by default, unless the data type explicitly accepts null
       && (!(type instanceof AbstractDataType) || !type.acceptsNull())
     ) {
-      // !TODO: There are cases in Db2 for i where 'NULL' isn't accepted, such as
-      // comparison with a WHERE() statement. In those cases, we have to cast.
-      // if (dialectName === 'ibmi' && format) {
-      //   return 'cast(NULL as int)';
-      // }
-
       if (options.bindParam) {
         return options.bindParam(null);
       }

@@ -281,42 +281,25 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     // @ts-expect-error -- not supported, testing that it throws
     testSql(10, {
-      default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.\nValue: 10`),
+      default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
+Value: 10
+Caused by: Invalid Query: expected a plain object, an array or a sequelize SQL method but got 10`),
     });
 
     testSql({ intAttr1: undefined }, {
       default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: undefined }`),
+Value: { intAttr1: undefined }
+Caused by: "undefined" cannot be escaped`),
     });
 
     // @ts-expect-error -- user does not exist
-    testSql({ intAttr1: 1, user: undefined }, {
-      default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: 1, user: undefined }`),
-    });
+    testSql({ intAttr1: 1, user: undefined }, { default: new Error('"undefined" cannot be escaped') });
 
     testSql({ intAttr1: 1 }, {
       default: '[User].[intAttr1] = 1',
     }, { mainAlias: 'User' });
 
-    // !TODO: print cause
-    testSql({ dateAttr: { $gte: '2022-11-06' } }, {
-      default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { dateAttr: { '$gte': '2022-11-06' } }`),
-    });
-
-    // !TODO
-    it.skip('{ id: 1 }, { prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, {schema: \'yolo\', tableName: \'User\'})) }', () => {
-      expectsql(sql.whereItemsQuery({ id: 1 }, {
-        prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, {
-          schema: 'yolo',
-          tableName: 'User',
-        })),
-      }), {
-        default: '[yolo].[User].[id] = 1',
-        sqlite: '`yolo.User`.`id` = 1',
-      });
-    });
+    testSql({ dateAttr: { $gte: '2022-11-06' } }, { default: new Error(`{ '$gte': '2022-11-06' } is not a valid date`) });
 
     testSql(literal('raw sql'), {
       default: 'raw sql',
@@ -390,10 +373,7 @@ Value: { dateAttr: { '$gte': '2022-11-06' } }`),
         mssql: `[stringAttr] IN (N'1', N'2')`,
       });
 
-      testSql({ intAttr1: ['not-an-int'] }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: [ 'not-an-int' ] }`),
-      });
+      testSql({ intAttr1: ['not-an-int'] }, { default: new Error(`'not-an-int' is not a valid integer`) });
 
       testSql({ 'stringAttr::integer': 1 }, {
         default: 'CAST([stringAttr] AS INTEGER) = 1',
@@ -490,10 +470,7 @@ Value: { intAttr1: [ 'not-an-int' ] }`),
 
         // when using arrays, Op.in is never included
         // @ts-expect-error -- Omitting the operator with an array attribute is always Op.eq, never Op.in
-        testSql({ intArrayAttr: [[1, 2]] }, {
-          default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intArrayAttr: [ [ 1, 2 ] ] }`),
-        });
+        testSql({ intArrayAttr: [[1, 2]] }, { default: new Error('[ 1, 2 ] is not a valid integer') });
 
         testSql({ intAttr1: { [Op.any]: [2, 3, 4] } }, {
           default: '[intAttr1] = ANY (ARRAY[2,3,4])',
@@ -650,20 +627,17 @@ Value: { intArrayAttr: [ [ 1, 2 ] ] }`),
 
       // @ts-expect-error -- not supported, testing that it throws
       testSql({ intAttr1: { [Op.is]: 1 } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(is)]: 1 } }`),
+        default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
       });
 
       // @ts-expect-error -- not supported, testing that it throws
       testSql({ intAttr1: { [Op.is]: { [Op.col]: 'intAttr2' } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(is)]: { [Symbol(col)]: 'intAttr2' } } }`),
+        default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
       });
 
       // @ts-expect-error -- not supported, testing that it throws
       testSql({ intAttr1: { [Op.is]: col('intAttr2') } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(is)]: Col { identifiers: [Array] } } }`),
+        default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
       });
 
       testSql({ intAttr1: { [Op.is]: literal('UNKNOWN') } }, {
@@ -672,27 +646,23 @@ Value: { intAttr1: { [Symbol(is)]: Col { identifiers: [Array] } } }`),
 
       // @ts-expect-error -- not supported, testing that it throws
       testSql({ intAttr1: { [Op.is]: fn('UPPER', col('intAttr2')) } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(is)]: Fn { fn: 'UPPER', args: [Array] } } }`),
+        default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
       });
 
       // @ts-expect-error -- not supported, testing that it throws
       testSql({ intAttr1: { [Op.is]: cast(col('intAttr2'), 'boolean') } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(is)]: Cast { val: [Col], type: 'boolean' } } }`),
+        default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
       });
 
       if (dialectSupportsArray()) {
         // @ts-expect-error -- not supported, testing that it throws
         testSql({ intAttr1: { [Op.is]: { [Op.any]: [2, 3] } } }, {
-          default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(is)]: { [Symbol(any)]: [Array] } } }`),
+          default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
         });
 
         // @ts-expect-error -- not supported, testing that it throws
         testSql({ intAttr1: { [Op.is]: { [Op.all]: [2, 3, 4] } } }, {
-          default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(is)]: { [Symbol(all)]: [Array] } } }`),
+          default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
         });
       }
     });
@@ -873,8 +843,7 @@ Value: { intAttr1: { [Symbol(is)]: { [Symbol(all)]: [Array] } } }`),
           const ignoreWrong2: TestModelWhere = { intAttr1: { [Op.between]: [1] } };
 
           testSql({ intAttr1: { [operator]: [1] } }, {
-            default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(${operator.description})]: [ 1 ] } }`),
+            default: new Error('Operators Op.between and Op.notBetween must be used with an array of two values, or a literal.'),
           });
 
           // @ts-expect-error -- must pass exactly 2 items
@@ -988,8 +957,7 @@ Value: { intAttr1: { [Symbol(${operator.description})]: [ 1 ] } }`),
           // @ts-expect-error -- not supported, testing that it throws
           const ignoreWrong: TestModelWhere = { intAttr1: { [Op.in]: 1 } };
           testSql({ intAttr1: { [operator]: 1 } }, {
-            default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(${operator.description})]: 1 } }`),
+            default: new Error('Operators Op.in and Op.notIn must be called with an array of values, or a literal'),
           });
         }
 
@@ -997,8 +965,7 @@ Value: { intAttr1: { [Symbol(${operator.description})]: 1 } }`),
           // @ts-expect-error -- not supported, testing that it throws
           const ignoreWrong: TestModelWhere = { intAttr1: { [Op.in]: col('col2') } };
           testSql({ intAttr1: { [operator]: col('col1') } }, {
-            default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(${operator.description})]: Col { identifiers: [Array] } } }`),
+            default: new Error('Operators Op.in and Op.notIn must be called with an array of values, or a literal'),
           });
         }
 
@@ -1125,8 +1092,7 @@ Value: { intAttr1: { [Symbol(${operator.description})]: Col { identifiers: [Arra
             // @ts-expect-error -- cannot compare an array with a range!
             const ignore: TestModelWhere = { intArrayAttr: { [Op.overlap]: [1, { value: 2, inclusive: true }] } };
             testSql({ intArrayAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
-              default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intArrayAttr: { [Symbol(${operator.description})]: [ 1, [Object] ] } }`),
+              default: new Error('{ value: 2, inclusive: true } is not a valid integer'),
             });
           }
 
@@ -1134,8 +1100,7 @@ Value: { intArrayAttr: { [Symbol(${operator.description})]: [ 1, [Object] ] } }`
             // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [col('col')] } };
             testSql({ intArrayAttr: { [operator]: [col('col')] } }, {
-              default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intArrayAttr: { [Symbol(${operator.description})]: [ [Col] ] } }`),
+              default: new Error(`Col { identifiers: [ 'col' ] } is not a valid integer`),
             });
           }
 
@@ -1143,8 +1108,7 @@ Value: { intArrayAttr: { [Symbol(${operator.description})]: [ [Col] ] } }`),
             // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [{ [Op.col]: 'col' }] } };
             testSql({ intArrayAttr: { [operator]: [{ [Op.col]: 'col' }] } }, {
-              default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intArrayAttr: { [Symbol(${operator.description})]: [ [Object] ] } }`),
+              default: new Error(`{ [Symbol(col)]: 'col' } is not a valid integer`),
             });
           }
 
@@ -1152,8 +1116,7 @@ Value: { intArrayAttr: { [Symbol(${operator.description})]: [ [Object] ] } }`),
             // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [literal('literal')] } };
             testSql({ intArrayAttr: { [operator]: [literal('literal')] } }, {
-              default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intArrayAttr: { [Symbol(${operator.description})]: [ [Literal] ] } }`),
+              default: new Error(`Literal { val: [ 'literal' ] } is not a valid integer`),
             });
           }
         });
@@ -1251,8 +1214,7 @@ Value: { intArrayAttr: { [Symbol(${operator.description})]: [ [Literal] ] } }`),
             // @ts-expect-error -- 'intRangeAttr' is a range, but right-hand side is a regular Array
             const ignore: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2, 3] } };
             testSql({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
-              default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intRangeAttr: { [Symbol(${operator.description})]: [ 1, 2, 3 ] } }`),
+              default: new Error('A range must either be an array with two elements, or an empty array for the empty range. Got [ 1, 2, 3 ].'),
             });
           }
 
@@ -1275,8 +1237,7 @@ Value: { intRangeAttr: { [Symbol(${operator.description})]: [ 1, 2, 3 ] } }`),
 
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
         testSql({ intArrayAttr: { [Op.contains]: 1 } }, {
-          default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intArrayAttr: { [Symbol(contains)]: 1 } }`),
+          default: new Error('1 is not a valid array'),
         });
       });
     }
@@ -1390,14 +1351,12 @@ Value: { intArrayAttr: { [Symbol(contains)]: 1 } }`),
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPe is '\')
       // @ts-expect-error -- startsWith is not compatible with Op.any
       testSql({ stringAttr: { [Op.startsWith]: { [Op.any]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(startsWith)]: { [Symbol(any)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- startsWith is not compatible with Op.all
       testSql({ stringAttr: { [Op.startsWith]: { [Op.all]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(startsWith)]: { [Symbol(all)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
@@ -1480,14 +1439,12 @@ Value: { stringAttr: { [Symbol(startsWith)]: { [Symbol(all)]: [Array] } } }`),
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
       // @ts-expect-error -- startsWith is not compatible with Op.any
       testSql({ stringAttr: { [Op.endsWith]: { [Op.any]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(endsWith)]: { [Symbol(any)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- startsWith is not compatible with Op.all
       testSql({ stringAttr: { [Op.endsWith]: { [Op.all]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(endsWith)]: { [Symbol(all)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
@@ -1570,14 +1527,12 @@ Value: { stringAttr: { [Symbol(endsWith)]: { [Symbol(all)]: [Array] } } }`),
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
       // @ts-expect-error -- startsWith is not compatible with Op.any
       testSql({ stringAttr: { [Op.substring]: { [Op.any]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(substring)]: { [Symbol(any)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- startsWith is not compatible with Op.all
       testSql({ stringAttr: { [Op.substring]: { [Op.all]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(substring)]: { [Symbol(all)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
@@ -1660,14 +1615,12 @@ Value: { stringAttr: { [Symbol(substring)]: { [Symbol(all)]: [Array] } } }`),
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPe is '\')
       // @ts-expect-error -- notStartsWith is not compatible with Op.any
       testSql({ stringAttr: { [Op.notStartsWith]: { [Op.any]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(notStartsWith)]: { [Symbol(any)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- notStartsWith is not compatible with Op.all
       testSql({ stringAttr: { [Op.notStartsWith]: { [Op.all]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(notStartsWith)]: { [Symbol(all)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
@@ -1750,14 +1703,12 @@ Value: { stringAttr: { [Symbol(notStartsWith)]: { [Symbol(all)]: [Array] } } }`)
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
       // @ts-expect-error -- notEndsWith is not compatible with Op.any
       testSql({ stringAttr: { [Op.notEndsWith]: { [Op.any]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(notEndsWith)]: { [Symbol(any)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- notEndsWith is not compatible with Op.all
       testSql({ stringAttr: { [Op.notEndsWith]: { [Op.all]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(notEndsWith)]: { [Symbol(all)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
@@ -1840,14 +1791,12 @@ Value: { stringAttr: { [Symbol(notEndsWith)]: { [Symbol(all)]: [Array] } } }`),
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
       // @ts-expect-error -- notSubstring is not compatible with Op.any
       testSql({ stringAttr: { [Op.notSubstring]: { [Op.any]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(notSubstring)]: { [Symbol(any)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- notSubstring is not compatible with Op.all
       testSql({ stringAttr: { [Op.notSubstring]: { [Op.all]: ['test'] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { stringAttr: { [Symbol(notSubstring)]: { [Symbol(all)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
@@ -1896,7 +1845,7 @@ Value: { stringAttr: { [Symbol(notSubstring)]: { [Symbol(all)]: [Array] } } }`),
         });
 
         testSequelizeValueMethods(Op.match, '@@');
-        // !TODO
+        // TODO
         // testSupportsAnyAll(Op.match, '@@', [fn('to_tsvector', 'a'), fn('to_tsvector', 'b')]);
       });
     }
@@ -2006,8 +1955,7 @@ Value: { stringAttr: { [Symbol(notSubstring)]: { [Symbol(all)]: [Array] } } }`),
           // @ts-expect-error -- 'intRangeAttr' is a range, but right-hand side is a regular Array
           const ignore: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2, 3] } };
           testSql({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
-            default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intRangeAttr: { [Symbol(${operator.description})]: [ 1, 2, 3 ] } }`),
+            default: new Error('A range must either be an array with two elements, or an empty array for the empty range. Got [ 1, 2, 3 ].'),
           });
         }
       });
@@ -2098,10 +2046,7 @@ Value: { intRangeAttr: { [Symbol(${operator.description})]: [ 1, 2, 3 ] } }`),
           '$association.jsonAttr$.nested::STRING': {
             attribute: 'value',
           },
-        }, {
-          default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { '$association.jsonAttr$.nested::STRING': { attribute: 'value' } }`),
-        });
+        }, { default: new Error(`Could not guess type of value { attribute: 'value' }`) });
 
         testSql({
           '$association.jsonAttr$.nested.deep::STRING': 'value',
@@ -2160,24 +2105,6 @@ Value: { '$association.jsonAttr$.nested::STRING': { attribute: 'value' } }`),
           },
         }, {
           default: `[jsonbAttr] ?& ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`,
-        });
-
-        // !TODO
-        testSql.skip({
-          jsonbAttr: {
-            [Op.anyKeyExists]: [literal(`"gamer"`)],
-          },
-        }, {
-          default: `[jsonbAttr] ?| ARRAY["gamer"]`,
-        });
-
-        // !TODO
-        testSql.skip({
-          jsonbAttr: {
-            [Op.allKeysExist]: [literal(`"gamer"`)],
-          },
-        }, {
-          default: `[jsonbAttr] ?& ARRAY["gamer"]`,
         });
 
         testSql({
@@ -2314,22 +2241,6 @@ Value: { '$association.jsonAttr$.nested::STRING': { attribute: 'value' } }`),
           postgres: `"jsonbAttr"->'price' = '5' AND "jsonbAttr"->'name' = '"Product"'`,
         });
 
-        // !TODO
-        testSql.skip({
-          jsonbAttr: {
-            nested: {
-              attribute: 'value',
-              prop: {
-                [Op.ne]: 'None',
-              },
-            },
-          },
-        }, {
-          postgres: `"User"."jsonbAttr"#>ARRAY['nested','attribute'] = '"value"' AND "User"."jsonbAttr"#>ARRAY['nested','prop'] != '"None"'`,
-        }, {
-          prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, { tableName: 'User' })),
-        });
-
         testSql({
           jsonbAttr: {
             name: {
@@ -2443,8 +2354,7 @@ Value: { '$association.jsonAttr$.nested::STRING': { attribute: 'value' } }`),
 
       // @ts-expect-error -- cannot be used after operator
       testSql({ intAttr1: { [Op.gt]: { [Op.and]: [1, 2] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(gt)]: { [Symbol(and)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(and)]: [ 1, 2 ] } is not a valid integer`),
       });
     });
 
@@ -2479,8 +2389,7 @@ Value: { intAttr1: { [Symbol(gt)]: { [Symbol(and)]: [Array] } } }`),
 
       // @ts-expect-error -- cannot be used after operator
       testSql({ intAttr1: { [Op.gt]: { [Op.or]: [1, 2] } } }, {
-        default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
-Value: { intAttr1: { [Symbol(gt)]: { [Symbol(or)]: [Array] } } }`),
+        default: new Error(`{ [Symbol(or)]: [ 1, 2 ] } is not a valid integer`),
       });
 
       testSql({
@@ -2678,13 +2587,7 @@ Value: { intAttr1: { [Symbol(gt)]: { [Symbol(or)]: [Array] } } }`),
           mssql: `'hours' = N'hours'`,
         });
 
-        // testSql(where(TestModel.getAttributes().intAttr1, Op.eq, 1), {
-        //   default: '[TestModel].[intAttr1] = 1',
-        // });
-
-        testSql(where(col('col'), Op.eq, { [Op.in]: [1, 2] }), {
-          default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.`),
-        });
+        testSql(where(col('col'), Op.eq, { [Op.in]: [1, 2] }), { default: new Error('Could not guess type of value { [Symbol(in)]: [ 1, 2 ] }') });
       });
 
       describe('where(leftOperand, whereAttributeHashValue)', () => {

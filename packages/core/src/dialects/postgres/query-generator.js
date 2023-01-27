@@ -923,11 +923,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
    */
   quoteIdentifier(identifier, force) {
     const optForceQuote = force || false;
+    // TODO: remove "quoteIdentifiers: false" option
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
 
     if (
       optForceQuote === true
-      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers.
+      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers based on these rules
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')
