@@ -203,7 +203,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             model: options.model,
             type: modelAttributeMap[key]?.type,
             replacements: options.replacements,
-            // cannot use "bindParam here, because we're using a temporary sql function
+            bindParam,
           });
         }
       }

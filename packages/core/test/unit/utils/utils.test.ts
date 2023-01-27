@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import { col, DataTypes, Op, Where } from '@sequelize/core';
+import { col, DataTypes, Where } from '@sequelize/core';
 import { canTreatArrayAsAnd } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { toDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
-import { mapFinderOptions, mapOptionFieldNames } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
+import { mapFinderOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import { defaults, merge, cloneDeep, flattenObjectDeep } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { underscoredIf, camelizeIf, pluralize, singularize } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
@@ -252,112 +252,6 @@ describe('Utils', () => {
       ).to.eql([
         ['created_at', 'createdAt'],
       ]);
-    });
-  });
-
-  describe('mapOptionFieldNames', () => {
-    it('plain where', () => {
-      expect(mapOptionFieldNames({
-        where: {
-          firstName: 'Paul',
-          lastName: 'Atreides',
-        },
-      }, sequelize.define('User', {
-        firstName: {
-          type: DataTypes.STRING,
-          field: 'first_name',
-        },
-        lastName: {
-          type: DataTypes.STRING,
-          field: 'last_name',
-        },
-      }))).to.eql({
-        where: {
-          first_name: 'Paul',
-          last_name: 'Atreides',
-        },
-      });
-    });
-
-    it('Op.or where', () => {
-      expect(mapOptionFieldNames({
-        where: {
-          [Op.or]: {
-            firstName: 'Paul',
-            lastName: 'Atreides',
-          },
-        },
-      }, sequelize.define('User', {
-        firstName: {
-          type: DataTypes.STRING,
-          field: 'first_name',
-        },
-        lastName: {
-          type: DataTypes.STRING,
-          field: 'last_name',
-        },
-      }))).to.eql({
-        where: {
-          [Op.or]: {
-            first_name: 'Paul',
-            last_name: 'Atreides',
-          },
-        },
-      });
-    });
-
-    it('Op.or[] where', () => {
-      expect(mapOptionFieldNames({
-        where: {
-          [Op.or]: [
-            { firstName: 'Paul' },
-            { lastName: 'Atreides' },
-          ],
-        },
-      }, sequelize.define('User', {
-        firstName: {
-          type: DataTypes.STRING,
-          field: 'first_name',
-        },
-        lastName: {
-          type: DataTypes.STRING,
-          field: 'last_name',
-        },
-      }))).to.eql({
-        where: {
-          [Op.or]: [
-            { first_name: 'Paul' },
-            { last_name: 'Atreides' },
-          ],
-        },
-      });
-    });
-
-    it('$and where', () => {
-      expect(mapOptionFieldNames({
-        where: {
-          [Op.and]: {
-            firstName: 'Paul',
-            lastName: 'Atreides',
-          },
-        },
-      }, sequelize.define('User', {
-        firstName: {
-          type: DataTypes.STRING,
-          field: 'first_name',
-        },
-        lastName: {
-          type: DataTypes.STRING,
-          field: 'last_name',
-        },
-      }))).to.eql({
-        where: {
-          [Op.and]: {
-            first_name: 'Paul',
-            last_name: 'Atreides',
-          },
-        },
-      });
     });
   });
 });
