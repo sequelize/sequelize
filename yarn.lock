@@ -7240,10 +7240,10 @@ object.values@^1.1.6:
     define-properties "^1.1.4"
     es-abstract "^1.20.4"
 
-odbc@2.4.6:
-  version "2.4.6"
-  resolved "https://registry.yarnpkg.com/odbc/-/odbc-2.4.6.tgz#0f13c20175fa871cebbf8ebc1ee1f4715183314b"
-  integrity sha512-LAXah1LrwJe3vuyABk+vHkWffI3am2kN1HBkvY1ae3QDv0qgK1ciSxL2jBtzgiemXwoS1WxKZ6JRXPeOElCOmg==
+odbc@2.4.7:
+  version "2.4.7"
+  resolved "https://registry.yarnpkg.com/odbc/-/odbc-2.4.7.tgz#63bb722ffc1f776e296a4584e27db18eb02de1e8"
+  integrity sha512-S/aviaPk/Ku85qkExFUA4m9QLSyq+tpDVYlhvDIeasBaWpdyNSXMBnJ97VU1ak/plBKT4cxaM0z849eRROCOjQ==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
     async "^3.0.1"
