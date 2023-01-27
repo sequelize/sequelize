@@ -25,11 +25,11 @@ import {
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
 import type { DataType, BindParamOptions } from './data-types.js';
+import { AbstractDataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
-import type { WhereBuilderOptions } from './where-sql-builder.js';
-import { PojoWhere, WhereSqlBuilder } from './where-sql-builder.js';
+import { PojoWhere, WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 import type { AbstractDialect } from './index.js';
 
 export type TableNameOrModel = TableName | ModelStatic;
@@ -51,16 +51,36 @@ export interface QueryGeneratorOptions {
 /**
  * Options accepted by {@link AbstractQueryGeneratorTypeScript#escape}
  */
-interface EscapeOptions extends Bindable {
+export interface EscapeOptions extends FormatWhereOptions {
   readonly type?: DataType | undefined;
 }
 
-interface FormatSequelizeMethodOptions extends Bindable {
+export interface FormatWhereOptions extends Bindable {
   /**
-   * These are used to inline replacements into the query
+   * These are used to inline replacements into the query, when one is found inside of a {@link Literal}.
    */
-  readonly replacements?: BindOrReplacements;
-  readonly model?: ModelStatic;
+  readonly replacements?: BindOrReplacements | undefined;
+
+  /**
+   * The model of the main alias. Used to determine the type & column name of attributes referenced in the where clause.
+   */
+  readonly model?: ModelStatic | undefined;
+
+  /**
+   * The alias of the main table corresponding to {@link FormatWhereOptions.model}.
+   * Used as the prefix for attributes that do not reference an association, e.g.
+   *
+   * ```ts
+   * const where = { name: 'foo' };
+   * ```
+   *
+   * will produce
+   *
+   * ```sql
+   * WHERE "<mainAlias>"."name" = 'foo'
+   * ```
+   */
+  readonly mainAlias?: string | undefined;
 }
 
 /**
@@ -210,11 +230,20 @@ export class AbstractQueryGeneratorTypeScript {
     return tableA.tableName === tableB.tableName && tableA.schema === tableB.schema;
   }
 
-  whereItemsQuery<M extends Model>(where: WhereOptions<Attributes<M>>, options?: WhereBuilderOptions) {
+  whereQuery<M extends Model>(where: WhereOptions<Attributes<M>>, options?: FormatWhereOptions) {
+    const query = this.whereItemsQuery(where, options);
+    if (query && query.length > 0) {
+      return `WHERE ${query}`;
+    }
+
+    return '';
+  }
+
+  whereItemsQuery<M extends Model>(where: WhereOptions<Attributes<M>>, options?: FormatWhereOptions) {
     return this.whereSqlBuilder.formatWhereOptions(where, options);
   }
 
-  formatSequelizeMethod(piece: SequelizeMethod, options?: FormatSequelizeMethodOptions): string {
+  formatSequelizeMethod(piece: SequelizeMethod, options?: EscapeOptions): string {
     if (piece instanceof Literal) {
       return this.formatLiteral(piece, options);
     }
@@ -271,17 +300,21 @@ export class AbstractQueryGeneratorTypeScript {
     return `${this.quoteIdentifier(associationPath.associationPath.join('->'))}.${this.quoteIdentifier(associationPath.attribute)}`;
   }
 
-  protected formatJsonPath(jsonPathVal: JsonPath, options?: FormatSequelizeMethodOptions): string {
+  protected formatJsonPath(jsonPathVal: JsonPath, options?: EscapeOptions): string {
     const value = this.escape(jsonPathVal.value, options);
 
     if (jsonPathVal.path.length === 0) {
       return value;
     }
 
-    return this.jsonPathExtractionQuery2(value, jsonPathVal.path);
+    return this.jsonPathExtractionQuery(value, jsonPathVal.path);
   }
 
-  jsonPathExtractionQuery2(_value: string, _path: readonly string[]): string {
+  /**
+   * @param _sqlExpression ⚠️ This is not an identifier, it's a raw SQL expression. It will be inlined in the query.
+   * @param _path The JSON path, where each item is one level of the path
+   */
+  jsonPathExtractionQuery(_sqlExpression: string, _path: readonly string[]): string {
     if (!this.dialect.supports.jsonOperations) {
       throw new Error(`JSON operations are not supported in ${this.dialect.name}.`);
     }
@@ -289,7 +322,7 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`jsonPathExtractionQuery not been implemented in ${this.dialect.name}.`);
   }
 
-  protected formatLiteral(piece: Literal, options?: FormatSequelizeMethodOptions): string {
+  protected formatLiteral(piece: Literal, options?: EscapeOptions): string {
     const sql = piece.val.map(part => {
       if (part instanceof SequelizeMethod) {
         return this.formatSequelizeMethod(part, options);
@@ -311,7 +344,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     return sql;
   }
 
-  protected formatAttribute(piece: Attribute, options?: FormatSequelizeMethodOptions): string {
+  protected formatAttribute(piece: Attribute, options?: EscapeOptions): string {
     const model = options?.model;
 
     // This handles special attribute syntaxes like $association.references$, json.paths, and attribute::casting
@@ -320,11 +353,12 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       return this.formatSequelizeMethod(parsedAttributeName, options);
     }
 
-    if (!model) {
-      return this.quoteIdentifier(parsedAttributeName.attributeName);
-    }
+    const columnName = model?.modelDefinition.getColumnNameLoose(parsedAttributeName.attributeName)
+      ?? parsedAttributeName.attributeName;
 
-    const columnName = model.modelDefinition.getColumnNameLoose(parsedAttributeName.attributeName);
+    if (options?.mainAlias) {
+      return `${this.quoteIdentifier(options.mainAlias)}.${this.quoteIdentifier(columnName)}`;
+    }
 
     return this.quoteIdentifier(columnName);
   }
@@ -341,13 +375,20 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     return `${piece.fn}(${args})`;
   }
 
-  protected formatCast(cast: Cast, options?: FormatSequelizeMethodOptions) {
+  protected formatCast(cast: Cast, options?: EscapeOptions) {
     const type = this.sequelize.normalizeDataType(cast.type);
 
-    return `CAST(${this.escape(cast.val, options)} AS ${attributeTypeToSql(type).toUpperCase()})`;
+    const castSql = wrapAmbiguousWhere(cast.val, this.escape(cast.val, { ...options, type }));
+    const targetSql = attributeTypeToSql(type).toUpperCase();
+
+    // TODO: if we're casting to the same SQL DataType, we could skip the SQL cast (but keep the JS cast)
+    //  This is useful because sometimes you want to cast the Sequelize DataType to another Sequelize DataType,
+    //  but they are both the same SQL type, so a SAL cast would be redundant.
+
+    return `CAST(${castSql} AS ${targetSql})`;
   }
 
-  protected formatCol(piece: Col, options?: FormatSequelizeMethodOptions) {
+  protected formatCol(piece: Col, options?: EscapeOptions) {
     // !TODO: can this be removed?
     if (piece.identifiers.length === 1 && piece.identifiers[0].startsWith('*')) {
       return '*';
@@ -381,7 +422,16 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       throw new TypeError('"undefined" cannot be escaped');
     }
 
-    if (value === null) {
+    let { type } = options;
+    if (type != null) {
+      type = this.sequelize.normalizeDataType(type);
+    }
+
+    if (
+      value === null
+      // we handle null values ourselves by default, unless the data type explicitly accepts null
+      && (!(type instanceof AbstractDataType) || !type.acceptsNull())
+    ) {
       // !TODO: There are cases in Db2 for i where 'NULL' isn't accepted, such as
       // comparison with a WHERE() statement. In those cases, we have to cast.
       // if (dialectName === 'ibmi' && format) {
@@ -395,7 +445,6 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       return 'NULL';
     }
 
-    let { type } = options;
     if (type == null || typeof type === 'string') {
       type = bestGuessDataTypeOfVal(value, this.dialect);
     } else {

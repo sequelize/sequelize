@@ -194,7 +194,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       'CREATE TABLE IF NOT EXISTS',
       table,
       `(${attributesClause})`,
-      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment, undefined, options)}`,
+      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment, options)}`,
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
@@ -205,7 +205,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   showTablesQuery(database, options) {
     return joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database, undefined, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
+      database ? `AND TABLE_SCHEMA = ${this.escape(database, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
       ';',
     ]);
   }
@@ -331,50 +331,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  handleSequelizeMethod(attr, tableName, factory, options, prepend) {
-    if (attr instanceof Json) {
-      // Parse nested object
-      if (attr.conditions) {
-        const conditions = this.parseConditionObject(attr.conditions).map(condition => `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`);
-
-        return conditions.join(' AND ');
-      }
-
-      if (attr.path) {
-        let str;
-
-        // Allow specifying conditions using the sqlite json functions
-        if (this._checkValidJsonStatement(attr.path)) {
-          str = attr.path;
-        } else {
-          // Also support json property accessors
-          const paths = _.toPath(attr.path);
-          const column = paths.shift();
-          str = this.jsonPathExtractionQuery(column, paths);
-        }
-
-        if (attr.value) {
-          str += util.format(' = %s', this.escape(attr.value, undefined, options));
-        }
-
-        return str;
-      }
-    } else if (attr instanceof Cast) {
-      if (/timestamp/i.test(attr.type)) {
-        attr.type = 'datetime';
-      } else if (attr.json && /boolean/i.test(attr.type)) {
-        // true or false cannot be casted as booleans within a JSON structure
-        attr.type = 'char';
-      } else if (/double precision/i.test(attr.type) || /boolean/i.test(attr.type) || /integer/i.test(attr.type)) {
-        attr.type = 'decimal';
-      } else if (/text/i.test(attr.type)) {
-        attr.type = 'char';
-      }
-    }
-
-    return super.handleSequelizeMethod(attr, tableName, factory, options, prepend);
-  }
-
   truncateTableQuery(tableName) {
     return joinSQLFragments([
       'TRUNCATE',
@@ -383,14 +339,16 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   }
 
   deleteQuery(tableName, where, options = {}, model) {
+    const escapeOptions = { ...options, model };
+
     const table = this.quoteTable(tableName);
-    let whereClause = this.getWhereConditions(where, null, model, options);
-    const limit = options.limit && ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+    const limit = options.limit && ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
     let primaryKeys = '';
     let primaryKeysSelection = '';
 
+    let whereClause = this.whereQuery(where, escapeOptions);
     if (whereClause) {
-      whereClause = `WHERE ${whereClause}`;
+      whereClause = ` ${whereClause}`;
     }
 
     if (limit) {
@@ -466,7 +424,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
       && defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 
     if (attribute.unique === true) {
@@ -478,7 +436,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     if (attribute.comment) {
-      template += ` COMMENT ${this.escape(attribute.comment, undefined, options)}`;
+      template += ` COMMENT ${this.escape(attribute.comment, options)}`;
     }
 
     if (attribute.first) {
@@ -688,11 +646,11 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
   addLimitAndOffset(options) {
     if (options.offset) {
-      return ` LIMIT ${this.escape(options.limit ?? null, undefined, options)} OFFSET ${this.escape(options.offset, undefined, options)}`;
+      return ` LIMIT ${this.escape(options.limit ?? null, options)} OFFSET ${this.escape(options.offset, options)}`;
     }
 
     if (options.limit != null) {
-      return ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+      return ` LIMIT ${this.escape(options.limit, options)}`;
     }
 
     return '';

@@ -24,21 +24,21 @@ describe('[POSTGRES Specific] RANGE DataType', () => {
 
   describe('escape', () => {
     it('should handle empty objects correctly', () => {
-      expect(integerRangeType.escape([])).to.equal(`'empty'`);
+      expect(integerRangeType.escape([])).to.equal(`'empty'::int4range`);
     });
 
     it('should handle null as empty bound', () => {
-      expect(integerRangeType.escape([null, 1])).to.equal(`'[,1)'`);
-      expect(integerRangeType.escape([1, null])).to.equal(`'[1,)'`);
-      expect(integerRangeType.escape([null, null])).to.equal(`'[,)'`);
+      expect(integerRangeType.escape([null, 1])).to.equal(`'[,1)'::int4range`);
+      expect(integerRangeType.escape([1, null])).to.equal(`'[1,)'::int4range`);
+      expect(integerRangeType.escape([null, null])).to.equal(`'[,)'::int4range`);
     });
 
     it('should handle Infinity/-Infinity as infinity/-infinity bounds', () => {
-      expect(integerRangeType.escape([Number.POSITIVE_INFINITY, 1])).to.equal(`'[infinity,1)'`);
-      expect(integerRangeType.escape([1, Number.POSITIVE_INFINITY])).to.equal(`'[1,infinity)'`);
-      expect(integerRangeType.escape([Number.NEGATIVE_INFINITY, 1])).to.equal(`'[-infinity,1)'`);
-      expect(integerRangeType.escape([1, Number.NEGATIVE_INFINITY])).to.equal(`'[1,-infinity)'`);
-      expect(integerRangeType.escape([Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY])).to.equal(`'[-infinity,infinity)'`);
+      expect(integerRangeType.escape([Number.POSITIVE_INFINITY, 1])).to.equal(`'[infinity,1)'::int4range`);
+      expect(integerRangeType.escape([1, Number.POSITIVE_INFINITY])).to.equal(`'[1,infinity)'::int4range`);
+      expect(integerRangeType.escape([Number.NEGATIVE_INFINITY, 1])).to.equal(`'[-infinity,1)'::int4range`);
+      expect(integerRangeType.escape([1, Number.NEGATIVE_INFINITY])).to.equal(`'[1,-infinity)'::int4range`);
+      expect(integerRangeType.escape([Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY])).to.equal(`'[-infinity,infinity)'::int4range`);
     });
 
     it('should throw error when array length is not 0 or 2', () => {
@@ -67,10 +67,10 @@ describe('[POSTGRES Specific] RANGE DataType', () => {
     });
 
     it('should handle array of objects with `inclusive` and `value` properties', () => {
-      expect(integerRangeType.escape([{ inclusive: true, value: 0 }, { value: 1 }])).to.equal(`'[0,1)'`);
-      expect(integerRangeType.escape([{ inclusive: true, value: 0 }, { inclusive: true, value: 1 }])).to.equal(`'[0,1]'`);
-      expect(integerRangeType.escape([{ inclusive: false, value: 0 }, 1])).to.equal(`'(0,1)'`);
-      expect(integerRangeType.escape([0, { inclusive: true, value: 1 }])).to.equal(`'[0,1]'`);
+      expect(integerRangeType.escape([{ inclusive: true, value: 0 }, { value: 1 }])).to.equal(`'[0,1)'::int4range`);
+      expect(integerRangeType.escape([{ inclusive: true, value: 0 }, { inclusive: true, value: 1 }])).to.equal(`'[0,1]'::int4range`);
+      expect(integerRangeType.escape([{ inclusive: false, value: 0 }, 1])).to.equal(`'(0,1)'::int4range`);
+      expect(integerRangeType.escape([0, { inclusive: true, value: 1 }])).to.equal(`'[0,1]'::int4range`);
     });
 
     it('should handle date values', () => {
@@ -78,56 +78,33 @@ describe('[POSTGRES Specific] RANGE DataType', () => {
       expect(dateRangeType.escape([
         new Date(Date.UTC(2000, 1, 1)),
         new Date(Date.UTC(2000, 1, 2)),
-      ])).to.equal(`'[2000-02-01 02:00:00.000 +02:00,2000-02-02 02:00:00.000 +02:00)'`);
+      ])).to.equal(`'[2000-02-01 02:00:00.000 +02:00,2000-02-02 02:00:00.000 +02:00)'::tstzrange`);
     });
   });
 
   describe('stringify value', () => {
-    it('should stringify integer values with appropriate casting', () => {
-      expect(integerRangeType.escape(1)).to.equal(`'1'::int4`);
-    });
-
-    it('should stringify bigint values with appropriate casting', () => {
-      expect(bigintRangeType.escape(1)).to.equal(`'1'::int8`);
-      expect(bigintRangeType.escape(1n)).to.equal(`'1'::int8`);
-      expect(bigintRangeType.escape('1')).to.equal(`'1'::int8`);
-    });
-
-    it('should stringify numeric values with appropriate casting', () => {
-      expect(decimalRangeType.escape(1.1)).to.equal(`'1.1'::numeric`);
-      expect(decimalRangeType.escape('1.1')).to.equal(`'1.1'::numeric`);
-    });
-
-    it('should stringify dateonly values with appropriate casting', () => {
-      expect(dateOnlyRangeType.escape(new Date(Date.UTC(2000, 1, 1)))).to.include('::date');
-    });
-
-    it('should stringify date values with appropriate casting', () => {
-      expect(dateRangeType.escape(new Date(Date.UTC(2000, 1, 1)))).to.equal(`'2000-02-01 02:00:00.000 +02:00'::timestamptz`);
-    });
-
     describe('with null range bounds', () => {
       const infiniteRange: Rangable<any> = [null, null];
       const infiniteRangeSQL = `'[,)'`;
 
       it('should stringify integer range to infinite range', () => {
-        expect(integerRangeType.escape(infiniteRange)).to.equal(infiniteRangeSQL);
+        expect(integerRangeType.escape(infiniteRange)).to.equal(`${infiniteRangeSQL}::int4range`);
       });
 
       it('should stringify bigint range to infinite range', () => {
-        expect(bigintRangeType.escape(infiniteRange)).to.equal(infiniteRangeSQL);
+        expect(bigintRangeType.escape(infiniteRange)).to.equal(`${infiniteRangeSQL}::int8range`);
       });
 
       it('should stringify numeric range to infinite range', () => {
-        expect(decimalRangeType.escape(infiniteRange)).to.equal(infiniteRangeSQL);
+        expect(decimalRangeType.escape(infiniteRange)).to.equal(`${infiniteRangeSQL}::numrange`);
       });
 
       it('should stringify dateonly ranges to infinite range', () => {
-        expect(dateOnlyRangeType.escape(infiniteRange)).to.equal(infiniteRangeSQL);
+        expect(dateOnlyRangeType.escape(infiniteRange)).to.equal(`${infiniteRangeSQL}::daterange`);
       });
 
       it('should stringify date ranges to infinite range', () => {
-        expect(dateRangeType.escape(infiniteRange)).to.equal(infiniteRangeSQL);
+        expect(dateRangeType.escape(infiniteRange)).to.equal(`${infiniteRangeSQL}::tstzrange`);
       });
     });
 
@@ -136,23 +113,23 @@ describe('[POSTGRES Specific] RANGE DataType', () => {
       const infiniteRangeSQL = '\'[-infinity,infinity)\'';
 
       it('should stringify integer range to infinite range', () => {
-        expect(integerRangeType.escape(infiniteRange)).to.equal(infiniteRangeSQL);
+        expect(integerRangeType.escape(infiniteRange)).to.equal(`${infiniteRangeSQL}::int4range`);
       });
 
       it('should stringify bigint range to infinite range', () => {
-        expect(bigintRangeType.escape(infiniteRange)).to.equal(infiniteRangeSQL);
+        expect(bigintRangeType.escape(infiniteRange)).to.equal(`${infiniteRangeSQL}::int8range`);
       });
 
       it('should stringify numeric range to infinite range', () => {
-        expect(decimalRangeType.escape(infiniteRange)).to.equal(infiniteRangeSQL);
+        expect(decimalRangeType.escape(infiniteRange)).to.equal(`${infiniteRangeSQL}::numrange`);
       });
 
       it('should stringify dateonly ranges to infinite range', () => {
-        expect(dateOnlyRangeType.escape(infiniteRange)).to.equal(infiniteRangeSQL);
+        expect(dateOnlyRangeType.escape(infiniteRange)).to.equal(`${infiniteRangeSQL}::daterange`);
       });
 
       it('should stringify date ranges to infinite range', () => {
-        expect(dateRangeType.escape(infiniteRange)).to.equal(infiniteRangeSQL);
+        expect(dateRangeType.escape(infiniteRange)).to.equal(`${infiniteRangeSQL}::tstzrange`);
       });
     });
   });

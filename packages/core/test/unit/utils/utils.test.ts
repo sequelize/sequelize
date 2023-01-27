@@ -1,13 +1,12 @@
 import { expect } from 'chai';
-import { cast, col, DataTypes, fn, Op, Where, Json } from '@sequelize/core';
-import type { AbstractQueryGenerator } from '@sequelize/core';
+import { col, DataTypes, Op, Where } from '@sequelize/core';
 import { canTreatArrayAsAnd } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { toDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { mapFinderOptions, mapOptionFieldNames } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import { defaults, merge, cloneDeep, flattenObjectDeep } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { underscoredIf, camelizeIf, pluralize, singularize } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
-import { sequelize, getTestDialect, expectsql } from '../../support';
+import { sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
@@ -80,43 +79,6 @@ describe('Utils', () => {
       }).to.not.throw();
     });
   });
-
-  if (getTestDialect() === 'postgres') {
-    describe('json', () => {
-      let queryGenerator: AbstractQueryGenerator;
-      beforeEach(() => {
-        queryGenerator = sequelize.getQueryInterface().queryGenerator;
-      });
-
-      it('successfully parses a complex nested condition hash', () => {
-        const conditions = {
-          metadata: {
-            language: 'icelandic',
-            pg_rating: { dk: 'G' },
-          },
-          another_json_field: { x: 1 },
-        };
-        const expected = '("metadata"#>>\'{language}\') = \'icelandic\' AND ("metadata"#>>\'{pg_rating,dk}\') = \'G\' AND ("another_json_field"#>>\'{x}\') = \'1\'';
-        expect(queryGenerator.handleSequelizeMethod(new Json(conditions))).to.deep.equal(expected);
-      });
-
-      it('successfully parses a string using dot notation', () => {
-        const path = 'metadata.pg_rating.dk';
-        expect(queryGenerator.handleSequelizeMethod(new Json(path))).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
-      });
-
-      it('allows postgres json syntax', () => {
-        const path = 'metadata->pg_rating->>dk';
-        expect(queryGenerator.handleSequelizeMethod(new Json(path))).to.equal(path);
-      });
-
-      it('can take a value to compare against', () => {
-        const path = 'metadata.pg_rating.is';
-        const value = 'U';
-        expect(queryGenerator.handleSequelizeMethod(new Json(path, value))).to.equal('("metadata"#>>\'{pg_rating,is}\') = \'U\'');
-      });
-    });
-  }
 
   describe('inflection', () => {
     it('should pluralize/singularize words correctly', () => {
@@ -199,9 +161,6 @@ describe('Utils', () => {
   });
 
   describe('toDefaultValue', () => {
-    it('return plain data types', () => {
-      expect(() => toDefaultValue(new DataTypes.UUIDV4().toDialectDataType(dialect))).to.throw();
-    });
     it('return uuid v1', () => {
       expect(/^[\da-z-]{36}$/.test(toDefaultValue(new DataTypes.UUIDV1().toDialectDataType(dialect)) as string)).to.be.equal(true);
     });
@@ -398,22 +357,6 @@ describe('Utils', () => {
             last_name: 'Atreides',
           },
         },
-      });
-    });
-  });
-
-  describe('Sequelize.cast', () => {
-    const generator = sequelize.queryInterface.queryGenerator;
-
-    it('accepts condition object (auto casting)', () => {
-      expectsql(() => generator.handleSequelizeMethod(fn('SUM', cast({
-        [Op.or]: {
-          foo: 'foo',
-          bar: 'bar',
-        },
-      }, 'int'))), {
-        default: `SUM(CAST(([foo] = 'foo' OR [bar] = 'bar') AS INT))`,
-        mssql: `SUM(CAST(([foo] = N'foo' OR [bar] = N'bar') AS INT))`,
       });
     });
   });

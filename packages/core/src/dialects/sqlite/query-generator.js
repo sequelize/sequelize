@@ -107,21 +107,17 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   addLimitAndOffset(options, model) {
     let fragment = '';
     if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
     } else if (options.offset) {
       // limit must be specified if offset is specified.
       fragment += ` LIMIT -1`;
     }
 
     if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
     }
 
     return fragment;
-  }
-
-  booleanValue(value) {
-    return value ? 1 : 0;
   }
 
   /**
@@ -184,31 +180,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return hasJsonFunction;
   }
 
-  // sqlite can't cast to datetime so we need to convert date values to their ISO strings
-  _toJSONValue(value) {
-    if (value instanceof Date) {
-      return value.toISOString();
-    }
-
-    if (Array.isArray(value) && value[0] instanceof Date) {
-      return value.map(val => val.toISOString());
-    }
-
-    return value;
-  }
-
-  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Json) {
-      return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
-    }
-
-    if (smth instanceof Cast && /timestamp/i.test(smth.type)) {
-      smth.type = 'datetime';
-    }
-
-    return AbstractQueryGenerator.prototype.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(
@@ -256,12 +227,14 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     for (const key in attrValueHash) {
       const value = attrValueHash[key];
+      const escapedValue = this.escape(value, {
+        replacements: options.replacements,
+        bindParam,
+        type: modelAttributeMap[key]?.type,
+        // TODO: model,
+      });
 
-      if (value instanceof SequelizeMethod || options.bindParam === false) {
-        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
-      } else {
-        values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
-      }
+      values.push(`${this.quoteIdentifier(key)}=${escapedValue}`);
     }
 
     let query;
@@ -291,14 +264,13 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   deleteQuery(tableName, where, options = {}, model) {
     _.defaults(options, this.options);
 
-    let whereClause = this.getWhereConditions(where, null, model, options);
-
+    let whereClause = this.whereQuery(where, { ...options, model });
     if (whereClause) {
-      whereClause = `WHERE ${whereClause}`;
+      whereClause = ` ${whereClause}`;
     }
 
     if (options.limit) {
-      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit, undefined, options)})`;
+      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit, options)})`;
     }
 
     return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`.trim();
@@ -321,7 +293,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
-          sql += ` DEFAULT ${this.escape(attribute.defaultValue, attribute, options)}`;
+          sql += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
         }
 
         if (attribute.unique === true) {
@@ -517,26 +489,5 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
    */
   foreignKeyCheckQuery(tableName) {
     return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
-  }
-
-  /**
-   * Generates an SQL query that extract JSON property of given path.
-   *
-   * @param   {string}               column  The JSON column
-   * @param   {string|Array<string>} [path]  The path to extract (optional)
-   * @returns {string}                       The generated sql query
-   * @private
-   */
-  jsonPathExtractionQuery(column, path) {
-    const quotedColumn = this.isIdentifierQuoted(column)
-      ? column
-      : this.quoteIdentifier(column);
-
-    const pathStr = this.escape(['$']
-      .concat(_.toPath(path))
-      .join('.')
-      .replace(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
-
-    return `json_extract(${quotedColumn},${pathStr})`;
   }
 }

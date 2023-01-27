@@ -6,7 +6,7 @@ import { expectsql, sequelize, getTestDialect } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const dialectName = getTestDialect();
-const dialect = sequelize.dialect;
+const queryGenerator = sequelize.queryGenerator;
 
 describe('DataTypes.BOOLEAN', () => {
   testDataTypeSql('BOOLEAN', DataTypes.BOOLEAN, {
@@ -132,6 +132,53 @@ describe('DataTypes.JSON', () => {
     // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
     mssql: 'NVARCHAR(MAX)',
     sqlite: 'TEXT',
+  });
+
+  describe('escape', () => {
+    it('escapes plain string', () => {
+      expectsql(queryGenerator.escape('string', { type: new DataTypes.JSON() }), {
+        default: `'"string"'`,
+        mssql: `N'"string"'`,
+        'mariadb mysql': `'\\"string\\"'`,
+      });
+    });
+
+    it('escapes plain int', () => {
+      expectsql(queryGenerator.escape(0, { type: new DataTypes.JSON() }), {
+        default: `'0'`,
+        mssql: `N'0'`,
+      });
+      expectsql(queryGenerator.escape(123, { type: new DataTypes.JSON() }), {
+        default: `'123'`,
+        mssql: `N'123'`,
+      });
+    });
+
+    it('escapes boolean', () => {
+      expectsql(queryGenerator.escape(true, { type: new DataTypes.JSON() }), {
+        default: `'true'`,
+        mssql: `N'true'`,
+      });
+      expectsql(queryGenerator.escape(false, { type: new DataTypes.JSON() }), {
+        default: `'false'`,
+        mssql: `N'false'`,
+      });
+    });
+
+    it('escapes NULL', () => {
+      expectsql(queryGenerator.escape(null, { type: new DataTypes.JSON() }), {
+        default: `'null'`,
+      });
+    });
+
+    it('nested object', () => {
+      expectsql(queryGenerator.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
+        default: `'{"some":"nested","more":{"nested":true},"answer":42}'`,
+        mssql: `N'{"some":"nested","more":{"nested":true},"answer":42}'`,
+        mariadb: `'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}'`,
+        mysql: `'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}'`,
+      });
+    });
   });
 });
 

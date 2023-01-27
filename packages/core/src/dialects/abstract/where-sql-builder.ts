@@ -2,7 +2,6 @@ import NodeUtil from 'node:util';
 import type {
   ModelStatic,
   WhereOptions,
-  DataType,
   WhereLeftOperand,
 } from '../../index.js';
 import { Op } from '../../operators';
@@ -16,7 +15,7 @@ import { getComplexKeys, getOperators } from '../../utils/where.js';
 import type { NormalizedDataType } from './data-types.js';
 import * as DataTypes from './data-types.js';
 import { AbstractDataType } from './data-types.js';
-import type { Bindable } from './query-generator-typescript.js';
+import type { FormatWhereOptions } from './query-generator-typescript.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { WhereAttributeHashValue } from './where-sql-builder-types.js';
 
@@ -66,11 +65,6 @@ class ObjectPool<T> {
 }
 
 const pojoWherePool = new ObjectPool<PojoWhere>(() => new PojoWhere(), 20);
-
-export interface WhereBuilderOptions extends Bindable {
-  model?: ModelStatic;
-  type?: DataType;
-}
 
 export class WhereSqlBuilder {
   readonly operatorMap: Record<symbol, string> = {
@@ -129,7 +123,7 @@ export class WhereSqlBuilder {
    */
   formatWhereOptions(
     where: WhereOptions,
-    options: WhereBuilderOptions = EMPTY_OBJECT,
+    options: FormatWhereOptions = EMPTY_OBJECT,
   ): string {
     if (typeof where === 'string') {
       throw new TypeError('Support for `{ where: \'raw query\' }` has been removed. Use `{ where: literal(\'raw query\') }` instead');
@@ -167,14 +161,25 @@ export class WhereSqlBuilder {
     // Arrays in this method are treated as an implicit "AND" operator
     if (Array.isArray(input)) {
       return joinWithLogicalOperator(
-        input.map(part => this.#handleRecursiveNotOrAndWithImplicitAndArray(part, handlePart)),
+        input.map(part => {
+          if (part === undefined) {
+            return '';
+          }
+
+          return this.#handleRecursiveNotOrAndWithImplicitAndArray(part, handlePart);
+        }),
         logicalOperator,
       );
     }
 
     // if the input is not a plan object, then it can't include Operators.
     if (!isPlainObject(input)) {
-      return handlePart(input as SequelizeMethod);
+      // @ts-expect-error -- This catches a scenario where the user did not respect the typing
+      if (!(input instanceof SequelizeMethod)) {
+        throw new TypeError(`Invalid Query: expected a plain object, an array or a sequelize SQL method but got ${NodeUtil.inspect(input)} `);
+      }
+
+      return handlePart(input);
     }
 
     const keys = getComplexKeys(input);
@@ -232,14 +237,14 @@ export class WhereSqlBuilder {
    */
   formatPojoWhere(
     pojoWhere: PojoWhere,
-    options: WhereBuilderOptions = EMPTY_OBJECT,
+    options: FormatWhereOptions = EMPTY_OBJECT,
   ): string {
     // we need to parse the left operand early to determine the data type of the right operand
     const leftPreJsonPath = pojoWhere.leftOperand instanceof Attribute
       ? parseAttributeSyntax(pojoWhere.leftOperand)
       : pojoWhere.leftOperand;
 
-    const leftDataType = this.#getOperandType(leftPreJsonPath, options.model);
+    let leftDataType = this.#getOperandType(leftPreJsonPath, options.model);
     const operandIsJsonColumn = leftDataType == null || leftDataType instanceof DataTypes.JSON;
 
     return this.#handleRecursiveNotOrAndNestedPathRecursive(
@@ -247,6 +252,12 @@ export class WhereSqlBuilder {
       pojoWhere.whereValue,
       operandIsJsonColumn,
       (left: WhereLeftOperand, operator: symbol | undefined, right: WhereLeftOperand) => {
+        // "left" could have been wrapped in a JSON path. If we still don't know its data type, it's very likely a JSON column
+        // if the user used a JSON path in the where clause.
+        if (leftDataType == null && left instanceof JsonPath) {
+          leftDataType = this.#jsonType;
+        }
+
         if (operator === Op.col) {
           noOpCol();
 
@@ -303,7 +314,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     const rightEscapeOptions = { ...options, type: rightDataType ?? leftDataType };
     const leftEscapeOptions = { ...options, type: leftDataType ?? rightDataType };
@@ -343,7 +354,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     if (right !== null && typeof right !== 'boolean' && !(right instanceof Literal)) {
       throw new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.');
@@ -362,7 +373,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     const rightEscapeOptions = { ...options, type: rightDataType ?? leftDataType };
     const leftEscapeOptions = { ...options, type: leftDataType ?? rightDataType };
@@ -387,7 +398,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     // In postgres, Op.contains has multiple signatures:
     // - RANGE<VALUE> Op.contains RANGE<VALUE> (both represented by fixed-size arrays in JS)
@@ -416,7 +427,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     // This function has the opposite semantics of Op.contains. It has the following signatures:
     // - RANGE<VALUE> Op.contained RANGE<VALUE> (both represented by fixed-size arrays in JS)
@@ -452,7 +463,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     return this.formatSubstring(left, leftDataType, Op.like, right, rightDataType, options, false, true);
   }
@@ -463,7 +474,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     return this.formatSubstring(left, leftDataType, Op.notLike, right, rightDataType, options, false, true);
   }
@@ -474,7 +485,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     return this.formatSubstring(left, leftDataType, Op.like, right, rightDataType, options, true, false);
   }
@@ -485,7 +496,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     return this.formatSubstring(left, leftDataType, Op.notLike, right, rightDataType, options, true, false);
   }
@@ -496,7 +507,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     return this.formatSubstring(left, leftDataType, Op.like, right, rightDataType, options, true, true);
   }
@@ -507,7 +518,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     return this.formatSubstring(left, leftDataType, Op.notLike, right, rightDataType, options, true, true);
   }
@@ -518,7 +529,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
     start: boolean,
     end: boolean,
   ) {
@@ -552,7 +563,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     return this.formatBinaryOperation(left, leftDataType, operator, right, this.#arrayOfTextType, options);
   }
@@ -563,7 +574,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ): string {
     return this.formatBinaryOperation(left, leftDataType, operator, right, this.#arrayOfTextType, options);
   }
@@ -574,7 +585,7 @@ export class WhereSqlBuilder {
     operator: symbol,
     right: WhereLeftOperand,
     rightDataType: NormalizedDataType | undefined,
-    options: WhereBuilderOptions,
+    options: FormatWhereOptions,
   ) {
     const operatorSql = this.operatorMap[operator];
     if (!operatorSql) {
@@ -585,7 +596,7 @@ export class WhereSqlBuilder {
     const rightSql = this.#formatOpAnyAll(right, rightDataType ?? leftDataType)
       || this.queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType });
 
-    return `${this.#wrapAmbiguous(left, leftSql)} ${this.operatorMap[operator]} ${this.#wrapAmbiguous(right, rightSql)}`;
+    return `${wrapAmbiguousWhere(left, leftSql)} ${this.operatorMap[operator]} ${wrapAmbiguousWhere(right, rightSql)}`;
   }
 
   #formatOpAnyAll(value: unknown, type: NormalizedDataType | undefined): string {
@@ -760,21 +771,6 @@ export class WhereSqlBuilder {
 
     return undefined;
   }
-
-  #wrapAmbiguous(operand: WhereLeftOperand, sql: string): string {
-    // where() can produce ambiguous SQL when used as an operand:
-    //
-    // { booleanAttr: where(fn('lower', col('name')), Op.is, null) }
-    // produces the ambiguous SQL:
-    //   [booleanAttr] = lower([name]) IS NULL
-    // which is better written as:
-    //   [booleanAttr] = (lower([name]) IS NULL)
-    if (operand instanceof Where && sql.includes(' ')) {
-      return `(${sql})`;
-    }
-
-    return sql;
-  }
 }
 
 function joinWithLogicalOperator(sqlArray: string[], operator: typeof Op.and | typeof Op.or): string {
@@ -809,4 +805,19 @@ function wrapWithNot(sql: string): string {
   }
 
   return `NOT (${sql})`;
+}
+
+export function wrapAmbiguousWhere(operand: WhereLeftOperand, sql: string): string {
+  // where() can produce ambiguous SQL when used as an operand:
+  //
+  // { booleanAttr: where(fn('lower', col('name')), Op.is, null) }
+  // produces the ambiguous SQL:
+  //   [booleanAttr] = lower([name]) IS NULL
+  // which is better written as:
+  //   [booleanAttr] = (lower([name]) IS NULL)
+  if (operand instanceof Where && sql.includes(' ')) {
+    return `(${sql})`;
+  }
+
+  return sql;
 }

@@ -47,7 +47,11 @@ function withInlineCause(cb: (() => any)): () => void {
   };
 }
 
-function inlineErrorCause(error: Error): string {
+function inlineErrorCause(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return String(error);
+  }
+
   let message = error.message;
 
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
@@ -329,7 +333,7 @@ export function expectPerDialect<Out>(
 
     expect(inlineErrorCause(result)).to.include(expectation.message);
   } else {
-    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${result instanceof Error ? result.message : ''}`);
+    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`);
 
     assertMatchesExpectation(result, expectation);
   }
@@ -470,7 +474,7 @@ export function expectsql(
 
     expect(inlineErrorCause(query)).to.include(expectation.message);
   } else {
-    assert(!(query instanceof Error), `Expected query to equal ${minifySql(expectation)}, but it errored with ${query instanceof Error ? query.message : ''}`);
+    assert(!(query instanceof Error), `Expected query to equal:\n${minifySql(expectation)}\n\nBut it errored with:\n${inlineErrorCause(query)}`);
 
     expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
   }

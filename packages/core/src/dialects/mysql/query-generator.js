@@ -3,6 +3,7 @@
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_OBJECT } from '../../utils/object';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { Cast, Json } from '../../utils/sequelize-method';
 import { underscore } from '../../utils/string';
@@ -278,78 +279,21 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     ]);
   }
 
-  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Json) {
-      // Parse nested object
-      if (smth.conditions) {
-        const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`);
-
-        return conditions.join(' AND ');
-      }
-
-      if (smth.path) {
-        let str;
-
-        // Allow specifying conditions using the sqlite json functions
-        if (this._checkValidJsonStatement(smth.path)) {
-          str = smth.path;
-        } else {
-          // Also support json property accessors
-          const paths = _.toPath(smth.path);
-          const column = paths.shift();
-          str = this.jsonPathExtractionQuery(column, paths);
-        }
-
-        if (smth.value) {
-          str += ` = ${this.escape(smth.value, undefined, options)}`;
-        }
-
-        return str;
-      }
-    } else if (smth instanceof Cast) {
-      if (/timestamp/i.test(smth.type)) {
-        smth.type = 'datetime';
-      } else if (smth.json && /boolean/i.test(smth.type)) {
-        // true or false cannot be casted as booleans within a JSON structure
-        smth.type = 'char';
-      } else if (/double precision/i.test(smth.type) || /boolean/i.test(smth.type) || /integer/i.test(smth.type)) {
-        smth.type = 'decimal';
-      } else if (/text/i.test(smth.type)) {
-        smth.type = 'char';
-      }
-    }
-
-    return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
-  }
-
-  _toJSONValue(value) {
-    // true/false are stored as strings in mysql
-    if (typeof value === 'boolean') {
-      return value.toString();
-    }
-
-    // null is stored as a string in mysql
-    if (value === null) {
-      return 'null';
-    }
-
-    return value;
-  }
-
   truncateTableQuery(tableName) {
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
+  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 
-    where = this.getWhereConditions(where, null, model, options);
-    if (where) {
-      query += ` WHERE ${where}`;
+    const escapeOptions = { ...options, model };
+    const whereSql = this.whereQuery(where, escapeOptions);
+    if (whereSql) {
+      query += ` ${whereSql}`;
     }
 
     if (options.limit) {
-      query += ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['bind', 'replacements']))}`;
+      query += ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
     }
 
     return query;
@@ -593,38 +537,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       this.quoteIdentifier(foreignKey),
       ';',
     ]);
-  }
-
-  /**
-   * Generates an SQL query that extract JSON property of given path.
-   *
-   * @param   {string}               column  The JSON column
-   * @param   {string|Array<string>} [path]  The path to extract (optional)
-   * @returns {string}                       The generated sql query
-   * @private
-   */
-  jsonPathExtractionQuery(column, path) {
-    let paths = _.toPath(path);
-    const quotedColumn = this.isIdentifierQuoted(column)
-      ? column
-      : this.quoteIdentifier(column);
-
-    /**
-     * Non digit sub paths need to be quoted as ECMAScript identifiers
-     * https://bugs.mysql.com/bug.php?id=81896
-     */
-    paths = paths.map(subPath => {
-      return /\D/.test(subPath)
-        ? addTicks(subPath, '"')
-        : subPath;
-    });
-
-    const pathStr = this.escape(['$']
-      .concat(paths)
-      .join('.')
-      .replace(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
-
-    return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
   }
 }
 

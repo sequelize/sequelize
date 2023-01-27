@@ -107,7 +107,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
             const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
             commentStr += _.template(commentTemplate, this._templateSettings)({
               table: this.quoteTable(tableName),
-              comment: this.escape(commentText, undefined, { replacements: options.replacements }),
+              comment: this.escape(commentText, { replacements: options.replacements }),
               column: this.quoteIdentifier(attr),
             });
             // remove comment related substring from dataType
@@ -380,7 +380,8 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     if (allAttributes.length > 0) {
       _.forEach(attrValueHashes, attrValueHash => {
         tuples.push(`(${
-          allAttributes.map(key => this.escape(attrValueHash[key], undefined, { context: 'INSERT', replacements: options.replacements })).join(',')})`);
+          // TODO: pass type of attribute & model
+          allAttributes.map(key => this.escape(attrValueHash[key], { replacements: options.replacements })).join(',')})`);
       });
       allQueries.push(query);
     }
@@ -425,12 +426,14 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     for (const key in attrValueHash) {
       const value = attrValueHash[key];
+      const escapedValue = this.escape(value, {
+        // TODO: pass model
+        type: modelAttributeMap[key]?.type,
+        replacements: options.replacements,
+        bindParam,
+      });
 
-      if (value instanceof SequelizeMethod || options.bindParam === false) {
-        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
-      } else {
-        values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
-      }
+      values.push(`${this.quoteIdentifier(key)}=${escapedValue}`);
     }
 
     let query;
@@ -478,7 +481,14 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const updateKeys = Object.keys(updateValues);
     const insertKeys = Object.keys(insertValues);
     const insertKeysQuoted = insertKeys.map(key => this.quoteIdentifier(key)).join(', ');
-    const insertValuesEscaped = insertKeys.map(key => this.escape(insertValues[key], undefined, { replacements: options.replacements })).join(', ');
+    const insertValuesEscaped = insertKeys.map(key => {
+      return this.escape(insertValues[key], {
+        // TODO: pass type
+        // TODO: bind param
+        replacements: options.replacements,
+        model,
+      });
+    }).join(', ');
     const sourceTableQuery = `VALUES(${insertValuesEscaped})`; // Virtual Table
     let joinCondition;
 
@@ -557,23 +567,16 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
   deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
+    let query = `DELETE FROM ${table}`;
 
-    let whereStr = this.getWhereConditions(where, null, model, options);
-    if (whereStr) {
-      whereStr = ` WHERE ${whereStr}`;
+    const whereSql = this.whereQuery(where, { ...options, model });
+    if (whereSql) {
+      query += ` ${whereSql}`;
     }
 
-    let query = `DELETE FROM ${table} ${whereStr}`;
+    query += this.addLimitAndOffset(options);
 
-    if (options.offset > 0) {
-      query += ` OFFSET ${this.escape(options.offset, undefined, { replacements: options.replacements })} ROWS`;
-    }
-
-    if (options.limit) {
-      query += ` FETCH NEXT ${this.escape(options.limit, undefined, { replacements: options.replacements })} ROWS ONLY`;
-    }
-
-    return query.trim();
+    return query;
   }
 
   addIndexQuery(tableName, attributes, options, rawTablename) {
@@ -633,7 +636,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
         && defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, { replacements: options?.replacements, type: attribute.type })}`;
     }
 
     if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
@@ -873,18 +876,14 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     let fragment = '';
 
     if (offset) {
-      fragment += ` OFFSET ${this.escape(offset, undefined, { replacements: options.replacements })} ROWS`;
+      fragment += ` OFFSET ${this.escape(offset, { replacements: options.replacements })} ROWS`;
     }
 
     if (options.limit) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, undefined, { replacements: options.replacements })} ROWS ONLY`;
+      fragment += ` FETCH NEXT ${this.escape(options.limit, { replacements: options.replacements })} ROWS ONLY`;
     }
 
     return fragment;
-  }
-
-  booleanValue(value) {
-    return value ? 1 : 0;
   }
 
   addUniqueFields(dataValues, rawAttributes, uniqno) {

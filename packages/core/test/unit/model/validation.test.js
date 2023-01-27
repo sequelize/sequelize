@@ -357,10 +357,10 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           })).not.to.be.rejected;
         });
 
-        it('should allow $like for uuid', async () => {
+        it('should allow $like for uuid if cast', async () => {
           await expect(User.findAll({
             where: {
-              uid: {
+              'uid::text': {
                 [Op.like]: '12345678%',
               },
             },

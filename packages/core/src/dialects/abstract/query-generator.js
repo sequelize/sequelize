@@ -2,7 +2,7 @@
 
 import NodeUtil from 'node:util';
 import { conformIndex } from '../../model-internals';
-import { getTextDataTypeForDialect } from '../../sql-string';
+import { and } from '../../sequelize';
 import { rejectInvalidOptions, canTreatArrayAsAnd, isColString } from '../../utils/check';
 import {
   mapFinderOptions,
@@ -11,9 +11,7 @@ import {
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { Cast, Col, Fn, Literal, SequelizeMethod, Where } from '../../utils/sequelize-method';
-import { injectReplacements } from '../../utils/sql';
 import { nameIndex, spliceStr } from '../../utils/string';
-import { getComplexKeys, getComplexSize, getOperators } from '../../utils/where';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 
@@ -187,7 +185,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         fields.push(this.quoteIdentifier(key));
 
         // SERIALS' can't be NULL in postgresql, use DEFAULT where supported
-        if (modelAttributeMap && modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true && value == null) {
+        if (modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true && value == null) {
           if (!this.dialect.supports.autoIncrement.defaultValue) {
             fields.splice(-1, 1);
           } else if (this.dialect.supports.DEFAULT) {
@@ -196,15 +194,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             values[key] = this.escape(null);
           }
         } else {
-          if (modelAttributeMap && modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true) {
+          if (modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true) {
             identityWrapperRequired = true;
           }
 
-          if (value instanceof SequelizeMethod || options.bindParam === false) {
-            values[key] = this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT', replacements: options.replacements });
-          } else {
-            values[key] = this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }, bindParam);
-          }
+          values[key] = this.escape(value, {
+            // TODO: make insertQuery accept a Model instead of modelAttributes
+            model: undefined,
+            type: modelAttributeMap[key]?.type,
+            replacements: options.replacements,
+            bindParam,
+          });
         }
       }
     }
@@ -336,7 +336,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
         }
 
-        return this.escape(fieldValueHash[key], fieldMappedAttributes[key], { context: 'INSERT', replacements: options.replacements });
+        return this.escape(fieldValueHash[key] ?? null, {
+          // model // TODO: make bulkInsertQuery accept model instead of fieldValueHashes
+          // bindParam // TODO: support bind params
+          type: fieldMappedAttributes[key]?.type,
+          replacements: options.replacements,
+        });
       });
 
       tuples.push(`(${values.join(',')})`);
@@ -415,7 +420,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
     if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit && this.dialect.name !== 'mssql' && this.dialect.name !== 'db2') {
-      suffix = ` LIMIT ${this.escape(options.limit, undefined, options)} `;
+      // TODO: use bind parameter
+      suffix = ` LIMIT ${this.escape(options.limit, options)} `;
     }
 
     if (this.dialect.supports.returnValues && options.returning) {
@@ -450,11 +456,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       const value = attrValueHash[key];
 
-      if (value instanceof SequelizeMethod || options.bindParam === false) {
-        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
-      } else {
-        values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' }, bindParam)}`);
-      }
+      values.push(`${this.quoteIdentifier(key)}=${this.escape(value, {
+        // model // TODO: receive modelDefinition instead of columnDefinitions
+        type: modelAttributeMap?.[key]?.type,
+        replacements: options.replacements,
+        bindParam,
+      })}`);
     }
 
     const whereOptions = { ...options, bindParam };
@@ -492,7 +499,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options = options || {};
     _.defaults(options, { returning: true });
 
-    const replacementOptions = _.pick(options, ['replacements']);
+    // TODO: add attribute DataType
+    // TODO: add model
+    const escapeOptions = _.pick(options, ['replacements']);
 
     extraAttributesToBeUpdated = removeNullishValuesFromHash(extraAttributesToBeUpdated, this.options.omitNull);
 
@@ -510,14 +519,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     for (const field in incrementAmountsByField) {
       const incrementAmount = incrementAmountsByField[field];
       const quotedField = this.quoteIdentifier(field);
-      const escapedAmount = this.escape(incrementAmount, undefined, replacementOptions);
+      const escapedAmount = this.escape(incrementAmount, escapeOptions);
       updateSetSqlFragments.push(`${quotedField}=${quotedField}${operator} ${escapedAmount}`);
     }
 
     for (const field in extraAttributesToBeUpdated) {
       const newValue = extraAttributesToBeUpdated[field];
       const quotedField = this.quoteIdentifier(field);
-      const escapedValue = this.escape(newValue, undefined, replacementOptions);
+      const escapedValue = this.escape(newValue, escapeOptions);
       updateSetSqlFragments.push(`${quotedField}=${escapedValue}`);
     }
 
@@ -527,7 +536,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       'SET',
       updateSetSqlFragments.join(','),
       outputFragment,
-      this.whereQuery(where, replacementOptions),
+      this.whereQuery(where, escapeOptions),
       returningFragment,
     ]);
   }
@@ -569,7 +578,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     const fieldsSql = options.fields.map(field => {
       if (field instanceof SequelizeMethod) {
-        return this.handleSequelizeMethod(field);
+        return this.formatSequelizeMethod(field);
       }
 
       if (typeof field === 'string') {
@@ -706,7 +715,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
 
       if (field instanceof SequelizeMethod) {
-        return this.handleSequelizeMethod(field);
+        return this.formatSequelizeMethod(field);
       }
 
       if (field.attribute) {
@@ -759,7 +768,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
 
         constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_df`);
-        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, undefined, options)}) FOR ${quotedFields[0]}`;
+        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, options)}) FOR ${quotedFields[0]}`;
         break;
       case 'PRIMARY KEY':
         constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_pk`);
@@ -908,7 +917,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
           // see if this is an order
           if (index > 0 && orderIndex !== -1) {
-            item = this.sequelize.literal(` ${validOrderOptions[orderIndex]}`);
+            item = new Literal(` ${validOrderOptions[orderIndex]}`);
           } else if (isModelStatic(previousModel)) {
             const { modelDefinition: previousModelDefinition } = previousModel;
 
@@ -936,7 +945,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
                 item = this.jsonPathExtractionQuery(identifier, path);
 
                 // literal because we don't want to append the model name when string
-                item = this.sequelize.literal(item);
+                item = new Literal(item);
               }
             }
           }
@@ -991,7 +1000,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (collection instanceof SequelizeMethod) {
-      return this.handleSequelizeMethod(collection, undefined, undefined, options);
+      return this.formatSequelizeMethod(collection, options);
     }
 
     if (_.isPlainObject(collection) && collection.raw) {
@@ -1040,29 +1049,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       return `$${bindName}`;
     };
-  }
-
-  /**
-   * @param {string} identifier
-   *
-   * @deprecated Do not use this method. A string starting & ending with the identifier quote (", `, []) does
-   * not mean that it's already quoted. These characters are valid inside of identifiers and should be properly escaped.
-   */
-  isIdentifierQuoted(identifier) {
-    return /^\s*(?:(["'`])(?:(?!\1).|\1{2})*\1\.?)+\s*$/i.test(identifier);
-  }
-
-  /**
-   * Generates an SQL query that extract JSON property of given path.
-   *
-   * @param   {string}               _column   The JSON column
-   * @param   {string|Array<string>} [_path]   The path to extract (optional)
-   * @param   {boolean}              [_isJson] The value is JSON use alt symbols (optional)
-   * @returns {string}                         The generated sql query
-   * @private
-   */
-  jsonPathExtractionQuery(_column, _path, _isJson) {
-    throw new Error(`JSON operations are not supported in ${this.dialect.name}.`);
   }
 
   /*
@@ -1182,7 +1168,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           mainTable.as = mainTable.name;
         }
 
-        const where = { ...options.where };
+        let where = { ...options.where };
         let groupedLimitOrder;
         let whereKey;
         let include;
@@ -1194,6 +1180,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           whereKey = options.groupedLimit.on.identifierField;
         }
 
+        // TODO: do not use a placeholder!
+        const placeholder = '"$PLACEHOLDER$" = true';
+
         if (options.groupedLimit.on instanceof BelongsToMany) {
           // BTM includes needs to join the through table on to check ID
           groupedTableName = options.groupedLimit.on.throughModel.name;
@@ -1204,10 +1193,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
               association: options.groupedLimit.on.fromSourceToThrough,
               duplicating: false, // The UNION'ed query may contain duplicates, but each sub-query cannot
               required: true,
-              where: {
-                [Op.placeholder]: true,
-                ...options.groupedLimit.through?.where,
-              },
+              where: and(new Literal('"$PLACEHOLDER$" = true'), options.groupedLimit.through?.where),
             }],
             model,
           });
@@ -1230,7 +1216,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
               options.attributes.push([order, alias]);
 
               // We don't want to prepend model name when we alias the attributes, so quote them here
-              alias = this.sequelize.literal(this.quote(alias, undefined, undefined, options));
+              alias = new Literal(this.quote(alias, undefined, undefined, options));
 
               if (Array.isArray(options.order[i])) {
                 options.order[i][0] = alias;
@@ -1244,7 +1230,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
           delete options.order;
-          where[Op.placeholder] = true;
+          where = and(new Literal('"$PLACEHOLDER$" = true'), where);
         }
 
         // Caching the base query and splicing the where part into it is consistently > twice
@@ -1264,8 +1250,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           },
           model,
         ).replace(/;$/, '')}) AS sub`; // Every derived table must have its own alias
-        const placeHolder = this.whereItemQuery(Op.placeholder, true, { model });
-        const splicePos = baseQuery.indexOf(placeHolder);
+        const splicePos = baseQuery.indexOf(placeholder);
 
         mainQueryItems.push(this.selectFromTableFragment(options, mainTable.model, attributes.main, `(${
           options.groupedLimit.values.map(value => {
@@ -1282,7 +1267,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
               };
             }
 
-            return spliceStr(baseQuery, splicePos, placeHolder.length, this.getWhereConditions(groupWhere, groupedTableName, undefined, options));
+            return spliceStr(baseQuery, splicePos, placeholder.length, this.whereItemsQuery(groupWhere, { ...options, mainAlias: groupedTableName }));
           }).join(
             this.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ',
           )
@@ -1296,7 +1281,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Add WHERE to sub or main query
     if (Object.prototype.hasOwnProperty.call(options, 'where') && !options.groupedLimit) {
-      options.where = this.getWhereConditions(options.where, mainTable.as || tableName, model, options);
+      options.where = this.whereItemsQuery(options.where, {
+        ...options,
+        model,
+        mainAlias: mainTable.as || tableName,
+      });
+
       if (options.where) {
         if (subQuery) {
           subQueryItems.push(` WHERE ${options.where}`);
@@ -1327,7 +1317,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Add HAVING to sub or main query
     if (Object.prototype.hasOwnProperty.call(options, 'having')) {
-      options.having = this.getWhereConditions(options.having, tableName, model, options, false);
+      options.having = this.whereItemsQuery(options.having, {
+        ...options,
+        model,
+        mainAlias: mainTable.as || tableName,
+      });
+
       if (options.having) {
         if (subQuery) {
           subQueryItems.push(` HAVING ${options.having}`);
@@ -1405,7 +1400,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       let addTable = true;
 
       if (attr instanceof SequelizeMethod) {
-        return this.handleSequelizeMethod(attr, undefined, undefined, options);
+        return this.formatSequelizeMethod(attr, options);
       }
 
       if (Array.isArray(attr)) {
@@ -1416,7 +1411,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         attr = [...attr];
 
         if (attr[0] instanceof SequelizeMethod) {
-          attr[0] = this.handleSequelizeMethod(attr[0], undefined, undefined, options);
+          attr[0] = this.formatSequelizeMethod(attr[0], options);
           addTable = false;
         } else {
           attr[0] = this.quoteIdentifier(attr[0]);
@@ -1483,7 +1478,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             verbatim = true;
           }
 
-          attr = attr.map(attrPart => (attrPart instanceof SequelizeMethod ? this.handleSequelizeMethod(attrPart, undefined, undefined, options) : attrPart));
+          attr = attr.map(attrPart => (attrPart instanceof SequelizeMethod ? this.formatSequelizeMethod(attrPart, options) : attrPart));
 
           attrAs = attr[1];
           attr = attr[0];
@@ -1491,13 +1486,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         if (attr instanceof Literal) {
           // We trust the user to rename the field correctly
-          return this.handleSequelizeMethod(attr, undefined, undefined, options);
+          return this.formatLiteral(attr, options);
         }
 
-        if (attr instanceof Cast || attr instanceof Fn) {
+        if (attr instanceof SequelizeMethod) {
           throw new TypeError(
-            'Tried to select attributes using Sequelize.cast or Sequelize.fn without specifying an alias for the result, during eager loading. '
-            + 'This means the attribute will not be added to the returned instance',
+            `Tried to select attributes using ${attr.constructor.name} without specifying an alias for the result, during eager loading. This means the attribute will not be added to the returned instance`,
           );
         }
 
@@ -1715,7 +1709,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (include.on) {
       joinOn = this.whereItemsQuery(include.on, {
-        prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
+        mainAlias: asRight,
         model: include.model,
         replacements: options?.replacements,
       });
@@ -1723,7 +1717,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (include.where) {
       joinWhere = this.whereItemsQuery(include.where, {
-        prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
+        mainAlias: asRight,
         model: include.model,
         replacements: options?.replacements,
       });
@@ -1781,9 +1775,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             throw new Error(`literal() cannot be used in the "returning" option array in ${this.dialect.name}. Use col(), or a string instead.`);
           }
 
-          return this.handleSequelizeMethod(field);
+          return this.formatSequelizeMethod(field);
         } else if (field instanceof Col) {
-          return this.handleSequelizeMethod(field);
+          return this.formatSequelizeMethod(field);
         }
 
         throw new Error(`Unsupported value in "returning" option: ${NodeUtil.inspect(field)}. This option only accepts true, false, or an array of strings, col() or literal().`);
@@ -1907,7 +1901,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     targetJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identTarget)}`;
 
     if (through.where) {
-      throughWhere = this.getWhereConditions(through.where, this.sequelize.literal(this.quoteIdentifier(throughAs)), through.model, topLevelInfo.options);
+      throughWhere = this.whereItemsQuery(through.where, { ...topLevelInfo.options, model: through.model, mainAlias: throughAs });
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
@@ -1920,7 +1914,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     joinCondition = sourceJoinOn;
 
     if ((include.where || include.through.where) && include.where) {
-      targetWhere = this.getWhereConditions(include.where, this.sequelize.literal(this.quoteIdentifier(includeAs.internalAs)), include.model, topLevelInfo.options);
+      targetWhere = this.whereItemsQuery(include.where, { ...topLevelInfo.options, model: include.model, mainAlias: includeAs.internalAs });
       if (targetWhere) {
         joinCondition += ` AND ${targetWhere}`;
       }
@@ -1991,7 +1985,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         model: topInclude.through.model,
         where: {
           [Op.and]: [
-            this.sequelize.literal([
+            new Literal([
               `${this.quoteTable(topParent.model.name)}.${this.quoteIdentifier(topParent.model.primaryKeyField)}`,
               `${this.quoteIdentifier(topInclude.through.model.name)}.${this.quoteIdentifier(topAssociation.identifierField)}`,
             ].join(' = ')),
@@ -2018,7 +2012,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         where: {
           [Op.and]: [
             topInclude.where,
-            { [Op.join]: this.sequelize.literal(join) },
+            new Literal(join),
           ],
         },
         limit: 1,
@@ -2027,16 +2021,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }, topInclude.model);
     }
 
-    if (!topLevelInfo.options.where[Op.and]) {
-      topLevelInfo.options.where[Op.and] = [];
-    }
-
-    topLevelInfo.options.where[`__${includeAs.internalAs}`] = this.sequelize.literal([
+    topLevelInfo.options.where = and(topLevelInfo.options.where, new Literal([
       '(',
       query.replace(/;$/, ''),
       ')',
       'IS NOT NULL',
-    ].join(' '));
+    ].join(' ')));
   }
 
   /*
@@ -2168,715 +2158,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   addLimitAndOffset(options, model) {
     let fragment = '';
     if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
     } else if (options.offset) {
       // limit must be specified if offset is specified.
       fragment += ` LIMIT 18446744073709551615`;
     }
 
     if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
     }
 
     return fragment;
-  }
-
-  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    let result;
-
-    if (Object.prototype.hasOwnProperty.call(this.OperatorMap, smth.comparator)) {
-      smth.comparator = this.OperatorMap[smth.comparator];
-    }
-
-    if (smth instanceof Where) {
-      let value = smth.logic;
-      let key;
-
-      if (smth.attribute instanceof SequelizeMethod) {
-        key = this.getWhereConditions(smth.attribute, tableName, factory, options, prepend);
-      } else {
-        key = `${this.quoteTable(smth.attribute.Model.name)}.${this.quoteIdentifier(smth.attribute.field || smth.attribute.fieldName)}`;
-      }
-
-      if (value && value instanceof SequelizeMethod) {
-        value = this.getWhereConditions(value, tableName, factory, options, prepend);
-
-        if (value === 'NULL') {
-          if (smth.comparator === '=') {
-            smth.comparator = 'IS';
-          }
-
-          if (smth.comparator === '!=') {
-            smth.comparator = 'IS NOT';
-          }
-        }
-
-        return [key, value].join(` ${smth.comparator} `);
-      }
-
-      if (_.isPlainObject(value)) {
-        return this.whereItemQuery(smth.attribute, value, {
-          model: factory,
-        });
-      }
-
-      if ([this.OperatorMap[Op.between], this.OperatorMap[Op.notBetween]].includes(smth.comparator)) {
-        value = `${this.escape(value[0], undefined, options)} AND ${this.escape(value[1], undefined, options)}`;
-      } else if (typeof value === 'boolean') {
-        value = this.booleanValue(value);
-      } else {
-        value = this.escape(value, undefined, options);
-      }
-
-      if (value === 'NULL') {
-        if (smth.comparator === '=') {
-          smth.comparator = 'IS';
-        }
-
-        if (smth.comparator === '!=') {
-          smth.comparator = 'IS NOT';
-        }
-      }
-
-      return [key, value].join(` ${smth.comparator} `);
-    }
-
-    if (smth instanceof Literal) {
-      if (options?.replacements) {
-        return injectReplacements(smth.val, this.dialect, options.replacements, {
-          onPositionalReplacement: () => {
-            throw new TypeError(`The following literal includes positional replacements (?).
-Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
-➜ literal(${JSON.stringify(smth.val)})`);
-          },
-        });
-      }
-
-      return smth.val;
-
-    }
-
-    if (smth instanceof Cast) {
-      if (smth.val instanceof SequelizeMethod) {
-        result = this.handleSequelizeMethod(smth.val, tableName, factory, options, prepend);
-      } else if (_.isPlainObject(smth.val)) {
-        result = this.whereItemsQuery(smth.val);
-      } else {
-        result = this.escape(smth.val, undefined, options);
-      }
-
-      return `CAST(${result} AS ${smth.type.toUpperCase()})`;
-    }
-
-    if (smth instanceof Fn) {
-      return `${smth.fn}(${
-        smth.args.map(arg => {
-          if (arg instanceof SequelizeMethod) {
-            return this.handleSequelizeMethod(arg, tableName, factory, options, prepend);
-          }
-
-          if (_.isPlainObject(arg)) {
-            return this.whereItemsQuery(arg);
-          }
-
-          return this.escape(arg, undefined, options);
-        }).join(', ')
-      })`;
-    }
-
-    if (smth instanceof Col) {
-      if (smth.identifiers.length > 1 && !factory) {
-        throw new Error('Cannot call Sequelize.col() with array outside of order / group clause');
-      }
-
-      if (smth.identifiers.startsWith('*')) {
-        return '*';
-      }
-
-      return this.quote(smth.identifiers, factory, undefined, options);
-    }
-
-    return smth.toString(this, factory);
-  }
-
-  whereQuery(where, options) {
-    const query = this.whereItemsQuery(where, options);
-    if (query && query.length > 0) {
-      return `WHERE ${query}`;
-    }
-
-    return '';
-  }
-
-  /**
-   * @param key
-   * @param value
-   * @param options
-   * @deprecated
-   */
-  whereItemQuery(key, value, options = {}) {
-    if (value === undefined) {
-      throw new Error(`WHERE parameter "${key}" has invalid "undefined" value`);
-    }
-
-    if (typeof key === 'string' && key.includes('.') && options.model) {
-      const keyParts = key.split('.');
-      const { attributes } = options.model.modelDefinition;
-      const attribute = attributes.get(keyParts[0]);
-      if (attribute?.type instanceof DataTypes.JSON) {
-        const tmp = {};
-        _.set(tmp, keyParts.slice(1), value);
-
-        return this.whereItemQuery(attribute.columnName, tmp, { field: attribute, ...options });
-      }
-    }
-
-    const field = this._findField(key, options);
-    const fieldType = field && field.type || options.type;
-
-    const isPlainObject = _.isPlainObject(value);
-    const isArray = !isPlainObject && Array.isArray(value);
-    key = this.OperatorsAliasMap && this.OperatorsAliasMap[key] || key;
-    if (isPlainObject) {
-      value = this._replaceAliases(value);
-    }
-
-    const valueKeys = isPlainObject && getComplexKeys(value);
-
-    if (key === undefined) {
-      if (typeof value === 'string') {
-        return value;
-      }
-
-      if (isPlainObject && valueKeys.length === 1) {
-        return this.whereItemQuery(valueKeys[0], value[valueKeys[0]], options);
-      }
-    }
-
-    if (value === null) {
-      const opValue = options.bindParam ? 'NULL' : this.escape(value, field, options);
-
-      return this._joinKeyValue(key, opValue, this.OperatorMap[Op.is], options.prefix);
-    }
-
-    if (!value) {
-      const opValue = options.bindParam ? this.format(value, field, options, options.bindParam) : this.escape(value, field, options);
-
-      return this._joinKeyValue(key, opValue, this.OperatorMap[Op.eq], options.prefix);
-    }
-
-    if (value instanceof SequelizeMethod && !(key !== undefined && value instanceof Fn)) {
-      return this.handleSequelizeMethod(value, undefined, undefined, options);
-    }
-
-    // Convert where: [] to Op.and if possible, else treat as literal/replacements
-    if (key === undefined && isArray) {
-      if (canTreatArrayAsAnd(value)) {
-        key = Op.and;
-      } else {
-        throw new Error('Support for literal replacements in the `where` object has been removed.');
-      }
-    }
-
-    if (key === Op.or || key === Op.and || key === Op.not) {
-      return this._whereGroupBind(key, value, options);
-    }
-
-    if (value[Op.or]) {
-      return this._whereBind(this.OperatorMap[Op.or], key, value[Op.or], options);
-    }
-
-    if (value[Op.and]) {
-      return this._whereBind(this.OperatorMap[Op.and], key, value[Op.and], options);
-    }
-
-    if (isArray && fieldType instanceof DataTypes.ARRAY) {
-      const opValue = options.bindParam ? this.format(value, field, options, options.bindParam) : this.escape(value, field, options);
-
-      return this._joinKeyValue(key, opValue, this.OperatorMap[Op.eq], options.prefix);
-    }
-
-    if (isPlainObject && fieldType instanceof DataTypes.JSON && options.json !== false) {
-      return this._whereJSON(key, value, options);
-    }
-
-    // If multiple keys we combine the different logic conditions
-    if (isPlainObject && valueKeys.length > 1) {
-      return this._whereBind(this.OperatorMap[Op.and], key, value, options);
-    }
-
-    if (isArray) {
-      return this._whereParseSingleValueObject(key, field, Op.in, value, options);
-    }
-
-    if (isPlainObject) {
-      if (this.OperatorMap[valueKeys[0]]) {
-        return this._whereParseSingleValueObject(key, field, valueKeys[0], value[valueKeys[0]], options);
-      }
-
-      return this._whereParseSingleValueObject(key, field, this.OperatorMap[Op.eq], value, options);
-    }
-
-    if (key === Op.placeholder) {
-      const opValue = options.bindParam ? this.format(value, field, options, options.bindParam) : this.escape(value, field, options);
-
-      return this._joinKeyValue(this.OperatorMap[key], opValue, this.OperatorMap[Op.eq], options.prefix);
-    }
-
-    const opValue = options.bindParam ? this.format(value, field, options, options.bindParam) : this.escape(value, field, options);
-
-    return this._joinKeyValue(key, opValue, this.OperatorMap[Op.eq], options.prefix);
-  }
-
-  _findField(key, options) {
-    if (options.field) {
-      return options.field;
-    }
-
-    const modelDefinition = options.model?.modelDefinition;
-    const attribute = modelDefinition?.attributes.get(key);
-    if (attribute) {
-      return attribute;
-    }
-
-    const column = modelDefinition?.columns.get(key);
-    if (column) {
-      return column;
-    }
-  }
-
-  // OR/AND/NOT grouping logic
-  _whereGroupBind(key, value, options) {
-    const binding = key === Op.or ? this.OperatorMap[Op.or] : this.OperatorMap[Op.and];
-    const outerBinding = key === Op.not ? 'NOT ' : '';
-
-    if (Array.isArray(value)) {
-      value = value.map(item => {
-        let itemQuery = this.whereItemsQuery(item, options, this.OperatorMap[Op.and]);
-        if (itemQuery && itemQuery.length > 0 && (Array.isArray(item) || _.isPlainObject(item)) && getComplexSize(item) > 1) {
-          itemQuery = `(${itemQuery})`;
-        }
-
-        return itemQuery;
-      }).filter(item => item && item.length);
-
-      value = value.length && value.join(binding);
-    } else {
-      value = this.whereItemsQuery(value, options, binding);
-    }
-
-    // Op.or: [] should return no data.
-    // Op.not of no restriction should also return no data
-    if ((key === Op.or || key === Op.not) && !value) {
-      return '0 = 1';
-    }
-
-    return value ? `${outerBinding}(${value})` : undefined;
-  }
-
-  _whereBind(binding, key, value, options) {
-    if (_.isPlainObject(value)) {
-      value = getComplexKeys(value).map(prop => {
-        const item = value[prop];
-
-        return this.whereItemQuery(key, { [prop]: item }, options);
-      });
-    } else {
-      value = value.map(item => this.whereItemQuery(key, item, options));
-    }
-
-    value = value.filter(item => item && item.length);
-
-    return value.length > 0 ? `(${value.join(binding)})` : undefined;
-  }
-
-  _whereJSON(key, value, options) {
-    const items = [];
-    let baseKey = this.quoteIdentifier(key);
-    if (options.prefix) {
-      if (options.prefix instanceof Literal) {
-        baseKey = `${this.handleSequelizeMethod(options.prefix)}.${baseKey}`;
-      } else {
-        baseKey = `${this.quoteTable(options.prefix)}.${baseKey}`;
-      }
-    }
-
-    for (const op of getOperators(value)) {
-      const where = {
-        [op]: value[op],
-      };
-      items.push(this.whereItemQuery(key, where, { ...options, json: false }));
-    }
-
-    _.forOwn(value, (item, prop) => {
-      this._traverseJSON(items, baseKey, prop, item, [prop]);
-    });
-
-    const result = items.join(this.OperatorMap[Op.and]);
-
-    return items.length > 1 ? `(${result})` : result;
-  }
-
-  _traverseJSON(items, baseKey, prop, item, path) {
-    let cast;
-
-    if (path[path.length - 1].includes('::')) {
-      const tmp = path[path.length - 1].split('::');
-      cast = tmp[1];
-      path[path.length - 1] = tmp[0];
-    }
-
-    let pathKey = this.jsonPathExtractionQuery(baseKey, path);
-
-    if (_.isPlainObject(item)) {
-      for (const op of getOperators(item)) {
-        const value = this._toJSONValue(item[op]);
-        let isJson = false;
-        if (typeof value === 'string' && op === Op.contains) {
-          try {
-            JSON.stringify(value);
-            isJson = true;
-          } catch {
-            // failed to parse, is not json so isJson remains false
-          }
-        }
-
-        pathKey = this.jsonPathExtractionQuery(baseKey, path, isJson);
-        items.push(this.whereItemQuery(this._castKey(pathKey, value, cast), { [op]: value }));
-      }
-
-      _.forOwn(item, (value, itemProp) => {
-        this._traverseJSON(items, baseKey, itemProp, value, [...path, itemProp]);
-      });
-
-      return;
-    }
-
-    item = this._toJSONValue(item);
-    items.push(this.whereItemQuery(this._castKey(pathKey, item, cast), { [Op.eq]: item }));
-  }
-
-  _toJSONValue(value) {
-    return value;
-  }
-
-  _castKey(key, value, cast, json) {
-    cast = cast || this._getJsonCast(Array.isArray(value) ? value[0] : value);
-    if (cast) {
-      return new Literal(this.handleSequelizeMethod(new Cast(new Literal(key), cast, json)));
-    }
-
-    return new Literal(key);
-  }
-
-  _getJsonCast(value) {
-    if (typeof value === 'number') {
-      return 'double precision';
-    }
-
-    if (value instanceof Date) {
-      return 'timestamptz';
-    }
-
-    if (typeof value === 'boolean') {
-      return 'boolean';
-    }
-
-  }
-
-  _joinKeyValue(key, value, comparator, prefix) {
-    if (!key) {
-      return value;
-    }
-
-    if (comparator === undefined) {
-      throw new Error(`${key} and ${value} has no comparator`);
-    }
-
-    key = this._getSafeKey(key, prefix);
-
-    return [key, value].join(` ${comparator} `);
-  }
-
-  _getSafeKey(key, prefix) {
-    if (key instanceof SequelizeMethod) {
-      key = this.handleSequelizeMethod(key);
-
-      return this._prefixKey(this.handleSequelizeMethod(key), prefix);
-    }
-
-    if (isColString(key)) {
-      key = key.slice(1, 1 + key.length - 2).split('.');
-
-      if (key.length > 2) {
-        key = [
-          // join the tables by -> to match out internal namings
-          key.slice(0, -1).join('->'),
-          key[key.length - 1],
-        ];
-      }
-
-      return key.map(identifier => this.quoteIdentifier(identifier)).join('.');
-    }
-
-    return this._prefixKey(this.quoteIdentifier(key), prefix);
-  }
-
-  _prefixKey(key, prefix) {
-    if (prefix) {
-      if (prefix instanceof Literal) {
-        return [this.handleSequelizeMethod(prefix), key].join('.');
-      }
-
-      return [this.quoteTable(prefix), key].join('.');
-    }
-
-    return key;
-  }
-
-  _whereParseSingleValueObject(key, field, prop, value, options) {
-    if (prop === Op.not) {
-      if (Array.isArray(value)) {
-        prop = Op.notIn;
-      } else if (value !== null && value !== true && value !== false) {
-        prop = Op.ne;
-      }
-    }
-
-    let comparator = this.OperatorMap[prop] || this.OperatorMap[Op.eq];
-
-    switch (prop) {
-      case Op.in:
-      case Op.notIn:
-        if (value instanceof Literal) {
-          return this._joinKeyValue(key, value.val, comparator, options.prefix);
-        }
-
-        if (value.length > 0) {
-          return this._joinKeyValue(key, `(${value.map(item => this.escape(item, field, { where: true, replacements: options.replacements })).join(', ')})`, comparator, options.prefix);
-        }
-
-        if (comparator === this.OperatorMap[Op.in]) {
-          return this._joinKeyValue(key, '(NULL)', comparator, options.prefix);
-        }
-
-        return '';
-      case Op.any:
-      case Op.all:
-        comparator = `${this.OperatorMap[Op.eq]} ${comparator}`;
-        if (value[Op.values]) {
-          return this._joinKeyValue(key, `(VALUES ${value[Op.values].map(item => `(${this.escape(item, undefined, options)})`).join(', ')})`, comparator, options.prefix);
-        }
-
-        return this._joinKeyValue(key, `(${this.escape(value, field, options)})`, comparator, options.prefix);
-      case Op.between:
-      case Op.notBetween:
-        return this._joinKeyValue(key, `${this.escape(value[0], field, options)} AND ${this.escape(value[1], field, options)}`, comparator, options.prefix);
-      case Op.raw:
-        throw new Error('The `$raw` where property is no longer supported.  Use `sequelize.literal` instead.');
-      case Op.col:
-        comparator = this.OperatorMap[Op.eq];
-        value = value.split('.');
-
-        if (value.length > 2) {
-          value = [
-            // join the tables by -> to match out internal namings
-            value.slice(0, -1).join('->'),
-            value[value.length - 1],
-          ];
-        }
-
-        return this._joinKeyValue(key, value.map(identifier => this.quoteIdentifier(identifier)).join('.'), comparator, options.prefix);
-      case Op.startsWith:
-      case Op.endsWith:
-      case Op.substring:
-        comparator = this.OperatorMap[Op.like];
-      case Op.notStartsWith:
-      case Op.notEndsWith:
-      case Op.notSubstring: {
-        if (comparator !== this.OperatorMap[Op.like]) {
-          comparator = this.OperatorMap[Op.notLike];
-        }
-
-        if (value instanceof Literal) {
-          value = value.val;
-        }
-
-        let pattern = `${value}%`;
-
-        if (prop === Op.endsWith || prop === Op.notEndsWith) {
-          pattern = `%${value}`;
-        }
-
-        if (prop === Op.substring || prop === Op.notSubstring) {
-          pattern = `%${value}%`;
-        }
-
-        return this._joinKeyValue(key, this.escape(pattern, undefined, options), comparator, options.prefix);
-      }
-
-      case Op.anyKeyExists:
-      case Op.allKeysExist: {
-        if (value instanceof SequelizeMethod) {
-          return this._joinKeyValue(key, this.handleSequelizeMethod(value, undefined, undefined, options), comparator, options.prefix);
-        }
-
-        if (value.length === 0) {
-          return this._joinKeyValue(key, `ARRAY[]::text[]`, comparator, options.prefix);
-        }
-
-        return this._joinKeyValue(key, `ARRAY[${value.map(item => this.escape(item, undefined, options)).join(', ')}]`, comparator, options.prefix);
-      }
-    }
-
-    const escapeOptions = {
-      replacements: options.replacements,
-    };
-
-    // because UUID is implemented as CHAR() in most dialects (except postgres)
-    //  we accept comparing to non-uuid values when using LIKE and similar operators.
-    // TODO: https://github.com/sequelize/sequelize/issues/13828 - in postgres, automatically cast to CHAR(36)
-    //  to have the same behavior as the others dialects.
-    if (comparator.includes(this.OperatorMap[Op.like]) && field?.type) {
-      field = {
-        ...field,
-        // replace DataType with DataTypes.TEXT() to accept all string values.
-        type: getTextDataTypeForDialect(this.dialect),
-      };
-    }
-
-    if (_.isPlainObject(value)) {
-      if (value[Op.col]) {
-        return this._joinKeyValue(key, this.whereItemQuery(null, value), comparator, options.prefix);
-      }
-
-      if (value[Op.any]) {
-        escapeOptions.isList = true;
-
-        return this._joinKeyValue(key, `(${this.escape(value[Op.any], field, escapeOptions)})`, `${comparator} ${this.OperatorMap[Op.any]}`, options.prefix);
-      }
-
-      if (value[Op.all]) {
-        escapeOptions.isList = true;
-
-        return this._joinKeyValue(key, `(${this.escape(value[Op.all], field, escapeOptions)})`, `${comparator} ${this.OperatorMap[Op.all]}`, options.prefix);
-      }
-    }
-
-    if (value === null && comparator === this.OperatorMap[Op.eq]) {
-      return this._joinKeyValue(key, this.escape(value, field, escapeOptions), this.OperatorMap[Op.is], options.prefix);
-    }
-
-    if (value === null && comparator === this.OperatorMap[Op.ne]) {
-      return this._joinKeyValue(key, this.escape(value, field, escapeOptions), this.OperatorMap[Op.not], options.prefix);
-    }
-
-    // In postgres, Op.contains has multiple signatures:
-    // - RANGE<VALUE> Op.contains RANGE<VALUE> (both represented by fixed-size arrays in JS)
-    // - RANGE<VALUE> Op.contains VALUE
-    // - ARRAY<VALUE> Op.contains ARRAY<VALUE>
-    // Since the left operand is a RANGE, the type validation must allow the right operand to be either RANGE or VALUE.
-    if (prop === Op.contains && field?.type instanceof DataTypes.RANGE && !Array.isArray(value)) {
-      // Since the right operand is not an array, it must be a value.
-      // We'll serialize using the range's subtype (i.e. if a range of integers, we'll serialize "value" as an integer).
-      return this._joinKeyValue(key, this.escape(value, {
-        ...field,
-        type: field.type.options.subtype,
-      }, escapeOptions), comparator, options.prefix);
-
-      // The case where "value" is a 'RANGE<VALUE>' is not a special case and is handled by the default case below.
-    }
-
-    return this._joinKeyValue(key, this.escape(value, field, escapeOptions), comparator, options.prefix);
-  }
-
-  /*
-    Takes something and transforms it into values of a where condition.
-   @private
-  */
-  getWhereConditions(smth, tableName, factory, options, prepend) {
-    const where = {};
-
-    if (Array.isArray(tableName)) {
-      tableName = tableName[0];
-      if (Array.isArray(tableName)) {
-        tableName = tableName[1];
-      }
-    }
-
-    options = options || {};
-
-    if (prepend === undefined) {
-      prepend = true;
-    }
-
-    if (smth && smth instanceof SequelizeMethod) { // Checking a property is cheaper than a lot of instanceof calls
-      return this.handleSequelizeMethod(smth, tableName, factory, options, prepend);
-    }
-
-    if (_.isPlainObject(smth)) {
-      return this.whereItemsQuery(smth, {
-        model: factory,
-        prefix: prepend && tableName,
-        type: options.type,
-        replacements: options.replacements,
-      });
-    }
-
-    if (typeof smth === 'number' || typeof smth === 'bigint') {
-      let primaryKeys = factory ? Object.keys(factory.primaryKeys) : [];
-
-      if (primaryKeys.length > 0) {
-        // Since we're just a number, assume only the first key
-        primaryKeys = primaryKeys[0];
-      } else {
-        primaryKeys = 'id';
-      }
-
-      where[primaryKeys] = smth;
-
-      return this.whereItemsQuery(where, {
-        model: factory,
-        prefix: prepend && tableName,
-        replacements: options.replacements,
-      });
-    }
-
-    if (typeof smth === 'string') {
-      return this.whereItemsQuery(smth, {
-        model: factory,
-        prefix: prepend && tableName,
-        replacements: options.replacements,
-      });
-    }
-
-    if (Buffer.isBuffer(smth)) {
-      return this.escape(smth, undefined, options);
-    }
-
-    if (Array.isArray(smth)) {
-      if (smth.length === 0 || smth.length > 0 && smth[0].length === 0) {
-        return '1=1';
-      }
-
-      if (canTreatArrayAsAnd(smth)) {
-        const _smth = { [Op.and]: smth };
-
-        return this.getWhereConditions(_smth, tableName, factory, options, prepend);
-      }
-
-      throw new Error('Support for literal replacements in the `where` object has been removed.');
-    }
-
-    if (smth === null) {
-      return this.whereItemsQuery(smth, {
-        model: factory,
-        prefix: prepend && tableName,
-        replacements: options.replacements,
-      });
-    }
-
-    throw new Error(`Unsupported where option value: ${NodeUtil.inspect(smth)}. Please refer to the Sequelize documentation to learn more about which values are accepted as part of the where option.`);
   }
 
   // A recursive parser for nested where conditions
@@ -2893,11 +2185,6 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       return result;
     }, []);
   }
-
-  booleanValue(value) {
-    return value;
-  }
 }
 
-Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/operators'));
 Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/transaction'));

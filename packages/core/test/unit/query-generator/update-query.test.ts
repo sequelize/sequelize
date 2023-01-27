@@ -13,9 +13,7 @@ describe('QueryGenerator#updateQuery', () => {
   it('parses named replacements in literals', async () => {
     const { query, bind } = queryGenerator.updateQuery(User.tableName, {
       firstName: literal(':name'),
-    }, {
-      where: literal('name = :name'),
-    }, {
+    }, literal('name = :name'), {
       replacements: {
         name: 'Zoe',
       },
@@ -52,9 +50,7 @@ describe('QueryGenerator#updateQuery', () => {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
-    }, {
-      where: literal('first_name = $2'),
-    }, {
+    }, literal('first_name = $2'), {
       bindParam: false,
     });
 

@@ -14,7 +14,7 @@ import type {
   Cast, AttributeNames,
 } from '@sequelize/core';
 import { DataTypes, Op, literal, col, where, fn, json, cast, and, or, Model, attribute } from '@sequelize/core';
-import type { WhereItemsQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
 import { createTester, sequelize, expectsql, getTestDialectTeaser } from '../../support';
 
 const sql = sequelize.dialect.queryGenerator;
@@ -23,8 +23,6 @@ const sql = sequelize.dialect.queryGenerator;
 // when there is no dialect specific expectation but only a default expectation
 
 // TODO: fix and resolve any .skip test
-
-type Options = Omit<WhereItemsQueryOptions, 'model'>;
 
 type Expectations = {
   [dialectName: string]: string | Error,
@@ -57,6 +55,8 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare aliasedInt: number;
   declare aliasedJsonAttr: object;
   declare aliasedJsonbAttr: object;
+
+  declare uuidAttr: string;
 }
 
 type TestModelWhere = WhereOptions<Attributes<TestModel>>;
@@ -90,6 +90,8 @@ TestModel.init({
     jsonbAttr: { type: DataTypes.JSONB },
     aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
   }),
+
+  uuidAttr: DataTypes.UUID,
 }, { sequelize });
 
 describe(getTestDialectTeaser('SQL'), () => {
@@ -257,7 +259,7 @@ describe(getTestDialectTeaser('SQL'), () => {
     }
 
     const testSql = createTester(
-      (it, whereObj: TestModelWhere, expectations: Expectations, options?: Options) => {
+      (it, whereObj: TestModelWhere, expectations: Expectations, options?: FormatWhereOptions) => {
         it(util.inspect(whereObj, { depth: 10 }) + (options ? `, ${util.inspect(options)}` : ''), () => {
           const sqlOrError = attempt(() => sql.whereItemsQuery(whereObj, {
             ...options,
@@ -293,10 +295,9 @@ Value: { intAttr1: undefined }`),
 Value: { intAttr1: 1, user: undefined }`),
     });
 
-    // !TODO
-    testSql.skip({ intAttr1: 1 }, {
+    testSql({ intAttr1: 1 }, {
       default: '[User].[intAttr1] = 1',
-    }, { prefix: 'User' });
+    }, { mainAlias: 'User' });
 
     // !TODO: print cause
     testSql({ dateAttr: { $gte: '2022-11-06' } }, {
@@ -2250,25 +2251,18 @@ Value: { '$association.jsonAttr$.nested::STRING': { attribute: 'value' } }`),
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql(json('profile.id', cast('12346-78912', 'text')), {
-          postgres: `"profile"->'id' = CAST('12346-78912' AS TEXT)`,
+          postgres: `"User"."profile"->'id' = CAST('12346-78912' AS TEXT)`,
         }, {
-          field: {
-            type: new DataTypes.JSONB(),
-          },
-          prefix: 'User',
+          mainAlias: 'User',
         });
 
         testSql(json({ profile: { id: '12346-78912', name: 'test' } }), {
-          postgres: `"profile"->'id' = '12346-78912' AND "profile"->'name' = 'test'`,
+          postgres: `"User"."profile"->'id' = '"12346-78912"' AND "User"."profile"->'name' = '"test"'`,
         }, {
-          field: {
-            type: new DataTypes.JSONB(),
-          },
-          prefix: 'User',
+          mainAlias: 'User',
         });
 
-        // !TODO
-        testSql.skip({
+        testSql({
           jsonbAttr: {
             nested: {
               attribute: 'value',
@@ -2277,10 +2271,10 @@ Value: { '$association.jsonAttr$.nested::STRING': { attribute: 'value' } }`),
         }, {
           mariadb: 'json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\')) = \'value\'',
           mysql: 'json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
-          postgres: '("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
+          postgres: `"User"."jsonbAttr"#>ARRAY['nested','attribute'] = '"value"'`,
           sqlite: 'json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\') = \'value\'',
         }, {
-          prefix: 'User',
+          mainAlias: 'User',
         });
 
         testSql({
@@ -2336,8 +2330,7 @@ Value: { '$association.jsonAttr$.nested::STRING': { attribute: 'value' } }`),
           prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, { tableName: 'User' })),
         });
 
-        // !TODO
-        testSql.skip({
+        testSql({
           jsonbAttr: {
             name: {
               last: 'Simpson',
@@ -2347,12 +2340,10 @@ Value: { '$association.jsonAttr$.nested::STRING': { attribute: 'value' } }`),
             },
           },
         }, {
-          mariadb: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.name.last\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.employment\')) != \'None\')',
-          mysql: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"name\\".\\"last\\"\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"employment\\"\')) != \'None\')',
-          postgres: '(("User"."jsonbAttr"#>>\'{name,last}\') = \'Simpson\' AND ("User"."jsonbAttr"#>>\'{employment}\') != \'None\')',
-          sqlite: '(json_extract(`User`.`jsonbAttr`,\'$.name.last\') = \'Simpson\' AND json_extract(`User`.`jsonbAttr`,\'$.employment\') != \'None\')',
+          default: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.name.last\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.employment\')) != \'None\')',
+          postgres: `"User"."jsonbAttr"#>ARRAY['name','last'] = '"Simpson"' AND "User"."jsonbAttr"->'employment' != '"None"'`,
         }, {
-          prefix: 'User',
+          mainAlias: 'User',
         });
 
         const dt = new Date();
@@ -2574,18 +2565,6 @@ Value: { intAttr1: { [Symbol(gt)]: { [Symbol(or)]: [Array] } } }`),
       });
     });
 
-    describe('fn()', () => {
-      // this was a band-aid over a deeper problem ('$bind' being considered to be a bind parameter when it's a string), which has been fixed
-      it('should not escape $ in fn() arguments', () => {
-        const out = sql.whereQuery(fn('upper', '$user'));
-
-        expectsql(out, {
-          default: `upper('$user')`,
-          mssql: `upper(N'$user')`,
-        });
-      });
-    });
-
     describe('where()', () => {
       {
         // @ts-expect-error -- 'intAttr1' is not a boolean and cannot be compared to the output of 'where'
@@ -2614,7 +2593,7 @@ Value: { intAttr1: { [Symbol(gt)]: { [Symbol(or)]: [Array] } } }`),
         // some dialects support having a filter inside aggregate functions, but require casting:
         //  https://github.com/sequelize/sequelize/issues/6666
         testSql(where(fn('sum', cast({ id: 1 }, 'int')), Op.eq, 1), {
-          default: 'sum(CAST([id] = 1 AS INT)) = 1',
+          default: 'sum(CAST(("id" = 1) AS INT)) = 1',
         });
 
         // comparing the output of `where` to `where`
@@ -2754,7 +2733,7 @@ Value: { intAttr1: { [Symbol(gt)]: { [Symbol(or)]: [Array] } } }`),
         });
 
         testSql(where(col('col'), { jsonPath: 'value' }), {
-          default: `[col]->'jsonPath' = 'value'`,
+          default: `[col]->'jsonPath' = '"value"'`,
         });
       });
     });

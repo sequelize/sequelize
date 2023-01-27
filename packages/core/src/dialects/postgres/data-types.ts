@@ -354,7 +354,12 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
 
     const mappedValues = isString(type) ? values : values.map(value => type.escape(value));
 
-    const cast = mappedValues.length === 0 ? `::${attributeTypeToSql(type)}[]` : '';
+    // Types that don't need to specify their cast
+    const unambiguousType = type instanceof BaseTypes.STRING
+      || type instanceof BaseTypes.TEXT
+      || type instanceof BaseTypes.INTEGER;
+
+    const cast = mappedValues.length === 0 || !unambiguousType ? `::${attributeTypeToSql(type)}[]` : '';
 
     return `ARRAY[${mappedValues.join(',')}]${cast}`;
   }

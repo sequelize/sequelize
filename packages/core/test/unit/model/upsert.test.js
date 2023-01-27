@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           virtualValue: {
             type: DataTypes.VIRTUAL,
             set(val) {
-              this.attributeName = val;
+              this.value = val;
             },
             get() {
               return this.value;

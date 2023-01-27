@@ -451,14 +451,6 @@ export interface OpTypes {
    */
   readonly overlap: unique symbol;
   /**
-   * Internal placeholder
-   *
-   * ```js
-   * [Op.placeholder]: true
-   * ```
-   */
-  readonly placeholder: unique symbol;
-  /**
    * Operator REGEXP (MySQL/PG only)
    *
    * ```js
@@ -603,8 +595,6 @@ export const Op: OpTypes = {
   all: Symbol.for('all'),
   values: Symbol.for('values'),
   col: Symbol.for('col'),
-  placeholder: Symbol.for('placeholder'),
-  join: Symbol.for('join'),
   match: Symbol.for('match'),
   anyKeyExists: Symbol.for('anyKeyExists'),
   allKeysExist: Symbol.for('allKeysExist'),

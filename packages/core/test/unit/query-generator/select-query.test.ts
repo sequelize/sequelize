@@ -126,9 +126,9 @@ describe('QueryGenerator#selectQuery', () => {
         default: `
           SELECT uppercase('id') AS [id], 'id2'
           FROM [Users] AS [User]
-          WHERE ([User].[username] = 'repl1' OR uppercase(CAST('repl1' AS STRING)) = 'repl1')
+          WHERE [User].[username] = 'repl1' OR [User].[username] = (uppercase(CAST('repl1' AS STRING)) = 'repl1')
           GROUP BY 'the group'
-          HAVING [username] = 'repl1'
+          HAVING [User].[username] = 'repl1'
           ORDER BY 'repl2'
           LIMIT 'repl3'
           OFFSET 'repl4';
@@ -136,32 +136,22 @@ describe('QueryGenerator#selectQuery', () => {
         mssql: `
           SELECT uppercase(N'id') AS [id], N'id2'
           FROM [Users] AS [User]
-          WHERE ([User].[username] = N'repl1' OR uppercase(CAST(N'repl1' AS STRING)) = N'repl1')
+          WHERE [User].[username] = N'repl1' OR [User].[username] = (uppercase(CAST(N'repl1' AS STRING)) = N'repl1')
           GROUP BY N'the group'
-          HAVING [username] = N'repl1'
+          HAVING [User].[username] = N'repl1'
           ORDER BY N'repl2'
           OFFSET N'repl4' ROWS
           FETCH NEXT N'repl3' ROWS ONLY;
         `,
-        db2: `
+        'db2 ibmi': `
           SELECT uppercase('id') AS "id", 'id2'
           FROM "Users" AS "User"
-          WHERE ("User"."username" = 'repl1' OR uppercase(CAST('repl1' AS STRING)) = 'repl1')
+          WHERE "User"."username" = 'repl1' OR "User"."username" = (uppercase(CAST('repl1' AS STRING)) = 'repl1')
           GROUP BY 'the group'
-          HAVING "username" = 'repl1'
+          HAVING "User"."username" = 'repl1'
           ORDER BY 'repl2'
           OFFSET 'repl4' ROWS
           FETCH NEXT 'repl3' ROWS ONLY;
-        `,
-        ibmi: `
-          SELECT uppercase('id') AS "id", 'id2'
-          FROM "Users" AS "User"
-          WHERE ("User"."username" = 'repl1' OR uppercase(CAST('repl1' AS STRING)) = 'repl1')
-          GROUP BY 'the group'
-          HAVING "username" = 'repl1'
-          ORDER BY 'repl2'
-          OFFSET 'repl4' ROWS
-          FETCH NEXT 'repl3' ROWS ONLY
         `,
       });
     });
@@ -437,7 +427,7 @@ describe('QueryGenerator#selectQuery', () => {
           },
           replacements: ['repl1', 'repl2', 'repl3'],
         }, User),
-      ).to.throw(`The following literal includes positional replacements (?).
+      ).to.throwWithCause(`The following literal includes positional replacements (?).
 Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal("?")`);
     });
@@ -502,8 +492,70 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       }, User);
 
       expectsql(sql, {
-        default: `SELECT *, YEAR([createdAt]) AS [creationYear] FROM [Users] AS [User] GROUP BY [creationYear], [title] HAVING [creationYear] > 2002;`,
+        default: `SELECT *, YEAR([createdAt]) AS [creationYear] FROM [Users] AS [User] GROUP BY [creationYear], [title] HAVING [User].[creationYear] > 2002;`,
       });
+    });
+  });
+
+  describe('previously supported values', () => {
+    it('raw replacements for where', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          where: ['name IN (?)', [1, 'test', 3, 'derp']],
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got 'name IN (?)'`);
+    });
+
+    it('raw replacements for nested where', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          where: [['name IN (?)', [1, 'test', 3, 'derp']]],
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got 'name IN (?)'`);
+    });
+
+    it('raw replacements for having', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          having: ['name IN (?)', [1, 'test', 3, 'derp']],
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got 'name IN (?)'`);
+    });
+
+    it('raw replacements for nested having', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          having: [['name IN (?)', [1, 'test', 3, 'derp']]],
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got 'name IN (?)'`);
+    });
+
+    it('raw string from where', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          where: `name = 'something'`,
+        });
+      }).to.throwWithCause(Error, 'Support for `{ where: \'raw query\' }` has been removed.');
+    });
+
+    it('raw string from having', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          having: `name = 'something'`,
+        });
+      }).to.throwWithCause(Error, 'Support for `{ where: \'raw query\' }` has been removed.');
     });
   });
 

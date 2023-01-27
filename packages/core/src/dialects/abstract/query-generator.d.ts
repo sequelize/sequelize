@@ -8,8 +8,7 @@ import type {
   ModelStatic,
   SearchPathable,
 } from '../../model.js';
-import type { QueryTypes } from '../../query-types.js';
-import type { Literal, SequelizeMethod, Col } from '../../utils/sequelize-method.js';
+import type { Literal, Col } from '../../utils/sequelize-method.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
@@ -19,13 +18,6 @@ import type { WhereOptions } from './where-sql-builder-types.js';
 type ParameterOptions = {
   // only named replacements are allowed
   replacements?: { [key: string]: unknown },
-};
-
-type EscapeOptions = ParameterOptions & {
-  /**
-   * Set to true if the value to escape is in a list (e.g. used inside of Op.any or Op.all).
-   */
-  isList?: boolean,
 };
 
 type SelectOptions<M extends Model> = FindOptions<M> & {
@@ -61,17 +53,6 @@ type DeleteOptions = ParameterOptions & {
 
 type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>,
-};
-
-export type WhereItemsQueryOptions = ParameterOptions & {
-  model?: ModelStatic,
-  type?: QueryTypes,
-  prefix?: string | Literal,
-  field?: AttributeOptions,
-};
-
-type HandleSequelizeMethodOptions = ParameterOptions & {
-
 };
 
 // keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
@@ -122,27 +103,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   setImmediateQuery(constraints: string[]): string;
   setDeferredQuery(constraints: string[]): string;
   generateTransactionId(): string;
-  whereQuery(where: object, options?: ParameterOptions): string;
   quoteIdentifiers(identifiers: string): string;
-  handleSequelizeMethod(
-    smth: SequelizeMethod,
-    tableName?: TableName,
-    factory?: ModelStatic,
-    options?: HandleSequelizeMethodOptions,
-    prepend?: boolean,
-  ): string;
-
-  /**
-   * Generates an SQL query that extract JSON property of given path.
-   *
-   * @param   {string}               column   The JSON column
-   * @param   {string|Array<string>} [path]   The path to extract (optional)
-   * @param   {boolean}              [isJson] The value is JSON use alt symbols (optional)
-   * @returns {string}                        The generated sql query
-   * @private
-   */
-  // TODO: see how we can make the typings protected/private while still allowing it to be typed in tests
-  jsonPathExtractionQuery(column: string, path?: string | string[], isJson?: boolean): string;
 
   selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(

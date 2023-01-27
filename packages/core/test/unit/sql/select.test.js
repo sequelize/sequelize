@@ -23,7 +23,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testFunction(util.inspect(options, { depth: 2 }), () => {
         return expectsql(
-          sql.selectQuery(
+          () => sql.selectQuery(
             options.table || model && model.getTableName(),
             options,
             options.model,
@@ -596,12 +596,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'SELECT [User].* FROM '
             + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
             + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
-            + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
+            + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
         });
       });
 
       it('w/ nested column filter', () => {
-        expectsql(sql.selectQuery('User', {
+        expectsql(() => sql.selectQuery('User', {
           table: User.getTableName(),
           model: User,
           attributes: ['name', 'age'],
@@ -621,7 +621,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'SELECT [User].* FROM '
             + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
             + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
-            + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE ([postaliasname].[user_id] = [User].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
+            + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
         });
       });
     });
@@ -674,10 +674,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
         + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
         + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
-        + `WHERE ([Company].[scopeId] IN (42)) AND [Users->Profession].[name] = ${sql.escape('test')} AND ( `
+        + `WHERE ([Company].[scopeId] IN (42) AND [Users->Profession].[name] = ${sql.escape('test')}) AND ( `
         + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
         + 'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] '
-        + `WHERE ([Users].[companyId] = [Company].[id])${sql.addLimitAndOffset({ limit: 1, tableAs: 'Users' }, User)} `
+        + `WHERE [Users].[companyId] = [Company].[id]${sql.addLimitAndOffset({ limit: 1, tableAs: 'Users' }, User)} `
         + `) IS NOT NULL${sql.addLimitAndOffset({ limit: 5, offset: 0, tableAs: 'Company' }, Company)}) AS [Company];`,
       });
     });
@@ -1017,62 +1017,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'SELECT "User".name, "User".age, "User"."status.label" AS statuslabel, Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.statuslabel" FROM "User" AS "User" LEFT OUTER JOIN Post AS Posts ON "User".id = Posts.user_id;',
         snowflake: 'SELECT User.name, User.age, User."status.label" AS statuslabel, Posts.id AS "Posts.id", Posts.title AS "Posts.title", Posts."status.label" AS "Posts.statuslabel" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id;',
       });
-    });
-  });
-
-  describe('raw query', () => {
-    it('raw replacements for where', () => {
-      expect(() => {
-        sql.selectQuery('User', {
-          attributes: ['*'],
-          where: ['name IN (?)', [1, 'test', 3, 'derp']],
-        });
-      }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
-    });
-
-    it('raw replacements for nested where', () => {
-      expect(() => {
-        sql.selectQuery('User', {
-          attributes: ['*'],
-          where: [['name IN (?)', [1, 'test', 3, 'derp']]],
-        });
-      }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
-    });
-
-    it('raw replacements for having', () => {
-      expect(() => {
-        sql.selectQuery('User', {
-          attributes: ['*'],
-          having: ['name IN (?)', [1, 'test', 3, 'derp']],
-        });
-      }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
-    });
-
-    it('raw replacements for nested having', () => {
-      expect(() => {
-        sql.selectQuery('User', {
-          attributes: ['*'],
-          having: [['name IN (?)', [1, 'test', 3, 'derp']]],
-        });
-      }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
-    });
-
-    it('raw string from where', () => {
-      expect(() => {
-        sql.selectQuery('User', {
-          attributes: ['*'],
-          where: 'name = \'something\'',
-        });
-      }).to.throw(Error, 'Support for `{where: \'raw query\'}` has been removed.');
-    });
-
-    it('raw string from having', () => {
-      expect(() => {
-        sql.selectQuery('User', {
-          attributes: ['*'],
-          having: 'name = \'something\'',
-        });
-      }).to.throw(Error, 'Support for `{where: \'raw query\'}` has been removed.');
     });
   });
 });
