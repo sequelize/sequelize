@@ -297,7 +297,7 @@ export class AbstractQueryGeneratorTypeScript {
   }
 
   protected formatAssociationPath(associationPath: AssociationPath): string {
-    return `${this.quoteIdentifier(associationPath.associationPath.join('->'))}.${this.quoteIdentifier(associationPath.attribute)}`;
+    return `${this.quoteIdentifier(associationPath.associationPath.join('->'))}.${this.quoteIdentifier(associationPath.attributeName)}`;
   }
 
   protected formatJsonPath(jsonPathVal: JsonPath, options?: EscapeOptions): string {

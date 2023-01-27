@@ -761,7 +761,7 @@ export class WhereSqlBuilder {
         return undefined;
       }
 
-      return this.#getOperandType(operand.attribute, association.target);
+      return this.#getOperandType(operand.attributeName, association.target);
     }
 
     if (operand instanceof Attribute) {

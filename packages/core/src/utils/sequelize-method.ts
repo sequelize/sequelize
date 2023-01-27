@@ -400,7 +400,7 @@ export class AssociationPath extends SequelizeMethod {
 
   constructor(
     readonly associationPath: readonly string[],
-    readonly attribute: string,
+    readonly attributeName: string,
   ) {
     super();
   }
