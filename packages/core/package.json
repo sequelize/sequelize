@@ -87,7 +87,7 @@
     "delay": "5.0.0",
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
-    "husky": "8.0.2",
+    "husky": "8.0.3",
     "ibm_db": "3.1.0",
     "lcov-result-merger": "4.0.0",
     "mariadb": "2.5.6",
