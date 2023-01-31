@@ -125,6 +125,12 @@ export interface RemoveColumnQueryOptions {
   ifExists?: boolean;
 }
 
+/**
+ * The base class for all query generators, used to generate all SQL queries.
+ *
+ * The implementation varies between SQL dialects, and is overridden by subclasses. You can access your dialect's version
+ * through {@link Sequelize#queryGenerator}.
+ */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   constructor(options: QueryGeneratorOptions);
 

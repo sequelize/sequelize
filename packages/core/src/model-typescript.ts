@@ -6,25 +6,29 @@ import {
   legacyBuildRemoveHook,
   legacyBuildRunHook,
 } from './hooks-legacy.js';
+import { getModelDefinition, hasModelDefinition, ModelDefinition, registerModelDefinition } from './model-definition.js';
+import { staticModelHooks } from './model-hooks.js';
+import type { Model } from './model.js';
+import { noModelTableName } from './utils/deprecations.js';
+import { getObjectFromMap } from './utils/object.js';
+import type { PartialBy } from './utils/types.js';
 import type {
   ModelStatic,
   Sequelize,
   AbstractQueryGenerator,
   AbstractQueryInterface,
   IndexOptions, InitOptions,
-  Attributes, BrandedKeysOf, ForeignKeyBrand, ModelAttributes, Optional,
+  Attributes, BrandedKeysOf, ForeignKeyBrand, ModelAttributes,
   NormalizedAttributeOptions,
   BuiltModelOptions, AttributeOptions,
   Association, TableNameWithSchema,
 } from '.';
-import { getModelDefinition, hasModelDefinition, ModelDefinition, registerModelDefinition } from './model-definition.js';
-import { staticModelHooks } from './model-hooks.js';
-import type { Model } from './model.js';
-import { noModelTableName } from './utils/deprecations.js';
-import { getObjectFromMap } from './utils/object.js';
 
-// DO NOT EXPORT THIS CLASS!
-// This is a temporary class to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
+// DO NOT MAKE THIS CLASS PUBLIC!
+/**
+ * This is a temporary class used to progressively migrate the Model class to TypeScript by slowly moving its functions here.
+ * Always use {@link Model} instead.
+ */
 export class ModelTypeScript {
   static get queryInterface(): AbstractQueryInterface {
     return this.sequelize.queryInterface;
@@ -169,7 +173,7 @@ export class ModelTypeScript {
   /**
    * A mapping of column name to attribute name
    *
-   * @internal
+   * @private
    */
   static get fieldAttributeMap(): { [columnName: string]: string } {
     const out = Object.create(null);
@@ -280,7 +284,7 @@ export class ModelTypeScript {
     attributes: ModelAttributes<
       M,
       // 'foreign keys' are optional in Model.init as they are added by association declaration methods
-      Optional<Attributes<M>, BrandedKeysOf<Attributes<M>, typeof ForeignKeyBrand>>
+      PartialBy<Attributes<M>, BrandedKeysOf<Attributes<M>, typeof ForeignKeyBrand>>
     >,
     options: InitOptions<M>,
   ): MS {

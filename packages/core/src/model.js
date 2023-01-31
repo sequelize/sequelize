@@ -984,9 +984,11 @@ ${associationOwner._getAssociationDebugList()}`);
    *   take any arguments, or an array, where the first element is the name of the method, and consecutive elements are
    *   arguments to that method. Pass null to remove all scopes, including the default.
    *
-   * @example <caption>To invoke scope functions you can do</caption>
+   * @example To invoke scope functions you can do
+   * ```ts
    * Model.scope({ method: ['complexFunction', 'dan@sequelize.com', 42]}).findAll()
    * // WHERE email like 'dan@sequelize.com%' AND access_level >= 42
+   * ```
    *
    * @returns {Model} A reference to the model, with the scope(s) applied. Calling scope again on the returned model will
    *   clear the previous scope.
@@ -2882,15 +2884,21 @@ Instead of specifying a Model, either:
    *
    * The increment is done using a `SET column = column + X WHERE foo = 'bar'` query.
    *
-   * @example <caption>increment number by 1</caption>
+   * @example increment number by 1
+   * ```ts
    * Model.increment('number', { where: { foo: 'bar' });
+   * ```
    *
-   * @example <caption>increment number and count by 2</caption>
+   * @example increment number and count by 2
+   * ```ts
    * Model.increment(['number', 'count'], { by: 2, where: { foo: 'bar' } });
+   * ```
    *
-   * @example <caption>increment answer by 42, and decrement tries by 1</caption>
+   * @example increment answer by 42, and decrement tries by 1
+   * ```ts
    * // `by` cannot be used, as each attribute specifies its own value
    * Model.increment({ answer: 42, tries: -1}, { where: { foo: 'bar' } });
+   * ```
    *
    * @param  {string|Array|object} fields If a string is provided, that column is incremented by the
    *   value of `by` given in options. If an array is provided, the same is true for each column.
@@ -3000,15 +3008,21 @@ Instead of specifying a Model, either:
    * ```sql SET column = column - X WHERE foo = 'bar'``` query. To get the correct value after a decrement into the Instance
    * you should do a reload.
    *
-   * @example <caption>decrement number by 1</caption>
+   * @example decrement number by 1
+   * ```ts
    * Model.decrement('number', { where: { foo: 'bar' });
+   * ```
    *
-   * @example <caption>decrement number and count by 2</caption>
+   * @example decrement number and count by 2
+   * ```ts
    * Model.decrement(['number', 'count'], { by: 2, where: { foo: 'bar' } });
+   * ```
    *
-   * @example <caption>decrement answer by 42, and decrement tries by -1</caption>
+   * @example decrement answer by 42, and decrement tries by -1
+   * ```ts
    * // `by` is ignored, since each column has its own value
    * Model.decrement({ answer: 42, tries: -1}, { by: 2, where: { foo: 'bar' } });
+   * ```
    *
    * @param {string|Array|object} fields If a string is provided, that column is incremented by the value of `by` given in
    *   options. If an array is provided, the same is true for each column. If and object is provided, each column is

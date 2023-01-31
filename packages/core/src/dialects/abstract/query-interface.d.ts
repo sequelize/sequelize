@@ -280,10 +280,10 @@ export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions
 export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions, Replaceable {}
 
 /**
-* The interface that Sequelize uses to talk to all databases.
-*
-* This interface is available through sequelize.queryInterface. It should not be commonly used, but it's
-* referenced anyway, so it can be used.
+ * This interface exposes low-level APIs to interact with the database.
+ * Typically useful in contexts where models are not available, such as migrations.
+ *
+* This interface is available through {@link Sequelize#queryInterface}.
 */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**

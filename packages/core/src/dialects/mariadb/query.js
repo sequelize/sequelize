@@ -34,8 +34,6 @@ export class MariaDbQuery extends AbstractQuery {
 
     let results;
 
-    const errForStack = new Error();
-
     try {
       results = await connection.query(this.sql, parameters);
     } catch (error) {
@@ -54,7 +52,7 @@ export class MariaDbQuery extends AbstractQuery {
 
       error.sql = sql;
       error.parameters = parameters;
-      throw this.formatError(error, errForStack.stack);
+      throw this.formatError(error);
     } finally {
       complete();
     }
@@ -207,7 +205,7 @@ export class MariaDbQuery extends AbstractQuery {
     }
   }
 
-  formatError(err, errStack) {
+  formatError(err) {
     switch (err.errno) {
       case ER_DUP_ENTRY: {
         const match = err.message.match(
@@ -243,7 +241,7 @@ export class MariaDbQuery extends AbstractQuery {
           ));
         });
 
-        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
+        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
       }
 
       case ER_ROW_IS_REFERENCED:
@@ -262,12 +260,11 @@ export class MariaDbQuery extends AbstractQuery {
           value: fields && fields.length && this.instance && this.instance[fields[0]] || undefined,
           index: match ? match[2] : undefined,
           cause: err,
-          stack: errStack,
         });
       }
 
       default:
-        return new sequelizeErrors.DatabaseError(err, { stack: errStack });
+        return new sequelizeErrors.DatabaseError(err);
     }
   }
 

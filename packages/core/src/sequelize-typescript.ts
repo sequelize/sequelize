@@ -1,7 +1,6 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
-import type { ModelAttributes, ModelOptions, ModelStatic, QueryOptions, SyncOptions } from '.';
 import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { AbstractQuery } from './dialects/abstract/query.js';
 import {
@@ -18,6 +17,7 @@ import { validModelHooks } from './model-hooks.js';
 import type { ConnectionOptions, Options, Sequelize } from './sequelize.js';
 import type { TransactionOptions } from './transaction.js';
 import { Transaction } from './transaction.js';
+import type { ModelAttributes, ModelOptions, ModelStatic, QueryOptions, SyncOptions } from '.';
 
 export interface SequelizeHooks extends ModelHooks {
   /**
@@ -90,8 +90,11 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
 
 type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
 
-// DO NOT EXPORT THIS CLASS!
-// This is a temporary class to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
+// DO NOT MAKE THIS CLASS PUBLIC!
+/**
+ * This is a temporary class used to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
+ * Always use {@link Sequelize} instead.
+ */
 export abstract class SequelizeTypeScript {
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);

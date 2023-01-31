@@ -1,11 +1,11 @@
 import { useErrorCause } from '../../utils/deprecations.js';
-import type { CommonErrorProperties, SequelizeErrorOptions } from '../base-error';
+import type { CommonErrorProperties } from '../base-error';
 import type { ValidationErrorItem } from '../validation-error';
-import ValidationError from '../validation-error';
+import { ValidationError } from '../validation-error';
 
 interface UniqueConstraintErrorParent extends Error, Pick<CommonErrorProperties, 'sql'> {}
 
-export interface UniqueConstraintErrorOptions extends SequelizeErrorOptions {
+export interface UniqueConstraintErrorOptions {
   cause?: UniqueConstraintErrorParent;
 
   /**
@@ -20,7 +20,7 @@ export interface UniqueConstraintErrorOptions extends SequelizeErrorOptions {
 /**
  * Thrown when a unique constraint is violated in the database
  */
-class UniqueConstraintError extends ValidationError {
+export class UniqueConstraintError extends ValidationError {
   /** The database specific error which triggered this one */
   declare cause?: UniqueConstraintErrorParent;
 
@@ -35,12 +35,10 @@ class UniqueConstraintError extends ValidationError {
     const parent = options.cause ?? options.parent ?? { sql: '', name: '', message: '' };
     const message = options.message || parent.message || 'Validation Error';
     const errors = options.errors ?? [];
-    super(message, errors, { stack: options.stack, cause: parent });
+    super(message, errors, { cause: parent });
 
     this.name = 'SequelizeUniqueConstraintError';
     this.fields = options.fields ?? {};
     this.sql = parent.sql;
   }
 }
-
-export default UniqueConstraintError;
