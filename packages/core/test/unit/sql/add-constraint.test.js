@@ -53,8 +53,8 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
           myColumn: ['value1', 'value2', 'value3'],
         },
       }), {
-        mssql: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (N\'value1\', N\'value2\', N\'value3\'));',
         default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (\'value1\', \'value2\', \'value3\'));',
+        mssql: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (N\'value1\', N\'value2\', N\'value3\'));',
       });
     });
 
@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
           fields: ['myColumn'],
           defaultValue: 0,
         }), {
-          mssql: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_df] DEFAULT (0) FOR [myColumn];',
+          default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_df] DEFAULT (0) FOR [myColumn];',
         });
       });
 
@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
           defaultValue: 'some default value',
           name: 'default_mytable_null',
         }), {
-          mssql: 'ALTER TABLE [myTable] ADD CONSTRAINT [default_mytable_null] DEFAULT (N\'some default value\') FOR [myColumn];',
+          default: 'ALTER TABLE [myTable] ADD CONSTRAINT [default_mytable_null] DEFAULT (N\'some default value\') FOR [myColumn];',
         });
       });
 
@@ -162,23 +162,17 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
     });
 
     it('supports composite keys', () => {
-      expectsql(
-        sql.addConstraintQuery('myTable', {
-          type: 'foreign key',
-          fields: ['myColumn', 'anotherColumn'],
-          references: {
-            table: 'myOtherTable',
-            fields: ['id1', 'id2'],
-          },
-          onDelete: 'cascade',
-        }),
-        {
-          db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_anotherColumn_myOtherTable_fk" FOREIGN KEY ("myColumn", "anotherColumn") REFERENCES "myOtherTable" ("id1", "id2") ON DELETE CASCADE;',
-          ibmi: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_anotherColumn_myOtherTable_fk" FOREIGN KEY ("myColumn", "anotherColumn") REFERENCES "myOtherTable" ("id1", "id2") ON DELETE CASCADE',
-          default:
-                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_anotherColumn_myOtherTable_fk] FOREIGN KEY ([myColumn], [anotherColumn]) REFERENCES [myOtherTable] ([id1], [id2]) ON DELETE CASCADE;',
+      expectsql(sql.addConstraintQuery('myTable', {
+        type: 'foreign key',
+        fields: ['myColumn', 'anotherColumn'],
+        references: {
+          table: 'myOtherTable',
+          fields: ['id1', 'id2'],
         },
-      );
+        onDelete: 'cascade',
+      }), {
+        default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_anotherColumn_myOtherTable_fk] FOREIGN KEY ([myColumn], [anotherColumn]) REFERENCES [myOtherTable] ([id1], [id2]) ON DELETE CASCADE;',
+      });
     });
 
     if (current.dialect.name !== 'ibmi') {

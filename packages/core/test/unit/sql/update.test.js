@@ -27,9 +27,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.getAttributes()),
         {
           query: {
-            db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
-            ibmi: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
             default: 'UPDATE [users] SET [user_name]=$sequelize_1 WHERE [id] = $sequelize_2',
+            db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
           },
           bind: {
             default: { sequelize_1: 'triggertest', sequelize_2: 2 },
@@ -55,12 +54,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.getAttributes()),
         {
           query: {
-            ibmi: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
-            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$sequelize_1 OUTPUT INSERTED.[id], INSERTED.[user_name] INTO @tmp WHERE [id] = $sequelize_2; SELECT * FROM @tmp',
+            default: 'UPDATE [users] SET [user_name]=$sequelize_1 WHERE [id] = $sequelize_2',
             postgres: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING "id", "user_name"',
+            mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$sequelize_1 OUTPUT INSERTED.[id], INSERTED.[user_name] INTO @tmp WHERE [id] = $sequelize_2; SELECT * FROM @tmp',
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
-            snowflake: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
-            default: 'UPDATE `users` SET `user_name`=$sequelize_1 WHERE `id` = $sequelize_2',
           },
           bind: {
             default: { sequelize_1: 'triggertest', sequelize_2: 2 },
@@ -82,14 +79,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       expectsql(sql.updateQuery(User.tableName, { username: 'new.username' }, { username: 'username' }, { limit: 1 }), {
         query: {
-          ibmi: 'UPDATE "Users" SET "username"=$sequelize_1 WHERE "username" = $sequelize_2',
+          default: 'UPDATE [Users] SET [username]=$sequelize_1 WHERE [username] = $sequelize_2 LIMIT 1',
+          'postgres ibmi': 'UPDATE [Users] SET [username]=$sequelize_1 WHERE [username] = $sequelize_2',
           mssql: 'UPDATE TOP(1) [Users] SET [username]=$sequelize_1 WHERE [username] = $sequelize_2',
-          mariadb: 'UPDATE `Users` SET `username`=$sequelize_1 WHERE `username` = $sequelize_2 LIMIT 1',
-          mysql: 'UPDATE `Users` SET `username`=$sequelize_1 WHERE `username` = $sequelize_2 LIMIT 1',
           sqlite: 'UPDATE `Users` SET `username`=$sequelize_1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = $sequelize_2 LIMIT 1)',
           db2: 'SELECT * FROM FINAL TABLE (UPDATE (SELECT * FROM "Users" WHERE "username" = $sequelize_2 FETCH NEXT 1 ROWS ONLY) SET "username"=$sequelize_1);',
-          snowflake: 'UPDATE "Users" SET "username"=$sequelize_1 WHERE "username" = $sequelize_2 LIMIT 1',
-          default: 'UPDATE [Users] SET [username]=$sequelize_1 WHERE [username] = $sequelize_2',
         },
         bind: {
           default: { sequelize_1: 'new.username', sequelize_2: 'username' },

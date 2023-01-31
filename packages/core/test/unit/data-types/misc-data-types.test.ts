@@ -50,12 +50,12 @@ describe('DataTypes.ENUM', () => {
     assert(typeof enumType !== 'string');
 
     expectsql(enumType.toSql({ dialect }), {
+      'mariadb mysql': `ENUM('value 1', 'value 2')`,
       postgres: '"public"."enum_Users_anEnum"',
-      'mysql mariadb': `ENUM('value 1', 'value 2')`,
       // SQL Server does not support enums, we use text + a check constraint instead
       mssql: `NVARCHAR(255)`,
       sqlite: 'TEXT',
-      'db2 ibmi snowflake': 'VARCHAR(255)',
+      'snowflake db2 ibmi': 'VARCHAR(255)',
     });
   });
 

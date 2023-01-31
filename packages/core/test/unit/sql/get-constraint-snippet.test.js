@@ -51,8 +51,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             myColumn: ['value1', 'value2', 'value3'],
           },
         }), {
-          mssql: 'CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (N\'value1\', N\'value2\', N\'value3\'))',
           default: 'CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (\'value1\', \'value2\', \'value3\'))',
+          mssql: 'CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (N\'value1\', N\'value2\', N\'value3\'))',
         });
       });
 
