@@ -2,6 +2,11 @@ import type { Sequelize } from '../../sequelize';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { CreateSchemaOptions, QueryInterfaceOptions } from './query-interface.types';
 
+// DO NOT MAKE THIS CLASS PUBLIC!
+/**
+ * This is a temporary class used to progressively migrate the AbstractQueryInterface class to TypeScript by slowly moving its functions here.
+ * Always use {@link AbstractQueryInterface} instead.
+ */
 export class AbstractQueryInterfaceTypeScript {
   readonly sequelize: Sequelize;
   readonly queryGenerator: AbstractQueryGenerator;

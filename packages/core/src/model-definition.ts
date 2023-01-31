@@ -114,7 +114,7 @@ export class ModelDefinition {
   readonly #virtualAttributeNames = new Set<string>();
 
   /**
-   * The list of attributes that do not really exist in the database, as opposed to {@link physicalAttributeNames}.
+   * The list of attributes that do not really exist in the database.
    */
   readonly virtualAttributeNames = new SetView(this.#virtualAttributeNames);
 
@@ -153,7 +153,7 @@ export class ModelDefinition {
   readonly defaultValues = new MapView(this.#defaultValues);
 
   /**
-   * Final list of indexes, built by {@link refreshIndexes}
+   * Final list of indexes, built by refreshIndexes
    */
   #indexes: IndexOptions[] = [];
 
@@ -759,6 +759,10 @@ Specify a different name for either index to resolve this issue.`);
 const modelDefinitions = new WeakMap</* model class */ Function, ModelDefinition>();
 
 export function registerModelDefinition(model: ModelStatic, modelDefinition: ModelDefinition): void {
+  if (modelDefinitions.has(model)) {
+    throw new Error(`Model ${model.name} has already been initialized. Models can only belong to one Sequelize instance. Registering the same model with multiple Sequelize instances is not yet supported. Please see https://github.com/sequelize/sequelize/issues/15389`);
+  }
+
   modelDefinitions.set(model, modelDefinition);
 }
 

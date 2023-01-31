@@ -1,12 +1,12 @@
-import type { CommonErrorProperties, SequelizeErrorOptions } from './base-error';
-import BaseError from './base-error';
+import type { CommonErrorProperties } from './base-error';
+import { BaseError } from './base-error';
 
 export interface DatabaseErrorParent extends Error, Pick<CommonErrorProperties, 'sql'> {
   /** The parameters for the sql that triggered the error */
   readonly parameters?: object;
 }
 
-export interface DatabaseErrorSubclassOptions extends SequelizeErrorOptions {
+export interface DatabaseErrorSubclassOptions {
   cause?: DatabaseErrorParent;
 
   /**
@@ -19,7 +19,7 @@ export interface DatabaseErrorSubclassOptions extends SequelizeErrorOptions {
 /**
  * A base class for all database related errors.
  */
-class DatabaseError
+export class DatabaseError
   extends BaseError
   implements DatabaseErrorParent, CommonErrorProperties {
   sql: string;
@@ -29,19 +29,12 @@ class DatabaseError
 
   /**
    * @param parent The database specific error which triggered this one
-   * @param options
    */
-  constructor(parent: DatabaseErrorParent, options: SequelizeErrorOptions = {}) {
+  constructor(parent: DatabaseErrorParent) {
     super(parent.message, { cause: parent });
     this.name = 'SequelizeDatabaseError';
 
     this.sql = parent.sql;
     this.parameters = parent.parameters ?? {};
-
-    if (options.stack) {
-      this.stack = options.stack;
-    }
   }
 }
-
-export default DatabaseError;

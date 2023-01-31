@@ -1,28 +1,27 @@
 import each from 'lodash/each';
 import isEqual from 'lodash/isEqual';
-import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import upperFirst from 'lodash/upperFirst';
 import { AssociationError } from '../errors';
 import type {
+  AttributeNames,
+  Attributes,
   BulkCreateOptions,
   CreateOptions,
   CreationAttributes,
   Filterable,
   FindAttributeOptions,
   FindOptions,
+  Includeable,
   InstanceDestroyOptions,
   InstanceUpdateOptions,
-  Transactionable,
-  ModelStatic,
   Model,
-  WhereOptions,
-  AttributeNames,
-  Attributes,
-  Includeable,
   ModelAttributes,
-  UpdateOptions,
   ModelOptions,
+  ModelStatic,
+  Transactionable,
+  UpdateOptions,
+  WhereOptions,
 } from '../model';
 import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
@@ -32,13 +31,13 @@ import { removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
 import type { AllowArray } from '../utils/types.js';
 import type {
+  Association,
+  AssociationOptions,
   AssociationScope,
   ForeignKeyOptions,
-  MultiAssociationOptions,
   MultiAssociationAccessors,
-  AssociationOptions,
+  MultiAssociationOptions,
   NormalizedAssociationOptions,
-  Association,
 } from './base';
 import { MultiAssociation } from './base';
 import type { BelongsTo } from './belongs-to';
@@ -48,7 +47,10 @@ import type { AssociationStatic, MaybeForwardedModelStatic } from './helpers';
 import {
   AssociationSecret,
   defineAssociation,
-  mixinMethods, normalizeBaseAssociationOptions, normalizeForeignKeyOptions,
+  isThroughOptions,
+  mixinMethods,
+  normalizeBaseAssociationOptions,
+  normalizeForeignKeyOptions,
 } from './helpers';
 
 function addInclude(findOptions: FindOptions, include: Includeable) {
@@ -824,10 +826,6 @@ Object.defineProperty(BelongsToMany, 'name', {
   value: 'BelongsToMany',
 });
 
-export function isThroughOptions<M extends Model>(val: any): val is ThroughOptions<M> {
-  return isPlainObject(val) && 'model' in val;
-}
-
 function normalizeThroughOptions<M extends Model>(
   source: ModelStatic<any>,
   target: ModelStatic<any>,
@@ -981,7 +979,7 @@ export interface BelongsToManyOptions<
    * Should "ON UPDATE", "ON DELETE" and "REFERENCES" constraints be enabled on the foreign key?
    *
    * This only affects the foreign key that points to the source model.
-   * to control the one that points to the target model, set {@link BelongsToManyOptions.inverse.foreignKeyConstraints}.
+   * to control the one that points to the target model, set the "foreignKeyConstraints" option in {@link BelongsToManyOptions.inverse}.
    */
   foreignKeyConstraints?: boolean;
 
