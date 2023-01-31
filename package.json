@@ -49,7 +49,7 @@
     "chai": "4.3.7",
     "esbuild": "0.17.5",
     "eslint": "8.33.0",
-    "eslint-plugin-jsdoc": "39.7.4",
+    "eslint-plugin-jsdoc": "39.7.5",
     "eslint-plugin-mocha": "10.1.0",
     "fast-glob": "3.2.12",
     "lerna": "6.4.1",
