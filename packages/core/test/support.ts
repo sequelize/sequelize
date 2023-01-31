@@ -282,12 +282,12 @@ type ExpectationKey = 'default' | Permutations<Dialect, 4>;
 
 export type ExpectationRecord<V> = PartialRecord<ExpectationKey, V | Expectation<V> | Error>;
 
-type Decr = [never, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+type DecrementedDepth = [never, 0, 1, 2, 3];
 
 type Permutations<T extends string, Depth extends number, U extends string = T> = Depth extends 0
   ? never
   : T extends any
-    ? T | `${T} ${Permutations<Exclude<U, T>, Decr[Depth]>}`
+    ? T | `${T} ${Permutations<Exclude<U, T>, DecrementedDepth[Depth]>}`
     : never;
 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
