@@ -2,14 +2,12 @@ import assert from 'node:assert';
 import { expect } from 'chai';
 import type { FindOptions } from '@sequelize/core';
 import { DataTypes, Op, Sequelize, col, where, literal } from '@sequelize/core';
-// eslint-disable-next-line import/order
-import { resetSequelizeInstance } from '../../support';
+// eslint-disable-next-line import/order -- sequelize cannot be imported right now since there will be too many typing errors
+import { resetSequelizeInstance, getTestDialectTeaser } from '../../support';
 
-const Support = require('../../support');
+const sequelize = require('../../support').sequelize;
 
-const sequelize = Support.sequelize;
-
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe(getTestDialectTeaser('Model'), () => {
   beforeEach(() => {
     resetSequelizeInstance();
   });
@@ -267,13 +265,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ],
       });
 
-      expect(Company.options.scopes.alsoUsers).to.deep.equal({
+      expect(Company.options.scopes!.alsoUsers).to.deep.equal({
         include: [
           { model: User, association: Company.associations.users, as: 'users', where: { something: 42 } },
         ],
       });
 
-      expect(Company.options.scopes.users).to.deep.equal({
+      expect(Company.options.scopes!.users).to.deep.equal({
         include: [
           { model: User, association: Company.associations.users, as: 'users' },
         ],
@@ -367,7 +365,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       };
 
       const TestModel = sequelize.define('testModel', {}, {
-        mergeWhereScopesWithAndOperator: true,
         scopes: testModelScopes,
       });
 

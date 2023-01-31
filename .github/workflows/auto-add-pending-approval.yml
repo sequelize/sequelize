@@ -3,13 +3,16 @@ on:
   issues:
     types:
       - opened
+permissions:
+  contents: read
+
 jobs:
   label_issues:
     runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
-      - uses: actions/github-script@v6
+      - uses: actions/github-script@98814c53be79b1d30f795b907e553d8679345975 # v6.4.0
         with:
           script: |
             github.rest.issues.addLabels({
