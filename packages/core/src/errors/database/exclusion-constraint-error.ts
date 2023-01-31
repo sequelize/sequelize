@@ -1,6 +1,6 @@
 import { useErrorCause } from '../../utils/deprecations.js';
 import type { DatabaseErrorSubclassOptions } from '../database-error';
-import DatabaseError from '../database-error';
+import { DatabaseError } from '../database-error';
 
 interface ExclusionConstraintErrorOptions {
   constraint?: string;
@@ -11,7 +11,7 @@ interface ExclusionConstraintErrorOptions {
 /**
  * Thrown when an exclusion constraint is violated in the database
  */
-class ExclusionConstraintError extends DatabaseError {
+export class ExclusionConstraintError extends DatabaseError {
   constraint: string | undefined;
   fields: Record<string, string | number> | undefined;
   table: string | undefined;
@@ -23,7 +23,7 @@ class ExclusionConstraintError extends DatabaseError {
 
     const parent = options.cause ?? options.parent ?? { sql: '', name: '', message: '' };
 
-    super(parent, { stack: options.stack });
+    super(parent);
     this.message = options.message || parent.message;
     this.name = 'SequelizeExclusionConstraintError';
     this.constraint = options.constraint;
@@ -31,5 +31,3 @@ class ExclusionConstraintError extends DatabaseError {
     this.table = options.table;
   }
 }
-
-export default ExclusionConstraintError;

@@ -10,7 +10,7 @@ import type { Op, WhereOperators, WhereLeftOperand, WhereAttributeHash, WhereAtt
 export class SequelizeMethod {}
 
 /**
- * Do not use me directly. Use {@link Sequelize.fn}
+ * Do not use me directly. Use {@link fn}
  */
 export class Fn extends SequelizeMethod {
   private readonly fn: string;
@@ -31,7 +31,7 @@ export class Fn extends SequelizeMethod {
 }
 
 /**
- * Do not use me directly. Use {@link Sequelize.col}
+ * Do not use me directly. Use {@link col}
  */
 export class Col extends SequelizeMethod {
   private readonly col: string[] | string;
@@ -49,7 +49,7 @@ export class Col extends SequelizeMethod {
 }
 
 /**
- * Do not use me directly. Use {@link Sequelize.cast}
+ * Do not use me directly. Use {@link cast}
  */
 export class Cast extends SequelizeMethod {
   private readonly val: any;
@@ -65,7 +65,7 @@ export class Cast extends SequelizeMethod {
 }
 
 /**
- * Do not use me directly. Use {@link Sequelize.literal}
+ * Do not use me directly. Use {@link literal}
  */
 export class Literal extends SequelizeMethod {
   /** this (type-only) brand prevents TypeScript from thinking Cast is assignable to Literal because they share the same shape */
@@ -80,7 +80,7 @@ export class Literal extends SequelizeMethod {
 }
 
 /**
- * Do not use me directly. Use {@link Sequelize.json}
+ * Do not use me directly. Use {@link json}
  */
 export class Json extends SequelizeMethod {
   private readonly conditions?: { [key: string]: any };
@@ -106,7 +106,7 @@ export class Json extends SequelizeMethod {
 }
 
 /**
- * Do not use me directly. Use {@link Sequelize.where}
+ * Do not use me directly. Use {@link where}
  */
 export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends SequelizeMethod {
   // TODO [=7]: rename to leftOperand after typescript migration

@@ -3,10 +3,10 @@ import isObject from 'lodash/isObject';
 import type { ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { isPlainObject, isString } from '../../utils/check.js';
-import type { AbstractDialect } from './index.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
+import type { AbstractDialect } from './index.js';
 
 export type TableNameOrModel = TableName | ModelStatic;
 
@@ -24,8 +24,10 @@ export interface QueryGeneratorOptions {
   dialect: AbstractDialect;
 }
 
+// DO NOT MAKE THIS CLASS PUBLIC!
 /**
- * Temporary class to ease the TypeScript migration
+ * This is a temporary class used to progressively migrate the AbstractQueryGenerator class to TypeScript by slowly moving its functions here.
+ * Always use {@link AbstractQueryGenerator} instead.
  */
 export class AbstractQueryGeneratorTypeScript {
 

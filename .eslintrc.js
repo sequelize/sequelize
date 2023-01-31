@@ -182,9 +182,9 @@ module.exports = {
       'json/*': ['error', { allowComments: true }],
     },
   }, {
-    files: ['dev/**/*'],
-    parserOptions: {
-      project: [`${__dirname}/dev/tsconfig.json`],
+    files: ['sscce.ts'],
+    rules: {
+      'no-console': 'off',
     },
   }],
   settings: {
@@ -197,7 +197,14 @@ module.exports = {
           type: false,
           required: ['name'],
         },
+        category: {
+          type: false,
+          required: ['name'],
+        },
         internal: {
+          type: false,
+        },
+        hidden: {
           type: false,
         },
       },

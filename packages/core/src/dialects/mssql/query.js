@@ -62,7 +62,7 @@ export class MsSqlQuery extends AbstractQuery {
     return paramType;
   }
 
-  async _run(connection, sql, parameters, errStack) {
+  async _run(connection, sql, parameters) {
     this.sql = sql;
     const { options } = this;
 
@@ -129,7 +129,7 @@ export class MsSqlQuery extends AbstractQuery {
       error.sql = sql;
       error.parameters = parameters;
 
-      throw this.formatError(error, errStack);
+      throw this.formatError(error);
     }
 
     complete();
@@ -157,10 +157,7 @@ export class MsSqlQuery extends AbstractQuery {
   }
 
   run(sql, parameters) {
-
-    const errForStack = new Error();
-
-    return this.connection.queue.enqueue(() => this._run(this.connection, sql, parameters, errForStack.stack));
+    return this.connection.queue.enqueue(() => this._run(this.connection, sql, parameters));
   }
 
   /**
@@ -302,7 +299,7 @@ export class MsSqlQuery extends AbstractQuery {
     });
   }
 
-  formatError(err, errStack) {
+  formatError(err) {
     let match;
 
     // TODO: err can be an AggregateError. When that happens, we must throw an AggregateError too instead of throwing only the second error,
@@ -342,7 +339,7 @@ export class MsSqlQuery extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
+      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
     }
 
     match = err.message.match(/Failed on step '(.*)'.Could not create constraint. See previous errors./)
@@ -353,7 +350,6 @@ export class MsSqlQuery extends AbstractQuery {
         fields: null,
         index: match[1],
         cause: err,
-        stack: errStack,
       });
     }
 
@@ -365,7 +361,6 @@ export class MsSqlQuery extends AbstractQuery {
             fields: null,
             index: match[1],
             cause: error,
-            stack: errStack,
           });
         }
       }
@@ -383,7 +378,6 @@ export class MsSqlQuery extends AbstractQuery {
         constraint,
         table,
         cause: err,
-        stack: errStack,
       });
     }
 
@@ -401,13 +395,12 @@ export class MsSqlQuery extends AbstractQuery {
             constraint,
             table,
             cause: error,
-            stack: errStack,
           });
         }
       }
     }
 
-    return new sequelizeErrors.DatabaseError(err, { stack: errStack });
+    return new sequelizeErrors.DatabaseError(err);
   }
 
   isShowOrDescribeQuery() {

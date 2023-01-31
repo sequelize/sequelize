@@ -30,36 +30,7 @@ export const HasOne = Pkg.HasOne;
 
 export const ValidateAttribute = Pkg.ValidateAttribute;
 export const ModelValidator = Pkg.ModelValidator;
-export const Contains = Pkg.Contains;
-export const Equals = Pkg.Equals;
-export const Is = Pkg.Is;
-export const IsAfter = Pkg.IsAfter;
-export const IsAlpha = Pkg.IsAlpha;
-export const IsAlphanumeric = Pkg.IsAlphanumeric;
-export const IsArray = Pkg.IsArray;
-export const IsBefore = Pkg.IsBefore;
-export const IsCreditCard = Pkg.IsCreditCard;
-export const IsDate = Pkg.IsDate;
-export const IsDecimal = Pkg.IsDecimal;
-export const IsEmail = Pkg.IsEmail;
-export const IsFloat = Pkg.IsFloat;
-export const IsIP = Pkg.IsIP;
-export const IsIPv4 = Pkg.IsIPv4;
-export const IsIPv6 = Pkg.IsIPv6;
-export const IsIn = Pkg.IsIn;
-export const IsInt = Pkg.IsInt;
-export const IsLowercase = Pkg.IsLowercase;
-export const IsNumeric = Pkg.IsNumeric;
-export const IsUUID = Pkg.IsUUID;
-export const IsUppercase = Pkg.IsUppercase;
-export const IsUrl = Pkg.IsUrl;
-export const Len = Pkg.Len;
-export const Max = Pkg.Max;
-export const Min = Pkg.Min;
-export const Not = Pkg.Not;
-export const NotContains = Pkg.NotContains;
-export const NotEmpty = Pkg.NotEmpty;
-export const NotIn = Pkg.NotIn;
+// Other validation decorators are provided by other packages, such as @sequelize/validator.js
 
 // Model Hook Decorators
 
