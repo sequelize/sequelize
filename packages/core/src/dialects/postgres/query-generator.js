@@ -144,7 +144,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       }
 
       return acc;
-    }, []).join(',');
+    }, []).join(', ');
 
     if (pks.length > 0) {
       attributesClause += `, PRIMARY KEY (${pks})`;
