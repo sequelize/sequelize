@@ -11,13 +11,13 @@ jobs:
     name: Tweet release
     runs-on: ubuntu-latest
     steps:
-      - uses: cardinalby/git-get-release-action@v1.1
+      - uses: cardinalby/git-get-release-action@319798e20e923b75a49d335f1afdaf6f18422118 # v1.1
         id: releaseInfo
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           releaseId: ${{ github.event.client_payload.release-id }}
-      - uses: ethomson/send-tweet-action@v1
+      - uses: ethomson/send-tweet-action@288f9339e0412e3038dce350e0da5ecdf12133a6 # v1.0.0
         with:
           status: "We have just released ${{ steps.releaseInfo.outputs.name }} of Sequelize. https://github.com/sequelize/sequelize/releases/tag/${{ steps.releaseInfo.outputs.name }}"
           consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
@@ -28,7 +28,7 @@ jobs:
     name: Notify OpenCollective
     runs-on: ubuntu-latest
     steps:
-      - uses: sequelize/proxy-release-to-open-collective@main
+      - uses: sequelize/proxy-release-to-open-collective@d8edaf56f12f51518fb97829b699a2e2e6d8166e # main
         with:
           releaseId: ${{ github.event.client_payload.release-id }}
           projectSlug: sequelize/sequelize

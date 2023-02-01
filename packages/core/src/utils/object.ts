@@ -1,3 +1,5 @@
+// @ts-expect-error -- lodash/_baseIsNative is not recognized as a separate module for @types/lodash
+import baseIsNative from 'lodash/_baseIsNative';
 import cloneDeepWith from 'lodash/cloneDeepWith';
 import forOwn from 'lodash/forOwn';
 import getValue from 'lodash/get';
@@ -10,10 +12,7 @@ import omitBy from 'lodash/omitBy.js';
 import { getComplexKeys } from './format';
 import type { MapView } from './immutability.js';
 import { combinedIterator, map } from './iterators.js';
-// eslint-disable-next-line import/order -- caused by temporarily mixing require with import
 import { camelize } from './string';
-
-const baseIsNative = require('lodash/_baseIsNative');
 
 /**
  * Deeply merges object `b` into `a`.
