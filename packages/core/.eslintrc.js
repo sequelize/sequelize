@@ -8,7 +8,4 @@ module.exports = {
       project: [`${__dirname}/test/tsconfig.json`],
     },
   }],
-  rules: {
-    'import/order': 'off',
-  },
 };

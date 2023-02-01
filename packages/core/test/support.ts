@@ -278,8 +278,6 @@ export function getPoolMax(): number {
   return Config[getTestDialect()].pool?.max ?? 1;
 }
 
-// type Values<T extends string> = T extends any ?
-
 type ExpectationKey = 'default' | 'cockroachdb' | Permutations<Exclude<Dialect, 'cockroachdb'>>;
 
 export type ExpectationRecord<V> = PartialRecord<ExpectationKey, V | Expectation<V> | Error>;
