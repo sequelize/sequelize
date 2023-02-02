@@ -62,6 +62,26 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
+    * Drop all schemas
+    *
+    * @param {object} [options] Query options
+    *
+    * @returns {Promise}
+    */
+
+  async dropAllSchemas(options) {
+    options = options || {};
+
+    if (!this.queryGenerator.dialect.supports.schemas) {
+      return this.sequelize.drop(options);
+    }
+
+    const schemas = await this.showAllSchemas(options);
+
+    return Promise.all(schemas.map(schemaName => this.dropSchema(schemaName, options)));
+  }
+
+  /**
    * Return database version
    *
    * @param {object}    [options]      Query options
@@ -189,26 +209,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-    * Drop all schemas
-    *
-    * @param {object} [options] Query options
-    *
-    * @returns {Promise}
-    */
-
-  async dropAllSchemas(options) {
-    options = options || {};
-
-    if (!this.queryGenerator.dialect.supports.schemas) {
-      return this.sequelize.drop(options);
-    }
-
-    const schemas = await this.showAllSchemas(options);
-
-    return Promise.all(schemas.map(schemaName => this.dropSchema(schemaName, options)));
-  }
-
-  /**
    * Drop a table from database
    *
    * @param {string} tableName Table name to drop
@@ -220,7 +220,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options.cascade = options.cascade != null ? options.cascade
       // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
       : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
-      : undefined;
+        : undefined;
 
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 

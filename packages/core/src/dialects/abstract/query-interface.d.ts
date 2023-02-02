@@ -28,7 +28,7 @@ interface Replaceable {
   replacements?: { [key: string]: unknown };
 }
 
-interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
+interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable { }
 
 export interface QiInsertOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
@@ -185,9 +185,9 @@ export interface IndexOptions {
   include?: Literal | Array<string | Literal>;
 }
 
-export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}
+export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> { }
 
-export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions {}
+export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions { }
 
 export interface BaseConstraintOptions {
   name?: string;
@@ -226,11 +226,11 @@ export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
 }
 
 export type AddConstraintOptions =
-| AddUniqueConstraintOptions
-| AddDefaultConstraintOptions
-| AddCheckConstraintOptions
-| AddPrimaryKeyConstraintOptions
-| AddForeignKeyConstraintOptions;
+  | AddUniqueConstraintOptions
+  | AddDefaultConstraintOptions
+  | AddCheckConstraintOptions
+  | AddPrimaryKeyConstraintOptions
+  | AddForeignKeyConstraintOptions;
 
 export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOptions {
   encoding?: string;
@@ -275,9 +275,9 @@ export interface IndexDescription {
   type: string | undefined;
 }
 
-export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable {}
+export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable { }
 
-export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions, Replaceable {}
+export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions, Replaceable { }
 
 /**
  * This interface exposes low-level APIs to interact with the database.
@@ -304,6 +304,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Return database version
    */
   databaseVersion(options?: QueryRawOptions): Promise<string>;
+
+  /**
+   * Drops all tables
+   */
+  dropAllSchemas(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
 
   /**
    * Creates a table with specified attributes.
