@@ -10,12 +10,11 @@ const queryInterface = sequelize.getQueryInterface();
 // MySQL and MariaDB view databases and schemas as identical. Other databases consider them separate entities.
 const dialectsWithEqualDBsSchemas = ['mysql', 'mariadb'];
 
-describe('QueryInterface#{create,drop,dropAll,showAll}Schema', () => {
+describe('QueryInterface#{create,drop,showAll}Schema', () => {
   if (!dialect.supports.schemas) {
     it('should throw, indicating that the method is not supported', async () => {
       await expect(queryInterface.createSchema(testSchema)).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
       await expect(queryInterface.dropSchema(testSchema)).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
-      await expect(queryInterface.dropAllSchemas()).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
       await expect(queryInterface.showAllSchemas()).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
     });
 
@@ -65,40 +64,5 @@ describe('QueryInterface#{create,drop,dropAll,showAll}Schema', () => {
       ? [sequelize.config.database, testSchema]
       : [testSchema];
     expect(allSchemas.sort()).to.deep.eq(expected.sort());
-  });
-
-  describe('drops all schemas', () => {
-    // Ensure test schemas are created
-    beforeEach(async () => {
-      const schemas = await queryInterface.showAllSchemas();
-      if (!schemas.includes(testSchema)) {
-        await queryInterface.createSchema(testSchema);
-      }
-    });
-
-    it('drops all schemas and skips', async () => {
-      await queryInterface.dropAllSchemas({
-        skip: [sequelize.config.database, testSchema],
-      });
-      const postDeleteSchemas = await queryInterface.showAllSchemas();
-
-      const expected = dialectsWithEqualDBsSchemas.includes(dialect.name)
-        ? [sequelize.config.database, testSchema]
-        : [testSchema];
-      expect(postDeleteSchemas).to.deep.eq(expected);
-    });
-
-    it('drops all schemas', async () => {
-      await queryInterface.dropAllSchemas();
-      const postDeleteSchemas = await queryInterface.showAllSchemas();
-      expect(postDeleteSchemas).to.be.empty;
-    });
-
-    after(async () => {
-      if (dialectsWithEqualDBsSchemas.includes(dialect.name)) {
-        await queryInterface.createSchema(sequelize.config.database);
-        await sequelize.query(`USE ${sequelize.config.database};`);
-      }
-    });
   });
 });

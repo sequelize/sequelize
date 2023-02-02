@@ -21,6 +21,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     await Support.dropTestSchemas(this.sequelize);
   });
 
+  if (dialect.supports.schemas) {
+    describe('dropAllSchema', () => {
+      it('should drop all schema', async function () {
+        await this.queryInterface.dropAllSchemas({
+          skip: [this.sequelize.config.database],
+        });
+        const schemaNames = await this.queryInterface.showAllSchemas();
+        await this.queryInterface.createSchema('newSchema');
+        const newSchemaNames = await this.queryInterface.showAllSchemas();
+        if (!current.dialect.supports.schemas) {
+          return;
+        }
+
+        expect(newSchemaNames).to.have.length(schemaNames.length + 1);
+        await this.queryInterface.dropSchema('newSchema');
+      });
+    });
+  }
+
   describe('showAllTables', () => {
     it('should not contain views', async function () {
       async function cleanup(sequelize) {

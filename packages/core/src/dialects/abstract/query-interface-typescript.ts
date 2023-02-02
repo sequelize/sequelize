@@ -2,7 +2,7 @@ import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, Sequelize } from '../../sequelize';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { QueryWithBindParams } from './query-generator.types';
-import type { CreateSchemaOptions, DropAllSchemasOptions, QueryInterfaceOptions, ShowAllSchemasOptions } from './query-interface.types';
+import type { CreateSchemaOptions, QueryInterfaceOptions, ShowAllSchemasOptions } from './query-interface.types';
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -58,25 +58,6 @@ export class AbstractQueryInterfaceTypeScript {
     }
 
     await this.sequelize.queryRaw(sql, queryRawOptions);
-  }
-
-  /**
-   * Drop all schemas.
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and mariadb, this is the equivalent of drop all databases.
-   *
-   * @param options
-   */
-  async dropAllSchemas(options?: DropAllSchemasOptions): Promise<void> {
-    const schemas = await this.showAllSchemas();
-
-    let schemasToDrop = schemas;
-    if (options?.skip) {
-      schemasToDrop = schemas.filter(schema => !options.skip!.includes(schema));
-    }
-
-    await Promise.all(schemasToDrop.map(async schema => this.dropSchema(schema, options)));
   }
 
   /**
