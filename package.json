@@ -47,9 +47,9 @@
     "@ephys/eslint-config-typescript": "18.0.1",
     "@rushstack/eslint-patch": "1.2.0",
     "chai": "4.3.7",
-    "esbuild": "0.17.4",
-    "eslint": "8.30.0",
-    "eslint-plugin-jsdoc": "39.6.8",
+    "esbuild": "0.17.5",
+    "eslint": "8.33.0",
+    "eslint-plugin-jsdoc": "39.7.5",
     "eslint-plugin-mocha": "10.1.0",
     "fast-glob": "3.2.12",
     "lerna": "6.4.1",
@@ -59,11 +59,11 @@
     "node-hook": "1.0.0",
     "source-map-support": "0.5.21",
     "ts-node": "10.9.1",
-    "typedoc": "0.23.23",
+    "typedoc": "0.23.24",
     "typedoc-plugin-carbon-ads": "1.1.6",
     "typedoc-plugin-mdn-links": "2.0.2",
     "typedoc-plugin-missing-exports": "1.0.0",
-    "typescript": "4.9.4"
+    "typescript": "4.9.5"
   },
   "packageManager": "yarn@1.22.19",
   "lint-staged": {
