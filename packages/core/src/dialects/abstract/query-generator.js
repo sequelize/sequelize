@@ -1348,6 +1348,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             offset: options.offset,
             limit: options.groupedLimit.limit,
             order: groupedLimitOrder,
+            minifyAliases: options.minifyAliases,
             aliasesMapping: options.aliasesMapping,
             aliasesByTable: options.aliasesByTable,
             where,
