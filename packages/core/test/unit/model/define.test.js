@@ -38,6 +38,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throw('An attribute called \'id\' was defined in model \'foos\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
     });
 
+    it('throws if the user tries to register a model with a model name that is already registered', () => {
+      expect(() => {
+        current.define('i_am_already_there', {});
+        current.define('i_am_already_there', {});
+      }).to.throw(`i_am_already_there is already defined`);
+    });
+
     it('allows creating an "id" field as the primary key', () => {
       const Bar = current.define('bar', {
         id: {
