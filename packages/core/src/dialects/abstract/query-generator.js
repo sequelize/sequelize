@@ -1726,8 +1726,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   _getAliasForField(tableName, field, options) {
-    const shouldMinifyAlias = options?.minifyAliases ?? this.options.minifyAliases;
-    if (shouldMinifyAlias && options.aliasesByTable[`${tableName}${field}`]) {
+    if (options?.minifyAliases && options.aliasesByTable[`${tableName}${field}`]) {
       return options.aliasesByTable[`${tableName}${field}`];
     }
 
