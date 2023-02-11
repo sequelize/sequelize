@@ -7,4 +7,6 @@ type PgEnumNameOptions = {
 
 export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   pgEnumName(tableName: TableName, columnName: string, options?: PgEnumNameOptions): string;
+
+  showTablesQuery(showTablesSchema?: string): string;
 }
