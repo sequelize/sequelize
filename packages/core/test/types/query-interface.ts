@@ -10,12 +10,15 @@ async function test() {
       attr1: DataTypes.STRING,
       attr2: DataTypes.INTEGER,
       attr3: {
+        unique: true,
         allowNull: false,
         defaultValue: false,
         type: DataTypes.BOOLEAN,
       },
       // foreign key usage
       attr4: {
+        // @ts-expect-error -- unique attribute in createTable is boolean
+        unique: 'attr4_pk',
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
         references: {
