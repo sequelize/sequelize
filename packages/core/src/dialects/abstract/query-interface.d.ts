@@ -4,7 +4,6 @@ import type {
   Logging,
   Model,
   AttributeOptions,
-  ModelAttributes,
   WhereOptions,
   Filterable,
   ModelStatic,
@@ -279,6 +278,27 @@ export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions
 
 export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions, Replaceable { }
 
+export interface CreateTableAttributeOptions<M extends Model = Model>
+  extends AttributeOptions<M> {
+  /**
+   * Apply unique constraint on a column
+   */
+  unique?: boolean;
+}
+
+/**
+ * Interface for Attributes provided for all columns in a model
+ */
+export type CreateTableAttributes<
+  M extends Model = Model,
+  TAttributes = any,
+> = {
+  /**
+   * The description of a database column
+   */
+  [name in keyof TAttributes]: DataType | CreateTableAttributeOptions<M>;
+};
+
 /**
  * This interface exposes low-level APIs to interact with the database.
  * Typically useful in contexts where models are not available, such as migrations.
@@ -319,7 +339,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   createTable<M extends Model>(
     tableName: TableName,
-    attributes: ModelAttributes<M, CreationAttributes<M>>,
+    attributes: CreateTableAttributes<M, CreationAttributes<M>>,
     options?: QueryInterfaceCreateTableOptions
   ): Promise<void>;
 
