@@ -1,3 +1,4 @@
+import type { PostgresQueryInterface } from '@sequelize/core/src/dialects/postgres/query-interface';
 import { expect } from 'chai';
 import type { Sequelize } from '@sequelize/core';
 import { DataTypes, QueryTypes } from '@sequelize/core';
@@ -142,8 +143,8 @@ describe('QueryInterface#showAllTables', () => {
     it('shows all tables from the specified schema in the showAllTables options', async () => {
       await createSchemaAndTables(sequelize);
       const [schemaOneTables, schemaTwoTables] = await queryTableNamesAndNormalizeResults([
-        queryInterface.showAllTables({ schema: 'schema_1' }),
-        queryInterface.showAllTables({ schema: 'schema_2' })]);
+        (queryInterface as unknown as PostgresQueryInterface).showAllTables({ schema: 'schema_1' }),
+        (queryInterface as unknown as PostgresQueryInterface).showAllTables({ schema: 'schema_2' })]);
 
       expect(schemaOneTables).to.deep.equal(['schema_1_table_1', 'schema_1_table_2']);
       expect(schemaTwoTables).to.deep.equal(['schema_2_table_1', 'schema_2_table_2']);
@@ -153,7 +154,7 @@ describe('QueryInterface#showAllTables', () => {
       const { sequelize: _sequelize } = await getSequelizeInstanceWithSchema();
       const [schemaThreeTables, schemaFourTables] = await queryTableNamesAndNormalizeResults([
         _sequelize.queryInterface.showAllTables(),
-        _sequelize.queryInterface.showAllTables({
+        (_sequelize.queryInterface as unknown as PostgresQueryInterface).showAllTables({
           schema: 'schema_4',
         })]);
 
