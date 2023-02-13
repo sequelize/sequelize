@@ -1,4 +1,3 @@
-import type { Nullish } from 'src/utils/types.js';
 import type { QueryRawOptions, Sequelize } from '../../sequelize.js';
 import { AbstractQueryInterface } from '../abstract/query-interface.js';
 import type { PostgresQueryGenerator } from './query-generator.js';
@@ -8,12 +7,14 @@ export type SchemaOption = {
   schema?: string,
 };
 
-type ShowAllTablesOptions = Nullish<QueryRawOptions & SchemaOption>;
+export interface QueryRawOptionsWithSchema extends QueryRawOptions {
+  schema?: string;
+}
 
 export class PostgresQueryInterface extends AbstractQueryInterface {
   queryGenerator: PostgresQueryGenerator;
 
   constructor(sequelize: Sequelize, queryGenerator: PostgresQueryGenerator);
 
-  showAllTables(options?: ShowAllTablesOptions): Promise<string[]>;
+  showAllTables(options?: QueryRawOptionsWithSchema): Promise<string[]>;
 }
