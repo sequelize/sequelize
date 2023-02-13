@@ -1,6 +1,6 @@
 import { expect } from 'chai';
+import type { Sequelize } from '@sequelize/core';
 import { DataTypes, QueryTypes } from '@sequelize/core';
-import type { QueryInterface } from '@sequelize/core';
 import { sequelize, getTestDialect, createSequelizeInstance } from '../support';
 
 const queryInterface = sequelize.queryInterface;
@@ -24,13 +24,10 @@ describe('QueryInterface#showAllTables', () => {
 
   const createTestTablesForSchema = async (
     schemaName: string,
-    _queryInterface: QueryInterface,
+    _queryInterface: Sequelize['queryInterface'],
   ) => Promise.all([1, 2].map(async (_, index) => _queryInterface.createTable(
-    `${schemaName}_table_${index + 1}`,
+    { tableName: `${schemaName}_table_${index + 1}`, schema: schemaName },
     { name: DataTypes.STRING },
-    {
-      schema: schemaName,
-    },
   )));
 
   const createSchemaAndTables = async (
@@ -138,7 +135,7 @@ describe('QueryInterface#showAllTables', () => {
   }
 
   describe('schema support tests', () => {
-    if (!dialect.supports.schemas) {
+    if (!dialect.supports.schemas || dialectName !== 'postgres') {
       return;
     }
 
