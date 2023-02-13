@@ -13,6 +13,10 @@ describe('QueryInterface#showAllTables', () => {
   after(async () => {
     const _sequelize = createSequelizeInstance();
     await _sequelize.queryInterface.dropAllTables();
+    if (!dialect.supports.schemas) {
+      return;
+    }
+
     await Promise.all(['schema_1', 'schema_2', 'schema_3', 'schema_4'].map(async schema => _sequelize.dropSchema(schema)));
   });
 
