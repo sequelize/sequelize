@@ -4,20 +4,58 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+permissions:
+  contents: read
+
 jobs:
   stale:
+    permissions:
+      issues: write  # for actions/stale to close stale issues
+      pull-requests: write  # for actions/stale to close stale PRs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@main
-        id: stale
+      - uses: actions/stale@6f05e4244c9a0b2ed3401882b05d701dd0a7289b # v7.0.0
+        id: stale-bug
         with:
           stale-issue-label: "stale"
-          stale-issue-message: 'This issue has been automatically marked as stale because it has been open for 14 days without activity. It will be closed if no further activity occurs within the next 14 days. If this is still an issue, just leave a comment or remove the "stale" label. 🙂'
-          days-before-stale: 14
-          days-before-close: 14
+          stale-issue-message: 'This bug report has not been verified by maintainers yet, and has been open for 14 days without activity. It will be closed if no further activity occurs within the next 14 days. If this is still an issue, consider commenting with more information to help us verify it.'
+          days-before-issue-stale: 14
+          days-before-issue-close: 14
           operations-per-run: 1000
           days-before-pr-stale: -1
           days-before-pr-close: -1
-          exempt-issue-labels: 'type: bug, type: docs, type: feature, type: other, type: performance, type: refactor, type: typescript, RFC' # All 'type: ' and 'RFC' labels
-      - name: Print outputs
-        run: echo ${{ join(steps.stale.outputs.*, ',') }}
+          only-issue-labels: 'type: bug'
+          any-of-issue-labels: 'pending-approval'
+      - uses: actions/stale@6f05e4244c9a0b2ed3401882b05d701dd0a7289b # v7.0.0
+        id: stale-feature
+        with:
+          stale-issue-label: "stale"
+          stale-issue-message: 'This feature request has not been approved by maintainers yet, and has been open for 14 days without activity. It will be closed as "not planned" if no further activity occurs within the next 14 days.'
+          stale-pr-message: 'This pull request has been marked as maybe-abandoned and has not seen any activity for 14 days. It will be closed if no further activity occurs within the next 30 days. If you would still like to work on this, please comment to let us know and the label will be removed.'
+          days-before-issue-stale: 14
+          days-before-issue-close: 14
+          operations-per-run: 1000
+          days-before-pr-stale: 14
+          days-before-pr-close: 30
+          only-issue-labels: 'type: feature'
+          any-of-issue-labels: 'pending-approval'
+          any-of-pr-labels: 'maybe-abandoned'
+      - uses: actions/stale@6f05e4244c9a0b2ed3401882b05d701dd0a7289b # v7.0.0
+        id: invalid
+        with:
+          stale-issue-label: "stale"
+          stale-issue-message: 'This issue has been marked as invalid ([see our contributing guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)) and has not been active in 2 weeks. It will be closed if no further activity occurs within the next 2 weeks.'
+          stale-pr-message: 'This pull request has been marked as invalid ([see our contributing guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md)) and has not been active in 2 weeks. It will be closed if no further activity occurs within the next 2 weeks.'
+          days-before-issue-stale: 14
+          days-before-issue-close: 14
+          operations-per-run: 1000
+          days-before-pr-stale: 14
+          days-before-pr-close: 14
+          any-of-issue-labels: 'invalid'
+          any-of-pr-labels: 'invalid'
+      - name: Print outputs (stale-bug)
+        run: echo ${{ join(steps.stale-bug.outputs.*, ',') }}
+      - name: Print outputs (stale-feature)
+        run: echo ${{ join(steps.stale-feature.outputs.*, ',') }}
+      - name: Print outputs (invalid)
+        run: echo ${{ join(steps.invalid.outputs.*, ',') }}

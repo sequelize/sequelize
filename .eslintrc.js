@@ -3,6 +3,7 @@
 require('@rushstack/eslint-patch/modern-module-resolution');
 
 module.exports = {
+  root: true,
   extends: [
     '@ephys/eslint-config-typescript',
     '@ephys/eslint-config-typescript/node',
@@ -38,9 +39,13 @@ module.exports = {
     'prefer-object-has-own': 'off',
     'unicorn/prefer-at': 'off',
     'unicorn/prefer-string-replace-all': 'off',
+    'consistent-return': 'off',
 
     // This rule is incompatible with DataTypes
     'babel/new-cap': 'off',
+
+    // Too opinionated
+    'unicorn/prefer-set-has': 'off',
   },
   overrides: [{
     files: ['**/*.{js,mjs,cjs}'],
@@ -125,7 +130,7 @@ module.exports = {
     // let's disable the most problematic rules for now.
     // they're only disabled for .js files.
     // .ts files will need to migrate.
-    files: ['test/**/*.js'],
+    files: ['packages/*/test/**/*.js'],
     rules: {
       'babel/no-invalid-this': 'off',
       'func-names': 'off',
@@ -140,7 +145,7 @@ module.exports = {
     },
   }, {
     // Disable slow rules that are not important in tests (perf)
-    files: ['test/**/*'],
+    files: ['packages/*/test/**/*'],
     rules: {
       'import/no-extraneous-dependencies': 'off',
       // no need to check jsdoc in tests & docs
@@ -163,11 +168,8 @@ module.exports = {
     env: {
       mocha: true,
     },
-    parserOptions: {
-      project: ['./test/tsconfig.json'],
-    },
   }, {
-    files: ['test/types/**/*'],
+    files: ['packages/*/test/types/**/*'],
     rules: {
       // This code is never executed, it's typing only, so these rules make no sense:
       '@typescript-eslint/no-unused-vars': 'off',
@@ -180,9 +182,9 @@ module.exports = {
       'json/*': ['error', { allowComments: true }],
     },
   }, {
-    files: ['dev/**/*'],
-    parserOptions: {
-      project: ['./dev/tsconfig.json'],
+    files: ['sscce.ts'],
+    rules: {
+      'no-console': 'off',
     },
   }],
   settings: {
@@ -195,7 +197,14 @@ module.exports = {
           type: false,
           required: ['name'],
         },
+        category: {
+          type: false,
+          required: ['name'],
+        },
         internal: {
+          type: false,
+        },
+        hidden: {
           type: false,
         },
       },
@@ -206,8 +215,8 @@ module.exports = {
     sourceType: 'module',
   },
   ignorePatterns: [
-    'lib/**/*',
-    'types/**/*',
+    'packages/*/lib/**/*',
+    'packages/*/types/**/*',
     '.typedoc-build',
   ],
   env: {

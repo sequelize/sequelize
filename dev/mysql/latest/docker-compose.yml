@@ -1,7 +1,7 @@
 services:
   mysql-latest:
     container_name: sequelize-mysql-latest
-    image: mysql:8.0.31
+    image: mysql:8.0.32
     environment:
       MYSQL_DATABASE: sequelize_test
       MYSQL_USER: sequelize_test
