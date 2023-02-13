@@ -2244,9 +2244,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
           if (options.conflictAttributes) {
             options.upsertKeys = options.conflictAttributes.map(
-              attr => (Object.prototype.hasOwnProperty.call(this.rawAttributes, attr)
-                ? this.rawAttributes[attr].field || attr
-                : attr),
+              attrName => modelDefinition.getColumnName(attrName),
             );
           } else {
             const upsertKeys = [];

@@ -54,19 +54,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       if (current.dialect.supports.inserts.updateOnDuplicate) {
-        it('should pass conflictAttributes for unknown columns directly to upsertKeys', async () => {
-          // Note that the model also has an id key as its primary key.
-          await Model.bulkCreate([{ purchaseCount: 42 }], {
-            conflictAttributes: ['a', 'b', 'c'],
-            updateOnDuplicate: ['purchaseCount'],
-          });
-
-          expect(
-            // Not worth checking that the reference of the array matches - just the contents.
-            stub.getCall(0).args[2].upsertKeys,
-          ).to.deep.equal(['a', 'b', 'c']);
-        });
-
         it('should map conflictAttributes to column names', async () => {
           // Note that the model also has an id key as its primary key.
           await Model.bulkCreate([{ accountId: 42, purchaseCount: 3 }], {
