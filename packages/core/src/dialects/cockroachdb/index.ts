@@ -4,9 +4,9 @@ import { AbstractDialect } from '../abstract';
 import type { BindCollector } from '../abstract';
 import { CockroachdbConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
+import { CockroachDbQuery } from './query';
 import { CockroachDbQueryGenerator } from './query-generator';
 import { CockroachDbQueryInterface } from './query-interface';
-import { CockroachDbQuery } from './query.js';
 
 export class CockroachDbDialect extends AbstractDialect {
   static readonly supports = AbstractDialect.extendSupport({
@@ -63,6 +63,7 @@ export class CockroachDbDialect extends AbstractDialect {
     dropTable: {
       cascade: true,
     },
+    EXCEPTION: false,
   });
 
   readonly connectionManager: CockroachdbConnectionManager;
@@ -72,9 +73,9 @@ export class CockroachDbDialect extends AbstractDialect {
   readonly Query = CockroachDbQuery;
 
   readonly defaultVersion = '4.0.0';
-  readonly TICK_CHAR = '"';
-  readonly TICK_CHAR_LEFT = '"';
-  readonly TICK_CHAR_RIGHT = '"';
+  readonly TICK_CHAR = '`';
+  readonly TICK_CHAR_LEFT = '`';
+  readonly TICK_CHAR_RIGHT = '`';
   readonly dataTypesDocumentationUrl = 'https://www.cockroachlabs.com/docs/stable/data-types.html';
 
   constructor(sequelize: Sequelize) {
@@ -93,6 +94,6 @@ export class CockroachDbDialect extends AbstractDialect {
   }
 
   static getDefaultPort(): number {
-    return 4001;
+    return 26_257;
   }
 }

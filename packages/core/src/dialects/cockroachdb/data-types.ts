@@ -1,7 +1,8 @@
 import { format } from 'node:util';
 import { ValidationError } from '../../errors';
 import type { GeoJson } from '../../geo-json';
-import type { BindParamOptions } from '../abstract/data-types';
+import type { BindParamOptions, AbstractDataType, AcceptableTypeOf, StringifyOptions } from '../abstract/data-types';
+import { ARRAY as AbstractArray } from '../abstract/data-types';
 import { INTEGER as PostgresInteger, BIGINT as PostgresBigint, GEOGRAPHY as PostgresGeography } from '../postgres/data-types';
 
 export class INTEGER extends PostgresInteger {
@@ -36,3 +37,24 @@ export class GEOGRPAHY extends PostgresGeography {
   }
 }
 
+export class ARRAY<T extends AbstractDataType<any>> extends AbstractArray<T> {
+  escape(
+    values: Array<AcceptableTypeOf<T>>,
+    options: StringifyOptions,
+  ) {
+    const type = this.options.type;
+
+    return `ARRAY[${values.map((value: any) => {
+      return type.escape(value, options);
+    }).join(',')}]::${type.toSql(options)}[]`;
+  }
+
+  getBindParamSql(
+    values: Array<AcceptableTypeOf<T>>,
+    options: BindParamOptions,
+  ) {
+    return options.bindParam(values.map((value: any) => {
+      return this.options.type.toBindableValue(value, options);
+    }));
+  }
+}
