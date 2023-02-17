@@ -55,7 +55,7 @@
     "inflection": "^1.13.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
-    "moment-timezone": "^0.5.34",
+    "moment-timezone": "^0.5.35",
     "pg-connection-string": "^2.5.0",
     "retry-as-promised": "^7.0.3",
     "semver": "^7.3.5",
