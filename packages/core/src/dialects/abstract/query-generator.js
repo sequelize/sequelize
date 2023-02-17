@@ -211,6 +211,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     let onDuplicateKeyUpdate = '';
 
+    if (
+      !_.isEmpty(options.conflictWhere)
+      && !this.dialect.supports.inserts.onConflictWhere
+    ) {
+      throw new Error('missing dialect support for conflictWhere option');
+    }
+
     // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
     // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
     // upsert function.
@@ -219,10 +226,27 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
-        onDuplicateKeyUpdate = ` ON CONFLICT (${conflictKeys.join(',')})`;
+
+        const fragments = [
+          'ON CONFLICT',
+          '(',
+          conflictKeys.join(','),
+          ')',
+        ];
+
+        if (!_.isEmpty(options.conflictWhere)) {
+          fragments.push(this.whereQuery(options.conflictWhere, options));
+        }
+
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
         // do an update.  Instead, fall back to DO NOTHING.
-        onDuplicateKeyUpdate += _.isEmpty(updateKeys) ? ' DO NOTHING ' : ` DO UPDATE SET ${updateKeys.join(',')}`;
+        if (_.isEmpty(updateKeys)) {
+          fragments.push('DO NOTHING');
+        } else {
+          fragments.push('DO UPDATE SET', updateKeys.join(','));
+        }
+
+        onDuplicateKeyUpdate = ` ${joinSQLFragments(fragments)}`;
       } else {
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=${values[attr]}`);
         // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id

@@ -30,10 +30,9 @@ describe('QueryGenerator#removeIndexQuery', () => {
 
   it('produces a DROP INDEX with CONCURRENTLY query from a table', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { concurrently: true }), {
-      default: `DROP INDEX CONCURRENTLY [user_foo_bar] ON [myTable]`,
+      default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['concurrently']),
       postgres: `DROP INDEX CONCURRENTLY "public"."user_foo_bar"`,
       snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
-      'db2 ibmi mariadb mssql mysql sqlite': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['concurrently']),
     });
   });
 
@@ -50,10 +49,9 @@ describe('QueryGenerator#removeIndexQuery', () => {
 
   it('produces a DROP INDEX with CASCADE query from a table', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { cascade: true }), {
-      default: `DROP INDEX [user_foo_bar] ON [myTable] CASCADE`,
+      default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade']),
       postgres: `DROP INDEX "public"."user_foo_bar" CASCADE`,
       snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
-      'db2 ibmi mariadb mssql mysql sqlite': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade']),
     });
   });
 

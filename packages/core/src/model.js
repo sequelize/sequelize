@@ -2243,17 +2243,23 @@ ${associationOwner._getAssociationDebugList()}`);
             return modelDefinition.getColumnName(attrName);
           });
 
-          const upsertKeys = [];
+          if (options.conflictAttributes) {
+            options.upsertKeys = options.conflictAttributes.map(
+              attrName => modelDefinition.getColumnName(attrName),
+            );
+          } else {
+            const upsertKeys = [];
 
-          for (const i of model.getIndexes()) {
-            if (i.unique && !i.where) { // Don't infer partial indexes
-              upsertKeys.push(...i.fields);
+            for (const i of model.getIndexes()) {
+              if (i.unique && !i.where) { // Don't infer partial indexes
+                upsertKeys.push(...i.fields);
+              }
             }
-          }
 
-          options.upsertKeys = upsertKeys.length > 0
-            ? upsertKeys
-            : Object.values(model.primaryKeys).map(x => x.field);
+            options.upsertKeys = upsertKeys.length > 0
+              ? upsertKeys
+              : Object.values(model.primaryKeys).map(x => x.field);
+          }
         }
 
         // Map returning attributes to fields
