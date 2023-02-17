@@ -130,7 +130,7 @@ module.exports = {
     // let's disable the most problematic rules for now.
     // they're only disabled for .js files.
     // .ts files will need to migrate.
-    files: ['packages/*/test/**/*.js'],
+    files: ['packages/*/test/**/*.js', 'packages/*/test/*.ts'],
     rules: {
       'babel/no-invalid-this': 'off',
       'func-names': 'off',
