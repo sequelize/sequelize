@@ -19,6 +19,7 @@ export const identifier = Pkg.identifier;
 export const Identifier = Pkg.Identifier;
 export const JsonPath = Pkg.JsonPath;
 export const jsonPath = Pkg.jsonPath;
+export const AssociationPath = Pkg.AssociationPath;
 export const Value = Pkg.Value;
 export const sql = Pkg.sql;
 export const and = Pkg.and;

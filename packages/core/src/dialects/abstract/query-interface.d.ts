@@ -565,9 +565,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   increment<M extends Model>(
     model: ModelStatic<M>,
     tableName: TableName,
+    where: WhereOptions<Attributes<M>>,
     incrementAmountsByField: object,
-    extraAttributesToBeUpdated?: object,
-    where?: WhereOptions<Attributes<M>>,
+    extraAttributesToBeUpdated: object,
     options?: QiArithmeticOptions,
   ): Promise<object>;
 
@@ -577,9 +577,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   decrement<M extends Model>(
     model: ModelStatic<M>,
     tableName: TableName,
+    where: WhereOptions<Attributes<M>>,
     incrementAmountsByField: object,
-    extraAttributesToBeUpdated?: object,
-    where?: WhereOptions<Attributes<M>>,
+    extraAttributesToBeUpdated: object,
     options?: QiArithmeticOptions,
   ): Promise<object>;
 

@@ -136,7 +136,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const returningModelAttributes = [];
     const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -171,12 +171,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (_.get(this, ['sequelize', 'options', 'dialectOptions', 'prependSearchPath']) || options.searchPath) {
       // Not currently supported with search path (requires output of multiple queries)
-      options.bindParam = false;
+      bindParam = undefined;
     }
 
     if (this.dialect.supports.EXCEPTION && options.exception) {
       // Not currently supported with bind parameters (requires output of multiple queries)
-      options.bindParam = false;
+      bindParam = undefined;
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
@@ -487,21 +487,22 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    * @param {string} operator                    String with the arithmetic operator (e.g. '+' or '-')
    * @param {string} tableName                   Name of the table
    * @param {object} where                       A plain-object with conditions (e.g. {name: 'foo'}) OR an ID as integer
-   * @param {object} incrementAmountsByField     A plain-object with attribute-value-pairs
+   * @param {object} incrementAmountsByAttribute     A plain-object with attribute-value-pairs
    * @param {object} extraAttributesToBeUpdated  A plain-object with attribute-value-pairs
    * @param {object} options
    *
    * @private
    */
-  arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
+  arithmeticQuery(operator, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options) {
     // TODO: this method should delegate to `updateQuery`
 
     options = options || {};
     _.defaults(options, { returning: true });
+    const { model } = options;
 
     // TODO: add attribute DataType
     // TODO: add model
-    const escapeOptions = _.pick(options, ['replacements']);
+    const escapeOptions = _.pick(options, ['replacements', 'model']);
 
     extraAttributesToBeUpdated = removeNullishValuesFromHash(extraAttributesToBeUpdated, this.options.omitNull);
 
@@ -516,16 +517,19 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     const updateSetSqlFragments = [];
-    for (const field in incrementAmountsByField) {
-      const incrementAmount = incrementAmountsByField[field];
-      const quotedField = this.quoteIdentifier(field);
+    for (const attributeName in incrementAmountsByAttribute) {
+      const columnName = model ? model.modelDefinition.getColumnNameLoose(attributeName) : attributeName;
+      const incrementAmount = incrementAmountsByAttribute[columnName];
+      const quotedField = this.quoteIdentifier(columnName);
       const escapedAmount = this.escape(incrementAmount, escapeOptions);
       updateSetSqlFragments.push(`${quotedField}=${quotedField}${operator} ${escapedAmount}`);
     }
 
-    for (const field in extraAttributesToBeUpdated) {
-      const newValue = extraAttributesToBeUpdated[field];
-      const quotedField = this.quoteIdentifier(field);
+    for (const attributeName in extraAttributesToBeUpdated) {
+      const columnName = model ? model.modelDefinition.getColumnNameLoose(attributeName) : attributeName;
+
+      const newValue = extraAttributesToBeUpdated[columnName];
+      const quotedField = this.quoteIdentifier(columnName);
       const escapedValue = this.escape(newValue, escapeOptions);
       updateSetSqlFragments.push(`${quotedField}=${escapedValue}`);
     }

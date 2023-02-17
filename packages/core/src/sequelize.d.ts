@@ -1102,5 +1102,5 @@ export function and<T extends any[]>(...args: T): { [Op.and]: T };
  */
 export function or<T extends any[]>(...args: T): { [Op.or]: T };
 
-export type WhereLeftOperand = ColumnReference | DynamicExpression | unknown;
+export type Expression = ColumnReference | DynamicExpression | unknown;
 

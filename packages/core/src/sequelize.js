@@ -8,7 +8,7 @@ import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { isString } from './utils/check.js';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { Cast, cast, Col, col, Fn, fn, json, Literal, literal, sql, Where, where, Identifier, identifier, JsonPath, jsonPath, List, list, Attribute, attribute } from './utils/sequelize-method';
+import { Cast, cast, Col, col, Fn, fn, json, Literal, literal, sql, Where, where, Identifier, identifier, JsonPath, jsonPath, List, list, Attribute, attribute, AssociationPath } from './utils/sequelize-method';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
@@ -1117,6 +1117,8 @@ Use Sequelize#query if you wish to use replacements.`);
   static Attribute = Attribute;
 
   static attribute = attribute;
+
+  static AssociationPath = AssociationPath;
 
   static sql = sql;
 

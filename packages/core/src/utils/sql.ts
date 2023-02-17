@@ -323,18 +323,22 @@ export function injectReplacements(
   return mapBindParametersAndReplacements(sqlString, dialect, replacements, undefined, opts);
 }
 
-function isBackslashEscaped(string: string, pos: number): boolean {
-  let escaped = false;
+export function isBackslashEscaped(string: string, pos: number): boolean {
+  return getEscapingBackslashCount(string, pos) % 2 === 1;
+}
+
+export function getEscapingBackslashCount(string: string, pos: number): number {
+  let escapeCount = 0;
   for (let i = pos; i >= 0; i--) {
     const char = string[i];
     if (char !== '\\') {
       break;
     }
 
-    escaped = !escaped;
+    escapeCount++;
   }
 
-  return escaped;
+  return escapeCount;
 }
 
 /**

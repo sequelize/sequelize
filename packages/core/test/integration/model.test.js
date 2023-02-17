@@ -1490,7 +1490,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
         const user = await User.findByPk(1);
         await user.destroy();
-        expect(await User.findOne({ where: 1, paranoid: false })).to.exist;
+        expect(await User.findOne({ where: { id: 1 }, paranoid: false })).to.exist;
         expect(await User.findByPk(1)).to.be.null;
         expect(await User.count()).to.equal(2);
         expect(await User.count({ paranoid: false })).to.equal(3);

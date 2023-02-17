@@ -4,7 +4,6 @@ import type { ModelStatic, Attributes, Model } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Sequelize } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
-import { parseAttributeSyntax } from '../../utils/attribute.js';
 import { isNullish, isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
@@ -301,20 +300,21 @@ export class AbstractQueryGeneratorTypeScript {
   }
 
   protected formatJsonPath(jsonPathVal: JsonPath, options?: EscapeOptions): string {
-    const value = this.escape(jsonPathVal.value, options);
+    const value = this.escape(jsonPathVal.expression, options);
 
     if (jsonPathVal.path.length === 0) {
       return value;
     }
 
-    return this.jsonPathExtractionQuery(value, jsonPathVal.path);
+    return this.jsonPathExtractionQuery(value, jsonPathVal.path, jsonPathVal.unquote);
   }
 
   /**
    * @param _sqlExpression ⚠️ This is not an identifier, it's a raw SQL expression. It will be inlined in the query.
    * @param _path The JSON path, where each item is one level of the path
+   * @param _unquote Whether the result should be unquoted (depending on dialect: ->> and #>> operators, json_unquote function). Defaults to `false`.
    */
-  jsonPathExtractionQuery(_sqlExpression: string, _path: readonly string[]): string {
+  jsonPathExtractionQuery(_sqlExpression: string, _path: readonly string[], _unquote: boolean): string {
     if (!this.dialect.supports.jsonOperations) {
       throw new Error(`JSON operations are not supported in ${this.dialect.name}.`);
     }
@@ -348,13 +348,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     const model = options?.model;
 
     // This handles special attribute syntaxes like $association.references$, json.paths, and attribute::casting
-    const parsedAttributeName = parseAttributeSyntax(piece);
-    if (!(parsedAttributeName instanceof Attribute)) {
-      return this.formatSequelizeMethod(parsedAttributeName, options);
-    }
-
-    const columnName = model?.modelDefinition.getColumnNameLoose(parsedAttributeName.attributeName)
-      ?? parsedAttributeName.attributeName;
+    const columnName = model?.modelDefinition.getColumnNameLoose(piece.attributeName)
+      ?? piece.attributeName;
 
     if (options?.mainAlias) {
       return `${this.quoteIdentifier(options.mainAlias)}.${this.quoteIdentifier(columnName)}`;
@@ -378,7 +373,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   protected formatCast(cast: Cast, options?: EscapeOptions) {
     const type = this.sequelize.normalizeDataType(cast.type);
 
-    const castSql = wrapAmbiguousWhere(cast.val, this.escape(cast.val, { ...options, type }));
+    const castSql = wrapAmbiguousWhere(cast.expression, this.escape(cast.expression, { ...options, type }));
     const targetSql = attributeTypeToSql(type).toUpperCase();
 
     // TODO: if we're casting to the same SQL DataType, we could skip the SQL cast (but keep the JS cast)

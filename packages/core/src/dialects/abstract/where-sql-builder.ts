@@ -2,10 +2,11 @@ import NodeUtil from 'node:util';
 import type {
   ModelStatic,
   WhereOptions,
-  WhereLeftOperand,
+  Expression,
 } from '../../index.js';
 import { Op } from '../../operators';
-import { parseAttributeSyntax } from '../../utils/attribute.js';
+import type { ParsedJsonPropertyKey } from '../../utils/attribute-syntax.js';
+import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attribute-syntax.js';
 import { isPlainObject } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
@@ -20,11 +21,11 @@ import type { AbstractQueryGenerator } from './query-generator.js';
 import type { WhereAttributeHashValue } from './where-sql-builder-types.js';
 
 export class PojoWhere {
-  declare leftOperand: WhereLeftOperand;
+  declare leftOperand: Expression;
   declare whereValue: WhereAttributeHashValue<any>;
 
   static create(
-    leftOperand: WhereLeftOperand,
+    leftOperand: Expression,
     whereAttributeHashValue: WhereAttributeHashValue<any>,
   ): PojoWhere {
     const pojoWhere = new PojoWhere();
@@ -104,10 +105,12 @@ export class WhereSqlBuilder {
   };
 
   #jsonType: NormalizedDataType;
+  #textType: NormalizedDataType;
   #arrayOfTextType: NormalizedDataType;
 
   constructor(protected readonly queryGenerator: AbstractQueryGenerator) {
     this.#jsonType = new DataTypes.JSON().toDialectDataType(queryGenerator.dialect);
+    this.#textType = new DataTypes.TEXT().toDialectDataType(queryGenerator.dialect);
     this.#arrayOfTextType = new DataTypes.ARRAY(new DataTypes.TEXT()).toDialectDataType(queryGenerator.dialect);
   }
 
@@ -127,6 +130,10 @@ export class WhereSqlBuilder {
   ): string {
     if (typeof where === 'string') {
       throw new TypeError('Support for `{ where: \'raw query\' }` has been removed. Use `{ where: literal(\'raw query\') }` instead');
+    }
+
+    if (where === undefined) {
+      return '';
     }
 
     try {
@@ -213,7 +220,7 @@ export class WhereSqlBuilder {
       try {
         pojoWhereObject = pojoWherePool.getObject();
 
-        pojoWhereObject.leftOperand = new Attribute(operatorOrAttribute);
+        pojoWhereObject.leftOperand = parseAttributeSyntax(operatorOrAttribute);
 
         // @ts-expect-error -- The type of "operatorOrAttribute" is too dynamic for TS
         pojoWhereObject.whereValue = input[operatorOrAttribute];
@@ -240,22 +247,20 @@ export class WhereSqlBuilder {
     options: FormatWhereOptions = EMPTY_OBJECT,
   ): string {
     // we need to parse the left operand early to determine the data type of the right operand
-    const leftPreJsonPath = pojoWhere.leftOperand instanceof Attribute
-      ? parseAttributeSyntax(pojoWhere.leftOperand)
-      : pojoWhere.leftOperand;
-
-    let leftDataType = this.#getOperandType(leftPreJsonPath, options.model);
+    let leftDataType = this.#getOperandType(pojoWhere.leftOperand, options.model);
     const operandIsJsonColumn = leftDataType == null || leftDataType instanceof DataTypes.JSON;
 
     return this.#handleRecursiveNotOrAndNestedPathRecursive(
-      leftPreJsonPath,
+      pojoWhere.leftOperand,
       pojoWhere.whereValue,
       operandIsJsonColumn,
-      (left: WhereLeftOperand, operator: symbol | undefined, right: WhereLeftOperand) => {
+      (left: Expression, operator: symbol | undefined, right: Expression) => {
         // "left" could have been wrapped in a JSON path. If we still don't know its data type, it's very likely a JSON column
         // if the user used a JSON path in the where clause.
         if (leftDataType == null && left instanceof JsonPath) {
           leftDataType = this.#jsonType;
+        } else if (left !== pojoWhere.leftOperand) { // if "left" was wrapped in a JSON path, we need to get its data type again as it might have been cast
+          leftDataType = this.#getOperandType(left, options.model);
         }
 
         if (operator === Op.col) {
@@ -272,13 +277,17 @@ export class WhereSqlBuilder {
         }
 
         if (operator == null) {
+          if (right === null && leftDataType instanceof DataTypes.JSON) {
+            throw new Error('Because JSON has two possible null values, comparing a JSON/JSONB attribute to NULL requires an explicit comparison operator. Use the `Op.is` operator to compare to SQL NULL, or the `Op.eq` operator to compare to JSON null.');
+          }
+
           operator = Array.isArray(right) && !(leftDataType instanceof DataTypes.ARRAY) ? Op.in
             : right === null ? Op.is
             : Op.eq;
         }
 
         // backwards compatibility
-        if (right === null) {
+        if (right === null && !(leftDataType instanceof DataTypes.JSON)) {
           if (operator === Op.eq) {
             operator = Op.is;
           }
@@ -288,9 +297,6 @@ export class WhereSqlBuilder {
           }
         }
 
-        right = right instanceof Attribute
-          ? parseAttributeSyntax(right)
-          : right;
         const rightDataType = this.#getOperandType(right, options.model);
 
         if (operator in this) {
@@ -308,10 +314,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.in](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -348,10 +354,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.is](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -359,7 +365,17 @@ export class WhereSqlBuilder {
       throw new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.');
     }
 
-    return this.formatBinaryOperation(left, leftDataType, operator, right, rightDataType, options);
+    // "IS" operator does not accept bind parameters, only literals
+    if (options.bindParam) {
+      options = {
+        ...options,
+        bindParam: undefined,
+      };
+    }
+
+    return this.formatBinaryOperation(
+      left, undefined, operator, right, undefined, options,
+    );
   }
 
   protected [Op.notBetween](...args: Parameters<WhereSqlBuilder[typeof Op.between]>): string {
@@ -367,10 +383,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.between](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -392,10 +408,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.contains](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -421,10 +437,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.contained](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -457,10 +473,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.startsWith](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -468,10 +484,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.notStartsWith](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -479,10 +495,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.endsWith](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -490,10 +506,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.notEndsWith](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -501,10 +517,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.substring](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -512,10 +528,10 @@ export class WhereSqlBuilder {
   }
 
   protected [Op.notSubstring](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -523,10 +539,10 @@ export class WhereSqlBuilder {
   }
 
   protected formatSubstring(
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
     start: boolean,
@@ -557,10 +573,10 @@ export class WhereSqlBuilder {
   }
 
   [Op.anyKeyExists](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -568,10 +584,10 @@ export class WhereSqlBuilder {
   }
 
   [Op.allKeysExist](
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
@@ -579,10 +595,10 @@ export class WhereSqlBuilder {
   }
 
   protected formatBinaryOperation(
-    left: WhereLeftOperand,
+    left: Expression,
     leftDataType: NormalizedDataType | undefined,
     operator: symbol,
-    right: WhereLeftOperand,
+    right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ) {
@@ -643,24 +659,24 @@ export class WhereSqlBuilder {
    * @param parentJsonPath
    */
   #handleRecursiveNotOrAndNestedPathRecursive(
-    leftOperand: WhereLeftOperand,
+    leftOperand: Expression,
     whereValue: WhereAttributeHashValue<any>,
     allowJsonPath: boolean,
     handlePart: (
-      left: WhereLeftOperand,
+      left: Expression,
       operator: symbol | undefined,
-      right: WhereLeftOperand,
+      right: Expression,
     ) => string,
     operator: typeof Op.and | typeof Op.or = Op.and,
     parentJsonPath: readonly string[] = EMPTY_ARRAY,
   ): string {
     if (!isPlainObject(whereValue)) {
-      return handlePart(this.#wrapJsonPath(leftOperand, parentJsonPath), undefined, whereValue);
+      return handlePart(this.#wrapSimpleJsonPath(leftOperand, parentJsonPath), undefined, whereValue);
     }
 
     const stringKeys = Object.keys(whereValue);
     if (!allowJsonPath && stringKeys.length > 0) {
-      return handlePart(this.#wrapJsonPath(leftOperand, parentJsonPath), undefined, whereValue as WhereLeftOperand);
+      return handlePart(this.#wrapSimpleJsonPath(leftOperand, parentJsonPath), undefined, whereValue as Expression);
     }
 
     const keys = [...stringKeys, ...getOperators(whereValue)];
@@ -671,13 +687,36 @@ export class WhereSqlBuilder {
 
       // nested JSON path
       if (typeof key === 'string') {
+        // parse path segments & cast syntax
+        const parsedKey = parseNestedJsonKeySyntax(key);
+
+        // optimization for common simple scenario (to skip replacing leftOperand on every iteration)
+        if (parsedKey.casts.length === 0 && !parsedKey.shouldUnquote) {
+          return this.#handleRecursiveNotOrAndNestedPathRecursive(
+            leftOperand,
+            value,
+            allowJsonPath,
+            handlePart,
+            operator,
+            [...parentJsonPath, ...parsedKey.pathSegments],
+          );
+        }
+
+        // less optimized scenario: happens when we leave the JSON path (cast to another type or unquote),
+        // we need to replace leftOperand with the casted value or the unquote operation
+        const newOperand = this.#wrapComplexJsonPath(leftOperand, parentJsonPath, parsedKey);
+
         return this.#handleRecursiveNotOrAndNestedPathRecursive(
-          leftOperand,
+          newOperand,
           value,
-          allowJsonPath,
+          // TODO: allow JSON if last cast is JSON?
+          //  needs a mechanism to get JS DataType from SQL DataType first. To get last cast:
+          //  newOperand instanceof Cast && isString(newOperand.type) && newOperand.type.toLowerCase();
+          false,
           handlePart,
           operator,
-          [...parentJsonPath, key],
+          // reset json path
+          EMPTY_ARRAY,
         );
       }
 
@@ -689,7 +728,6 @@ export class WhereSqlBuilder {
             allowJsonPath,
             handlePart,
             Op.and,
-            parentJsonPath,
           ),
         );
       }
@@ -703,7 +741,6 @@ export class WhereSqlBuilder {
               allowJsonPath,
               handlePart,
               Op.and,
-              parentJsonPath,
             ));
 
           return joinWithLogicalOperator(sqlParts, key as typeof Op.and | typeof Op.or);
@@ -715,43 +752,63 @@ export class WhereSqlBuilder {
           allowJsonPath,
           handlePart,
           key as typeof Op.and | typeof Op.or,
-          parentJsonPath,
         );
       }
 
-      return handlePart(this.#wrapJsonPath(leftOperand, parentJsonPath), key, value);
+      return handlePart(this.#wrapSimpleJsonPath(leftOperand, parentJsonPath), key, value);
     });
 
     return joinWithLogicalOperator(parts, operator);
   }
 
-  #wrapJsonPath(operand: WhereLeftOperand, jsonPath: readonly string[]): WhereLeftOperand {
-    if (jsonPath.length === 0) {
+  #wrapSimpleJsonPath(operand: Expression, pathSegments: readonly string[]): Expression {
+    if (pathSegments.length === 0) {
       return operand;
     }
 
     // merge JSON paths
-    if (operand instanceof JsonPath) {
-      return new JsonPath(operand.value, [...operand.path, ...jsonPath]);
+    if (operand instanceof JsonPath && !operand.unquote) {
+      return new JsonPath(operand.expression, [...operand.path, ...pathSegments], false);
     }
 
-    return new JsonPath(operand, jsonPath);
+    return new JsonPath(operand, pathSegments, false);
   }
 
-  #getOperandType(operand: WhereLeftOperand, model: Nullish<ModelStatic>): NormalizedDataType | undefined {
-    if (!model) {
-      return undefined;
+  #wrapComplexJsonPath(
+    operand: Expression,
+    parentJsonPath: readonly string[],
+    parsedPath: ParsedJsonPropertyKey,
+  ): Expression {
+    const finalPathSegments = parentJsonPath.length > 0
+      ? [...parentJsonPath, ...parsedPath.pathSegments]
+      : parsedPath.pathSegments;
+
+    if (!parsedPath.shouldUnquote) {
+      operand = this.#wrapSimpleJsonPath(operand, finalPathSegments);
+    } else {
+      operand = new JsonPath(operand, finalPathSegments, true);
     }
 
+    for (const cast of parsedPath.casts) {
+      operand = new Cast(operand, cast);
+    }
+
+    return operand;
+  }
+
+  #getOperandType(operand: Expression, model: Nullish<ModelStatic>): NormalizedDataType | undefined {
     if (operand instanceof Cast) {
-      // TODO: if operand.type is a string (= SQL Type), we look up a per-dialect mapping of SQL types to Sequelize types
+      // TODO: if operand.type is a string (= SQL Type), look up a per-dialect mapping of SQL types to Sequelize types?
       return this.dialect.sequelize.normalizeDataType(operand.type);
     }
 
     if (operand instanceof JsonPath) {
       // JsonPath can wrap Attributes
-      // If the attribute is unknown and it's not casted, we default to JSON
-      return this.#getOperandType(operand.value, model) ?? this.#jsonType;
+      return operand.unquote ? this.#textType : this.#jsonType;
+    }
+
+    if (!model) {
+      return undefined;
     }
 
     if (operand instanceof AssociationPath) {
@@ -806,7 +863,7 @@ function wrapWithNot(sql: string): string {
   return `NOT (${sql})`;
 }
 
-export function wrapAmbiguousWhere(operand: WhereLeftOperand, sql: string): string {
+export function wrapAmbiguousWhere(operand: Expression, sql: string): string {
   // where() can produce ambiguous SQL when used as an operand:
   //
   // { booleanAttr: where(fn('lower', col('name')), Op.is, null) }

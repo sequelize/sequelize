@@ -20,7 +20,7 @@ describe('QueryInterface#decrement', () => {
       User,
       User.tableName,
       // where
-      { id: ':id' },
+      { firstName: ':id' },
       // incrementAmountsByField
       { age: ':age' },
       // extraAttributesToBeUpdated
@@ -39,9 +39,9 @@ describe('QueryInterface#decrement', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: `UPDATE [Users] SET [age]=[age]- ':age',[name]=':name' WHERE [id] = ':id'`,
-      postgres: `UPDATE "Users" SET "age"="age"- ':age',"name"=':name' WHERE "id" = ':id' RETURNING ":data"`,
-      mssql: `UPDATE [Users] SET [age]=[age]- N':age',[name]=N':name' OUTPUT INSERTED.[:data] WHERE [id] = N':id'`,
+      default: `UPDATE [Users] SET [age]=[age]- ':age',[name]=':name' WHERE [firstName] = ':id'`,
+      postgres: `UPDATE "Users" SET "age"="age"- ':age',"name"=':name' WHERE "firstName" = ':id' RETURNING ":data"`,
+      mssql: `UPDATE [Users] SET [age]=[age]- N':age',[name]=N':name' OUTPUT INSERTED.[:data] WHERE [firstName] = N':id'`,
     });
     expect(firstCall.args[1]?.bind).to.be.undefined;
   });

@@ -2057,9 +2057,7 @@ Caused by: "undefined" cannot be escaped`),
         testSql({
           $jsonAttr$: { 'nested::string': 'value' },
         }, {
-          // we don't put any restriction on the syntax of keys inside of the JSON object, so we can give special meaning to any of it.
-          // It only works at the top level
-          postgres: `"jsonAttr"->'nested::string' = '"value"'`,
+          postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
         });
 
         testSql({ 'jsonAttr.nested.attribute': 4 }, {
@@ -2069,6 +2067,16 @@ Caused by: "undefined" cannot be escaped`),
         // numeric path
         testSql({ 'jsonAttr.0.attribute': 4 }, {
           postgres: `"jsonAttr"#>ARRAY['0','attribute'] = '4'`,
+        });
+
+        // Regression test: https://github.com/sequelize/sequelize/issues/8718
+        testSql({ jsonAttr: { 'hyphenated-key': 4 } }, {
+          postgres: `"jsonAttr"->'hyphenated-key' = '4'`,
+        });
+
+        // SQL injection test
+        testSql({ jsonAttr: { '"a\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "': 1 } }, {
+          postgres: `"jsonAttr"->'a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ' = '1'`,
         });
 
         // @ts-expect-error -- TODO: update typing to support this syntax

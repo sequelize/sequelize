@@ -76,8 +76,10 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  jsonPathExtractionQuery(sqlExpression: string, path: string[]): string {
-    const operator = path.length === 1 ? '->' : '#>';
+  jsonPathExtractionQuery(sqlExpression: string, path: string[], unquote: boolean): string {
+    const operator = path.length === 1
+      ? (unquote ? '->>' : '->')
+      : (unquote ? '#>>' : '#>');
 
     const pathSql = path.length === 1
       ? this.escape(path[0])

@@ -47,7 +47,7 @@ function withInlineCause(cb: (() => any)): () => void {
   };
 }
 
-function inlineErrorCause(error: unknown): string {
+export function inlineErrorCause(error: unknown): string {
   if (!(error instanceof Error)) {
     return String(error);
   }

@@ -83,12 +83,20 @@ export type WhereAttributeHash<TAttributes = any> = {
   [AttributeName in keyof TAttributes as AttributeName extends string ? AttributeName | `$${AttributeName}$` : never]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
 } & {
   [AttributeName in keyof TAttributes as AttributeName extends string ?
-    // support 'json.path', '$json$.path'
+    // support 'json.path', '$json$.path', json->>path', '$json$->>path'
     | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`
+    | `${AttributeName}->>${string}` | `$${AttributeName}$->>${string}`
     // support 'attribute::cast', '$attribute$::cast', 'json.path::cast' & '$json$.path::cast'
     | `${AttributeName | `$${AttributeName}$` | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`}::${string}`
     : never]?: WhereAttributeHashValue<any>;
 } & {
-  // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast'
-  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>,
+  // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast', '$nested.attribute$->>jsonpath', & '$nested.attribute$->>jsonpath::cast'
+  [attribute:
+    | `$${string}.${string}$`
+    | `$${string}.${string}$::${string}`
+    | `$${string}.${string}$.${string}`
+    | `$${string}.${string}$.${string}::${string}`
+    | `$${string}.${string}$->>${string}`
+    | `$${string}.${string}$->>${string}::${string}`
+  ]: WhereAttributeHashValue<any>,
 };

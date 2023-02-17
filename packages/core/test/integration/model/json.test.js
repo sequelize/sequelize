@@ -1,11 +1,10 @@
 'use strict';
 
 const chai = require('chai');
-const dayjs = require('dayjs');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
@@ -22,7 +21,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           // TODO: This should be JSONB, not JSON, because the auto-GIN index is only added
           //  to JSONB columns. This was accidentally changed by https://github.com/sequelize/sequelize/issues/7094
           //  re-enable the index when fixed
-          type: DataTypes.JSON,
+          type: DataTypes.JSONB,
           field: 'event_data',
           // index: true,
         },
@@ -38,7 +37,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await this.Event.findOrCreate({
           where: {
-            json: { some: { input: 'Hello' } },
+            json: { 'some->>input': 'Hello' },
           },
           defaults: {
             json: { some: { input: 'Hello' }, input: [1, 2, 3] },
@@ -86,392 +85,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    describe('update', () => {
-      if (dialect.supports.jsonOperations) {
-        it('should update with JSON column (dot notation)', async function () {
-          await this.Event.bulkCreate([{
-            id: 1,
-            data: {
-              name: {
-                first: 'Homer',
-                last: 'Simpson',
-              },
-              employment: 'Nuclear Safety Inspector',
-            },
-          }, {
-            id: 2,
-            data: {
-              name: {
-                first: 'Rick',
-                last: 'Sanchez',
-              },
-              employment: 'Multiverse Scientist',
-            },
-          }]);
-
-          await this.Event.update({
-            data: {
-              name: {
-                first: 'Rick',
-                last: 'Sanchez',
-              },
-              employment: 'Galactic Fed Prisioner',
-            },
-          }, {
-            where: {
-              'data.name.first': 'Rick',
-            },
-          });
-
-          const event = await this.Event.findByPk(2);
-          expect(event.get('data')).to.eql({
-            name: {
-              first: 'Rick',
-              last: 'Sanchez',
-            },
-            employment: 'Galactic Fed Prisioner',
-          });
-        });
-
-        it('should update with JSON column (JSON notation)', async function () {
-          await this.Event.bulkCreate([{
-            id: 1,
-            data: {
-              name: {
-                first: 'Homer',
-                last: 'Simpson',
-              },
-              employment: 'Nuclear Safety Inspector',
-            },
-          }, {
-            id: 2,
-            data: {
-              name: {
-                first: 'Rick',
-                last: 'Sanchez',
-              },
-              employment: 'Multiverse Scientist',
-            },
-          }]);
-
-          await this.Event.update({
-            data: {
-              name: {
-                first: 'Rick',
-                last: 'Sanchez',
-              },
-              employment: 'Galactic Fed Prisioner',
-            },
-          }, {
-            where: {
-              data: {
-                name: {
-                  first: 'Rick',
-                },
-              },
-            },
-          });
-
-          const event = await this.Event.findByPk(2);
-          expect(event.get('data')).to.eql({
-            name: {
-              first: 'Rick',
-              last: 'Sanchez',
-            },
-            employment: 'Galactic Fed Prisioner',
-          });
-        });
-      }
-
-      it('should update an instance with JSON data', async function () {
-        const event0 = await this.Event.create({
-          data: {
-            name: {
-              first: 'Homer',
-              last: 'Simpson',
-            },
-            employment: 'Nuclear Safety Inspector',
-          },
-        });
-
-        await event0.update({
-          data: {
-            name: {
-              first: 'Homer',
-              last: 'Simpson',
-            },
-            employment: null,
-          },
-        });
-
-        const events = await this.Event.findAll();
-        const event = events[0];
-
-        expect(event.get('data')).to.eql({
-          name: {
-            first: 'Homer',
-            last: 'Simpson',
-          },
-          employment: null,
-        });
-      });
-    });
-
     describe('find', () => {
       if (!dialect.supports.jsonOperations) {
         return;
       }
 
-      it('should be possible to query a nested value', async function () {
-        await Promise.all([this.Event.create({
-          data: {
-            name: {
-              first: 'Homer',
-              last: 'Simpson',
-            },
-            employment: 'Nuclear Safety Inspector',
-          },
-        }), this.Event.create({
-          data: {
-            name: {
-              first: 'Marge',
-              last: 'Simpson',
-            },
-            employment: 'Housewife',
-          },
-        })]);
-
-        const events = await this.Event.findAll({
-          where: {
-            data: {
-              employment: 'Housewife',
-            },
-          },
-        });
-
-        const event = events[0];
-
-        expect(events.length).to.equal(1);
-        expect(event.get('data')).to.eql({
-          name: {
-            first: 'Marge',
-            last: 'Simpson',
-          },
-          employment: 'Housewife',
-        });
-      });
-      it('should be possible to query dates with array operators', async function () {
-        const now = dayjs().millisecond(0).toDate();
-        const before = dayjs().millisecond(0).subtract(1, 'day')
-          .toDate();
-        const after = dayjs().millisecond(0).add(1, 'day')
-          .toDate();
-
-        await Promise.all([this.Event.create({
-          json: {
-            user: 'Homer',
-            lastLogin: now,
-          },
-        })]);
-
-        const events0 = await this.Event.findAll({
-          where: {
-            json: {
-              lastLogin: now,
-            },
-          },
-        });
-
-        const event0 = events0[0];
-
-        expect(events0.length).to.equal(1);
-        expect(event0.get('json')).to.eql({
-          user: 'Homer',
-          lastLogin: now.toISOString(),
-        });
-
-        const events = await this.Event.findAll({
-          where: {
-            json: {
-              lastLogin: { [Op.between]: [before, after] },
-            },
-          },
-        });
-
-        const event = events[0];
-
-        expect(events.length).to.equal(1);
-        expect(event.get('json')).to.eql({
-          user: 'Homer',
-          lastLogin: now.toISOString(),
-        });
-      });
-      it('should be possible to query a boolean with array operators', async function () {
-        await Promise.all([this.Event.create({
-          json: {
-            user: 'Homer',
-            active: true,
-          },
-        })]);
-
-        const events0 = await this.Event.findAll({
-          where: {
-            json: {
-              active: true,
-            },
-          },
-        });
-
-        const event0 = events0[0];
-
-        expect(events0.length).to.equal(1);
-        expect(event0.get('json')).to.eql({
-          user: 'Homer',
-          active: true,
-        });
-
-        const events = await this.Event.findAll({
-          where: {
-            json: {
-              active: { [Op.in]: [true, false] },
-            },
-          },
-        });
-
-        const event = events[0];
-
-        expect(events.length).to.equal(1);
-        expect(event.get('json')).to.eql({
-          user: 'Homer',
-          active: true,
-        });
-      });
-      it('should be possible to query a nested integer value', async function () {
-        await Promise.all([this.Event.create({
-          data: {
-            name: {
-              first: 'Homer',
-              last: 'Simpson',
-            },
-            age: 40,
-          },
-        }), this.Event.create({
-          data: {
-            name: {
-              first: 'Marge',
-              last: 'Simpson',
-            },
-            age: 37,
-          },
-        })]);
-
-        const events = await this.Event.findAll({
-          where: {
-            data: {
-              age: {
-                [Op.gt]: 38,
-              },
-            },
-          },
-        });
-
-        const event = events[0];
-
-        expect(events.length).to.equal(1);
-        expect(event.get('data')).to.eql({
-          name: {
-            first: 'Homer',
-            last: 'Simpson',
-          },
-          age: 40,
-        });
-      });
-      it('should be possible to query a nested null value', async function () {
-        await Promise.all([this.Event.create({
-          data: {
-            name: {
-              first: 'Homer',
-              last: 'Simpson',
-            },
-            employment: 'Nuclear Safety Inspector',
-          },
-        }), this.Event.create({
-          data: {
-            name: {
-              first: 'Marge',
-              last: 'Simpson',
-            },
-            employment: null,
-          },
-        })]);
-
-        const events = await this.Event.findAll({
-          where: {
-            data: {
-              employment: null,
-            },
-          },
-        });
-
-        expect(events.length).to.equal(1);
-        expect(events[0].get('data')).to.eql({
-          name: {
-            first: 'Marge',
-            last: 'Simpson',
-          },
-          employment: null,
-        });
-      });
-      it('should be possible to query for nested fields with hyphens/dashes, #8718', async function () {
-        await Promise.all([this.Event.create({
-          data: {
-            name: {
-              first: 'Homer',
-              last: 'Simpson',
-            },
-            status_report: {
-              'red-indicator': {
-                level$$level: true,
-              },
-            },
-            employment: 'Nuclear Safety Inspector',
-          },
-        }), this.Event.create({
-          data: {
-            name: {
-              first: 'Marge',
-              last: 'Simpson',
-            },
-            employment: null,
-          },
-        })]);
-
-        const events = await this.Event.findAll({
-          where: {
-            data: {
-              status_report: {
-                'red-indicator': {
-                  level$$level: true,
-                },
-              },
-            },
-          },
-        });
-
-        expect(events.length).to.equal(1);
-        expect(events[0].get('data')).to.eql({
-          name: {
-            first: 'Homer',
-            last: 'Simpson',
-          },
-          status_report: {
-            'red-indicator': {
-              level$$level: true,
-            },
-          },
-          employment: 'Nuclear Safety Inspector',
-        });
-      });
       it('should be possible to query multiple nested values', async function () {
         await this.Event.create({
           data: {
@@ -660,76 +278,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.sequelize.sync({ force: true });
       });
 
-      it('should properly escape the single quotes', async function () {
-        await this.Model.create({
-          data: {
-            type: 'Point',
-            properties: {
-              exploit: '\'); DELETE YOLO INJECTIONS; -- ',
-            },
-          },
-        });
-      });
-
-      it('should properly escape the single quotes in array', async function () {
-        await this.Model.create({
-          data: {
-            type: 'Point',
-            coordinates: [39.807_222, '\'); DELETE YOLO INJECTIONS; --'],
-          },
-        });
-      });
-
       if (dialect.supports.jsonOperations) {
-        it('should properly escape path keys', async function () {
-          await this.Model.findAll({
-            raw: true,
-            attributes: ['id'],
-            where: {
-              data: {
-                'a\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ': 1,
-              },
-            },
-          });
-        });
-
-        it('should properly escape path keys with sequelize.json', async function () {
-          await this.Model.findAll({
-            raw: true,
-            attributes: ['id'],
-            where: this.sequelize.json('data.id\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ', '1'),
-          });
-        });
-
-        it('should be possible to find with properly escaped select query', async function () {
-          await this.Model.create({
-            data: {
-              type: 'Point',
-              properties: {
-                exploit: '\'); DELETE YOLO INJECTIONS; -- ',
-              },
-            },
-          });
-
-          const result = await this.Model.findOne({
-            where: {
-              data: {
-                type: 'Point',
-                properties: {
-                  exploit: '\'); DELETE YOLO INJECTIONS; -- ',
-                },
-              },
-            },
-          });
-
-          expect(result.get('data')).to.deep.equal({
-            type: 'Point',
-            properties: {
-              exploit: '\'); DELETE YOLO INJECTIONS; -- ',
-            },
-          });
-        });
-
         it('should query an instance with JSONB data and order while trying to inject', async function () {
           await this.Event.create({
             data: {
@@ -759,46 +308,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           })]);
 
-          if (current.options.dialect === 'sqlite') {
-            const events = await this.Event.findAll({
-              where: {
-                data: {
-                  name: {
-                    last: 'Simpson',
-                  },
+          const events = await this.Event.findAll({
+            where: {
+              data: {
+                name: {
+                  last: 'Simpson',
                 },
               },
-              order: [
-                ['data.name.first}\'); INSERT INJECTION HERE! SELECT (\''],
-              ],
-            });
+            },
+            order: [
+              ['data.name.first}\'); INSERT INJECTION HERE! SELECT (\''],
+            ],
+          });
 
-            expect(events).to.be.ok;
-            expect(events[0].get('data')).to.eql({
-              name: {
-                first: 'Homer',
-                last: 'Simpson',
-              },
-              employment: 'Nuclear Safety Inspector',
-            });
-
-            return;
-          }
-
-          if (current.options.dialect === 'postgres') {
-            await expect(this.Event.findAll({
-              where: {
-                data: {
-                  name: {
-                    last: 'Simpson',
-                  },
-                },
-              },
-              order: [
-                ['data.name.first}\'); INSERT INJECTION HERE! SELECT (\''],
-              ],
-            })).to.eventually.be.rejectedWith(Error);
-          }
+          expect(events).to.be.ok;
+          expect(events[0].get('data')).to.eql({
+            name: {
+              first: 'Homer',
+              last: 'Simpson',
+            },
+            employment: 'Nuclear Safety Inspector',
+          });
         });
       }
     });

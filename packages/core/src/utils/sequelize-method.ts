@@ -1,7 +1,8 @@
-import type { WhereOperators, WhereLeftOperand, DataType, WhereOptions } from '..';
+import type { WhereOperators, Expression, DataType, WhereOptions } from '..';
 import type { WhereAttributeHashValue } from '../dialects/abstract/where-sql-builder-types.js';
 import { PojoWhere } from '../dialects/abstract/where-sql-builder.js';
 import { Op } from '../operators.js';
+import { parseAttributeSyntax } from './attribute-syntax.js';
 import { isPlainObject } from './check.js';
 import { noSqlJson } from './deprecations.js';
 
@@ -153,8 +154,8 @@ export class Attribute extends SequelizeMethod {
  *
  * @param attributeName
  */
-export function attribute(attributeName: string): Attribute {
-  return new Attribute(attributeName);
+export function attribute(attributeName: string) {
+  return parseAttributeSyntax(attributeName);
 }
 
 /**
@@ -167,7 +168,7 @@ export class Fn extends SequelizeMethod {
 
   // unknown already covers the other two types, but they've been added explicitly to document
   // passing WhereAttributeHash generates a condition inside the function.
-  readonly args: ReadonlyArray<unknown | SequelizeMethod>;
+  readonly args: readonly Expression[];
 
   constructor(fnName: string, args: Fn['args']) {
     super();
@@ -247,7 +248,7 @@ export class Cast extends SequelizeMethod {
   declare private readonly brand: 'cast';
 
   constructor(
-    readonly val: unknown,
+    readonly expression: Expression,
     readonly type: DataType,
   ) {
     super();
@@ -365,8 +366,9 @@ export class JsonPath extends SequelizeMethod {
   declare private readonly brand: 'jsonPath';
 
   constructor(
-    readonly value: WhereLeftOperand,
+    readonly expression: Expression,
     readonly path: readonly string[],
+    readonly unquote: boolean,
   ) {
     super();
   }
@@ -376,8 +378,9 @@ export class JsonPath extends SequelizeMethod {
  * Use this to access nested properties in a JSON column.
  * You can also use the dot notation with {@link attribute}, but this works with any values, not just attributes.
  *
- * @param value
- * @param path
+ * @param expression The expression to access the property on.
+ * @param path The path to the property.
+ * @param unquote Whether the result should be unquoted (depending on dialect: ->> and #>> operators, json_unquote function). Defaults to `false`.
  *
  * @example
  * ```ts
@@ -390,8 +393,8 @@ export class JsonPath extends SequelizeMethod {
  * "data"->'name' = '"John"'
  * ```
  */
-export function jsonPath(value: WhereLeftOperand, path: readonly string[]): JsonPath {
-  return new JsonPath(value, path);
+export function jsonPath(expression: Expression, path: readonly string[], unquote: boolean = false): JsonPath {
+  return new JsonPath(expression, path, unquote);
 }
 
 export class AssociationPath extends SequelizeMethod {
@@ -432,7 +435,7 @@ export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends
    * @param leftOperand
    * @param whereAttributeHashValue
    */
-  constructor(leftOperand: WhereLeftOperand, whereAttributeHashValue: WhereAttributeHashValue<any>);
+  constructor(leftOperand: Expression, whereAttributeHashValue: WhereAttributeHashValue<any>);
 
   /**
    * @example
@@ -444,13 +447,13 @@ export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends
    * @param operator
    * @param rightOperand
    */
-  constructor(leftOperand: WhereLeftOperand, operator: Operator, rightOperand: WhereOperators[Operator]);
+  constructor(leftOperand: Expression, operator: Operator, rightOperand: WhereOperators[Operator]);
 
   constructor(
     ...args:
       | [whereOptions: WhereOptions]
-      | [leftOperand: WhereLeftOperand, whereAttributeHashValue: WhereAttributeHashValue<any>]
-      | [leftOperand: WhereLeftOperand, operator: Operator, rightOperand: WhereOperators[Operator]]
+      | [leftOperand: Expression, whereAttributeHashValue: WhereAttributeHashValue<any>]
+      | [leftOperand: Expression, operator: Operator, rightOperand: WhereOperators[Operator]]
   ) {
     super();
 
@@ -496,7 +499,7 @@ If you wish to use custom operators not provided by Sequelize, you can use the "
  * @param leftOperand The left operand
  * @param whereAttributeHashValue The POJO containing the operators and the right operands
  */
-export function where(leftOperand: WhereLeftOperand, whereAttributeHashValue: WhereAttributeHashValue<any>): Where;
+export function where(leftOperand: Expression, whereAttributeHashValue: WhereAttributeHashValue<any>): Where;
 
 /**
  * This version of `where` is used to opt back into the POJO syntax. Useful in combination with {@link sql}.
@@ -543,12 +546,12 @@ export function where(whereOptions: WhereOptions): Where;
  * @param operator The operator to use (one of the different values available in the {@link Op} object)
  * @param rightOperand The right operand
  */
-export function where(leftOperand: WhereLeftOperand, operator: keyof WhereOperators, rightOperand: WhereLeftOperand): Where;
+export function where(leftOperand: Expression, operator: keyof WhereOperators, rightOperand: Expression): Where;
 export function where(
   ...args:
     | [whereOptions: WhereOptions]
-    | [leftOperand: WhereLeftOperand, whereAttributeHashValue: WhereAttributeHashValue<any>]
-    | [leftOperand: WhereLeftOperand, operator: keyof WhereOperators, rightOperand: WhereLeftOperand]
+    | [leftOperand: Expression, whereAttributeHashValue: WhereAttributeHashValue<any>]
+    | [leftOperand: Expression, operator: keyof WhereOperators, rightOperand: Expression]
 ): Where {
   // @ts-expect-error -- they are the same type but this overload is internal
   return new Where(...args);
