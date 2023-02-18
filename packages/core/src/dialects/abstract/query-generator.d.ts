@@ -215,5 +215,4 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    */
   bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
   showTablesQuery(schemaName?: string): string;
-  showTablesQuery(database: string, options: EscapeOptions): string;
 }

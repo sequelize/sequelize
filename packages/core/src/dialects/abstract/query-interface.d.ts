@@ -11,7 +11,7 @@ import type {
   Attributes,
   NormalizedAttributeOptions,
 } from '../../model';
-import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
+import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel, ShowAllTablesOptions } from '../../sequelize';
 import type { Transaction } from '../../transaction';
 import type { Fn, Literal, Col } from '../../utils/sequelize-method.js';
 import type { AllowLowercase } from '../../utils/types.js';
@@ -387,7 +387,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Returns all tables
    */
-  showAllTables(options?: QueryRawOptions): Promise<string[]>;
+  showAllTables(options?: ShowAllTablesOptions): Promise<string[]>;
 
   /**
    * Returns a promise that resolves to true if the table exists in the database, false otherwise.

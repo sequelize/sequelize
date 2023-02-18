@@ -534,6 +534,11 @@ export interface QueryRawOptions extends Logging, Transactionable, Poolable {
   fieldMap?: FieldMap;
 }
 
+export interface ShowAllTablesOptions extends QueryRawOptions {
+    // specify the schema to get the tables from
+  schema?: string;
+}
+
 export interface QueryRawOptionsWithType<T extends QueryTypes> extends QueryRawOptions {
   /**
    * The type of query you are executing. The query type affects how results are formatted before they are

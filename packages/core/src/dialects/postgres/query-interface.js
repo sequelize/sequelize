@@ -260,28 +260,4 @@ export class PostgresQueryInterface extends AbstractQueryInterface {
 
     await Promise.all(promises);
   }
-
-  /**
- * Get all tables in current database
- *
- * @param {object}    [options] Query options
- * @param {boolean}   [options.raw=true] Run query in raw mode
- * @param {QueryType} [options.type=QueryType.SHOWTABLE] query type
- * @param {string} [options.schema]
- *
- * @returns {Promise<Array>}
- * @override
- */
-  async showAllTables(options) {
-    options = {
-      ...options,
-      raw: true,
-      type: QueryTypes.SHOWTABLES,
-    };
-
-    const showTablesSql = this.queryGenerator.showTablesQuery(options.schema);
-    const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
-
-    return tableNames.flat();
-  }
 }
