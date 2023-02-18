@@ -367,7 +367,7 @@ export class JsonPath extends SequelizeMethod {
 
   constructor(
     readonly expression: Expression,
-    readonly path: readonly string[],
+    readonly path: ReadonlyArray<string | number>,
     readonly unquote: boolean,
   ) {
     super();
@@ -379,7 +379,7 @@ export class JsonPath extends SequelizeMethod {
  * You can also use the dot notation with {@link attribute}, but this works with any values, not just attributes.
  *
  * @param expression The expression to access the property on.
- * @param path The path to the property.
+ * @param path The path to the property. If a number is used, it will be treated as an array index, otherwise as a key.
  * @param unquote Whether the result should be unquoted (depending on dialect: ->> and #>> operators, json_unquote function). Defaults to `false`.
  *
  * @example
@@ -390,10 +390,43 @@ export class JsonPath extends SequelizeMethod {
  * will produce
  *
  * ```sql
+ * -- postgres
  * "data"->'name' = '"John"'
+ * -- other dialects
+ * JSON_EXTRACT("data", '$.name') = '"John"'
+ * ```
+ *
+ * @example
+ * ```ts
+ * // notice here that 0 is a number, not a string. It will be treated as an array index.
+ * sql`${jsonPath('array', [0])}`
+ * ```
+ *
+ * will produce
+ *
+ * ```sql
+ * -- postgres
+ * "array"->0
+ * -- sqlite, mysql, mariadb
+ * JSON_EXTRACT(`array`, '$[0]')
+ * ```
+ *
+ * @example
+ * ```ts
+ * // notice here that 0 is a string, not a number. It will be treated as an object key.
+ * sql`${jsonPath('object', ['0'])}`
+ * ```
+ *
+ * will produce
+ *
+ * ```sql
+ * -- postgres
+ * "object"->'0'
+ * -- sqlite, mysql, mariadb
+ * JSON_EXTRACT(`object`, '$.0')
  * ```
  */
-export function jsonPath(expression: Expression, path: readonly string[], unquote: boolean = false): JsonPath {
+export function jsonPath(expression: Expression, path: ReadonlyArray<string | number>, unquote: boolean = false): JsonPath {
   return new JsonPath(expression, path, unquote);
 }
 

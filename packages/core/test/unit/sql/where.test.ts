@@ -755,7 +755,8 @@ Caused by: "undefined" cannot be escaped`),
 
       if (dialectSupportsJsonOperations()) {
         testSql({ [Op.not]: json('data.key', 10) }, {
-          default: `NOT ([data]->'key' = '10')`,
+          postgres: `NOT ([data]->'key' = '10')`,
+          'sqlite mysql mariadb': `NOT (json_extract([data],'$.key') = '10')`,
         });
       }
 
@@ -1987,59 +1988,67 @@ Caused by: "undefined" cannot be escaped`),
         }
 
         testSql({ jsonAttr: 'value' }, {
-          postgres: `"jsonAttr" = '"value"'`,
+          default: `[jsonAttr] = '"value"'`,
         });
 
-        testSql({ jsonbAttr: 'value' }, {
-          postgres: `"jsonbAttr" = '"value"'`,
+        testSql({ jsonAttr: 'value' }, {
+          default: `[jsonAttr] = '"value"'`,
         });
 
-        testSql({ 'jsonbAttr.nested': 'value' }, {
-          postgres: `"jsonbAttr"->'nested' = '"value"'`,
+        testSql({ 'jsonAttr.nested': 'value' }, {
+          postgres: `"jsonAttr"->'nested' = '"value"'`,
+          'sqlite mysql mariadb': `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
         });
 
-        testSql(where('value', Op.eq, attribute('jsonbAttr.nested')), {
-          postgres: `'"value"' = "jsonbAttr"->'nested'`,
+        testSql(where('value', Op.eq, attribute('jsonAttr.nested')), {
+          postgres: `'"value"' = "jsonAttr"->'nested'`,
+          'sqlite mysql mariadb': `'"value"' = json_extract(\`jsonAttr\`,'$.nested')`,
         });
 
-        testSql({ 'jsonbAttr.nested.twice': 'value' }, {
-          postgres: `"jsonbAttr"#>ARRAY['nested','twice'] = '"value"'`,
-        });
-
-        testSql({
-          jsonbAttr: { nested: 'value' },
-        }, {
-          postgres: `"jsonbAttr"->'nested' = '"value"'`,
+        testSql({ 'jsonAttr.nested.twice': 'value' }, {
+          postgres: `"jsonAttr"#>ARRAY['nested','twice'] = '"value"'`,
+          'sqlite mysql mariadb': `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
         });
 
         testSql({
-          'jsonbAttr.nested': { twice: 'value' },
+          jsonAttr: { nested: 'value' },
         }, {
-          postgres: `"jsonbAttr"#>ARRAY['nested','twice'] = '"value"'`,
+          postgres: `"jsonAttr"->'nested' = '"value"'`,
+          'sqlite mysql mariadb': `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
         });
 
         testSql({
-          jsonbAttr: { [Op.eq]: { key: 'value' } },
+          'jsonAttr.nested': { twice: 'value' },
         }, {
-          postgres: `"jsonbAttr" = '{"key":"value"}'`,
+          postgres: `"jsonAttr"#>ARRAY['nested','twice'] = '"value"'`,
+          'sqlite mysql mariadb': `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
         });
 
         testSql({
-          'jsonbAttr.nested': { [Op.ne]: 'value' },
+          jsonAttr: { [Op.eq]: { key: 'value' } },
         }, {
-          postgres: `"jsonbAttr"->'nested' != '"value"'`,
+          default: `[jsonAttr] = '{"key":"value"}'`,
+        });
+
+        testSql({
+          'jsonAttr.nested': { [Op.ne]: 'value' },
+        }, {
+          postgres: `"jsonAttr"->'nested' != '"value"'`,
+          'sqlite mysql mariadb': `json_extract(\`jsonAttr\`,'$.nested') != '"value"'`,
         });
 
         testSql({
           '$jsonAttr$.nested': 'value',
         }, {
           postgres: `"jsonAttr"->'nested' = '"value"'`,
+          'sqlite mysql mariadb': `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
         });
 
         testSql({
           '$association.jsonAttr$.nested': 'value',
         }, {
           postgres: `"association"."jsonAttr"->'nested' = '"value"'`,
+          'sqlite mysql mariadb': `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = '"value"'`,
         });
 
         testSql({
@@ -2047,6 +2056,7 @@ Caused by: "undefined" cannot be escaped`),
         }, {
           // with the left value cast to a string, we serialize the right value as a string, not as a JSON value
           postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
+          'sqlite mysql mariadb': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
         testSql({
@@ -2059,56 +2069,70 @@ Caused by: "undefined" cannot be escaped`),
           '$association.jsonAttr$.nested.deep::STRING': 'value',
         }, {
           postgres: `CAST("association"."jsonAttr"#>ARRAY['nested','deep'] AS STRING) = 'value'`,
+          'sqlite mysql mariadb': `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep') AS STRING) = 'value'`,
         });
 
         testSql({
           $jsonAttr$: { 'nested::string': 'value' },
         }, {
           postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
+          'sqlite mysql mariadb': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
         testSql({ 'jsonAttr.nested.attribute': 4 }, {
           postgres: `"jsonAttr"#>ARRAY['nested','attribute'] = '4'`,
+          'sqlite mysql mariadb': `json_extract(\`jsonAttr\`,'$.nested.attribute') = '4'`,
         });
 
         // 0 is treated as a string key here, not an array index
         testSql({ 'jsonAttr.0': 4 }, {
           postgres: `"jsonAttr"->'0' = '4'`,
+          'sqlite mysql mariadb': `json_extract(\`jsonAttr\`,'$."0"') = '4'`,
         });
 
         // 0 is treated as an index here, not a string key
         // @ts-expect-error -- TODO: update typing to support this syntax
         testSql({ 'jsonAttr[0]': 4 }, {
           postgres: `"jsonAttr"->0 = '4'`,
+
+          // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
+          sqlite: `json_extract(\`jsonAttr\`,'$[0]') = '4'`,
+          mysql: `json_extract(\`jsonAttr\`,'$[0]') = '4'`,
+          mariadb: `json_extract(\`jsonAttr\`,'$[0]') = '4'`,
         });
 
         testSql({ 'jsonAttr.0.attribute': 4 }, {
           postgres: `"jsonAttr"#>ARRAY['0','attribute'] = '4'`,
+          'sqlite mysql mariadb': `json_extract(\`jsonAttr\`,'$."0".attribute') = '4'`,
         });
 
         // Regression test: https://github.com/sequelize/sequelize/issues/8718
         testSql({ jsonAttr: { 'hyphenated-key': 4 } }, {
           postgres: `"jsonAttr"->'hyphenated-key' = '4'`,
+          'sqlite mysql mariadb': `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = '4'`,
         });
 
         // SQL injection test
         testSql({ jsonAttr: { '"a\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "': 1 } }, {
           postgres: `"jsonAttr"->'a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ' = '1'`,
+          'mysql mariadb': `json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = '1'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$."a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = '1'`,
         });
 
         // @ts-expect-error -- TODO: update typing to support this syntax
-        testSql({ 'jsonAttr[0][nested].attribute': 4 }, {
+        testSql({ 'jsonAttr[0].nested.attribute': 4 }, {
           postgres: `"jsonAttr"#>ARRAY['0','nested','attribute'] = '4'`,
-        });
 
-        // @ts-expect-error -- TODO: update typing to support this syntax
-        testSql({ '$jsonAttr$[0][nested].attribute': 4 }, {
-          postgres: `"jsonAttr"#>ARRAY['0','nested','attribute'] = '4'`,
+          // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
+          sqlite: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = '4'`,
+          mysql: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = '4'`,
+          mariadb: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = '4'`,
         });
 
         // aliases attribute -> column correctly
         testSql({ 'aliasedJsonAttr.nested.attribute': 4 }, {
           postgres: `"aliased_json"#>ARRAY['nested','attribute'] = '4'`,
+          'sqlite mysql mariadb': `json_extract([aliased_json],'$.nested.attribute') = '4'`,
         });
       });
     }
@@ -2677,7 +2701,8 @@ Caused by: "undefined" cannot be escaped`),
 
         if (dialectSupportsJsonOperations()) {
           testSql(where(col('col'), { jsonPath: 'value' }), {
-            default: `[col]->'jsonPath' = '"value"'`,
+            postgres: `"col"->'jsonPath' = '"value"'`,
+            'sqlite mariadb mysql': `json_extract([col],'$.jsonPath') = '"value"'`,
           });
         }
       });

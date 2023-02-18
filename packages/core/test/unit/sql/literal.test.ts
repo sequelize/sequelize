@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { cast, fn, Op, json, where } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
@@ -18,25 +17,37 @@ describe('json', () => {
       },
       another_json_field: { x: 1 },
     };
-    const expected = `("metadata"->'language' = '"icelandic"' AND "metadata"#>ARRAY['pg_rating','dk'] = '"G"') AND "another_json_field"->'x' = '1'`;
-    expect(queryGenerator.escape(json(conditions))).to.deep.equal(expected);
+
+    expectsql(() => queryGenerator.escape(json(conditions)), {
+      postgres: `("metadata"->'language' = '"icelandic"' AND "metadata"#>ARRAY['pg_rating','dk'] = '"G"') AND "another_json_field"->'x' = '1'`,
+      'sqlite mysql mariadb': `(json_extract(\`metadata\`,'$.language') = '"icelandic"' AND json_extract(\`metadata\`,'$.pg_rating.dk') = '"G"') AND json_extract(\`another_json_field\`,'$.x') = '1'`,
+    });
   });
 
   it('supports the json path notation', () => {
     const path = 'metadata.pg_rating.dk';
-    expect(queryGenerator.escape(json(path))).to.equal(`"metadata"#>ARRAY['pg_rating','dk']`);
+
+    expectsql(() => queryGenerator.escape(json(path)), {
+      postgres: `"metadata"#>ARRAY['pg_rating','dk']`,
+      'sqlite mysql mariadb': `json_extract(\`metadata\`,'$.pg_rating.dk')`,
+    });
   });
 
   it('supports numbers in the dot notation', () => {
     expectsql(queryGenerator.escape(json('profile.id.0.1')), {
       postgres: `"profile"#>ARRAY['id','0','1']`,
+      'sqlite mysql mariadb': `json_extract(\`profile\`,'$.id."0"."1"')`,
     });
   });
 
   it('can take a value to compare against', () => {
     const path = 'metadata.pg_rating.is';
     const value = 'U';
-    expect(queryGenerator.escape(json(path, value))).to.equal(`"metadata"#>ARRAY['pg_rating','is'] = '"U"'`);
+
+    expectsql(() => queryGenerator.escape(json(path, value)), {
+      postgres: `"metadata"#>ARRAY['pg_rating','is'] = '"U"'`,
+      'sqlite mysql mariadb': `json_extract(\`metadata\`,'$.pg_rating.is') = '"U"'`,
+    });
   });
 
   // TODO: add a way to let `where` know what the type of the value is in raw queries
@@ -55,18 +66,21 @@ describe('json', () => {
   it('accepts a nested condition object', () => {
     expectsql(queryGenerator.escape(json({ profile: { id: 1 } })), {
       postgres: `"profile"->'id' = '1'`,
+      'sqlite mysql mariadb': `json_extract(\`profile\`,'$.id') = '1'`,
     });
   });
 
   it('accepts multiple condition object', () => {
     expectsql(queryGenerator.escape(json({ property: { value: 1 }, another: { value: 'string' } })), {
       postgres: `"property"->'value' = '1' AND "another"->'value' = '"string"'`,
+      'sqlite mysql mariadb': `json_extract(\`property\`,'$.value') = '1' AND json_extract(\`another\`,'$.value') = '"string"'`,
     });
   });
 
   it('can be used inside of where', () => {
     expectsql(queryGenerator.escape(where(json('profile.id'), '1')), {
       postgres: `"profile"->'id' = '"1"'`,
+      'sqlite mysql mariadb': `json_extract(\`profile\`,'$.id') = '"1"'`,
     });
   });
 });
