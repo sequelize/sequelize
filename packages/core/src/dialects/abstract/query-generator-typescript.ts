@@ -316,7 +316,7 @@ export class AbstractQueryGeneratorTypeScript {
    */
   jsonPathExtractionQuery(_sqlExpression: string, _path: readonly string[], _unquote: boolean): string {
     if (!this.dialect.supports.jsonOperations) {
-      throw new Error(`JSON operations are not supported in ${this.dialect.name}.`);
+      throw new Error(`JSON Paths are not supported in ${this.dialect.name}.`);
     }
 
     throw new Error(`jsonPathExtractionQuery not been implemented in ${this.dialect.name}.`);

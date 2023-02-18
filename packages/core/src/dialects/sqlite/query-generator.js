@@ -211,7 +211,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
-    const modelAttributeMap = {};
+    const modelAttributeMap = Object.create(null);
     const values = [];
     const bind = Object.create(null);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
@@ -226,7 +226,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     }
 
     for (const key in attrValueHash) {
-      const value = attrValueHash[key];
+      const value = attrValueHash[key] ?? null;
       const escapedValue = this.escape(value, {
         replacements: options.replacements,
         bindParam,

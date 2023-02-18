@@ -407,7 +407,7 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(properties
 type MaybeLazy<T> = T | (() => T);
 
 export function expectsql(
-  query: MaybeLazy<{ query: string, bind: unknown } | Error>,
+  query: MaybeLazy<{ query: string, bind?: unknown } | Error>,
   assertions: {
     query: PartialRecord<ExpectationKey, string | Error>,
     bind: PartialRecord<ExpectationKey, unknown>,
@@ -418,7 +418,7 @@ export function expectsql(
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: MaybeLazy<string | Error | { query: string, bind: unknown }>,
+  query: MaybeLazy<string | Error | { query: string, bind?: unknown }>,
   assertions:
     | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
     | PartialRecord<ExpectationKey, string | Error>,

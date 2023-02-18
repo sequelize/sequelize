@@ -32,6 +32,7 @@ const dialectSupportsArray = () => sequelize.dialect.supports.dataTypes.ARRAY;
 const dialectSupportsRange = () => sequelize.dialect.supports.dataTypes.RANGE;
 const dialectSupportsJsonB = () => sequelize.dialect.supports.dataTypes.JSONB;
 const dialectSupportsJson = () => sequelize.dialect.supports.dataTypes.JSON;
+const dialectSupportsJsonOperations = () => sequelize.dialect.supports.jsonOperations;
 
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
@@ -752,9 +753,11 @@ Caused by: "undefined" cannot be escaped`),
         mssql: `NOT ([intAttr1] = N'5')`,
       });
 
-      testSql({ [Op.not]: json('data.key', 10) }, {
-        default: `NOT ([data]->'key' = '10')`,
-      });
+      if (dialectSupportsJsonOperations()) {
+        testSql({ [Op.not]: json('data.key', 10) }, {
+          default: `NOT ([data]->'key' = '10')`,
+        });
+      }
 
       testSql({ intAttr1: { [Op.not]: { [Op.gt]: 5 } } }, {
         default: 'NOT ([intAttr1] > 5)',
@@ -888,7 +891,7 @@ Caused by: "undefined" cannot be escaped`),
         {
           const ignoreRight: TestModelWhere = { intAttr1: { [Op.between]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } };
           testSql({ intAttr1: { [operator]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } }, {
-            default: `[intAttr1] ${sqlOperator} "col1" AND "col2"`,
+            default: `[intAttr1] ${sqlOperator} [col1] AND [col2]`,
           });
         }
 
@@ -993,7 +996,7 @@ Caused by: "undefined" cannot be escaped`),
         {
           const ignoreRight: TestModelWhere = { intAttr1: { [Op.in]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } };
           testSql({ intAttr1: { [operator]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } }, {
-            default: `[intAttr1] ${sqlOperator} ("col1", "col2")`,
+            default: `[intAttr1] ${sqlOperator} ([col1], [col2])`,
           });
         }
 
@@ -1245,6 +1248,10 @@ Caused by: "undefined" cannot be escaped`),
     describeOverlapSuite(Op.contained, '<@');
 
     describe('ELEMENT Op.contained RANGE', () => {
+      if (!dialectSupportsRange()) {
+        return;
+      }
+
       testSql({
         intAttr1: { [Op.contained]: [1, 2] },
       }, {
@@ -1317,8 +1324,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.startsWith]: col('username'),
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT("username", '%')`,
-        mssql: `[stringAttr] LIKE CONCAT("username", N'%')`,
+        default: `[stringAttr] LIKE CONCAT([username], '%')`,
+        mssql: `[stringAttr] LIKE CONCAT([username], N'%')`,
       });
 
       testSql({
@@ -1326,8 +1333,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.startsWith]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT("username", '%')`,
-        mssql: `[stringAttr] LIKE CONCAT("username", N'%')`,
+        default: `[stringAttr] LIKE CONCAT([username], '%')`,
+        mssql: `[stringAttr] LIKE CONCAT([username], N'%')`,
       });
 
       testSql({
@@ -1405,8 +1412,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.endsWith]: col('username'),
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT('%', "username")`,
-        mssql: `[stringAttr] LIKE CONCAT(N'%', "username")`,
+        default: `[stringAttr] LIKE CONCAT('%', [username])`,
+        mssql: `[stringAttr] LIKE CONCAT(N'%', [username])`,
       });
 
       testSql({
@@ -1414,8 +1421,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.endsWith]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT('%', "username")`,
-        mssql: `[stringAttr] LIKE CONCAT(N'%', "username")`,
+        default: `[stringAttr] LIKE CONCAT('%', [username])`,
+        mssql: `[stringAttr] LIKE CONCAT(N'%', [username])`,
       });
 
       testSql({
@@ -1493,8 +1500,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.substring]: col('username'),
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT('%', "username", '%')`,
-        mssql: `[stringAttr] LIKE CONCAT(N'%', "username", N'%')`,
+        default: `[stringAttr] LIKE CONCAT('%', [username], '%')`,
+        mssql: `[stringAttr] LIKE CONCAT(N'%', [username], N'%')`,
       });
 
       testSql({
@@ -1502,8 +1509,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.substring]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT('%', "username", '%')`,
-        mssql: `[stringAttr] LIKE CONCAT(N'%', "username", N'%')`,
+        default: `[stringAttr] LIKE CONCAT('%', [username], '%')`,
+        mssql: `[stringAttr] LIKE CONCAT(N'%', [username], N'%')`,
       });
 
       testSql({
@@ -1581,8 +1588,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.notStartsWith]: col('username'),
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT("username", '%')`,
-        mssql: `[stringAttr] NOT LIKE CONCAT("username", N'%')`,
+        default: `[stringAttr] NOT LIKE CONCAT([username], '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT([username], N'%')`,
       });
 
       testSql({
@@ -1590,8 +1597,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.notStartsWith]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT("username", '%')`,
-        mssql: `[stringAttr] NOT LIKE CONCAT("username", N'%')`,
+        default: `[stringAttr] NOT LIKE CONCAT([username], '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT([username], N'%')`,
       });
 
       testSql({
@@ -1669,8 +1676,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.notEndsWith]: col('username'),
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT('%', "username")`,
-        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username")`,
+        default: `[stringAttr] NOT LIKE CONCAT('%', [username])`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', [username])`,
       });
 
       testSql({
@@ -1678,8 +1685,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.notEndsWith]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT('%', "username")`,
-        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username")`,
+        default: `[stringAttr] NOT LIKE CONCAT('%', [username])`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', [username])`,
       });
 
       testSql({
@@ -1757,8 +1764,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.notSubstring]: col('username'),
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT('%', "username", '%')`,
-        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username", N'%')`,
+        default: `[stringAttr] NOT LIKE CONCAT('%', [username], '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', [username], N'%')`,
       });
 
       testSql({
@@ -1766,8 +1773,8 @@ Caused by: "undefined" cannot be escaped`),
           [Op.notSubstring]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT('%', "username", '%')`,
-        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username", N'%')`,
+        default: `[stringAttr] NOT LIKE CONCAT('%', [username], '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', [username], N'%')`,
       });
 
       testSql({
@@ -2457,7 +2464,7 @@ Caused by: "undefined" cannot be escaped`),
           ],
         },
       }, {
-        default: '[intAttr1] = 1 AND [intAttr1] = 2 AND ([intAttr1] = 3 OR [intAttr1] = 4) AND NOT ("intAttr1" = 5) AND [intAttr1] IN (6, 7)',
+        default: '[intAttr1] = 1 AND [intAttr1] = 2 AND ([intAttr1] = 3 OR [intAttr1] = 4) AND NOT ([intAttr1] = 5) AND [intAttr1] IN (6, 7)',
       });
 
       // can be nested
@@ -2525,7 +2532,7 @@ Caused by: "undefined" cannot be escaped`),
         // some dialects support having a filter inside aggregate functions, but require casting:
         //  https://github.com/sequelize/sequelize/issues/6666
         testSql(where(fn('sum', cast({ id: 1 }, 'int')), Op.eq, 1), {
-          default: 'sum(CAST(("id" = 1) AS INT)) = 1',
+          default: 'sum(CAST(([id] = 1) AS INT)) = 1',
         });
 
         // comparing the output of `where` to `where`
@@ -2658,9 +2665,11 @@ Caused by: "undefined" cannot be escaped`),
           default: '[col] = 1 AND [col] = 2',
         });
 
-        testSql(where(col('col'), { jsonPath: 'value' }), {
-          default: `[col]->'jsonPath' = '"value"'`,
-        });
+        if (dialectSupportsJsonOperations()) {
+          testSql(where(col('col'), { jsonPath: 'value' }), {
+            default: `[col]->'jsonPath' = '"value"'`,
+          });
+        }
       });
     });
   });

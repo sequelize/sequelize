@@ -257,30 +257,6 @@ if (dialect === 'sqlite') {
             bind: { sequelize_1: 'bar', sequelize_2: null },
           },
         }, {
-          arguments: ['myTable', { name: 'bar', value: undefined }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'bar', sequelize_2: undefined },
-          },
-        }, {
-          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() },
-          },
-        }, {
-          arguments: ['myTable', { name: 'foo', value: true }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'foo', sequelize_2: true },
-          },
-        }, {
-          arguments: ['myTable', { name: 'foo', value: false }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'foo', sequelize_2: false },
-          },
-        }, {
           arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3);',
@@ -369,18 +345,6 @@ if (dialect === 'sqlite') {
 
       updateQuery: [
         {
-          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`birthday`=$sequelize_2 WHERE `id` = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
-          },
-        }, {
-          arguments: ['myTable', { name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { id: 2 }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`birthday`=$sequelize_2 WHERE `id` = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(), sequelize_3: 2 },
-          },
-        }, {
           arguments: ['myTable', { name: 'foo' }, { id: 2 }],
           expectation: {
             query: 'UPDATE `myTable` SET `name`=$sequelize_1 WHERE `id` = $sequelize_2',
@@ -397,24 +361,6 @@ if (dialect === 'sqlite') {
           expectation: {
             query: 'UPDATE `myTable` SET `name`=$sequelize_1,`value`=$sequelize_2 WHERE `id` = $sequelize_3',
             bind: { sequelize_1: 'bar', sequelize_2: null, sequelize_3: 2 },
-          },
-        }, {
-          arguments: ['myTable', { name: 'bar', value: undefined }, { id: 2 }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`value`=$sequelize_2 WHERE `id` = $sequelize_3',
-            bind: { sequelize_1: 'bar', sequelize_2: undefined, sequelize_3: 2 },
-          },
-        }, {
-          arguments: ['myTable', { flag: true }, { id: 2 }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `flag`=$sequelize_1 WHERE `id` = $sequelize_2',
-            bind: { sequelize_1: true, sequelize_2: 2 },
-          },
-        }, {
-          arguments: ['myTable', { flag: false }, { id: 2 }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `flag`=$sequelize_1 WHERE `id` = $sequelize_2',
-            bind: { sequelize_1: false, sequelize_2: 2 },
           },
         }, {
           arguments: ['myTable', { bar: 2, nullValue: null }, { name: 'foo' }],

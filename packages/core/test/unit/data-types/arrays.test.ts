@@ -114,6 +114,10 @@ describe('DataTypes.ARRAY', () => {
   });
 
   describe('escape', () => {
+    if (!dialect.supports.dataTypes.ARRAY) {
+      return;
+    }
+
     it('escapes array of JSON', () => {
       expectsql(queryGenerator.escape([
         { some: 'nested', more: { nested: true }, answer: 42 },

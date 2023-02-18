@@ -63,4 +63,60 @@ describe('QueryGenerator#updateQuery', () => {
 
     expect(bind).to.be.undefined;
   });
+
+  it('binds date values', () => {
+    const result = queryGenerator.updateQuery('myTable', {
+      date: new Date('2011-03-27T10:01:55Z'),
+    }, { id: 2 });
+
+    expectsql(result, {
+      query: {
+        default: 'UPDATE [myTable] SET [date]=$sequelize_1 WHERE [id] = $sequelize_2',
+      },
+      bind: {
+        sqlite: {
+          sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          sequelize_2: 2,
+        },
+      },
+    });
+  });
+
+  it('binds boolean values', () => {
+    const result = queryGenerator.updateQuery('myTable', {
+      positive: true,
+      negative: false,
+    }, { id: 2 });
+
+    expectsql(result, {
+      query: {
+        default: 'UPDATE [myTable] SET [positive]=$sequelize_1,[negative]=$sequelize_2 WHERE [id] = $sequelize_3',
+      },
+      bind: {
+        sqlite: {
+          sequelize_1: 1,
+          sequelize_2: 0,
+          sequelize_3: 2,
+        },
+      },
+    });
+  });
+
+  // TODO: Should we ignore undefined values instead? undefined is closer to "missing property" than null
+  it('treats undefined as null', () => {
+    const { query, bind } = queryGenerator.updateQuery('myTable', {
+      value: undefined,
+      name: 'bar',
+    }, { id: 2 });
+
+    expectsql(query, {
+      default: 'UPDATE [myTable] SET [value]=$sequelize_1,[name]=$sequelize_2 WHERE [id] = $sequelize_3',
+    });
+
+    expect(bind).to.deep.eq({
+      sequelize_1: null,
+      sequelize_2: 'bar',
+      sequelize_3: 2,
+    });
+  });
 });

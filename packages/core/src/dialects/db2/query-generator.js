@@ -425,7 +425,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     for (const key in attrValueHash) {
-      const value = attrValueHash[key];
+      const value = attrValueHash[key] ?? null;
       const escapedValue = this.escape(value, {
         // TODO: pass model
         type: modelAttributeMap[key]?.type,

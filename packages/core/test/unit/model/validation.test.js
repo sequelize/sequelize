@@ -346,6 +346,10 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       describe('findAll', () => {
         it('should allow $in', async () => {
+          if (!dialect.supports.dataTypes.ARRAY) {
+            return;
+          }
+
           await expect(User.findAll({
             where: {
               name: {

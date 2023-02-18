@@ -106,12 +106,14 @@ export class WhereSqlBuilder {
 
   #jsonType: NormalizedDataType;
   #textType: NormalizedDataType;
-  #arrayOfTextType: NormalizedDataType;
+  #arrayOfTextType: NormalizedDataType | undefined;
 
   constructor(protected readonly queryGenerator: AbstractQueryGenerator) {
     this.#jsonType = new DataTypes.JSON().toDialectDataType(queryGenerator.dialect);
     this.#textType = new DataTypes.TEXT().toDialectDataType(queryGenerator.dialect);
-    this.#arrayOfTextType = new DataTypes.ARRAY(new DataTypes.TEXT()).toDialectDataType(queryGenerator.dialect);
+    this.#arrayOfTextType = this.dialect.supports.dataTypes.ARRAY
+      ? new DataTypes.ARRAY(new DataTypes.TEXT()).toDialectDataType(queryGenerator.dialect)
+      : undefined;
   }
 
   protected get dialect() {
@@ -580,6 +582,10 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
+    if (!this.#arrayOfTextType) {
+      throw new Error('This dialect does not support Op.anyKeyExists');
+    }
+
     return this.formatBinaryOperation(left, leftDataType, operator, right, this.#arrayOfTextType, options);
   }
 
@@ -591,6 +597,10 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
+    if (!this.#arrayOfTextType) {
+      throw new Error('This dialect does not support Op.allKeysExist');
+    }
+
     return this.formatBinaryOperation(left, leftDataType, operator, right, this.#arrayOfTextType, options);
   }
 

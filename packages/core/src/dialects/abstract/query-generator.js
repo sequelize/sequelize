@@ -182,7 +182,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
     for (const key in valueHash) {
       if (Object.prototype.hasOwnProperty.call(valueHash, key)) {
-        const value = valueHash[key];
+        // if value is undefined, we replace it with null
+        const value = valueHash[key] ?? null;
         fields.push(this.quoteIdentifier(key));
 
         // SERIALS' can't be NULL in postgresql, use DEFAULT where supported
@@ -478,7 +479,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         continue;
       }
 
-      const value = attrValueHash[key];
+      const value = attrValueHash[key] ?? null;
 
       values.push(`${this.quoteIdentifier(key)}=${this.escape(value, {
         // model // TODO: receive modelDefinition instead of columnDefinitions

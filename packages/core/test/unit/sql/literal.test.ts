@@ -98,11 +98,26 @@ describe('fn', () => {
 
   it('accepts all sorts of values as arguments', () => {
     const out = queryGenerator.escape(
-      fn('concat', 'user', 1, true, new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), ['baz'], fn('lower', 'user')),
+      fn('concat', 'user', 1, true, new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), fn('lower', 'user')),
     );
 
     expectsql(out, {
-      default: `concat('user', 1, true, '2011-03-27 10:01:55.000 +00:00', ARRAY['baz'], lower('user'))`,
+      default: `concat('user', 1, true, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
+      sqlite: `concat('user', 1, 1, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
+    });
+  });
+
+  it('accepts arrays', () => {
+    if (!dialect.supports.dataTypes.ARRAY) {
+      return;
+    }
+
+    const out = queryGenerator.escape(
+      fn('concat', ['abc']),
+    );
+
+    expectsql(out, {
+      default: `concat('user', ARRAY['abc'])`,
     });
   });
 });
