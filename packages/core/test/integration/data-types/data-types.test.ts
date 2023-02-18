@@ -1402,8 +1402,7 @@ describe('DataTypes', () => {
             await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, '123.4');
             await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], '[1,2]');
             await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, '{"a":1}');
-            // this isn't the JSON null value, but a SQL null value
-            await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
+            await testSimpleInOutRaw(vars.User, 'jsonNull', null, 'null');
           });
         } else {
           it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {

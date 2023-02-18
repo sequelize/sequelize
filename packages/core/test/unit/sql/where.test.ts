@@ -2071,7 +2071,17 @@ Caused by: "undefined" cannot be escaped`),
           postgres: `"jsonAttr"#>ARRAY['nested','attribute'] = '4'`,
         });
 
-        // numeric path
+        // 0 is treated as a string key here, not an array index
+        testSql({ 'jsonAttr.0': 4 }, {
+          postgres: `"jsonAttr"->'0' = '4'`,
+        });
+
+        // 0 is treated as an index here, not a string key
+        // @ts-expect-error -- TODO: update typing to support this syntax
+        testSql({ 'jsonAttr[0]': 4 }, {
+          postgres: `"jsonAttr"->0 = '4'`,
+        });
+
         testSql({ 'jsonAttr.0.attribute': 4 }, {
           postgres: `"jsonAttr"#>ARRAY['0','attribute'] = '4'`,
         });

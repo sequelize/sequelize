@@ -43,4 +43,31 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return `DROP INDEX ${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableName)}`;
   }
+
+  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
+    let jsonPathStr = '$';
+    for (const pathElement of path) {
+      if (typeof pathElement === 'number') {
+        jsonPathStr += `[${pathElement}]`;
+      } else {
+        jsonPathStr += `.${this.quoteJsonPathIdentifier(pathElement)}`;
+      }
+    }
+
+    const extractQuery = `json_extract(${sqlExpression},${this.escape(jsonPathStr)})`;
+    if (unquote) {
+      return `json_unquote(${extractQuery})`;
+    }
+
+    return extractQuery;
+  }
+
+  quoteJsonPathIdentifier(identifier: string): string {
+    if (/^[a-z_][a-z0-9_]*$/i.test(identifier)) {
+      return identifier;
+    }
+
+    // Escape backslashes and double quotes
+    return `"${identifier.replace(/["\\]/g, s => `\\${s}`)}"`;
+  }
 }

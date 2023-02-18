@@ -196,7 +196,7 @@ describe('JSON Querying', () => {
 });
 
 describe('JSON Casting', () => {
-  if (!dialect.supports.dataTypes.JSON) {
+  if (!dialect.supports.dataTypes.JSON || !dialect.supports.jsonOperations) {
     return;
   }
 
@@ -394,7 +394,7 @@ describe('JSONB Querying', () => {
 });
 
 describe('JSONB Casting', () => {
-  if (!dialect.supports.dataTypes.JSON) {
+  if (!dialect.supports.dataTypes.JSONB) {
     return;
   }
 

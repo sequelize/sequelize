@@ -227,6 +227,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     for (const key in attrValueHash) {
       const value = attrValueHash[key] ?? null;
+
       const escapedValue = this.escape(value, {
         replacements: options.replacements,
         bindParam,

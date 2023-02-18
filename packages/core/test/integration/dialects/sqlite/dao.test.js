@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op, where, literal } = require('@sequelize/core');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAO', () => {
@@ -83,7 +83,7 @@ if (dialect === 'sqlite') {
         ]);
 
         const user = await this.User.findOne({
-          where: Sequelize.json('json_extract(emergency_contact, \'$.name\')', 'kate'),
+          where: where(literal(`json_extract(emergency_contact, '$.name')`), 'kate'),
           attributes: ['username', 'emergency_contact'],
         });
 
@@ -97,7 +97,7 @@ if (dialect === 'sqlite') {
         ]);
 
         const user = await this.User.findOne({
-          where: Sequelize.json('json_type(emergency_contact)', 'array'),
+          where: where(literal('json_type(emergency_contact)'), 'array'),
           attributes: ['username', 'emergency_contact'],
         });
 

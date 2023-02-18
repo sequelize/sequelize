@@ -848,7 +848,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('is possible to use casting when creating an instance', async function () {
       const type = ['mysql', 'mariadb'].includes(dialectName) ? 'signed' : 'integer';
-      const bindParam = dialectName === 'postgres' ? '$1' : '?';
+      const bindParam = dialectName === 'postgres' ? '$1'
+        : dialectName === 'sqlite' ? '$sequelize_1'
+        : '?';
       let match = false;
 
       const user = await this.User.create({

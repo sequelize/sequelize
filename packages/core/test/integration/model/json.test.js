@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           // TODO: This should be JSONB, not JSON, because the auto-GIN index is only added
           //  to JSONB columns. This was accidentally changed by https://github.com/sequelize/sequelize/issues/7094
           //  re-enable the index when fixed
-          type: DataTypes.JSONB,
+          type: DataTypes.JSON,
           field: 'event_data',
           // index: true,
         },

@@ -314,12 +314,12 @@ export class AbstractQueryGeneratorTypeScript {
    * @param _path The JSON path, where each item is one level of the path
    * @param _unquote Whether the result should be unquoted (depending on dialect: ->> and #>> operators, json_unquote function). Defaults to `false`.
    */
-  jsonPathExtractionQuery(_sqlExpression: string, _path: readonly string[], _unquote: boolean): string {
+  jsonPathExtractionQuery(_sqlExpression: string, _path: ReadonlyArray<number | string>, _unquote: boolean): string {
     if (!this.dialect.supports.jsonOperations) {
       throw new Error(`JSON Paths are not supported in ${this.dialect.name}.`);
     }
 
-    throw new Error(`jsonPathExtractionQuery not been implemented in ${this.dialect.name}.`);
+    throw new Error(`jsonPathExtractionQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   protected formatLiteral(piece: Literal, options?: EscapeOptions): string {
@@ -358,13 +358,12 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     return this.quoteIdentifier(columnName);
   }
 
-  protected formatFn(piece: Fn, options?: Bindable): string {
+  protected formatFn(piece: Fn, options?: EscapeOptions): string {
+    // arguments of a function can be anything, it's not necessarily the type of the attribute,
+    // so we need to remove the type from their escape options
+    const argEscapeOptions = piece.args.length > 0 && options?.type ? { ...options, type: undefined } : options;
     const args = piece.args.map(arg => {
-      if (arg instanceof SequelizeMethod) {
-        return this.formatSequelizeMethod(arg, options);
-      }
-
-      return this.escape(arg, options);
+      return this.escape(arg, argEscapeOptions);
     }).join(', ');
 
     return `${piece.fn}(${args})`;

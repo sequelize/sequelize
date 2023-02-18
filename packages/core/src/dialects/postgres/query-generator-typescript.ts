@@ -76,14 +76,17 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  jsonPathExtractionQuery(sqlExpression: string, path: string[], unquote: boolean): string {
+  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
     const operator = path.length === 1
       ? (unquote ? '->>' : '->')
       : (unquote ? '#>>' : '#>');
 
     const pathSql = path.length === 1
+      // when accessing an array index with ->, the index must be a number
+      // when accessing an object key with ->, the key must be a string
       ? this.escape(path[0])
-      : this.escape(path);
+      // when accessing with #>, the path is always an array of strings
+      : this.escape(path.map(value => String(value)));
 
     return sqlExpression + operator + pathSql;
   }

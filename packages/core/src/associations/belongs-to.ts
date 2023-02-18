@@ -316,7 +316,9 @@ export class BelongsTo<
 
     if (instances.length > 1) {
       where[this.targetKey] = {
-        [Op.in]: instances.map(_instance => _instance.get(this.foreignKey)),
+        [Op.in]: instances.map(instance => instance.get(this.foreignKey))
+          // only fetch entities that actually have a foreign key set
+          .filter(foreignKey => foreignKey != null),
       };
     } else {
       const foreignKeyValue = instances[0].get(this.foreignKey);
