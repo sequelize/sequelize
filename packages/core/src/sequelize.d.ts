@@ -475,7 +475,7 @@ export interface DialectOptions {
 
 export interface QueryOptionsTransactionRequired { }
 
-type BindOrReplacements = { [key: string]: unknown } | unknown[];
+export type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
 
 /**
