@@ -118,6 +118,7 @@ describe('fn', () => {
     expectsql(out, {
       default: `concat('user', 1, true, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
       sqlite: `concat('user', 1, 1, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
+      'mysql mariadb': `concat('user', 1, true, '2011-03-27 10:01:55.000', lower('user'))`,
     });
   });
 

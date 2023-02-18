@@ -57,11 +57,8 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
-    this.OperatorMap = {
-      ...this.OperatorMap,
-      [Op.regexp]: 'REGEXP',
-      [Op.notRegexp]: 'NOT REGEXP',
-    };
+    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
+    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
   }
 
   createDatabaseQuery(databaseName, options) {

@@ -78,6 +78,14 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           sequelize_2: 2,
         },
+        mysql: {
+          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
+        mariadb: {
+          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
       },
     });
   });
@@ -94,6 +102,16 @@ describe('QueryGenerator#updateQuery', () => {
       },
       bind: {
         sqlite: {
+          sequelize_1: 1,
+          sequelize_2: 0,
+          sequelize_3: 2,
+        },
+        mysql: {
+          sequelize_1: 1,
+          sequelize_2: 0,
+          sequelize_3: 2,
+        },
+        mariadb: {
           sequelize_1: 1,
           sequelize_2: 0,
           sequelize_3: 2,

@@ -40,16 +40,6 @@ const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
-  constructor(options) {
-    super(options);
-
-    this.OperatorMap = {
-      ...this.OperatorMap,
-      [Op.regexp]: 'REGEXP',
-      [Op.notRegexp]: 'NOT REGEXP',
-    };
-  }
-
   createSchemaQuery(schemaName, options) {
     return joinSQLFragments([
       'CREATE SCHEMA IF NOT EXISTS',

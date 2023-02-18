@@ -68,7 +68,7 @@ class ObjectPool<T> {
 const pojoWherePool = new ObjectPool<PojoWhere>(() => new PojoWhere(), 20);
 
 export class WhereSqlBuilder {
-  readonly operatorMap: Record<symbol, string> = {
+  #operatorMap: Record<symbol, string> = {
     [Op.eq]: '=',
     [Op.ne]: '!=',
     [Op.gte]: '>=',
@@ -118,6 +118,10 @@ export class WhereSqlBuilder {
 
   protected get dialect() {
     return this.queryGenerator.dialect;
+  }
+
+  setOperatorKeyword(op: symbol, keyword: string): void {
+    this.#operatorMap[op] = keyword;
   }
 
   /**
@@ -348,7 +352,7 @@ export class WhereSqlBuilder {
 
     const leftSql = this.queryGenerator.escape(left, leftEscapeOptions);
 
-    return `${leftSql} ${this.operatorMap[operator]} ${rightSql}`;
+    return `${leftSql} ${this.#operatorMap[operator]} ${rightSql}`;
   }
 
   protected [Op.isNot](...args: Parameters<WhereSqlBuilder[typeof Op.is]>): string {
@@ -406,7 +410,7 @@ export class WhereSqlBuilder {
       throw new Error('Operators Op.between and Op.notBetween must be used with an array of two values, or a literal.');
     }
 
-    return `${leftSql} ${this.operatorMap[operator]} ${rightSql}`;
+    return `${leftSql} ${this.#operatorMap[operator]} ${rightSql}`;
   }
 
   protected [Op.contains](
@@ -612,7 +616,7 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ) {
-    const operatorSql = this.operatorMap[operator];
+    const operatorSql = this.#operatorMap[operator];
     if (!operatorSql) {
       throw new TypeError(`Operator Op.${operator.description} does not exist or is not supported by this dialect.`);
     }
@@ -621,7 +625,7 @@ export class WhereSqlBuilder {
     const rightSql = this.#formatOpAnyAll(right, rightDataType ?? leftDataType)
       || this.queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType });
 
-    return `${wrapAmbiguousWhere(left, leftSql)} ${this.operatorMap[operator]} ${wrapAmbiguousWhere(right, rightSql)}`;
+    return `${wrapAmbiguousWhere(left, leftSql)} ${this.#operatorMap[operator]} ${wrapAmbiguousWhere(right, rightSql)}`;
   }
 
   #formatOpAnyAll(value: unknown, type: NormalizedDataType | undefined): string {

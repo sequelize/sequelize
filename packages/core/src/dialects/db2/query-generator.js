@@ -31,10 +31,9 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
-    this.OperatorMap = {
-      ...this.OperatorMap, [Op.regexp]: 'REGEXP_LIKE',
-      [Op.notRegexp]: 'NOT REGEXP_LIKE',
-    };
+    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP_LIKE');
+    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP_LIKE');
+
     this.autoGenValue = 1;
   }
 

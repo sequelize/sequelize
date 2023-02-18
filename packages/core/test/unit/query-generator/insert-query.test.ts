@@ -172,7 +172,10 @@ describe('QueryGenerator#insertQuery', () => {
           default: 'INSERT INTO [myTable] ([birthday]) VALUES ($sequelize_1);',
         },
         bind: {
-          'mysql mariadb': {
+          mysql: {
+            sequelize_1: '2011-03-27 10:01:55.000',
+          },
+          mariadb: {
             sequelize_1: '2011-03-27 10:01:55.000',
           },
           sqlite: {
@@ -190,6 +193,14 @@ describe('QueryGenerator#insertQuery', () => {
         },
         bind: {
           sqlite: {
+            sequelize_1: 1,
+            sequelize_2: 0,
+          },
+          mysql: {
+            sequelize_1: 1,
+            sequelize_2: 0,
+          },
+          mariadb: {
             sequelize_1: 1,
             sequelize_2: 0,
           },

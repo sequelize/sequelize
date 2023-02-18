@@ -98,7 +98,7 @@ export interface Bindable {
  */
 export class AbstractQueryGeneratorTypeScript {
 
-  private readonly whereSqlBuilder: WhereSqlBuilder;
+  protected readonly whereSqlBuilder: WhereSqlBuilder;
   readonly dialect: AbstractDialect;
   protected readonly sequelize: Sequelize;
 

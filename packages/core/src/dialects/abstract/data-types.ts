@@ -334,6 +334,16 @@ export abstract class AbstractDataType<
     return this._construct(this.options);
   }
 
+  withUsageContext(usageContext: DataTypeUseContext): this {
+    const out = this.clone().attachUsageContext(usageContext);
+
+    if (this.#dialect) {
+      out.#dialect = this.#dialect;
+    }
+
+    return out;
+  }
+
   /**
    * @param usageContext
    * @private

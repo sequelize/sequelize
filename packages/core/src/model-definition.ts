@@ -505,7 +505,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
         if (builtAttribute.type instanceof AbstractDataType) {
           // @ts-expect-error -- defaultValue is not readOnly yet!
           builtAttribute.type
-            = builtAttribute.type.clone().attachUsageContext({
+            = builtAttribute.type.withUsageContext({
               // TODO: Repository Pattern - replace with ModelDefinition
               model: this.#model,
               attributeName,

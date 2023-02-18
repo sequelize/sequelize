@@ -114,6 +114,7 @@ describe('QueryGenerator#selectQuery', () => {
 
     expectsql(sql, {
       default: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo'';DROP TABLE mySchema.myTable;';`,
+      'mysql mariadb': `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo\\';DROP TABLE mySchema.myTable;';`,
       mssql: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = N'foo'';DROP TABLE mySchema.myTable;';`,
     });
   });

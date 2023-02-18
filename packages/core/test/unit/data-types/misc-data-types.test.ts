@@ -139,7 +139,6 @@ describe('DataTypes.JSON', () => {
       expectsql(queryGenerator.escape('string', { type: new DataTypes.JSON() }), {
         default: `'"string"'`,
         mssql: `N'"string"'`,
-        'mariadb mysql': `'\\"string\\"'`,
       });
     });
 
@@ -175,8 +174,6 @@ describe('DataTypes.JSON', () => {
       expectsql(queryGenerator.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
         default: `'{"some":"nested","more":{"nested":true},"answer":42}'`,
         mssql: `N'{"some":"nested","more":{"nested":true},"answer":42}'`,
-        mariadb: `'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}'`,
-        mysql: `'{\\"some\\":\\"nested\\",\\"more\\":{\\"nested\\":true},\\"answer\\":42}'`,
       });
     });
   });

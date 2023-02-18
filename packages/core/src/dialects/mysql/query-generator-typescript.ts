@@ -1,8 +1,9 @@
+import { Op } from '../../operators.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableNameOrModel, QueryGeneratorOptions } from '../abstract/query-generator-typescript';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -10,6 +11,13 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  constructor(options: QueryGeneratorOptions) {
+    super(options);
+
+    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
+    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }

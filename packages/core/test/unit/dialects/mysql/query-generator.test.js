@@ -273,7 +273,7 @@ if (dialect === 'mysql') {
               having: { creationYear: { [Op.gt]: 2002 } },
             };
           }],
-          expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > 2002) AS `test`;',
+          expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `test`.`creationYear` > 2002) AS `test`;',
           context: QueryGenerator,
           needsSequelize: true,
         },
@@ -291,12 +291,6 @@ if (dialect === 'mysql') {
           expectation: {
             query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1);',
             bind: { sequelize_1: 'foo\';DROP TABLE myTable;' },
-          },
-        }, {
-          arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) },
           },
         }, {
           arguments: ['myTable', { name: 'foo', foo: 1 }],
@@ -337,18 +331,6 @@ if (dialect === 'mysql') {
             bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
           context: { options: { omitNull: true } },
-        }, {
-          arguments: ['myTable', { foo: false }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`foo`) VALUES ($sequelize_1);',
-            bind: { sequelize_1: false },
-          },
-        }, {
-          arguments: ['myTable', { foo: true }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`foo`) VALUES ($sequelize_1);',
-            bind: { sequelize_1: true },
-          },
         }, {
           arguments: ['myTable', function (sequelize) {
             return {
@@ -405,19 +387,6 @@ if (dialect === 'mysql') {
 
       updateQuery: [
         {
-          arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`birthday`=$sequelize_2 WHERE `id` = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), sequelize_3: 2 },
-          },
-
-        }, {
-          arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`birthday`=$sequelize_2 WHERE `id` = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), sequelize_3: 2 },
-          },
-        }, {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
           expectation: {
             query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
@@ -449,18 +418,6 @@ if (dialect === 'mysql') {
             bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
           context: { options: { omitNull: true } },
-        }, {
-          arguments: ['myTable', { bar: false }, { name: 'foo' }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
-            bind: { sequelize_1: false, sequelize_2: 'foo' },
-          },
-        }, {
-          arguments: ['myTable', { bar: true }, { name: 'foo' }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
-            bind: { sequelize_1: true, sequelize_2: 'foo' },
-          },
         }, {
           arguments: ['myTable', function (sequelize) {
             return {
