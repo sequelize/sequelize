@@ -39,7 +39,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
           },
-          bind: { sequelize_1: 'triggertest' },
+          bind: {
+            default: { sequelize_1: 'triggertest' },
+          },
         });
 
     });
@@ -63,7 +65,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             snowflake: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
             default: 'INSERT INTO `ms` (`id`) VALUES ($sequelize_1);',
           },
-          bind: { sequelize_1: 0 },
+          bind: {
+            default: { sequelize_1: 0 },
+          },
         });
     });
 
@@ -124,7 +128,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             'missing dialect support for conflictWhere option',
           ),
           'postgres sqlite':
-            `INSERT INTO [users] ([user_name],[pass_word]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [user_name] = 'test where value' DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];`,
+            `INSERT INTO [users] ([user_name],[pass_word]) VALUES ($sequelize_1,$sequelize_2)
+             ON CONFLICT ([user_name])
+               WHERE [user_name] = 'test where value'
+               DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];`,
         });
       },
     );

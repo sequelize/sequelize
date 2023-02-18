@@ -6,7 +6,8 @@ import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
 import defaults from 'lodash/defaults';
-import isObject from 'lodash/isObject';
+import isFunction from 'lodash/isFunction';
+import isString from 'lodash/isString';
 import type { ExclusiveTestFunction, PendingTestFunction, TestFunction } from 'mocha';
 import sinonChai from 'sinon-chai';
 import { Sequelize } from '@sequelize/core';
@@ -14,6 +15,8 @@ import type { Dialect, Options } from '@sequelize/core';
 import {
   AbstractQueryGenerator,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import type { QueryWithBindParams } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.types.js';
+import type { BindOrReplacements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/sequelize.js';
 import { Config } from './config/config';
 
 const expect = chai.expect;
@@ -47,7 +50,11 @@ function withInlineCause(cb: (() => any)): () => void {
   };
 }
 
-function inlineErrorCause(error: Error) {
+export function inlineErrorCause(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return String(error);
+  }
+
   let message = error.message;
 
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
@@ -293,7 +300,7 @@ type Permutations<T extends string, Depth extends number, U extends string = T> 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
 export function expectPerDialect<Out>(
-  method: () => Out,
+  method: MaybeLazy<Out>,
   assertions: ExpectationRecord<Out>,
 ) {
   const expectations: PartialRecord<'default' | Dialect, Out | Error | Expectation<Out>> = Object.create(null);
@@ -317,7 +324,7 @@ export function expectPerDialect<Out>(
   let result: Out | Error;
 
   try {
-    result = method();
+    result = isFunction(method) ? method() : method;
   } catch (error: unknown) {
     assert(error instanceof Error, 'method threw a non-error');
 
@@ -332,9 +339,9 @@ export function expectPerDialect<Out>(
   if (expectation instanceof Error) {
     assert(result instanceof Error, `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`);
 
-    expect(result.message).to.equal(expectation.message);
+    expect(inlineErrorCause(result)).to.include(expectation.message);
   } else {
-    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${result instanceof Error ? result.message : ''}`);
+    assert(!(result instanceof Error), `Did not expect query to error, but it errored with:\n${inlineErrorCause(result)}`);
 
     assertMatchesExpectation(result, expectation);
   }
@@ -353,17 +360,39 @@ abstract class Expectation<Value> {
 }
 
 class SqlExpectation extends Expectation<string> {
-  constructor(private readonly sql: string) {
+  constructor(
+    private readonly sql: string | QueryWithBindParams,
+    private readonly fuzzy: boolean,
+  ) {
     super();
   }
 
-  assert(value: string) {
-    expect(minifySql(value)).to.equal(minifySql(this.sql));
+  assert(value: string | QueryWithBindParams) {
+    const receivedSql = isString(value) ? value : value.query;
+    let expectedSql = isString(this.sql) ? this.sql : this.sql.query;
+
+    if (this.fuzzy) {
+      // replace [...] with the proper quote character for the dialect
+      // except for ARRAY[...]
+      expectedSql = expectedSql.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${sequelize.dialect.TICK_CHAR_LEFT}$1${sequelize.dialect.TICK_CHAR_RIGHT}`);
+      if (sequelize.dialect.name === 'ibmi') {
+        expectedSql = expectedSql.trim().replace(/;$/, '');
+      }
+    }
+
+    expect(minifySql(receivedSql)).to.equal(minifySql(expectedSql), 'Received SQL does not match expected SQL');
+
+    const receivedBind = isString(value) ? undefined : value.bind;
+    const expectedBind = isString(this.sql) ? undefined : this.sql.bind;
+
+    if (expectedBind !== undefined) {
+      expect(receivedBind).to.deep.equal(expectedBind, 'Received bind parameters do not match expected bind parameters');
+    }
   }
 }
 
-export function toMatchSql(sql: string) {
-  return new SqlExpectation(sql);
+export function toMatchSql(sql: string | QueryWithBindParams, fuzzy: boolean = false) {
+  return new SqlExpectation(sql, fuzzy);
 }
 
 class RegexExpectation extends Expectation<string> {
@@ -402,99 +431,159 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(properties
 
 type MaybeLazy<T> = T | (() => T);
 
+/**
+ * This function compares a received SQL query (with or without bind parameters) to an expected SQL query (with or without bind parameters).
+ *
+ * Assertions must be an object that list an expectation for each dialect that is supported by the test.
+ * The "default" key is used as a fallback for dialects that are not explicitly listed.
+ * Dialects can be combined with a space, e.g. "postgres sqlite".
+ *
+ * The SQL specified in the "default" expectation, or in a combined expectation, can use mssql-style square brackets to delimit identifiers,
+ * these will be replaced with the proper quote character for the dialect.
+ *
+ * Bind parameters can be set through the "bind" key, or by using a "QueryWithBindParams" object as the expected value.
+ *
+ * @example
+ * expectsql('SELECT * FROM "users"', {
+ *   default: 'SELECT * FROM [users]',
+ * });
+ *
+ * @example
+ * expectsql(queryWithBindParams, {
+ *   bind: {
+ *     default: { id: 1 },
+ *   },
+ *   // This will match the bind parameter specified above
+ *   mssql: 'SELECT * FROM [users] WHERE [id] = @id',
+ *   postgres: {
+ *     query: 'SELECT * FROM "users" WHERE "id" = $1',
+ *     // use a different bind parameter for postgres
+ *     bind: { id: '1' },
+ *   },
+ * });
+ *
+ * @param receivedValue
+ * @param assertions
+ */
 export function expectsql(
-  query: MaybeLazy<{ query: string, bind: unknown } | Error>,
-  assertions: {
-    query: PartialRecord<ExpectationKey, string | Error>,
-    bind: PartialRecord<ExpectationKey, unknown>,
-   },
-): void;
-export function expectsql(
-  query: MaybeLazy<string | Error>,
-  assertions: PartialRecord<ExpectationKey, string | Error>,
-): void;
-export function expectsql(
-  query: MaybeLazy<string | Error | { query: string, bind: unknown }>,
+  receivedValue: MaybeLazy<string | QueryWithBindParams | Error>,
   assertions:
-    | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
-    | PartialRecord<ExpectationKey, string | Error>,
+    | {
+    query?: PartialRecord<ExpectationKey, string | Error>,
+    bind?: PartialRecord<ExpectationKey, BindOrReplacements>,
+  }
+    | PartialRecord<ExpectationKey, string | QueryWithBindParams | Error>,
 ): void {
-  const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> = 'query' in assertions ? assertions.query : assertions;
-  const expectations: PartialRecord<'default' | Dialect, string | Error> = Object.create(null);
 
-  /**
-   * The list of expectations that are run against more than one dialect, which enables the transformation of
-   * identifier quoting to match the dialect.
-   */
-  const combinedExpectations = new Set<Dialect | 'default'>();
-  combinedExpectations.add('default');
+  const sqlPerDialect: Record<string, string | Error> = Object.create(null);
+  const bindPerDialect: Record<string, BindOrReplacements> = Object.create(null);
+  const fuzzyDialects = new Set<string>();
 
-  for (const [key, value] of Object.entries(rawExpectationMap)) {
-    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+  if ('bind' in assertions && assertions.bind) {
+    for (const [dialects, expectedBind] of Object.entries(assertions.bind)) {
+      const acceptedDialects = dialects.split(' ') as Array<Dialect | 'default'>;
 
-    if (acceptedDialects.length > 1) {
       for (const dialect of acceptedDialects) {
-        combinedExpectations.add(dialect);
+        if (dialect === 'default' && acceptedDialects.length > 1) {
+          throw new Error(`The 'default' expectation cannot be combined with other dialects.`);
+        }
+
+        if (bindPerDialect[dialect] !== undefined) {
+          throw new Error(`The bind parameter expectation for ${dialect} was already defined.`);
+        }
+
+        bindPerDialect[dialect] = expectedBind;
       }
     }
+  }
+
+  if ('query' in assertions && assertions.query) {
+    for (const [dialects, expectedQuery] of Object.entries(assertions.query)) {
+      const acceptedDialects = dialects.split(' ') as Array<Dialect | 'default'>;
+      const isFuzzy = acceptedDialects.length > 1;
+
+      for (const dialect of acceptedDialects) {
+        if (dialect === 'default' && acceptedDialects.length > 1) {
+          throw new Error(`The 'default' expectation cannot be combined with other dialects.`);
+        }
+
+        if (isFuzzy) {
+          fuzzyDialects.add(dialect);
+        }
+
+        if (sqlPerDialect[dialect] !== undefined) {
+          throw new Error(`The SQL expectation for ${dialect} was already defined.`);
+        }
+
+        sqlPerDialect[dialect] = expectedQuery;
+      }
+    }
+  }
+
+  for (const [dialects, expectedQuery] of Object.entries(assertions)) {
+    if (dialects === 'query' || dialects === 'bind') {
+      continue;
+    }
+
+    const acceptedDialects = dialects.split(' ') as Array<Dialect | 'default'>;
+    const [bind, query] = isString(expectedQuery) || expectedQuery instanceof Error
+      ? [undefined, expectedQuery]
+      : [expectedQuery.bind, expectedQuery.query];
+
+    const isFuzzy = acceptedDialects.length > 1 && query !== undefined;
 
     for (const dialect of acceptedDialects) {
       if (dialect === 'default' && acceptedDialects.length > 1) {
         throw new Error(`The 'default' expectation cannot be combined with other dialects.`);
       }
 
-      if (expectations[dialect] !== undefined) {
-        throw new Error(`The expectation for ${dialect} was already defined.`);
+      if (isFuzzy) {
+        fuzzyDialects.add(dialect);
       }
 
-      expectations[dialect] = value;
-    }
-  }
+      if (query !== undefined) {
+        if (sqlPerDialect[dialect] !== undefined) {
+          throw new Error(`The SQL expectation for ${dialect} was already defined.`);
+        }
 
-  const dialect = sequelize.dialect;
-  const usedExpectationName = dialect.name in expectations ? dialect.name : 'default';
-
-  let expectation = expectations[usedExpectationName];
-  if (expectation == null) {
-    throw new Error(`Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
-  }
-
-  if (combinedExpectations.has(usedExpectationName) && typeof expectation === 'string') {
-    // replace [...] with the proper quote character for the dialect
-    // except for ARRAY[...]
-    expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
-    if (dialect.name === 'ibmi') {
-      expectation = expectation.trim().replace(/;$/, '');
-    }
-  }
-
-  if (typeof query === 'function') {
-    try {
-      query = query();
-    } catch (error: unknown) {
-      if (!(error instanceof Error)) {
-        throw new TypeError('expectsql: function threw something that is not an instance of Error.');
+        sqlPerDialect[dialect] = query;
       }
 
-      query = error;
+      if (bind) {
+        if (bindPerDialect[dialect] !== undefined) {
+          throw new Error(`The bind parameter expectation for ${dialect} was already defined.`);
+        }
+
+        bindPerDialect[dialect] = bind;
+      }
     }
   }
 
-  if (expectation instanceof Error) {
-    assert(query instanceof Error, `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`);
+  const expectations: Record<string, Expectation<string | QueryWithBindParams> | Error> = Object.create(null);
+  const listedDialects = new Set<string>([
+    ...Object.keys(sqlPerDialect),
+    ...Object.keys(bindPerDialect),
+  ]);
 
-    expect(query.message).to.equal(expectation.message);
-  } else {
-    assert(!(query instanceof Error), `Expected query to equal ${minifySql(expectation)}, but it errored with ${query instanceof Error ? query.message : ''}`);
+  for (const dialect of listedDialects) {
+    const sql = sqlPerDialect[dialect] ?? sqlPerDialect.default;
+    const bind = bindPerDialect[dialect] ?? bindPerDialect.default;
 
-    expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
+    if (sql === undefined) {
+      throw new Error(`The SQL expectation for ${dialect} was not defined, but its bind parameter expectation was.`);
+    }
+
+    if (sql instanceof Error) {
+      expectations[dialect] = sql;
+    } else {
+      // sql matching is fuzzy if the expectation is not specific to a single dialect (used the "default" key or a combination of dialects)
+      const isFuzzy = sqlPerDialect[dialect] === undefined || fuzzyDialects.has(dialect) || dialect === 'default';
+
+      expectations[dialect] = toMatchSql(bind ? { query: sql, bind } : sql, isFuzzy);
+    }
   }
 
-  if ('bind' in assertions) {
-    const bind = assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
-    // @ts-expect-error -- too difficult to type, but this is safe
-    expect(query.bind).to.deep.equal(bind);
-  }
+  return expectPerDialect(receivedValue, expectations);
 }
 
 export function rand() {
