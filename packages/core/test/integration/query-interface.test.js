@@ -716,7 +716,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['username', 'email'] });
         await this.queryInterface.addColumn('posts', 'email', {
           type: DataTypes.STRING,
-          allowNull: false,
         });
         await this.queryInterface.addConstraint('posts', {
           type: 'foreign key',
