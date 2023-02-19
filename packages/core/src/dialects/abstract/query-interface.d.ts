@@ -218,6 +218,10 @@ export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
   references?: {
     table: TableName,
     field: string,
+    fields: never,
+  } | {
+    table: TableName,
+    field: never,
     fields: string[],
   };
   onDelete: string;

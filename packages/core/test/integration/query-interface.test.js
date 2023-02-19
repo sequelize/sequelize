@@ -713,20 +713,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('posts_username_users_fk');
 
+        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['email', 'username'] });
+        await this.queryInterface.addColumn('posts', 'email', {
+          type: DataTypes.STRING,
+          allowNull: false,
+        });
         await this.queryInterface.addConstraint('posts', {
           type: 'foreign key',
-          fields: ['username'],
+          fields: ['username', 'email'],
           references: {
             table: 'users',
-            fields: ['username'],
+            fields: ['username', 'email'],
           },
           onDelete: 'cascade',
           onUpdate: 'cascade',
         });
         constraints = await this.queryInterface.showConstraint('posts');
         constraints = constraints.map(constraint => constraint.constraintName);
-        expect(constraints).to.include('posts_username_users_fk');
-        await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
+        expect(constraints).to.include('posts_username_email_users_fk');
+        await this.queryInterface.removeConstraint('posts', 'posts_username_email_users_fk');
         constraints = await this.queryInterface.showConstraint('posts');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('posts_username_users_fk');
