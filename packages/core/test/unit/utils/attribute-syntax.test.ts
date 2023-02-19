@@ -34,6 +34,15 @@ describe('parseAttributeSyntax', () => {
     );
   });
 
+  it('throws for unbalanced association syntax', () => {
+    // The error points at the erroneous character each time, but we only test the first one
+    expect(() => parseAttributeSyntax('foo$')).to.throwWithCause(`Failed to parse syntax of attribute. Parse error at index 3:
+foo$
+   ^`);
+
+    expect(() => parseAttributeSyntax('$foo')).to.throwWithCause(`Failed to parse syntax of attribute. Parse error at index 0:`);
+  });
+
   it('parses cast syntax', () => {
     expect(parseAttributeSyntax('foo::bar')).to.deep.eq(
       sql.cast(new Attribute('foo'), 'bar'),
@@ -49,6 +58,61 @@ describe('parseAttributeSyntax', () => {
   it('parses modifier syntax', () => {
     expect(parseAttributeSyntax('foo:unquote')).to.deep.eq(
       sql.unquote(new Attribute('foo')),
+    );
+  });
+
+  it('parses consecutive modifiers', () => {
+    expect(parseAttributeSyntax('foo:unquote:unquote')).to.deep.eq(
+      sql.unquote(sql.unquote(new Attribute('foo'))),
+    );
+  });
+
+  it('parses casts and modifiers', () => {
+    expect(parseAttributeSyntax('textAttr::json:unquote::integer')).to.deep.eq(
+      sql.cast(sql.unquote(sql.cast(new Attribute('textAttr'), 'json')), 'integer'),
+    );
+  });
+
+  it('treats everything after ::/: as a cast/modifier', () => {
+    // "json.property" is treated as a cast, not a JSON path
+    // but it's not a valid cast, so it will throw
+    expect(() => parseAttributeSyntax('textAttr::json.property')).to.throwWithCause(`Failed to parse syntax of attribute. Parse error at index 14:
+textAttr::json.property
+              ^`);
+
+    // "json.property" is treated as a modifier (which does not exist and will throw), not a JSON path
+    expect(() => parseAttributeSyntax('textAttr:json.property')).to.throwWithCause(`Failed to parse syntax of attribute. Parse error at index 13:
+textAttr:json.property
+             ^`);
+  });
+
+  it('parses JSON paths', () => {
+    expect(parseAttributeSyntax('foo.bar')).to.deep.eq(
+      sql.jsonPath(new Attribute('foo'), ['bar']),
+    );
+
+    expect(parseAttributeSyntax('foo."bar"')).to.deep.eq(
+      sql.jsonPath(new Attribute('foo'), ['bar']),
+    );
+
+    expect(parseAttributeSyntax('foo."bar\\""')).to.deep.eq(
+      sql.jsonPath(new Attribute('foo'), ['bar"']),
+    );
+
+    expect(parseAttributeSyntax('foo."bar\\\\"')).to.deep.eq(
+      sql.jsonPath(new Attribute('foo'), ['bar\\']),
+    );
+
+    expect(parseAttributeSyntax('foo[123]')).to.deep.eq(
+      sql.jsonPath(new Attribute('foo'), [123]),
+    );
+
+    expect(parseAttributeSyntax('foo."123"')).to.deep.eq(
+      sql.jsonPath(new Attribute('foo'), ['123']),
+    );
+
+    expect(parseAttributeSyntax('foo.abc[0]."def"[1]')).to.deep.eq(
+      sql.jsonPath(new Attribute('foo'), ['abc', 0, 'def', 1]),
     );
   });
 });

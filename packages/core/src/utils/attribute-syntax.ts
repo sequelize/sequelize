@@ -1,4 +1,5 @@
-import NodeUtil from 'node:util';
+import type { Parser, SyntaxNode } from 'bnf-parser';
+import { BNF, Compile, ParseError } from 'bnf-parser';
 import memoize from 'lodash/memoize.js';
 import type { Class } from 'type-fest';
 import { AssociationPath } from '../expression-builders/association-path.js';
@@ -34,13 +35,7 @@ const builtInModifiers: Record<string, Class<DialectAwareFn>> = noPrototype({
  *
  * @param attribute The syntax to parse
  */
-export const parseAttributeSyntax = memoize(code => {
-  try {
-    return parseAttributeSyntaxInternal(code);
-  } catch (error) {
-    throw new Error(`Failed to parse syntax of attribute ${NodeUtil.inspect(code)}`, { cause: error });
-  }
-});
+export const parseAttributeSyntax = memoize(parseAttributeSyntaxInternal);
 
 /**
  * Parses the syntax supported by nested JSON properties.
@@ -49,49 +44,118 @@ export const parseAttributeSyntax = memoize(code => {
  */
 export const parseNestedJsonKeySyntax = memoize(parseJsonPropertyKeyInternal);
 
+const advancedAttributeParser: Parser = (() => {
+  const advancedAttributeBnf = `
+    program ::= ( ...association | ...identifier ) jsonPath? castOrModifiers?;
+    identifier ::= ( "A"->"Z" | "a"->"z" | digit | "_" )+ ;
+    digit ::= "0"->"9" ;
+    number ::= ...digit+ ;
+    association ::= %"$" identifier ("." identifier)* %"$" ;
+    jsonPath ::= ( ...indexAccess | ...keyAccess )+ ;
+    indexAccess ::= %"[" number %"]" ;
+    keyAccess ::= %"." (nonEmptyString | identifier) ;
+    nonEmptyString ::= ...(%"\\"" (anyExceptQuoteOrBackslash | escapedCharacter)+ %"\\"") ;
+    escapedCharacter ::= %"\\\\" ( "\\"" | "\\\\" );
+    any ::= !"" ;
+    anyExceptQuoteOrBackslash ::= !("\\"" | "\\\\");
+    castOrModifiers ::= (...cast | ...modifier)+;
+    cast ::= %"::" identifier ;
+    modifier ::= %":" identifier ;
+  `;
+
+  const parsedBnf = BNF.parse(advancedAttributeBnf);
+  if (parsedBnf instanceof ParseError) {
+    // eslint-disable-next-line -- false positive
+    throw new Error(`Failed to initialize attribute syntax parser. This is a Sequelize bug: ${parsedBnf.toString()}`);
+  }
+
+  return Compile(parsedBnf);
+})();
+
+interface ParsedAttributeSyntax extends SyntaxNode {
+  type: 'program';
+  value: [
+    attribute: StringNode<'association' | 'identifier'>,
+    jsonPath: UselessNode<'jsonPath?', [
+      UselessNode<'jsonPath', [
+        UselessNode<
+          '(...)+',
+          Array<StringNode<'keyAccess' | 'indexAccess'>>
+        >,
+      ]>,
+    ]>,
+    castOrModifiers: UselessNode<'castOrModifiers?', [
+      UselessNode<'castOrModifiers', [
+        UselessNode<
+          '(...)+',
+          Array<StringNode<'cast' | 'modifier'>>
+        >,
+      ]>,
+    ]>,
+  ];
+}
+
+interface UselessNode<Type extends string, WrappedValue extends SyntaxNode[]> extends SyntaxNode {
+  type: Type;
+  value: WrappedValue;
+}
+
+interface StringNode<Type extends string> extends SyntaxNode {
+  type: Type;
+  value: string;
+}
+
 function parseAttributeSyntaxInternal(
   code: string,
 ): Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn {
-
-  const castMatch = parseCastAndModifierSyntax(code);
-  if (castMatch) {
-    const { type, remainder, castToken } = castMatch;
-
-    if (castToken === '::') {
-      // recursive: casts & modifiers can be chained
-      // e.g. `foo::string::number`
-      return new Cast(parseAttributeSyntaxInternal(remainder), type);
-    }
-
-    const ModifierClass = builtInModifiers[type.toLowerCase()];
-    if (!ModifierClass) {
-      throw new Error(`${type} is not a recognized built-in modifier. Here is the list of supported modifiers: ${Object.keys(builtInModifiers).join(', ')}`);
-    }
-
-    // recursive: casts & modifiers can be chained
-    // e.g. `foo::string:upper`
-    return new ModifierClass(parseAttributeSyntaxInternal(remainder));
+  // This function is expensive (parsing produces a lot of objects), but we cache the final result, so it's only
+  // going to be slow once per attribute.
+  const parsed = advancedAttributeParser.parse(code) as ParsedAttributeSyntax | ParseError;
+  if (parsed instanceof ParseError) {
+    throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.ref.start.index}:
+${code}
+${' '.repeat(parsed.ref.start.index)}^`);
   }
 
-  // extract $association.attribute$ syntax
-  const associationMatch = code.match(/^(\$(?<associationPath>[a-zA-Z0-9_.]+)\$|(?<attribute>[a-zA-Z0-9_.]+))(?:$|(?<remainder>[[.].*))/);
-  if (associationMatch === null) {
-    throw new Error(`Could not find a valid association or attribute in ${NodeUtil.inspect(code)}.`);
+  const [attributeNode, jsonPathNodeRaw, castOrModifiersNodeRaw] = parsed.value;
+
+  let result: Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn = parseAssociationPath(attributeNode.value);
+
+  const jsonPathNodes = jsonPathNodeRaw.value[0]?.value[0].value;
+  if (jsonPathNodes) {
+    const path = jsonPathNodes.map(pathNode => {
+      if (pathNode.type === 'keyAccess') {
+        return pathNode.value;
+      }
+
+      return Number(pathNode.value);
+    });
+
+    result = new JsonPath(result, path, false);
   }
 
-  const associationOrAttributeStr = associationMatch.groups!.associationPath ?? associationMatch.groups!.attribute;
-  const associationOrAttribute = parseAssociationPath(associationOrAttributeStr);
+  const castOrModifierNodes = castOrModifiersNodeRaw.value[0]?.value[0].value;
+  if (castOrModifierNodes) {
 
-  const jsonPath = associationMatch.groups!.remainder;
+    // casts & modifiers can be chained, the last one is applied last
+    // foo:upper:lower needs to produce LOWER(UPPER(foo)), so we need to reverse the order
+    for (const castOrModifierNode of castOrModifierNodes) {
 
-  if (jsonPath) {
-    const [segments, isUnquoteOperator] = parseJsonPathRaw(jsonPath);
-    if (segments.length > 0) {
-      return new JsonPath(associationOrAttribute, segments, isUnquoteOperator);
+      if (castOrModifierNode.type === 'cast') {
+        result = new Cast(result, castOrModifierNode.value);
+        continue;
+      }
+
+      const ModifierClass = builtInModifiers[castOrModifierNode.value.toLowerCase()];
+      if (!ModifierClass) {
+        throw new Error(`${castOrModifierNode.value} is not a recognized built-in modifier. Here is the list of supported modifiers: ${Object.keys(builtInModifiers).join(', ')}`);
+      }
+
+      result = new ModifierClass(result);
     }
   }
 
-  return associationOrAttribute;
+  return result;
 }
 
 /**
