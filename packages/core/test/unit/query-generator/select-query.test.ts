@@ -1,8 +1,10 @@
 import { expect } from 'chai';
 import type { InferAttributes, Model } from '@sequelize/core';
-import { Op, literal, DataTypes, or, fn, where, cast, col, attribute } from '@sequelize/core';
+import { Op, DataTypes, or, sql as sqlTag } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
+
+const { attribute, col, cast, where, fn, literal } = sqlTag;
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;

@@ -1,19 +1,7 @@
 import { expect } from 'chai';
 import { sql, AssociationPath, Attribute } from '@sequelize/core';
-import { parseJsonPathRaw, parseAttributeSyntax } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/attribute-syntax.js';
-
-function testParseJsonPathRaw(code: string, paths: Array<string | number>, unquote: boolean = false): void {
-  const out = parseJsonPathRaw(code);
-
-  expect(out[0]).to.deep.eq(paths, `path mismatch for syntax ${code}`);
-  expect(out[1]).to.eq(unquote, `unquote detection mismatch for syntax ${code}`);
-}
-
-describe('parseJsonPathRaw', () => {
-  it('parses simple paths', () => {
-    testParseJsonPathRaw('foo', ['foo']);
-  });
-});
+import { Unquote } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/dialect-aware-fn.js';
+import { parseNestedJsonKeySyntax, parseAttributeSyntax } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/attribute-syntax.js';
 
 describe('parseAttributeSyntax', () => {
   it('parses simple attributes', () => {
@@ -113,6 +101,32 @@ textAttr:json.property
 
     expect(parseAttributeSyntax('foo.abc[0]."def"[1]')).to.deep.eq(
       sql.jsonPath(new Attribute('foo'), ['abc', 0, 'def', 1]),
+    );
+  });
+});
+
+describe('parseNestedJsonKeySyntax', () => {
+  it('parses JSON paths', () => {
+    expect(parseNestedJsonKeySyntax('foo.bar')).to.deep.eq(
+      { pathSegments: ['foo', 'bar'], castsAndModifiers: [] },
+    );
+
+    expect(parseNestedJsonKeySyntax('abc-def.ijk-lmn')).to.deep.eq(
+      { pathSegments: ['abc-def', 'ijk-lmn'], castsAndModifiers: [] },
+    );
+
+    expect(parseNestedJsonKeySyntax('"foo"."bar"')).to.deep.eq(
+      { pathSegments: ['foo', 'bar'], castsAndModifiers: [] },
+    );
+
+    expect(parseNestedJsonKeySyntax('[0]')).to.deep.eq(
+      { pathSegments: [0], castsAndModifiers: [] },
+    );
+  });
+
+  it('parses casts and modifiers', () => {
+    expect(parseNestedJsonKeySyntax('[0]:unquote::text:unquote::text')).to.deep.eq(
+      { pathSegments: [0], castsAndModifiers: [Unquote, 'text', Unquote, 'text'] },
     );
   });
 });

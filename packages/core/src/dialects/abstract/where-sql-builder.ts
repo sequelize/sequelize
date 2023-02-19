@@ -16,7 +16,7 @@ import type {
 import { Op } from '../../operators';
 import type { ParsedJsonPropertyKey } from '../../utils/attribute-syntax.js';
 import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attribute-syntax.js';
-import { isPlainObject } from '../../utils/check.js';
+import { isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
 import type { Nullish } from '../../utils/types.js';
@@ -713,7 +713,7 @@ export class WhereSqlBuilder {
         const parsedKey = parseNestedJsonKeySyntax(key);
 
         // optimization for common simple scenario (to skip replacing leftOperand on every iteration)
-        if (parsedKey.casts.length === 0 && !parsedKey.shouldUnquote) {
+        if (parsedKey.castsAndModifiers.length === 0) {
           return this.#handleRecursiveNotOrAndNestedPathRecursive(
             leftOperand,
             value,
@@ -805,14 +805,16 @@ export class WhereSqlBuilder {
       ? [...parentJsonPath, ...parsedPath.pathSegments]
       : parsedPath.pathSegments;
 
-    if (!parsedPath.shouldUnquote) {
-      operand = this.#wrapSimpleJsonPath(operand, finalPathSegments);
-    } else {
-      operand = new JsonPath(operand, finalPathSegments, true);
-    }
+    operand = this.#wrapSimpleJsonPath(operand, finalPathSegments);
 
-    for (const cast of parsedPath.casts) {
-      operand = new Cast(operand, cast);
+    for (const castOrModifier of parsedPath.castsAndModifiers) {
+      if (isString(castOrModifier)) {
+        // casts are always strings
+        operand = new Cast(operand, castOrModifier);
+      } else {
+        // modifiers are always classes
+        operand = new castOrModifier(operand);
+      }
     }
 
     return operand;
