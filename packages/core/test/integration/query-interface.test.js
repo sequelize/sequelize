@@ -713,7 +713,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('posts_username_users_fk');
 
-        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['email', 'username'] });
+        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['username', 'email'] });
         await this.queryInterface.addColumn('posts', 'email', {
           type: DataTypes.STRING,
           allowNull: false,
