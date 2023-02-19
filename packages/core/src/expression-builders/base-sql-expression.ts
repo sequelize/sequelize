@@ -2,6 +2,7 @@ import type { AssociationPath } from './association-path.js';
 import type { Attribute } from './attribute.js';
 import type { Cast } from './cast.js';
 import type { Col } from './col.js';
+import type { DialectAwareFn } from './dialect-aware-fn.js';
 import type { Fn } from './fn.js';
 import type { Identifier } from './identifier.js';
 import type { JsonPath } from './json-path.js';
@@ -24,6 +25,7 @@ export type DynamicSqlExpression =
   | Identifier
   | Attribute
   | Fn
+  | DialectAwareFn
   | Col
   | Cast
   | Literal

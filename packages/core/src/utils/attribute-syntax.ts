@@ -55,9 +55,9 @@ function parseAttributeSyntaxInternal(
 
   const castMatch = parseCastAndModifierSyntax(code);
   if (castMatch) {
-    const { type, remainder, isCast } = castMatch;
+    const { type, remainder, castToken } = castMatch;
 
-    if (isCast) {
+    if (castToken === '::') {
       // recursive: casts & modifiers can be chained
       // e.g. `foo::string::number`
       return new Cast(parseAttributeSyntaxInternal(remainder), type);
@@ -244,20 +244,20 @@ function assertNotEmptyPath(path: string, code: string, pos: number) {
  *
  * @example
  * // this is a function call. It will result in LOWER(foo)
- * parseCastAndFunctionSyntax('foo:lower') // { type: 'lower', remainder: 'foo', isCast: undefined }
+ * parseCastAndFunctionSyntax('foo:lower') // { type: 'lower', remainder: 'foo', castToken: ':' }
  *
  * // this is a cast. It will result in CAST(foo AS string)
- * parseCastAndFunctionSyntax('foo::string') // { type: 'string', remainder: 'foo', isCast: ':' }
+ * parseCastAndFunctionSyntax('foo::string') // { type: 'string', remainder: 'foo', castToken: '::' }
  *
  * @param value
  */
 function parseCastAndModifierSyntax(value: string) {
-  const castMatch = value.match(/(?<remainder>.+):(?<isCast>:)?(?<type>[a-zA-Z_]+)$/);
+  const castMatch = value.match(/(?<remainder>.*[^:])(?<castToken>:{1,2})(?<type>[a-zA-Z_]+)$/);
   if (!castMatch) {
     return null;
   }
 
-  return castMatch.groups! as { type: string, remainder: string, isCast: string | undefined };
+  return castMatch.groups! as { type: string, remainder: string, castToken: string };
 }
 
 function parseAssociationPath(syntax: string): AssociationPath | Attribute {

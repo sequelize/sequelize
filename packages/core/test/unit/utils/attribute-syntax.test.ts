@@ -21,7 +21,7 @@ describe('parseAttributeSyntax', () => {
   });
 
   it('parses simple associations', () => {
-    expect(parseAttributeSyntax('bar$')).to.deep.eq(
+    expect(parseAttributeSyntax('$bar$')).to.deep.eq(
       new Attribute('bar'),
     );
 

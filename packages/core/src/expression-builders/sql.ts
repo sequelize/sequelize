@@ -18,7 +18,7 @@ import { where } from './where.js';
  * @param values
  * @example
  * ```ts
- * literal`SELECT * FROM ${identifier(table)} WHERE ${identifier(column)} = ${value}`
+ * sql`SELECT * FROM ${sql.identifier(table)} WHERE ${sql.identifier(column)} = ${value}`
  * ```
  */
 export function sql(rawSql: TemplateStringsArray, ...values: unknown[]): Literal {

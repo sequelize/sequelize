@@ -27,6 +27,9 @@ export abstract class DialectAwareFn extends BaseSqlExpression {
   }
 }
 
+/**
+ * Unquotes JSON values.
+ */
 export class Unquote extends DialectAwareFn {
   apply(_dialect: AbstractDialect) {
     // TODO: implement
