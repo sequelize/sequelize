@@ -1281,6 +1281,13 @@ Caused by: "undefined" cannot be escaped`),
     });
 
     describe('Op.startsWith', () => {
+      // TODO: use implementation not based on "LIKE"
+      //  mysql, mariadb: locate()
+      //  postgres:, ^@
+      //  snowflake, ibmi, db2: position()
+      //  mssql: CHARINDEX()
+      //  sqlite: INSTR()
+
       testSql({
         stringAttr: {
           [Op.startsWith]: 'swagger',
@@ -1457,6 +1464,13 @@ Caused by: "undefined" cannot be escaped`),
     });
 
     describe('Op.substring', () => {
+      // TODO: use implementation not based on "LIKE"
+      //  mysql, mariadb: locate()
+      //  postgres:, position()
+      //  snowflake, ibmi, db2: position()
+      //  mssql: CHARINDEX()
+      //  sqlite: INSTR()
+
       testSql({
         stringAttr: {
           [Op.substring]: 'swagger',
