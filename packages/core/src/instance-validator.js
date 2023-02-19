@@ -3,7 +3,7 @@
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { validateDataType } from './dialects/abstract/data-types-utils';
 import { getAllOwnKeys } from './utils/object';
-import { SequelizeMethod } from './utils/sequelize-method';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression';
 import { BelongsTo } from './associations/belongs-to';
 
 const _ = require('lodash');
@@ -144,7 +144,7 @@ export class InstanceValidator {
 
       const value = this.modelInstance.dataValues[attrName];
 
-      if (value instanceof SequelizeMethod) {
+      if (value instanceof BaseSqlExpression) {
         continue;
       }
 
@@ -386,7 +386,7 @@ export class InstanceValidator {
     }
 
     const type = attribute.type;
-    if (value != null && !(value instanceof SequelizeMethod) && type instanceof AbstractDataType) {
+    if (value != null && !(value instanceof BaseSqlExpression) && type instanceof AbstractDataType) {
       const error = validateDataType(value, type, attributeName, this.modelInstance);
       if (error) {
         this.errors.push(error);

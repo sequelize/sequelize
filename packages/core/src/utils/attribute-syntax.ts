@@ -1,9 +1,27 @@
+import NodeUtil from 'node:util';
 import memoize from 'lodash/memoize.js';
-import { JsonPath, Attribute, AssociationPath, Cast } from './sequelize-method.js';
+import type { Class } from 'type-fest';
+import { AssociationPath } from '../expression-builders/association-path.js';
+import { Attribute } from '../expression-builders/attribute.js';
+import { Cast } from '../expression-builders/cast.js';
+import type { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
+import { Unquote } from '../expression-builders/dialect-aware-fn.js';
+import { JsonPath } from '../expression-builders/json-path.js';
+import { noPrototype } from './object.js';
 import { getEscapingBackslashCount } from './sql.js';
 
 /**
- * Parses the attribute syntax (the syntax of keys in WHERE POJOs) into its "SequelizeMethod" representation.
+ * List of supported attribute modifiers.
+ * They can be specified in the attribute syntax, e.g. `foo:upper` will call the `upper` modifier on the `foo` attribute.
+ *
+ * All names should be lowercase, as they are case-insensitive.
+ */
+const builtInModifiers: Record<string, Class<DialectAwareFn>> = noPrototype({
+  unquote: Unquote,
+});
+
+/**
+ * Parses the attribute syntax (the syntax of keys in WHERE POJOs) into its "BaseExpression" representation.
  *
  * @example
  * ```ts
@@ -16,55 +34,71 @@ import { getEscapingBackslashCount } from './sql.js';
  *
  * @param attribute The syntax to parse
  */
-export const parseAttributeSyntax = memoize(parseAttributeSyntaxInternal);
+export const parseAttributeSyntax = memoize(code => {
+  try {
+    return parseAttributeSyntaxInternal(code);
+  } catch (error) {
+    throw new Error(`Failed to parse syntax of attribute ${NodeUtil.inspect(code)}`, { cause: error });
+  }
+});
 
 /**
  * Parses the syntax supported by nested JSON properties.
  * This is a subset of {@link parseAttributeSyntax}, which does not parse associations, and returns raw data
- * instead of a SequelizeMethod.
+ * instead of a BaseExpression.
  */
 export const parseNestedJsonKeySyntax = memoize(parseJsonPropertyKeyInternal);
 
 function parseAttributeSyntaxInternal(
   code: string,
-): Cast | JsonPath | AssociationPath | Attribute {
-  const castMatch = parseCastSyntax(code);
-  if (castMatch) {
-    const { type, remainder } = castMatch;
+): Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn {
 
-    // recursive: can be cast multiple times
-    // e.g. `foo::string::number`
-    return new Cast(parseAttributeSyntaxInternal(remainder), type);
+  const castMatch = parseCastAndModifierSyntax(code);
+  if (castMatch) {
+    const { type, remainder, isCast } = castMatch;
+
+    if (isCast) {
+      // recursive: casts & modifiers can be chained
+      // e.g. `foo::string::number`
+      return new Cast(parseAttributeSyntaxInternal(remainder), type);
+    }
+
+    const ModifierClass = builtInModifiers[type.toLowerCase()];
+    if (!ModifierClass) {
+      throw new Error(`${type} is not a recognized built-in modifier. Here is the list of supported modifiers: ${Object.keys(builtInModifiers).join(', ')}`);
+    }
+
+    // recursive: casts & modifiers can be chained
+    // e.g. `foo::string:upper`
+    return new ModifierClass(parseAttributeSyntaxInternal(remainder));
   }
 
   // extract $association.attribute$ syntax
-  const associationMatch = code.match(/^\$(?<associationPath>[a-zA-Z0-9_.]+)\$(?:$|(?<remainder>[[.-].*))/);
-  const associationPath = associationMatch?.groups!.associationPath;
-
-  let unparsedJsonPath: string;
-  if (associationMatch) {
-    // parseJsonPathRaw does not support $association.attribute$ syntax, so we replace it with a dummy "x" segment
-    // TODO: this hurts the error message display, we should make parseJsonPathRaw support this syntax for the very first segment (if a flag is set)
-    unparsedJsonPath = `x${associationMatch.groups!.remainder}`;
-  } else {
-    unparsedJsonPath = code;
+  const associationMatch = code.match(/^(\$(?<associationPath>[a-zA-Z0-9_.]+)\$|(?<attribute>[a-zA-Z0-9_.]+))(?:$|(?<remainder>[[.].*))/);
+  if (associationMatch === null) {
+    throw new Error(`Could not find a valid association or attribute in ${NodeUtil.inspect(code)}.`);
   }
 
-  const [segments, isUnquoteOperator] = parseJsonPathRaw(unparsedJsonPath);
-  if (segments.length === 1) {
-    return parseAssociationPath(associationPath ?? segments[0]);
+  const associationOrAttributeStr = associationMatch.groups!.associationPath ?? associationMatch.groups!.attribute;
+  const associationOrAttribute = parseAssociationPath(associationOrAttributeStr);
+
+  const jsonPath = associationMatch.groups!.remainder;
+
+  if (jsonPath) {
+    const [segments, isUnquoteOperator] = parseJsonPathRaw(jsonPath);
+    if (segments.length > 0) {
+      return new JsonPath(associationOrAttribute, segments, isUnquoteOperator);
+    }
   }
 
-  const firstSegment = segments.shift()!;
-
-  return new JsonPath(parseAssociationPath(associationPath ?? firstSegment), segments, isUnquoteOperator);
+  return associationOrAttribute;
 }
 
 /**
  * Do not mutate this! It is memoized to avoid re-parsing the same path over and over.
  */
 export interface ParsedJsonPropertyKey {
-  readonly pathSegments: readonly string[];
+  readonly pathSegments: ReadonlyArray<string | number>;
   readonly shouldUnquote: boolean;
   readonly casts: readonly string[];
 }
@@ -74,7 +108,7 @@ function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
   let remainder = code;
   // eslint-disable-next-line no-constant-condition
   while (true) {
-    const castMatch = parseCastSyntax(remainder);
+    const castMatch = parseCastAndModifierSyntax(remainder);
     if (!castMatch) {
       break;
     }
@@ -92,7 +126,7 @@ const ALPHANUMERIC_REGEX = /^[a-zA-Z0-9_\-$]+$/;
 
 const UNQUOTED_SEGMENT = Symbol('unquoted-segment');
 
-function parseJsonPathRaw(code: string): [segments: string[], isUnquoteOperator: boolean] {
+export function parseJsonPathRaw(code: string): [segments: Array<string | number>, isUnquoteOperator: boolean] {
   const paths: string[] = [];
 
   let currentSegmentType: '[' | '"' | '\'' | typeof UNQUOTED_SEGMENT | null = null;
@@ -205,13 +239,25 @@ function assertNotEmptyPath(path: string, code: string, pos: number) {
   }
 }
 
-export function parseCastSyntax(value: string) {
-  const castMatch = value.match(/(?<remainder>.+)::(?<type>[a-zA-Z_]+)$/);
+/**
+ * Parses cast & unary function syntax.
+ *
+ * @example
+ * // this is a function call. It will result in LOWER(foo)
+ * parseCastAndFunctionSyntax('foo:lower') // { type: 'lower', remainder: 'foo', isCast: undefined }
+ *
+ * // this is a cast. It will result in CAST(foo AS string)
+ * parseCastAndFunctionSyntax('foo::string') // { type: 'string', remainder: 'foo', isCast: ':' }
+ *
+ * @param value
+ */
+function parseCastAndModifierSyntax(value: string) {
+  const castMatch = value.match(/(?<remainder>.+):(?<isCast>:)?(?<type>[a-zA-Z_]+)$/);
   if (!castMatch) {
     return null;
   }
 
-  return castMatch.groups! as { type: string, remainder: string };
+  return castMatch.groups! as { type: string, remainder: string, isCast: string | undefined };
 }
 
 function parseAssociationPath(syntax: string): AssociationPath | Attribute {

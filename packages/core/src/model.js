@@ -22,7 +22,7 @@ import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { SequelizeMethod } from './utils/sequelize-method';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression';
 import { Association, BelongsTo, BelongsToMany, HasMany, HasOne } from './associations';
 import { AssociationSecret } from './associations/helpers';
 import { Op } from './operators';
@@ -147,7 +147,7 @@ export class Model extends ModelTypeScript {
         ? _.mapValues(getObjectFromMap(modelDefinition.defaultValues), getDefaultValue => {
           const value = getDefaultValue();
 
-          return value && value instanceof SequelizeMethod ? value : _.cloneDeep(value);
+          return value && value instanceof BaseSqlExpression ? value : _.cloneDeep(value);
         })
         : Object.create(null);
 
@@ -2448,7 +2448,7 @@ ${associationOwner._getAssociationDebugList()}`);
       throw new Error('Missing where or truncate attribute in the options parameter of model.destroy.');
     }
 
-    if (!options.truncate && !_.isPlainObject(options.where) && !Array.isArray(options.where) && !(options.where instanceof SequelizeMethod)) {
+    if (!options.truncate && !_.isPlainObject(options.where) && !Array.isArray(options.where) && !(options.where instanceof BaseSqlExpression)) {
       throw new Error('Expected plain object, array or sequelize method in the options.where parameter of model.destroy.');
     }
 
@@ -3051,7 +3051,7 @@ Instead of specifying a Model, either:
 
   static _optionsMustContainWhere(options) {
     assert(options && options.where, 'Missing where attribute in the options parameter');
-    assert(_.isPlainObject(options.where) || Array.isArray(options.where) || options.where instanceof SequelizeMethod,
+    assert(_.isPlainObject(options.where) || Array.isArray(options.where) || options.where instanceof BaseSqlExpression,
       'Expected plain object, array or sequelize method in the options.where parameter');
   }
 
@@ -3372,7 +3372,7 @@ Instead of specifying a Model, either:
       if (
         !options.comesFromDatabase
         && value != null
-        && !(value instanceof SequelizeMethod)
+        && !(value instanceof BaseSqlExpression)
         && attributeType
         // "type" can be a string
         && attributeType instanceof AbstractDataType
@@ -3385,7 +3385,7 @@ Instead of specifying a Model, either:
         !options.raw
         && (
           // True when sequelize method
-          value instanceof SequelizeMethod
+          value instanceof BaseSqlExpression
           // Otherwise, check for data type type comparators
           || ((value != null && attributeType && attributeType instanceof AbstractDataType) && !attributeType.areValuesEqual(value, originalValue, options))
           || ((value == null || !attributeType || !(attributeType instanceof AbstractDataType)) && !_.isEqual(value, originalValue))

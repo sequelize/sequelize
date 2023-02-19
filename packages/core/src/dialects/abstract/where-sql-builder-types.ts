@@ -1,6 +1,6 @@
+import type { DynamicSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import type { WhereOperators } from '../../model.js';
 import type { Op } from '../../operators.js';
-import type { DynamicExpression } from '../../utils/sequelize-method.js';
 import type { AllowArray } from '../../utils/types.js';
 
 /**
@@ -27,7 +27,7 @@ export type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
  */
 export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayRecursive<
   | WhereAttributeHash<TAttributes>
-  | DynamicExpression
+  | DynamicSqlExpression
 >;
 
 /**

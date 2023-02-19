@@ -1,6 +1,6 @@
 import pickBy from 'lodash/pickBy';
 import { BaseError } from '../errors/index.js';
-import { Where } from './sequelize-method';
+import { Where } from '../expression-builders/where.js';
 
 export function isNullish(val: unknown): val is null | undefined {
   return val == null;

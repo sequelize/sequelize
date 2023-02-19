@@ -4,6 +4,8 @@ import type { AbstractConnectionManager } from './dialects/abstract/connection-m
 import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type { CreateSchemaOptions } from './dialects/abstract/query-interface.types';
+import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
+import type { json } from './expression-builders/json.js';
 import type {
   DestroyOptions,
   DropOptions,
@@ -22,9 +24,8 @@ import type {
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
-import type { cast, col, fn, Fn, json, literal, DynamicExpression, where } from './utils/sequelize-method.js';
 import type { RequiredBy } from './utils/types.js';
-import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes, AbstractQueryGenerator } from '.';
+import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes, AbstractQueryGenerator, literal, Fn, fn, col, cast, where } from '.';
 
 export type RetryOptions = RetryAsPromisedOptions;
 
@@ -1102,5 +1103,5 @@ export function and<T extends any[]>(...args: T): { [Op.and]: T };
  */
 export function or<T extends any[]>(...args: T): { [Op.or]: T };
 
-export type Expression = ColumnReference | DynamicExpression | unknown;
+export type Expression = ColumnReference | DynamicSqlExpression | unknown;
 

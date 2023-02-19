@@ -18,19 +18,18 @@ import type {
   TableNameWithSchema,
   IndexField,
 } from './dialects/abstract/query-interface';
+import type {
+  DynamicSqlExpression,
+} from './expression-builders/base-sql-expression.js';
+import type { Cast } from './expression-builders/cast.js';
+import type { Fn } from './expression-builders/fn.js';
+import type { Literal } from './expression-builders/literal.js';
+import type { Where } from './expression-builders/where.js';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
 import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
-import type {
-  Cast,
-  Col,
-  Fn,
-  Literal,
-  Where,
-  DynamicExpression,
-} from './utils/sequelize-method.js';
 import type {
   AllowArray,
   AllowReadonlyArray,
@@ -39,7 +38,7 @@ import type {
   Nullish,
   OmitConstructors, RequiredBy,
 } from './utils/types.js';
-import type { LOCK, Op, Transaction, TableHints, WhereOptions } from './index';
+import type { LOCK, Op, Transaction, TableHints, WhereOptions, Col } from './index';
 
 export interface Logging {
   /**
@@ -741,7 +740,7 @@ export type Order = Fn | Col | Literal | OrderItem[];
  * as a property but only via `instance.get('alias')`.
  */
 export type ProjectionAlias = readonly [
-  expressionOrAttributeName: string | DynamicExpression,
+  expressionOrAttributeName: string | DynamicSqlExpression,
   alias: string,
 ];
 

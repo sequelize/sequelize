@@ -1,6 +1,11 @@
 'use strict';
 
 import NodeUtil from 'node:util';
+import { Cast } from '../../expression-builders/cast';
+import { Col } from '../../expression-builders/col';
+import { Fn } from '../../expression-builders/fn';
+import { Literal } from '../../expression-builders/literal';
+import { Where } from '../../expression-builders/where';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
 import { rejectInvalidOptions, canTreatArrayAsAnd, isColString } from '../../utils/check';
@@ -10,7 +15,7 @@ import {
 } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
-import { Cast, Col, Fn, Literal, SequelizeMethod, Where } from '../../utils/sequelize-method';
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import { nameIndex, spliceStr } from '../../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
@@ -606,8 +611,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     const fieldsSql = options.fields.map(field => {
-      if (field instanceof SequelizeMethod) {
-        return this.formatSequelizeMethod(field);
+      if (field instanceof BaseSqlExpression) {
+        return this.formatSqlExpression(field);
       }
 
       if (typeof field === 'string') {
@@ -743,8 +748,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         return this.quoteIdentifier(field);
       }
 
-      if (field instanceof SequelizeMethod) {
-        return this.formatSequelizeMethod(field);
+      if (field instanceof BaseSqlExpression) {
+        return this.formatSqlExpression(field);
       }
 
       if (field.attribute) {
@@ -763,7 +768,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         return field;
       }
 
-      if (field instanceof SequelizeMethod) {
+      if (field instanceof BaseSqlExpression) {
         throw new TypeError(`The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`);
       }
 
@@ -991,7 +996,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       for (i = 0; i < collectionLength - 1; i++) {
         item = collection[i];
-        if (typeof item === 'string' || item._modelAttribute || item instanceof SequelizeMethod) {
+        if (typeof item === 'string' || item._modelAttribute || item instanceof BaseSqlExpression) {
           break;
         } else if (item instanceof Association) {
           const previousAssociation = collection[i - 1];
@@ -1028,8 +1033,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       return `${this.quoteTable(collection.Model.name)}.${this.quoteIdentifier(collection.fieldName)}`;
     }
 
-    if (collection instanceof SequelizeMethod) {
-      return this.formatSequelizeMethod(collection, options);
+    if (collection instanceof BaseSqlExpression) {
+      return this.formatSqlExpression(collection, options);
     }
 
     if (_.isPlainObject(collection) && collection.raw) {
@@ -1428,8 +1433,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return attributes && attributes.map(attr => {
       let addTable = true;
 
-      if (attr instanceof SequelizeMethod) {
-        return this.formatSequelizeMethod(attr, options);
+      if (attr instanceof BaseSqlExpression) {
+        return this.formatSqlExpression(attr, options);
       }
 
       if (Array.isArray(attr)) {
@@ -1439,8 +1444,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         attr = [...attr];
 
-        if (attr[0] instanceof SequelizeMethod) {
-          attr[0] = this.formatSequelizeMethod(attr[0], options);
+        if (attr[0] instanceof BaseSqlExpression) {
+          attr[0] = this.formatSqlExpression(attr[0], options);
           addTable = false;
         } else {
           attr[0] = this.quoteIdentifier(attr[0]);
@@ -1499,11 +1504,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         let verbatim = false;
 
         if (Array.isArray(attr) && attr.length === 2) {
-          if (attr[0] instanceof SequelizeMethod) {
+          if (attr[0] instanceof BaseSqlExpression) {
             verbatim = true;
           }
 
-          attr = attr.map(attrPart => (attrPart instanceof SequelizeMethod ? this.formatSequelizeMethod(attrPart, options) : attrPart));
+          attr = attr.map(attrPart => (attrPart instanceof BaseSqlExpression ? this.formatSqlExpression(attrPart, options) : attrPart));
 
           attrAs = attr[1];
           attr = attr[0];
@@ -1514,7 +1519,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           return this.formatLiteral(attr, options);
         }
 
-        if (attr instanceof SequelizeMethod) {
+        if (attr instanceof BaseSqlExpression) {
           throw new TypeError(
             `Tried to select attributes using ${attr.constructor.name} without specifying an alias for the result, during eager loading. This means the attribute will not be added to the returned instance`,
           );
@@ -1797,9 +1802,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             throw new Error(`literal() cannot be used in the "returning" option array in ${this.dialect.name}. Use col(), or a string instead.`);
           }
 
-          return this.formatSequelizeMethod(field);
+          return this.formatSqlExpression(field);
         } else if (field instanceof Col) {
-          return this.formatSequelizeMethod(field);
+          return this.formatSqlExpression(field);
         }
 
         throw new Error(`Unsupported value in "returning" option: ${NodeUtil.inspect(field)}. This option only accepts true, false, or an array of strings, col() or literal().`);
@@ -2124,7 +2129,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         mainQueryOrder.push(this.quote(order, model, '->', options));
       }
-    } else if (options.order instanceof SequelizeMethod) {
+    } else if (options.order instanceof BaseSqlExpression) {
       const sql = this.quote(options.order, model, '->', options);
       if (subQuery) {
         subQueryOrder.push(sql);

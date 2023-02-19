@@ -1,10 +1,11 @@
 'use strict';
 
 import { underscore } from 'inflection';
+import { Cast } from '../../expression-builders/cast';
 import { conformIndex } from '../../model-internals';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
-import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
+import { Json, BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
@@ -284,8 +285,8 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         return this.quoteIdentifier(field);
       }
 
-      if (field instanceof SequelizeMethod) {
-        return this.formatSequelizeMethod(field);
+      if (field instanceof BaseSqlExpression) {
+        return this.formatSqlExpression(field);
       }
 
       let result = '';

@@ -3,12 +3,23 @@
 import isPlainObject from 'lodash/isPlainObject';
 import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
+import { AssociationPath } from './expression-builders/association-path';
+import { Attribute } from './expression-builders/attribute';
+import { Cast, cast } from './expression-builders/cast';
+import { Col, col } from './expression-builders/col';
+import { Fn, fn } from './expression-builders/fn';
+import { Identifier } from './expression-builders/identifier';
+import { json } from './expression-builders/json';
+import { JsonPath } from './expression-builders/json-path';
+import { List } from './expression-builders/list';
+import { Literal, literal } from './expression-builders/literal';
+import { sql } from './expression-builders/sql';
+import { Where, where } from './expression-builders/where';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { isString } from './utils/check.js';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { Cast, cast, Col, col, Fn, fn, json, Literal, literal, sql, Where, where, Identifier, identifier, JsonPath, jsonPath, List, list, Attribute, attribute, AssociationPath } from './utils/sequelize-method';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
@@ -1084,47 +1095,26 @@ Use Sequelize#query if you wish to use replacements.`);
     return fn('RAND');
   }
 
-  static fn = fn;
-
   static Fn = Fn;
-
-  static col = col;
-
   static Col = Col;
-
-  static cast = cast;
-
   static Cast = Cast;
-
-  static literal = literal;
-
   static Literal = Literal;
-
-  static json = json;
-
-  static where = where;
-
   static Where = Where;
-
   static List = List;
-
-  static list = list;
-
   static Identifier = Identifier;
-
-  static identifier = identifier;
-
   static Attribute = Attribute;
-
-  static attribute = attribute;
-
   static AssociationPath = AssociationPath;
+  static JsonPath = JsonPath;
 
   static sql = sql;
 
-  static JsonPath = JsonPath;
-
-  static jsonPath = jsonPath;
+  // these are all available on the "sql" object, but are exposed for backwards compatibility
+  static fn = fn;
+  static col = col;
+  static cast = cast;
+  static literal = literal;
+  static json = json;
+  static where = where;
 
   static and = and;
 

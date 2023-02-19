@@ -1,10 +1,11 @@
 'use strict';
 
+import { Cast } from '../../expression-builders/cast';
 import { addTicks, removeTicks } from '../../utils/dialect';
 import { removeNullishValuesFromHash } from '../../utils/format';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
-import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
+import { Json, BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import { underscore } from '../../utils/string';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 

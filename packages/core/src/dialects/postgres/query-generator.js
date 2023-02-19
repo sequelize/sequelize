@@ -2,7 +2,7 @@
 
 import { EMPTY_OBJECT } from '../../utils/object';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { Json } from '../../utils/sequelize-method';
+import { Json } from '../../expression-builders/base-sql-expression';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
 import { quoteIdentifier, removeTicks } from '../../utils/dialect';

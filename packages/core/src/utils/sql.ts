@@ -1,8 +1,8 @@
 import isPlainObject from 'lodash/isPlainObject';
 import type { AbstractDialect, BindCollector } from '../dialects/abstract/index.js';
 import type { EscapeOptions } from '../dialects/abstract/query-generator-typescript.js';
+import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import type { BindOrReplacements } from '../sequelize.js';
-import { SequelizeMethod } from './sequelize-method.js';
 
 type OnBind = (oldName: string) => string;
 
@@ -272,7 +272,7 @@ function escapeValueWithBackCompat(value: unknown, dialect: AbstractDialect, esc
   // The problem is that if we receive a list of list, there are cases where we don't want the extra parentheses around the list,
   // such as in the case of a bulk insert.
   // As a workaround, non-list arrays that contain dynamic values are joined with commas.
-  if (Array.isArray(value) && value.some(item => item instanceof SequelizeMethod)) {
+  if (Array.isArray(value) && value.some(item => item instanceof BaseSqlExpression)) {
     return value.map(item => dialect.queryGenerator.escape(item, escapeOptions)).join(', ');
   }
 

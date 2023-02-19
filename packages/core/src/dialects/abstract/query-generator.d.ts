@@ -1,5 +1,7 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
+import type { Col } from '../../expression-builders/col.js';
+import type { Literal } from '../../expression-builders/literal.js';
 import type {
   NormalizedAttributeOptions,
   FindOptions,
@@ -8,7 +10,6 @@ import type {
   ModelStatic,
   SearchPathable,
 } from '../../model.js';
-import type { Literal, Col } from '../../utils/sequelize-method.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';

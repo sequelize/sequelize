@@ -1,5 +1,8 @@
 import type { SetRequired } from 'type-fest';
 import type { Deferrable } from '../../deferrable';
+import type { Col } from '../../expression-builders/col.js';
+import type { Fn } from '../../expression-builders/fn.js';
+import type { Literal } from '../../expression-builders/literal.js';
 import type {
   Logging,
   Model,
@@ -12,7 +15,6 @@ import type {
 } from '../../model';
 import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { Transaction } from '../../transaction';
-import type { Fn, Literal, Col } from '../../utils/sequelize-method.js';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';

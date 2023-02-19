@@ -61,9 +61,23 @@ export { useInflection } from './utils/string';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils';
 export type { Validator } from './utils/validator-extras';
 export { Deferrable } from './deferrable';
-export { Cast, cast, Col, col, Fn, fn, json, Literal, literal, sql, Where, where, Identifier, identifier, JsonPath, jsonPath, List, list, Attribute, attribute, SequelizeMethod, AssociationPath } from './utils/sequelize-method';
-
 export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 export { importModels } from './import-models.js';
 export { ModelDefinition } from './model-definition.js';
 export type { WhereOptions } from './dialects/abstract/where-sql-builder-types.js';
+
+export { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
+export { sql } from './expression-builders/sql.js';
+export { List } from './expression-builders/list.js';
+export { Identifier } from './expression-builders/identifier.js';
+export { Attribute } from './expression-builders/attribute.js';
+export { JsonPath } from './expression-builders/json-path.js';
+export { AssociationPath } from './expression-builders/association-path.js';
+
+// All functions are available on sql.x, but these are exported for backwards compatibility
+export { literal, Literal } from './expression-builders/literal.js';
+export { fn, Fn } from './expression-builders/fn.js';
+export { col, Col } from './expression-builders/col.js';
+export { cast, Cast } from './expression-builders/cast.js';
+export { json } from './expression-builders/json.js';
+export { where, Where } from './expression-builders/where.js';

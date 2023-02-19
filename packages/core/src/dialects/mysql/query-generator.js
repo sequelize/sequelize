@@ -1,11 +1,12 @@
 'use strict';
 
+import { Cast } from '../../expression-builders/cast';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { Cast, Json } from '../../utils/sequelize-method';
+import { Json } from '../../expression-builders/base-sql-expression';
 import { underscore } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {

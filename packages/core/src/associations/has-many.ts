@@ -1,6 +1,8 @@
 import upperFirst from 'lodash/upperFirst';
 import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
 import { AssociationError } from '../errors/index.js';
+import { col } from '../expression-builders/col.js';
+import { fn } from '../expression-builders/fn.js';
 import type {
   Model,
   CreateOptions,
@@ -16,7 +18,6 @@ import { Op } from '../operators';
 import { isPlainObject } from '../utils/check.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
-import { col, fn } from '../utils/sequelize-method.js';
 import type { AllowArray } from '../utils/types.js';
 import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';

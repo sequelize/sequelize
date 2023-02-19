@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { list } from '@sequelize/core';
+import { sql as sqlTag } from '@sequelize/core';
 import { injectReplacements, mapBindParameters } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import {
   createSequelizeInstance,
@@ -9,6 +9,8 @@ import {
   toHaveProperties,
   toMatchSql,
 } from '../../support';
+
+const { list } = sqlTag;
 
 const dialect = sequelize.dialect;
 

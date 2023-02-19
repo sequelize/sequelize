@@ -1,4 +1,13 @@
 import NodeUtil from 'node:util';
+import { AssociationPath } from '../../expression-builders/association-path.js';
+import { Attribute } from '../../expression-builders/attribute.js';
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
+import { Cast } from '../../expression-builders/cast.js';
+import { Col } from '../../expression-builders/col.js';
+import { JsonPath } from '../../expression-builders/json-path.js';
+import { Literal } from '../../expression-builders/literal.js';
+import { Value } from '../../expression-builders/value.js';
+import { Where } from '../../expression-builders/where.js';
 import type {
   ModelStatic,
   WhereOptions,
@@ -10,7 +19,6 @@ import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attr
 import { isPlainObject } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
-import { Attribute, JsonPath, SequelizeMethod, Col, Literal, Value, AssociationPath, Cast, Where } from '../../utils/sequelize-method.js';
 import type { Nullish } from '../../utils/types.js';
 import { getComplexKeys, getOperators } from '../../utils/where.js';
 import type { NormalizedDataType } from './data-types.js';
@@ -143,9 +151,9 @@ export class WhereSqlBuilder {
     }
 
     try {
-      return this.#handleRecursiveNotOrAndWithImplicitAndArray(where, (piece: PojoWhere | SequelizeMethod) => {
-        if (piece instanceof SequelizeMethod) {
-          return this.queryGenerator.formatSequelizeMethod(piece, options);
+      return this.#handleRecursiveNotOrAndWithImplicitAndArray(where, (piece: PojoWhere | BaseSqlExpression) => {
+        if (piece instanceof BaseSqlExpression) {
+          return this.queryGenerator.formatSqlExpression(piece, options);
         }
 
         return this.formatPojoWhere(piece, options);
@@ -168,7 +176,7 @@ export class WhereSqlBuilder {
    */
   #handleRecursiveNotOrAndWithImplicitAndArray<TAttributes>(
     input: WhereOptions<TAttributes>,
-    handlePart: (part: SequelizeMethod | PojoWhere) => string,
+    handlePart: (part: BaseSqlExpression | PojoWhere) => string,
     logicalOperator: typeof Op.and | typeof Op.or = Op.and,
   ): string {
     // Arrays in this method are treated as an implicit "AND" operator
@@ -188,7 +196,7 @@ export class WhereSqlBuilder {
     // if the input is not a plan object, then it can't include Operators.
     if (!isPlainObject(input)) {
       // @ts-expect-error -- This catches a scenario where the user did not respect the typing
-      if (!(input instanceof SequelizeMethod)) {
+      if (!(input instanceof BaseSqlExpression)) {
         throw new TypeError(`Invalid Query: expected a plain object, an array or a sequelize SQL method but got ${NodeUtil.inspect(input)} `);
       }
 
@@ -402,7 +410,7 @@ export class WhereSqlBuilder {
     const leftSql = this.queryGenerator.escape(left, leftEscapeOptions);
 
     let rightSql: string;
-    if (right instanceof SequelizeMethod) {
+    if (right instanceof BaseSqlExpression) {
       rightSql = this.queryGenerator.escape(right, rightEscapeOptions);
     } else if (Array.isArray(right) && right.length === 2) {
       rightSql = `${this.queryGenerator.escape(right[0], rightEscapeOptions)} AND ${this.queryGenerator.escape(right[1], rightEscapeOptions)}`;
@@ -562,7 +570,7 @@ export class WhereSqlBuilder {
     }
 
     const escapedPercent = this.dialect.escapeString('%');
-    const literalBuilder: Array<string | SequelizeMethod> = [`CONCAT(`];
+    const literalBuilder: Array<string | BaseSqlExpression> = [`CONCAT(`];
     if (start) {
       literalBuilder.push(escapedPercent, ', ');
     }
@@ -682,7 +690,7 @@ export class WhereSqlBuilder {
       right: Expression,
     ) => string,
     operator: typeof Op.and | typeof Op.or = Op.and,
-    parentJsonPath: readonly string[] = EMPTY_ARRAY,
+    parentJsonPath: ReadonlyArray<string | number> = EMPTY_ARRAY,
   ): string {
     if (!isPlainObject(whereValue)) {
       return handlePart(this.#wrapSimpleJsonPath(leftOperand, parentJsonPath), undefined, whereValue);
@@ -775,7 +783,7 @@ export class WhereSqlBuilder {
     return joinWithLogicalOperator(parts, operator);
   }
 
-  #wrapSimpleJsonPath(operand: Expression, pathSegments: readonly string[]): Expression {
+  #wrapSimpleJsonPath(operand: Expression, pathSegments: ReadonlyArray<string | number>): Expression {
     if (pathSegments.length === 0) {
       return operand;
     }
@@ -790,7 +798,7 @@ export class WhereSqlBuilder {
 
   #wrapComplexJsonPath(
     operand: Expression,
-    parentJsonPath: readonly string[],
+    parentJsonPath: ReadonlyArray<string | number>,
     parsedPath: ParsedJsonPropertyKey,
   ): Expression {
     const finalPathSegments = parentJsonPath.length > 0

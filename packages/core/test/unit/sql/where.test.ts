@@ -13,11 +13,13 @@ import type {
   Fn,
   Cast, AttributeNames,
 } from '@sequelize/core';
-import { DataTypes, Op, literal, col, where, fn, json, cast, and, or, Model, attribute } from '@sequelize/core';
+import { DataTypes, Op, and, or, Model, sql, json } from '@sequelize/core';
 import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
 import { createTester, sequelize, expectsql, getTestDialectTeaser } from '../../support';
 
-const sql = sequelize.dialect.queryGenerator;
+const { literal, col, where, fn, cast, attribute } = sql;
+
+const queryGen = sequelize.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character
 // when there is no dialect specific expectation but only a default expectation
@@ -99,7 +101,7 @@ describe(getTestDialectTeaser('SQL'), () => {
   describe('whereQuery', () => {
     it('prefixes its output with WHERE when it is not empty', () => {
       expectsql(
-        sql.whereQuery({ firstName: 'abc' }),
+        queryGen.whereQuery({ firstName: 'abc' }),
         {
           default: `WHERE [firstName] = 'abc'`,
           mssql: `WHERE [firstName] = N'abc'`,
@@ -109,7 +111,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     it('returns an empty string if the input results in an empty query', () => {
       expectsql(
-        sql.whereQuery({ firstName: { [Op.notIn]: [] } }),
+        queryGen.whereQuery({ firstName: { [Op.notIn]: [] } }),
         {
           default: '',
         },
@@ -262,7 +264,7 @@ describe(getTestDialectTeaser('SQL'), () => {
     const testSql = createTester(
       (it, whereObj: TestModelWhere, expectations: Expectations, options?: FormatWhereOptions) => {
         it(util.inspect(whereObj, { depth: 10 }) + (options ? `, ${util.inspect(options)}` : ''), () => {
-          const sqlOrError = attempt(() => sql.whereItemsQuery(whereObj, {
+          const sqlOrError = attempt(() => queryGen.whereItemsQuery(whereObj, {
             ...options,
             model: TestModel,
           }));
@@ -2346,7 +2348,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"jsonbAttr"#>ARRAY['nested','attribute'] > ${sql.escape(jsonDt)}`,
+          postgres: `"jsonbAttr"#>ARRAY['nested','attribute'] > ${queryGen.escape(jsonDt)}`,
         });
 
         testSql({

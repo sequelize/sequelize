@@ -1,10 +1,11 @@
 'use strict';
 
+import { Cast } from '../../expression-builders/cast';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { addTicks, quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
-import { Cast, Json } from '../../utils/sequelize-method';
+import { Json } from '../../expression-builders/base-sql-expression';
 import { underscore } from '../../utils/string';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,

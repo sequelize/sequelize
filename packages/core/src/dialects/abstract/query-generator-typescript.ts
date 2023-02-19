@@ -1,5 +1,20 @@
 import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
+import { AssociationPath } from '../../expression-builders/association-path.js';
+import { Attribute } from '../../expression-builders/attribute.js';
+import {
+  BaseSqlExpression,
+
+} from '../../expression-builders/base-sql-expression.js';
+import { Cast } from '../../expression-builders/cast.js';
+import { Col } from '../../expression-builders/col.js';
+import { Fn } from '../../expression-builders/fn.js';
+import { Identifier } from '../../expression-builders/identifier.js';
+import { JsonPath } from '../../expression-builders/json-path.js';
+import { List } from '../../expression-builders/list.js';
+import { Literal } from '../../expression-builders/literal.js';
+import { Value } from '../../expression-builders/value.js';
+import { Where } from '../../expression-builders/where.js';
 import type { ModelStatic, Attributes, Model } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Sequelize } from '../../sequelize.js';
@@ -9,18 +24,6 @@ import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
-import {
-  SequelizeMethod,
-  Literal,
-  Fn,
-  List,
-  Value,
-  Identifier,
-  Cast,
-  Col,
-  Where,
-  Attribute, JsonPath, AssociationPath,
-} from '../../utils/sequelize-method.js';
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
 import type { DataType, BindParamOptions } from './data-types.js';
@@ -243,7 +246,7 @@ export class AbstractQueryGeneratorTypeScript {
     return this.whereSqlBuilder.formatWhereOptions(where, options);
   }
 
-  formatSequelizeMethod(piece: SequelizeMethod, options?: EscapeOptions): string {
+  formatSqlExpression(piece: BaseSqlExpression, options?: EscapeOptions): string {
     if (piece instanceof Literal) {
       return this.formatLiteral(piece, options);
     }
@@ -324,8 +327,8 @@ export class AbstractQueryGeneratorTypeScript {
 
   protected formatLiteral(piece: Literal, options?: EscapeOptions): string {
     const sql = piece.val.map(part => {
-      if (part instanceof SequelizeMethod) {
-        return this.formatSequelizeMethod(part, options);
+      if (part instanceof BaseSqlExpression) {
+        return this.formatSqlExpression(part, options);
       }
 
       return part;
@@ -408,8 +411,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       value = new Col(value[Op.col] as string);
     }
 
-    if (value instanceof SequelizeMethod) {
-      return this.formatSequelizeMethod(value, options);
+    if (value instanceof BaseSqlExpression) {
+      return this.formatSqlExpression(value, options);
     }
 
     if (value === undefined) {
