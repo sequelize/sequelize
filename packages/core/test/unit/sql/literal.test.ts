@@ -132,7 +132,7 @@ describe('fn', () => {
     );
 
     expectsql(out, {
-      default: `concat('user', ARRAY['abc'])`,
+      default: `concat(ARRAY['abc'])`,
     });
   });
 });

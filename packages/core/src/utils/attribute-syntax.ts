@@ -150,7 +150,7 @@ ${' '.repeat(parsed.ref.start.index)}^`);
       return parseJsonPathSegment(pathNode);
     });
 
-    result = new JsonPath(result, path, false);
+    result = new JsonPath(result, path);
   }
 
   const castOrModifierNodes = castOrModifiersNodeRaw.value[0]?.value[0].value;

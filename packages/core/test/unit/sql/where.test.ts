@@ -757,7 +757,7 @@ Caused by: "undefined" cannot be escaped`),
 
       if (dialectSupportsJsonOperations()) {
         testSql({ [Op.not]: json('data.key', 10) }, {
-          postgres: `NOT ([data]->'key' = '10')`,
+          postgres: `NOT ("data"->'key' = '10')`,
           'sqlite mysql mariadb': `NOT (json_extract([data],'$.key') = '10')`,
         });
       }
@@ -2107,7 +2107,6 @@ Caused by: "undefined" cannot be escaped`),
         });
 
         // 0 is treated as an index here, not a string key
-        // @ts-expect-error -- TODO: update typing to support this syntax
         testSql({ 'jsonAttr[0]': 4 }, {
           postgres: `"jsonAttr"->0 = '4'`,
 
@@ -2135,7 +2134,6 @@ Caused by: "undefined" cannot be escaped`),
           sqlite: `json_extract(\`jsonAttr\`,'$."a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = '1'`,
         });
 
-        // @ts-expect-error -- TODO: update typing to support this syntax
         testSql({ 'jsonAttr[0].nested.attribute': 4 }, {
           postgres: `"jsonAttr"#>ARRAY['0','nested','attribute'] = '4'`,
 
@@ -2149,6 +2147,30 @@ Caused by: "undefined" cannot be escaped`),
         testSql({ 'aliasedJsonAttr.nested.attribute': 4 }, {
           postgres: `"aliased_json"#>ARRAY['nested','attribute'] = '4'`,
           'sqlite mysql mariadb': `json_extract([aliased_json],'$.nested.attribute') = '4'`,
+        });
+
+        testSql({ 'jsonAttr:unquote': 0 }, {
+          postgres: `"jsonAttr"#>>ARRAY[]::TEXT[] = 0`,
+          'sqlite mysql mariadb': `json_unquote([jsonAttr]) = 0`,
+        });
+
+        testSql({ 'jsonAttr.key:unquote': 0 }, {
+          postgres: `"jsonAttr"->>'key' = 0`,
+          'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.key')) = 0`,
+        });
+
+        testSql({ 'jsonAttr.nested.key:unquote': 0 }, {
+          postgres: `"jsonAttr"#>>ARRAY['nested','key'] = 0`,
+          'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.nested.key')) = 0`,
+        });
+
+        testSql({ 'jsonAttr[0]:unquote': 0 }, {
+          postgres: `"jsonAttr"->>0 = 0`,
+
+          // must be separate because [0] will be replaced by `0` by expectsql
+          sqlite: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
+          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
+          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
         });
       });
     }
@@ -2276,10 +2298,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          mariadb: 'json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\')) = \'value\'',
-          mysql: 'json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
           postgres: `"User"."jsonbAttr"#>ARRAY['nested','attribute'] = '"value"'`,
-          sqlite: 'json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\') = \'value\'',
         }, {
           mainAlias: 'User',
         });
@@ -2331,7 +2350,6 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          default: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.name.last\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.employment\')) != \'None\')',
           postgres: `"User"."jsonbAttr"#>ARRAY['name','last'] = '"Simpson"' AND "User"."jsonbAttr"->'employment' != '"None"'`,
         }, {
           mainAlias: 'User',

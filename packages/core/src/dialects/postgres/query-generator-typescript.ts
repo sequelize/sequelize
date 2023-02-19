@@ -1,7 +1,8 @@
+import type { Expression } from '../../sequelize.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableNameOrModel, EscapeOptions } from '../abstract/query-generator-typescript';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -89,5 +90,9 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       : this.escape(path.map(value => String(value)));
 
     return sqlExpression + operator + pathSql;
+  }
+
+  formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
+    return `${this.escape(arg, options)}#>>ARRAY[]::TEXT[]`;
   }
 }

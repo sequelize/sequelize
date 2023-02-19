@@ -8,6 +8,7 @@ import {
 } from '../../expression-builders/base-sql-expression.js';
 import { Cast } from '../../expression-builders/cast.js';
 import { Col } from '../../expression-builders/col.js';
+import { DialectAwareFn } from '../../expression-builders/dialect-aware-fn.js';
 import { Fn } from '../../expression-builders/fn.js';
 import { Identifier } from '../../expression-builders/identifier.js';
 import { JsonPath } from '../../expression-builders/json-path.js';
@@ -17,7 +18,7 @@ import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
 import type { ModelStatic, Attributes, Model } from '../../model.js';
 import { Op } from '../../operators.js';
-import type { BindOrReplacements, Sequelize } from '../../sequelize.js';
+import type { BindOrReplacements, Sequelize, Expression } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { isNullish, isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
@@ -295,6 +296,10 @@ export class AbstractQueryGeneratorTypeScript {
       return this.formatAssociationPath(piece);
     }
 
+    if (piece instanceof DialectAwareFn) {
+      return this.formatDialectAwareFn(piece, options);
+    }
+
     throw new Error(`Unknown sequelize method ${piece.constructor.name}`);
   }
 
@@ -309,7 +314,21 @@ export class AbstractQueryGeneratorTypeScript {
       return value;
     }
 
-    return this.jsonPathExtractionQuery(value, jsonPathVal.path, jsonPathVal.unquote);
+    return this.jsonPathExtractionQuery(value, jsonPathVal.path, false);
+  }
+
+  /**
+   * The goal of this method is to execute the equivalent of json_unquote for the current dialect.
+   *
+   * @param _arg
+   * @param _options
+   */
+  formatUnquoteJson(_arg: Expression, _options: EscapeOptions | undefined): string {
+    if (!this.dialect.supports.jsonOperations) {
+      throw new Error(`Unquoting JSON is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    throw new Error(`formatUnquoteJson has not been implemented in ${this.dialect.name}.`);
   }
 
   /**
@@ -370,6 +389,14 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     }).join(', ');
 
     return `${piece.fn}(${args})`;
+  }
+
+  protected formatDialectAwareFn(piece: DialectAwareFn, options?: EscapeOptions): string {
+    // arguments of a function can be anything, it's not necessarily the type of the attribute,
+    // so we need to remove the type from their escape options
+    const argEscapeOptions = piece.args.length > 0 && options?.type ? { ...options, type: undefined } : options;
+
+    return piece.apply(this.dialect, argEscapeOptions);
   }
 
   protected formatCast(cast: Cast, options?: EscapeOptions) {

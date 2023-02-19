@@ -10,7 +10,6 @@ export class JsonPath extends BaseSqlExpression {
   constructor(
     readonly expression: Expression,
     readonly path: ReadonlyArray<string | number>,
-    readonly unquote: boolean,
   ) {
     super();
   }
@@ -22,7 +21,6 @@ export class JsonPath extends BaseSqlExpression {
  *
  * @param expression The expression to access the property on.
  * @param path The path to the property. If a number is used, it will be treated as an array index, otherwise as a key.
- * @param unquote Whether the result should be unquoted (depending on dialect: ->> and #>> operators, json_unquote function). Defaults to `false`.
  *
  * @example
  * ```ts
@@ -68,6 +66,6 @@ export class JsonPath extends BaseSqlExpression {
  * JSON_EXTRACT(`object`, '$.0')
  * ```
  */
-export function jsonPath(expression: Expression, path: ReadonlyArray<string | number>, unquote: boolean = false): JsonPath {
-  return new JsonPath(expression, path, unquote);
+export function jsonPath(expression: Expression, path: ReadonlyArray<string | number>): JsonPath {
+  return new JsonPath(expression, path);
 }

@@ -789,11 +789,11 @@ export class WhereSqlBuilder {
     }
 
     // merge JSON paths
-    if (operand instanceof JsonPath && !operand.unquote) {
-      return new JsonPath(operand.expression, [...operand.path, ...pathSegments], false);
+    if (operand instanceof JsonPath) {
+      return new JsonPath(operand.expression, [...operand.path, ...pathSegments]);
     }
 
-    return new JsonPath(operand, pathSegments, false);
+    return new JsonPath(operand, pathSegments);
   }
 
   #wrapComplexJsonPath(
@@ -828,7 +828,7 @@ export class WhereSqlBuilder {
 
     if (operand instanceof JsonPath) {
       // JsonPath can wrap Attributes
-      return operand.unquote ? this.#textType : this.#jsonType;
+      return this.#jsonType;
     }
 
     if (!model) {

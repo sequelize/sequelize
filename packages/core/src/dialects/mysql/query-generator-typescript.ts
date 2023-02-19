@@ -1,9 +1,10 @@
 import { Op } from '../../operators.js';
+import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel, QueryGeneratorOptions } from '../abstract/query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableNameOrModel, QueryGeneratorOptions, EscapeOptions } from '../abstract/query-generator-typescript';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -58,7 +59,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       if (typeof pathElement === 'number') {
         jsonPathStr += `[${pathElement}]`;
       } else {
-        jsonPathStr += `.${this.quoteJsonPathIdentifier(pathElement)}`;
+        jsonPathStr += `.${this.#quoteJsonPathIdentifier(pathElement)}`;
       }
     }
 
@@ -70,7 +71,11 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return extractQuery;
   }
 
-  quoteJsonPathIdentifier(identifier: string): string {
+  formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
+    return `json_unquote(${this.escape(arg, options)})`;
+  }
+
+  #quoteJsonPathIdentifier(identifier: string): string {
     if (/^[a-z_][a-z0-9_]*$/i.test(identifier)) {
       return identifier;
     }
