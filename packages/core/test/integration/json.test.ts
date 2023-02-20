@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import type { InferAttributes, NonAttribute, CreationOptional, InferCreationAttributes } from '@sequelize/core';
-import { DataTypes, Op, Model, attribute } from '@sequelize/core';
+import { DataTypes, Op, Model, sql } from '@sequelize/core';
 import { Attribute, BelongsTo } from '@sequelize/core/decorators-legacy';
 import {
   beforeAll2,
@@ -139,7 +139,7 @@ describe('JSON Querying', () => {
   if (dialect.supports.jsonOperations) {
     it('should be able to retrieve element of array by index', async () => {
       const user = await vars.User.findOne({
-        attributes: [[attribute('objectJsonAttr.phones[1]'), 'firstEmergencyNumber']],
+        attributes: [[sql.attribute('objectJsonAttr.phones[1]'), 'firstEmergencyNumber']],
         rejectOnEmpty: true,
       });
 
@@ -172,7 +172,7 @@ describe('JSON Querying', () => {
     it('should be able to query using the JSON unquote syntax', async () => {
       const user = await vars.User.findOne({
         // JSON unquote does not require casting to text, as it already returns text
-        where: { 'objectJsonAttr->>name': 'swen' },
+        where: { 'objectJsonAttr.name:unquote': 'swen' },
       });
 
       expect(user).to.exist;
@@ -184,7 +184,7 @@ describe('JSON Querying', () => {
         include: [{
           model: vars.User,
           attributes: [
-            [attribute('objectJsonAttr.name'), 'name'],
+            [sql.attribute('objectJsonAttr.name'), 'name'],
           ],
         }],
       });
@@ -223,7 +223,7 @@ describe('JSON Casting', () => {
 
     const user = await vars.User.findOne({
       where: {
-        'jsonAttr->>date::timestamptz': new Date('2021-01-02'),
+        'jsonAttr.date:unquote::timestamptz': new Date('2021-01-02'),
       },
     });
 
@@ -231,7 +231,7 @@ describe('JSON Casting', () => {
 
     const user2 = await vars.User.findOne({
       where: {
-        'jsonAttr->>date::timestamptz': {
+        'jsonAttr.date:unquote::timestamptz': {
           [Op.between]: [new Date('2021-01-01'), new Date('2021-01-03')],
         },
       },
@@ -249,7 +249,7 @@ describe('JSON Casting', () => {
 
     const user = await vars.User.findOne({
       where: {
-        'jsonAttr->>boolean::boolean': true,
+        'jsonAttr.boolean:unquote::boolean': true,
       },
     });
 
@@ -265,7 +265,7 @@ describe('JSON Casting', () => {
 
     const user = await vars.User.findOne({
       where: {
-        'jsonAttr->>integer::integer': 7,
+        'jsonAttr.integer:unquote::integer': 7,
       },
     });
 
@@ -323,7 +323,7 @@ describe('JSONB Querying', () => {
 
   it('should be able to query using the JSON unquote syntax', async () => {
     const user = await vars.User.findOne({
-      where: { 'objectJsonbAttr->>name': 'swen' },
+      where: { 'objectJsonbAttr.name::unquote': 'swen' },
     });
 
     expect(user).to.exist;
@@ -344,7 +344,7 @@ describe('JSONB Querying', () => {
       include: [{
         model: vars.User,
         attributes: [
-          [attribute('objectJsonbAttr.name'), 'name'],
+          [sql.attribute('objectJsonbAttr.name'), 'name'],
         ],
       }],
     });
@@ -388,7 +388,7 @@ describe('JSONB Querying', () => {
     expect(created).to.equal(true);
     expect(user.isNewRecord).to.equal(false);
 
-    const refreshedUser = await vars.User.findOne({ where: { 'objectJsonbAttr->>text': text } });
+    const refreshedUser = await vars.User.findOne({ where: { 'objectJsonbAttr.text::unquote': text } });
     expect(refreshedUser).to.exist;
   });
 });

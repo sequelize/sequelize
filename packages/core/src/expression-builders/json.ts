@@ -1,5 +1,11 @@
 import { noSqlJson } from '../utils/deprecations.js';
+import type { AssociationPath } from './association-path.js';
+import type { Attribute } from './attribute.js';
 import { attribute } from './attribute.js';
+import type { Cast } from './cast.js';
+import type { DialectAwareFn } from './dialect-aware-fn.js';
+import type { JsonPath } from './json-path.js';
+import type { Where } from './where.js';
 import { where } from './where.js';
 
 /**
@@ -13,7 +19,7 @@ import { where } from './where.js';
 export function json(
   conditionsOrPath: { [key: string]: any } | string,
   value?: string | number | boolean | null,
-) {
+): Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn | Where {
   noSqlJson();
 
   if (typeof conditionsOrPath === 'string') {
