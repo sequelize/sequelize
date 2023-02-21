@@ -2833,7 +2833,7 @@ class QueryGenerator {
       });
     }
 
-    return '1=1';
+    throw new Error(`Unsupported where option value: ${util.inspect(smth)}. Please refer to the Sequelize documentation to learn more about which values are accepted as part of the where option.`);
   }
 
   // A recursive parser for nested where conditions
