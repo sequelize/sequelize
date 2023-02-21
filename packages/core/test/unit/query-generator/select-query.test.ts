@@ -43,7 +43,7 @@ describe('QueryGenerator#selectQuery', () => {
     }, User);
 
     expectsql(sql, {
-      postgres: `SELECT "id" FROM "Users" AS "User" OFFSET 1;`,
+      'postgres cockroachdb': `SELECT "id" FROM "Users" AS "User" OFFSET 1;`,
       mysql: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
       mariadb: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
       sqlite: 'SELECT `id` FROM `Users` AS `User` LIMIT -1 OFFSET 1;',
@@ -64,7 +64,7 @@ describe('QueryGenerator#selectQuery', () => {
     }, Project);
 
     expectsql(sql, {
-      postgres: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
+      'postgres cockroachdb': `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
       mysql: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
       mariadb: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
       sqlite: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',

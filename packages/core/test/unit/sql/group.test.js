@@ -2,11 +2,11 @@
 
 const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
-const util        = require('node:util');
+const util = require('node:util');
 
-const expectsql   = Support.expectsql;
-const current     = Support.sequelize;
-const sql         = current.dialect.queryGenerator;
+const expectsql = Support.expectsql;
+const current = Support.sequelize;
+const sql = current.dialect.queryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('group', () => {
@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       group: ['name'],
     }, {
       default: 'SELECT * FROM `Users` AS `User` GROUP BY `name`;',
-      postgres: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
+      'postgres cockroachdb': 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
       db2: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
       ibmi: 'SELECT * FROM "Users" AS "User" GROUP BY "name"',
       mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];',
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       group: [],
     }, {
       default: 'SELECT * FROM `Users` AS `User`;',
-      postgres: 'SELECT * FROM "Users" AS "User";',
+      'postgres cockroachdb': 'SELECT * FROM "Users" AS "User";',
       db2: 'SELECT * FROM "Users" AS "User";',
       ibmi: 'SELECT * FROM "Users" AS "User"',
       mssql: 'SELECT * FROM [Users] AS [User];',

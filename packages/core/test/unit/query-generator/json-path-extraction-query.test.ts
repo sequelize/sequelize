@@ -17,7 +17,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
       // TODO: mariadb should be consistent with mysql
       mariadb: 'json_unquote(json_extract(`profile`,\'$.id\'))',
       mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\'))',
-      postgres: `("profile"#>'{id}')`,
+      'postgres cockroachdb': `("profile"#>'{id}')`,
       sqlite: 'json_extract(`profile`,\'$.id\')',
     });
   });
@@ -27,7 +27,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
       default: notSupportedError,
       mariadb: 'json_unquote(json_extract(`profile`,\'$.id\'))',
       mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\'))',
-      postgres: `("profile"#>>'{id}')`,
+      'postgres cockroachdb': `("profile"#>>'{id}')`,
       sqlite: 'json_extract(`profile`,\'$.id\')',
     });
   });
@@ -37,7 +37,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
       default: notSupportedError,
       mariadb: 'json_unquote(json_extract(`profile`,\'$.id\'))',
       mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\'))',
-      postgres: `("profile"#>>'{id}')`,
+      'postgres cockroachdb': `("profile"#>>'{id}')`,
       sqlite: 'json_extract(`profile`,\'$.id\')',
     });
   });
@@ -47,7 +47,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
       default: notSupportedError,
       mariadb: 'json_unquote(json_extract(`profile`,\'$.id.username\'))',
       mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\".\\"username\\"\'))',
-      postgres: `("profile"#>>'{id,username}')`,
+      'postgres cockroachdb': `("profile"#>>'{id,username}')`,
       sqlite: 'json_extract(`profile`,\'$.id.username\')',
     });
   });

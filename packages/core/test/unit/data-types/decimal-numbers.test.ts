@@ -17,22 +17,22 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
   testDataTypeSql('REAL.UNSIGNED', DataTypes.REAL.UNSIGNED, {
     default: 'REAL UNSIGNED',
-    'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
+    'sqlite snowflake ibmi db2 mssql postgres cockroachdb': 'REAL',
   });
 
   testDataTypeSql('REAL(11, 12)', DataTypes.REAL(11, 12), {
     default: 'REAL(11, 12)',
-    'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
+    'sqlite snowflake ibmi db2 mssql postgres cockroachdb': 'REAL',
   });
 
   testDataTypeSql('REAL(11, 12).UNSIGNED', DataTypes.REAL(11, 12).UNSIGNED, {
     default: 'REAL(11, 12) UNSIGNED',
-    'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
+    'sqlite snowflake ibmi db2 mssql postgres cockroachdb': 'REAL',
   });
 
   testDataTypeSql('REAL({ precision: 11, scale: 12 }).UNSIGNED', DataTypes.REAL({ precision: 11, scale: 12 }).UNSIGNED, {
     default: 'REAL(11, 12) UNSIGNED',
-    'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
+    'sqlite snowflake ibmi db2 mssql postgres cockroachdb': 'REAL',
   });
 
   testDataTypeSql('REAL(11, 12).UNSIGNED.ZEROFILL', DataTypes.REAL(11, 12).UNSIGNED.ZEROFILL, {
@@ -66,7 +66,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     'mysql mariadb': 'DOUBLE PRECISION UNSIGNED',
     sqlite: 'REAL',
     'db2 ibmi': 'DOUBLE',
-    'postgres mssql': 'DOUBLE PRECISION',
+    'postgres mssql cockroachdb': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
   });
 
@@ -74,7 +74,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     'mysql mariadb': 'DOUBLE PRECISION(11, 12)',
     sqlite: 'REAL',
     'db2 ibmi': 'DOUBLE',
-    'postgres mssql': 'DOUBLE PRECISION',
+    'postgres mssql cockroachdb': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
   });
 
@@ -82,7 +82,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     'mysql mariadb': 'DOUBLE PRECISION(11, 12) UNSIGNED',
     sqlite: 'REAL',
     'db2 ibmi': 'DOUBLE',
-    'postgres mssql': 'DOUBLE PRECISION',
+    'postgres mssql cockroachdb': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
   });
 
@@ -116,32 +116,32 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
   // or a double-precision fallback if not.
   testDataTypeSql('FLOAT', DataTypes.FLOAT, {
     // FLOAT in snowflake is double-precision (no single-precision support), but single-precision is all others
-    'mysql mariadb snowflake': 'FLOAT',
+    'mysql mariadb snowflake cockroachdb': 'FLOAT',
     // REAL in sqlite is double-precision (no single-precision support), but single-precision in all others
     'postgres mssql sqlite db2 ibmi': 'REAL',
   });
 
   testDataTypeSql('FLOAT.UNSIGNED', DataTypes.FLOAT.UNSIGNED, {
     'mysql mariadb': 'FLOAT UNSIGNED',
-    snowflake: 'FLOAT',
+    'snowflake cockroachdb': 'FLOAT',
     'postgres mssql sqlite db2 ibmi': 'REAL',
   });
 
   testDataTypeSql('FLOAT(11, 12)', DataTypes.FLOAT(11, 12), {
     'mysql mariadb': 'FLOAT(11, 12)',
-    snowflake: 'FLOAT',
+    'snowflake cockroachdb': 'FLOAT',
     'postgres mssql sqlite db2 ibmi': 'REAL',
   });
 
   testDataTypeSql('FLOAT(11, 12).UNSIGNED', DataTypes.FLOAT(11, 12).UNSIGNED, {
     'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
-    snowflake: 'FLOAT',
+    'snowflake cockroachdb': 'FLOAT',
     'postgres mssql sqlite db2 ibmi': 'REAL',
   });
 
   testDataTypeSql('FLOAT({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.FLOAT({ precision: 11, scale: 12 }).UNSIGNED, {
     'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
-    snowflake: 'FLOAT',
+    'snowflake cockroachdb': 'FLOAT',
     'postgres mssql sqlite db2 ibmi': 'REAL',
   });
 
@@ -196,7 +196,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
   testDataTypeSql('DECIMAL', DataTypes.DECIMAL, {
     default: new Error(`${dialectName} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`),
     sqlite: unsupportedError,
-    postgres: 'DECIMAL',
+    'postgres cockroachdb': 'DECIMAL',
   });
 
   testDataTypeSql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {

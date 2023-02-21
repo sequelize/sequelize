@@ -34,14 +34,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       default: 'VARCHAR(1234) BINARY',
       'db2 ibmi': 'VARCHAR(1234) FOR BIT DATA',
       sqlite: 'TEXT COLLATE BINARY',
-      'mssql postgres': binaryCollationUnsupportedError,
+      'mssql postgres cockroachdb': binaryCollationUnsupportedError,
     });
 
     testDataTypeSql('STRING.BINARY', DataTypes.STRING.BINARY, {
       default: 'VARCHAR(255) BINARY',
       'db2 ibmi': 'VARCHAR(255) FOR BIT DATA',
       sqlite: 'TEXT COLLATE BINARY',
-      'mssql postgres': binaryCollationUnsupportedError,
+      'mssql postgres cockroachdb': binaryCollationUnsupportedError,
     });
   });
 
@@ -162,14 +162,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       default: 'CHAR(12) BINARY',
       'db2 ibmi': 'CHAR(12) FOR BIT DATA',
       sqlite: charNotSupportedError,
-      'postgres mssql': binaryNotSupportedError,
+      'postgres mssql cockroachdb': binaryNotSupportedError,
     });
 
     testDataTypeSql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
       default: 'CHAR(255) BINARY',
       'db2 ibmi': 'CHAR(255) FOR BIT DATA',
       sqlite: charNotSupportedError,
-      'postgres mssql': binaryNotSupportedError,
+      'postgres mssql cockroachdb': binaryNotSupportedError,
     });
   });
 });
@@ -179,7 +179,7 @@ describe('DataTypes.TSVECTOR', () => {
     testDataTypeSql('TSVECTOR', DataTypes.TSVECTOR, {
       default: new Error(`${dialectName} does not support the TSVECTOR data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
-      postgres: 'TSVECTOR',
+      'postgres cockroachdb': 'TSVECTOR',
     });
   });
 

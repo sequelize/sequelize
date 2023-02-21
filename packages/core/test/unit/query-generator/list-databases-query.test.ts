@@ -10,7 +10,7 @@ describe('QueryGenerator#listDatabasesQuery', () => {
   it('produces a query used to list schemas in supported dialects', () => {
     expectsql(() => queryGenerator.listDatabasesQuery(), {
       default: notSupportedError,
-      postgres: 'SELECT datname AS name FROM pg_database;',
+      'postgres cockroachdb': 'SELECT datname AS name FROM pg_database;',
       mssql: 'SELECT name FROM sys.databases;',
       snowflake: 'SHOW DATABASES;',
     });

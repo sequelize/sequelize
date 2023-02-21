@@ -51,7 +51,7 @@ describe('DataTypes.ENUM', () => {
 
     expectsql(enumType.toSql({ dialect }), {
       postgres: '"public"."enum_Users_anEnum"',
-      'mysql mariadb': `ENUM('value 1', 'value 2')`,
+      'mysql mariadb cockroachdb': `ENUM('value 1', 'value 2')`,
       // SQL Server does not support enums, we use text + a check constraint instead
       mssql: `NVARCHAR(255)`,
       sqlite: 'TEXT',
@@ -138,7 +138,7 @@ describe('DataTypes.JSON', () => {
 describe('DataTypes.JSONB', () => {
   testDataTypeSql('JSONB', DataTypes.JSONB, {
     default: new Error(`${dialectName} does not support the JSONB data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
-    postgres: 'JSONB',
+    'postgres cockroachdb': 'JSONB',
   });
 });
 

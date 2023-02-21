@@ -1,11 +1,11 @@
 'use strict';
 
-const Support   = require('../../support');
+const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
-const current   = Support.sequelize;
-const sql       = current.dialect.queryGenerator;
+const current = Support.sequelize;
+const sql = current.dialect.queryGenerator;
 
 const customSequelize = Support.createSequelizeInstance({
   schema: 'custom',
@@ -72,6 +72,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       })), {
         'mariadb mysql': 'ALTER TABLE `custom`.`Users` ADD `level_id` FLOAT NOT NULL;',
         postgres: 'ALTER TABLE "custom"."Users" ADD COLUMN "level_id" REAL NOT NULL;',
+        cockroachdb: 'ALTER TABLE "custom"."Users" ADD COLUMN "level_id" FLOAT NOT NULL;',
         sqlite: 'ALTER TABLE `custom.Users` ADD `level_id` REAL NOT NULL;',
         mssql: 'ALTER TABLE [custom].[Users] ADD [level_id] REAL NOT NULL;',
         db2: 'ALTER TABLE "custom"."Users" ADD "level_id" REAL NOT NULL;',

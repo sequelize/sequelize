@@ -40,7 +40,7 @@ describe('QueryInterface#increment', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: `UPDATE [Users] SET [age]=[age]+ ':age',[name]=':name' WHERE [id] = ':id'`,
-      postgres: `UPDATE "Users" SET "age"="age"+ ':age',"name"=':name' WHERE "id" = ':id' RETURNING ":data"`,
+      'postgres cockroachdb': `UPDATE "Users" SET "age"="age"+ ':age',"name"=':name' WHERE "id" = ':id' RETURNING ":data"`,
       mssql: `UPDATE [Users] SET [age]=[age]+ N':age',[name]=N':name' OUTPUT INSERTED.[:data] WHERE [id] = N':id'`,
     });
     expect(firstCall.args[1]?.bind).to.be.undefined;

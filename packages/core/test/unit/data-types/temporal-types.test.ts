@@ -13,14 +13,14 @@ describe('DataTypes.DATE', () => {
   describe('toSql', () => {
     testDataTypeSql('DATE', DataTypes.DATE, {
       'db2 ibmi snowflake': 'TIMESTAMP',
-      postgres: 'TIMESTAMP WITH TIME ZONE',
+      'postgres cockroachdb': 'TIMESTAMP WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET',
       'mariadb mysql': 'DATETIME',
       sqlite: 'TEXT',
     });
 
     testDataTypeSql('DATE(0)', DataTypes.DATE(0), {
-      postgres: 'TIMESTAMP(0) WITH TIME ZONE',
+      'postgres cockroachdb': 'TIMESTAMP(0) WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET(0)',
       'mariadb mysql': 'DATETIME(0)',
       'db2 ibmi snowflake': 'TIMESTAMP(0)',
@@ -29,7 +29,7 @@ describe('DataTypes.DATE', () => {
 
     testDataTypeSql('DATE(6)', DataTypes.DATE(6), {
       'db2 ibmi snowflake': 'TIMESTAMP(6)',
-      postgres: 'TIMESTAMP(6) WITH TIME ZONE',
+      'postgres cockroachdb': 'TIMESTAMP(6) WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET(6)',
       mariadb: 'DATETIME(6)',
       mysql: 'DATETIME(6)',

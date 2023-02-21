@@ -228,19 +228,19 @@ describe('QueryInterface#upsert', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON DUPLICATE KEY UPDATE `counter`=`counter` + 1;',
-      postgres: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
+      'postgres cockroachdb': 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
       mssql: `
-        MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target] 
-        USING (VALUES(N'Jonh', \`counter\` + 1)) AS [Users_source]([firstName], [counter]) 
-        ON [Users_target].[id] = [Users_source].[id] WHEN MATCHED THEN UPDATE SET [Users_target].[counter] = \`counter\` + 1 
+        MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
+        USING (VALUES(N'Jonh', \`counter\` + 1)) AS [Users_source]([firstName], [counter])
+        ON [Users_target].[id] = [Users_source].[id] WHEN MATCHED THEN UPDATE SET [Users_target].[counter] = \`counter\` + 1
         WHEN NOT MATCHED THEN INSERT ([firstName], [counter]) VALUES(N'Jonh', \`counter\` + 1) OUTPUT $action, INSERTED.*;
         `,
       sqlite: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON CONFLICT (`id`) DO UPDATE SET `counter`=EXCLUDED.`counter`;',
       snowflake: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1);',
       db2: `
-        MERGE INTO "Users" AS "Users_target" 
-        USING (VALUES('Jonh', \`counter\` + 1)) AS "Users_source"("firstName", "counter") 
-        ON "Users_target"."id" = "Users_source"."id" WHEN MATCHED THEN UPDATE SET "Users_target"."counter" = \`counter\` + 1 
+        MERGE INTO "Users" AS "Users_target"
+        USING (VALUES('Jonh', \`counter\` + 1)) AS "Users_source"("firstName", "counter")
+        ON "Users_target"."id" = "Users_source"."id" WHEN MATCHED THEN UPDATE SET "Users_target"."counter" = \`counter\` + 1
         WHEN NOT MATCHED THEN INSERT ("firstName", "counter") VALUES('Jonh', \`counter\` + 1);
         `,
       ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1))',

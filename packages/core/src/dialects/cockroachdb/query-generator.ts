@@ -1,3 +1,4 @@
+import type { TruncateOptions } from 'src/model';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import { PostgresQueryGenerator } from '../postgres/query-generator';
@@ -65,5 +66,12 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
       .replace(/(^"|"$)/g, ''));
 
     return matches.slice(0, -1);
+  }
+
+  truncateTableQuery(tableName: string, options: TruncateOptions = {}): string {
+    return [
+      `TRUNCATE ${this.quoteTable(tableName)}`,
+      options.cascade ? ' CASCADE' : '',
+    ].join('');
   }
 }

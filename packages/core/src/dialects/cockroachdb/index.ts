@@ -32,6 +32,7 @@ export class CockroachDbDialect extends AbstractDialect {
       onConflictDoNothing: ' ON CONFLICT DO NOTHING',
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
       conflictFields: true,
+      onConflictWhere: true,
     },
     dataTypes: {
       ARRAY: true,
@@ -40,11 +41,10 @@ export class CockroachDbDialect extends AbstractDialect {
       GEOGRAPHY: true,
       JSON: true,
       JSONB: true,
-      HSTORE: true,
       TSVECTOR: true,
-      CITEXT: true,
-      DATETIME: { infinity: true },
-      DATEONLY: { infinity: true },
+      CITEXT: false,
+      DATETIME: { infinity: false },
+      DATEONLY: { infinity: false },
       FLOAT: { NaN: true, infinity: true },
       REAL: { NaN: true, infinity: true },
       DOUBLE: { NaN: true, infinity: true },
@@ -73,9 +73,9 @@ export class CockroachDbDialect extends AbstractDialect {
   readonly Query = CockroachDbQuery;
 
   readonly defaultVersion = '4.0.0';
-  readonly TICK_CHAR = '`';
-  readonly TICK_CHAR_LEFT = '`';
-  readonly TICK_CHAR_RIGHT = '`';
+  readonly TICK_CHAR = '"';
+  readonly TICK_CHAR_LEFT = '"';
+  readonly TICK_CHAR_RIGHT = '"';
   readonly dataTypesDocumentationUrl = 'https://www.cockroachlabs.com/docs/stable/data-types.html';
 
   constructor(sequelize: Sequelize) {

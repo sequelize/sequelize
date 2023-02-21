@@ -82,6 +82,7 @@
     "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
+    "cockroachdb": "^1.0.3",
     "concurrently": "7.6.0",
     "cross-env": "7.0.3",
     "delay": "5.0.0",
@@ -135,6 +136,9 @@
       "optional": true
     },
     "tedious": {
+      "optional": true
+    },
+    "cockroachdb": {
       "optional": true
     }
   },

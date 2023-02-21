@@ -17,7 +17,7 @@ describe('QueryGenerator#dropTableQuery', () => {
   it('produces a DROP TABLE query with cascade', () => {
     expectsql(() => queryGenerator.dropTableQuery('myTable', { cascade: true }), {
       default: buildInvalidOptionReceivedError('dropTableQuery', dialectName, ['cascade']),
-      postgres: `DROP TABLE IF EXISTS "myTable" CASCADE;`,
+      'postgres cockroachdb': `DROP TABLE IF EXISTS "myTable" CASCADE;`,
     });
   });
 
@@ -50,7 +50,7 @@ describe('QueryGenerator#dropTableQuery', () => {
   it('produces a DROP TABLE query with schema and cascade', () => {
     expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: 'mySchema' }, { cascade: true }), {
       default: buildInvalidOptionReceivedError('dropTableQuery', dialectName, ['cascade']),
-      postgres: `DROP TABLE IF EXISTS "mySchema"."myTable" CASCADE;`,
+      'postgres cockroachdb': `DROP TABLE IF EXISTS "mySchema"."myTable" CASCADE;`,
     });
   });
 });
