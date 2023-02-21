@@ -1208,9 +1208,9 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
-   *  An optional paramater to specify a where clause for partial unique indexes
+   * An optional parameter to specify a where clause for partial unique indexes
    * (note: `ON CONFLICT WHERE` not `ON CONFLICT DO UPDATE WHERE`).
-   * Only supported in Postgres >= 9.5 and squlite >= 9.5
+   * Only supported in Postgres >= 9.5 and sqlite >= 9.5
    */
   conflictWhere?: WhereOptions<TAttributes>;
   /**
