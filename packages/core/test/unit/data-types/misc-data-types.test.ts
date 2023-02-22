@@ -167,6 +167,7 @@ describe('DataTypes.JSON', () => {
     it('escapes NULL', () => {
       expectsql(queryGenerator.escape(null, { type: new DataTypes.JSON() }), {
         default: `'null'`,
+        mssql: `N'null'`,
       });
     });
 

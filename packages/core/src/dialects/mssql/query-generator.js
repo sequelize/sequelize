@@ -423,7 +423,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
             // TODO: pass "type"
             // TODO: bindParam
             // TODO: pass "model"
-            return this.escape(attrValueHash[key], options);
+            return this.escape(attrValueHash[key] ?? null, options);
           }).join(',')
         })`);
       }

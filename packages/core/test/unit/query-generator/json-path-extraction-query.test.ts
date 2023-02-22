@@ -3,7 +3,7 @@ import { expectPerDialect, sequelize } from '../../support';
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
 
-const notSupportedError = new Error(`JSON operations are not supported in ${dialectName}.`);
+const notSupportedError = new Error(`JSON Paths are not supported in ${dialectName}.`);
 
 describe('QueryGenerator#jsonPathExtractionQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;

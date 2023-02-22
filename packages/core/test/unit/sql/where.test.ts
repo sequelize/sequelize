@@ -2612,6 +2612,7 @@ Caused by: "undefined" cannot be escaped`),
           ),
           {
             default: `([col] = '1') = ([col] = '2')`,
+            mssql: `([col] = N'1') = ([col] = N'2')`,
           },
         );
 
@@ -2628,6 +2629,7 @@ Caused by: "undefined" cannot be escaped`),
 
         testSql(where('string', Op.eq, col('col')), {
           default: `'string' = [col]`,
+          mssql: `N'string' = [col]`,
         });
 
         testSql(
@@ -2703,12 +2705,15 @@ Caused by: "undefined" cannot be escaped`),
 
         testSql(
           where(col('name'), { [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } }),
-          { default: `[name] = '123' AND NOT ([name] = '456')` },
+          {
+            default: `[name] = '123' AND NOT ([name] = '456')`,
+            mssql: `[name] = N'123' AND NOT ([name] = N'456')`,
+          },
         );
 
         testSql(
           where(col('name'), or({ [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } })),
-          { default: `[name] = '123' OR NOT ([name] = '456')` },
+          { default: `[name] = '123' OR NOT ([name] = '456')`, mssql: `[name] = N'123' OR NOT ([name] = N'456')` },
         );
 
         testSql(

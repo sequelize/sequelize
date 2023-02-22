@@ -184,6 +184,9 @@ describe('QueryGenerator#insertQuery', () => {
           postgres: {
             sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           },
+          mssql: {
+            sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          },
         },
       });
     });
@@ -210,6 +213,10 @@ describe('QueryGenerator#insertQuery', () => {
           postgres: {
             sequelize_1: 'true',
             sequelize_2: 'false',
+          },
+          mssql: {
+            sequelize_1: 1,
+            sequelize_2: 0,
           },
         },
       });
