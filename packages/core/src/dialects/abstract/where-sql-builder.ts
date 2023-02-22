@@ -1,4 +1,5 @@
 import NodeUtil from 'node:util';
+import { BaseError } from '../../errors/base-error.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
@@ -163,9 +164,7 @@ export class WhereSqlBuilder {
         return this.formatPojoWhere(piece, options);
       });
     } catch (error) {
-      throw new TypeError(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.\nValue: ${NodeUtil.inspect(where)}`, {
-        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-        // @ts-ignore -- TODO: remove this ts-ignore when we drop support for TS <= 4.7
+      throw new BaseError(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.\nValue: ${NodeUtil.inspect(where)}`, {
         cause: error,
       });
     }
