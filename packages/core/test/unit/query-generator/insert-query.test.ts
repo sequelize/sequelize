@@ -226,20 +226,20 @@ describe('QueryGenerator#insertQuery', () => {
             sequelize_2: 0,
           },
           postgres: {
-            sequelize_1: 'true',
-            sequelize_2: 'false',
+            sequelize_1: true,
+            sequelize_2: false,
           },
           db2: {
-            sequelize_1: 'true',
-            sequelize_2: 'false',
+            sequelize_1: true,
+            sequelize_2: false,
           },
           ibmi: {
             sequelize_1: 1,
             sequelize_2: 0,
           },
           snowflake: {
-            sequelize_1: 'true',
-            sequelize_2: 'false',
+            sequelize_1: true,
+            sequelize_2: false,
           },
         },
       });

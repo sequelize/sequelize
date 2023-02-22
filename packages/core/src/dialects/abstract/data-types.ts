@@ -1315,7 +1315,7 @@ export class BOOLEAN extends AbstractDataType<boolean> {
   }
 
   toBindableValue(value: boolean | Falsy): unknown {
-    return value ? 'true' : 'false';
+    return Boolean(value);
   }
 }
 

@@ -144,13 +144,13 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_3: 2,
         },
         postgres: {
-          sequelize_1: 'true',
-          sequelize_2: 'false',
+          sequelize_1: true,
+          sequelize_2: false,
           sequelize_3: 2,
         },
         db2: {
-          sequelize_1: 'true',
-          sequelize_2: 'false',
+          sequelize_1: true,
+          sequelize_2: false,
           sequelize_3: 2,
         },
         ibmi: {
@@ -159,8 +159,8 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_3: 2,
         },
         snowflake: {
-          sequelize_1: 'true',
-          sequelize_2: 'false',
+          sequelize_1: true,
+          sequelize_2: false,
           sequelize_3: 2,
         },
       },
