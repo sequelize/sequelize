@@ -131,7 +131,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.Model.destroy({
             where: {
               data: {
-                'field->>deep::boolean': true,
+                'field.deep:unquote::boolean': true,
               },
             },
           });

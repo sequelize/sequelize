@@ -181,6 +181,9 @@ describe('QueryGenerator#insertQuery', () => {
           sqlite: {
             sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           },
+          postgres: {
+            sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          },
         },
       });
     });
@@ -203,6 +206,10 @@ describe('QueryGenerator#insertQuery', () => {
           mariadb: {
             sequelize_1: 1,
             sequelize_2: 0,
+          },
+          postgres: {
+            sequelize_1: 'true',
+            sequelize_2: 'false',
           },
         },
       });

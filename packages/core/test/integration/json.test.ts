@@ -323,7 +323,7 @@ describe('JSONB Querying', () => {
 
   it('should be able to query using the JSON unquote syntax', async () => {
     const user = await vars.User.findOne({
-      where: { 'objectJsonbAttr.name::unquote': 'swen' },
+      where: { 'objectJsonbAttr.name:unquote': 'swen' },
     });
 
     expect(user).to.exist;
@@ -388,7 +388,7 @@ describe('JSONB Querying', () => {
     expect(created).to.equal(true);
     expect(user.isNewRecord).to.equal(false);
 
-    const refreshedUser = await vars.User.findOne({ where: { 'objectJsonbAttr.text::unquote': text } });
+    const refreshedUser = await vars.User.findOne({ where: { 'objectJsonbAttr.text:unquote': text } });
     expect(refreshedUser).to.exist;
   });
 });

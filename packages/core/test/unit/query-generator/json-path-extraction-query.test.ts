@@ -38,7 +38,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
     expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), [`"`, `'`, `$`], false), {
       default: notSupportedError,
       'mysql mariadb': `json_extract(\`profile\`,'$."\\\\""."\\'"."$"')`,
-      sqlite: `json_extract(\`profile\`,'$."\\\\""."''"."$"')`,
+      sqlite: `json_extract(\`profile\`,'$."\\""."''"."$"')`,
       postgres: `"profile"#>ARRAY['"','''','$']`,
     });
   });

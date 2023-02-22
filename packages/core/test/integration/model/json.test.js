@@ -18,12 +18,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(async function () {
       this.Event = this.sequelize.define('Event', {
         data: {
-          // TODO: This should be JSONB, not JSON, because the auto-GIN index is only added
-          //  to JSONB columns. This was accidentally changed by https://github.com/sequelize/sequelize/issues/7094
-          //  re-enable the index when fixed
-          type: DataTypes.JSON,
+          // TODO: JSON & JSONB tests should be split
+          type: dialect.name === 'postgres' ? DataTypes.JSONB : DataTypes.JSON,
           field: 'event_data',
-          // index: true,
+          // This is only available on JSONB
+          index: dialect.name === 'postgres',
         },
         json: DataTypes.JSON,
       });
@@ -37,7 +36,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await this.Event.findOrCreate({
           where: {
-            json: { 'some->>input': 'Hello' },
+            json: { 'some.input:unquote': 'Hello' },
           },
           defaults: {
             json: { some: { input: 'Hello' }, input: [1, 2, 3] },
@@ -135,7 +134,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ],
         });
 
-        expect(events.length).to.equal(2);
+        expect(events).to.have.length(2);
 
         expect(events[0].get('data')).to.eql({
           name: {

@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 const Support = require('../support');
 
-const { Sequelize, DataTypes, DatabaseError, UniqueConstraintError, ForeignKeyConstraintError, list } = require('@sequelize/core');
+const { Sequelize, DataTypes, DatabaseError, UniqueConstraintError, ForeignKeyConstraintError, sql } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const sequelize = Support.sequelize;
@@ -714,7 +714,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     if (['postgres', 'sqlite', 'mssql'].includes(dialectName)) {
       it('does not improperly escape arrays of strings bound to named parameters', async function () {
-        const result = await this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: list(['"string"']) } });
+        const result = await this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: sql.list(['"string"']) } });
         expect(result[0]).to.deep.equal([{ foo: '"string"' }]);
       });
     }

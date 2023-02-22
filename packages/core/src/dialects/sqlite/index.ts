@@ -39,7 +39,9 @@ export class SqliteDialect extends AbstractDialect {
       DECIMAL: false,
       JSON: true,
     },
-    jsonOperations: true,
+    // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)
+    //  be careful: json_extract, ->, and ->> don't have the exact same meanings as mysql & mariadb
+    jsonOperations: false,
   });
 
   readonly defaultVersion = '3.8.0';

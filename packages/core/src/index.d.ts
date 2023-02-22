@@ -69,6 +69,7 @@ export type { WhereOptions } from './dialects/abstract/where-sql-builder-types.j
 export { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 export { sql } from './expression-builders/sql.js';
 export { List } from './expression-builders/list.js';
+export { Value } from './expression-builders/value.js';
 export { Identifier } from './expression-builders/identifier.js';
 export { Attribute } from './expression-builders/attribute.js';
 export { JsonPath } from './expression-builders/json-path.js';

@@ -11,6 +11,7 @@ import { Fn, fn } from './expression-builders/fn';
 import { Identifier } from './expression-builders/identifier';
 import { json } from './expression-builders/json';
 import { JsonPath } from './expression-builders/json-path';
+import { Value } from './expression-builders/value';
 import { List } from './expression-builders/list';
 import { Literal, literal } from './expression-builders/literal';
 import { sql } from './expression-builders/sql';
@@ -1103,6 +1104,7 @@ Use Sequelize#query if you wish to use replacements.`);
   static List = List;
   static Identifier = Identifier;
   static Attribute = Attribute;
+  static Value = Value;
   static AssociationPath = AssociationPath;
   static JsonPath = JsonPath;
 
