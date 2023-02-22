@@ -72,7 +72,7 @@ describe('QueryGenerator#updateQuery', () => {
     expectsql(result, {
       query: {
         default: 'UPDATE [myTable] SET [date]=$sequelize_1 WHERE [id] = $sequelize_2',
-        'db2 ibmi': 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "date"=$sequelize_1 WHERE "id" = $sequelize_2);',
+        db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "date"=$sequelize_1 WHERE "id" = $sequelize_2);',
       },
       bind: {
         mysql: {
@@ -120,7 +120,7 @@ describe('QueryGenerator#updateQuery', () => {
     expectsql(result, {
       query: {
         default: 'UPDATE [myTable] SET [positive]=$sequelize_1,[negative]=$sequelize_2 WHERE [id] = $sequelize_3',
-        'db2 ibmi': 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "positive"=$sequelize_1,"negative"=$sequelize_2 WHERE "id" = $sequelize_3);',
+        db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "positive"=$sequelize_1,"negative"=$sequelize_2 WHERE "id" = $sequelize_3);',
       },
       bind: {
         sqlite: {
@@ -154,8 +154,8 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_3: 2,
         },
         ibmi: {
-          sequelize_1: 'true',
-          sequelize_2: 'false',
+          sequelize_1: 1,
+          sequelize_2: 0,
           sequelize_3: 2,
         },
         snowflake: {
@@ -176,7 +176,7 @@ describe('QueryGenerator#updateQuery', () => {
 
     expectsql(query, {
       default: 'UPDATE [myTable] SET [value]=$sequelize_1,[name]=$sequelize_2 WHERE [id] = $sequelize_3',
-      'db2 ibmi': 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "value"=$sequelize_1,"name"=$sequelize_2 WHERE "id" = $sequelize_3);',
+      db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "value"=$sequelize_1,"name"=$sequelize_2 WHERE "id" = $sequelize_3);',
     });
 
     expect(bind).to.deep.eq({
