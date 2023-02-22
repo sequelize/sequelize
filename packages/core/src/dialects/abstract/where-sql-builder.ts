@@ -16,7 +16,7 @@ import type {
 import { Op } from '../../operators';
 import type { ParsedJsonPropertyKey } from '../../utils/attribute-syntax.js';
 import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attribute-syntax.js';
-import { isPlainObject, isString } from '../../utils/check.js';
+import { isDictionary, isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
 import type { Nullish } from '../../utils/types.js';
@@ -164,6 +164,8 @@ export class WhereSqlBuilder {
       });
     } catch (error) {
       throw new TypeError(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.\nValue: ${NodeUtil.inspect(where)}`, {
+        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+        // @ts-ignore -- TODO: remove this ts-ignore when we drop support for TS <= 4.7
         cause: error,
       });
     }
@@ -641,7 +643,7 @@ export class WhereSqlBuilder {
   }
 
   #formatOpAnyAll(value: unknown, type: NormalizedDataType | undefined): string {
-    if (!isPlainObject(value)) {
+    if (!isDictionary(value)) {
       return '';
     }
 
@@ -657,7 +659,7 @@ export class WhereSqlBuilder {
   }
 
   #formatOpValues(value: unknown, type: NormalizedDataType | undefined): string {
-    if (isPlainObject(value) && Op.values in value) {
+    if (isDictionary(value) && Op.values in value) {
       const options = { type };
 
       const operand: unknown[] = Array.isArray(value[Op.values])

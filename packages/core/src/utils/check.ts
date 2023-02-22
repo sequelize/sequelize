@@ -66,6 +66,17 @@ export function isPlainObject(value: unknown): value is object {
 }
 
 /**
+ * This function is the same as {@link isPlainObject}, but types the result as a Record / Dictionary.
+ * This function won't be necessary starting with TypeScript 4.9, thanks to improvements to the TS object type,
+ * but we have to keep it until we drop support for TS < 4.9.
+ *
+ * @param value
+ */
+export function isDictionary(value: unknown): value is Record<PropertyKey, unknown> {
+  return isPlainObject(value);
+}
+
+/**
  * Returns whether `value` is using the nested syntax for attributes.
  *
  * @param value The attribute reference to check.

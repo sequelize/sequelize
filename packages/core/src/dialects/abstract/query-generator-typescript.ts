@@ -20,7 +20,7 @@ import type { ModelStatic, Attributes, Model } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Sequelize, Expression } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
-import { isNullish, isPlainObject, isString } from '../../utils/check.js';
+import { isDictionary, isNullish, isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { isModelStatic } from '../../utils/model-utils.js';
@@ -433,7 +433,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
    * @param options The options to use when escaping the value
    */
   escape(value: unknown, options: EscapeOptions = EMPTY_OBJECT): string {
-    if (isPlainObject(value) && Op.col in value) {
+    if (isDictionary(value) && Op.col in value) {
       noOpCol();
       value = new Col(value[Op.col] as string);
     }
