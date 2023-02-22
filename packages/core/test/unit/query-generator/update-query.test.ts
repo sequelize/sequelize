@@ -72,18 +72,27 @@ describe('QueryGenerator#updateQuery', () => {
     expectsql(result, {
       query: {
         default: 'UPDATE [myTable] SET [date]=$sequelize_1 WHERE [id] = $sequelize_2',
+        'db2 ibmi': 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "date"=$sequelize_1 WHERE "id" = $sequelize_2);',
       },
       bind: {
-        sqlite: {
-          sequelize_1: '2011-03-27 10:01:55.000 +00:00',
-          sequelize_2: 2,
-        },
         mysql: {
           sequelize_1: '2011-03-27 10:01:55.000',
           sequelize_2: 2,
         },
         mariadb: {
           sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
+        db2: {
+          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
+        ibmi: {
+          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
+        sqlite: {
+          sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           sequelize_2: 2,
         },
         postgres: {
@@ -107,6 +116,7 @@ describe('QueryGenerator#updateQuery', () => {
     expectsql(result, {
       query: {
         default: 'UPDATE [myTable] SET [positive]=$sequelize_1,[negative]=$sequelize_2 WHERE [id] = $sequelize_3',
+        'db2 ibmi': 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "positive"=$sequelize_1,"negative"=$sequelize_2 WHERE "id" = $sequelize_3);',
       },
       bind: {
         sqlite: {
@@ -129,6 +139,16 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_2: 'false',
           sequelize_3: 2,
         },
+        db2: {
+          sequelize_1: 'true',
+          sequelize_2: 'false',
+          sequelize_3: 2,
+        },
+        ibmi: {
+          sequelize_1: 'true',
+          sequelize_2: 'false',
+          sequelize_3: 2,
+        },
         mssql: {
           sequelize_1: 1,
           sequelize_2: 0,
@@ -147,6 +167,7 @@ describe('QueryGenerator#updateQuery', () => {
 
     expectsql(query, {
       default: 'UPDATE [myTable] SET [value]=$sequelize_1,[name]=$sequelize_2 WHERE [id] = $sequelize_3',
+      'db2 ibmi': 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "value"=$sequelize_1,"name"=$sequelize_2 WHERE "id" = $sequelize_3);',
     });
 
     expect(bind).to.deep.eq({

@@ -2,11 +2,11 @@ import assert from 'node:assert';
 import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
-import { expectsql, sequelize, getTestDialect } from '../../support';
+import { expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
-const dialectName = getTestDialect();
-const queryGenerator = sequelize.queryGenerator;
+const { queryGenerator, dialect } = sequelize;
+const dialectName = dialect.name;
 
 describe('DataTypes.BOOLEAN', () => {
   testDataTypeSql('BOOLEAN', DataTypes.BOOLEAN, {
@@ -135,6 +135,10 @@ describe('DataTypes.JSON', () => {
   });
 
   describe('escape', () => {
+    if (!dialect.supports.dataTypes.JSON) {
+      return;
+    }
+
     it('escapes plain string', () => {
       expectsql(queryGenerator.escape('string', { type: new DataTypes.JSON() }), {
         default: `'"string"'`,

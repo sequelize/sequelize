@@ -112,13 +112,17 @@ export class WhereSqlBuilder {
     [Op.allKeysExist]: '?&',
   };
 
-  #jsonType: NormalizedDataType;
+  #jsonType: NormalizedDataType | undefined;
   #textType: NormalizedDataType;
   #arrayOfTextType: NormalizedDataType | undefined;
 
   constructor(protected readonly queryGenerator: AbstractQueryGenerator) {
-    this.#jsonType = new DataTypes.JSON().toDialectDataType(queryGenerator.dialect);
+    this.#jsonType = this.dialect.supports.dataTypes.JSON
+      ? new DataTypes.JSON().toDialectDataType(queryGenerator.dialect)
+      : undefined;
+
     this.#textType = new DataTypes.TEXT().toDialectDataType(queryGenerator.dialect);
+
     this.#arrayOfTextType = this.dialect.supports.dataTypes.ARRAY
       ? new DataTypes.ARRAY(new DataTypes.TEXT()).toDialectDataType(queryGenerator.dialect)
       : undefined;

@@ -380,7 +380,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       _.forEach(attrValueHashes, attrValueHash => {
         tuples.push(`(${
           // TODO: pass type of attribute & model
-          allAttributes.map(key => this.escape(attrValueHash[key], { replacements: options.replacements })).join(',')})`);
+          allAttributes.map(key => this.escape(attrValueHash[key] ?? null, { replacements: options.replacements })).join(',')})`);
       });
       allQueries.push(query);
     }

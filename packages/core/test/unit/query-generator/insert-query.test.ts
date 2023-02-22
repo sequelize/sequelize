@@ -170,12 +170,19 @@ describe('QueryGenerator#insertQuery', () => {
       expectsql(result, {
         query: {
           default: 'INSERT INTO [myTable] ([birthday]) VALUES ($sequelize_1);',
+          'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1));',
         },
         bind: {
           mysql: {
             sequelize_1: '2011-03-27 10:01:55.000',
           },
           mariadb: {
+            sequelize_1: '2011-03-27 10:01:55.000',
+          },
+          db2: {
+            sequelize_1: '2011-03-27 10:01:55.000',
+          },
+          ibmi: {
             sequelize_1: '2011-03-27 10:01:55.000',
           },
           sqlite: {
@@ -196,6 +203,7 @@ describe('QueryGenerator#insertQuery', () => {
       expectsql(result, {
         query: {
           default: 'INSERT INTO [myTable] ([positive],[negative]) VALUES ($sequelize_1,$sequelize_2);',
+          'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("positive","negative") VALUES ($sequelize_1,$sequelize_2));',
         },
         bind: {
           sqlite: {
@@ -210,13 +218,21 @@ describe('QueryGenerator#insertQuery', () => {
             sequelize_1: 1,
             sequelize_2: 0,
           },
+          mssql: {
+            sequelize_1: 1,
+            sequelize_2: 0,
+          },
           postgres: {
             sequelize_1: 'true',
             sequelize_2: 'false',
           },
-          mssql: {
-            sequelize_1: 1,
-            sequelize_2: 0,
+          db2: {
+            sequelize_1: 'true',
+            sequelize_2: 'false',
+          },
+          ibmi: {
+            sequelize_1: 'true',
+            sequelize_2: 'false',
           },
         },
       });
@@ -227,6 +243,7 @@ describe('QueryGenerator#insertQuery', () => {
       const { query, bind } = queryGenerator.insertQuery('myTable', { value: undefined, name: 'bar' });
       expectsql(query, {
         default: 'INSERT INTO [myTable] ([value],[name]) VALUES ($sequelize_1,$sequelize_2);',
+        'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("value","name") VALUES ($sequelize_1,$sequelize_2));',
       });
 
       expect(bind).to.deep.eq({
