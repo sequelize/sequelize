@@ -1,7 +1,7 @@
 import { BaseSqlExpression } from './base-sql-expression.js';
 
 /**
- * Use {@link identifier} instead.
+ * Use {@link @sequelize/core.identifier} instead.
  */
 export class Identifier extends BaseSqlExpression {
   declare private readonly brand: 'identifier';

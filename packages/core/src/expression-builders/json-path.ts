@@ -2,7 +2,7 @@ import type { Expression } from '../sequelize.js';
 import { BaseSqlExpression } from './base-sql-expression.js';
 
 /**
- * Do not use me directly. Use {@link jsonPath}.
+ * Do not use me directly. Use {@link @sequelize/core.jsonPath}.
  */
 export class JsonPath extends BaseSqlExpression {
   declare private readonly brand: 'jsonPath';

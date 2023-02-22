@@ -14,7 +14,7 @@ import { where } from './where.js';
  * @param conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot notation or a string using postgres/sqlite/mysql json syntax.
  * @param value An optional value to compare against. Produces a string of the form "<json path> = '<value>'".
  *
- * @deprecated use {@link where}, {@link attribute}, and/or {@link jsonPath} instead.
+ * @deprecated use {@link where}, {@link @sequelize/core.attribute}, and/or {@link @sequelize/core.jsonPath} instead.
  */
 export function json(
   conditionsOrPath: { [key: string]: any } | string,
