@@ -2826,7 +2826,7 @@ class QueryGenerator {
       }
       throw new Error('Support for literal replacements in the `where` object has been removed.');
     }
-    if (smth === null) {
+    if (smth == null) {
       return this.whereItemsQuery(smth, {
         model: factory,
         prefix: prepend && tableName
