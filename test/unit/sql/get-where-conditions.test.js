@@ -21,6 +21,6 @@ describe('QueryGenerator#getWhereConditions', () => {
   it('ignores null', () => {
     const User = sequelize.define('User');
 
-    expect(queryGenerator.getWhereConditions(undefined, User.getTableName(), User)).to.eq('');
+    expect(queryGenerator.getWhereConditions(null, User.getTableName(), User)).to.eq('');
   });
 });
