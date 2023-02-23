@@ -1099,7 +1099,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: Project,
         attributes: [['count(*)', 'count']]
       }, Project), {
-        default: 'SELECT [count(*)] AS [count] FROM [Projects] AS [Project];'
+        default: 'SELECT [count(*)] AS [count] FROM [Projects] AS [Project];',
+        oracle: 'SELECT "count(*)" AS "count" FROM "Projects" "Project";'
       });
     });
 
@@ -1112,7 +1113,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: Project,
         attributes: [['count(*)', 'count']]
       }, Project), {
-        default: 'SELECT count(*) AS [count] FROM [Projects] AS [Project];'
+        default: 'SELECT count(*) AS [count] FROM [Projects] AS [Project];',
+        oracle: 'SELECT count(*) AS "count" FROM "Projects" "Project";'
       });
     });
   });
