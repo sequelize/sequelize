@@ -187,7 +187,7 @@ if (dialect === 'sqlite') {
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
           expectation: 'SELECT count(*) AS `count` FROM `foo`;',
-          context: QueryGenerator
+          context: { options: {  attributeBehavior: 'unsafe-legacy' } }
         }, {
           arguments: ['myTable', { order: ['id'] }],
           expectation: 'SELECT * FROM `myTable` ORDER BY `id`;',
