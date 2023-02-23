@@ -398,6 +398,13 @@ export interface Options extends Logging {
    * If defined the connection will use the provided schema instead of the default ("public").
    */
   schema?: string;
+
+  /**
+   * Sequelize had to introduce a breaking change to fix vulnerability CVE-2023-22578.
+   * This option allows you to revert to the old behavior (unsafe-legacy), or to opt in to the new behavior (escape).
+   * The default behavior throws an error to warn you about the change (throw).
+   */
+  attributeBehavior?: 'escape' | 'throw' | 'unsafe-legacy';
 }
 
 export interface QueryOptionsTransactionRequired { }

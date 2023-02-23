@@ -292,6 +292,7 @@ class Sequelize {
       benchmark: false,
       minifyAliases: false,
       logQueryParameters: false,
+      attributeBehavior: 'throw',
       ...options
     };
 

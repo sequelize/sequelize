@@ -345,7 +345,7 @@ if (dialect === 'snowflake') {
           arguments: ['myTable'],
           expectation: 'DROP TABLE IF EXISTS "myTable";'
         },
-        
+
         // Variants when quoteIdentifiers is false
         {
           arguments: ['myTable'],
@@ -357,12 +357,12 @@ if (dialect === 'snowflake') {
       tableExistsQuery: [
         {
           arguments: ['myTable'],
-          expectation: 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\' AND TABLE_SCHEMA = CURRENT_SCHEMA() AND TABLE_NAME = \'myTable\';',
+          expectation: 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\' AND TABLE_SCHEMA = CURRENT_SCHEMA() AND TABLE_NAME = \'myTable\';'
         },
         {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
-          expectation: 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\' AND TABLE_SCHEMA = \'mySchema\' AND TABLE_NAME = \'myTable\';',
-        },
+          expectation: 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\' AND TABLE_SCHEMA = \'mySchema\' AND TABLE_NAME = \'myTable\';'
+        }
       ],
 
       selectQuery: [
@@ -393,7 +393,7 @@ if (dialect === 'snowflake') {
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
           expectation: 'SELECT count(*) AS "count" FROM "foo";',
-          context: QueryGenerator
+          context: { options: {  attributeBehavior: 'unsafe-legacy' } }
         }, {
           arguments: ['myTable', { order: ['id'] }],
           expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
@@ -669,7 +669,7 @@ if (dialect === 'snowflake') {
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
           expectation: 'SELECT count(*) AS count FROM foo;',
-          context: { options: { quoteIdentifiers: false } }
+          context: { options: { quoteIdentifiers: false, attributeBehavior: 'unsafe-legacy' } }
         }, {
           arguments: ['myTable', { order: ['id'] }],
           expectation: 'SELECT * FROM myTable ORDER BY id;',
