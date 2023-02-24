@@ -452,8 +452,9 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const uniqueAttrs = [];
     const tableNameQuoted = this.quoteTable(tableName);
 
+    const modelDefinition = model.modelDefinition;
     // Obtain primaryKeys, uniquekeys and identity attrs from rawAttributes as model is not passed
-    const attributes = model.modelDefinition.attributes;
+    const attributes = modelDefinition.attributes;
     for (const attribute of attributes.values()) {
       if (attribute.primaryKey) {
         primaryKeysColumns.push(attribute.columnName);
@@ -525,7 +526,9 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       // Search for primary key attribute in clauses -- Model can have two separate unique keys
       for (const key in clauses) {
         const keys = Object.keys(clauses[key]);
-        if (primaryKeysColumns.includes(keys[0])) {
+        const columnName = modelDefinition.getColumnNameLoose(keys[0]);
+
+        if (primaryKeysColumns.includes(columnName)) {
           joinCondition = getJoinSnippet(primaryKeysColumns).join(' AND ');
           break;
         }

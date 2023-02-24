@@ -850,6 +850,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const type = ['mysql', 'mariadb'].includes(dialectName) ? 'signed' : 'integer';
       const bindParam = dialectName === 'postgres' ? '$1'
         : dialectName === 'sqlite' ? '$sequelize_1'
+        : dialectName === 'mssql' ? '@sequelize_1'
         : '?';
       let match = false;
 

@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import semver from 'semver';
 import type { InferAttributes, NonAttribute, CreationOptional, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Op, Model, sql } from '@sequelize/core';
 import { Attribute, BelongsTo } from '@sequelize/core/decorators-legacy';
@@ -19,7 +20,7 @@ const dialectName = dialect.name;
  * In dialects like postgres, no "json = json" operator exists, we need to cast to text first.
  * It does however support "jsonb = jsonb".
  */
-const dialectSupportsJsonEquality = ['sqlite', 'mysql', 'mariadb'].includes(dialectName);
+const dialectSupportsJsonEquality = ['sqlite', 'mysql', 'mariadb', 'mssql'].includes(dialectName);
 
 describe('JSON Manipulation', () => {
   if (!dialect.supports.dataTypes.JSON) {
@@ -193,8 +194,13 @@ describe('JSON Querying', () => {
         }],
       });
 
+      // we can't automatically detect that the output is JSON type in mariadb < 10.4.3,
+      // and we don't yet support specifying (nor inferring) the type of custom attributes,
+      // so for now the output is different in this specific case
+      const expectedResult = dialectName === 'mariadb' && semver.lt(sequelize.getDatabaseVersion(), '10.4.3') ? '"swen"' : 'swen';
+
       // @ts-expect-error -- getDataValue does not support custom attributes
-      expect(orders[0].user.getDataValue('name')).to.equal('swen');
+      expect(orders[0].user.getDataValue('name')).to.equal(expectedResult);
     });
   }
 });

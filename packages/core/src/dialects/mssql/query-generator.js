@@ -550,7 +550,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // Search for primary key attribute in clauses -- Model can have two separate unique keys
       for (const key in clauses) {
         const keys = Object.keys(clauses[key]);
-        if (primaryKeysColumns.includes(keys[0])) {
+        const columnName = modelDefinition.getColumnNameLoose(keys[0]);
+
+        if (primaryKeysColumns.includes(columnName)) {
           joinCondition = getJoinSnippet(primaryKeysColumns).join(' AND ');
           break;
         }
@@ -927,7 +929,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
             const value = Array.isArray(order) ? order[0] : order;
 
             if (value instanceof Col) {
-              return value.identifiers;
+              return value.identifiers[0];
             }
 
             if (value instanceof Literal) {
