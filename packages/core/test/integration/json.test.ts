@@ -137,6 +137,31 @@ describe('JSON Querying', () => {
     });
   }
 
+  it('should be able to retrieve json value as object for json fields created in every mariadb release', async function () {
+    // MariaDB does not support native JSON type, it uses longtext instead
+    // MariaDB >=10.5.2 adds a CHECK(json_valid(field)) validator that uses to return a different dataFormat to clients
+    // mariadb connector use this to decide to parse or not a JSON field before sequelize
+    if (dialectName !== 'mariadb') {
+      return;
+    }
+    await this.sequelize.query(`CREATE TABLE Posts (id INTEGER AUTO_INCREMENT PRIMARY KEY, 
+      metaOldJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+      metaNewJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK(json_valid(metaNewJSONtype)))`);
+
+    this.Posts = this.sequelize.define('Posts', {
+      metaOldJSONtype: DataTypes.JSON,
+      metaNewJSONtype: DataTypes.JSON,
+    }, {
+      freezeTableName: true,
+      timestamps: false,
+    });
+
+    await this.Posts.create({ metaOldJSONtype: 'some text', metaNewJSONtype: 'some text' });
+
+    const posts = await this.Posts.findAll({ raw: true });
+    expect(posts[0].metaOldJSONtype).to.equal(posts[0].metaNewJSONtype);
+  });
+
   if (dialect.supports.jsonOperations) {
     it('should be able to retrieve element of array by index', async () => {
       const user = await vars.User.findOne({
