@@ -13,7 +13,8 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
     // it can be any SQL expression, e.g. a column name, a function call, a subquery, etc.
     expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), ['id'], false), {
       default: notSupportedError,
-      'mariadb mysql sqlite': `json_extract(\`profile\`,'$.id')`,
+      mariadb: `json_compact(json_extract(\`profile\`,'$.id'))`,
+      'mysql sqlite': `json_extract(\`profile\`,'$.id')`,
       postgres: `"profile"->'id'`,
     });
   });
@@ -21,7 +22,8 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
   it('creates a json extract operation (array)', () => {
     expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), [0], false), {
       default: notSupportedError,
-      'mariadb mysql sqlite': `json_extract(\`profile\`,'$[0]')`,
+      mariadb: `json_compact(json_extract(\`profile\`,'$[0]'))`,
+      'mysql sqlite': `json_extract(\`profile\`,'$[0]')`,
       postgres: `"profile"->0`,
     });
   });
@@ -29,7 +31,8 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
   it('creates a nested json extract operation', () => {
     expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), ['id', 'username', 0, '0', 'name'], false), {
       default: notSupportedError,
-      'mysql mariadb sqlite': `json_extract(\`profile\`,'$.id.username[0]."0".name')`,
+      mariadb: `json_compact(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
+      'mysql sqlite': `json_extract(\`profile\`,'$.id.username[0]."0".name')`,
       postgres: `"profile"#>ARRAY['id','username','0','0','name']`,
     });
   });
@@ -37,7 +40,8 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
   it(`escapes characters such as ", $, and '`, () => {
     expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), [`"`, `'`, `$`], false), {
       default: notSupportedError,
-      'mysql mariadb': `json_extract(\`profile\`,'$."\\\\""."\\'"."$"')`,
+      mysql: `json_extract(\`profile\`,'$."\\\\""."\\'"."$"')`,
+      mariadb: `json_compact(json_extract(\`profile\`,'$."\\\\""."\\'"."$"'))`,
       sqlite: `json_extract(\`profile\`,'$."\\""."''"."$"')`,
       postgres: `"profile"#>ARRAY['"','''','$']`,
     });

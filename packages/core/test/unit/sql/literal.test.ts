@@ -20,7 +20,9 @@ describe('json', () => {
 
     expectsql(() => queryGenerator.escape(json(conditions)), {
       postgres: `("metadata"->'language' = '"icelandic"' AND "metadata"#>ARRAY['pg_rating','dk'] = '"G"') AND "another_json_field"->'x' = '1'`,
-      'sqlite mysql mariadb': `(json_extract(\`metadata\`,'$.language') = '"icelandic"' AND json_extract(\`metadata\`,'$.pg_rating.dk') = '"G"') AND json_extract(\`another_json_field\`,'$.x') = '1'`,
+      sqlite: `(json_extract(\`metadata\`,'$.language') = '"icelandic"' AND json_extract(\`metadata\`,'$.pg_rating.dk') = '"G"') AND json_extract(\`another_json_field\`,'$.x') = '1'`,
+      mariadb: `(json_compact(json_extract(\`metadata\`,'$.language')) = '"icelandic"' AND json_compact(json_extract(\`metadata\`,'$.pg_rating.dk')) = '"G"') AND json_compact(json_extract(\`another_json_field\`,'$.x')) = '1'`,
+      mysql: `(json_extract(\`metadata\`,'$.language') = CAST('"icelandic"' AS JSON) AND json_extract(\`metadata\`,'$.pg_rating.dk') = CAST('"G"' AS JSON)) AND json_extract(\`another_json_field\`,'$.x') = CAST('1' AS JSON)`,
     });
   });
 
@@ -29,14 +31,16 @@ describe('json', () => {
 
     expectsql(() => queryGenerator.escape(json(path)), {
       postgres: `"metadata"#>ARRAY['pg_rating','dk']`,
-      'sqlite mysql mariadb': `json_extract(\`metadata\`,'$.pg_rating.dk')`,
+      mariadb: `json_compact(json_extract(\`metadata\`,'$.pg_rating.dk'))`,
+      'sqlite mysql': `json_extract(\`metadata\`,'$.pg_rating.dk')`,
     });
   });
 
   it('supports numbers in the dot notation', () => {
     expectsql(queryGenerator.escape(json('profile.id.0.1')), {
       postgres: `"profile"#>ARRAY['id','0','1']`,
-      'sqlite mysql mariadb': `json_extract(\`profile\`,'$.id."0"."1"')`,
+      mariadb: `json_compact(json_extract(\`profile\`,'$.id."0"."1"'))`,
+      'sqlite mysql': `json_extract(\`profile\`,'$.id."0"."1"')`,
     });
   });
 
@@ -46,7 +50,9 @@ describe('json', () => {
 
     expectsql(() => queryGenerator.escape(json(path, value)), {
       postgres: `"metadata"#>ARRAY['pg_rating','is'] = '"U"'`,
-      'sqlite mysql mariadb': `json_extract(\`metadata\`,'$.pg_rating.is') = '"U"'`,
+      sqlite: `json_extract(\`metadata\`,'$.pg_rating.is') = '"U"'`,
+      mariadb: `json_compact(json_extract(\`metadata\`,'$.pg_rating.is')) = '"U"'`,
+      mysql: `json_extract(\`metadata\`,'$.pg_rating.is') = CAST('"U"' AS JSON)`,
     });
   });
 
@@ -66,21 +72,27 @@ describe('json', () => {
   it('accepts a nested condition object', () => {
     expectsql(queryGenerator.escape(json({ profile: { id: 1 } })), {
       postgres: `"profile"->'id' = '1'`,
-      'sqlite mysql mariadb': `json_extract(\`profile\`,'$.id') = '1'`,
+      sqlite: `json_extract(\`profile\`,'$.id') = '1'`,
+      mariadb: `json_compact(json_extract(\`profile\`,'$.id')) = '1'`,
+      mysql: `json_extract(\`profile\`,'$.id') = CAST('1' AS JSON)`,
     });
   });
 
   it('accepts multiple condition object', () => {
     expectsql(queryGenerator.escape(json({ property: { value: 1 }, another: { value: 'string' } })), {
       postgres: `"property"->'value' = '1' AND "another"->'value' = '"string"'`,
-      'sqlite mysql mariadb': `json_extract(\`property\`,'$.value') = '1' AND json_extract(\`another\`,'$.value') = '"string"'`,
+      sqlite: `json_extract(\`property\`,'$.value') = '1' AND json_extract(\`another\`,'$.value') = '"string"'`,
+      mariadb: `json_compact(json_extract(\`property\`,'$.value')) = '1' AND json_compact(json_extract(\`another\`,'$.value')) = '"string"'`,
+      mysql: `json_extract(\`property\`,'$.value') = CAST('1' AS JSON) AND json_extract(\`another\`,'$.value') = CAST('"string"' AS JSON)`,
     });
   });
 
   it('can be used inside of where', () => {
     expectsql(queryGenerator.escape(where(json('profile.id'), '1')), {
       postgres: `"profile"->'id' = '"1"'`,
-      'sqlite mysql mariadb': `json_extract(\`profile\`,'$.id') = '"1"'`,
+      sqlite: `json_extract(\`profile\`,'$.id') = '"1"'`,
+      mariadb: `json_compact(json_extract(\`profile\`,'$.id')) = '"1"'`,
+      mysql: `json_extract(\`profile\`,'$.id') = CAST('"1"' AS JSON)`,
     });
   });
 });

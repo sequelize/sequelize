@@ -150,20 +150,24 @@ describe('JSON Querying', () => {
     });
 
     it('should be able to query using JSON path objects', async () => {
+      // JSON requires casting to text in postgres. There is no "json = json" operator
+      // No-cast version is tested higher up in this suite
+      const comparison = dialectName === 'postgres' ? { 'name::text': '"swen"' } : { name: 'swen' };
+
       const user = await vars.User.findOne({
-        // JSON requires casting to text in postgres. There is no "json = json" operator
-        // No-cast version is tested higher up in this suite
-        where: { objectJsonAttr: { 'name::text': '"swen"' } },
+        where: { objectJsonAttr: comparison },
       });
 
       expect(user).to.exist;
     });
 
     it('should be able to query using JSON path dot notation', async () => {
+      // JSON requires casting to text in postgres. There is no "json = json" operator
+      // No-cast version is tested higher up in this suite
+      const comparison = dialectName === 'postgres' ? { 'objectJsonAttr.name::text': '"swen"' } : { 'objectJsonAttr.name': 'swen' };
+
       const user = await vars.User.findOne({
-        // JSON requires casting to text in postgres. There is no "json = json" operator
-        // No-cast version is tested higher up in this suite
-        where: { 'objectJsonAttr.name::text': '"swen"' },
+        where: comparison,
       });
 
       expect(user).to.exist;
@@ -221,9 +225,11 @@ describe('JSON Casting', () => {
       },
     });
 
+    const cast = dialectName === 'mysql' || dialectName === 'mariadb' ? 'DATETIME' : 'TIMESTAMPTZ';
+
     const user = await vars.User.findOne({
       where: {
-        'jsonAttr.date:unquote::timestamptz': new Date('2021-01-02'),
+        [`jsonAttr.date:unquote::${cast}`]: new Date('2021-01-02'),
       },
     });
 
@@ -231,7 +237,7 @@ describe('JSON Casting', () => {
 
     const user2 = await vars.User.findOne({
       where: {
-        'jsonAttr.date:unquote::timestamptz': {
+        [`jsonAttr.date:unquote::${cast}`]: {
           [Op.between]: [new Date('2021-01-01'), new Date('2021-01-03')],
         },
       },
@@ -241,6 +247,11 @@ describe('JSON Casting', () => {
   });
 
   it('supports casting to boolean', async () => {
+    // These dialects do not have a native BOOLEAN type
+    if (dialectName === 'mariadb' || dialectName === 'mysql') {
+      return;
+    }
+
     await vars.User.create({
       jsonAttr: {
         boolean: true,
@@ -263,9 +274,11 @@ describe('JSON Casting', () => {
       },
     });
 
+    const cast = dialectName === 'mysql' || dialectName === 'mariadb' ? 'SIGNED' : 'INTEGER';
+
     const user = await vars.User.findOne({
       where: {
-        'jsonAttr.integer:unquote::integer': 7,
+        [`jsonAttr.integer:unquote::${cast}`]: 7,
       },
     });
 

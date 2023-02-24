@@ -142,6 +142,7 @@ describe('DataTypes.JSON', () => {
     it('escapes plain string', () => {
       expectsql(queryGenerator.escape('string', { type: new DataTypes.JSON() }), {
         default: `'"string"'`,
+        mysql: `CAST('"string"' AS JSON)`,
         mssql: `N'"string"'`,
       });
     });
@@ -149,10 +150,12 @@ describe('DataTypes.JSON', () => {
     it('escapes plain int', () => {
       expectsql(queryGenerator.escape(0, { type: new DataTypes.JSON() }), {
         default: `'0'`,
+        mysql: `CAST('0' AS JSON)`,
         mssql: `N'0'`,
       });
       expectsql(queryGenerator.escape(123, { type: new DataTypes.JSON() }), {
         default: `'123'`,
+        mysql: `CAST('123' AS JSON)`,
         mssql: `N'123'`,
       });
     });
@@ -160,10 +163,12 @@ describe('DataTypes.JSON', () => {
     it('escapes boolean', () => {
       expectsql(queryGenerator.escape(true, { type: new DataTypes.JSON() }), {
         default: `'true'`,
+        mysql: `CAST('true' AS JSON)`,
         mssql: `N'true'`,
       });
       expectsql(queryGenerator.escape(false, { type: new DataTypes.JSON() }), {
         default: `'false'`,
+        mysql: `CAST('false' AS JSON)`,
         mssql: `N'false'`,
       });
     });
@@ -171,6 +176,7 @@ describe('DataTypes.JSON', () => {
     it('escapes NULL', () => {
       expectsql(queryGenerator.escape(null, { type: new DataTypes.JSON() }), {
         default: `'null'`,
+        mysql: `CAST('null' AS JSON)`,
         mssql: `N'null'`,
       });
     });
@@ -178,6 +184,7 @@ describe('DataTypes.JSON', () => {
     it('nested object', () => {
       expectsql(queryGenerator.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
         default: `'{"some":"nested","more":{"nested":true},"answer":42}'`,
+        mysql: `CAST('{"some":"nested","more":{"nested":true},"answer":42}' AS JSON)`,
         mssql: `N'{"some":"nested","more":{"nested":true},"answer":42}'`,
       });
     });

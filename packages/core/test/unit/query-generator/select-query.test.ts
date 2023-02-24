@@ -132,7 +132,8 @@ describe('QueryGenerator#selectQuery', () => {
 
       expectsql(sql, {
         postgres: `SELECT "data"->'email' AS "email" FROM "Users" AS "User";`,
-        'sqlite mysql mariadb': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
+        mariadb: `SELECT json_compact(json_extract(\`data\`,'$.email')) AS \`email\` FROM \`Users\` AS \`User\`;`,
+        'sqlite mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
       });
 
     });
