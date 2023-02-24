@@ -109,6 +109,19 @@ export class DATE extends BaseTypes.DATE {
   }
 }
 
+export class JSON extends BaseTypes.JSON {
+  escape(value: any): string {
+    // In MySQL, JSON cannot be directly compared to a text, we need to cast it to JSON
+    // This is not necessary for the values of INSERT & UPDATE statements, so we could omit this
+    // if we add context to the escape & getBindParamSql methods
+    return `CAST(${super.escape(value)} AS JSON)`;
+  }
+
+  getBindParamSql(value: any, options: BindParamOptions): string {
+    return `CAST(${super.getBindParamSql(value, options)} AS JSON)`;
+  }
+}
+
 export class UUID extends BaseTypes.UUID {
   // TODO: add check constraint to enforce GUID format
   toSql() {
