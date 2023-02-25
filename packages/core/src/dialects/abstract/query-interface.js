@@ -303,7 +303,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       type: QueryTypes.SHOWTABLES,
     };
 
-    const showTablesSql = this.queryGenerator.showTablesQuery(options.schema || this.sequelize.config.database);
+    const showTablesSql = this.queryGenerator.showTablesQuery(
+      options.schema
+        || this.sequelize.options.schema
+        || this.sequelize.dialect.getDefaultSchema(),
+    );
     const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
 
     return tableNames.flat();
