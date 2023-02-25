@@ -243,7 +243,7 @@ export class AbstractQueryGeneratorTypeScript {
     return '';
   }
 
-  whereItemsQuery<M extends Model>(where: WhereOptions<Attributes<M>>, options?: FormatWhereOptions) {
+  whereItemsQuery<M extends Model>(where: WhereOptions<Attributes<M>> | undefined, options?: FormatWhereOptions) {
     return this.whereSqlBuilder.formatWhereOptions(where, options);
   }
 

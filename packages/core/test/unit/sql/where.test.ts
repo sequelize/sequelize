@@ -274,12 +274,24 @@ describe(getTestDialectTeaser('SQL'), () => {
       },
     );
 
+    // "where" is typically optional. If the user sets it to undefined, we treat is as if the option was not set.
+    testSql(undefined, {
+      default: '',
+    });
+
     testSql({}, {
       default: '',
     });
 
     testSql([], {
       default: '',
+    });
+
+    // @ts-expect-error -- not supported, testing that it throws
+    testSql(null, {
+      default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
+Value: null
+Caused by: Invalid Query: expected a plain object, an array or a sequelize SQL method but got null`),
     });
 
     // @ts-expect-error -- not supported, testing that it throws

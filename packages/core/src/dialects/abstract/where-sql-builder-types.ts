@@ -25,10 +25,13 @@ export type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
 /**
  * The type accepted by every `where` option
  */
-export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayRecursive<
-  | WhereAttributeHash<TAttributes>
-  | DynamicSqlExpression
->;
+export type WhereOptions<TAttributes = any> =
+  // "where" is typically optional. If the user sets it to undefined, we treat is as if the option was not set.
+  | undefined
+  | AllowNotOrAndWithImplicitAndArrayRecursive<
+    | WhereAttributeHash<TAttributes>
+    | DynamicSqlExpression
+  >;
 
 /**
  * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
