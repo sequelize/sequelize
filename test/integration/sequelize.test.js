@@ -724,7 +724,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const TransactionTest = this.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false });
 
             const count = async transaction => {
-              const sql = this.sequelizeWithTransaction.getQueryInterface().queryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
+              const sql = this.sequelizeWithTransaction.getQueryInterface().queryGenerator.selectQuery('TransactionTests', { attributes: [[Sequelize.literal('count(*)'), 'cnt']] });
 
               const result = await this.sequelizeWithTransaction.query(sql, { plain: true, transaction });
 
@@ -747,7 +747,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const aliasesMapping = new Map([['_0', 'cnt']]);
 
             const count = async transaction => {
-              const sql = this.sequelizeWithTransaction.getQueryInterface().queryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
+              const sql = this.sequelizeWithTransaction.getQueryInterface().queryGenerator.selectQuery('TransactionTests', { attributes: [[Sequelize.literal('count(*)'), 'cnt']] });
 
               const result = await this.sequelizeWithTransaction.query(sql, { plain: true, transaction, aliasesMapping  });
 

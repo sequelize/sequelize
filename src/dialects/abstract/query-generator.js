@@ -1521,11 +1521,24 @@ class QueryGenerator {
         if (attr[0] instanceof Utils.SequelizeMethod) {
           attr[0] = this.handleSequelizeMethod(attr[0]);
           addTable = false;
-        } else if (!attr[0].includes('(') && !attr[0].includes(')')) {
+        } else if (this.options.attributeBehavior === 'escape' || !attr[0].includes('(') && !attr[0].includes(')')) {
           attr[0] = this.quoteIdentifier(attr[0]);
-        } else {
-          deprecations.noRawAttributes();
+        } else if (this.options.attributeBehavior !== 'unsafe-legacy') {
+          throw new Error(`Attributes cannot include parentheses in Sequelize 6:
+In order to fix the vulnerability CVE-2023-22578, we had to remove support for treating attributes as raw SQL if they included parentheses.
+Sequelize 7 escapes all attributes, even if they include parentheses.
+For Sequelize 6, because we're introducing this change in a minor release, we've opted for throwing an error instead of silently escaping the attribute as a way to warn you about this change.
+
+Here is what you can do to fix this error:
+- Wrap the attribute in a literal() call. This will make Sequelize treat it as raw SQL.
+- Set the "attributeBehavior" sequelize option to "escape" to make Sequelize escape the attribute, like in Sequelize v7. We highly recommend this option.
+- Set the "attributeBehavior" sequelize option to "unsafe-legacy" to make Sequelize escape the attribute, like in Sequelize v5.
+
+We sincerely apologize for the inconvenience this may cause you. You can find more information on the following threads:
+https://github.com/sequelize/sequelize/security/advisories/GHSA-f598-mfpv-gmfx
+https://github.com/sequelize/sequelize/discussions/15694`);
         }
+
         let alias = attr[1];
 
         if (this.options.minifyAliases) {
@@ -2826,14 +2839,14 @@ class QueryGenerator {
       }
       throw new Error('Support for literal replacements in the `where` object has been removed.');
     }
-    if (smth === null) {
+    if (smth == null) {
       return this.whereItemsQuery(smth, {
         model: factory,
         prefix: prepend && tableName
       });
     }
 
-    return '1=1';
+    throw new Error(`Unsupported where option value: ${util.inspect(smth)}. Please refer to the Sequelize documentation to learn more about which values are accepted as part of the where option.`);
   }
 
   // A recursive parser for nested where conditions

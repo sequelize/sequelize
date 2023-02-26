@@ -1083,6 +1083,39 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-  });
+    it('throws an error if encountering parentheses in an attribute', () => {
+      expect(() => sql.selectQuery(Project.tableName, {
+        model: Project,
+        attributes: [['count(*)', 'count']]
+      }, Project)).to.throw('In order to fix the vulnerability CVE-2023-22578, we had to remove support for treating attributes as raw SQL if they included parentheses.');
+    });
 
+    it('escapes attributes with parentheses if attributeBehavior is escape', () => {
+      const escapeSequelize = Support.createSequelizeInstance({
+        attributeBehavior: 'escape'
+      });
+
+      expectsql(escapeSequelize.queryInterface.queryGenerator.selectQuery(Project.tableName, {
+        model: Project,
+        attributes: [['count(*)', 'count']]
+      }, Project), {
+        default: 'SELECT [count(*)] AS [count] FROM [Projects] AS [Project];',
+        oracle: 'SELECT "count(*)" AS "count" FROM "Projects" "Project";'
+      });
+    });
+
+    it('inlines attributes with parentheses if attributeBehavior is unsafe-legacy', () => {
+      const escapeSequelize = Support.createSequelizeInstance({
+        attributeBehavior: 'unsafe-legacy'
+      });
+
+      expectsql(escapeSequelize.queryInterface.queryGenerator.selectQuery(Project.tableName, {
+        model: Project,
+        attributes: [['count(*)', 'count']]
+      }, Project), {
+        default: 'SELECT count(*) AS [count] FROM [Projects] AS [Project];',
+        oracle: 'SELECT count(*) AS "count" FROM "Projects" "Project";'
+      });
+    });
+  });
 });
