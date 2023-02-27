@@ -218,10 +218,8 @@ export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
   references?: {
     table: TableName,
     field: string,
-    fields: never,
   } | {
     table: TableName,
-    field: never,
     fields: string[],
   };
   onDelete: string;
@@ -302,6 +300,13 @@ export type CreateTableAttributes<
    * The description of a database column
    */
   [name in keyof TAttributes]: DataType | CreateTableAttributeOptions<M>;
+};
+
+/**
+ * Constraint on a table
+ */
+export type Constraint = {
+  constraintName: string,
 };
 
 /**
@@ -471,6 +476,14 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     tableName: TableName,
     options?: AddConstraintOptions & QueryRawOptions
   ): Promise<void>;
+
+  /**
+  * Show constraints on a table
+  */
+  showConstraint(
+    tableName: TableName,
+    options?: { tableName: TableName }
+  ): Promise<Constraint[]>;
 
   /**
    * Removes constraints from a table
