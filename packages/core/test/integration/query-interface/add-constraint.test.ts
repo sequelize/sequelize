@@ -6,9 +6,20 @@ const queryInterface = sequelize.queryInterface;
 
 describe('QueryInterface#addForeignKeyConstraint', () => {
   it('should allow multiple fields to be defined for a FK', async () => {
-    const columns = { username: DataTypes.STRING, email: DataTypes.STRING };
-    await queryInterface.createTable('users', columns);
-    await queryInterface.createTable('posts', columns);
+    await queryInterface.createTable('users', {
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      email: DataTypes.STRING,
+    });
+    await queryInterface.createTable('posts', {
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      email: DataTypes.STRING,
+    });
 
     await queryInterface.addConstraint('users', { type: 'unique', fields: ['username', 'email'] });
     await queryInterface.addConstraint('posts', {
