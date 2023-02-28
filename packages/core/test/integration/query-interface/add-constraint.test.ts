@@ -11,7 +11,10 @@ describe('QueryInterface#addForeignKeyConstraint', () => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      email: DataTypes.STRING,
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
     });
     await queryInterface.createTable('posts', {
       username: {
