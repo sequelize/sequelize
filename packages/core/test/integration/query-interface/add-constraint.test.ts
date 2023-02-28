@@ -35,6 +35,5 @@ describe('QueryInterface#addForeignKeyConstraint', () => {
     const constraints = await queryInterface.showConstraint('posts');
     const constraintNames = constraints.map(constraint => constraint.constraintName);
     expect(constraintNames).to.include('posts_username_email_users_fk');
-    await queryInterface.removeConstraint('posts', 'posts_username_email_users_fk');
   });
 });

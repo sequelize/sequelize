@@ -296,11 +296,11 @@ export type CreateTableAttributes<
   M extends Model = Model,
   TAttributes = any,
 > = {
-  /**
-   * The description of a database column
-   */
-  [name in keyof TAttributes]: DataType | CreateTableAttributeOptions<M>;
-};
+    /**
+     * The description of a database column
+     */
+    [name in keyof TAttributes]: DataType | CreateTableAttributeOptions<M>;
+  };
 
 /**
  * Constraint on a table
@@ -482,7 +482,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   */
   showConstraint(
     tableName: TableName,
-    options?: { tableName: TableName }
+    constraintName?: string,
+    options?: QueryRawOptions
   ): Promise<Constraint[]>;
 
   /**
