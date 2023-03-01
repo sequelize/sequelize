@@ -3439,7 +3439,7 @@ Instead of specifying a Model, either:
         return [...this._changed];
       }
 
-      return false;
+      return [];
     }
 
     if (value === true) {

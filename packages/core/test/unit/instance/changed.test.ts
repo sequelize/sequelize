@@ -117,7 +117,7 @@ describe('Model#changed()', () => {
           t.json = value;
 
           expect(t.changed('json')).to.be.false;
-          expect(t.changed()).to.be.false;
+          expect(t.changed()).to.be.empty;
         }
       });
 
