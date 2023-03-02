@@ -306,7 +306,7 @@ export type CreateTableAttributes<
  * Constraint on a table
  */
 export type Constraint = {
-  name: string,
+  constraintName: string,
   tableSchema?: string,
   tableName?: string,
   referenceTableName?: string,
