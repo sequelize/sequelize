@@ -13,6 +13,7 @@ import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
 import { importModels } from './import-models.js';
+import isEmpty from 'lodash/isEmpty.js';
 
 const _ = require('lodash');
 const { Model } = require('./model');
@@ -499,6 +500,10 @@ export class Sequelize extends SequelizeTypeScript {
    * sequelize.models.modelName // The model will now be available in models under the name given to define
    */
   define(modelName, attributes = {}, options = {}) {
+    if (!isEmpty(this.models) && this.models[modelName]) {
+      throw new Error(`${modelName} model has been already exist`);
+    }
+
     options.modelName = modelName;
     options.sequelize = this;
 
