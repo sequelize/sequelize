@@ -41,7 +41,7 @@ describe('QueryInterface#addForeignKeyConstraint', () => {
 
     const constraint = constraints[0];
     if (getTestDialect() === 'sqlite') {
-      // TODO: implement tableName for SQLite constraints
+      // SQLite doesn't return table name
       return;
     }
 
