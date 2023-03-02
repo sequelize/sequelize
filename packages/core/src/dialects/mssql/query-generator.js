@@ -305,11 +305,10 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   commentTemplate(comment, table, column) {
-    return ' EXEC sp_addextendedproperty '
-        + `@name = N'MS_Description', @value = ${this.escape(comment)}, `
-        + '@level0type = N\'Schema\', @level0name = \'dbo\', '
-        + `@level1type = N'Table', @level1name = ${this.quoteTable(table)}, `
-        + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
+    const tableName = table.tableName || table;
+    const schemaName = table.schema || 'dbo';
+
+    return ` EXEC sp_addextendedproperty @name = N'MS_Description', @value = ${this.escape(comment)}, @level0type = N'Schema', @level0name = ${this.escape(schemaName)}, @level1type = N'Table', @level1name = ${this.quoteIdentifier(tableName)}, @level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
   removeColumnQuery(tableName, attributeName, options = {}) {
