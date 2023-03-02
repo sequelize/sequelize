@@ -309,7 +309,6 @@ export type Constraint = {
   constraintName: string,
   tableSchema?: string,
   tableName?: string,
-  referenceTableName?: string,
 };
 
 /**
