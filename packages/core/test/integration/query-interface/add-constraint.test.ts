@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
-import { sequelize } from '../support';
+import { getTestDialect, sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;
 
@@ -36,8 +36,16 @@ describe('QueryInterface#addForeignKeyConstraint', () => {
       onUpdate: 'cascade',
     });
     const constraints = await queryInterface.showConstraint('posts');
-    const constraintNames = constraints.map(constraint => constraint.constraintName);
+    const constraintNames = constraints.map(constraint => constraint.name);
     expect(constraintNames).to.include('posts_username_email_users_fk');
-    expect(constraints[0].tableName).to.eq('posts');
+    const constraint = constraints[0];
+
+    if (getTestDialect() === 'sqlite') {
+      expect(constraint.referenceTableName).to.eq('posts');
+
+      return;
+    }
+
+    expect(constraint.tableName).to.eq('posts');
   });
 });
