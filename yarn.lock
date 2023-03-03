@@ -5474,10 +5474,10 @@ language-tags@=1.0.5:
   dependencies:
     language-subtag-registry "~0.3.2"
 
-lcov-result-merger@4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/lcov-result-merger/-/lcov-result-merger-4.0.0.tgz#1bdd832cd0ece98d1395ca280cef4f65ed6d0755"
-  integrity sha512-xgyipRVKEASBjJ7urBdx4VW+ofcIoatmMBueHy2i/rt3P9MrOvv1CZ7+cVqOfWIB74RvGMGZE4MiXnWLbFwQEA==
+lcov-result-merger@4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/lcov-result-merger/-/lcov-result-merger-4.1.0.tgz#0e8466a054b9a5db2d0388944736518115a4192e"
+  integrity sha512-31FISg2iX5I8oRY9MpIRoBvH+VYZ4D1799yFBlrupduhYoPuQEWOf6FeSvaNwIbNB/lJo5MpDPysOKvUOcgbwA==
   dependencies:
     fast-glob "^3.2.11"
     through2 "^2.0.3"
