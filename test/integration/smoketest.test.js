@@ -10,7 +10,7 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('Bulk update when model defined has attributes with virtual getters and setters should not throw undefined.', () => {
     before(async function() {
-      this.User = current.define('user', {
+      this.User = current.define('users', {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
