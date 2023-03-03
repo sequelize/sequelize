@@ -380,8 +380,31 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
-        onDuplicateKeyUpdate = ` ON CONFLICT (${conflictKeys.join(',')}) DO UPDATE SET ${updateKeys.join(',')}`;
+
+        let whereClause = false;
+        if (options.conflictWhere) {
+          if (!this.dialect.supports.inserts.onConflictWhere) {
+            throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
+          }
+
+          whereClause = this.whereQuery(options.conflictWhere, options);
+        }
+
+        // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
+        onDuplicateKeyUpdate = [
+          'ON CONFLICT',
+          '(',
+          conflictKeys.join(','),
+          ')',
+          whereClause,
+          'DO UPDATE SET',
+          updateKeys.join(','),
+        ];
       } else { // mysql / maria
+        if (options.conflictWhere) {
+          throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
+        }
+
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
         onDuplicateKeyUpdate = `${this.dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
       }
