@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      await this.User.sync();
+      await this.User.sync({ force: true });
     });       
 
     
