@@ -62,34 +62,13 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Drop a schema
-   *
-   * @param {string} schema    Schema name to drop
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async dropSchema(schema, options) {
-    const query = this.queryGenerator.dropSchemaQuery(schema);
+    * Drop all schemas
+    *
+    * @param {object} [options] Query options
+    *
+    * @returns {Promise}
+    */
 
-    let sql;
-    if (typeof query === 'object') {
-      options = { ...options, bind: query.bind };
-      sql = query.query;
-    } else {
-      sql = query;
-    }
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
-   * Drop all schemas
-   *
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
   async dropAllSchemas(options) {
     options = options || {};
 
@@ -100,25 +79,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const schemas = await this.showAllSchemas(options);
 
     return Promise.all(schemas.map(schemaName => this.dropSchema(schemaName, options)));
-  }
-
-  /**
-   * Show all schemas
-   *
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise<Array>}
-   */
-  async showAllSchemas(options) {
-    const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
-
-    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, {
-      ...options,
-      raw: true,
-      type: this.sequelize.QueryTypes.SELECT,
-    });
-
-    return schemaNames.flatMap(value => (value.schema_name ? value.schema_name : value));
   }
 
   /**
@@ -260,7 +220,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options.cascade = options.cascade != null ? options.cascade
       // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
       : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
-      : undefined;
+        : undefined;
 
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
