@@ -957,7 +957,8 @@ export interface FindOptions<TAttributes = any>
   raw?: boolean;
 
   /**
-   * Generate minified aliases only for this query.
+   * Controls whether aliases are minified in this query.
+   * This overrides the global option
    */
   minifyAliases?: boolean;
 

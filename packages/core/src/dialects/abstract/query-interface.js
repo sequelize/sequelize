@@ -1091,8 +1091,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   async select(model, tableName, optionsArg) {
-    const shouldMinifyAlias = optionsArg.minifyAliases ?? this.sequelize.options.minifyAliases;
-    const options = { ...optionsArg, type: QueryTypes.SELECT, model, minifyAliases: shouldMinifyAlias };
+    const minifyAliases = optionsArg.minifyAliases ?? this.sequelize.options.minifyAliases;
+    const options = { ...optionsArg, type: QueryTypes.SELECT, model, minifyAliases };
 
     const sql = this.queryGenerator.selectQuery(tableName, options, model);
 
