@@ -129,10 +129,10 @@ describe(getTestDialectTeaser('SQL'), () => {
      */
     type OperatorsSupportingSequelizeValueMethods = keyof {
       [Key in keyof WhereOperators<number>
-        as IncludesType<
-          WhereOperators<number>[Key],
-          Col | Literal | Fn | Cast | { [Op.col]: string }
-        > extends true ? Key : never
+      as IncludesType<
+        WhereOperators<number>[Key],
+        Col | Literal | Fn | Cast | { [Op.col]: string }
+      > extends true ? Key : never
       ]: WhereOperators<number>[Key]
     };
 
@@ -193,11 +193,11 @@ describe(getTestDialectTeaser('SQL'), () => {
      */
     type OperatorsSupportingAnyAll<AttributeType> = keyof {
       [Key in keyof WhereOperators<AttributeType>
-        as IncludesType<
-          WhereOperators<AttributeType>[Key],
-          | { [Op.all]: any[] | Literal | { [Op.values]: any[] } }
-          | { [Op.any]: any[] | Literal | { [Op.values]: any[] } }
-        > extends true ? Key : never
+      as IncludesType<
+        WhereOperators<AttributeType>[Key],
+        | { [Op.all]: any[] | Literal | { [Op.values]: any[] } }
+        | { [Op.any]: any[] | Literal | { [Op.values]: any[] } }
+      > extends true ? Key : never
       ]: WhereOperators<AttributeType>[Key]
     };
 
@@ -363,7 +363,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       describe('Buffer', () => {
         testSql({ binaryAttr: Buffer.from('Sequelize') }, {
           ibmi: `"binaryAttr" = BLOB(X'53657175656c697a65')`,
-          postgres: `"binaryAttr" = '\\x53657175656c697a65'`,
+          'postgres cockroachdb': `"binaryAttr" = '\\x53657175656c697a65'`,
           'sqlite mariadb mysql': '`binaryAttr` = X\'53657175656c697a65\'',
           db2: `"binaryAttr" = BLOB('Sequelize')`,
           snowflake: `"binaryAttr" = X'53657175656c697a65'`,
@@ -373,7 +373,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         // Including a quote (') to ensure dialects that don't convert to hex are safe from SQL injection.
         testSql({ binaryAttr: [Buffer.from(`Seque'lize1`), Buffer.from('Sequelize2')] }, {
           ibmi: `"binaryAttr" IN (BLOB(X'5365717565276c697a6531'), BLOB(X'53657175656c697a6532'))`,
-          postgres: `"binaryAttr" IN ('\\x5365717565276c697a6531', '\\x53657175656c697a6532')`,
+          'postgres cockroachdb': `"binaryAttr" IN ('\\x5365717565276c697a6531', '\\x53657175656c697a6532')`,
           'sqlite mariadb mysql': '`binaryAttr` IN (X\'5365717565276c697a6531\', X\'53657175656c697a6532\')',
           db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
           snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
@@ -1157,7 +1157,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, { value: 2, inclusive: true }] } };
             testSql({ intRangeAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
               // used 'postgres' because otherwise range is transformed to "1,2"
-              postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
+              'postgres cockroachdb': `"intRangeAttr" ${sqlOperator} '[1,2]'`,
             });
           }
 
@@ -1183,7 +1183,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               intRangeAttr: { [operator]: [10, null] },
             }, {
-              postgres: `"intRangeAttr" ${sqlOperator} '[10,)'`,
+              'postgres cockroachdb': `"intRangeAttr" ${sqlOperator} '[10,)'`,
             });
           }
 
@@ -1193,7 +1193,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               intRangeAttr: { [operator]: [null, 10] },
             }, {
-              postgres: `"intRangeAttr" ${sqlOperator} '[,10)'`,
+              'postgres cockroachdb': `"intRangeAttr" ${sqlOperator} '[,10)'`,
             });
           }
 
@@ -1203,7 +1203,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               intRangeAttr: { [operator]: [null, null] },
             }, {
-              postgres: `"intRangeAttr" ${sqlOperator} '[,)'`,
+              'postgres cockroachdb': `"intRangeAttr" ${sqlOperator} '[,)'`,
             });
           }
 
@@ -1217,7 +1217,7 @@ describe(getTestDialectTeaser('SQL'), () => {
                 [operator]: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY],
               },
             }, {
-              postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
+              'postgres cockroachdb': `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
             });
           }
 
@@ -1228,7 +1228,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               dateRangeAttr: { [operator]: [] },
             }, {
-              postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+              'postgres cockroachdb': `"dateRangeAttr" ${sqlOperator} 'empty'`,
             });
           }
 
@@ -1254,7 +1254,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         testSql({
           intRangeAttr: { [Op.contains]: 1 },
         }, {
-          postgres: `"intRangeAttr" @> 1`,
+          'postgres cockroachdb': `"intRangeAttr" @> 1`,
         });
 
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
@@ -1270,19 +1270,19 @@ describe(getTestDialectTeaser('SQL'), () => {
       testSql.skip({
         intAttr1: { [Op.contained]: [1, 2] },
       }, {
-        postgres: '"intAttr1" <@ \'[1,2)\'::int4range',
+        'postgres cockroachdb': '"intAttr1" <@ \'[1,2)\'::int4range',
       });
 
       testSql.skip({
         bigIntAttr: { [Op.contained]: [1, 2] },
       }, {
-        postgres: '"intAttr1" <@ \'[1,2)\'::int8range',
+        'postgres cockroachdb': '"intAttr1" <@ \'[1,2)\'::int8range',
       });
 
       testSql.skip({
         dateAttr: { [Op.contained]: [new Date('2020-01-01T00:00:00Z'), new Date('2021-01-01T00:00:00Z')] },
       }, {
-        postgres: '"intAttr1" <@ \'["2020-01-01 00:00:00.000 +00:00", "2021-01-01 00:00:00.000 +00:00")\'::tstzrange',
+        'postgres cockroachdb': '"intAttr1" <@ \'["2020-01-01 00:00:00.000 +00:00", "2021-01-01 00:00:00.000 +00:00")\'::tstzrange',
       });
 
       /*
@@ -2001,8 +2001,8 @@ describe(getTestDialectTeaser('SQL'), () => {
     }
 
     if (sequelize.dialect.supports.REGEXP) {
-      describeRegexpSuite(Op.regexp, sequelize.dialect.name === 'postgres' ? '~' : 'REGEXP');
-      describeRegexpSuite(Op.notRegexp, sequelize.dialect.name === 'postgres' ? '!~' : 'NOT REGEXP');
+      describeRegexpSuite(Op.regexp, (sequelize.dialect.name === 'postgres' || sequelize.dialect.name === 'cockroachdb') ? '~' : 'REGEXP');
+      describeRegexpSuite(Op.notRegexp, (sequelize.dialect.name === 'postgres' || sequelize.dialect.name === 'cockroachdb') ? '!~' : 'NOT REGEXP');
     }
 
     if (sequelize.dialect.supports.IREGEXP) {
@@ -2023,7 +2023,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     function describeAdjacentRangeSuite(
       operator: typeof Op.adjacent | typeof Op.strictLeft | typeof Op.strictRight
-              | typeof Op.noExtendLeft | typeof Op.noExtendRight,
+        | typeof Op.noExtendLeft | typeof Op.noExtendRight,
       sqlOperator: string,
     ) {
       if (!dialectSupportsRange()) {
@@ -2158,6 +2158,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
           mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          cockroachdb: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
           sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
@@ -2169,6 +2170,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested')) = 'value'`,
           mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested}') = 'value'`,
+          cockroachdb: `("jsonAttr"#>>'{nested}') = 'value'`,
           sqlite: `json_extract(\`jsonAttr\`,'$.nested') = 'value'`,
         });
 
@@ -2180,6 +2182,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
           mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          cockroachdb: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
           sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
@@ -2191,6 +2194,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: `json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
           mysql: `json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("association"."jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          cockroachdb: `("association"."jsonAttr"#>>'{nested,attribute}') = 'value'`,
           sqlite: `json_extract(\`association\`.\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
@@ -2200,6 +2204,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
           mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          cockroachdb: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
           sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
@@ -2209,6 +2214,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
           mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          cockroachdb: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
           sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
@@ -2220,6 +2226,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
           mysql: `CAST(json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("association"."jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          cockroachdb: `CAST(("association"."jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
           sqlite: `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
@@ -2229,6 +2236,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
           mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
           postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
+          cockroachdb: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
           sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
         });
 
@@ -2238,6 +2246,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
           mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
           postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
+          cockroachdb: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
           sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
@@ -2245,6 +2254,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonAttr`,\'$.nested.attribute\')) AS DECIMAL) = 4',
           mysql: 'CAST(json_unquote(json_extract(`jsonAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) = 4',
           postgres: 'CAST(("jsonAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
+          cockroachdb: 'CAST(("jsonAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
           sqlite: 'CAST(json_extract(`jsonAttr`,\'$.nested.attribute\') AS DOUBLE PRECISION) = 4',
         });
 
@@ -2253,6 +2263,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`aliased_json`,\'$.nested.attribute\')) AS DECIMAL) = 4',
           mysql: 'CAST(json_unquote(json_extract(`aliased_json`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) = 4',
           postgres: 'CAST(("aliased_json"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
+          cockroachdb: 'CAST(("aliased_json"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
           sqlite: 'CAST(json_extract(`aliased_json`,\'$.nested.attribute\') AS DOUBLE PRECISION) = 4',
         });
       });
@@ -2380,6 +2391,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql(json('profile.id', cast('12346-78912', 'text')), {
           postgres: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
+          cockroachdb: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
           sqlite: 'json_extract(`profile`,\'$.id\') = CAST(\'12346-78912\' AS TEXT)',
           mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = CAST(\'12346-78912\' AS CHAR)',
           mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = CAST(\'12346-78912\' AS CHAR)',
@@ -2392,6 +2404,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         testSql(json({ profile: { id: '12346-78912', name: 'test' } }), {
           postgres: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
+          cockroachdb: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
           sqlite: 'json_extract(`profile`,\'$.id\') = \'12346-78912\' AND json_extract(`profile`,\'$.name\') = \'test\'',
           mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.name\')) = \'test\'',
           mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.\\"name\\"\')) = \'test\'',
@@ -2412,6 +2425,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\')) = \'value\'',
           mysql: 'json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
           postgres: '("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
+          cockroachdb: '("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
           sqlite: 'json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\') = \'value\'',
         }, {
           prefix: 'User',
@@ -2427,6 +2441,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested\')) AS DECIMAL) IN (1, 2)',
           mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\"\')) AS DECIMAL) IN (1, 2)',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested}\') AS DOUBLE PRECISION) IN (1, 2)',
+          cockroachdb: 'CAST(("jsonbAttr"#>>\'{nested}\') AS DOUBLE PRECISION) IN (1, 2)',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested\') AS DOUBLE PRECISION) IN (1, 2)',
         });
 
@@ -2440,6 +2455,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested\')) AS DECIMAL) BETWEEN 1 AND 2',
           mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\"\')) AS DECIMAL) BETWEEN 1 AND 2',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested}\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
+          cockroachdb: 'CAST(("jsonbAttr"#>>\'{nested}\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
         });
 
@@ -2456,6 +2472,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\')) = \'value\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.prop\')) != \'None\')',
           mysql: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"prop\\"\')) != \'None\')',
           postgres: '(("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\' AND ("User"."jsonbAttr"#>>\'{nested,prop}\') != \'None\')',
+          cockroachdb: '(("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\' AND ("User"."jsonbAttr"#>>\'{nested,prop}\') != \'None\')',
           sqlite: '(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\') = \'value\' AND json_extract(`User`.`jsonbAttr`,\'$.nested.prop\') != \'None\')',
         }, {
           prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, { tableName: 'User' })),
@@ -2474,6 +2491,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.name.last\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.employment\')) != \'None\')',
           mysql: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"name\\".\\"last\\"\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"employment\\"\')) != \'None\')',
           postgres: '(("User"."jsonbAttr"#>>\'{name,last}\') = \'Simpson\' AND ("User"."jsonbAttr"#>>\'{employment}\') != \'None\')',
+          cockroachdb: '(("User"."jsonbAttr"#>>\'{name,last}\') = \'Simpson\' AND ("User"."jsonbAttr"#>>\'{employment}\') != \'None\')',
           sqlite: '(json_extract(`User`.`jsonbAttr`,\'$.name.last\') = \'Simpson\' AND json_extract(`User`.`jsonbAttr`,\'$.employment\') != \'None\')',
         }, {
           prefix: 'User',
@@ -2488,6 +2506,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: '(CAST(json_unquote(json_extract(`jsonbAttr`,\'$.price\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`jsonbAttr`,\'$.name\')) = \'Product\')',
           mysql: '(CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"price\\"\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`jsonbAttr`,\'$.\\"name\\"\')) = \'Product\')',
           postgres: '(CAST(("jsonbAttr"#>>\'{price}\') AS DOUBLE PRECISION) = 5 AND ("jsonbAttr"#>>\'{name}\') = \'Product\')',
+          cockroachdb: '(CAST(("jsonbAttr"#>>\'{price}\') AS DOUBLE PRECISION) = 5 AND ("jsonbAttr"#>>\'{name}\') = \'Product\')',
           sqlite: '(CAST(json_extract(`jsonbAttr`,\'$.price\') AS DOUBLE PRECISION) = 5 AND json_extract(`jsonbAttr`,\'$.name\') = \'Product\')',
         });
 
@@ -2499,6 +2518,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) AS DECIMAL) IN (3, 7)',
           mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) IN (3, 7)',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) IN (3, 7)',
+          cockroachdb: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) IN (3, 7)',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS DOUBLE PRECISION) IN (3, 7)',
         });
 
@@ -2514,6 +2534,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) AS DECIMAL) > 2',
           mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) > 2',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) > 2',
+          cockroachdb: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) > 2',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS DOUBLE PRECISION) > 2',
         });
 
@@ -2529,6 +2550,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) AS DECIMAL) > 2',
           mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) > 2',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS INTEGER) > 2',
+          cockroachdb: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS INTEGER) > 2',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS INTEGER) > 2',
         });
 
@@ -2545,6 +2567,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`jsonbAttr\`,'$.nested.attribute')) AS DATETIME) > ${sql.escape(dt)}`,
           mysql: `CAST(json_unquote(json_extract(\`jsonbAttr\`,'$.\\"nested\\".\\"attribute\\"')) AS DATETIME) > ${sql.escape(dt)}`,
           postgres: `CAST(("jsonbAttr"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
+          cockroachdb: `CAST(("jsonbAttr"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
           sqlite: `json_extract(\`jsonbAttr\`,'$.nested.attribute') > ${sql.escape(dt.toISOString())}`,
         });
 
@@ -2558,6 +2581,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) = \'true\'',
           mysql: 'json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'true\'',
           postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS BOOLEAN) = true',
+          cockroachdb: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS BOOLEAN) = true',
           sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS BOOLEAN) = 1',
         });
 
@@ -2565,6 +2589,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) = \'value\'',
           mysql: 'json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
           postgres: '("jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
+          cockroachdb: '("jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
           sqlite: 'json_extract(`jsonbAttr`,\'$.nested.attribute\') = \'value\'',
         });
 
@@ -2582,6 +2607,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mariadb: 'json_unquote(json_extract(`aliased_jsonb`,\'$.key\')) = \'value\'',
           mysql: 'json_unquote(json_extract(`aliased_jsonb`,\'$.\\"key\\"\')) = \'value\'',
           postgres: '("aliased_jsonb"#>>\'{key}\') = \'value\'',
+          cockroachdb: '("aliased_jsonb"#>>\'{key}\') = \'value\'',
           sqlite: 'json_extract(`aliased_jsonb`,\'$.key\') = \'value\'',
         });
       });

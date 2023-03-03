@@ -128,7 +128,7 @@ describe('DataTypes.JSON', () => {
     default: new Error(`${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
 
     // All dialects must support DataTypes.JSON. If your dialect does not have a native JSON type, use an as-big-as-possible text type instead.
-    'mariadb mysql postgres': 'JSON',
+    'mariadb mysql postgres cockroachdb': 'JSON',
     // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
     mssql: 'NVARCHAR(MAX)',
     sqlite: 'TEXT',

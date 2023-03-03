@@ -1,17 +1,15 @@
-// import { Sequelize } from 'src/sequelize';
-// import { CockroachDbDialect } from './index';
+import type { Sequelize } from 'src/sequelize';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
+import type { CockroachDbDialect } from './index';
 
 export interface CockroachdbConnection extends Connection { }
 
-// type Lib = typeof import('cockroachdb');
-
 export class CockroachdbConnectionManager extends AbstractConnectionManager<CockroachdbConnection> {
-  // private readonly lib: Lib;
+  private readonly lib;
 
-  // constructor(dialect: CockroachDbDialect, sequelize: Sequelize) {
-  //   super(dialect, sequelize);
-  //   this.lib = this._loadDialectModule('mariadb') as Lib;
-  // }
+  constructor(dialect: CockroachDbDialect, sequelize: Sequelize) {
+    super(dialect, sequelize);
+    this.lib = this._loadDialectModule('cockroachdb');
+  }
 }

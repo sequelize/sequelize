@@ -35,8 +35,7 @@ export class CockroachDbDialect extends AbstractDialect {
       onConflictWhere: true,
     },
     dataTypes: {
-      ARRAY: true,
-      RANGE: true,
+      ARRAY: false,
       GEOMETRY: true,
       GEOGRAPHY: true,
       JSON: true,
@@ -89,11 +88,32 @@ export class CockroachDbDialect extends AbstractDialect {
     return createSpecifiedOrderedBindCollector();
   }
 
+  escapeBuffer(buffer: Buffer): string {
+    const hex = buffer.toString('hex');
+
+    // bytea hex format http://www.postgresql.org/docs/current/static/datatype-binary.html
+    return `'\\x${hex}'`;
+  }
+
+  escapeString(value: string): string {
+    // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
+    // http://stackoverflow.com/q/603572/130598
+    value = value.replace(/'/g, '\'\'')
+      // null character is not allowed in Postgres
+      .replace(/\0/g, '\\0');
+
+    return `'${value}'`;
+  }
+
   getDefaultSchema(): string {
     return 'defaultdb';
   }
 
   static getDefaultPort(): number {
     return 26_257;
+  }
+
+  canBackslashEscape() {
+    return !this.sequelize.options.standardConformingStrings;
   }
 }

@@ -77,6 +77,10 @@ describe('Transaction', () => {
       mssql: [
         'BEGIN TRANSACTION;',
       ],
+      cockroachdb: [
+        'START TRANSACTION;',
+        'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;',
+      ],
     };
 
     await sequelize.transaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED }, async () => {

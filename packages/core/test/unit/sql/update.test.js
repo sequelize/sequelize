@@ -1,11 +1,11 @@
 'use strict';
 
-const Support   = require('../../support');
+const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
-const current   = Support.sequelize;
-const sql       = current.dialect.queryGenerator;
+const current = Support.sequelize;
+const sql = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             ibmi: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
             mssql: 'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$sequelize_1 OUTPUT INSERTED.[id], INSERTED.[user_name] INTO @tmp WHERE [id] = $sequelize_2; SELECT * FROM @tmp',
-            postgres: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING "id", "user_name"',
+            'postgres cockroachdb': 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING "id", "user_name"',
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
             snowflake: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
             default: 'UPDATE `users` SET `user_name`=$sequelize_1 WHERE `id` = $sequelize_2',

@@ -10,32 +10,32 @@ describe('DataTypes.ARRAY', () => {
 
   testDataTypeSql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
     default: unsupportedError,
-    'postgres cockroachdb': 'VARCHAR(255)[]',
+    postgres: 'VARCHAR(255)[]',
   });
 
   testDataTypeSql('ARRAY(VARCHAR(100))', DataTypes.ARRAY(DataTypes.STRING(100)), {
     default: unsupportedError,
-    'postgres cockroachdb': 'VARCHAR(100)[]',
+    postgres: 'VARCHAR(100)[]',
   });
 
   testDataTypeSql('ARRAY(INTEGER)', DataTypes.ARRAY(DataTypes.INTEGER), {
     default: unsupportedError,
-    'postgres cockroachdb': 'INTEGER[]',
+    postgres: 'INTEGER[]',
   });
 
   testDataTypeSql('ARRAY(HSTORE)', DataTypes.ARRAY(DataTypes.HSTORE), {
     default: unsupportedError,
-    'postgres cockroachdb': 'HSTORE[]',
+    postgres: 'HSTORE[]',
   });
 
   testDataTypeSql('ARRAY(ARRAY(VARCHAR(255)))', DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.STRING)), {
     default: unsupportedError,
-    'postgres cockroachdb': 'VARCHAR(255)[][]',
+    postgres: 'VARCHAR(255)[][]',
   });
 
   testDataTypeSql('ARRAY(TEXT)', DataTypes.ARRAY(DataTypes.TEXT), {
     default: unsupportedError,
-    'postgres cockroachdb': 'TEXT[]',
+    postgres: 'TEXT[]',
   });
 
   testDataTypeSql('ARRAY(DATE)', DataTypes.ARRAY(DataTypes.DATE), {
@@ -45,42 +45,42 @@ describe('DataTypes.ARRAY', () => {
 
   testDataTypeSql('ARRAY(BOOLEAN)', DataTypes.ARRAY(DataTypes.BOOLEAN), {
     default: unsupportedError,
-    'postgres cockroachdb': 'BOOLEAN[]',
+    postgres: 'BOOLEAN[]',
   });
 
   testDataTypeSql('ARRAY(DECIMAL)', DataTypes.ARRAY(DataTypes.DECIMAL), {
     default: unsupportedError,
-    'postgres cockroachdb': 'DECIMAL[]',
+    postgres: 'DECIMAL[]',
   });
 
   testDataTypeSql('ARRAY(DECIMAL(6, 4))', DataTypes.ARRAY(DataTypes.DECIMAL(6, 4)), {
     default: unsupportedError,
-    'postgres cockroachdb': 'DECIMAL(6, 4)[]',
+    postgres: 'DECIMAL(6, 4)[]',
   });
 
   testDataTypeSql('ARRAY(DOUBLE)', DataTypes.ARRAY(DataTypes.DOUBLE), {
     default: unsupportedError,
-    'postgres cockroachdb': 'DOUBLE PRECISION[]',
+    postgres: 'DOUBLE PRECISION[]',
   });
 
   testDataTypeSql('ARRAY(REAL))', DataTypes.ARRAY(DataTypes.REAL), {
     default: unsupportedError,
-    'postgres cockroachdb': 'REAL[]',
+    postgres: 'REAL[]',
   });
 
   testDataTypeSql('ARRAY(JSON)', DataTypes.ARRAY(DataTypes.JSON), {
     default: unsupportedError,
-    'postgres cockroachdb': 'JSON[]',
+    postgres: 'JSON[]',
   });
 
   testDataTypeSql('ARRAY(JSONB)', DataTypes.ARRAY(DataTypes.JSONB), {
     default: unsupportedError,
-    'postgres cockroachdb': 'JSONB[]',
+    postgres: 'JSONB[]',
   });
 
   testDataTypeSql('ARRAY(CITEXT)', DataTypes.ARRAY(DataTypes.CITEXT), {
     default: unsupportedError,
-    'postgres cockroachdb': 'CITEXT[]',
+    postgres: 'CITEXT[]',
   });
 
   it('raises an error if no values are defined', () => {

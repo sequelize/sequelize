@@ -3,7 +3,7 @@ import { ValidationError, ValidationErrorItem } from '../../errors';
 import type { GeoJson } from '../../geo-json';
 import type { AbstractDialect } from '../abstract';
 import * as BaseTypes from '../abstract/data-types';
-import { INTEGER as PostgresInteger, BIGINT as PostgresBigint, GEOGRAPHY as PostgresGeography } from '../postgres/data-types';
+import { INTEGER as PostgresInteger, BIGINT as PostgresBigint, GEOGRAPHY as PostgresGeography, ARRAY as PostgresArray } from '../postgres/data-types';
 
 export class INTEGER extends PostgresInteger {
   $stringify(value: string): string {
@@ -168,3 +168,5 @@ export class DATE extends BaseTypes.DATE {
     return super.sanitize(value);
   }
 }
+
+export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends PostgresArray<T> {}

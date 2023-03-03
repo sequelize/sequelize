@@ -1085,7 +1085,7 @@ Use Sequelize#query if you wish to use replacements.`);
    * @returns {Fn}
    */
   random() {
-    if (['postgres', 'sqlite', 'snowflake'].includes(this.getDialect())) {
+    if (['postgres', 'sqlite', 'snowflake', 'cockroachdb'].includes(this.getDialect())) {
       return fn('RANDOM');
     }
 
