@@ -957,6 +957,12 @@ export interface FindOptions<TAttributes = any>
   raw?: boolean;
 
   /**
+   * Controls whether aliases are minified in this query.
+   * This overrides the global option
+   */
+  minifyAliases?: boolean;
+
+  /**
    * Select group rows after groups and aggregates are computed.
    */
   having?: WhereOptions<any>;
