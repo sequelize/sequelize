@@ -10,14 +10,6 @@ const chai = require('chai'),
   Op = Sequelize.Op;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  
-  before(function() {
-    this.clock = sinon.useFakeTimers();
-  });
-
-  after(function() {
-    this.clock.restore();
-  });
 
   beforeEach(async function() {
     this.User = this.sequelize.define('users', {
