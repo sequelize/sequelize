@@ -307,7 +307,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   commentTemplate(comment, table, column) {
     const tableDetails = this.extractTableDetails(table);
     const tableName = tableDetails.tableName;
-    const tableSchema = tableDetails.schema || 'dbo';
+    const tableSchema = tableDetails.schema;
 
     return ` EXEC sp_addextendedproperty @name = N'MS_Description', @value = ${this.escape(comment)}, @level0type = N'Schema', @level0name = ${this.escape(tableSchema)}, @level1type = N'Table', @level1name = ${this.quoteIdentifier(tableName)}, @level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
