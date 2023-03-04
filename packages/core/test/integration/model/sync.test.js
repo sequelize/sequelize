@@ -636,7 +636,10 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
         .getForeignKeyReferencesForTable(BelongsToUser.getTableName());
       expect(results).to.have.length(1);
     });
+  }
 
+  // TODO add support for db2 and mssql dialects
+  if (dialect !== 'db2' && dialect !== 'mssql') {
     it('does not recreate existing enums (#7649)', async () => {
       sequelize.define('Media', {
         type: DataTypes.ENUM([
