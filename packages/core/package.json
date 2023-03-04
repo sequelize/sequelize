@@ -197,7 +197,7 @@
     "test-integration-db2": "cross-env DIALECT=db2 yarn test-integration",
     "test-integration-ibmi": "cross-env DIALECT=ibmi yarn test-integration",
     "test-integration-snowflake": "cross-env DIALECT=snowflake yarn test-integration",
-    "test-integration-all": "yarn test-integration-mariadb && yarn test-integration-mysql && yarn test-integration-postgres && yarn test-integration-postgres-native && yarn test-integration-sqlite && yarn test-integration-mssql && yarn test-integration-db2 && yarn test-integration-ibmi && yarn test-integration-snowflake",
+    "test-integration-all": "yarn test-integration-mariadb && yarn test-integration-mysql && yarn test-integration-postgres && yarn test-integration-postgres-native && yarn test-integration-mssql && yarn test-integration-sqlite && yarn test-integration-db2 && yarn test-integration-ibmi && yarn test-integration-snowflake",
     "----------------------------------------- all tests ---------------------------------------------": "",
     "test-mariadb": "cross-env DIALECT=mariadb yarn test",
     "test-mysql": "cross-env DIALECT=mysql yarn test",

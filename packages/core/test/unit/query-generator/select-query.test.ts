@@ -43,14 +43,12 @@ describe('QueryGenerator#selectQuery', () => {
     }, User);
 
     expectsql(sql, {
+      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
       postgres: `SELECT "id" FROM "Users" AS "User" OFFSET 1;`,
-      mysql: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
-      mariadb: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
+      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
       sqlite: 'SELECT `id` FROM `Users` AS `User` LIMIT -1 OFFSET 1;',
       snowflake: 'SELECT "id" FROM "Users" AS "User" LIMIT NULL OFFSET 1;',
-      db2: `SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS;`,
-      ibmi: 'SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS',
-      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
+      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS;`,
     });
   });
 
@@ -64,14 +62,7 @@ describe('QueryGenerator#selectQuery', () => {
     }, Project);
 
     expectsql(sql, {
-      postgres: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
-      mysql: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
-      mariadb: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
-      sqlite: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
-      snowflake: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
-      db2: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
-      ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993`,
-      mssql: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
+      default: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
     });
   });
 
@@ -143,7 +134,7 @@ describe('QueryGenerator#selectQuery', () => {
           OFFSET N'repl4' ROWS
           FETCH NEXT N'repl3' ROWS ONLY;
         `,
-        db2: `
+        'db2 ibmi': `
           SELECT uppercase('id') AS "id", 'id2'
           FROM "Users" AS "User"
           WHERE ("User"."username" = 'repl1' OR uppercase(CAST('repl1' AS STRING)) = 'repl1')
@@ -152,16 +143,6 @@ describe('QueryGenerator#selectQuery', () => {
           ORDER BY 'repl2'
           OFFSET 'repl4' ROWS
           FETCH NEXT 'repl3' ROWS ONLY;
-        `,
-        ibmi: `
-          SELECT uppercase('id') AS "id", 'id2'
-          FROM "Users" AS "User"
-          WHERE ("User"."username" = 'repl1' OR uppercase(CAST('repl1' AS STRING)) = 'repl1')
-          GROUP BY 'the group'
-          HAVING "username" = 'repl1'
-          ORDER BY 'repl2'
-          OFFSET 'repl4' ROWS
-          FETCH NEXT 'repl3' ROWS ONLY
         `,
       });
     });
@@ -237,20 +218,6 @@ describe('QueryGenerator#selectQuery', () => {
             ON N'on' AND N'where'
           LEFT OUTER JOIN [Users] AS [projects->owner]
             ON [projects].[ownerId] = [projects->owner].[id];
-        `,
-        ibmi: `
-          SELECT
-            "User"."id",
-            "projects"."id" AS "projects.id",
-            'repl1',
-            'repl1' AS "projects.id2",
-            "projects->owner"."id" AS "projects.owner.id",
-            'repl2'
-          FROM "Users" AS "User"
-          INNER JOIN "Projects" AS "projects"
-            ON 'on' AND 'where'
-          LEFT OUTER JOIN "Users" AS "projects->owner"
-            ON "projects"."ownerId" = "projects->owner"."id"
         `,
       });
     });
@@ -383,7 +350,7 @@ describe('QueryGenerator#selectQuery', () => {
             ON [projects].[ownerId] = [projects->owner].[id]
           ORDER BY N'order';
         `,
-        db2: `
+        'db2 ibmi': `
           SELECT
             "User".*,
             "projects"."id" AS "projects.id",
@@ -402,26 +369,6 @@ describe('QueryGenerator#selectQuery', () => {
             LEFT OUTER JOIN "Users" AS "projects->owner"
               ON "projects"."ownerId" = "projects->owner"."id"
             ORDER BY 'order';
-        `,
-        ibmi: `
-          SELECT
-            "User".*,
-            "projects"."id" AS "projects.id",
-            'repl1',
-            'repl1' AS "projects.id2",
-            "projects->owner"."id" AS "projects.owner.id",
-            'repl2' FROM (
-              SELECT "User"."id"
-              FROM "Users" AS "User"
-              ORDER BY 'order'
-              OFFSET 'offset' ROWS
-              FETCH NEXT 'limit' ROWS ONLY
-            ) AS "User"
-            INNER JOIN "Projects" AS "projects"
-              ON 'on' AND 'where'
-            LEFT OUTER JOIN "Users" AS "projects->owner"
-              ON "projects"."ownerId" = "projects->owner"."id"
-            ORDER BY 'order'
         `,
       });
     });

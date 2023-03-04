@@ -50,9 +50,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       limit: 10,
     }, {
       default: 'SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = \'jon.snow@gmail.com\' ORDER BY [email] DESC LIMIT 10;',
-      db2: 'SELECT "email", "first_name" AS "firstName" FROM "User" WHERE "User"."email" = \'jon.snow@gmail.com\' ORDER BY "email" DESC FETCH NEXT 10 ROWS ONLY;',
       mssql: 'SELECT [email], [first_name] AS [firstName] FROM [User] WHERE [User].[email] = N\'jon.snow@gmail.com\' ORDER BY [email] DESC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;',
-      ibmi: 'SELECT "email", "first_name" AS "firstName" FROM "User" WHERE "User"."email" = \'jon.snow@gmail.com\' ORDER BY "email" DESC FETCH NEXT 10 ROWS ONLY',
+      'db2 ibmi': 'SELECT "email", "first_name" AS "firstName" FROM "User" WHERE "User"."email" = \'jon.snow@gmail.com\' ORDER BY "email" DESC FETCH NEXT 10 ROWS ONLY;',
     });
 
     testsql({

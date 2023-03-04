@@ -80,7 +80,8 @@ describe('mapBindParameters', () => {
       postgres: `SELECT * FROM users WHERE id = $1;`,
       sqlite: `SELECT * FROM users WHERE id = $id;`,
       mssql: `SELECT * FROM users WHERE id = @id;`,
-      ibmi: `SELECT * FROM users WHERE id = ?;`, // 'default' removes the ; for ibmi
+      // 'default' removes the trailing ; for ibmi, but we actually need to test it's there this time, to ensure '$id;' is treated as a replacement + ';'
+      ibmi: `SELECT * FROM users WHERE id = ?;`,
     });
   });
 
@@ -409,7 +410,8 @@ describe('injectReplacements (named replacements)', () => {
 
     expectsql(sql, {
       default: 'SELECT * FROM users WHERE id = 1;',
-      ibmi: `SELECT * FROM users WHERE id = 1;`, // 'default' removes the ; for ibmi
+      // 'default' removes the trailing ; for ibmi, but we actually need to test it's there this time, to ensure ':id;' is treated as a replacement + ';'
+      ibmi: `SELECT * FROM users WHERE id = 1;`,
     });
   });
 
@@ -622,7 +624,8 @@ describe('injectReplacements (positional replacements)', () => {
 
     expectsql(sql, {
       default: 'SELECT * FROM users WHERE id = 1;',
-      ibmi: 'SELECT * FROM users WHERE id = 1;', // 'default' removes the ; for ibmi
+      // 'default' removes the trailing ; for ibmi, but we actually need to test it's there this time, to ensure '?;' is treated as a replacement + ';'
+      ibmi: 'SELECT * FROM users WHERE id = 1;',
     });
   });
 

@@ -343,41 +343,37 @@ describe(getTestDialectTeaser('SQL'), () => {
       testSql({
         stringAttr: 'here is a null char: \0',
       }, {
-        default: '[stringAttr] = \'here is a null char: \\0\'',
-        snowflake: '"stringAttr" = \'here is a null char: \0\'',
-        mssql: '[stringAttr] = N\'here is a null char: \0\'',
-        db2: '"stringAttr" = \'here is a null char: \0\'',
-        ibmi: '"stringAttr" = \'here is a null char: \0\'',
-        sqlite: '`stringAttr` = \'here is a null char: \0\'',
+        default: `[stringAttr] = 'here is a null char: \0'`,
+        'mariadb mysql postgres': `[stringAttr] = 'here is a null char: \\0'`,
+        mssql: `[stringAttr] = N'here is a null char: \0'`,
       });
 
       testSql({
         dateAttr: 1_356_998_400_000,
       }, {
-        default: `[dateAttr] = '2013-01-01 00:00:00.000 +00:00'`,
-        'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
+        default: `[dateAttr] = '2013-01-01 00:00:00.000'`,
+        'postgres sqlite': `[dateAttr] = '2013-01-01 00:00:00.000 +00:00'`,
         mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
-        'db2 snowflake ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
       });
 
       describe('Buffer', () => {
         testSql({ binaryAttr: Buffer.from('Sequelize') }, {
-          ibmi: `"binaryAttr" = BLOB(X'53657175656c697a65')`,
+          default: '`binaryAttr` = X\'53657175656c697a65\'',
           postgres: `"binaryAttr" = '\\x53657175656c697a65'`,
-          'sqlite mariadb mysql': '`binaryAttr` = X\'53657175656c697a65\'',
-          db2: `"binaryAttr" = BLOB('Sequelize')`,
-          snowflake: `"binaryAttr" = X'53657175656c697a65'`,
           mssql: '[binaryAttr] = 0x53657175656c697a65',
+          snowflake: `"binaryAttr" = X'53657175656c697a65'`,
+          db2: `"binaryAttr" = BLOB('Sequelize')`,
+          ibmi: `"binaryAttr" = BLOB(X'53657175656c697a65')`,
         });
 
         // Including a quote (') to ensure dialects that don't convert to hex are safe from SQL injection.
         testSql({ binaryAttr: [Buffer.from(`Seque'lize1`), Buffer.from('Sequelize2')] }, {
-          ibmi: `"binaryAttr" IN (BLOB(X'5365717565276c697a6531'), BLOB(X'53657175656c697a6532'))`,
+          default: '`binaryAttr` IN (X\'5365717565276c697a6531\', X\'53657175656c697a6532\')',
           postgres: `"binaryAttr" IN ('\\x5365717565276c697a6531', '\\x53657175656c697a6532')`,
-          'sqlite mariadb mysql': '`binaryAttr` IN (X\'5365717565276c697a6531\', X\'53657175656c697a6532\')',
-          db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
-          snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
           mssql: '[binaryAttr] IN (0x5365717565276c697a6531, 0x53657175656c697a6532)',
+          snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
+          db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
+          ibmi: `"binaryAttr" IN (BLOB(X'5365717565276c697a6531'), BLOB(X'53657175656c697a6532'))`,
         });
       });
     });
@@ -427,9 +423,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testSql({ booleanAttr: true }, {
         default: `[booleanAttr] = true`,
-        mssql: '[booleanAttr] = 1',
-        sqlite: '`booleanAttr` = 1',
-        ibmi: '"booleanAttr" = 1',
+        'mssql sqlite ibmi': '[booleanAttr] = 1',
       });
 
       testSql({
@@ -450,10 +444,9 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
 
       testSql({ dateAttr: new Date('2021-01-01T00:00:00Z') }, {
-        default: `[dateAttr] = '2021-01-01 00:00:00.000 +00:00'`,
+        default: `[dateAttr] = '2021-01-01 00:00:00.000'`,
+        'postgres sqlite': `[dateAttr] = '2021-01-01 00:00:00.000 +00:00'`,
         mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
-        'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
-        'db2 ibmi snowflake': `"dateAttr" = '2021-01-01 00:00:00.000'`,
       });
 
       testSql({ intAttr1: { [Op.col]: 'intAttr2' } }, {
@@ -595,9 +588,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testSql({ booleanAttr: { [Op.eq]: true } }, {
         default: '[booleanAttr] = true',
-        mssql: '[booleanAttr] = 1',
-        sqlite: '`booleanAttr` = 1',
-        ibmi: '"booleanAttr" = 1',
+        'mssql sqlite ibmi': '[booleanAttr] = 1',
       });
 
       testSequelizeValueMethods(Op.eq, '=');
@@ -621,9 +612,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testSql({ booleanAttr: { [Op.ne]: true } }, {
         default: '[booleanAttr] != true',
-        mssql: '[booleanAttr] != 1',
-        ibmi: '"booleanAttr" != 1',
-        sqlite: '`booleanAttr` != 1',
+        'mssql sqlite ibmi': '[booleanAttr] != 1',
       });
 
       testSequelizeValueMethods(Op.ne, '!=');
@@ -647,16 +636,12 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testSql({ booleanAttr: { [Op.is]: false } }, {
         default: '[booleanAttr] IS false',
-        mssql: '[booleanAttr] IS 0',
-        ibmi: '"booleanAttr" IS 0',
-        sqlite: '`booleanAttr` IS 0',
+        'mssql sqlite ibmi': '[booleanAttr] IS 0',
       });
 
       testSql({ booleanAttr: { [Op.is]: true } }, {
         default: '[booleanAttr] IS true',
-        mssql: '[booleanAttr] IS 1',
-        ibmi: '"booleanAttr" IS 1',
-        sqlite: '`booleanAttr` IS 1',
+        'mssql sqlite ibmi': '[booleanAttr] IS 1',
       });
 
       // @ts-expect-error -- not supported, testing that it throws
@@ -716,16 +701,12 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testSql({ booleanAttr: { [Op.not]: false } }, {
         default: '[booleanAttr] IS NOT false',
-        mssql: '[booleanAttr] IS NOT 0',
-        ibmi: '"booleanAttr" IS NOT 0',
-        sqlite: '`booleanAttr` IS NOT 0',
+        'mssql sqlite ibmi': '[booleanAttr] IS NOT 0',
       });
 
       testSql({ booleanAttr: { [Op.not]: true } }, {
         default: '[booleanAttr] IS NOT true',
-        mssql: '[booleanAttr] IS NOT 1',
-        ibmi: '"booleanAttr" IS NOT 1',
-        sqlite: '`booleanAttr` IS NOT 1',
+        'mssql sqlite ibmi': '[booleanAttr] IS NOT 1',
       });
 
       testSql({ intAttr1: { [Op.not]: 1 } }, {
@@ -1183,7 +1164,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               intRangeAttr: { [operator]: [10, null] },
             }, {
-              postgres: `"intRangeAttr" ${sqlOperator} '[10,)'`,
+              default: `"intRangeAttr" ${sqlOperator} '[10,)'`,
             });
           }
 
@@ -1193,7 +1174,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               intRangeAttr: { [operator]: [null, 10] },
             }, {
-              postgres: `"intRangeAttr" ${sqlOperator} '[,10)'`,
+              default: `"intRangeAttr" ${sqlOperator} '[,10)'`,
             });
           }
 
@@ -1203,7 +1184,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               intRangeAttr: { [operator]: [null, null] },
             }, {
-              postgres: `"intRangeAttr" ${sqlOperator} '[,)'`,
+              default: `"intRangeAttr" ${sqlOperator} '[,)'`,
             });
           }
 
@@ -1217,7 +1198,7 @@ describe(getTestDialectTeaser('SQL'), () => {
                 [operator]: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY],
               },
             }, {
-              postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
+              default: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
             });
           }
 
@@ -1228,7 +1209,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               dateRangeAttr: { [operator]: [] },
             }, {
-              postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+              default: `"dateRangeAttr" ${sqlOperator} 'empty'`,
             });
           }
 
@@ -1254,7 +1235,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         testSql({
           intRangeAttr: { [Op.contains]: 1 },
         }, {
-          postgres: `"intRangeAttr" @> 1`,
+          default: `"intRangeAttr" @> 1`,
         });
 
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
@@ -1270,19 +1251,19 @@ describe(getTestDialectTeaser('SQL'), () => {
       testSql.skip({
         intAttr1: { [Op.contained]: [1, 2] },
       }, {
-        postgres: '"intAttr1" <@ \'[1,2)\'::int4range',
+        default: '"intAttr1" <@ \'[1,2)\'::int4range',
       });
 
       testSql.skip({
         bigIntAttr: { [Op.contained]: [1, 2] },
       }, {
-        postgres: '"intAttr1" <@ \'[1,2)\'::int8range',
+        default: '"intAttr1" <@ \'[1,2)\'::int8range',
       });
 
       testSql.skip({
         dateAttr: { [Op.contained]: [new Date('2020-01-01T00:00:00Z'), new Date('2021-01-01T00:00:00Z')] },
       }, {
-        postgres: '"intAttr1" <@ \'["2020-01-01 00:00:00.000 +00:00", "2021-01-01 00:00:00.000 +00:00")\'::tstzrange',
+        default: '"intAttr1" <@ \'["2020-01-01 00:00:00.000 +00:00", "2021-01-01 00:00:00.000 +00:00")\'::tstzrange',
       });
 
       /*
@@ -1310,8 +1291,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         },
       }, {
         default: `[stringAttr] LIKE 'sql''injection%'`,
-        mysql: `\`stringAttr\` LIKE 'sql\\'injection%'`,
-        mariadb: `\`stringAttr\` LIKE 'sql\\'injection%'`,
+        'mariadb mysql': `\`stringAttr\` LIKE 'sql\\'injection%'`,
         mssql: `[stringAttr] LIKE N'sql''injection%'`,
       });
 
@@ -1423,8 +1403,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         },
       }, {
         default: `[stringAttr] LIKE '%sql''injection'`,
-        mysql: `\`stringAttr\` LIKE '%sql\\'injection'`,
-        mariadb: `\`stringAttr\` LIKE '%sql\\'injection'`,
+        'mariadb mysql': `\`stringAttr\` LIKE '%sql\\'injection'`,
         mssql: `[stringAttr] LIKE N'%sql''injection'`,
       });
 
@@ -1536,8 +1515,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         },
       }, {
         default: `[stringAttr] LIKE '%sql''injection%'`,
-        mysql: `\`stringAttr\` LIKE '%sql\\'injection%'`,
-        mariadb: `\`stringAttr\` LIKE '%sql\\'injection%'`,
+        'mariadb mysql': `\`stringAttr\` LIKE '%sql\\'injection%'`,
         mssql: `[stringAttr] LIKE N'%sql''injection%'`,
       });
 
@@ -1649,8 +1627,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         },
       }, {
         default: `[stringAttr] NOT LIKE 'sql''injection%'`,
-        mysql: `\`stringAttr\` NOT LIKE 'sql\\'injection%'`,
-        mariadb: `\`stringAttr\` NOT LIKE 'sql\\'injection%'`,
+        'mariadb mysql': `\`stringAttr\` NOT LIKE 'sql\\'injection%'`,
         mssql: `[stringAttr] NOT LIKE N'sql''injection%'`,
       });
 
@@ -1762,8 +1739,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         },
       }, {
         default: `[stringAttr] NOT LIKE '%sql''injection'`,
-        mysql: `\`stringAttr\` NOT LIKE '%sql\\'injection'`,
-        mariadb: `\`stringAttr\` NOT LIKE '%sql\\'injection'`,
+        'mariadb mysql': `\`stringAttr\` NOT LIKE '%sql\\'injection'`,
         mssql: `[stringAttr] NOT LIKE N'%sql''injection'`,
       });
 
@@ -1875,8 +1851,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         },
       }, {
         default: `[stringAttr] NOT LIKE '%sql''injection%'`,
-        mysql: `\`stringAttr\` NOT LIKE '%sql\\'injection%'`,
-        mariadb: `\`stringAttr\` NOT LIKE '%sql\\'injection%'`,
+        'mariadb mysql': `\`stringAttr\` NOT LIKE '%sql\\'injection%'`,
         mssql: `[stringAttr] NOT LIKE N'%sql''injection%'`,
       });
 
@@ -1991,8 +1966,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         testSql({ stringAttr: { [operator]: '^new\nline$' } }, {
           default: `[stringAttr] ${sqlOperator} '^new\nline$'`,
-          mariadb: `\`stringAttr\` ${sqlOperator} '^new\\nline$'`,
-          mysql: `\`stringAttr\` ${sqlOperator} '^new\\nline$'`,
+          'mariadb mysql': `\`stringAttr\` ${sqlOperator} '^new\\nline$'`,
         });
 
         testSequelizeValueMethods(operator, sqlOperator);
@@ -2073,7 +2047,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           testSql({
             intRangeAttr: { [operator]: [10, null] },
           }, {
-            postgres: `"intRangeAttr" ${sqlOperator} '[10,)'`,
+            default: `"intRangeAttr" ${sqlOperator} '[10,)'`,
           });
         }
 
@@ -2083,7 +2057,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           testSql({
             intRangeAttr: { [operator]: [null, 10] },
           }, {
-            postgres: `"intRangeAttr" ${sqlOperator} '[,10)'`,
+            default: `"intRangeAttr" ${sqlOperator} '[,10)'`,
           });
         }
 
@@ -2093,7 +2067,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           testSql({
             intRangeAttr: { [operator]: [null, null] },
           }, {
-            postgres: `"intRangeAttr" ${sqlOperator} '[,)'`,
+            default: `"intRangeAttr" ${sqlOperator} '[,)'`,
           });
         }
 
@@ -2107,7 +2081,7 @@ describe(getTestDialectTeaser('SQL'), () => {
               [operator]: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY],
             },
           }, {
-            postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
+            default: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
           });
         }
 
@@ -2118,7 +2092,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           testSql({
             dateRangeAttr: { [operator]: [] },
           }, {
-            postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+            default: `"dateRangeAttr" ${sqlOperator} 'empty'`,
           });
         }
 
@@ -2379,10 +2353,10 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql(json('profile.id', cast('12346-78912', 'text')), {
-          postgres: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
-          sqlite: 'json_extract(`profile`,\'$.id\') = CAST(\'12346-78912\' AS TEXT)',
           mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = CAST(\'12346-78912\' AS CHAR)',
           mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = CAST(\'12346-78912\' AS CHAR)',
+          postgres: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
+          sqlite: 'json_extract(`profile`,\'$.id\') = CAST(\'12346-78912\' AS TEXT)',
         }, {
           field: {
             type: new DataTypes.JSONB(),
@@ -2391,10 +2365,10 @@ describe(getTestDialectTeaser('SQL'), () => {
         });
 
         testSql(json({ profile: { id: '12346-78912', name: 'test' } }), {
-          postgres: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
-          sqlite: 'json_extract(`profile`,\'$.id\') = \'12346-78912\' AND json_extract(`profile`,\'$.name\') = \'test\'',
           mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.name\')) = \'test\'',
           mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.\\"name\\"\')) = \'test\'',
+          postgres: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
+          sqlite: 'json_extract(`profile`,\'$.id\') = \'12346-78912\' AND json_extract(`profile`,\'$.name\') = \'test\'',
         }, {
           field: {
             type: new DataTypes.JSONB(),

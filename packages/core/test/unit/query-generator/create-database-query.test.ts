@@ -13,8 +13,8 @@ describe('QueryGenerator#createDatabaseQuery', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase'), {
       default: notSupportedError,
       postgres: 'CREATE DATABASE "myDatabase";',
-      snowflake: 'CREATE DATABASE IF NOT EXISTS "myDatabase";',
       mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN CREATE DATABASE [myDatabase] ; END;`,
+      snowflake: 'CREATE DATABASE IF NOT EXISTS "myDatabase";',
     });
   });
 
@@ -22,39 +22,39 @@ describe('QueryGenerator#createDatabaseQuery', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { collate: 'en_US.UTF-8' }), {
       default: notSupportedError,
       postgres: `CREATE DATABASE "myDatabase" LC_COLLATE = 'en_US.UTF-8';`,
-      snowflake: 'CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT COLLATE \'en_US.UTF-8\';',
       mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN CREATE DATABASE [myDatabase] COLLATE N'en_US.UTF-8'; END;`,
+      snowflake: 'CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT COLLATE \'en_US.UTF-8\';',
     });
   });
 
   it('supports the encoding option', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { encoding: 'UTF8' }), {
       default: notSupportedError,
-      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['encoding']),
       postgres: `CREATE DATABASE "myDatabase" ENCODING = 'UTF8';`,
+      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['encoding']),
     });
   });
 
   it('supports the ctype option', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { ctype: 'zh_TW.UTF-8' }), {
       default: notSupportedError,
-      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['ctype']),
       postgres: `CREATE DATABASE "myDatabase" LC_CTYPE = 'zh_TW.UTF-8';`,
+      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['ctype']),
     });
   });
 
   it('supports the template option', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { template: 'template0' }), {
       default: notSupportedError,
-      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['template']),
       postgres: `CREATE DATABASE "myDatabase" TEMPLATE = 'template0';`,
+      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['template']),
     });
   });
 
   it('supports the charset option', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { charset: 'utf8mb4' }), {
       default: notSupportedError,
-      'mssql postgres': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['charset']),
+      'postgres mssql': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['charset']),
       snowflake: `CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET 'utf8mb4';`,
     });
   });
@@ -79,8 +79,8 @@ describe('QueryGenerator#createDatabaseQuery', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', config), {
       default: notSupportedError,
       postgres: `CREATE DATABASE "myDatabase" ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'zh_TW.UTF-8' TEMPLATE = 'template0';`,
-      snowflake: `CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET 'utf8mb4' DEFAULT COLLATE 'en_US.UTF-8';`,
       mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase') BEGIN CREATE DATABASE [myDatabase] COLLATE N'en_US.UTF-8'; END;`,
+      snowflake: `CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET 'utf8mb4' DEFAULT COLLATE 'en_US.UTF-8';`,
     });
   });
 });

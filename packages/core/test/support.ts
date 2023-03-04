@@ -491,6 +491,7 @@ export function expectsql(
   }
 
   if ('bind' in assertions) {
+    // TODO: support combinations of dialects
     const bind = assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
     // @ts-expect-error -- too difficult to type, but this is safe
     expect(query.bind).to.deep.equal(bind);

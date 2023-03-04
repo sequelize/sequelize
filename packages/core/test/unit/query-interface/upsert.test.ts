@@ -36,8 +36,7 @@ describe('QueryInterface#upsert', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) ON CONFLICT ([id]) DO UPDATE SET [firstName]=EXCLUDED.[firstName];',
-      mariadb: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
-      mysql: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
+      'mariadb mysql': 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK)
           AS [Users_target]
@@ -114,8 +113,7 @@ describe('QueryInterface#upsert', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($firstName,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
-      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
-      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
+      'mariadb mysql': 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
         USING (VALUES($firstName, N'Doe')) AS [Users_source]([firstName], [lastName])
@@ -171,8 +169,7 @@ describe('QueryInterface#upsert', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($1,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
-      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
-      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
+      'mysql mariadb': 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
         USING (VALUES($1, N'Doe')) AS [Users_source]([firstName], [lastName])
@@ -228,19 +225,18 @@ describe('QueryInterface#upsert', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
       default: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON DUPLICATE KEY UPDATE `counter`=`counter` + 1;',
-      postgres: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
+      'postgres sqlite': 'INSERT INTO [Users] ([firstName],[counter]) VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ([id]) DO UPDATE SET [counter]=EXCLUDED.[counter];',
       mssql: `
-        MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target] 
-        USING (VALUES(N'Jonh', \`counter\` + 1)) AS [Users_source]([firstName], [counter]) 
-        ON [Users_target].[id] = [Users_source].[id] WHEN MATCHED THEN UPDATE SET [Users_target].[counter] = \`counter\` + 1 
+        MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
+        USING (VALUES(N'Jonh', \`counter\` + 1)) AS [Users_source]([firstName], [counter])
+        ON [Users_target].[id] = [Users_source].[id] WHEN MATCHED THEN UPDATE SET [Users_target].[counter] = \`counter\` + 1
         WHEN NOT MATCHED THEN INSERT ([firstName], [counter]) VALUES(N'Jonh', \`counter\` + 1) OUTPUT $action, INSERTED.*;
         `,
-      sqlite: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON CONFLICT (`id`) DO UPDATE SET `counter`=EXCLUDED.`counter`;',
       snowflake: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1);',
       db2: `
-        MERGE INTO "Users" AS "Users_target" 
-        USING (VALUES('Jonh', \`counter\` + 1)) AS "Users_source"("firstName", "counter") 
-        ON "Users_target"."id" = "Users_source"."id" WHEN MATCHED THEN UPDATE SET "Users_target"."counter" = \`counter\` + 1 
+        MERGE INTO "Users" AS "Users_target"
+        USING (VALUES('Jonh', \`counter\` + 1)) AS "Users_source"("firstName", "counter")
+        ON "Users_target"."id" = "Users_source"."id" WHEN MATCHED THEN UPDATE SET "Users_target"."counter" = \`counter\` + 1
         WHEN NOT MATCHED THEN INSERT ("firstName", "counter") VALUES('Jonh', \`counter\` + 1);
         `,
       ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1))',

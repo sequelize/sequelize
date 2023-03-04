@@ -63,13 +63,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         type: 'FULLTEXT',
         concurrently: true,
       }), {
-        ibmi: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
-        sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
-        db2: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
-        mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
+        default: 'CREATE INDEX [user_field_c] ON [User] ([fieldC])',
+        'mariadb mysql': 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
         postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
-        mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
-        mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
+        mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
       });
 
       expectsql(sql.addIndexQuery('User', ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }], {
@@ -78,36 +75,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         using: 'BTREE',
         parser: 'foo',
       }), {
-        sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
-        mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
-        db2: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
-        ibmi: `BEGIN
-      DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42891'
-        BEGIN END;
-        ALTER TABLE "User" ADD CONSTRAINT "a_b_uniq" UNIQUE ("fieldB", "fieldA" DESC);
-      END`,
+        default: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
+        'mariadb mysql': 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
         postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
-        mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
-        mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
+        sqlite: 'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
+        ibmi: `BEGIN
+          DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42891'
+          BEGIN END;
+          ALTER TABLE "User" ADD CONSTRAINT "a_b_uniq" UNIQUE ("fieldB", "fieldA" DESC);
+          END`,
       });
     });
 
     it('POJO field', () => {
       expectsql(sql.addIndexQuery('table', [{ name: 'column', collate: 'BINARY', length: 5, order: 'DESC' }], {}, 'table'), {
         default: 'CREATE INDEX [table_column] ON [table] ([column] COLLATE [BINARY] DESC)',
-        mssql: 'CREATE INDEX [table_column] ON [table] ([column] DESC)',
-        db2: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
-        ibmi: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
-        mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
-        mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
+        'mariadb mysql': 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
+        'mssql db2 ibmi': 'CREATE INDEX [table_column] ON [table] ([column] DESC)',
       });
     });
 
     it('function', () => {
       expectsql(sql.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], { name: 'myindex' }), {
         default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))',
-        mariadb: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))',
-        mysql: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))',
+        'mariadb mysql': 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))',
       });
     });
 
@@ -117,7 +108,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           fields: ['event'],
           using: 'gin',
         }), {
-          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event")',
+          default: 'CREATE INDEX "table_event" ON "table" USING gin ("event")',
         });
       });
     }
@@ -130,11 +121,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: 'public',
           },
         }), {
-          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
-          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'public\'',
-          db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
-          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\'',
+          default: `CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = 'public'`,
+          mssql: `CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N'public'`,
         });
 
         expectsql(sql.addIndexQuery('table', {
@@ -148,11 +136,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           },
         }), {
-          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
-          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE (`type` = \'group\' OR `type` = \'private\')',
-          db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
-          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\')',
+          default: `CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = 'group' OR [type] = 'private')`,
+          mssql: `CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N'group' OR [type] = N'private')`,
         });
 
         expectsql(sql.addIndexQuery('table', {
@@ -163,11 +148,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           },
         }), {
-          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
-          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
-          db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
-          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL',
+          default: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL',
         });
       });
     }
@@ -179,7 +160,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gin',
           operator: 'jsonb_path_ops',
         }), {
-          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)',
+          default: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)',
         });
       });
     }
@@ -191,7 +172,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
           operator: 'inet_ops',
         }), {
-          postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
+          default: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
         });
       });
       it('operator in fields', () => {
@@ -202,7 +183,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }],
           using: 'gist',
         }), {
-          postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
+          default: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
         });
       });
       it('operator in fields with order', () => {
@@ -214,7 +195,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }],
           using: 'gist',
         }), {
-          postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
+          default: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
         });
       });
       it('operator in multiple fields #1', () => {
@@ -226,7 +207,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }, 'column2'],
           using: 'gist',
         }), {
-          postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
+          default: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
         });
       });
       it('operator in multiple fields #2', () => {
@@ -240,7 +221,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }],
           using: 'btree',
         }), {
-          postgres: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
+          default: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
         });
       });
     }
@@ -253,8 +234,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         unique: true,
       }), {
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
-        mssql: 'CREATE UNIQUE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
-        'db2 postgres': 'CREATE UNIQUE INDEX "email_include_name" ON "User" ("email") INCLUDE ("first_name", "last_name")',
+        'postgres mssql db2': 'CREATE UNIQUE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
       });
     });
 
@@ -264,10 +244,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         fields: ['email'],
         include: ['first_name', 'last_name'],
       }), {
-        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
-        mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
-        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE ("first_name", "last_name")',
+        'postgres mssql': 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
+        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
       });
     });
 
@@ -277,10 +256,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         fields: ['email'],
         include: literal('(first_name, last_name)'),
       }), {
-        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
-        mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
-        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE (first_name, last_name)',
+        'mssql postgres': 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
+        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
       });
     });
 
@@ -290,10 +268,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         fields: ['email'],
         include: [literal('first_name'), literal('last_name')],
       }), {
-        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
-        mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
-        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE (first_name, last_name)',
+        'mssql postgres': 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
+        db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
       });
     });
   });
