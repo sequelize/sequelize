@@ -1,6 +1,6 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
-import type { QueryRawOptions } from 'src/sequelize.js';
+import type { QueryRawOptions } from '../../index';
 import type {
   NormalizedAttributeOptions,
   FindOptions,
