@@ -1,4 +1,3 @@
-import type { PostgresQueryInterface } from '@sequelize/core/src/dialects/postgres/query-interface';
 import { expect } from 'chai';
 import type { Sequelize } from '@sequelize/core';
 import { DataTypes, QueryTypes } from '@sequelize/core';
@@ -11,20 +10,18 @@ const dialectName = getTestDialect();
 describe('QueryInterface#showAllTables', () => {
 
   after(async () => {
-    const _sequelize = createSequelizeInstance();
-    await _sequelize.queryInterface.dropAllTables();
     if (!dialect.supports.schemas) {
       return;
     }
 
-    await Promise.all(['schema_1', 'schema_2', 'schema_3', 'schema_4'].map(async schema => _sequelize.dropSchema(schema)));
+    await Promise.all(['schema_1', 'schema_2', 'schema_3', 'schema_4'].map(async schema => sequelize.dropSchema(schema)));
   });
 
   const getSequelizeInstanceWithSchema = async () => {
     const _sequelize = createSequelizeInstance({ schema: 'schema_3' });
     await createSchemaAndTables(_sequelize, ['schema_3', 'schema_4']);
 
-    return { sequelize: _sequelize };
+    return _sequelize;
   };
 
   const createTestTablesForSchema = async (
@@ -147,18 +144,18 @@ describe('QueryInterface#showAllTables', () => {
     it('shows all tables from the specified schema in the showAllTables options', async () => {
       await createSchemaAndTables(sequelize);
       const [schemaOneTables, schemaTwoTables] = await queryTableNamesAndNormalizeResults([
-        (queryInterface as unknown as PostgresQueryInterface).showAllTables({ schema: 'schema_1' }),
-        (queryInterface as unknown as PostgresQueryInterface).showAllTables({ schema: 'schema_2' })]);
+        queryInterface.showAllTables({ schema: 'schema_1' }),
+        queryInterface.showAllTables({ schema: 'schema_2' })]);
 
       expect(schemaOneTables).to.deep.equal(['schema_1_table_1', 'schema_1_table_2']);
       expect(schemaTwoTables).to.deep.equal(['schema_2_table_1', 'schema_2_table_2']);
     });
 
     it('uses the schema from showAllTables options instead of initialization options', async () => {
-      const { sequelize: _sequelize } = await getSequelizeInstanceWithSchema();
+      const _sequelize = await getSequelizeInstanceWithSchema();
       const [schemaThreeTables, schemaFourTables] = await queryTableNamesAndNormalizeResults([
         _sequelize.queryInterface.showAllTables(),
-        (_sequelize.queryInterface as unknown as PostgresQueryInterface).showAllTables({
+        _sequelize.queryInterface.showAllTables({
           schema: 'schema_4',
         })]);
 
