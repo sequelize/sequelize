@@ -1,5 +1,6 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
+import type { QueryRawOptions } from 'src/sequelize.js';
 import type {
   NormalizedAttributeOptions,
   FindOptions,
@@ -109,6 +110,11 @@ export interface AddColumnQueryOptions {
 // keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveColumnQueryOptions {
   ifExists?: boolean;
+}
+
+export interface ShowAllTablesOptions extends QueryRawOptions {
+  // specify the schema to get the tables from
+  schema?: string;
 }
 
 /**
