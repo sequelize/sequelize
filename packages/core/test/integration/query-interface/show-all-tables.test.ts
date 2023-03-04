@@ -136,7 +136,7 @@ describe('QueryInterface#showAllTables', () => {
     });
   }
 
-  describe('schema support tests', () => {
+  describe('schema option', () => {
     if (!dialect.supports.schemas || dialectName !== 'postgres') {
       return;
     }

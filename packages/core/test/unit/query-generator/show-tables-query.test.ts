@@ -3,8 +3,7 @@ import { expectsql, createSequelizeInstance } from '../../support';
 const sequelizeWithSchema = createSequelizeInstance({
   schema: 'schema_at_init',
 });
-const queryGeneratorWithSchema
-  = sequelizeWithSchema.getQueryInterface().queryGenerator;
+const queryGeneratorWithSchema = sequelizeWithSchema.queryGenerator;
 
 describe('QueryGenerator#showTablesQuery', () => {
   it('should use the schema from initialization options', async () => {
