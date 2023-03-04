@@ -11,13 +11,13 @@ import type {
   Attributes,
   NormalizedAttributeOptions,
 } from '../../model';
-import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel, ShowAllTablesOptions } from '../../sequelize';
+import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { Transaction } from '../../transaction';
 import type { Fn, Literal, Col } from '../../utils/sequelize-method.js';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
-import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
+import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions, ShowAllTablesOptions } from './query-generator.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 interface Replaceable {
