@@ -15,7 +15,7 @@ describe('QueryGenerator#showTablesQuery', () => {
       mysql: `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'   AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys');`,
       mariadb: `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'  AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema');`,
       sqlite:
-        `SELECT name FROM 'sqlite_master' WHERE type='table' and name!='sqlite_sequence';`,
+        `SELECT name FROM \`sqlite_master\` WHERE type='table' and name!='sqlite_sequence';`,
       snowflake:
         `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA NOT IN ( 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS');`,
       db2: `SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = 'T' ORDER BY TABSCHEMA, TABNAME`,
@@ -33,7 +33,7 @@ describe('QueryGenerator#showTablesQuery', () => {
         mysql: `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'    AND TABLE_SCHEMA = 'schema_not_at_init';`,
         mariadb: `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'  AND TABLE_SCHEMA = 'schema_not_at_init';`,
         sqlite:
-          `SELECT name FROM 'sqlite_master' WHERE type='table' and name!='sqlite_sequence';`,
+        `SELECT name FROM \`sqlite_master\` WHERE type='table' and name!='sqlite_sequence';`,
         snowflake:
           `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'schema_not_at_init';`,
         db2: `SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = 'T' ORDER BY TABSCHEMA, TABNAME`,
