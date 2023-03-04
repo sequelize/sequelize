@@ -18,22 +18,22 @@ describe('QueryInterface#showAllTables', () => {
   });
 
   const getSequelizeInstanceWithSchema = async () => {
-    const _sequelize = createSequelizeInstance({ schema: 'schema_3' });
-    await createSchemaAndTables(_sequelize, ['schema_3', 'schema_4']);
+    const sequelizeWithSchema = createSequelizeInstance({ schema: 'schema_3' });
+    await createSchemaAndTables(sequelizeWithSchema, ['schema_3', 'schema_4']);
 
-    return _sequelize;
+    return sequelizeWithSchema;
   };
 
   const createTestTablesForSchema = async (
     schemaName: string,
-    _queryInterface: Sequelize['queryInterface'],
-  ) => Promise.all([1, 2].map(async (_, index) => _queryInterface.createTable(
+    queryInterfaceWithSchema: Sequelize['queryInterface'],
+  ) => Promise.all([1, 2].map(async (_, index) => queryInterfaceWithSchema.createTable(
     { tableName: `${schemaName}_table_${index + 1}`, schema: schemaName },
     { name: DataTypes.STRING },
   )));
 
   const createSchemaAndTables = async (
-    _sequelize: Sequelize,
+    sequelizeWithSchema: Sequelize,
     testSchemas: string[] = [],
   ) => {
     const baseTestSchemas = [
@@ -42,10 +42,10 @@ describe('QueryInterface#showAllTables', () => {
       ...testSchemas,
     ];
     await Promise.all(baseTestSchemas.map(async (schemaName: string) => {
-      await _sequelize.createSchema(schemaName);
+      await sequelizeWithSchema.createSchema(schemaName);
       await createTestTablesForSchema(
         schemaName,
-        _sequelize.queryInterface,
+        sequelizeWithSchema.queryInterface,
       );
     }));
   };
@@ -67,11 +67,11 @@ describe('QueryInterface#showAllTables', () => {
   };
 
   it('should not contain views', async () => {
-    async function cleanup(_sequelize: Sequelize) {
+    async function cleanup(sequelizeWithSchema: Sequelize) {
       if (dialectName === 'db2') {
         // DB2 does not support DROP VIEW IF EXISTS
         try {
-          await _sequelize.query('DROP VIEW V_Fail');
+          await sequelizeWithSchema.query('DROP VIEW V_Fail');
         } catch (error: any) {
           // -204 means V_Fail does not exist
           // https://www.ibm.com/docs/en/db2-for-zos/11?topic=sec-204
@@ -80,7 +80,7 @@ describe('QueryInterface#showAllTables', () => {
           }
         }
       } else {
-        await _sequelize.query('DROP VIEW IF EXISTS V_Fail');
+        await sequelizeWithSchema.query('DROP VIEW IF EXISTS V_Fail');
       }
     }
 
@@ -152,10 +152,10 @@ describe('QueryInterface#showAllTables', () => {
     });
 
     it('uses the schema from showAllTables options instead of initialization options', async () => {
-      const _sequelize = await getSequelizeInstanceWithSchema();
+      const sequelizeWithSchema = await getSequelizeInstanceWithSchema();
       const [schemaThreeTables, schemaFourTables] = await queryTableNamesAndNormalizeResults([
-        _sequelize.queryInterface.showAllTables(),
-        _sequelize.queryInterface.showAllTables({
+        sequelizeWithSchema.queryInterface.showAllTables(),
+        sequelizeWithSchema.queryInterface.showAllTables({
           schema: 'schema_4',
         })]);
 
