@@ -636,6 +636,21 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
         .getForeignKeyReferencesForTable(BelongsToUser.getTableName());
       expect(results).to.have.length(1);
     });
+
+    it('does not recreate existing enums (#7649)', async () => {
+      sequelize.define('Media', {
+        type: DataTypes.ENUM([
+          'video', 'audio',
+        ]),
+      });
+      await sequelize.sync({ alter: true });
+      sequelize.define('Media', {
+        type: DataTypes.ENUM([
+          'image', 'video', 'audio',
+        ]),
+      });
+      await sequelize.sync({ alter: true });
+    });
   }
 });
 
