@@ -10,7 +10,6 @@ import type {
   HasOne,
   HasOneOptions,
 } from './associations/index';
-import type { LOCK, Op, Transaction, TableHints } from './index';
 import type { Deferrable } from './deferrable';
 import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
 import type {
@@ -40,6 +39,7 @@ import type {
   Nullish,
   OmitConstructors, RequiredBy,
 } from './utils/types.js';
+import type { LOCK, Op, Transaction, TableHints } from './index';
 
 export interface Logging {
   /**
@@ -957,6 +957,12 @@ export interface FindOptions<TAttributes = any>
   raw?: boolean;
 
   /**
+   * Controls whether aliases are minified in this query.
+   * This overrides the global option
+   */
+  minifyAliases?: boolean;
+
+  /**
    * Select group rows after groups and aggregates are computed.
    */
   having?: WhereOptions<any>;
@@ -1147,6 +1153,12 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    */
   validate?: boolean;
   /**
+   * An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query
+   * (in particular: for applying to partial unique indexes).
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
+  /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
@@ -1200,6 +1212,18 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+
+  /**
+   * An optional parameter to specify a where clause for partial unique indexes
+   * (note: `ON CONFLICT WHERE` not `ON CONFLICT DO UPDATE WHERE`).
+   * Only supported in Postgres >= 9.5 and sqlite >= 9.5
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
+  /**
+   * Optional override for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictAttributes?: Array<keyof TAttributes>;
 }
 
 /**
@@ -2267,7 +2291,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withSchema<M extends Model>(
     this: ModelStatic<M>,
-    schema: string | SchemaOptions,
+    schema: Nullish<string | SchemaOptions>,
   ): ModelStatic<M>;
 
   /**
@@ -2276,7 +2300,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static schema<M extends Model>(
     this: ModelStatic<M>,
-    schema: string,
+    schema: Nullish<string>,
     options?: { schemaDelimiter?: string } | string
   ): ModelStatic<M>;
 
@@ -2302,7 +2326,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withScope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>>,
   ): ModelStatic<M>;
 
   /**
@@ -2311,7 +2335,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>>,
   ): ModelStatic<M>;
 
   /**

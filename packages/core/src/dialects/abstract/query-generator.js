@@ -217,6 +217,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     let onDuplicateKeyUpdate = '';
 
+    if (
+      !_.isEmpty(options.conflictWhere)
+      && !this.dialect.supports.inserts.onConflictWhere
+    ) {
+      throw new Error('missing dialect support for conflictWhere option');
+    }
+
     // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
     // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
     // upsert function.
@@ -225,10 +232,27 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
-        onDuplicateKeyUpdate = ` ON CONFLICT (${conflictKeys.join(',')})`;
+
+        const fragments = [
+          'ON CONFLICT',
+          '(',
+          conflictKeys.join(','),
+          ')',
+        ];
+
+        if (!_.isEmpty(options.conflictWhere)) {
+          fragments.push(this.whereQuery(options.conflictWhere, options));
+        }
+
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
         // do an update.  Instead, fall back to DO NOTHING.
-        onDuplicateKeyUpdate += _.isEmpty(updateKeys) ? ' DO NOTHING ' : ` DO UPDATE SET ${updateKeys.join(',')}`;
+        if (_.isEmpty(updateKeys)) {
+          fragments.push('DO NOTHING');
+        } else {
+          fragments.push('DO UPDATE SET', updateKeys.join(','));
+        }
+
+        onDuplicateKeyUpdate = ` ${joinSQLFragments(fragments)}`;
       } else {
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=${values[attr]}`);
         // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id
@@ -356,8 +380,31 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
-        onDuplicateKeyUpdate = ` ON CONFLICT (${conflictKeys.join(',')}) DO UPDATE SET ${updateKeys.join(',')}`;
+
+        let whereClause = false;
+        if (options.conflictWhere) {
+          if (!this.dialect.supports.inserts.onConflictWhere) {
+            throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
+          }
+
+          whereClause = this.whereQuery(options.conflictWhere, options);
+        }
+
+        // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
+        onDuplicateKeyUpdate = [
+          'ON CONFLICT',
+          '(',
+          conflictKeys.join(','),
+          ')',
+          whereClause,
+          'DO UPDATE SET',
+          updateKeys.join(','),
+        ];
       } else { // mysql / maria
+        if (options.conflictWhere) {
+          throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
+        }
+
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
         onDuplicateKeyUpdate = `${this.dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
       }
@@ -1196,7 +1243,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let query;
 
     // Aliases can be passed through subqueries and we don't want to reset them
-    if (this.options.minifyAliases && !options.aliasesMapping) {
+    if (options.minifyAliases && !options.aliasesMapping) {
       options.aliasesMapping = new Map();
       options.aliasesByTable = {};
       options.includeAliases = new Map();
@@ -1244,7 +1291,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           continue;
         }
 
-        const joinQueries = this.generateInclude(include, { externalAs: mainTable.as, internalAs: mainTable.as }, topLevelInfo, { replacements: options.replacements });
+        const joinQueries = this.generateInclude(include, { externalAs: mainTable.as, internalAs: mainTable.as }, topLevelInfo, { replacements: options.replacements, minifyAliases: options.minifyAliases });
 
         subJoinQueries = subJoinQueries.concat(joinQueries.subQuery);
         mainJoinQueries = mainJoinQueries.concat(joinQueries.mainQuery);
@@ -1348,6 +1395,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             offset: options.offset,
             limit: options.groupedLimit.limit,
             order: groupedLimitOrder,
+            minifyAliases: options.minifyAliases,
             aliasesMapping: options.aliasesMapping,
             aliasesByTable: options.aliasesByTable,
             where,
@@ -1516,7 +1564,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         let alias = attr[1];
 
-        if (this.options.minifyAliases) {
+        if (options.minifyAliases) {
           alias = this._getMinifiedAlias(alias, mainTableAs, options);
         }
 
@@ -1606,7 +1654,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         let alias = `${includeAs.externalAs}.${attrAs}`;
 
-        if (this.options.minifyAliases) {
+        if (options.minifyAliases) {
           alias = this._getMinifiedAlias(alias, includeAs.internalAs, topLevelInfo.options);
         }
 
@@ -1629,7 +1677,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     let joinQuery;
     if (include.through) {
-      joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, topLevelInfo);
+      joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, topLevelInfo, { minifyAliases: options.minifyAliases });
     } else {
       this._generateSubQueryFilter(include, includeAs, topLevelInfo);
       joinQuery = this.generateJoin(include, topLevelInfo, options);
@@ -1726,7 +1774,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   _getAliasForField(tableName, field, options) {
-    if (this.options.minifyAliases && options.aliasesByTable[`${tableName}${field}`]) {
+    if (options.minifyAliases && options.aliasesByTable[`${tableName}${field}`]) {
       return options.aliasesByTable[`${tableName}${field}`];
     }
 
@@ -1828,7 +1876,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    if (this.options.minifyAliases && asRight.length > 63) {
+    if (options?.minifyAliases && asRight.length > 63) {
       const alias = `%${topLevelInfo.options.includeAliases.size}`;
 
       topLevelInfo.options.includeAliases.set(alias, asRight);
@@ -1913,7 +1961,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return { outputFragment, returnFields, returningFragment, tmpTable };
   }
 
-  generateThroughJoin(include, includeAs, parentTableName, topLevelInfo) {
+  generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
     const through = include.through;
     const throughTable = through.model.getTableName();
     const throughAs = `${includeAs.internalAs}->${through.as}`;
@@ -1922,7 +1970,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const throughAttributes = through.attributes.map(attr => {
       let alias = `${externalThroughAs}.${Array.isArray(attr) ? attr[1] : attr}`;
 
-      if (this.options.minifyAliases) {
+      if (options.minifyAliases) {
         alias = this._getMinifiedAlias(alias, throughAs, topLevelInfo.options);
       }
 
@@ -1953,7 +2001,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let throughWhere;
     let targetWhere;
 
-    if (this.options.minifyAliases && throughAs.length > 63) {
+    if (options.minifyAliases && throughAs.length > 63) {
       topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, throughAs);
       if (includeAs.internalAs.length > 63) {
         topLevelInfo.options.includeAliases.set(`%${topLevelInfo.options.includeAliases.size}`, includeAs.internalAs);
