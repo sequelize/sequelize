@@ -3190,8 +3190,18 @@ Instead of specifying a Model, either:
       const values = Object.create(null);
       if (attributesWithGetters.size > 0) {
         for (const attributeName2 of attributesWithGetters) {
-          if (!this._options.attributes?.includes(attributeName2)) {
-            continue;
+          
+          const attributeDefinition = this.modelDefinition.rawAttributes[attributeName2];
+
+          //attributeDefinition is undefined , a virtual getter directly invoke it
+          if(!(attributeDefinition === undefined)){
+
+            //if attributeName2 is absent in this.options.attributes and
+            //if attributeName2 is not a virtual attribute, do not call its getter
+            if (!this._options.attributes?.includes(attributeName2) 
+              && !Object.prototype.hasOwnProperty.call(attributeDefinition.type, 'VIRTUAL')) {
+              continue;
+            }
           }
 
           values[attributeName2] = this.get(attributeName2, options);
