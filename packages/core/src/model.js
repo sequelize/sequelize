@@ -3188,15 +3188,16 @@ Instead of specifying a Model, either:
       || options.clone
     ) {
       const values = Object.create(null);
+      const modelDefinition = this.constructor.modelDefinition;
       if (attributesWithGetters.size > 0) {
         for (const attributeName2 of attributesWithGetters) {
-          const attributeDefinition = this.modelDefinition.rawAttributes[attributeName2];
+          const attributeDefinition = modelDefinition.rawAttributes[attributeName2];
           // attributeDefinition is undefined , a virtual getter directly invoke it
           // if attributeName2 is absent in this.options.attributes and
           // if attributeName2 is not a virtual attribute, do not call its getter
           if (!(attributeDefinition === undefined)
             && (!this._options.attributes?.includes(attributeName2)
-            && !Object.prototype.hasOwnProperty.call(attributeDefinition.type, 'VIRTUAL'))) {
+            && !Object.prototype.hasOwnProperty.call(attributeDefinition.type, DataTypes.VIRTUAL))) {
             continue;
           }
 
