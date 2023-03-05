@@ -2811,11 +2811,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         },
       });
-      await this.User.sync({ force: true });
-      const u1 = await this.User.create({
+      await User.sync({ force: true });
+      const u1 = await User.create({
         roles: ['authenticated user'],
       });
-      const u2 = await this.User.create({
+      const u2 = await User.create({
         roles: ['authenticated user'],
       });
       await User.update({ status: 'blocked' }, {
