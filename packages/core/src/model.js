@@ -3199,7 +3199,7 @@ Instead of specifying a Model, either:
             && !Object.prototype.hasOwnProperty.call(attributeDefinition.type, 'VIRTUAL'))) {
             continue;
           }
-          
+
           values[attributeName2] = this.get(attributeName2, options);
         }
       }
