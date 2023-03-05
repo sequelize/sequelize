@@ -2810,7 +2810,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.setDataValue('roles', val.join(','));
           },
         },
-      });  
+      });
       await this.User.sync({ force: true });
       const u1 = await this.User.create({
         roles: ['authenticated user'],
@@ -2818,12 +2818,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const u2 = await this.User.create({
         roles: ['authenticated user'],
       });
-      await User.update({status: 'blocked' }, {
+      await User.update({ status: 'blocked' }, {
         where: {
           id: {
             [Op.ne]: null,
           },
-        } 
+        },
       });
       const a1 = await User.findOne({ where: { id: u1.id } });
       const a2 = await User.findOne({ where: { id: u2.id } });
