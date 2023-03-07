@@ -7865,10 +7865,10 @@ rimraf@2.6.3:
   dependencies:
     glob "^7.1.3"
 
-rimraf@4.3.0:
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-4.3.0.tgz#cd4d9a918c1735197e0ae8217e5eeb4657d42154"
-  integrity sha512-5qVDXPbByA1qSJEWMv1qAwKsoS22vVpsL2QyxCKBw4gf6XiFo1K3uRLY6uSOOBFDwnqAZtnbILqWKKlzh8bkGg==
+rimraf@4.3.1:
+  version "4.3.1"
+  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-4.3.1.tgz#ccb3525e39100478acb334fae6d23029b87912ea"
+  integrity sha512-GfHJHBzFQra23IxDzIdBqhOWfbtdgS1/dCHrDy+yvhpoJY5TdwdT28oWaHWfRpKFDLd3GZnGTx6Mlt4+anbsxQ==
   dependencies:
     glob "^9.2.0"
 
