@@ -939,7 +939,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('is possible to use functions as default values', async function () {
       let userWithDefaults;
 
-      if (dialectName.startsWith('postgres') || dialect.startsWith('cockroachdb')) {
+      if (dialectName.startsWith('postgres') || dialectName.startsWith('cockroachdb')) {
         await this.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
         userWithDefaults = this.sequelize.define('userWithDefaults', {
           uuid: {
@@ -970,7 +970,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await userWithDefaults.create({});
         const user0 = await userWithDefaults.findByPk(user.id);
         const now = new Date();
-        const pad = number =>  number.toString().padStart(2, '0');
+        const pad = number => number.toString().padStart(2, '0');
 
         expect(user0.year).to.equal(`${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`);
 
