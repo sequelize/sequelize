@@ -1157,7 +1157,8 @@ describe(getTestDialectTeaser('SQL'), () => {
             const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, { value: 2, inclusive: true }] } };
             testSql({ intRangeAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
               // used 'postgres' because otherwise range is transformed to "1,2"
-              'postgres cockroachdb': `"intRangeAttr" ${sqlOperator} '[1,2]'`,
+              postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
+              cockroachdb: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
             });
           }
 

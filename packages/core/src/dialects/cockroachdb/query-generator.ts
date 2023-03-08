@@ -4,6 +4,10 @@ import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import { PostgresQueryGenerator } from '../postgres/query-generator';
 
 export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
+  setSearchPath(searchPath: string) {
+    return `SET search_path to ${searchPath};`;
+  }
+
   describeTableQuery(tableName: TableNameOrModel): string {
     const table = this.extractTableDetails(tableName);
 

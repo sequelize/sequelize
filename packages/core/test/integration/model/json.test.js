@@ -785,7 +785,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return;
           }
 
-          if (current.options.dialect === 'postgres') {
+          if (['postgres', 'cockroachdb'].inlcudes(current.options.dialect)) {
             await expect(this.Event.findAll({
               where: {
                 data: {

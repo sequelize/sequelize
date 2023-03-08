@@ -97,7 +97,7 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       if (['mysql', 'mariadb'].includes(dialect.name)) {
         // MySQL will return NULL, because they lack EMPTY geometry data support.
         expect(user.geometry).to.be.eql(null);
-      } else if (dialect.name === 'postgres') {
+      } else if (['postgres', 'cockroachdb'].includes(dialect.name)) {
         // Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
         expect(user.geometry).to.deep.eq({ type: 'Point', coordinates: [0, 0] });
       } else {

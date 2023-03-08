@@ -202,7 +202,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(project.UserProject.status).to.equal('active');
         await this.sequelize.dropSchema('acme');
         const schemas = await this.sequelize.showAllSchemas();
-        if (['postgres', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
+        if (['postgres', 'mssql', 'mariadb', 'ibmi', 'cockroachdb'].includes(dialect)) {
           expect(schemas).to.not.have.property('acme');
         }
       });

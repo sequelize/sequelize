@@ -12,7 +12,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi', 'cockroachdb'].includes(dialect)) {
     return `"${str}"`;
   }
 
@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     }
 
-    if (dialect === 'postgres') {
+    if (dialect === 'postgres' || dialect === 'cockroachdb') {
       const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}${o.options ? `?options=${o.options}` : ''}`;
       it('should work with connection strings (postgres protocol)', () => {
         const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgres' });
@@ -424,6 +424,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               break;
             }
 
+            case 'cockroachdb': {
+              expect(error.message).to.include('password authentication failed for user "bar"');
+            }
+
             default: {
               expect(error.message.toString()).to.match(/.*Access denied.*/);
             }
@@ -640,7 +644,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const count = async transaction => {
               const sql = this.sequelizeWithTransaction.getQueryInterface().queryGenerator.selectQuery('TransactionTests', { attributes: [[literal('count(*)'), 'cnt']] });
 
-              const result = await this.sequelizeWithTransaction.query(sql, { plain: true, transaction, aliasesMapping  });
+              const result = await this.sequelizeWithTransaction.query(sql, { plain: true, transaction, aliasesMapping });
 
               return Number.parseInt(result.cnt, 10);
             };

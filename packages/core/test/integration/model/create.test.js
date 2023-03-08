@@ -939,7 +939,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('is possible to use functions as default values', async function () {
       let userWithDefaults;
 
-      if (dialectName.startsWith('postgres')) {
+      if (dialectName.startsWith('postgres') || dialect.startsWith('cockroachdb')) {
         await this.sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
         userWithDefaults = this.sequelize.define('userWithDefaults', {
           uuid: {

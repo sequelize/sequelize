@@ -158,7 +158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].intVal).to.equal(5);
       });
 
-      if (dialectName === 'postgres') {
+      if (['postgres', 'cockroachdb'].includes(dialectName)) {
         it('should be able to find a row using ilike', async function () {
           const users = await this.User.findAll({
             where: {

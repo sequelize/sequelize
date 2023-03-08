@@ -5,7 +5,7 @@ import { sequelize } from '../support';
 const queryInterface = sequelize.queryInterface;
 const dialect = sequelize.getDialect();
 
-const supportedByDialect = ['postgres', 'mssql', 'snowflake'].includes(dialect);
+const supportedByDialect = ['postgres', 'mssql', 'snowflake', 'cockroachdb'].includes(dialect);
 const newDbName = 'myDB';
 
 describe('QueryInterface#{create,drop,list}Database', () => {

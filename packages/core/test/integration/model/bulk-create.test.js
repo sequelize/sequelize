@@ -157,6 +157,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         logging(sql) {
           switch (dialectName) {
             case 'postgres':
+            case 'cockroachdb':
             case 'ibmi': {
               expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
 

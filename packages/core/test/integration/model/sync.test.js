@@ -492,7 +492,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   }
 
   // TODO: this should work with MSSQL / MariaDB too
-  if (dialect.startsWith('postgres')) {
+  if (dialect.startsWith('postgres') || dialect.startsWith('cockroachdb')) {
     it('defaults to schema provided to sync() for references #11276', async function () {
       await Promise.all([
         sequelize.createSchema(SCHEMA_ONE),

@@ -1,30 +1,44 @@
 import { format } from 'node:util';
-import { ValidationError, ValidationErrorItem } from '../../errors';
+import { ValidationErrorItem } from '../../errors';
 import type { GeoJson } from '../../geo-json';
 import type { AbstractDialect } from '../abstract';
 import * as BaseTypes from '../abstract/data-types';
-import { INTEGER as PostgresInteger, BIGINT as PostgresBigint, GEOGRAPHY as PostgresGeography, ARRAY as PostgresArray } from '../postgres/data-types';
+import { GEOGRAPHY as PostgresGeography, ARRAY as PostgresArray } from '../postgres/data-types';
 
-export class INTEGER extends PostgresInteger {
-  $stringify(value: string): string {
-    const rep = String(value);
-    if (!/^[-+]?[0-9]+$/.test(rep)) {
-      throw new ValidationError(
-        format('%j is not a valid integer', value),
-      );
-    }
+function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
+  if (dataType.options.length != null) {
+    // this option only makes sense for zerofill
+    dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`);
 
-    return rep;
+    delete dataType.options.length;
   }
 }
 
-export class BIGINT extends PostgresBigint {
+export class INTEGER extends BaseTypes.INTEGER {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
+  toSql() {
+    if (this.options.unsigned) {
+      return 'BIGINT';
+    }
+
+    return 'INTEGER';
+  }
+}
+
+export class BIGINT extends BaseTypes.BIGINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
   $stringify(value: string): string {
     const rep = String(value);
     if (!/^[-+]?[0-9]+$/.test(rep)) {
-      throw new ValidationError(
-        format('%j is not a valid integer', value),
-      );
+      ValidationErrorItem.throwDataTypeValidationError(format('%j is not a valid integer', value));
     }
 
     return rep;
@@ -68,12 +82,22 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
 }
 
 export class TINYINT extends BaseTypes.TINYINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
   toSql(): string {
     return 'SMALLINT';
   }
 }
 
 export class SMALLINT extends BaseTypes.SMALLINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
   toSql(): string {
     if (this.options.unsigned) {
       return 'INTEGER';
@@ -84,6 +108,11 @@ export class SMALLINT extends BaseTypes.SMALLINT {
 }
 
 export class MEDIUMINT extends BaseTypes.MEDIUMINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
   toSql(): string {
     return 'INTEGER';
   }
@@ -170,3 +199,7 @@ export class DATE extends BaseTypes.DATE {
 }
 
 export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends PostgresArray<T> {}
+
+export class DECIMAL extends BaseTypes.DECIMAL {
+  // TODO: add check constraint >= 0 if unsigned is true
+}
