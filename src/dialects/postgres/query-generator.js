@@ -46,14 +46,14 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
 
     if (databaseVersion && semver.gte(databaseVersion, '9.2.0')) {
-      return `CREATE SCHEMA IF NOT EXISTS ${schema};`;
+      return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
     }
 
-    return `CREATE SCHEMA ${schema};`;
+    return `CREATE SCHEMA ${this.quoteIdentifier(schema)};`;
   }
 
   dropSchema(schema) {
-    return `DROP SCHEMA IF EXISTS ${schema} CASCADE;`;
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
   showSchemasQuery() {
