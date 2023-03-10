@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.N.modelDefinition.refreshAttributes();
 
       expect(this.N.getAttributes().mId.field).to.equal('n_m_id');
-      this.N.belongsTo(this.M, { foreignKey: 'mId' });
+      this.N.belongsTo(this.M, { foreignKey: { name: 'mId', unique: true } });
       this.M.hasOne(this.N, { foreignKey: 'mId' });
       expect(this.N.getAttributes().mId.field).to.equal('n_m_id');
     });

@@ -6,8 +6,6 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
 
-const current = Support.sequelize;
-const semver = require('semver');
 const upperFirst = require('lodash/upperFirst');
 
 describe(Support.getTestDialectTeaser('associations'), () => {
@@ -45,14 +43,20 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         }],
       });
       this.Post.hasMany(this.Comment, {
-        foreignKey: 'commentable_id',
+        foreignKey: {
+          name: 'commentable_id',
+          unique: false,
+        },
         scope: {
           commentable: 'post',
         },
         foreignKeyConstraints: false,
       });
       this.Post.hasMany(this.Comment, {
-        foreignKey: 'commentable_id',
+        foreignKey: {
+          name: 'commentable_id',
+          unique: false,
+        },
         as: 'coloredComments',
         scope: {
           commentable: 'post',
@@ -61,17 +65,15 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         foreignKeyConstraints: false,
       });
       this.Post.hasOne(this.Comment, {
-        foreignKey: 'commentable_id',
+        foreignKey: {
+          name: 'commentable_id',
+          unique: false,
+        },
         as: 'mainComment',
         scope: {
           commentable: 'post',
           isMain: true,
         },
-        foreignKeyConstraints: false,
-      });
-      this.Comment.belongsTo(this.Post, {
-        foreignKey: 'commentable_id',
-        as: 'post',
         foreignKeyConstraints: false,
       });
 
@@ -80,11 +82,6 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         scope: {
           commentable: 'image',
         },
-        foreignKeyConstraints: false,
-      });
-      this.Comment.belongsTo(this.Image, {
-        foreignKey: 'commentable_id',
-        as: 'image',
         foreignKeyConstraints: false,
       });
 

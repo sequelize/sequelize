@@ -16,10 +16,14 @@ import { cloneDeep, removeUndefined } from '../utils/object.js';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import { BelongsTo } from './belongs-to.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
+import type {
+  NormalizeBaseAssociationOptions,
+  AssociationStatic,
+} from './helpers';
 import {
   defineAssociation,
-  mixinMethods, normalizeBaseAssociationOptions,
+  mixinMethods,
+  normalizeBaseAssociationOptions,
 } from './helpers';
 
 /**
@@ -145,7 +149,7 @@ export class HasOne<
       HasOne<S, T, SourceKey, TargetKey>,
       HasOneOptions<SourceKey, TargetKey>,
       NormalizedHasOneOptions<SourceKey, TargetKey>
-    >(HasOne, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+    >(HasOne, source, target, options, parent, normalizeOptions, normalizedOptions => {
       // self-associations must always set their 'as' parameter
       if (isSameInitialModel(source, target)
         // use 'options' because this will always be set in 'newOptions'
@@ -346,6 +350,21 @@ because, as this is a hasOne association, the foreign key we need to update is l
 Object.defineProperty(HasOne, 'name', {
   value: 'HasOne',
 });
+
+function normalizeOptions<SourceKey extends string, TargetKey extends string>(
+  type: AssociationStatic<any>,
+  options: HasOneOptions<SourceKey, TargetKey>,
+  source: ModelStatic<Model>,
+  target: ModelStatic<Model>,
+): NormalizedHasOneOptions<SourceKey, TargetKey> {
+
+  const normalizedOptions = normalizeBaseAssociationOptions(type, options, source, target);
+
+  // HasOne creates a unique foreign key by default
+  normalizedOptions.foreignKey.unique ??= true;
+
+  return normalizedOptions;
+}
 
 export type NormalizedHasOneOptions<SourceKey extends string, TargetKey extends string> =
   NormalizeBaseAssociationOptions<HasOneOptions<SourceKey, TargetKey>>;

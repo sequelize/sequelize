@@ -273,7 +273,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       Post.hasOne(Comment);
-      Comment.belongsTo(Post);
 
       await this.sequelize.sync();
 

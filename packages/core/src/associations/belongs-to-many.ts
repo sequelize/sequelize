@@ -278,6 +278,9 @@ export class BelongsToMany<
       as: `${this.name.plural}${upperFirst(this.pairedWith.name.plural)}`,
       scope: this.through.scope,
       foreignKey: {
+        // HasOne creates a unique index on the foreign key by default, but create a composite unique index
+        // in #makeFkPairUnique instead
+        unique: false,
         ...this.options.foreignKey,
         allowNull: this.options.foreignKey.allowNull ?? false,
         name: this.options.foreignKey.name || (
@@ -296,8 +299,10 @@ export class BelongsToMany<
     this.fromSourceToThroughOne = HasOne.associate(AssociationSecret, this.source, this.throughModel, removeUndefined({
       as: `${this.name.singular}${upperFirst(this.pairedWith.name.singular)}`,
       scope: this.through.scope,
-      // foreignKey: this.options.foreignKey,
       foreignKey: {
+        // HasOne creates a unique index on the foreign key by default, but create a composite unique index
+        // in #makeFkPairUnique instead
+        unique: false,
         ...this.options.foreignKey,
         allowNull: this.options.foreignKey.allowNull ?? false,
         name: this.options.foreignKey.name || (

@@ -172,7 +172,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           });
 
           this.Projects.hasOne(this.Tasks);
-          this.Tasks.belongsTo(this.Projects);
 
           await this.Projects.sync({ force: true });
 

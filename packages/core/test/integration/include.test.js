@@ -369,7 +369,6 @@ Instead of specifying a Model, either:
 
       User.hasOne(Task);
       Group.hasOne(User);
-      User.belongsTo(Group);
 
       await this.sequelize.sync({ force: true });
 
@@ -877,7 +876,6 @@ Instead of specifying a Model, either:
     const Item = this.sequelize.define('Item', { test: DataTypes.STRING });
 
     User.hasOne(Item);
-    Item.belongsTo(User);
 
     this.User = User;
     this.Item = Item;
