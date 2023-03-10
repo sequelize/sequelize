@@ -221,11 +221,11 @@ export class BelongsTo<
 
       switch (options.inverse.type) {
         case 'hasMany':
-          HasMany.associate(secret, target, source, passDown, this);
+          HasMany.associate(secret, target, source, passDown, this, this);
           break;
 
         case 'hasOne':
-          HasOne.associate(secret, target, source, passDown, this);
+          HasOne.associate(secret, target, source, passDown, this, this);
           break;
 
         default:
