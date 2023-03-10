@@ -121,7 +121,6 @@ describe(getTestDialectTeaser('belongsTo'), () => {
       @BelongsTo(() => Author, {
         foreignKey: 'coAuthorId',
         targetKey: 'id',
-        // Code works if this line is removed
         inverse: { as: 'notMyBooks', type: 'hasMany' },
       })
       declare coAuthor: NonAttribute<Author>;
