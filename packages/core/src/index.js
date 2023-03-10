@@ -6,7 +6,7 @@
   * @module sequelize
   */
 
-/** Exports the sequelize entry point. */
+/** Exports the Sequelize entry point. */
 const { Sequelize } = require('./sequelize');
 
 // for backward compatibility, Sequelize is importable with both of these styles:
