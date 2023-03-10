@@ -1239,10 +1239,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         as: 'Resume',
       });
 
-      ResumeModel.belongsTo(UserModel, {
-        foreignKey: 'UserId',
-      });
-
       await this.sequelize.dropSchema('hero');
       await this.sequelize.createSchema('hero');
       await this.sequelize.sync({ force: true });
