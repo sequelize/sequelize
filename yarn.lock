@@ -8963,10 +8963,10 @@ typedoc-plugin-carbon-ads@1.1.6:
   dependencies:
     typescript "^4.7.4"
 
-typedoc-plugin-mdn-links@2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/typedoc-plugin-mdn-links/-/typedoc-plugin-mdn-links-2.0.2.tgz#5a6aa268950c41a1437b57e2c72ed77f8ba323d2"
-  integrity sha512-Fzjvfsj3rxvmZNqWRvq9JTGBkOkrPp0kBtvJCJ4U5Jm14OF1KoRErtmwgVQcPLA5Xs8h5I/W4uZBaL8SDHsgxQ==
+typedoc-plugin-mdn-links@3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/typedoc-plugin-mdn-links/-/typedoc-plugin-mdn-links-3.0.3.tgz#da8d1a9750d57333e6c21717b38bfc13d4058de2"
+  integrity sha512-NXhIpwQnsg7BcyMCHVqj3tUK+DL4g3Bt96JbFl4APzTGFkA+iM6GfZ/fn3TAqJ8O0CXG5R9BfWxolw1m1omNuQ==
 
 typedoc-plugin-missing-exports@1.0.0:
   version "1.0.0"
