@@ -9,8 +9,6 @@ import { underscoredIf, camelizeIf, pluralize, singularize } from '@sequelize/co
 import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
 import { sequelize, getTestDialect, expectsql } from '../../support';
 
-const dialect = sequelize.dialect;
-
 describe('Utils', () => {
   describe('underscore', () => {
     describe('underscoredIf', () => {
@@ -200,22 +198,22 @@ describe('Utils', () => {
 
   describe('toDefaultValue', () => {
     it('return plain data types', () => {
-      expect(() => toDefaultValue(DataTypes.UUIDV4, dialect)).to.throw();
+      expect(() => toDefaultValue(DataTypes.UUIDV4)).to.throw();
     });
     it('return uuid v1', () => {
-      expect(/^[\da-z-]{36}$/.test(toDefaultValue(DataTypes.UUIDV1(), dialect) as string)).to.be.equal(true);
+      expect(/^[\da-z-]{36}$/.test(toDefaultValue(DataTypes.UUIDV1()) as string)).to.be.equal(true);
     });
     it('return uuid v4', () => {
-      expect(/^[\da-z-]{36}/.test(toDefaultValue(DataTypes.UUIDV4(), dialect) as string)).to.be.equal(true);
+      expect(/^[\da-z-]{36}/.test(toDefaultValue(DataTypes.UUIDV4()) as string)).to.be.equal(true);
     });
     it('return now', () => {
-      expect(Object.prototype.toString.call(toDefaultValue(DataTypes.NOW(), dialect))).to.be.equal('[object Date]');
+      expect(Object.prototype.toString.call(toDefaultValue(DataTypes.NOW()))).to.be.equal('[object Date]');
     });
     it('return plain string', () => {
-      expect(toDefaultValue('Test', dialect)).to.equal('Test');
+      expect(toDefaultValue('Test')).to.equal('Test');
     });
     it('return plain object', () => {
-      expect(toDefaultValue({}, dialect)).to.deep.equal({});
+      expect(toDefaultValue({})).to.deep.equal({});
     });
   });
 

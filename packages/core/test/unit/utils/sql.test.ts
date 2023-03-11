@@ -61,7 +61,7 @@ describe('mapBindParameters', () => {
     });
   });
 
-  it('parses bind parameters following JSONB indexing', () => {
+  it('parses bind parameters following JSON extraction', () => {
     const { sql } = mapBindParameters(`SELECT * FROM users WHERE json_col->>$key`, dialect);
 
     expectsql(sql, {
@@ -391,7 +391,7 @@ describe('injectReplacements (named replacements)', () => {
     });
   });
 
-  it('parses named replacements following JSONB indexing', () => {
+  it('parses named replacements following JSON extraction', () => {
     const sql = injectReplacements(`SELECT * FROM users WHERE json_col->>:key`, dialect, {
       key: 'name',
     });
@@ -608,7 +608,7 @@ describe('injectReplacements (positional replacements)', () => {
     });
   });
 
-  it('parses named replacements following JSONB indexing', () => {
+  it('parses named replacements following JSON extraction', () => {
     const sql = injectReplacements(`SELECT * FROM users WHERE json_col->>?`, dialect, ['name']);
 
     expectsql(sql, {

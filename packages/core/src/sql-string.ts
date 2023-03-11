@@ -3,7 +3,7 @@ import type { AbstractDataType } from './dialects/abstract/data-types.js';
 import type { AbstractDialect } from './dialects/abstract/index.js';
 import { logger } from './utils/logger';
 
-function arrayToList(array: unknown[], timeZone: string | undefined, dialect: AbstractDialect, format: boolean) {
+function arrayToList(array: unknown[], dialect: AbstractDialect, format: boolean) {
   // TODO: rewrite
   // eslint-disable-next-line unicorn/no-array-reduce
   return array.reduce((sql: string, val, i) => {
@@ -12,9 +12,9 @@ function arrayToList(array: unknown[], timeZone: string | undefined, dialect: Ab
     }
 
     if (Array.isArray(val)) {
-      sql += `(${arrayToList(val, timeZone, dialect, format)})`;
+      sql += `(${arrayToList(val, dialect, format)})`;
     } else {
-      sql += escape(val, timeZone, dialect, format);
+      sql += escape(val, dialect, format);
     }
 
     return sql;
@@ -84,7 +84,6 @@ function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): Abstrac
 
 export function escape(
   val: unknown,
-  timeZone: string | undefined,
   dialect: AbstractDialect,
   format: boolean = false,
 ): string {
@@ -101,13 +100,10 @@ export function escape(
   }
 
   if (Array.isArray(val) && (dialectName !== 'postgres' || format)) {
-    return arrayToList(val, timeZone, dialect, format);
+    return arrayToList(val, dialect, format);
   }
 
   const dataType = bestGuessDataTypeOfVal(val, dialect);
 
-  return dataType.escape(val, {
-    dialect,
-    timezone: timeZone,
-  });
+  return dataType.escape(val);
 }

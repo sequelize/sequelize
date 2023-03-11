@@ -11,7 +11,7 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
-import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
+import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
 import type {
   IndexOptions,
   TableName,
@@ -1876,7 +1876,7 @@ export interface NormalizedAttributeOptions<M extends Model = Model> extends Rea
   /**
    * Like {@link AttributeOptions.type}, but normalized.
    */
-  readonly type: string | AbstractDataType<any>;
+  readonly type: NormalizedDataType;
   readonly references?: NormalizedAttributeReferencesOptions;
 }
 
@@ -2436,7 +2436,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): Promise<M>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier?: unknown,
+    identifier: unknown,
     options?: FindByPkOptions<M>
   ): Promise<M | null>;
 

@@ -541,7 +541,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               },
             })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
-            expect(error instanceof Sequelize.UniqueConstraintError).to.be.ok;
             expect(error.fields).to.be.ok;
           })(),
           (async () => {
@@ -554,7 +553,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               },
             })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
-            expect(error instanceof Sequelize.UniqueConstraintError).to.be.ok;
             expect(error.fields).to.be.ok;
           })(),
         ]);

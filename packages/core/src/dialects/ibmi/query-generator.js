@@ -318,7 +318,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       const format = (value === null && options.where);
 
       // use default escape mechanism instead of the DataType's.
-      return SqlString.escape(value, this.options.timezone, this.dialect, format);
+      return SqlString.escape(value, this.dialect, format);
     }
 
     if (!attribute.type.belongsToDialect(this.dialect)) {

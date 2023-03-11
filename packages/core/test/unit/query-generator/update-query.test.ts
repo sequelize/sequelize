@@ -11,11 +11,9 @@ describe('QueryGenerator#updateQuery', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('parses named replacements in literals', async () => {
-    const { query, bind } = queryGenerator.updateQuery(User.tableName, {
+    const { query, bind } = queryGenerator.updateQuery(User.table, {
       firstName: literal(':name'),
-    }, {
-      where: literal('name = :name'),
-    }, {
+    }, literal('name = :name'), {
       replacements: {
         name: 'Zoe',
       },
@@ -30,7 +28,7 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('generates extra bind params', async () => {
-    const { query, bind } = queryGenerator.updateQuery(User.tableName, {
+    const { query, bind } = queryGenerator.updateQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
@@ -48,13 +46,11 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('does not generate extra bind params with bindParams: false', async () => {
-    const { query, bind } = queryGenerator.updateQuery(User.tableName, {
+    const { query, bind } = queryGenerator.updateQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
-    }, {
-      where: literal('first_name = $2'),
-    }, {
+    }, literal('first_name = $2'), {
       bindParam: false,
     });
 

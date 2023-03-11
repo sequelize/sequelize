@@ -203,7 +203,7 @@ function mapBindParametersAndReplacements(
         throw new Error(`Named replacement ":${replacementName}" has no entry in the replacement map.`);
       }
 
-      const escapedReplacement = escapeSqlValue(replacementValue, undefined, dialect, true);
+      const escapedReplacement = escapeSqlValue(replacementValue, dialect, true);
 
       // add everything before the bind parameter name
       output += sqlString.slice(previousSliceEnd, i);
@@ -244,7 +244,7 @@ function mapBindParametersAndReplacements(
         throw new Error(`Positional replacement (?) ${replacementIndex} has no entry in the replacement map (replacements[${replacementIndex}] is undefined).`);
       }
 
-      const escapedReplacement = escapeSqlValue(replacementValue, undefined, dialect, true);
+      const escapedReplacement = escapeSqlValue(replacementValue, dialect, true);
 
       // add everything before the bind parameter name
       output += sqlString.slice(previousSliceEnd, i);

@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         returning: true,
         hasTrigger: true,
       };
-      expectsql(sql.insertQuery(User.tableName, { user_name: 'triggertest' }, User.getAttributes(), options),
+      expectsql(sql.insertQuery(User.table, { user_name: 'triggertest' }, User.getAttributes(), options),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       });
 
-      expectsql(sql.insertQuery(M.tableName, { id: 0 }, M.getAttributes()),
+      expectsql(sql.insertQuery(M.table, { id: 0 }, M.getAttributes()),
         {
           query: {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($sequelize_1); SET IDENTITY_INSERT [ms] OFF;',
@@ -104,7 +104,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         try {
           result = sql.insertQuery(
-            User.tableName,
+            User.table,
             { user_name: 'testuser', pass_word: '12345' },
             User.fieldRawAttributesMap,
             {
@@ -149,7 +149,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           timestamps: false,
         });
 
-        expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.getAttributes(), {}),
+        expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.table, { date: new Date(Date.UTC(2015, 0, 20)) }, User.getAttributes(), {}),
           {
             query: {
               default: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
@@ -176,7 +176,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false,
       });
 
-      expectsql(current.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.getAttributes(), {}),
+      expectsql(current.dialect.queryGenerator.insertQuery(User.table, { date: new Date(Date.UTC(2015, 0, 20)) }, User.getAttributes(), {}),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1))',
@@ -208,7 +208,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false,
       });
 
-      expectsql(current.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.getAttributes(), {}),
+      expectsql(current.dialect.queryGenerator.insertQuery(User.table, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.getAttributes(), {}),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1))',
@@ -243,7 +243,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false,
       });
 
-      expectsql(sql.insertQuery(User.tableName, { user_name: 'null\0test' }, User.getAttributes()),
+      expectsql(sql.insertQuery(User.table, { user_name: 'null\0test' }, User.getAttributes()),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
@@ -286,7 +286,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       // mapping primary keys to their "field" override values
       const primaryKeys = User.primaryKeyAttributes.map(attr => User.getAttributes()[attr].field || attr);
 
-      expectsql(sql.bulkInsertQuery(User.tableName, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys }, User.fieldRawAttributesMap),
+      expectsql(sql.bulkInsertQuery(User.table, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys }, User.fieldRawAttributesMap),
         {
           default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
           ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\'))',
@@ -309,7 +309,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       });
 
-      expectsql(sql.bulkInsertQuery(M.tableName, [{ id: 0 }, { id: null }], {}, M.fieldRawAttributesMap),
+      expectsql(sql.bulkInsertQuery(M.table, [{ id: 0 }, { id: null }], {}, M.fieldRawAttributesMap),
         {
           query: {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL); SET IDENTITY_INSERT [ms] OFF;',
@@ -363,7 +363,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         try {
           result = sql.bulkInsertQuery(
-            User.tableName,
+            User.table,
             [{ user_name: 'testuser', pass_word: '12345' }],
             {
               updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
