@@ -10,7 +10,6 @@ import { Where } from '../../expression-builders/where.js';
 import { conformIndex } from '../../model-internals';
 import { getTextDataTypeForDialect } from '../../sql-string';
 import { rejectInvalidOptions, isNullish, canTreatArrayAsAnd, isColString } from '../../utils/check';
-import { TICK_CHAR } from '../../utils/dialect';
 import {
   mapFinderOptions,
   removeNullishValuesFromHash,
@@ -30,7 +29,6 @@ const crypto = require('node:crypto');
 
 const SqlString = require('../../sql-string');
 const DataTypes = require('../../data-types');
-const { Model } = require('../../model');
 const { Association } = require('../../associations/base');
 const { BelongsTo } = require('../../associations/belongs-to');
 const { BelongsToMany } = require('../../associations/belongs-to-many');
@@ -42,7 +40,7 @@ const { _validateIncludedElements } = require('../../model-internals');
 
 /**
  * List of possible options listed in {@link CreateDatabaseQueryOptions}.
- * It is used to validate the options passed to {@link QueryGenerator#createDatabaseQuery},
+ * It is used to validate the options passed to {@link AbstractQueryGenerator#createDatabaseQuery},
  * as not all of them are supported by all dialects.
  */
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
@@ -536,13 +534,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    * @param {string} operator                    String with the arithmetic operator (e.g. '+' or '-')
    * @param {string} tableName                   Name of the table
    * @param {object} where                       A plain-object with conditions (e.g. {name: 'foo'}) OR an ID as integer
-   * @param {object} incrementAmountsByField     A plain-object with attribute-value-pairs
+   * @param {object} incrementAmountsByAttribute     A plain-object with attribute-value-pairs
    * @param {object} extraAttributesToBeUpdated  A plain-object with attribute-value-pairs
    * @param {object} options
    *
    * @private
    */
-  arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
+  arithmeticQuery(operator, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options) {
     // TODO: this method should delegate to `updateQuery`
 
     options = options || {};
@@ -563,16 +561,16 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     const updateSetSqlFragments = [];
-    for (const field in incrementAmountsByField) {
-      const incrementAmount = incrementAmountsByField[field];
-      const quotedField = this.quoteIdentifier(field);
+    for (const attributeName in incrementAmountsByAttribute) {
+      const incrementAmount = incrementAmountsByAttribute[attributeName];
+      const quotedField = this.quoteIdentifier(attributeName);
       const escapedAmount = this.escape(incrementAmount, undefined, replacementOptions);
       updateSetSqlFragments.push(`${quotedField}=${quotedField}${operator} ${escapedAmount}`);
     }
 
-    for (const field in extraAttributesToBeUpdated) {
-      const newValue = extraAttributesToBeUpdated[field];
-      const quotedField = this.quoteIdentifier(field);
+    for (const attributeName in extraAttributesToBeUpdated) {
+      const newValue = extraAttributesToBeUpdated[attributeName];
+      const quotedField = this.quoteIdentifier(attributeName);
       const escapedValue = this.escape(newValue, undefined, replacementOptions);
       updateSetSqlFragments.push(`${quotedField}=${escapedValue}`);
     }
@@ -964,7 +962,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
           // see if this is an order
           if (index > 0 && orderIndex !== -1) {
-            item = this.sequelize.literal(` ${validOrderOptions[orderIndex]}`);
+            item = new Literal(` ${validOrderOptions[orderIndex]}`);
           } else if (isModelStatic(previousModel)) {
             const { modelDefinition: previousModelDefinition } = previousModel;
 
@@ -992,7 +990,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
                 item = this.jsonPathExtractionQuery(identifier, path);
 
                 // literal because we don't want to append the model name when string
-                item = this.sequelize.literal(item);
+                item = new Literal(item);
               }
             }
           }
@@ -1101,7 +1099,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (value == null || attribute?.type == null || typeof attribute.type === 'string') {
       // use default escape mechanism instead of the DataType's.
-      return SqlString.escape(value, this.options.timezone, this.dialect);
+      return SqlString.escape(value, this.dialect);
     }
 
     if (!attribute.type.belongsToDialect(this.dialect)) {
@@ -1177,7 +1175,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     const error = field.type instanceof AbstractDataType
-      ? validateDataType(field.type, field.fieldName, null, value)
+      ? validateDataType(value, field.type, field.fieldName, null)
       : null;
     if (error) {
       throw error;
@@ -1372,7 +1370,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
               options.attributes.push([order, alias]);
 
               // We don't want to prepend model name when we alias the attributes, so quote them here
-              alias = this.sequelize.literal(this.quote(alias, undefined, undefined, options));
+              alias = new Literal(this.quote(alias, undefined, undefined, options));
 
               if (Array.isArray(options.order[i])) {
                 options.order[i][0] = alias;
@@ -1858,7 +1856,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (include.on) {
       joinOn = this.whereItemsQuery(include.on, {
-        prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
+        prefix: new Literal(this.quoteIdentifier(asRight)),
         model: include.model,
         replacements: options?.replacements,
       });
@@ -1866,7 +1864,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (include.where) {
       joinWhere = this.whereItemsQuery(include.where, {
-        prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
+        prefix: new Literal(this.quoteIdentifier(asRight)),
         model: include.model,
         replacements: options?.replacements,
       });
@@ -2050,7 +2048,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     targetJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identTarget)}`;
 
     if (through.where) {
-      throughWhere = this.getWhereConditions(through.where, this.sequelize.literal(this.quoteIdentifier(throughAs)), through.model, topLevelInfo.options);
+      throughWhere = this.getWhereConditions(through.where, new Literal(this.quoteIdentifier(throughAs)), through.model, topLevelInfo.options);
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
@@ -2063,7 +2061,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     joinCondition = sourceJoinOn;
 
     if ((include.where || include.through.where) && include.where) {
-      targetWhere = this.getWhereConditions(include.where, this.sequelize.literal(this.quoteIdentifier(includeAs.internalAs)), include.model, topLevelInfo.options);
+      targetWhere = this.getWhereConditions(include.where, new Literal(this.quoteIdentifier(includeAs.internalAs)), include.model, topLevelInfo.options);
       if (targetWhere) {
         joinCondition += ` AND ${targetWhere}`;
       }
@@ -2134,7 +2132,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         model: topInclude.through.model,
         where: {
           [Op.and]: [
-            this.sequelize.literal([
+            new Literal([
               `${this.quoteTable(topParent.model.name)}.${this.quoteIdentifier(topParent.model.primaryKeyField)}`,
               `${this.quoteIdentifier(topInclude.through.model.name)}.${this.quoteIdentifier(topAssociation.identifierField)}`,
             ].join(' = ')),
@@ -2161,7 +2159,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         where: {
           [Op.and]: [
             topInclude.where,
-            { [Op.join]: this.sequelize.literal(join) },
+            { [Op.join]: new Literal(join) },
           ],
         },
         limit: 1,
@@ -2174,7 +2172,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       topLevelInfo.options.where[Op.and] = [];
     }
 
-    topLevelInfo.options.where[`__${includeAs.internalAs}`] = this.sequelize.literal([
+    topLevelInfo.options.where[`__${includeAs.internalAs}`] = new Literal([
       '(',
       query.replace(/;$/, ''),
       ')',

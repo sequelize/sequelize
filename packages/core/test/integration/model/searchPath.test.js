@@ -53,14 +53,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       beforeEach('build restaurant tables', async function () {
         const Restaurant = this.Restaurant;
 
-        try {
-          await current.createSchema('schema_one');
-          await current.createSchema('schema_two');
-          await Restaurant.sync({ force: true, searchPath: SEARCH_PATH_ONE });
-          await Restaurant.sync({ force: true, searchPath: SEARCH_PATH_TWO });
-        } catch (error) {
-          expect(error).to.be.null;
-        }
+        await current.createSchema('schema_one');
+        await current.createSchema('schema_two');
+        await Restaurant.sync({ force: true, searchPath: SEARCH_PATH_ONE });
+        await Restaurant.sync({ force: true, searchPath: SEARCH_PATH_TWO });
       });
 
       afterEach('drop schemas', async () => {
@@ -241,16 +237,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         beforeEach(async function () {
           const Location = this.Location;
 
-          try {
-            await Location.sync({ force: true });
-            await Location.create({ name: 'HQ' });
-            const obj = await Location.findOne({ where: { name: 'HQ' } });
-            expect(obj).to.not.be.null;
-            expect(obj.name).to.equal('HQ');
-            locationId = obj.id;
-          } catch (error) {
-            expect(error).to.be.null;
-          }
+          await Location.sync({ force: true });
+          await Location.create({ name: 'HQ' });
+          const obj = await Location.findOne({ where: { name: 'HQ' } });
+          expect(obj).to.not.be.null;
+          expect(obj.name).to.equal('HQ');
+          locationId = obj.id;
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', async function () {
@@ -300,12 +292,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         beforeEach(async function () {
           const Employee = this.Employee;
 
-          try {
-            await Employee.sync({ force: true, searchPath: SEARCH_PATH_ONE });
-            await Employee.sync({ force: true, searchPath: SEARCH_PATH_TWO });
-          } catch (error) {
-            expect(error).to.be.null;
-          }
+          await Employee.sync({ force: true, searchPath: SEARCH_PATH_ONE });
+          await Employee.sync({ force: true, searchPath: SEARCH_PATH_TWO });
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', async function () {

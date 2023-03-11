@@ -36,7 +36,7 @@ describe('QueryGenerator#selectQuery', () => {
   });
 
   it('supports offset without limit', () => {
-    const sql = queryGenerator.selectQuery(User.tableName, {
+    const sql = queryGenerator.selectQuery(User.table, {
       model: User,
       attributes: ['id'],
       offset: 1,
@@ -55,7 +55,7 @@ describe('QueryGenerator#selectQuery', () => {
   });
 
   it('supports querying for bigint values', () => {
-    const sql = queryGenerator.selectQuery(Project.tableName, {
+    const sql = queryGenerator.selectQuery(Project.table, {
       model: Project,
       attributes: ['id'],
       where: {
@@ -76,7 +76,7 @@ describe('QueryGenerator#selectQuery', () => {
   });
 
   it('supports cast in attributes', () => {
-    const sql = queryGenerator.selectQuery(User.tableName, {
+    const sql = queryGenerator.selectQuery(User.table, {
       model: User,
       attributes: [
         'id',
@@ -93,7 +93,7 @@ describe('QueryGenerator#selectQuery', () => {
     it('parses named replacements in literals', () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
 
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: [[fn('uppercase', literal(':attr')), 'id'], literal(':attr2')],
         where: {
@@ -170,7 +170,7 @@ describe('QueryGenerator#selectQuery', () => {
     it('does not parse replacements in strings in literals', () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
 
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: [literal('id')],
         where: literal(`id = ':id'`),
@@ -185,7 +185,7 @@ describe('QueryGenerator#selectQuery', () => {
     });
 
     it('parses named replacements in literals in includes', () => {
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: ['id'],
         include: _validateIncludedElements({
@@ -256,7 +256,7 @@ describe('QueryGenerator#selectQuery', () => {
     });
 
     it(`parses named replacements in belongsToMany includes' through tables`, () => {
-      const sql = queryGenerator.selectQuery(Project.tableName, {
+      const sql = queryGenerator.selectQuery(Project.table, {
         model: Project,
         attributes: ['id'],
         include: _validateIncludedElements({
@@ -309,7 +309,7 @@ describe('QueryGenerator#selectQuery', () => {
     });
 
     it('parses named replacements in literals in includes (subQuery)', () => {
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: ['id'],
         include: _validateIncludedElements({
@@ -428,7 +428,7 @@ describe('QueryGenerator#selectQuery', () => {
 
     it('rejects positional replacements, because their execution order is hard to determine', () => {
       expect(
-        () => queryGenerator.selectQuery(User.tableName, {
+        () => queryGenerator.selectQuery(User.table, {
           model: User,
           where: {
             username: {
@@ -443,7 +443,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     });
 
     it(`always escapes the attribute if it's provided as a string`, () => {
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: [
           // these used to have special escaping logic, now they're always escaped like any other strings. col, fn, and literal can be used for advanced logic.
@@ -491,7 +491,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     });
 
     it('supports a "having" option', () => {
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: [
           literal('*'),
@@ -509,7 +509,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
   describe('minifyAliases', () => {
     it('minifies custom attributes', () => {
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         minifyAliases: true,
         model: User,
         attributes: [

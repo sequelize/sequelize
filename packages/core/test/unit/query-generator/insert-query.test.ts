@@ -11,7 +11,7 @@ describe('QueryGenerator#insertQuery', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('parses named replacements in literals', () => {
-    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+    const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: literal(':name'),
     }, {}, {
       replacements: {
@@ -29,7 +29,7 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('supports named bind parameters in literals', () => {
-    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+    const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$lastName'),
       username: 'jd',
@@ -48,7 +48,7 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('parses positional bind parameters in literals', () => {
-    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+    const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
@@ -67,7 +67,7 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('parses bind parameters in literals even with bindParams: false', () => {
-    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+    const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
@@ -86,7 +86,7 @@ describe('QueryGenerator#insertQuery', () => {
 
   describe('returning', () => {
     it('supports returning: true', () => {
-      const { query } = queryGenerator.insertQuery(User.tableName, {
+      const { query } = queryGenerator.insertQuery(User.table, {
         firstName: 'John',
       }, User.getAttributes(), {
         returning: true,
@@ -105,7 +105,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of strings (column names)', () => {
-      const { query } = queryGenerator.insertQuery(User.tableName, {
+      const { query } = queryGenerator.insertQuery(User.table, {
         firstName: 'John',
       }, User.getAttributes(), {
         returning: ['*', 'myColumn'],
@@ -127,7 +127,7 @@ describe('QueryGenerator#insertQuery', () => {
     it('supports array of literals', () => {
 
       expectsql(() => {
-        return queryGenerator.insertQuery(User.tableName, {
+        return queryGenerator.insertQuery(User.table, {
           firstName: 'John',
         }, User.getAttributes(), {
           returning: [literal('*')],

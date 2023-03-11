@@ -1,6 +1,6 @@
 import maxBy from 'lodash/maxBy.js';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { AcceptedDate, StringifyOptions } from '../abstract/data-types.js';
+import type { AcceptedDate } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 export class DATE extends BaseTypes.DATE {
@@ -8,8 +8,8 @@ export class DATE extends BaseTypes.DATE {
     return `TIMESTAMP${this.options.precision != null ? `(${this.options.precision})` : ''}`;
   }
 
-  toBindableValue(date: AcceptedDate, options: StringifyOptions) {
-    date = this._applyTimezone(date, options);
+  toBindableValue(date: AcceptedDate) {
+    date = this._applyTimezone(date);
 
     return date.format('YYYY-MM-DD HH:mm:ss.SSS');
   }
@@ -38,8 +38,8 @@ export class TEXT extends BaseTypes.TEXT {
 }
 
 export class JSON extends BaseTypes.JSON {
-  escape(value: unknown, options: StringifyOptions) {
-    return options.operation === 'where' && typeof value === 'string' ? value : globalThis.JSON.stringify(value);
+  escape(value: unknown) {
+    return globalThis.JSON.stringify(value);
   }
 }
 

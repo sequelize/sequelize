@@ -457,6 +457,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
+    // TODO: support TableNameWithSchema objects
     const targetTableAlias = this.quoteTable(`${tableName}_target`);
     const sourceTableAlias = this.quoteTable(`${tableName}_source`);
     const primaryKeysColumns = [];

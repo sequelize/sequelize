@@ -47,7 +47,11 @@ function withInlineCause(cb: (() => any)): () => void {
   };
 }
 
-function inlineErrorCause(error: Error) {
+function inlineErrorCause(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return String(error);
+  }
+
   let message = error.message;
 
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
@@ -332,9 +336,9 @@ export function expectPerDialect<Out>(
   if (expectation instanceof Error) {
     assert(result instanceof Error, `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`);
 
-    expect(result.message).to.equal(expectation.message);
+    expect(inlineErrorCause(result)).to.include(expectation.message);
   } else {
-    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${result instanceof Error ? result.message : ''}`);
+    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`);
 
     assertMatchesExpectation(result, expectation);
   }
@@ -483,9 +487,9 @@ export function expectsql(
   if (expectation instanceof Error) {
     assert(query instanceof Error, `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`);
 
-    expect(query.message).to.equal(expectation.message);
+    expect(inlineErrorCause(query)).to.include(expectation.message);
   } else {
-    assert(!(query instanceof Error), `Expected query to equal ${minifySql(expectation)}, but it errored with ${query instanceof Error ? query.message : ''}`);
+    assert(!(query instanceof Error), `Expected query to equal:\n${minifySql(expectation)}\n\nBut it errored with:\n${inlineErrorCause(query)}`);
 
     expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
   }
