@@ -10,6 +10,7 @@ import type {
   Transactionable,
   ModelStatic,
   AttributeNames, UpdateValues, Attributes,
+  WhereOptions,
 } from '../model';
 import { Op } from '../operators';
 import { col, fn } from '../sequelize';
@@ -466,7 +467,7 @@ export class HasMany<
       [this.foreignKey]: null,
     } as UpdateValues<T>;
 
-    const where = {
+    const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       // @ts-expect-error -- TODO: what if the target has no primary key?
       [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => {
