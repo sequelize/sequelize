@@ -863,6 +863,12 @@ export interface FindOptions<TAttributes = any>
   raw?: boolean;
 
   /**
+   * Controls whether aliases are minified in this query.
+   * This overrides the global option
+   */
+  minifyAliases?: boolean;
+
+  /**
    * Select group rows after groups and aggregates are computed.
    */
   having?: WhereOptions<any>;
@@ -1113,6 +1119,12 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    */
   returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
+  /**
+   * An optional parameter to specify a where clause for partial unique indexes
+   * (note: `ON CONFLICT WHERE` not `ON CONFLICT DO UPDATE WHERE`).
+   * Only supported in Postgres >= 9.5 and sqlite >= 9.5
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
   /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0

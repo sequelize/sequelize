@@ -36,7 +36,7 @@ export interface QiInsertOptions extends QueryRawOptions, Replaceable {
 }
 
 export interface QiSelectOptions extends QueryRawOptions, Replaceable, Filterable<any> {
-
+  minifyAliases?: boolean;
 }
 
 export interface QiUpdateOptions extends QueryRawOptions, Replaceable {

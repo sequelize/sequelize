@@ -1,4 +1,4 @@
-import { BaseError } from '../../errors/index.js';
+import { BaseError } from '../../errors/base-error.js';
 import { mergeModelOptions } from '../../model-definition.js';
 import { initModel } from '../../model-typescript.js';
 import type { AttributeOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';

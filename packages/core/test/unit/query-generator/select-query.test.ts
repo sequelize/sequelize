@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import type { InferAttributes, Model } from '@sequelize/core';
 import { Op, DataTypes, or, sql as sqlTag } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
-import { createSequelizeInstance, expectsql, sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 
 const { attribute, col, cast, where, fn, literal } = sqlTag;
 
@@ -643,14 +643,9 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   });
 
   describe('minifyAliases', () => {
-    const minifyAliasesSequelize = createSequelizeInstance({
-      minifyAliases: true,
-    });
-
-    const minifyQueryGenerator = minifyAliasesSequelize.queryInterface.queryGenerator;
-
     it('minifies custom attributes', () => {
-      const sql = minifyQueryGenerator.selectQuery(User.table, {
+      const sql = queryGenerator.selectQuery(User.table, {
+        minifyAliases: true,
         model: User,
         attributes: [
           [literal('1'), 'customAttr'],
