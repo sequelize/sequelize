@@ -497,7 +497,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Inserts a new record
    */
-  insert(instance: Model | null, tableName: string, values: object, options?: QiInsertOptions): Promise<object>;
+  insert(instance: Model | null, tableName: TableName, values: object, options?: QiInsertOptions): Promise<object>;
 
   /**
    * Inserts or Updates a record in the database

@@ -1486,9 +1486,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     return dayjs(date);
   }
 
-  toBindableValue(
-    date: AcceptedDate,
-  ) {
+  toBindableValue(date: AcceptedDate) {
     // Z here means current timezone, _not_ UTC
     return this._applyTimezone(date).format('YYYY-MM-DD HH:mm:ss.SSS Z');
   }

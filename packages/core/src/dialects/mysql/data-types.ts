@@ -149,6 +149,8 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
 
 export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
   toSql() {
-    return `ENUM(${this.options.values.map(value => this._getDialect().escapeString(value)).join(', ')})`;
+    const dialect = this._getDialect();
+
+    return `ENUM(${this.options.values.map(value => dialect.escapeString(value)).join(', ')})`;
   }
 }

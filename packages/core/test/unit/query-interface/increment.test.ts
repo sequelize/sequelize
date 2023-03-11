@@ -18,9 +18,9 @@ describe('QueryInterface#increment', () => {
 
     await sequelize.getQueryInterface().increment(
       User,
-      User.tableName,
+      User.table,
       // where
-      { firstName: ':id' },
+      { firstName: ':firstName' },
       // incrementAmountsByField
       { age: ':age' },
       // extraAttributesToBeUpdated
@@ -39,9 +39,9 @@ describe('QueryInterface#increment', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: `UPDATE [Users] SET [age]=[age]+ ':age',[name]=':name' WHERE [firstName] = ':id'`,
-      postgres: `UPDATE "Users" SET "age"="age"+ ':age',"name"=':name' WHERE "firstName" = ':id' RETURNING ":data"`,
-      mssql: `UPDATE [Users] SET [age]=[age]+ N':age',[name]=N':name' OUTPUT INSERTED.[:data] WHERE [firstName] = N':id'`,
+      default: `UPDATE [Users] SET [age]=[age]+ ':age',[name]=':name' WHERE [firstName] = ':firstName'`,
+      postgres: `UPDATE "Users" SET "age"="age"+ ':age',"name"=':name' WHERE "firstName" = ':firstName' RETURNING ":data"`,
+      mssql: `UPDATE [Users] SET [age]=[age]+ N':age',[name]=N':name' OUTPUT INSERTED.[:data] WHERE [firstName] = N':firstName'`,
     });
     expect(firstCall.args[1]?.bind).to.be.undefined;
   });

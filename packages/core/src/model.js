@@ -164,23 +164,23 @@ export class Model extends ModelTypeScript {
       const { createdAt: createdAtAttrName, updatedAt: updatedAtAttrName, deletedAt: deletedAtAttrName } = modelDefinition.timestampAttributeNames;
 
       if (createdAtAttrName && defaults[createdAtAttrName]) {
-        this.dataValues[createdAtAttrName] = toDefaultValue(defaults[createdAtAttrName], this.sequelize.dialect);
+        this.dataValues[createdAtAttrName] = toDefaultValue(defaults[createdAtAttrName]);
         delete defaults[createdAtAttrName];
       }
 
       if (updatedAtAttrName && defaults[updatedAtAttrName]) {
-        this.dataValues[updatedAtAttrName] = toDefaultValue(defaults[updatedAtAttrName], this.sequelize.dialect);
+        this.dataValues[updatedAtAttrName] = toDefaultValue(defaults[updatedAtAttrName]);
         delete defaults[updatedAtAttrName];
       }
 
       if (deletedAtAttrName && defaults[deletedAtAttrName]) {
-        this.dataValues[deletedAtAttrName] = toDefaultValue(defaults[deletedAtAttrName], this.sequelize.dialect);
+        this.dataValues[deletedAtAttrName] = toDefaultValue(defaults[deletedAtAttrName]);
         delete defaults[deletedAtAttrName];
       }
 
       for (const key in defaults) {
         if (values[key] === undefined) {
-          this.set(key, toDefaultValue(defaults[key], this.sequelize.dialect), { raw: true });
+          this.set(key, toDefaultValue(defaults[key]), { raw: true });
           delete values[key];
         }
       }
@@ -2807,7 +2807,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const attribute = attributes.get(attributeName);
     if (attribute?.defaultValue) {
-      return toDefaultValue(attribute.defaultValue, this.sequelize.dialect);
+      return toDefaultValue(attribute.defaultValue);
     }
   }
 

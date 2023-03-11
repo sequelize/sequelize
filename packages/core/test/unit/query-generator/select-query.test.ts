@@ -57,7 +57,7 @@ describe('QueryGenerator#selectQuery', () => {
   });
 
   it('supports querying for bigint values', () => {
-    const sql = queryGenerator.selectQuery(Project.tableName, {
+    const sql = queryGenerator.selectQuery(Project.table, {
       model: Project,
       attributes: ['id'],
       where: {
@@ -299,7 +299,7 @@ describe('QueryGenerator#selectQuery', () => {
     });
 
     it(`parses named replacements in belongsToMany includes' through tables`, () => {
-      const sql = queryGenerator.selectQuery(Project.tableName, {
+      const sql = queryGenerator.selectQuery(Project.table, {
         model: Project,
         attributes: ['id'],
         include: _validateIncludedElements({

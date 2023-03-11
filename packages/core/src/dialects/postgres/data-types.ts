@@ -39,7 +39,7 @@ export class DATEONLY extends BaseTypes.DATEONLY {
 
   sanitize(value: unknown): unknown {
     if (value === Number.POSITIVE_INFINITY
-        || value === Number.NEGATIVE_INFINITY) {
+      || value === Number.NEGATIVE_INFINITY) {
       return value;
     }
 
@@ -88,7 +88,7 @@ export class DATE extends BaseTypes.DATE {
 
   validate(value: any) {
     if (value === Number.POSITIVE_INFINITY
-        || value === Number.NEGATIVE_INFINITY) {
+      || value === Number.NEGATIVE_INFINITY) {
       // valid
       return;
     }
@@ -303,7 +303,6 @@ export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = IN
   toBindableValue(values: Rangable<AcceptableTypeOf<T>>): string {
     if (!Array.isArray(values)) {
       throw new TypeError('Range values must be an array');
-      // return this.options.subtype.toBindableValue(values);
     }
 
     return RangeParser.stringify(values, rangePart => {

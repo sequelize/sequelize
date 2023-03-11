@@ -451,7 +451,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.sequelize.sync();
       await this.sequelize.sync(); // The second call should not try to create the indices again
-      const args = await this.sequelize.queryInterface.showIndex(Model.tableName);
+      const args = await this.sequelize.queryInterface.showIndex(Model.table);
       let primary;
       let idx1;
       let idx2;

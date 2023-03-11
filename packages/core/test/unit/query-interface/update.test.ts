@@ -20,9 +20,9 @@ describe('QueryInterface#update', () => {
 
     await sequelize.getQueryInterface().update(
       instance,
-      User.tableName,
+      User.table,
       { firstName: ':name' },
-      { firstName: ':id' },
+      { firstName: ':firstName' },
       {
         returning: [':data'],
         replacements: {
@@ -42,7 +42,7 @@ describe('QueryInterface#update', () => {
     });
     expect(firstCall.args[1]?.bind).to.deep.eq({
       sequelize_1: ':name',
-      sequelize_2: ':id',
+      sequelize_2: ':firstName',
     });
   });
 
@@ -53,7 +53,7 @@ describe('QueryInterface#update', () => {
 
     await expect(sequelize.getQueryInterface().update(
       instance,
-      User.tableName,
+      User.table,
       { firstName: 'newName' },
       { id: literal('$sequelize_test') },
       {
@@ -71,7 +71,7 @@ describe('QueryInterface#update', () => {
 
     await sequelize.getQueryInterface().update(
       instance,
-      User.tableName,
+      User.table,
       { firstName: 'newName' },
       { id: { [Op.eq]: literal('$id') } },
       {
@@ -101,7 +101,7 @@ describe('QueryInterface#update', () => {
 
     await sequelize.getQueryInterface().update(
       instance,
-      User.tableName,
+      User.table,
       { firstName: 'newName' },
       { id: { [Op.eq]: literal('$1') } },
       {
