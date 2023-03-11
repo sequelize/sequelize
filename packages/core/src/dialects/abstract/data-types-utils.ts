@@ -37,7 +37,11 @@ export function normalizeDataType(
 
   const type = dataTypeClassOrInstanceToInstance(Type);
 
-  return type.toDialectDataType(dialect);
+  if (!type.belongsToDialect(dialect)) {
+    return type.toDialectDataType(dialect);
+  }
+
+  return type;
 }
 
 export function dataTypeClassOrInstanceToInstance(Type: DataTypeClassOrInstance): DataTypeInstance {

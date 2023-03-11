@@ -1,18 +1,10 @@
 import assert from 'node:assert';
 import forIn from 'lodash/forIn';
 import isPlainObject from 'lodash/isPlainObject';
-import type {
-  Attributes,
-  NormalizedAttributeOptions,
-  Model,
-  ModelStatic,
-  WhereOptions,
-} from '..';
+import type { Attributes, Model, ModelStatic, NormalizedAttributeOptions, WhereOptions } from '..';
 import * as DataTypes from '../data-types';
-import { Op as operators } from '../operators';
 import { isString } from './check.js';
-
-const operatorsSet = new Set(Object.values(operators));
+import { getComplexKeys } from './where.js';
 
 export type FinderOptions<TAttributes> = {
   attributes?: string[],
@@ -146,42 +138,6 @@ export function mapWhereFieldNames(where: Record<PropertyKey, any>, Model: Model
   }
 
   return newWhere;
-}
-
-/**
- * getComplexKeys
- *
- * @param obj
- * @returns All keys including operators
- * @private
- */
-export function getComplexKeys(obj: object): Array<string | symbol> {
-  return [
-    ...getOperators(obj),
-    ...Object.keys(obj),
-  ];
-}
-
-/**
- * getComplexSize
- *
- * @param obj
- * @returns Length of object properties including operators if obj is array returns its length
- * @private
- */
-export function getComplexSize(obj: object | any[]): number {
-  return Array.isArray(obj) ? obj.length : getComplexKeys(obj).length;
-}
-
-/**
- * getOperators
- *
- * @param obj
- * @returns All operators properties of obj
- * @private
- */
-export function getOperators(obj: object): symbol[] {
-  return Object.getOwnPropertySymbols(obj).filter(s => operatorsSet.has(s));
 }
 
 export function combineTableNames(tableName1: string, tableName2: string): string {

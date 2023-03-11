@@ -1,10 +1,12 @@
 'use strict';
 
+import { Cast } from '../../expression-builders/cast.js';
+import { Json } from '../../expression-builders/json.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { addTicks, quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
-import { Cast, Json } from '../../utils/sequelize-method';
 import { underscore } from '../../utils/string';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -382,7 +384,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
+  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     const table = this.quoteTable(tableName);
     let whereClause = this.getWhereConditions(where, null, model, options);
     const limit = options.limit && ` LIMIT ${this.escape(options.limit, undefined, options)}`;

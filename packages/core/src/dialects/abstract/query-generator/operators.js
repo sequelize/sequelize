@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 const { Op } = require('../../../operators');
-const { getOperators } = require('../../../utils/format');
+const { getOperators } = require('../../../utils/where.js');
 
 const OperatorHelpers = {
   OperatorMap: {
