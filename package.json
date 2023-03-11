@@ -48,7 +48,7 @@
     "@rushstack/eslint-patch": "1.2.0",
     "chai": "4.3.7",
     "esbuild": "0.17.11",
-    "eslint": "8.35.0",
+    "eslint": "8.36.0",
     "eslint-plugin-jsdoc": "40.0.1",
     "eslint-plugin-mocha": "10.1.0",
     "fast-glob": "3.2.12",
