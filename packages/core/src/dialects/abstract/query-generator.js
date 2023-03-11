@@ -1247,7 +1247,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
               association: options.groupedLimit.on.fromSourceToThrough,
               duplicating: false, // The UNION'ed query may contain duplicates, but each sub-query cannot
               required: true,
-              where: and(new Literal('"$PLACEHOLDER$" = true'), options.groupedLimit.through?.where),
+              where: and(new Literal(placeholder), options.groupedLimit.through?.where),
             }],
             model,
           });
@@ -1284,7 +1284,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
           delete options.order;
-          where = and(new Literal('"$PLACEHOLDER$" = true'), where);
+          where = and(new Literal(placeholder), where);
         }
 
         // Caching the base query and splicing the where part into it is consistently > twice

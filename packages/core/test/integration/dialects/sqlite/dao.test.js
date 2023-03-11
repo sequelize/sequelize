@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes, Op, where, literal } = require('@sequelize/core');
+const { DataTypes, Op, sql } = require('@sequelize/core');
 
 if (dialect === 'sqlite') {
   describe('[SQLITE Specific] DAO', () => {
@@ -53,7 +53,7 @@ if (dialect === 'sqlite') {
         });
 
         const obj = await this.User.findAll();
-        const user = await obj[0];
+        const user = obj[0];
         expect(user.get('dateField')).to.be.an.instanceof(Date);
         expect(user.get('dateField')).to.equalTime(new Date(2010, 10, 10));
       });
@@ -69,7 +69,7 @@ if (dialect === 'sqlite') {
           include: [this.Project],
         });
 
-        const user = await obj[0];
+        const user = obj[0];
         expect(user.projects[0].get('dateField')).to.be.an.instanceof(Date);
         expect(user.projects[0].get('dateField')).to.equalTime(new Date(1990, 5, 5));
       });
@@ -83,7 +83,7 @@ if (dialect === 'sqlite') {
         ]);
 
         const user = await this.User.findOne({
-          where: where(literal(`json_extract(emergency_contact, '$.name')`), 'kate'),
+          where: sql.where(sql.literal(`json_extract(emergency_contact, '$.name')`), 'kate'),
           attributes: ['username', 'emergency_contact'],
         });
 
@@ -97,7 +97,7 @@ if (dialect === 'sqlite') {
         ]);
 
         const user = await this.User.findOne({
-          where: where(literal('json_type(emergency_contact)'), 'array'),
+          where: sql.where(sql.literal('json_type(emergency_contact)'), 'array'),
           attributes: ['username', 'emergency_contact'],
         });
 

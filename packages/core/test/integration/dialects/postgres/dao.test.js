@@ -72,10 +72,9 @@ describe('[POSTGRES Specific] DAO', () => {
       }],
     });
 
-    const friends = await obj.friends;
+    const friends = obj.friends;
     expect(friends).to.have.length(1);
     expect(friends[0].name).to.equal('John Smythe');
-    await friends;
   });
 
   it('should be able to find a record while searching in an array', async function () {
