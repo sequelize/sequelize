@@ -576,9 +576,7 @@ Caused by: "undefined" cannot be escaped`),
 
       testSql({ booleanAttr: { [Op.eq]: true } }, {
         default: '[booleanAttr] = true',
-        mssql: '[booleanAttr] = 1',
-        sqlite: '`booleanAttr` = 1',
-        ibmi: '"booleanAttr" = 1',
+        'mssql sqlite ibmi': '[booleanAttr] = 1',
       });
 
       testSequelizeValueMethods(Op.eq, '=');
@@ -602,9 +600,7 @@ Caused by: "undefined" cannot be escaped`),
 
       testSql({ booleanAttr: { [Op.ne]: true } }, {
         default: '[booleanAttr] != true',
-        mssql: '[booleanAttr] != 1',
-        ibmi: '"booleanAttr" != 1',
-        sqlite: '`booleanAttr` != 1',
+        'mssql ibmi sqlite': '[booleanAttr] != 1',
       });
 
       testSequelizeValueMethods(Op.ne, '!=');
@@ -628,16 +624,12 @@ Caused by: "undefined" cannot be escaped`),
 
       testSql({ booleanAttr: { [Op.is]: false } }, {
         default: '[booleanAttr] IS false',
-        mssql: '[booleanAttr] IS 0',
-        ibmi: '"booleanAttr" IS 0',
-        sqlite: '`booleanAttr` IS 0',
+        'mssql ibmi sqlite': '[booleanAttr] IS 0',
       });
 
       testSql({ booleanAttr: { [Op.is]: true } }, {
         default: '[booleanAttr] IS true',
-        mssql: '[booleanAttr] IS 1',
-        ibmi: '"booleanAttr" IS 1',
-        sqlite: '`booleanAttr` IS 1',
+        'mssql ibmi sqlite': '[booleanAttr] IS 1',
       });
 
       // @ts-expect-error -- not supported, testing that it throws
@@ -689,16 +681,12 @@ Caused by: "undefined" cannot be escaped`),
 
       testSql({ booleanAttr: { [Op.isNot]: false } }, {
         default: '[booleanAttr] IS NOT false',
-        mssql: '[booleanAttr] IS NOT 0',
-        ibmi: '"booleanAttr" IS NOT 0',
-        sqlite: '`booleanAttr` IS NOT 0',
+        'mssql ibmi sqlite': '[booleanAttr] IS NOT 0',
       });
 
       testSql({ booleanAttr: { [Op.isNot]: true } }, {
         default: '[booleanAttr] IS NOT true',
-        mssql: '[booleanAttr] IS NOT 1',
-        ibmi: '"booleanAttr" IS NOT 1',
-        sqlite: '`booleanAttr` IS NOT 1',
+        'mssql ibmi sqlite': '[booleanAttr] IS NOT 1',
       });
     });
 

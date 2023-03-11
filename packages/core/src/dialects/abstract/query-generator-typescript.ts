@@ -407,7 +407,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
     // TODO: if we're casting to the same SQL DataType, we could skip the SQL cast (but keep the JS cast)
     //  This is useful because sometimes you want to cast the Sequelize DataType to another Sequelize DataType,
-    //  but they are both the same SQL type, so a SAL cast would be redundant.
+    //  but they are both the same SQL type, so a SQL cast would be redundant.
 
     return `CAST(${castSql} AS ${targetSql})`;
   }

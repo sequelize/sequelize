@@ -32,7 +32,7 @@ export class JsonPath extends BaseSqlExpression {
  * ```sql
  * -- postgres
  * "data"->'name' = '"John"'
- * -- other dialects
+ * -- sqlite, mysql, mariadb
  * JSON_EXTRACT("data", '$.name') = '"John"'
  * ```
  *
