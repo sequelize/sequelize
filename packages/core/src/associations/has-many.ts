@@ -10,6 +10,7 @@ import type {
   Transactionable,
   ModelStatic,
   AttributeNames, UpdateValues, Attributes,
+  WhereOptions,
 } from '../model';
 import { Op } from '../operators';
 import { col, fn } from '../sequelize';
@@ -87,6 +88,7 @@ export class HasMany<
     target: ModelStatic<T>,
     options: NormalizedHasManyOptions<SourceKey, TargetKey>,
     parent?: Association,
+    inverse?: BelongsTo<T, S, TargetKey, SourceKey>,
   ) {
     if (
       options.sourceKey
@@ -105,7 +107,7 @@ export class HasMany<
 
     super(secret, source, target, options, parent);
 
-    this.inverse = BelongsTo.associate(secret, target, source, removeUndefined({
+    this.inverse = inverse ?? BelongsTo.associate(secret, target, source, removeUndefined({
       as: options.inverse?.as,
       scope: options.inverse?.scope,
       foreignKey: options.foreignKey,
@@ -140,12 +142,13 @@ export class HasMany<
     T extends Model,
     SourceKey extends AttributeNames<S>,
     TargetKey extends AttributeNames<T>,
-    >(
+  >(
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,
     options: HasManyOptions<SourceKey, TargetKey> = {},
     parent?: Association<any>,
+    inverse?: BelongsTo<T, S, TargetKey, SourceKey>,
   ): HasMany<S, T, SourceKey, TargetKey> {
 
     return defineAssociation<
@@ -160,7 +163,7 @@ export class HasMany<
         throw new AssociationError('Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different.');
       }
 
-      return new HasMany(secret, source, target, normalizedOptions, parent);
+      return new HasMany(secret, source, target, normalizedOptions, parent, inverse);
     });
   }
 
@@ -464,7 +467,7 @@ export class HasMany<
       [this.foreignKey]: null,
     } as UpdateValues<T>;
 
-    const where = {
+    const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       // @ts-expect-error -- TODO: what if the target has no primary key?
       [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => {
@@ -696,13 +699,12 @@ export interface HasManyCreateAssociationMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManyCreateAssociationMixin<
-  TModel extends Model,
-  TForeignKey extends keyof CreationAttributes<TModel> = never,
-  TScope extends keyof CreationAttributes<TModel> = never,
+  Target extends Model,
+  ExcludedAttributes extends keyof CreationAttributes<Target> = never,
   > = (
-  values?: Omit<CreationAttributes<TModel>, TForeignKey | TScope>,
-  options?: HasManyCreateAssociationMixinOptions<TModel>
-) => Promise<TModel>;
+  values?: Omit<CreationAttributes<Target>, ExcludedAttributes>,
+  options?: HasManyCreateAssociationMixinOptions<Target>
+) => Promise<Target>;
 
 /**
  * The options for the removeAssociation mixin of the hasMany association.
@@ -807,6 +809,9 @@ export interface HasManyHasAssociationsMixinOptions<T extends Model>
  *
  * @see Model.hasMany
  */
+// TODO: this should be renamed to "HasManyHasAllAssociationsMixin",
+//       we should also add a "HasManyHasAnyAssociationsMixin"
+//       and "HasManyHasAssociationsMixin" should instead return a Map of id -> boolean or WeakMap of instance -> boolean
 export type HasManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
   targets: Array<TModel | TModelPrimaryKey>,
   options?: HasManyHasAssociationsMixinOptions<TModel>
