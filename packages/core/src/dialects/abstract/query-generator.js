@@ -1,11 +1,9 @@
 'use strict';
 
 import NodeUtil from 'node:util';
-import { Cast } from '../../expression-builders/cast';
-import { Col } from '../../expression-builders/col';
-import { Fn } from '../../expression-builders/fn';
-import { Literal } from '../../expression-builders/literal';
-import { Where } from '../../expression-builders/where';
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
+import { Col } from '../../expression-builders/col.js';
+import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
 import { rejectInvalidOptions, canTreatArrayAsAnd, isColString } from '../../utils/check';
@@ -15,7 +13,6 @@ import {
 } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
-import { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import { nameIndex, spliceStr } from '../../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';

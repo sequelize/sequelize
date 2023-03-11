@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize, or } = require('@sequelize/core');
+const { DataTypes, Sequelize, or, and } = require('@sequelize/core');
 const _ = require('lodash');
 
 const dialect = Support.getTestDialect();
@@ -909,10 +909,10 @@ Instead of specifying a Model, either:
       await createUsersAndItems.bind(this)();
     });
 
-    it('should support Sequelize.and()', async function () {
+    it('should support and()', async function () {
       const result = await this.User.findAll({
         include: [
-          { model: this.Item, where: Sequelize.and({ test: 'def' }) },
+          { model: this.Item, where: and({ test: 'def' }) },
         ],
       });
 
@@ -943,7 +943,8 @@ Instead of specifying a Model, either:
       const result = await this.User.findAndCountAll({
         include: [
           {
-            model: this.Item, where: {
+            model: this.Item,
+            where: {
               test: 'def',
             },
           },

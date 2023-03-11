@@ -11,6 +11,7 @@ export class Col extends BaseSqlExpression {
   constructor(...identifiers: string[]) {
     super();
 
+    // TODO: verify whether the "more than one identifier" case is still needed
     this.identifiers = identifiers;
   }
 }

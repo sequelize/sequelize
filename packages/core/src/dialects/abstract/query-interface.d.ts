@@ -586,7 +586,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     model: ModelStatic<M>,
     tableName: TableName,
     where: WhereOptions<Attributes<M>>,
-    incrementAmountsByField: object,
+    decrementAmountsByField: object,
     extraAttributesToBeUpdated: object,
     options?: QiArithmeticOptions,
   ): Promise<object>;

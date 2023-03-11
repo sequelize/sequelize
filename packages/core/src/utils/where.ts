@@ -1,7 +1,5 @@
 import { Op as operators } from '../operators.js';
 
-const operatorsSet = new Set(Object.values(operators));
-
 /**
  * getComplexKeys
  *
@@ -26,6 +24,8 @@ export function getComplexKeys(obj: object): Array<string | symbol> {
 export function getComplexSize(obj: object | any[]): number {
   return Array.isArray(obj) ? obj.length : getComplexKeys(obj).length;
 }
+
+const operatorsSet = new Set(Object.values(operators));
 
 /**
  * getOperators

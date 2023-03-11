@@ -2,8 +2,8 @@
 
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { validateDataType } from './dialects/abstract/data-types-utils';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { getAllOwnKeys } from './utils/object';
-import { BaseSqlExpression } from './expression-builders/base-sql-expression';
 import { BelongsTo } from './associations/belongs-to';
 
 const _ = require('lodash');

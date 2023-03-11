@@ -1,7 +1,7 @@
 'use strict';
 
-import { Col } from '../../expression-builders/col';
-import { Literal } from '../../expression-builders/literal';
+import { Col } from '../../expression-builders/col.js';
+import { Literal } from '../../expression-builders/literal.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks, removeTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';

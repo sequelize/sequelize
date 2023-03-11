@@ -1,8 +1,7 @@
 'use strict';
 
-import { EMPTY_OBJECT } from '../../utils/object';
+import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { Json } from '../../expression-builders/base-sql-expression';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
 import { quoteIdentifier, removeTicks } from '../../utils/dialect';
@@ -179,74 +178,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const schema = tableName.schema || 'public';
 
     return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
-  }
-
-  /**
-   * Check whether the statmement is json function or simple path
-   *
-   * @param   {string}  stmt  The statement to validate
-   * @returns {boolean}       true if the given statement is json function
-   * @throws  {Error}         throw if the statement looks like json function but has invalid token
-   */
-  _checkValidJsonStatement(stmt) {
-    if (typeof stmt !== 'string') {
-      return false;
-    }
-
-    // https://www.postgresql.org/docs/current/static/functions-json.html
-    const jsonFunctionRegex = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
-    const jsonOperatorRegex = /^\s*(->>?|#>>?|@>|<@|\?[&|]?|\|{2}|#-)/i;
-    const tokenCaptureRegex = /^\s*((?:(["'`])(?:(?!\2).|\2{2})*\2)|[\s\w]+|[()+,.;-])/i;
-
-    let currentIndex = 0;
-    let openingBrackets = 0;
-    let closingBrackets = 0;
-    let hasJsonFunction = false;
-    let hasInvalidToken = false;
-
-    while (currentIndex < stmt.length) {
-      const string = stmt.slice(currentIndex);
-      const functionMatches = jsonFunctionRegex.exec(string);
-      if (functionMatches) {
-        currentIndex += functionMatches[0].indexOf('(');
-        hasJsonFunction = true;
-        continue;
-      }
-
-      const operatorMatches = jsonOperatorRegex.exec(string);
-      if (operatorMatches) {
-        currentIndex += operatorMatches[0].length;
-        hasJsonFunction = true;
-        continue;
-      }
-
-      const tokenMatches = tokenCaptureRegex.exec(string);
-      if (tokenMatches) {
-        const capturedToken = tokenMatches[1];
-        if (capturedToken === '(') {
-          openingBrackets++;
-        } else if (capturedToken === ')') {
-          closingBrackets++;
-        } else if (capturedToken === ';') {
-          hasInvalidToken = true;
-          break;
-        }
-
-        currentIndex += tokenMatches[0].length;
-        continue;
-      }
-
-      break;
-    }
-
-    // Check invalid json statement
-    hasInvalidToken |= openingBrackets !== closingBrackets;
-    if (hasJsonFunction && hasInvalidToken) {
-      throw new Error(`Invalid json statement: ${stmt}`);
-    }
-
-    // return true if the statement has valid json function
-    return hasJsonFunction;
   }
 
   addColumnQuery(table, key, attribute, options) {

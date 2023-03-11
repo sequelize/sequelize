@@ -552,6 +552,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 username: 'gottlieb',
               },
             })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+
             expect(error.fields).to.be.ok;
           })(),
         ]);

@@ -22,6 +22,7 @@ import type {
   DynamicSqlExpression,
 } from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
+import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
 import type { Literal } from './expression-builders/literal.js';
 import type { Where } from './expression-builders/where.js';
@@ -38,7 +39,7 @@ import type {
   Nullish,
   OmitConstructors, RequiredBy,
 } from './utils/types.js';
-import type { LOCK, Op, Transaction, TableHints, WhereOptions, Col } from './index';
+import type { LOCK, Op, Transaction, TableHints, WhereOptions } from './index';
 
 export interface Logging {
   /**

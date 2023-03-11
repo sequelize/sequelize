@@ -1,11 +1,9 @@
 'use strict';
 
-import { underscore } from 'inflection';
-import { Cast } from '../../expression-builders/cast';
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import { conformIndex } from '../../model-internals';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
-import { Json, BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';

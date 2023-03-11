@@ -2,6 +2,7 @@
 
 import omit from 'lodash/omit';
 import { AbstractDataType } from './dialects/abstract/data-types';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { intersects } from './utils/array';
 import {
   noDoubleNestedGroup,
@@ -15,20 +16,18 @@ import {
   mapFinderOptions,
   mapOptionFieldNames,
   mapValueFieldNames,
-  mapWhereFieldNames,
 } from './utils/format';
 import { every, find } from './utils/iterators';
 import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap, EMPTY_OBJECT } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { BaseSqlExpression } from './expression-builders/base-sql-expression';
 import { Association, BelongsTo, BelongsToMany, HasMany, HasOne } from './associations';
 import { AssociationSecret } from './associations/helpers';
 import { Op } from './operators';
 import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
 import { QueryTypes } from './query-types';
-import { getComplexKeys } from './utils/where';
+import { getComplexKeys } from './utils/where.js';
 
 const assert = require('node:assert');
 const NodeUtil = require('node:util');
@@ -3157,7 +3156,7 @@ Instead of specifying a Model, either:
       attributeName = undefined;
     }
 
-    options = options || {};
+    options = options ?? EMPTY_OBJECT;
 
     const { attributes, attributesWithGetters } = this.constructor.modelDefinition;
 

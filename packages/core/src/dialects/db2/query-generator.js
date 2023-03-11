@@ -2,8 +2,7 @@
 
 import { rejectInvalidOptions } from '../../utils/check';
 import { removeNullishValuesFromHash } from '../../utils/format';
-import { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
-import { removeTrailingSemicolon, underscore } from '../../utils/string';
+import { removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
