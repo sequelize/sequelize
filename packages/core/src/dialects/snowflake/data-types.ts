@@ -38,7 +38,7 @@ export class TEXT extends BaseTypes.TEXT {
 }
 
 export class JSON extends BaseTypes.JSON {
-  escape(value: any, options: StringifyOptions) {
+  escape(value: unknown, options: StringifyOptions) {
     return options.operation === 'where' && typeof value === 'string' ? value : globalThis.JSON.stringify(value);
   }
 }

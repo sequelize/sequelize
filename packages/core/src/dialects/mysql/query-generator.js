@@ -1,10 +1,12 @@
 'use strict';
 
+import { Cast } from '../../expression-builders/cast.js';
+import { Json } from '../../expression-builders/json.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { Cast, Json } from '../../utils/sequelize-method';
 import { underscore } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
@@ -340,7 +342,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
+  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 
     where = this.getWhereConditions(where, null, model, options);

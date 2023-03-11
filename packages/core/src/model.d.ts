@@ -18,19 +18,17 @@ import type {
   TableNameWithSchema,
   IndexField,
 } from './dialects/abstract/query-interface';
+import type { Cast } from './expression-builders/cast.js';
+import type { Col } from './expression-builders/col.js';
+import type { Fn } from './expression-builders/fn.js';
+import type { Json } from './expression-builders/json.js';
+import type { Literal } from './expression-builders/literal.js';
+import type { Where } from './expression-builders/where.js';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
 import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
-import type {
-  Cast,
-  Col,
-  Fn,
-  Json,
-  Literal,
-  Where,
-} from './utils/sequelize-method.js';
 import type {
   AllowArray,
   AllowReadonlyArray,
@@ -2423,22 +2421,22 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: FindByPkOptions<M> & { raw: true, rejectOnEmpty?: false }
   ): Promise<R | null>;
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M> & { raw: true }
   ): Promise<R>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M>
   ): Promise<M>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier?: Identifier,
+    identifier?: unknown,
     options?: FindByPkOptions<M>
   ): Promise<M | null>;
 

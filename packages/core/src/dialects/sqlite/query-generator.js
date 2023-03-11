@@ -1,10 +1,13 @@
 'use strict';
 
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
+import { Cast } from '../../expression-builders/cast.js';
+import { Json } from '../../expression-builders/json.js';
 import { addTicks, removeTicks } from '../../utils/dialect';
 import { removeNullishValuesFromHash } from '../../utils/format';
+import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
-import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
 import { underscore } from '../../utils/string';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
@@ -240,7 +243,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
-    const modelAttributeMap = {};
+    const modelAttributeMap = Object.create(null);
     const values = [];
     const bind = Object.create(null);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
@@ -257,7 +260,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     for (const key in attrValueHash) {
       const value = attrValueHash[key];
 
-      if (value instanceof SequelizeMethod || options.bindParam === false) {
+      if (value instanceof BaseSqlExpression || options.bindParam === false) {
         values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
         values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
@@ -288,7 +291,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     ].join('');
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
+  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     _.defaults(options, this.options);
 
     let whereClause = this.getWhereConditions(where, null, model, options);

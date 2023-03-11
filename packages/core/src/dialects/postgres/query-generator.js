@@ -1,7 +1,8 @@
 'use strict';
 
+import { Json } from '../../expression-builders/json.js';
+import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { Json } from '../../utils/sequelize-method';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
 import { quoteIdentifier, removeTicks } from '../../utils/dialect';
@@ -387,7 +388,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     ].join('');
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
+  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     const table = this.quoteTable(tableName);
     let whereClause = this.getWhereConditions(where, null, model, options);
     const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['replacements', 'bind']))}` : '';
@@ -953,7 +954,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     if (
       optForceQuote === true
-      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers.
+      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers based on these rules
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')

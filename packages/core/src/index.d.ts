@@ -61,7 +61,14 @@ export { useInflection } from './utils/string';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils';
 export type { Validator } from './utils/validator-extras';
 export { Deferrable } from './deferrable';
-export { Col, Cast, Fn, Json, Where, Literal, SequelizeMethod } from './utils/sequelize-method.js';
 export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 export { importModels } from './import-models.js';
 export { ModelDefinition } from './model-definition.js';
+export { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
+
+export { literal, Literal } from './expression-builders/literal.js';
+export { fn, Fn } from './expression-builders/fn.js';
+export { col, Col } from './expression-builders/col.js';
+export { cast, Cast } from './expression-builders/cast.js';
+export { json, Json } from './expression-builders/json.js';
+export { where, Where } from './expression-builders/where.js';

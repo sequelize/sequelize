@@ -1,22 +1,25 @@
 'use strict';
 
 import NodeUtil from 'node:util';
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
+import { Cast } from '../../expression-builders/cast.js';
+import { Col } from '../../expression-builders/col.js';
+import { Fn } from '../../expression-builders/fn.js';
+import { Literal } from '../../expression-builders/literal.js';
+import { Where } from '../../expression-builders/where.js';
 import { conformIndex } from '../../model-internals';
 import { getTextDataTypeForDialect } from '../../sql-string';
 import { rejectInvalidOptions, isNullish, canTreatArrayAsAnd, isColString } from '../../utils/check';
 import { TICK_CHAR } from '../../utils/dialect';
 import {
-  getComplexKeys,
-  getComplexSize,
-  getOperators,
   mapFinderOptions,
   removeNullishValuesFromHash,
 } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
-import { Cast, Col, Fn, Literal, SequelizeMethod, Where } from '../../utils/sequelize-method';
 import { injectReplacements } from '../../utils/sql';
 import { nameIndex, spliceStr } from '../../utils/string';
+import { getComplexKeys, getComplexSize, getOperators } from '../../utils/where.js';
 import { AbstractDataType } from './data-types';
 import { attributeTypeToSql, validateDataType } from './data-types-utils';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
@@ -206,7 +209,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             identityWrapperRequired = true;
           }
 
-          if (value instanceof SequelizeMethod || options.bindParam === false) {
+          if (value instanceof BaseSqlExpression || options.bindParam === false) {
             values[key] = this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT', replacements: options.replacements });
           } else {
             values[key] = this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }, bindParam);
@@ -503,7 +506,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       const value = attrValueHash[key];
 
-      if (value instanceof SequelizeMethod || options.bindParam === false) {
+      if (value instanceof BaseSqlExpression || options.bindParam === false) {
         values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
         values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' }, bindParam)}`);
@@ -621,7 +624,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     const fieldsSql = options.fields.map(field => {
-      if (field instanceof SequelizeMethod) {
+      if (field instanceof BaseSqlExpression) {
         return this.handleSequelizeMethod(field);
       }
 
@@ -758,7 +761,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         return this.quoteIdentifier(field);
       }
 
-      if (field instanceof SequelizeMethod) {
+      if (field instanceof BaseSqlExpression) {
         return this.handleSequelizeMethod(field);
       }
 
@@ -778,7 +781,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         return field;
       }
 
-      if (field instanceof SequelizeMethod) {
+      if (field instanceof BaseSqlExpression) {
         throw new TypeError(`The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`);
       }
 
@@ -1006,7 +1009,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       for (i = 0; i < collectionLength - 1; i++) {
         item = collection[i];
-        if (typeof item === 'string' || item._modelAttribute || item instanceof SequelizeMethod) {
+        if (typeof item === 'string' || item._modelAttribute || item instanceof BaseSqlExpression) {
           break;
         } else if (item instanceof Association) {
           const previousAssociation = collection[i - 1];
@@ -1043,7 +1046,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       return `${this.quoteTable(collection.Model.name)}.${this.quoteIdentifier(collection.fieldName)}`;
     }
 
-    if (collection instanceof SequelizeMethod) {
+    if (collection instanceof BaseSqlExpression) {
       return this.handleSequelizeMethod(collection, undefined, undefined, options);
     }
 
@@ -1092,7 +1095,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    * @private
    */
   escape(value, attribute, options = {}) {
-    if (value instanceof SequelizeMethod) {
+    if (value instanceof BaseSqlExpression) {
       return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
     }
 
@@ -1145,7 +1148,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   format(value, field, options, bindParam) {
     options = options || {};
 
-    if (value instanceof SequelizeMethod) {
+    if (value instanceof BaseSqlExpression) {
       throw new TypeError('Cannot pass SequelizeMethod as a bind parameter - use escape instead');
     }
 
@@ -1544,7 +1547,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return attributes && attributes.map(attr => {
       let addTable = true;
 
-      if (attr instanceof SequelizeMethod) {
+      if (attr instanceof BaseSqlExpression) {
         return this.handleSequelizeMethod(attr, undefined, undefined, options);
       }
 
@@ -1555,7 +1558,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         attr = [...attr];
 
-        if (attr[0] instanceof SequelizeMethod) {
+        if (attr[0] instanceof BaseSqlExpression) {
           attr[0] = this.handleSequelizeMethod(attr[0], undefined, undefined, options);
           addTable = false;
         } else {
@@ -1615,7 +1618,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         let verbatim = false;
 
         if (Array.isArray(attr) && attr.length === 2) {
-          if (attr[0] instanceof SequelizeMethod && (
+          if (attr[0] instanceof BaseSqlExpression && (
             attr[0] instanceof Literal
             || attr[0] instanceof Cast
             || attr[0] instanceof Fn
@@ -1623,7 +1626,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             verbatim = true;
           }
 
-          attr = attr.map(attrPart => (attrPart instanceof SequelizeMethod ? this.handleSequelizeMethod(attrPart, undefined, undefined, options) : attrPart));
+          attr = attr.map(attrPart => (attrPart instanceof BaseSqlExpression ? this.handleSequelizeMethod(attrPart, undefined, undefined, options) : attrPart));
 
           attrAs = attr[1];
           attr = attr[0];
@@ -2252,7 +2255,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         mainQueryOrder.push(this.quote(order, model, '->', options));
       }
-    } else if (options.order instanceof SequelizeMethod) {
+    } else if (options.order instanceof BaseSqlExpression) {
       const sql = this.quote(options.order, model, '->', options);
       if (subQuery) {
         subQueryOrder.push(sql);
@@ -2332,13 +2335,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       let value = smth.logic;
       let key;
 
-      if (smth.attribute instanceof SequelizeMethod) {
+      if (smth.attribute instanceof BaseSqlExpression) {
         key = this.getWhereConditions(smth.attribute, tableName, factory, options, prepend);
       } else {
         key = `${this.quoteTable(smth.attribute.Model.name)}.${this.quoteIdentifier(smth.attribute.field || smth.attribute.fieldName)}`;
       }
 
-      if (value && value instanceof SequelizeMethod) {
+      if (value && value instanceof BaseSqlExpression) {
         value = this.getWhereConditions(value, tableName, factory, options, prepend);
 
         if (value === 'NULL') {
@@ -2397,7 +2400,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     }
 
     if (smth instanceof Cast) {
-      if (smth.val instanceof SequelizeMethod) {
+      if (smth.val instanceof BaseSqlExpression) {
         result = this.handleSequelizeMethod(smth.val, tableName, factory, options, prepend);
       } else if (_.isPlainObject(smth.val)) {
         result = this.whereItemsQuery(smth.val);
@@ -2411,7 +2414,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     if (smth instanceof Fn) {
       return `${smth.fn}(${
         smth.args.map(arg => {
-          if (arg instanceof SequelizeMethod) {
+          if (arg instanceof BaseSqlExpression) {
             return this.handleSequelizeMethod(arg, tableName, factory, options, prepend);
           }
 
@@ -2532,7 +2535,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       return this._joinKeyValue(key, opValue, this.OperatorMap[Op.eq], options.prefix);
     }
 
-    if (value instanceof SequelizeMethod && !(key !== undefined && value instanceof Fn)) {
+    if (value instanceof BaseSqlExpression && !(key !== undefined && value instanceof Fn)) {
       return this.handleSequelizeMethod(value, undefined, undefined, options);
     }
 
@@ -2766,7 +2769,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   }
 
   _getSafeKey(key, prefix) {
-    if (key instanceof SequelizeMethod) {
+    if (key instanceof BaseSqlExpression) {
       key = this.handleSequelizeMethod(key);
 
       return this._prefixKey(this.handleSequelizeMethod(key), prefix);
@@ -2884,7 +2887,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
       case Op.anyKeyExists:
       case Op.allKeysExist: {
-        if (value instanceof SequelizeMethod) {
+        if (value instanceof BaseSqlExpression) {
           return this._joinKeyValue(key, this.handleSequelizeMethod(value, undefined, undefined, options), comparator, options.prefix);
         }
 
@@ -2977,7 +2980,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       prepend = true;
     }
 
-    if (smth && smth instanceof SequelizeMethod) { // Checking a property is cheaper than a lot of instanceof calls
+    if (smth && smth instanceof BaseSqlExpression) { // Checking a property is cheaper than a lot of instanceof calls
       return this.handleSequelizeMethod(smth, tableName, factory, options, prepend);
     }
 

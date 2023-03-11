@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('throws an error if a custom model-wide validation is not a function', function () {
       expect(() => {
         this.sequelize.define('Foo', {
-          field: DataTypes.INTEGER,
+          columnName: DataTypes.INTEGER,
         }, {
           validate: {
             notFunction: 33,
@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('allows unique on column with field aliases', async function () {
       const User = this.sequelize.define('UserWithUniqueFieldAlias', {
-        userName: { type: DataTypes.STRING, unique: 'user_name_unique', field: 'user_name' },
+        userName: { type: DataTypes.STRING, unique: 'user_name_unique', columnName: 'user_name' },
       });
 
       await User.sync({ force: true });
@@ -837,17 +837,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should map the correct fields when saving instance (#10589)', async function () {
       const User = this.sequelize.define('User', {
         id3: {
-          field: 'id',
+          columnName: 'id',
           type: DataTypes.INTEGER,
           primaryKey: true,
         },
         id: {
-          field: 'id2',
+          columnName: 'id2',
           type: DataTypes.INTEGER,
           allowNull: false,
         },
         id2: {
-          field: 'id3',
+          columnName: 'id3',
           type: DataTypes.INTEGER,
           allowNull: false,
         },
@@ -879,17 +879,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should map the correct fields when updating instance (#10589)', async function () {
       const User = this.sequelize.define('User', {
         id3: {
-          field: 'id',
+          columnName: 'id',
           type: DataTypes.INTEGER,
           primaryKey: true,
         },
         id: {
-          field: 'id2',
+          columnName: 'id2',
           type: DataTypes.INTEGER,
           allowNull: false,
         },
         id2: {
-          field: 'id3',
+          columnName: 'id3',
           type: DataTypes.INTEGER,
           allowNull: false,
         },
@@ -1422,7 +1422,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const UserProject = this.sequelize.define('UserProject', {
         userId: {
           type: DataTypes.INTEGER,
-          field: 'user_id',
+          columnName: 'user_id',
         },
       });
 
@@ -1958,12 +1958,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.UserWithFields = this.sequelize.define('UserWithFields', {
         age: {
           type: DataTypes.INTEGER,
-          field: 'user_age',
+          columnName: 'user_age',
         },
         order: DataTypes.INTEGER,
         gender: {
           type: DataTypes.ENUM('male', 'female'),
-          field: 'male_female',
+          columnName: 'male_female',
         },
       });
 
@@ -2739,7 +2739,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         username: {
           type: DataTypes.STRING,
           allowNull: false,
-          field: 'data',
+          columnName: 'data',
           get() {
             const val = this.getDataValue('username');
 

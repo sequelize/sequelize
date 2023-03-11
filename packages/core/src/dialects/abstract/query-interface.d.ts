@@ -1,5 +1,8 @@
 import type { SetRequired } from 'type-fest';
 import type { Deferrable } from '../../deferrable';
+import type { Col } from '../../expression-builders/col.js';
+import type { Fn } from '../../expression-builders/fn.js';
+import type { Literal } from '../../expression-builders/literal.js';
 import type {
   Logging,
   Model,
@@ -13,7 +16,6 @@ import type {
 } from '../../model';
 import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { Transaction } from '../../transaction';
-import type { Fn, Literal, Col } from '../../utils/sequelize-method.js';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
@@ -171,7 +173,7 @@ export interface IndexOptions {
   /**
    * Optional where parameter for index. Can be used to limit the index to certain rows.
    */
-  where?: WhereOptions<any>;
+  where?: WhereOptions;
 
   /**
    * Prefix to append to the index name.
@@ -571,9 +573,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   increment<M extends Model>(
     model: ModelStatic<M>,
     tableName: TableName,
+    where: WhereOptions<Attributes<M>>,
     incrementAmountsByField: object,
-    extraAttributesToBeUpdated?: object,
-    where?: WhereOptions<Attributes<M>>,
+    extraAttributesToBeUpdated: object,
     options?: QiArithmeticOptions,
   ): Promise<object>;
 
@@ -583,9 +585,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   decrement<M extends Model>(
     model: ModelStatic<M>,
     tableName: TableName,
-    incrementAmountsByField: object,
-    extraAttributesToBeUpdated?: object,
-    where?: WhereOptions<Attributes<M>>,
+    where: WhereOptions<Attributes<M>>,
+    decrementAmountsByField: object,
+    extraAttributesToBeUpdated: object,
     options?: QiArithmeticOptions,
   ): Promise<object>;
 

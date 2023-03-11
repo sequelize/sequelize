@@ -1,6 +1,6 @@
 import pickBy from 'lodash/pickBy';
 import { BaseError } from '../errors/index.js';
-import { Where } from './sequelize-method';
+import { Where } from '../expression-builders/where.js';
 
 export function isNullish(val: unknown): val is null | undefined {
   return val == null;
@@ -42,6 +42,14 @@ export function isString(val: unknown): val is string {
   return typeof val === 'string';
 }
 
+export function isBigInt(val: unknown): val is bigint {
+  return typeof val === 'bigint';
+}
+
+export function isNumber(val: unknown): val is number {
+  return typeof val === 'number';
+}
+
 /**
  * Works like lodash's isPlainObject, but has better typings
  *
@@ -55,6 +63,17 @@ export function isPlainObject(value: unknown): value is object {
   const prototype = Object.getPrototypeOf(value);
 
   return prototype === null || prototype === Object.prototype;
+}
+
+/**
+ * This function is the same as {@link isPlainObject}, but types the result as a Record / Dictionary.
+ * This function won't be necessary starting with TypeScript 4.9, thanks to improvements to the TS object type,
+ * but we have to keep it until we drop support for TS < 4.9.
+ *
+ * @param value
+ */
+export function isDictionary(value: unknown): value is Record<PropertyKey, unknown> {
+  return isPlainObject(value);
 }
 
 /**

@@ -1,5 +1,8 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
+import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
+import type { Col } from '../../expression-builders/col.js';
+import type { Literal } from '../../expression-builders/literal.js';
 import type {
   NormalizedAttributeOptions,
   FindOptions,
@@ -10,7 +13,6 @@ import type {
   WhereOptions,
 } from '../../model.js';
 import type { QueryTypes } from '../../query-types.js';
-import type { Literal, SequelizeMethod, Col } from '../../utils/sequelize-method.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
@@ -129,7 +131,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   escape(value: unknown, field?: NormalizedAttributeOptions, options?: EscapeOptions): string;
   quoteIdentifiers(identifiers: string): string;
   handleSequelizeMethod(
-    smth: SequelizeMethod,
+    smth: BaseSqlExpression,
     tableName?: TableName,
     factory?: ModelStatic,
     options?: HandleSequelizeMethodOptions,
@@ -148,7 +150,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   // TODO: see how we can make the typings protected/private while still allowing it to be typed in tests
   jsonPathExtractionQuery(column: string, path?: string | string[], isJson?: boolean): string;
 
-  selectQuery<M extends Model>(tableName: string, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
+  selectQuery<M extends Model>(tableName: TableName, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
     table: TableName,
     valueHash: object,

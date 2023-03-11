@@ -1110,11 +1110,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return this.#arithmeticQuery('-', model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
   }
 
-  async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
+  async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options) {
     options = cloneDeep(options);
     options.model = model;
 
-    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
+    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options);
 
     options.type = QueryTypes.UPDATE;
 

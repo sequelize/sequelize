@@ -1,8 +1,8 @@
 'use strict';
 
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { removeNullishValuesFromHash } from '../../utils/format';
-import { SequelizeMethod } from '../../utils/sequelize-method';
 import { removeTrailingSemicolon, underscore } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
@@ -426,7 +426,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     for (const key in attrValueHash) {
       const value = attrValueHash[key];
 
-      if (value instanceof SequelizeMethod || options.bindParam === false) {
+      if (value instanceof BaseSqlExpression || options.bindParam === false) {
         values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
       } else {
         values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
