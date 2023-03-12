@@ -60,7 +60,12 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
         WHERE TB.NAME = N'myTable'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
-      sqlite: 'PRAGMA foreign_key_list(`myTable`)',
+      sqlite: `SELECT id as \`constraintName\`,
+        \`myTable\` as \`tableName\`,
+        pragma.\`from\` AS \`columnName\`,
+        pragma.\`table\` AS \`referencedTableName\`,
+        pragma.\`to\` AS \`referencedColumnName\`
+        FROM pragma_foreign_key_list(\`myTable\`) AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -147,7 +152,12 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
         WHERE TB.NAME = N'myModels'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
-      sqlite: 'PRAGMA foreign_key_list(`myModels`)',
+      sqlite: `SELECT id as \`constraintName\`,
+        \`myModels\` as \`tableName\`,
+        pragma.\`from\` AS \`columnName\`,
+        pragma.\`table\` AS \`referencedTableName\`,
+        pragma.\`to\` AS \`referencedColumnName\`
+        FROM pragma_foreign_key_list(\`myModels\`) AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -232,7 +242,12 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
         WHERE TB.NAME = N'myTable'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'mySchema'`,
-      sqlite: 'PRAGMA foreign_key_list(`mySchema.myTable`)',
+      sqlite: `SELECT id as \`constraintName\`,
+        \`mySchema.myTable\` as \`tableName\`,
+        pragma.\`from\` AS \`columnName\`,
+        pragma.\`table\` AS \`referencedTableName\`,
+        pragma.\`to\` AS \`referencedColumnName\`
+        FROM pragma_foreign_key_list(\`mySchema.myTable\`) AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -317,7 +332,12 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
         WHERE TB.NAME = N'myTable'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
-      sqlite: 'PRAGMA foreign_key_list(`myTable`)',
+      sqlite: `SELECT id as \`constraintName\`,
+        \`myTable\` as \`tableName\`,
+        pragma.\`from\` AS \`columnName\`,
+        pragma.\`table\` AS \`referencedTableName\`,
+        pragma.\`to\` AS \`referencedColumnName\`
+        FROM pragma_foreign_key_list(\`myTable\`) AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -405,7 +425,12 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
         WHERE TB.NAME = N'myTable'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'mySchema'`,
-      sqlite: 'PRAGMA foreign_key_list(`mySchema.myTable`)',
+      sqlite: `SELECT id as \`constraintName\`,
+        \`mySchema.myTable\` as \`tableName\`,
+        pragma.\`from\` AS \`columnName\`,
+        pragma.\`table\` AS \`referencedTableName\`,
+        pragma.\`to\` AS \`referencedColumnName\`
+        FROM pragma_foreign_key_list(\`mySchema.myTable\`) AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -445,7 +470,12 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
     }
 
     expectsql(() => queryGenerator.getForeignKeyQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }), {
-      sqlite: 'PRAGMA foreign_key_list(`mySchemacustommyTable`)',
+      sqlite: `SELECT id as \`constraintName\`,
+        \`mySchemacustommyTable\` as \`tableName\`,
+        pragma.\`from\` AS \`columnName\`,
+        pragma.\`table\` AS \`referencedTableName\`,
+        pragma.\`to\` AS \`referencedColumnName\`
+        FROM pragma_foreign_key_list(\`mySchemacustommyTable\`) AS pragma;`,
     });
   });
 
