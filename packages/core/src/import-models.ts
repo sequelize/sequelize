@@ -7,7 +7,7 @@ type ModelMatch = (path: string, exportName: string, exportValue: ModelStatic) =
 
 /**
  * Imports all model classes exported in the file matching the specified globs.
- * Useful when setting the {@link Option.models} option in the Sequelize constructor.
+ * Useful when setting the {@link Options.models} option in the Sequelize constructor.
  *
  * @param globPaths
  * @param modelMatch

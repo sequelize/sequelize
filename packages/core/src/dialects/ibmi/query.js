@@ -2,7 +2,6 @@
 
 import { find } from '../../utils/iterators';
 
-const _ = require('lodash');
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
@@ -15,41 +14,35 @@ export class IBMiQuery extends AbstractQuery {
   }
 
   async run(sql, parameters) {
-    const stacktrace = new Error().stack;
     this.sql = sql.replace(/;$/, '');
 
-    return new Promise((resolve, reject) => {
-      const complete = this._logQuery(sql, debug, parameters);
-      this.connection.query(this.sql, parameters, (error, results) => {
+    const complete = this._logQuery(sql, debug, parameters);
 
-        if (error) {
-          const formattedError = this.formatError(error, stacktrace);
-          reject(formattedError);
+    let results;
+    try {
+      results = await this.connection.query(this.sql, parameters);
+    } catch (error) {
+      throw this.formatError(error);
+    }
 
-          return;
+    complete();
+
+    // parse the results to the format sequelize expects
+    for (const result of results) {
+      for (const column of results.columns) {
+        const value = result[column.name];
+        if (value == null) {
+          continue;
         }
 
-        complete();
-
-        // parse the results to the format sequelize expects
-        for (const result of results) {
-          for (const column of results.columns) {
-            const value = result[column.name];
-            if (value == null) {
-              continue;
-            }
-
-            const parse = this.sequelize.dialect.getParserForDatabaseDataType(column.dataType);
-            if (parse) {
-              result[column.name] = parse(value);
-            }
-          }
+        const parse = this.sequelize.dialect.getParserForDatabaseDataType(column.dataType);
+        if (parse) {
+          result[column.name] = parse(value);
         }
+      }
+    }
 
-        resolve(results);
-      });
-    })
-      .then(results => this.formatResults(results));
+    return this.formatResults(results);
   }
 
   /**
@@ -205,7 +198,7 @@ export class IBMiQuery extends AbstractQuery {
     return Object.values(indexes);
   }
 
-  formatError(err, stacktrace) {
+  formatError(err) {
 
     // Db2 for i uses the `odbc` connector. The `odbc` connector returns a list
     // of odbc errors, each of which has a code and a state. To determine the
@@ -234,7 +227,6 @@ export class IBMiQuery extends AbstractQuery {
           cause: err,
           sql: {},
           fields: {},
-          stack: stacktrace,
         });
       }
 
@@ -244,7 +236,6 @@ export class IBMiQuery extends AbstractQuery {
           cause: err,
           sql: {},
           fields: {},
-          stack: stacktrace,
         });
       }
 
@@ -266,7 +257,7 @@ export class IBMiQuery extends AbstractQuery {
         }
       }
 
-      return new sequelizeErrors.DatabaseError(odbcError, { stack: stacktrace });
+      return new sequelizeErrors.DatabaseError(odbcError);
     }
 
     return err;

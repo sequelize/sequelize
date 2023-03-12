@@ -9,14 +9,14 @@ const { logger } = require('../../utils/logger');
 const debug = logger.debugContext('sql:pg');
 
 export class PostgresQuery extends AbstractQuery {
-  async run(sql, parameters) {
+  async run(sql, parameters, options) {
     const { connection } = this;
 
     if (!_.isEmpty(this.options.searchPath)) {
       sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
     }
 
-    if (this.sequelize.options.minifyAliases && this.options.includeAliases) {
+    if (options?.minifyAliases && this.options.includeAliases) {
       for (const [alias, original] of _.toPairs(this.options.includeAliases)
         // Sorting to replace the longest aliases first to prevent alias collision
         .sort((a, b) => b[1].length - a[1].length)) {
@@ -39,7 +39,6 @@ export class PostgresQuery extends AbstractQuery {
     const complete = this._logQuery(sql, debug, parameters);
 
     let queryResult;
-    const errForStack = new Error();
 
     try {
       queryResult = await query;
@@ -59,7 +58,7 @@ export class PostgresQuery extends AbstractQuery {
 
       error.sql = sql;
       error.parameters = parameters;
-      throw this.formatError(error, errForStack.stack);
+      throw this.formatError(error);
     }
 
     complete();
@@ -74,7 +73,7 @@ export class PostgresQuery extends AbstractQuery {
       )
       : queryResult.rowCount || 0;
 
-    if (this.sequelize.options.minifyAliases && this.options.aliasesMapping) {
+    if (options?.minifyAliases && this.options.aliasesMapping) {
       rows = rows
         .map(row => _.toPairs(row)
           .reduce((acc, [key, value]) => {
@@ -310,7 +309,7 @@ export class PostgresQuery extends AbstractQuery {
     return rows;
   }
 
-  formatError(err, errStack) {
+  formatError(err) {
     let match;
     let table;
     let index;
@@ -335,7 +334,6 @@ export class PostgresQuery extends AbstractQuery {
           index,
           table,
           cause: err,
-          stack: errStack,
         });
       case '23505':
         // there are multiple different formats of error messages for this error code
@@ -365,13 +363,12 @@ export class PostgresQuery extends AbstractQuery {
             }
           }
 
-          return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
+          return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
         }
 
         return new sequelizeErrors.UniqueConstraintError({
           message: errMessage,
           cause: err,
-          stack: errStack,
         });
 
       case '23P01':
@@ -389,7 +386,6 @@ export class PostgresQuery extends AbstractQuery {
           fields,
           table: err.table,
           cause: err,
-          stack: errStack,
         });
 
       case '42704':
@@ -406,13 +402,12 @@ export class PostgresQuery extends AbstractQuery {
             fields,
             table,
             cause: err,
-            stack: errStack,
           });
         }
 
       // falls through
       default:
-        return new sequelizeErrors.DatabaseError(err, { stack: errStack });
+        return new sequelizeErrors.DatabaseError(err);
     }
   }
 

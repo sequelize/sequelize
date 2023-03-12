@@ -17,6 +17,7 @@ export class SqliteDialect extends AbstractDialect {
       ignoreDuplicates: ' OR IGNORE',
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
       conflictFields: true,
+      onConflictWhere: true,
     },
     index: {
       using: false,
@@ -39,6 +40,7 @@ export class SqliteDialect extends AbstractDialect {
       JSON: true,
     },
     // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)
+    //  be careful: json_extract, ->, and ->> don't have the exact same meanings as mysql & mariadb
     jsonOperations: false,
   });
 

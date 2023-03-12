@@ -8,11 +8,11 @@ import {
 } from '../../errors/index.js';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import { assertCaughtError, isErrorWithStringCode, isPlainObject } from '../../utils/check.js';
-import type { MssqlDialect } from './index.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
 import { AsyncQueue } from './async-queue';
+import type { MssqlDialect } from './index.js';
 
 const debug = logger.debugContext('connection:mssql');
 const debugTedious = logger.debugContext('connection:mssql:tedious');

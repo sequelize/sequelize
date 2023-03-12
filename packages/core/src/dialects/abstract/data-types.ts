@@ -5,12 +5,11 @@ import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
-import type { AbstractDialect } from './index.js';
 import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { GeoJson, GeoJsonType } from '../../geo-json.js';
 import { assertIsGeoJson } from '../../geo-json.js';
-import type { NormalizedAttributeOptions, ModelStatic, Rangable, RangePart } from '../../model.js';
+import type { ModelStatic, Rangable, RangePart } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { makeBufferFromTypedArray } from '../../utils/buffer.js';
 import { isPlainObject, isString } from '../../utils/check.js';
@@ -22,12 +21,14 @@ import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
 import { buildRangeParser } from '../postgres/range.js';
 import {
+  attributeTypeToSql,
   dataTypeClassOrInstanceToInstance,
   isDataType,
   isDataTypeClass,
   throwUnsupportedDataType,
 } from './data-types-utils.js';
 import type { TableNameWithSchema } from './query-interface.js';
+import type { AbstractDialect } from './index.js';
 
 // TODO: try merging "validate" & "sanitize" by making sanitize coerces the type, and if it cannot, throw a ValidationError.
 //       right now, they share a lot of the same logic.
@@ -62,18 +63,9 @@ export type DataType =
   | string
   | DataTypeClassOrInstance;
 
-export interface ToSqlOptions {
-  dialect: AbstractDialect;
-}
+export type NormalizedDataType = string | DataTypeInstance;
 
-export interface StringifyOptions {
-  dialect: AbstractDialect;
-  operation?: string;
-  timezone?: string | undefined;
-  field?: NormalizedAttributeOptions;
-}
-
-export interface BindParamOptions extends StringifyOptions {
+export interface BindParamOptions {
   bindParam(value: unknown): string;
 }
 
@@ -86,6 +78,9 @@ export type DataTypeUseContext =
  */
 const kDataTypeIdentifier = Symbol('sequelize.DataTypeIdentifier');
 
+/**
+ * @category DataTypes
+ */
 export abstract class AbstractDataType<
   /** The type of value we'll accept - ie for a column of this type, we'll accept this value as user input. */
   AcceptedType,
@@ -94,7 +89,7 @@ export abstract class AbstractDataType<
    * This property is designed to uniquely identify the DataType.
    * Do not change this value in implementation-specific dialects, or they will not be mapped to their parent DataType properly!
    *
-   * @internal
+   * @hidden
    */
   declare static readonly [kDataTypeIdentifier]: string;
 
@@ -122,26 +117,41 @@ export abstract class AbstractDataType<
   }
 
   // TODO: Remove in v8
+  /**
+   * @hidden
+   */
   static get escape() {
     throw new Error('The "escape" static property has been removed. Each DataType is responsible for escaping its value correctly.');
   }
 
   // TODO: Remove in v8
+  /**
+   * @hidden
+   */
   static get types() {
     throw new Error('The "types" static property has been removed. Use getDataTypeDialectMeta.');
   }
 
   // TODO: Remove in v8
+  /**
+   * @hidden
+   */
   static get key() {
     throw new Error('The "key" static property has been removed.');
   }
 
   // TODO: Remove in v8
+  /**
+   * @hidden
+   */
   get types() {
     throw new Error('The "types" instance property has been removed.');
   }
 
   // TODO: Remove in v8
+  /**
+   * @hidden
+   */
   get key() {
     throw new Error('The "key" instance property has been removed.');
   }
@@ -161,6 +171,14 @@ export abstract class AbstractDataType<
     originalValue: AcceptedType,
   ): boolean {
     return isEqual(value, originalValue);
+  }
+
+  /**
+   * Whether this DataType wishes to handle NULL values itself.
+   * This is almost exclusively used by {@link JSON} and {@link JSONB} which serialize `null` as the JSON string `'null'`.
+   */
+  acceptsNull(): boolean {
+    return false;
   }
 
   /**
@@ -200,16 +218,15 @@ export abstract class AbstractDataType<
    * The resulting value will be inlined as-is with no further escaping.
    *
    * @param value The value to escape.
-   * @param options Options.
    */
-  escape(value: AcceptedType, options: StringifyOptions): string {
-    const asBindValue = this.toBindableValue(value, options);
+  escape(value: AcceptedType): string {
+    const asBindValue = this.toBindableValue(value);
 
     if (!isString(asBindValue)) {
       throw new Error(`${this.constructor.name}#stringify has been overridden to return a non-string value, so ${this.constructor.name}#escape must be implemented to handle that value correctly.`);
     }
 
-    return options.dialect.escapeString(asBindValue);
+    return this._getDialect().escapeString(asBindValue);
   }
 
   /**
@@ -228,7 +245,7 @@ export abstract class AbstractDataType<
    */
   getBindParamSql(value: AcceptedType, options: BindParamOptions): string {
     // TODO: rename "options.bindParam" to "options.collectBindParam"
-    return options.bindParam(this.toBindableValue(value, options));
+    return options.bindParam(this.toBindableValue(value));
   }
 
   /**
@@ -237,15 +254,14 @@ export abstract class AbstractDataType<
    * will handle escaping.
    *
    * @param value The value to convert.
-   * @param _options Options.
    */
-  toBindableValue(value: AcceptedType, _options: StringifyOptions): unknown {
+  toBindableValue(value: AcceptedType): unknown {
     return String(value);
   }
 
   toString(): string {
     try {
-      return this.toSql({ dialect: this.usageContext?.sequelize.dialect! });
+      return this.toSql();
     } catch {
       // best effort introspection (dialect may not be available)
       return this.constructor.toString();
@@ -260,15 +276,13 @@ export abstract class AbstractDataType<
    * Returns a SQL declaration of this data type.
    * e.g. 'VARCHAR(255)', 'TEXT', etc…
    */
-  abstract toSql(options: ToSqlOptions): string;
+  abstract toSql(): string;
 
   /**
    * Override this method to emit an error or a warning if the Data Type, as it is configured, is not compatible
    * with the current dialect.
    *
    * @param dialect The dialect using this data type.
-   * @protected
-   * @internal
    */
   protected _checkOptionSupport(dialect: AbstractDialect) {
     // use "dialect.supports" to determine base support for this DataType.
@@ -320,9 +334,19 @@ export abstract class AbstractDataType<
     return this._construct(this.options);
   }
 
+  withUsageContext(usageContext: DataTypeUseContext): this {
+    const out = this.clone().attachUsageContext(usageContext);
+
+    if (this.#dialect) {
+      out.#dialect = this.#dialect;
+    }
+
+    return out;
+  }
+
   /**
    * @param usageContext
-   * @internal
+   * @private
    */
   attachUsageContext(usageContext: DataTypeUseContext): this {
     if (this.usageContext && !isEqual(this.usageContext, usageContext)) {
@@ -356,15 +380,23 @@ export interface StringTypeOptions {
 }
 
 /**
- * STRING A variable length string.
+ * Represents a variable length string type.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If the 'length' option is not supported by the dialect, a CHECK constraint will be added to ensure
  * the value remains within the specified length.
  * - If the 'binary' option is not supported by the dialect, a suitable binary type will be used instead.
  *   If none is available, an error will be raised instead.
+ *
+ * @example
+ * ```ts
+ * DataTypes.STRING(255)
+ * ```
+ *
+ * @category DataTypes
  */
 export class STRING extends AbstractDataType<string | Buffer> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'STRING';
   readonly options: StringTypeOptions;
 
@@ -372,7 +404,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
   constructor(options?: StringTypeOptions);
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
-  /** @internal */
+  /** @hidden */
   constructor(...args:
     | []
     | [length: number]
@@ -402,7 +434,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
     }
   }
 
-  toSql(_options: ToSqlOptions): string {
+  toSql(): string {
     // TODO: STRING should use an unlimited length type by default - https://github.com/sequelize/sequelize/issues/14259
     return joinSQLFragments([
       `VARCHAR(${this.options.length ?? 255})`,
@@ -447,12 +479,12 @@ export class STRING extends AbstractDataType<string | Buffer> {
     return new this({ binary: true });
   }
 
-  escape(value: string | Buffer, options: StringifyOptions): string {
+  escape(value: string | Buffer): string {
     if (Buffer.isBuffer(value)) {
-      return options.dialect.escapeBuffer(value);
+      return this._getDialect().escapeBuffer(value);
     }
 
-    return options.dialect.escapeString(value);
+    return this._getDialect().escapeString(value);
   }
 
   toBindableValue(value: string | Buffer): unknown {
@@ -461,12 +493,20 @@ export class STRING extends AbstractDataType<string | Buffer> {
 }
 
 /**
- * CHAR A fixed length string
+ * Represents a fixed length string type.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this DataType is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.CHAR(1000)
+ * ```
+ *
+ * @category DataTypes
  */
 export class CHAR extends STRING {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'CHAR';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -495,9 +535,17 @@ export interface TextOptions {
 }
 
 /**
- * Unlimited length TEXT column
+ * Represents an unlimited length string type.
+ *
+ * @example
+ * ```ts
+ * DataTypes.TEXT('tiny') // TINYTEXT
+ * ```
+ *
+ * @category DataTypes
  */
 export class TEXT extends AbstractDataType<string> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'TEXT';
   readonly options: TextOptions;
 
@@ -545,10 +593,18 @@ export class TEXT extends AbstractDataType<string> {
  * Original case is preserved but acts case-insensitive when comparing values (such as when finding or unique constraints).
  * Only available in Postgres and SQLite.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this DataType is not supported, and no case-insensitive text alternative exists, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.CITEXT
+ * ```
+ *
+ * @category DataTypes
  */
 export class CITEXT extends AbstractDataType<string> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'CITEXT';
 
   toSql(): string {
@@ -599,14 +655,14 @@ export interface DecimalNumberOptions extends NumberOptions {
   /**
    * Total number of digits.
    *
-   * {@link NumberOptions#scale} must be specified if precision is specified.
+   * {@link DecimalNumberOptions#scale} must be specified if precision is specified.
    */
   precision?: number | undefined;
 
   /**
    * Count of decimal digits in the fractional part.
    *
-   * {@link NumberOptions#precision} must be specified if scale is specified.
+   * {@link DecimalNumberOptions#precision} must be specified if scale is specified.
    */
   scale?: number | undefined;
 }
@@ -635,10 +691,10 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
     throw new Error(`getNumberSqlTypeName has not been implemented in ${this.constructor.name}`);
   }
 
-  toSql(_options: ToSqlOptions): string {
+  toSql(): string {
     let result: string = this.getNumberSqlTypeName();
 
-    if (this.options.unsigned && this._supportsNativeUnsigned(_options.dialect)) {
+    if (this.options.unsigned && this._supportsNativeUnsigned(this._getDialect())) {
       result += ' UNSIGNED';
     }
 
@@ -667,11 +723,11 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
     }
   }
 
-  escape(value: AcceptedNumber, options: StringifyOptions): string {
-    return this.toBindableValue(value, options);
+  escape(value: AcceptedNumber): string {
+    return String(this.toBindableValue(value));
   }
 
-  toBindableValue(num: AcceptedNumber, _options: StringifyOptions): string {
+  toBindableValue(num: AcceptedNumber): string | number {
     // This should be unnecessary but since this directly returns the passed string its worth the added validation.
     this.validate(num);
 
@@ -685,7 +741,7 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
       return `${sign}Infinity`;
     }
 
-    return String(num);
+    return num;
   }
 
   getBindParamSql(value: AcceptedNumber, options: BindParamOptions): string {
@@ -761,13 +817,13 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
     return _dialect.supports.dataTypes.INTS.unsigned;
   }
 
-  toSql(options: ToSqlOptions): string {
+  toSql(): string {
     let result: string = this.getNumberSqlTypeName();
     if (this.options.length != null) {
       result += `(${this.options.length})`;
     }
 
-    if (this.options.unsigned && this._supportsNativeUnsigned(options.dialect)) {
+    if (this.options.unsigned && this._supportsNativeUnsigned(this._getDialect())) {
       result += ' UNSIGNED';
     }
 
@@ -782,13 +838,21 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
 /**
  * An 8-bit integer.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a SMALLINT or greater,
  *   with a CHECK constraint to ensure the value is withing the bounds of an 8-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
+ *
+ * @example
+ * ```ts
+ * DataTypes.TINYINT
+ * ```
+ *
+ * @category DataTypes
  */
 export class TINYINT extends BaseIntegerDataType {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'TINYINT';
 
   protected getNumberSqlTypeName(): string {
@@ -799,13 +863,21 @@ export class TINYINT extends BaseIntegerDataType {
 /**
  * A 16-bit integer.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a MEDIUMINT or greater,
  *   with a CHECK constraint to ensure the value is withing the bounds of an 16-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
+ *
+ * @example
+ * ```ts
+ * DataTypes.SMALLINT
+ * ```
+ *
+ * @category DataTypes
  */
 export class SMALLINT extends BaseIntegerDataType {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'SMALLINT';
 
   protected getNumberSqlTypeName(): string {
@@ -816,13 +888,21 @@ export class SMALLINT extends BaseIntegerDataType {
 /**
  * A 24-bit integer.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a INTEGER (32 bits) or greater,
  *   with a CHECK constraint to ensure the value is withing the bounds of an 32-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
+ *
+ * @example
+ * ```ts
+ * DataTypes.MEDIUMINT
+ * ```
+ *
+ * @category DataTypes
  */
 export class MEDIUMINT extends BaseIntegerDataType {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'MEDIUMINT';
 
   protected getNumberSqlTypeName(): string {
@@ -833,13 +913,21 @@ export class MEDIUMINT extends BaseIntegerDataType {
 /**
  * A 32-bit integer.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - When this type or its unsigned option is unsupported by the dialect, it will be replaced by a BIGINT,
  *   with a CHECK constraint to ensure the value is withing the bounds of an 32-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
+ *
+ * @example
+ * ```ts
+ * DataTypes.INTEGER
+ * ```
+ *
+ * @category DataTypes
  */
 export class INTEGER extends BaseIntegerDataType {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'INTEGER';
 
   protected getNumberSqlTypeName(): string {
@@ -850,12 +938,20 @@ export class INTEGER extends BaseIntegerDataType {
 /**
  * A 64-bit integer.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, an error will be raised.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
+ *
+ * @example
+ * ```ts
+ * DataTypes.BIGINT
+ * ```
+ *
+ * @category DataTypes
  */
 export class BIGINT extends BaseIntegerDataType {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'BIGINT';
 
   protected getNumberSqlTypeName(): string {
@@ -895,7 +991,7 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
 
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
-  /** @internal */
+  /** @hidden */
   constructor(...args:
     | []
     | [precision: number]
@@ -984,13 +1080,13 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     }
   }
 
-  toSql(options: ToSqlOptions): string {
+  toSql(): string {
     let sql = this.getNumberSqlTypeName();
     if (!this.isUnconstrained()) {
       sql += `(${this.options.precision}, ${this.options.scale})`;
     }
 
-    if (this.options.unsigned && this._supportsNativeUnsigned(options.dialect)) {
+    if (this.options.unsigned && this._supportsNativeUnsigned(this._getDialect())) {
       sql += ' UNSIGNED';
     }
 
@@ -1006,12 +1102,20 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
  * A single-floating point number with a 4-byte precision.
  * If single-precision floating-point format is not supported, a double-precision floating-point number may be used instead.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * - If the precision or scale options are unsupported by the dialect, they will be discarded.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the unsigned option is unsupported, it will be replaced by a CHECK > 0 constraint.
+ *
+ * @example
+ * ```ts
+ * DataTypes.FLOAT
+ * ```
+ *
+ * @category DataTypes
  */
 export class FLOAT extends BaseDecimalNumberDataType {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'FLOAT';
 
   protected getNumberSqlTypeName(): string {
@@ -1032,6 +1136,7 @@ If neither single precision nor double precision IEEE 754 floating point numbers
  */
 // TODO (v8): remove this
 export class REAL extends BaseDecimalNumberDataType {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'REAL';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -1053,12 +1158,20 @@ export class REAL extends BaseDecimalNumberDataType {
  * Floating point number (8-byte precision).
  * Throws an error when unsupported, instead of silently falling back to a lower precision.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * - If the precision or scale options are unsupported by the dialect, they will be discarded.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the unsigned option is unsupported, it will be replaced by a CHECK > 0 constraint.
+ *
+ * @example
+ * ```ts
+ * DataTypes.DOUBLE
+ * ```
+ *
+ * @category DataTypes
  */
 export class DOUBLE extends BaseDecimalNumberDataType {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'DOUBLE';
 
   protected _supportsNativeUnsigned(_dialect: AbstractDialect): boolean {
@@ -1073,13 +1186,21 @@ export class DOUBLE extends BaseDecimalNumberDataType {
 /**
  * Arbitrary/exact precision decimal number.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * - If the precision or scale options are unsupported by the dialect, they will be ignored.
  * - If the precision or scale options are not specified, and the dialect does not support unconstrained decimals, an error will be raised.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the unsigned option is unsupported, it will be replaced by a CHECK > 0 constraint.
+ *
+ * @example
+ * ```ts
+ * DataTypes.DECIMAL
+ * ```
+ *
+ * @category DataTypes
  */
 export class DECIMAL extends BaseDecimalNumberDataType {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'DECIMAL';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -1134,10 +1255,18 @@ export class DECIMAL extends BaseDecimalNumberDataType {
 /**
  * A boolean / tinyint column, depending on dialect
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * - If a native boolean type is not available, a dialect-specific numeric replacement (bit, tinyint) will be used instead.
+ *
+ * @example
+ * ```ts
+ * DataTypes.BOOLEAN
+ * ```
+ *
+ * @category DataTypes
  */
 export class BOOLEAN extends AbstractDataType<boolean> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'BOOLEAN';
 
   toSql() {
@@ -1186,7 +1315,7 @@ export class BOOLEAN extends AbstractDataType<boolean> {
   }
 
   toBindableValue(value: boolean | Falsy): unknown {
-    return value ? 'true' : 'false';
+    return Boolean(value);
   }
 }
 
@@ -1200,11 +1329,19 @@ export interface TimeOptions {
 /**
  * A time column.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, it will be replaced by a string type,
  * and a CHECK constraint to enforce a valid ISO 8601 time format.
+ *
+ * @example
+ * ```ts
+ * DataTypes.TIME(3)
+ * ```
+ *
+ * @category DataTypes
  */
 export class TIME extends AbstractDataType<string> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'TIME';
   readonly options: TimeOptions;
 
@@ -1249,11 +1386,19 @@ export type AcceptedDate = RawDate | dayjs.Dayjs | number;
 /**
  * A date and time.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, it will be replaced by a string type,
  * and a CHECK constraint to enforce a valid ISO 8601 date-only format.
+ *
+ * @example
+ * ```ts
+ * DataTypes.DATE(3)
+ * ```
+ *
+ * @category DataTypes
  */
 export class DATE extends AbstractDataType<AcceptedDate> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'DATE';
   readonly options: DateOptions;
 
@@ -1327,42 +1472,49 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     return false;
   }
 
-  protected _applyTimezone(date: AcceptedDate, options: { timezone?: string | undefined }) {
-    if (options.timezone) {
-      if (isValidTimeZone(options.timezone)) {
-        return dayjs(date).tz(options.timezone);
+  protected _applyTimezone(date: AcceptedDate) {
+    const timezone = this._getDialect().sequelize.options.timezone;
+
+    if (timezone) {
+      if (isValidTimeZone(timezone)) {
+        return dayjs(date).tz(timezone);
       }
 
-      return dayjs(date).utcOffset(options.timezone);
+      return dayjs(date).utcOffset(timezone);
     }
 
     return dayjs(date);
   }
 
-  toBindableValue(
-    date: AcceptedDate,
-    options: StringifyOptions,
-  ) {
+  toBindableValue(date: AcceptedDate) {
     // Z here means current timezone, _not_ UTC
-    return this._applyTimezone(date, options).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+    return this._applyTimezone(date).format('YYYY-MM-DD HH:mm:ss.SSS Z');
   }
 }
 
 /**
  * A date only column (no timestamp)
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, it will be replaced by a string type,
  * and a CHECK constraint to enforce a valid ISO 8601 datetime format.
+ *
+ * @example
+ * ```ts
+ * DataTypes.DATEONLY
+ * ```
+ *
+ * @category DataTypes
  */
 export class DATEONLY extends AbstractDataType<AcceptedDate> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'DATEONLY';
 
   toSql() {
     return 'DATE';
   }
 
-  toBindableValue(date: AcceptedDate, _options: StringifyOptions) {
+  toBindableValue(date: AcceptedDate) {
     return dayjs.utc(date).format('YYYY-MM-DD');
   }
 
@@ -1395,10 +1547,18 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
 /**
  * A key / value store column. Only available in Postgres.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.HSTORE
+ * ```
+ *
+ * @category DataTypes
  */
 export class HSTORE extends AbstractDataType<HstoreRecord> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'HSTORE';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -1430,12 +1590,20 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 /**
  * A JSON string column.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, but supports verifying a string as is valid JSON through CHECK constraints,
  * that will be used instead.
  * If neither are available, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.JSON
+ * ```
+ *
+ * @category DataTypes
  */
 export class JSON extends AbstractDataType<any> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'JSON';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -1443,6 +1611,13 @@ export class JSON extends AbstractDataType<any> {
     if (!dialect.supports.dataTypes.JSON) {
       throwUnsupportedDataType(dialect, 'JSON');
     }
+  }
+
+  /**
+   * We stringify null too.
+   */
+  acceptsNull(): boolean {
+    return true;
   }
 
   toBindableValue(value: any): string {
@@ -1457,10 +1632,18 @@ export class JSON extends AbstractDataType<any> {
 /**
  * A binary storage JSON column. Only available in Postgres.
  *
- * Fallback Policy:
+ * __Fallback policy:__
  * If the dialect does not support this type natively, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.JSONB
+ * ```
+ *
+ * @category DataTypes
  */
 export class JSONB extends JSON {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'JSONB';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -1476,10 +1659,23 @@ export class JSONB extends JSON {
 }
 
 /**
- * A default value of the current timestamp.  Not a valid type.
+ * A default value of the current timestamp. Not a valid type.
+ *
+ * @example
+ * ```ts
+ * const User = sequelize.define('User', {
+ *   registeredAt: {
+ *     type: DataTypes.DATE,
+ *     defaultValue: DataTypes.NOW,
+ *   },
+ * });
+ * ```
+ *
+ * @category DataTypes
  */
 // TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class NOW extends AbstractDataType<never> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'NOW';
 
   toSql(): string {
@@ -1499,11 +1695,23 @@ export interface BlobOptions {
 /**
  * Binary storage. BLOB is the "TEXT" of binary data: it allows data of arbitrary size.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * const User = sequelize.define('User', {
+ *   profilePicture: {
+ *     type: DataTypes.BLOB,
+ *   },
+ * });
+ * ```
+ *
+ * @category DataTypes
  */
 // TODO: add FIXED_BINARY & VAR_BINARY data types. They are not the same as CHAR BINARY / VARCHAR BINARY.
 export class BLOB extends AbstractDataType<AcceptedBlob> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'BLOB';
   readonly options: BlobOptions;
 
@@ -1557,10 +1765,10 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     return value;
   }
 
-  escape(value: string | Buffer, options: StringifyOptions) {
+  escape(value: string | Buffer) {
     const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
 
-    return options.dialect.escapeBuffer(buf);
+    return this._getDialect().escapeBuffer(buf);
   }
 
   getBindParamSql(value: AcceptedBlob, options: BindParamOptions) {
@@ -1578,12 +1786,29 @@ const defaultRangeParser = buildRangeParser(identity);
  * Range types are data types representing a range of values of some element type (called the range's subtype).
  * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * // A range of integers
+ * DataTypes.RANGE(DataTypes.INTEGER)
+ * // A range of bigints
+ * DataTypes.RANGE(DataTypes.BIGINT)
+ * // A range of decimals
+ * DataTypes.RANGE(DataTypes.DECIMAL)
+ * // A range of timestamps
+ * DataTypes.RANGE(DataTypes.DATE)
+ * // A range of dates
+ * DataTypes.RANGE(DataTypes.DATEONLY)
+ * ```
+ *
+ * @category DataTypes
  */
 export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> extends AbstractDataType<
   Rangable<AcceptableTypeOf<T>> | AcceptableTypeOf<T>
 > {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'RANGE';
   readonly options: {
     subtype: AbstractDataType<any>,
@@ -1693,10 +1918,23 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
  * A column storing a unique universal identifier.
  * Use with `UUIDV1` or `UUIDV4` for default values.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a GUID format.
+ *
+ *
+ * @example
+ * ```ts
+ * const User = sequelize.define('User', {
+ *   id: {
+ *     type: DataTypes.UUID,
+ *   },
+ * });
+ * ```
+ *
+ * @category DataTypes
  */
 export class UUID extends AbstractDataType<string> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUID';
 
   validate(value: any) {
@@ -1713,10 +1951,24 @@ export class UUID extends AbstractDataType<string> {
 }
 
 /**
- * A default unique universal identifier generated following the UUID v1 standard
+ * A default unique universal identifier generated following the UUID v1 standard.
+ * Cannot be used as a type, must be used as a default value instead.
+ *
+ * @example
+ * ```ts
+ * const User = sequelize.define('User', {
+ *   id: {
+ *     type: DataTypes.UUID,
+ *     defaultValue: DataTypes.UUIDV1,
+ *   },
+ * });
+ * ```
+ *
+ * @category DataTypes
  */
 // TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class UUIDV1 extends AbstractDataType<string> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUIDV1';
 
   validate(value: any) {
@@ -1734,10 +1986,24 @@ export class UUIDV1 extends AbstractDataType<string> {
 }
 
 /**
- * A default unique universal identifier generated following the UUID v4 standard
+ * A default unique universal identifier generated following the UUID v4 standard.
+ * Cannot be used as a type, must be used as a default value instead.
+ *
+ * @example
+ * ```ts
+ * const User = sequelize.define('User', {
+ *   id: {
+ *     type: DataTypes.UUID,
+ *     defaultValue: DataTypes.UUIDV4,
+ *   },
+ * });
+ * ```
+ *
+ * @category DataTypes
  */
 // TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class UUIDV4 extends AbstractDataType<string> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUIDV4';
 
   validate(value: unknown) {
@@ -1770,7 +2036,8 @@ export interface NormalizedVirtualOptions {
  * If a virtual attribute is present in `attributes` it will automatically pull in the extra fields as well.
  * Return type is mostly useful for setups that rely on types like GraphQL.
  *
- * @example <caption>Checking password length before hashing it</caption>
+ * @example Checking password length before hashing it
+ * ```ts
  * sequelize.define('user', {
  *   password_hash: DataTypes.STRING,
  *   password: {
@@ -1789,10 +2056,12 @@ export interface NormalizedVirtualOptions {
  *     }
  *   }
  * })
+ * ```
  *
- * # In the above code the password is stored plainly in the password field so it can be validated, but is never stored in the DB.
+ * In the above code the password is stored plainly in the password field so it can be validated, but is never stored in the DB.
  *
- * @example <caption>Virtual with dependency fields</caption>
+ * @example Virtual with dependency fields
+ * ```ts
  * {
  *   active: {
  *     type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt']),
@@ -1801,9 +2070,12 @@ export interface NormalizedVirtualOptions {
  *     }
  *   }
  * }
+ * ```
  *
+ * @category DataTypes
  */
 export class VIRTUAL<T> extends AbstractDataType<T> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'VIRTUAL';
 
   options: NormalizedVirtualOptions;
@@ -1813,7 +2085,7 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
 
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
-  /** @internal */
+  /** @hidden */
   constructor(...args:
     | [returnType?: DataTypeClassOrInstance, attributeDependencies?: string[]]
     | [options?: VirtualOptions]
@@ -1858,17 +2130,22 @@ export interface EnumOptions<Member extends string> {
 /**
  * An enumeration, Postgres Only
  *
+ * __Fallback policy:__
+ * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a list of values.
+ *
  * @example
+ * ```ts
  * DataTypes.ENUM('value', 'another value')
  * DataTypes.ENUM(['value', 'another value'])
  * DataTypes.ENUM({
- *   values: ['value', 'another value']
+ *   values: ['value', 'another value'],
  * });
+ * ```
  *
- * Fallback policy:
- * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a list of values.
+ * @category DataTypes
  */
 export class ENUM<Member extends string> extends AbstractDataType<Member> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'ENUM';
   readonly options: EnumOptions<Member>;
 
@@ -1880,7 +2157,7 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
   constructor(...members: Member[]);
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
-  /** @internal */
+  /** @hidden */
   constructor(...args:
     | [options: EnumOptions<Member>]
     | [members: Member[]]
@@ -1947,8 +2224,8 @@ sequelize.define('MyModel', {
     }
   }
 
-  toSql(options: ToSqlOptions): string {
-    throw new Error(`ENUM has not been implemented in the ${options.dialect.name} dialect.`);
+  toSql(): string {
+    throw new Error(`ENUM has not been implemented in the ${this._getDialect().name} dialect.`);
   }
 }
 
@@ -1957,26 +2234,31 @@ export interface ArrayOptions {
 }
 
 interface NormalizedArrayOptions {
-  type: AbstractDataType<any>;
+  type: NormalizedDataType;
 }
 
 /**
  * An array of `type`. Only available in Postgres.
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
  * @example
+ * ```ts
  * DataTypes.ARRAY(DataTypes.DECIMAL)
+ * ```
+ *
+ * @category DataTypes
  */
 export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Array<AcceptableTypeOf<T>>> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'ARRAY';
   readonly options: NormalizedArrayOptions;
 
   /**
    * @param typeOrOptions type of array values
    */
-  constructor(typeOrOptions: DataTypeClassOrInstance | ArrayOptions) {
+  constructor(typeOrOptions: DataType | ArrayOptions) {
     super();
 
     const rawType = isDataType(typeOrOptions) ? typeOrOptions : typeOrOptions?.type;
@@ -1986,12 +2268,12 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     }
 
     this.options = {
-      type: dataTypeClassOrInstanceToInstance(rawType),
+      type: isString(rawType) ? rawType : dataTypeClassOrInstanceToInstance(rawType),
     };
   }
 
-  toSql(options: ToSqlOptions): string {
-    return `${this.options.type.toSql(options)}[]`;
+  toSql(): string {
+    return `${attributeTypeToSql(this.options.type)}[]`;
   }
 
   validate(value: any) {
@@ -2001,8 +2283,14 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
       );
     }
 
+    if (isString(this.options.type)) {
+      return;
+    }
+
+    const subType: AbstractDataType<any> = this.options.type;
+
     for (const item of value) {
-      this.options.type.validate(item);
+      subType.validate(item);
     }
   }
 
@@ -2011,7 +2299,13 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
       return value;
     }
 
-    return value.map(item => this.options.type.sanitize(item));
+    if (isString(this.options.type)) {
+      return;
+    }
+
+    const subType: AbstractDataType<any> = this.options.type;
+
+    return value.map(item => subType.sanitize(item));
   }
 
   parseDatabaseValue(value: unknown[]): unknown {
@@ -2020,11 +2314,23 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
       throw new Error(`DataTypes.ARRAY Received a non-array value from database: ${util.inspect(value)}`);
     }
 
-    return value.map(item => this.options.type.parseDatabaseValue(item));
+    if (isString(this.options.type)) {
+      return value;
+    }
+
+    const subType: AbstractDataType<any> = this.options.type;
+
+    return value.map(item => subType.parseDatabaseValue(item));
   }
 
-  toBindableValue(value: Array<AcceptableTypeOf<T>>, _options: StringifyOptions): unknown {
-    return value.map(val => this.options.type.toBindableValue(val, _options));
+  toBindableValue(value: Array<AcceptableTypeOf<T>>): unknown {
+    if (isString(this.options.type)) {
+      return value;
+    }
+
+    const subType: AbstractDataType<any> = this.options.type;
+
+    return value.map(val => subType.toBindableValue(val));
   }
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -2042,13 +2348,17 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
       replacement = replacement.clone();
     }
 
-    replacement.options.type = replacement.options.type.toDialectDataType(dialect);
+    if (!isString(replacement.options.type)) {
+      replacement.options.type = replacement.options.type.toDialectDataType(dialect);
+    }
 
     return replacement;
   }
 
   attachUsageContext(usageContext: DataTypeUseContext): this {
-    this.options.type.attachUsageContext(usageContext);
+    if (!isString(this.options.type)) {
+      this.options.type.attachUsageContext(usageContext);
+    }
 
     return super.attachUsageContext(usageContext);
   }
@@ -2077,33 +2387,42 @@ export interface GeometryOptions {
  *
  * Therefore, one can just follow the [GeoJSON spec](https://tools.ietf.org/html/rfc7946) for handling geometry objects.  See the following examples:
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
- * @example <caption>Defining a Geometry type attribute</caption>
+ * @example Defining a Geometry type attribute
+ * ```ts
  * DataTypes.GEOMETRY
  * DataTypes.GEOMETRY('POINT')
  * DataTypes.GEOMETRY('POINT', 4326)
+ * ```
  *
- * @example <caption>Create a new point</caption>
+ * @example Create a new point
+ * ```ts
  * const point = { type: 'Point', coordinates: [-76.984722, 39.807222]}; // GeoJson format: [lng, lat]
  *
  * User.create({username: 'username', geometry: point });
+ * ```
  *
- * @example <caption>Create a new linestring</caption>
+ * @example Create a new linestring
+ * ```ts
  * const line = { type: 'LineString', 'coordinates': [ [100.0, 0.0], [101.0, 1.0] ] };
  *
  * User.create({username: 'username', geometry: line });
+ * ```
  *
- * @example <caption>Create a new polygon</caption>
+ * @example Create a new polygon
+ * ```ts
  * const polygon = { type: 'Polygon', coordinates: [
  *                 [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
  *                   [100.0, 1.0], [100.0, 0.0] ]
  *                 ]};
  *
  * User.create({username: 'username', geometry: polygon });
+ * ```
  *
- * @example <caption>Create a new point with a custom SRID</caption>
+ * @example Create a new point with a custom SRID
+ * ```ts
  * const point = {
  *   type: 'Point',
  *   coordinates: [-76.984722, 39.807222], // GeoJson format: [lng, lat]
@@ -2111,11 +2430,13 @@ export interface GeometryOptions {
  * };
  *
  * User.create({username: 'username', geometry: point })
+ * ```
  *
- *
- * @see {@link DataTypes.GEOGRAPHY}
+ * @see {@link <internal>~GEOGRAPHY}
+ * @category DataTypes
  */
 export class GEOMETRY extends AbstractDataType<GeoJson> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'GEOMETRY';
   readonly options: GeometryOptions;
 
@@ -2128,7 +2449,7 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
 
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
-  /** @internal */
+  /** @hidden */
   constructor(...args:
     | [type: GeoJsonType, srid?: number]
     | [options: GeometryOptions]
@@ -2186,15 +2507,20 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
  * Although the new geography data type can cover the globe, the geometry type is far from obsolete.
  * The geometry type has a much richer set of functions than geography, relationship checks are generally faster, and it has wider support currently across desktop and web-mapping tools
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
- * @example <caption>Defining a Geography type attribute</caption>
+ * @example Defining a Geography type attribute
+ * ```ts
  * DataTypes.GEOGRAPHY
  * DataTypes.GEOGRAPHY('POINT')
  * DataTypes.GEOGRAPHY('POINT', 4326)
+ * ```
+ *
+ * @category DataTypes
  */
 export class GEOGRAPHY extends GEOMETRY {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'GEOGRAPHY';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -2213,10 +2539,18 @@ export class GEOGRAPHY extends GEOMETRY {
  *
  * Only available for Postgres
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.CIDR
+ * ```
+ *
+ * @category DataTypes
  */
 export class CIDR extends AbstractDataType<string> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'CIDR';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -2243,10 +2577,18 @@ export class CIDR extends AbstractDataType<string> {
  *
  * Only available for Postgres
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.INET
+ * ```
+ *
+ * @category DataTypes
  */
 export class INET extends AbstractDataType<string> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'INET';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -2273,10 +2615,18 @@ export class INET extends AbstractDataType<string> {
  *
  * Only available for Postgres
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.MACADDR
+ * ```
+ *
+ * @category DataTypes
  */
 export class MACADDR extends AbstractDataType<string> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'MACADDR';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -2303,10 +2653,18 @@ export class MACADDR extends AbstractDataType<string> {
  *
  * Only available for Postgres
  *
- * Fallback policy:
+ * __Fallback policy:__
  * If this type is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.TSVECTOR
+ * ```
+ *
+ * @category DataTypes
  */
 export class TSVECTOR extends AbstractDataType<string> {
+  /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'TSVECTOR';
 
   validate(value: any) {
@@ -2347,4 +2705,3 @@ function assertDataTypeSupported(dialect: AbstractDialect, dataType: AbstractDat
     throwUnsupportedDataType(dialect, typeId);
   }
 }
-

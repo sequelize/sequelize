@@ -1,6 +1,6 @@
 import type { Model } from '..';
-import type { ErrorOptions, SequelizeErrorOptions } from './base-error';
-import BaseError from './base-error';
+import type { ErrorOptions } from './base-error';
+import { BaseError } from './base-error';
 
 /**
  * An enum that is used internally by the `ValidationErrorItem` class
@@ -33,7 +33,7 @@ export enum ValidationErrorItemOrigin {
   FUNCTION = 'FUNCTION',
 
   /**
-   * specifies validation errors that originate from {@link AbstractDataType#validate} constraint validation.
+   * specifies validation errors that originate from {@link <internal>~AbstractDataType#validate} constraint validation.
    */
   DATATYPE = 'DATATYPE',
 }
@@ -203,18 +203,16 @@ export class ValidationErrorItem extends Error {
  * @param message Error message
  * @param errors Array of ValidationErrorItem objects describing the validation errors
  */
-class ValidationError extends BaseError {
+export class ValidationError extends BaseError {
   /** Array of ValidationErrorItem objects describing the validation errors */
   readonly errors: ValidationErrorItem[];
 
   constructor(
     message: string,
     errors: ValidationErrorItem[] = [],
-    options: SequelizeErrorOptions & ErrorOptions = {},
+    options: ErrorOptions = {},
   ) {
-    const { stack, ...passUp } = options;
-
-    super(message, passUp);
+    super(message, options);
 
     this.name = 'SequelizeValidationError';
     this.errors = errors;
@@ -230,11 +228,6 @@ class ValidationError extends BaseError {
           (err: ValidationErrorItem) => `${err.type || err.origin}: ${err.message}`,
         )
         .join(',\n');
-    }
-
-    // Allow overriding the stack if the original stacktrace is uninformative
-    if (stack) {
-      this.stack = stack;
     }
   }
 
@@ -257,5 +250,3 @@ class ValidationError extends BaseError {
     return out;
   }
 }
-
-export default ValidationError;

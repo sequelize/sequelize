@@ -2,6 +2,7 @@
 
 import omit from 'lodash/omit';
 import { AbstractDataType } from './dialects/abstract/data-types';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { intersects } from './utils/array';
 import {
   noDoubleNestedGroup,
@@ -12,23 +13,21 @@ import {
 } from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
 import {
-  getComplexKeys,
   mapFinderOptions,
   mapOptionFieldNames,
   mapValueFieldNames,
-  mapWhereFieldNames,
 } from './utils/format';
 import { every, find } from './utils/iterators';
-import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap } from './utils/object';
+import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap, EMPTY_OBJECT } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { SequelizeMethod } from './utils/sequelize-method';
 import { Association, BelongsTo, BelongsToMany, HasMany, HasOne } from './associations';
 import { AssociationSecret } from './associations/helpers';
 import { Op } from './operators';
 import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
 import { QueryTypes } from './query-types';
+import { getComplexKeys } from './utils/where.js';
 
 const assert = require('node:assert');
 const NodeUtil = require('node:util');
@@ -147,7 +146,7 @@ export class Model extends ModelTypeScript {
         ? _.mapValues(getObjectFromMap(modelDefinition.defaultValues), getDefaultValue => {
           const value = getDefaultValue();
 
-          return value && value instanceof SequelizeMethod ? value : _.cloneDeep(value);
+          return value && value instanceof BaseSqlExpression ? value : _.cloneDeep(value);
         })
         : Object.create(null);
 
@@ -165,23 +164,23 @@ export class Model extends ModelTypeScript {
       const { createdAt: createdAtAttrName, updatedAt: updatedAtAttrName, deletedAt: deletedAtAttrName } = modelDefinition.timestampAttributeNames;
 
       if (createdAtAttrName && defaults[createdAtAttrName]) {
-        this.dataValues[createdAtAttrName] = toDefaultValue(defaults[createdAtAttrName], this.sequelize.dialect);
+        this.dataValues[createdAtAttrName] = toDefaultValue(defaults[createdAtAttrName]);
         delete defaults[createdAtAttrName];
       }
 
       if (updatedAtAttrName && defaults[updatedAtAttrName]) {
-        this.dataValues[updatedAtAttrName] = toDefaultValue(defaults[updatedAtAttrName], this.sequelize.dialect);
+        this.dataValues[updatedAtAttrName] = toDefaultValue(defaults[updatedAtAttrName]);
         delete defaults[updatedAtAttrName];
       }
 
       if (deletedAtAttrName && defaults[deletedAtAttrName]) {
-        this.dataValues[deletedAtAttrName] = toDefaultValue(defaults[deletedAtAttrName], this.sequelize.dialect);
+        this.dataValues[deletedAtAttrName] = toDefaultValue(defaults[deletedAtAttrName]);
         delete defaults[deletedAtAttrName];
       }
 
       for (const key in defaults) {
         if (values[key] === undefined) {
-          this.set(key, toDefaultValue(defaults[key], this.sequelize.dialect), { raw: true });
+          this.set(key, toDefaultValue(defaults[key]), { raw: true });
           delete values[key];
         }
       }
@@ -984,9 +983,11 @@ ${associationOwner._getAssociationDebugList()}`);
    *   take any arguments, or an array, where the first element is the name of the method, and consecutive elements are
    *   arguments to that method. Pass null to remove all scopes, including the default.
    *
-   * @example <caption>To invoke scope functions you can do</caption>
+   * @example To invoke scope functions you can do
+   * ```ts
    * Model.scope({ method: ['complexFunction', 'dan@sequelize.com', 42]}).findAll()
    * // WHERE email like 'dan@sequelize.com%' AND access_level >= 42
+   * ```
    *
    * @returns {Model} A reference to the model, with the scope(s) applied. Calling scope again on the returned model will
    *   clear the previous scope.
@@ -1393,7 +1394,7 @@ ${associationOwner._getAssociationDebugList()}`);
    */
   static async findByPk(param, options) {
     // return Promise resolved with null if no arguments are passed
-    if ([null, undefined].includes(param)) {
+    if (param == null) {
       return null;
     }
 
@@ -1401,6 +1402,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     if (typeof param === 'number' || typeof param === 'bigint' || typeof param === 'string' || Buffer.isBuffer(param)) {
       options.where = {
+        // TODO: support composite primary keys
         [this.primaryKeyAttribute]: param,
       };
     } else {
@@ -2240,17 +2242,23 @@ ${associationOwner._getAssociationDebugList()}`);
             return modelDefinition.getColumnName(attrName);
           });
 
-          const upsertKeys = [];
+          if (options.conflictAttributes) {
+            options.upsertKeys = options.conflictAttributes.map(
+              attrName => modelDefinition.getColumnName(attrName),
+            );
+          } else {
+            const upsertKeys = [];
 
-          for (const i of model.getIndexes()) {
-            if (i.unique && !i.where) { // Don't infer partial indexes
-              upsertKeys.push(...i.fields);
+            for (const i of model.getIndexes()) {
+              if (i.unique && !i.where) { // Don't infer partial indexes
+                upsertKeys.push(...i.fields);
+              }
             }
-          }
 
-          options.upsertKeys = upsertKeys.length > 0
-            ? upsertKeys
-            : Object.values(model.primaryKeys).map(x => x.field);
+            options.upsertKeys = upsertKeys.length > 0
+              ? upsertKeys
+              : Object.values(model.primaryKeys).map(x => x.field);
+          }
         }
 
         // Map returning attributes to fields
@@ -2439,7 +2447,7 @@ ${associationOwner._getAssociationDebugList()}`);
       throw new Error('Missing where or truncate attribute in the options parameter of model.destroy.');
     }
 
-    if (!options.truncate && !_.isPlainObject(options.where) && !Array.isArray(options.where) && !(options.where instanceof SequelizeMethod)) {
+    if (!options.truncate && !_.isPlainObject(options.where) && !Array.isArray(options.where) && !(options.where instanceof BaseSqlExpression)) {
       throw new Error('Expected plain object, array or sequelize method in the options.where parameter of model.destroy.');
     }
 
@@ -2799,7 +2807,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const attribute = attributes.get(attributeName);
     if (attribute?.defaultValue) {
-      return toDefaultValue(attribute.defaultValue, this.sequelize.dialect);
+      return toDefaultValue(attribute.defaultValue);
     }
   }
 
@@ -2882,15 +2890,21 @@ Instead of specifying a Model, either:
    *
    * The increment is done using a `SET column = column + X WHERE foo = 'bar'` query.
    *
-   * @example <caption>increment number by 1</caption>
+   * @example increment number by 1
+   * ```ts
    * Model.increment('number', { where: { foo: 'bar' });
+   * ```
    *
-   * @example <caption>increment number and count by 2</caption>
+   * @example increment number and count by 2
+   * ```ts
    * Model.increment(['number', 'count'], { by: 2, where: { foo: 'bar' } });
+   * ```
    *
-   * @example <caption>increment answer by 42, and decrement tries by 1</caption>
+   * @example increment answer by 42, and decrement tries by 1
+   * ```ts
    * // `by` cannot be used, as each attribute specifies its own value
    * Model.increment({ answer: 42, tries: -1}, { where: { foo: 'bar' } });
+   * ```
    *
    * @param  {string|Array|object} fields If a string is provided, that column is incremented by the
    *   value of `by` given in options. If an array is provided, the same is true for each column.
@@ -3000,15 +3014,21 @@ Instead of specifying a Model, either:
    * ```sql SET column = column - X WHERE foo = 'bar'``` query. To get the correct value after a decrement into the Instance
    * you should do a reload.
    *
-   * @example <caption>decrement number by 1</caption>
+   * @example decrement number by 1
+   * ```ts
    * Model.decrement('number', { where: { foo: 'bar' });
+   * ```
    *
-   * @example <caption>decrement number and count by 2</caption>
+   * @example decrement number and count by 2
+   * ```ts
    * Model.decrement(['number', 'count'], { by: 2, where: { foo: 'bar' } });
+   * ```
    *
-   * @example <caption>decrement answer by 42, and decrement tries by -1</caption>
+   * @example decrement answer by 42, and decrement tries by -1
+   * ```ts
    * // `by` is ignored, since each column has its own value
    * Model.decrement({ answer: 42, tries: -1}, { by: 2, where: { foo: 'bar' } });
+   * ```
    *
    * @param {string|Array|object} fields If a string is provided, that column is incremented by the value of `by` given in
    *   options. If an array is provided, the same is true for each column. If and object is provided, each column is
@@ -3030,7 +3050,7 @@ Instead of specifying a Model, either:
 
   static _optionsMustContainWhere(options) {
     assert(options && options.where, 'Missing where attribute in the options parameter');
-    assert(_.isPlainObject(options.where) || Array.isArray(options.where) || options.where instanceof SequelizeMethod,
+    assert(_.isPlainObject(options.where) || Array.isArray(options.where) || options.where instanceof BaseSqlExpression,
       'Expected plain object, array or sequelize method in the options.where parameter');
   }
 
@@ -3061,7 +3081,7 @@ Instead of specifying a Model, either:
       );
     }
 
-    const where = {};
+    const where = Object.create(null);
 
     for (const attributeName of modelDefinition.primaryKeysAttributeNames) {
       const attrVal = this.get(attributeName, { raw: true });
@@ -3081,7 +3101,7 @@ Instead of specifying a Model, either:
       where[versionAttr] = this.get(versionAttr, { raw: true });
     }
 
-    return mapWhereFieldNames(where, this.constructor);
+    return where;
   }
 
   toString() {
@@ -3136,7 +3156,7 @@ Instead of specifying a Model, either:
       attributeName = undefined;
     }
 
-    options = options || {};
+    options = options ?? EMPTY_OBJECT;
 
     const { attributes, attributesWithGetters } = this.constructor.modelDefinition;
 
@@ -3351,7 +3371,7 @@ Instead of specifying a Model, either:
       if (
         !options.comesFromDatabase
         && value != null
-        && !(value instanceof SequelizeMethod)
+        && !(value instanceof BaseSqlExpression)
         && attributeType
         // "type" can be a string
         && attributeType instanceof AbstractDataType
@@ -3364,7 +3384,7 @@ Instead of specifying a Model, either:
         !options.raw
         && (
           // True when sequelize method
-          value instanceof SequelizeMethod
+          value instanceof BaseSqlExpression
           // Otherwise, check for data type type comparators
           || ((value != null && attributeType && attributeType instanceof AbstractDataType) && !attributeType.areValuesEqual(value, originalValue, options))
           || ((value == null || !attributeType || !(attributeType instanceof AbstractDataType)) && !_.isEqual(value, originalValue))
@@ -3867,7 +3887,7 @@ Instead of specifying a Model, either:
       throw new Error('You attempted to update an instance that is not persisted.');
     }
 
-    options = options || {};
+    options = options ?? EMPTY_OBJECT;
     if (Array.isArray(options)) {
       options = { fields: options };
     }

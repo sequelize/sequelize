@@ -49,12 +49,7 @@ export class SqliteQuery extends AbstractQuery {
     return ret;
   }
 
-  _handleQueryResponse(metaData, columnTypes, err, results, errStack) {
-    if (err) {
-      err.sql = this.sql;
-      throw this.formatError(err, errStack);
-    }
-
+  _handleQueryResponse(metaData, results) {
     let result = this.instance;
 
     // add the inserted row id to the instance
@@ -185,87 +180,113 @@ export class SqliteQuery extends AbstractQuery {
     const method = this.getDatabaseMethod();
     const complete = this._logQuery(sql, debug, parameters);
 
-    return new Promise((resolve, reject) => {
-      conn.serialize(async () => {
-        // TODO: remove sql type based parsing for SQLite.
-        //  It is extremely inefficient (requires a series of DESCRIBE TABLE query, which slows down all queries).
-        //  and is very unreliable.
-        //  Use Sequelize DataType parsing instead, until sqlite3 provides a clean API to know the DB type.
-        const columnTypes = {};
-        const errForStack = new Error();
-        const executeSql = () => {
-          // TODO: remove this check. A query could start with a comment:
-          if (sql.startsWith('-- ')) {
-            return resolve();
-          }
+    // TODO: remove sql type based parsing for SQLite.
+    //  It is extremely inefficient (requires a series of DESCRIBE TABLE query, which slows down all queries).
+    //  and is very unreliable.
+    //  Use Sequelize DataType parsing instead, until sqlite3 provides a clean API to know the DB type.
+    const columnTypes = {};
 
-          const query = this;
+    const executeSql = async () => {
+      // TODO: remove this check. A query could start with a comment:
+      if (sql.startsWith('-- ')) {
+        return;
+      }
 
-          // cannot use arrow function here because the function is bound to the statement
-          function afterExecute(executionError, results) {
-            try {
-              complete();
-              // `this` is passed from sqlite, we have no control over this.
+      const query = this;
 
-              resolve(query._handleQueryResponse(this, columnTypes, executionError, results, errForStack.stack));
-            } catch (error) {
-              reject(error);
-            }
-          }
+      if (!parameters) {
+        parameters = [];
+      }
 
-          if (!parameters) {
-            parameters = [];
-          }
+      if (isPlainObject(parameters)) {
+        const newParameters = Object.create(null);
 
-          if (isPlainObject(parameters)) {
-            const newParameters = Object.create(null);
-
-            for (const key of Object.keys(parameters)) {
-              newParameters[`$${key}`] = stringifyIfBigint(parameters[key]);
-            }
-
-            parameters = newParameters;
-          } else {
-            parameters = parameters.map(stringifyIfBigint);
-          }
-
-          conn[method](sql, parameters, afterExecute);
-
-          return null;
-        };
-
-        if (this.getDatabaseMethod() === 'all') {
-          let tableNames = [];
-          if (this.options && this.options.tableNames) {
-            tableNames = this.options.tableNames;
-          } else if (/from `(.*?)`/i.test(this.sql)) {
-            tableNames.push(/from `(.*?)`/i.exec(this.sql)[1]);
-          }
-
-          // If we already have the metadata for the table, there's no need to ask for it again
-          tableNames = tableNames.filter(tableName => !(tableName in columnTypes) && tableName !== 'sqlite_master');
-
-          if (tableNames.length === 0) {
-            return executeSql();
-          }
-
-          await Promise.all(tableNames.map(tableName => new Promise(resolve => {
-            tableName = tableName.replace(/`/g, '');
-            columnTypes[tableName] = {};
-
-            conn.all(`PRAGMA table_info(\`${tableName}\`)`, (err, results) => {
-              if (!err) {
-                for (const result of results) {
-                  columnTypes[tableName][result.name] = result.type;
-                }
-              }
-
-              resolve();
-            });
-          })));
+        for (const key of Object.keys(parameters)) {
+          newParameters[`$${key}`] = stringifyIfBigint(parameters[key]);
         }
 
+        parameters = newParameters;
+      } else {
+        parameters = parameters.map(stringifyIfBigint);
+      }
+
+      let response;
+      try {
+
+        if (method === 'run') {
+          response = await this.#runSeries(conn, sql, parameters);
+        } else {
+          response = await this.#allSeries(conn, sql, parameters);
+        }
+      } catch (error) {
+        error.sql = this.sql;
+        throw this.formatError(error);
+      }
+
+      complete();
+
+      return query._handleQueryResponse(response.statement, response.results);
+    };
+
+    if (method === 'all') {
+      let tableNames = [];
+      if (this.options && this.options.tableNames) {
+        tableNames = this.options.tableNames;
+      } else if (/from `(.*?)`/i.test(this.sql)) {
+        tableNames.push(/from `(.*?)`/i.exec(this.sql)[1]);
+      }
+
+      // If we already have the metadata for the table, there's no need to ask for it again
+      tableNames = tableNames.filter(tableName => !(tableName in columnTypes) && tableName !== 'sqlite_master');
+
+      if (tableNames.length === 0) {
         return executeSql();
+      }
+
+      await Promise.all(tableNames.map(async tableName => {
+        tableName = tableName.replace(/`/g, '');
+        columnTypes[tableName] = {};
+
+        const { results } = await this.#allSeries(conn, `PRAGMA table_info(\`${tableName}\`)`);
+        for (const result of results) {
+          columnTypes[tableName][result.name] = result.type;
+        }
+      }));
+    }
+
+    return executeSql();
+  }
+
+  #allSeries(connection, query, parameters) {
+    return new Promise((resolve, reject) => {
+      connection.serialize(() => {
+        connection.all(query, parameters, function (err, results) {
+          if (err) {
+            reject(err);
+
+            return;
+          }
+
+          // node-sqlite3 passes the statement object as `this` to the callback
+          resolve({ statement: this, results });
+        });
+      });
+    });
+  }
+
+  #runSeries(connection, query, parameters) {
+    return new Promise((resolve, reject) => {
+      connection.serialize(() => {
+        connection.run(query, parameters, function (err, results) {
+          if (err) {
+            reject(err);
+
+            return;
+          }
+
+          // node-sqlite3 passes the statement object as `this` to the callback
+          resolve({ statement: this, results });
+        });
       });
     });
   }
@@ -320,7 +341,7 @@ export class SqliteQuery extends AbstractQuery {
     return constraints;
   }
 
-  formatError(err, errStack) {
+  formatError(err) {
 
     switch (err.code) {
       case 'SQLITE_CONSTRAINT_UNIQUE':
@@ -331,7 +352,6 @@ export class SqliteQuery extends AbstractQuery {
         if (err.message.includes('FOREIGN KEY constraint failed')) {
           return new sequelizeErrors.ForeignKeyConstraintError({
             cause: err,
-            stack: errStack,
           });
         }
 
@@ -373,14 +393,14 @@ export class SqliteQuery extends AbstractQuery {
           }
         }
 
-        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields, stack: errStack });
+        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
       }
 
       case 'SQLITE_BUSY':
-        return new sequelizeErrors.TimeoutError(err, { stack: errStack });
+        return new sequelizeErrors.TimeoutError(err);
 
       default:
-        return new sequelizeErrors.DatabaseError(err, { stack: errStack });
+        return new sequelizeErrors.DatabaseError(err);
     }
   }
 

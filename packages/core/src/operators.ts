@@ -1,4 +1,9 @@
-interface OpTypes {
+/**
+ * This interface is the type of the {@link Op} object.
+ *
+ * This type cannot be used directly, use {@link Op} instead.
+ */
+export interface OpTypes {
   /**
    * Operator -|- (PG range is adjacent to operator)
    *
@@ -204,6 +209,19 @@ interface OpTypes {
    * ```
    */
   readonly is: unique symbol;
+
+  /**
+   * Operator IS NOT
+   *
+   * ```js
+   * [Op.isNot]: null
+   * ```
+   * In SQL
+   * ```sql
+   * IS NOT null
+   * ```
+   */
+  readonly isNot: unique symbol;
   /**
    * Operator LIKE
    *
@@ -433,14 +451,6 @@ interface OpTypes {
    */
   readonly overlap: unique symbol;
   /**
-   * Internal placeholder
-   *
-   * ```js
-   * [Op.placeholder]: true
-   * ```
-   */
-  readonly placeholder: unique symbol;
-  /**
    * Operator REGEXP (MySQL/PG only)
    *
    * ```js
@@ -552,6 +562,7 @@ export const Op: OpTypes = {
   lt: Symbol.for('lt'),
   not: Symbol.for('not'),
   is: Symbol.for('is'),
+  isNot: Symbol.for('isNot'),
   in: Symbol.for('in'),
   notIn: Symbol.for('notIn'),
   like: Symbol.for('like'),
@@ -584,8 +595,6 @@ export const Op: OpTypes = {
   all: Symbol.for('all'),
   values: Symbol.for('values'),
   col: Symbol.for('col'),
-  placeholder: Symbol.for('placeholder'),
-  join: Symbol.for('join'),
   match: Symbol.for('match'),
   anyKeyExists: Symbol.for('anyKeyExists'),
   allKeysExist: Symbol.for('allKeysExist'),

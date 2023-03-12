@@ -85,7 +85,7 @@ User.init(
 );
 
 User.afterSync(() => {
-  sequelize.getQueryInterface().addIndex(User.tableName, {
+  sequelize.getQueryInterface().addIndex(User.table, {
     fields: ['lastName'],
     using: 'BTREE',
     name: 'lastNameIdx',

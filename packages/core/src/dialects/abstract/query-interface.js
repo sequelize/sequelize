@@ -62,34 +62,13 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Drop a schema
-   *
-   * @param {string} schema    Schema name to drop
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async dropSchema(schema, options) {
-    const query = this.queryGenerator.dropSchemaQuery(schema);
+    * Drop all schemas
+    *
+    * @param {object} [options] Query options
+    *
+    * @returns {Promise}
+    */
 
-    let sql;
-    if (typeof query === 'object') {
-      options = { ...options, bind: query.bind };
-      sql = query.query;
-    } else {
-      sql = query;
-    }
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
-   * Drop all schemas
-   *
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
   async dropAllSchemas(options) {
     options = options || {};
 
@@ -100,25 +79,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const schemas = await this.showAllSchemas(options);
 
     return Promise.all(schemas.map(schemaName => this.dropSchema(schemaName, options)));
-  }
-
-  /**
-   * Show all schemas
-   *
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise<Array>}
-   */
-  async showAllSchemas(options) {
-    const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
-
-    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, {
-      ...options,
-      raw: true,
-      type: this.sequelize.QueryTypes.SELECT,
-    });
-
-    return schemaNames.flatMap(value => (value.schema_name ? value.schema_name : value));
   }
 
   /**
@@ -260,7 +220,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options.cascade = options.cascade != null ? options.cascade
       // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
       : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
-      : undefined;
+        : undefined;
 
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
@@ -725,14 +685,17 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * - FOREIGN KEY
    * - PRIMARY KEY
    *
-   * @example <caption>UNIQUE</caption>
+   * @example UNIQUE
+   * ```ts
    * queryInterface.addConstraint('Users', {
    *   fields: ['email'],
    *   type: 'unique',
    *   name: 'custom_unique_constraint_name'
    * });
+   * ```
    *
-   * @example <caption>CHECK</caption>
+   * @example CHECK
+   * ```ts
    * queryInterface.addConstraint('Users', {
    *   fields: ['roles'],
    *   type: 'check',
@@ -740,22 +703,28 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *      roles: ['user', 'admin', 'moderator', 'guest']
    *   }
    * });
+   * ```
    *
-   * @example <caption>Default - MSSQL only</caption>
+   * @example Default - MSSQL only
+   * ```ts
    * queryInterface.addConstraint('Users', {
    *    fields: ['roles'],
    *    type: 'default',
    *    defaultValue: 'guest'
    * });
+   * ```
    *
-   * @example <caption>Primary Key</caption>
+   * @example Primary Key
+   * ```ts
    * queryInterface.addConstraint('Users', {
    *    fields: ['username'],
    *    type: 'primary key',
    *    name: 'custom_primary_constraint_name'
    * });
+   * ```
    *
-   * @example <caption>Foreign Key</caption>
+   * @example Foreign Key
+   * ```ts
    * queryInterface.addConstraint('Posts', {
    *   fields: ['username'],
    *   type: 'foreign key',
@@ -767,8 +736,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *   onDelete: 'cascade',
    *   onUpdate: 'cascade'
    * });
+   * ```
    *
-   * @example <caption>Composite Foreign Key</caption>
+   * @example Composite Foreign Key
+   * ```ts
    * queryInterface.addConstraint('TableName', {
    *   fields: ['source_column_name', 'other_source_column_name'],
    *   type: 'foreign key',
@@ -780,6 +751,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *   onDelete: 'cascade',
    *   onUpdate: 'cascade'
    * });
+   * ```
    *
    * @param {string} tableName                   Table name where you want to add a constraint
    * @param {object} options                     An object to define the constraint name, type etc
@@ -971,7 +943,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     const modelDefinition = instance?.constructor.modelDefinition;
 
-    options = { ...options };
+    options = { ...options, model: instance?.constructor };
     options.hasTrigger = modelDefinition?.options.hasTrigger;
 
     const { query, bind } = this.queryGenerator.updateQuery(
@@ -1119,7 +1091,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   async select(model, tableName, optionsArg) {
-    const options = { ...optionsArg, type: QueryTypes.SELECT, model };
+    const minifyAliases = optionsArg.minifyAliases ?? this.sequelize.options.minifyAliases;
+    const options = { ...optionsArg, type: QueryTypes.SELECT, model, minifyAliases };
 
     const sql = this.queryGenerator.selectQuery(tableName, options, model);
 
@@ -1137,11 +1110,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return this.#arithmeticQuery('-', model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
   }
 
-  async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
+  async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options) {
     options = cloneDeep(options);
     options.model = model;
 
-    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
+    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options);
 
     options.type = QueryTypes.UPDATE;
 

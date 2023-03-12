@@ -42,4 +42,19 @@ export class MariaDbQueryGeneratorTypeScript extends MySqlQueryGenerator {
       this.quoteTable(tableName),
     ]);
   }
+
+  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
+    const sql = super.jsonPathExtractionQuery(sqlExpression, path, unquote);
+
+    if (unquote) {
+      return sql;
+    }
+
+    // MariaDB has a very annoying behavior with json_extract: It returns the JSON value as a proper JSON string (e.g. "true" or "null" instead true or null)
+    // Except if the value is going to be used in a comparison, in which case it unquotes it automatically (even if we did not call JSON_UNQUOTE).
+    // This is a problem because it makes it impossible to distinguish between a JSON text "true" and a JSON boolean true.
+    // This useless function call is here to make mariadb not think the value will be used in a comparison, and thus not unquote it.
+    // We could replace it with a custom function that does nothing, but this would require a custom function to be created on the database ahead of time.
+    return `json_compact(${sql})`;
+  }
 }

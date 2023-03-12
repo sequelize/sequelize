@@ -1444,11 +1444,6 @@ The following associations are defined on "Worker": "ToDos"`);
           expect(user.Image.get('path')).to.equal('folder1/folder2/logo.png');
         }
       });
-
-      it('should throw for undefined where parameters', async function () {
-        await expect(this.User.findAll({ where: { username: undefined } }))
-          .to.be.rejectedWith('WHERE parameter "username" has invalid "undefined" value');
-      });
     });
   });
 

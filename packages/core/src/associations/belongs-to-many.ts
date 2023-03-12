@@ -1,44 +1,44 @@
 import each from 'lodash/each';
 import isEqual from 'lodash/isEqual';
-import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import upperFirst from 'lodash/upperFirst';
+import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
 import { AssociationError } from '../errors';
+import { col } from '../expression-builders/col.js';
+import { fn } from '../expression-builders/fn.js';
 import type {
+  AttributeNames,
+  Attributes,
   BulkCreateOptions,
   CreateOptions,
   CreationAttributes,
   Filterable,
   FindAttributeOptions,
   FindOptions,
+  Includeable,
   InstanceDestroyOptions,
   InstanceUpdateOptions,
-  Transactionable,
-  ModelStatic,
   Model,
-  WhereOptions,
-  AttributeNames,
-  Attributes,
-  Includeable,
   ModelAttributes,
-  UpdateOptions,
   ModelOptions,
+  ModelStatic,
+  Transactionable,
+  UpdateOptions,
 } from '../model';
 import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
-import { col, fn } from '../sequelize';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
 import type { AllowArray } from '../utils/types.js';
 import type {
+  Association,
+  AssociationOptions,
   AssociationScope,
   ForeignKeyOptions,
-  MultiAssociationOptions,
   MultiAssociationAccessors,
-  AssociationOptions,
+  MultiAssociationOptions,
   NormalizedAssociationOptions,
-  Association,
 } from './base';
 import { MultiAssociation } from './base';
 import type { BelongsTo } from './belongs-to';
@@ -48,7 +48,10 @@ import type { AssociationStatic, MaybeForwardedModelStatic } from './helpers';
 import {
   AssociationSecret,
   defineAssociation,
-  mixinMethods, normalizeBaseAssociationOptions, normalizeForeignKeyOptions,
+  isThroughOptions,
+  mixinMethods,
+  normalizeBaseAssociationOptions,
+  normalizeForeignKeyOptions,
 } from './helpers';
 
 function addInclude(findOptions: FindOptions, include: Includeable) {
@@ -584,7 +587,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     const newInstances = newInstancesOrPrimaryKeys === null ? [] : this.toInstanceArray(newInstancesOrPrimaryKeys);
 
-    const where = {
+    const where: WhereOptions = {
       [foreignKey]: sourceInstance.get(sourceKey),
       ...this.through.scope,
     };
@@ -649,16 +652,18 @@ Add your own primary key to the through model, on different attributes than the 
 
     const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
 
+    const where: WhereOptions = {
+      [this.foreignKey]: sourceInstance.get(this.sourceKey),
+      [this.otherKey]: newInstances.map(newInstance => newInstance.get(this.targetKey)),
+      ...this.through.scope,
+    };
+
     let currentRows: any[] = [];
     if (this.through?.unique ?? true) {
       currentRows = await this.through.model.findAll({
         ...options,
         raw: true,
-        where: {
-          [this.foreignKey]: sourceInstance.get(this.sourceKey),
-          [this.otherKey]: newInstances.map(newInstance => newInstance.get(this.targetKey)),
-          ...this.through.scope,
-        },
+        where,
         // force this option to be false, in case the user enabled
         rejectOnEmpty: false,
       });
@@ -747,12 +752,14 @@ Add your own primary key to the through model, on different attributes than the 
         throughAttributes = {};
       }
 
+      const where: WhereOptions = {
+        [foreignKey]: sourceInstance.get(sourceKey),
+        [otherKey]: changedTarget.get(targetKey),
+      };
+
       promises.push(this.through.model.update(attributes, {
         ...options,
-        where: {
-          [foreignKey]: sourceInstance.get(sourceKey),
-          [otherKey]: changedTarget.get(targetKey),
-        },
+        where,
       }));
     }
 
@@ -773,7 +780,7 @@ Add your own primary key to the through model, on different attributes than the 
   ): Promise<void> {
     const targetInstance = this.toInstanceArray(targetInstanceOrPks);
 
-    const where = {
+    const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       [this.otherKey]: targetInstance.map(newInstance => newInstance.get(this.targetKey)),
       ...this.through.scope,
@@ -823,10 +830,6 @@ Add your own primary key to the through model, on different attributes than the 
 Object.defineProperty(BelongsToMany, 'name', {
   value: 'BelongsToMany',
 });
-
-export function isThroughOptions<M extends Model>(val: any): val is ThroughOptions<M> {
-  return isPlainObject(val) && 'model' in val;
-}
 
 function normalizeThroughOptions<M extends Model>(
   source: ModelStatic<any>,
@@ -981,7 +984,7 @@ export interface BelongsToManyOptions<
    * Should "ON UPDATE", "ON DELETE" and "REFERENCES" constraints be enabled on the foreign key?
    *
    * This only affects the foreign key that points to the source model.
-   * to control the one that points to the target model, set {@link BelongsToManyOptions.inverse.foreignKeyConstraints}.
+   * to control the one that points to the target model, set the "foreignKeyConstraints" option in {@link BelongsToManyOptions.inverse}.
    */
   foreignKeyConstraints?: boolean;
 

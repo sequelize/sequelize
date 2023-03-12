@@ -6,8 +6,6 @@ export type DeepWriteable<T> = {
   -readonly [K in keyof T]: T[K] extends Function ? T[K] : DeepWriteable<T[K]>
 };
 
-export type PartlyRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
-
 export type AnyFunction = (...args: any[]) => any;
 
 /**
@@ -56,7 +54,7 @@ export type NullishPropertiesOf<T> = {
  * };
  * ```
  */
-export type MakeNullishOptional<T extends object> = Optional<T, NullishPropertiesOf<T>>;
+export type MakeNullishOptional<T extends object> = PartialBy<T, NullishPropertiesOf<T>>;
 
 /**
  * Makes the type accept null & undefined
@@ -80,7 +78,10 @@ type NonConstructorKeys<T> = ({ [P in keyof T]: T[P] extends new () => any ? nev
 export type OmitConstructors<T> = Pick<T, NonConstructorKeys<T>>;
 
 /**
- * Type helper for making certain fields of an object optional. This is helpful
- * for creating the `CreationAttributes` from your `Attributes` for a Model.
+ * Type helper for making certain fields of an object optional.
  */
-export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+
+export type ReadOnlyRecord<K extends PropertyKey, V> = Readonly<Record<K, V>>;

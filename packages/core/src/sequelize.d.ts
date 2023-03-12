@@ -1,10 +1,16 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
-import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, PartlyRequired, Op, DataTypes } from '.';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type { CreateSchemaOptions } from './dialects/abstract/query-interface.types';
+import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
+import type { cast } from './expression-builders/cast.js';
+import type { col } from './expression-builders/col.js';
+import type { fn, Fn } from './expression-builders/fn.js';
+import type { json } from './expression-builders/json.js';
+import type { literal } from './expression-builders/literal.js';
+import type { where } from './expression-builders/where.js';
 import type {
   DestroyOptions,
   DropOptions,
@@ -13,19 +19,18 @@ import type {
   AttributeOptions,
   ModelAttributes,
   ModelOptions,
-  WhereOperators,
   Hookable,
   ModelStatic,
   Attributes,
   ColumnReference,
   Transactionable,
   Poolable,
-  WhereAttributeHashValue,
 } from './model';
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
-import type { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method.js';
+import type { RequiredBy } from './utils/types.js';
+import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes, AbstractQueryGenerator } from '.';
 
 export type RetryOptions = RetryAsPromisedOptions;
 
@@ -142,13 +147,6 @@ export interface NormalizedReplicationOptions {
   read: ConnectionOptions[];
 
   write: ConnectionOptions;
-}
-
-/**
- * Used to map operators to their Symbol representations
- */
-export interface OperatorsAliases {
-  [K: string]: symbol;
 }
 
 /**
@@ -386,15 +384,6 @@ export interface Options extends Logging {
   noTypeValidation?: boolean;
 
   /**
-   * Sets available operator aliases.
-   * See (https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#operators) for more information.
-   * WARNING: Setting this to boolean value was deprecated and is no-op.
-   *
-   * @default all aliases
-   */
-  operatorsAliases?: OperatorsAliases;
-
-  /**
    * The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option.
    * WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    *
@@ -456,7 +445,7 @@ export interface Options extends Logging {
   disableClsTransactions?: boolean;
 }
 
-export interface NormalizedOptions extends PartlyRequired<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone' | 'disableClsTransactions'> {
+export interface NormalizedOptions extends RequiredBy<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone' | 'disableClsTransactions'> {
   readonly replication: NormalizedReplicationOptions;
 }
 
@@ -474,7 +463,7 @@ export interface DialectOptions {
 
 export interface QueryOptionsTransactionRequired { }
 
-type BindOrReplacements = { [key: string]: unknown } | unknown[];
+export type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
 
 /**
@@ -495,8 +484,8 @@ export interface QueryRawOptions extends Logging, Transactionable, Poolable {
 
   /**
    * If true, transforms objects with `.` separated property names into nested objects using
-   * [dottie.js](https://github.com/mickhansen/dottie.js). For example { 'user.username': 'john' } becomes
-   * { user: { username: 'john' }}. When `nest` is true, the query type is assumed to be `'SELECT'`,
+   * [dottie.js](https://github.com/mickhansen/dottie.js). For example `{ 'user.username': 'john' }` becomes
+   * `{ user: { username: 'john' }}`. When `nest` is true, the query type is assumed to be `'SELECT'`,
    * unless otherwise specified
    *
    * @default false
@@ -578,8 +567,8 @@ export interface QueryOptionsWithModel<M extends Model> extends QueryOptions {
  * This is the main class, the entry point to sequelize. To use it, you just need to
  * import sequelize:
  *
- * ```js
- * const { Sequelize } = require('@sequelize/core');
+ * ```ts
+ * import { Sequelize } from '@sequelize/core';
  * ```
  *
  * In addition to sequelize, the connection library for the dialect you want to use
@@ -597,16 +586,23 @@ export class Sequelize extends SequelizeTypeScript {
    * not a strings.
    *
    * Convert a user's username to upper case
-   * ```js
+   * ```ts
    * instance.update({
-   *   username: self.sequelize.fn('upper', self.sequelize.col('username'))
+   *   username: fn('upper', col('username'))
    * })
    * ```
    *
    * @param fn The function you want to call
    * @param args All further arguments will be passed as arguments to the function
+   *
+   * @deprecated use top level {@link fn} instead
+   * @hidden
    */
   static fn: typeof fn;
+  /**
+   * @deprecated use top level {@link fn} instead
+   * @hidden
+   */
   fn: typeof fn;
 
   /**
@@ -614,8 +610,15 @@ export class Sequelize extends SequelizeTypeScript {
    * `sequelize.fn`, since raw string arguments to fn will be escaped.
    *
    * @param col The name of the column
+   *
+   * @deprecated use top level {@link col} instead
+   * @hidden
    */
   static col: typeof col;
+  /**
+   * @deprecated use top level {@link col} instead
+   * @hidden
+   */
   col: typeof col;
 
   /**
@@ -623,32 +626,61 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @param val The value to cast
    * @param type The type to cast it to
+   *
+   * @deprecated use top level {@link cast} instead
+   * @hidden
    */
   static cast: typeof cast;
+  /**
+   * @deprecated use top level {@link cast} instead
+   * @hidden
+   */
   cast: typeof cast;
 
   /**
    * Creates a object representing a literal, i.e. something that will not be escaped.
    *
    * @param val
+   *
+   * @deprecated use top level {@link literal} instead
+   * @hidden
    */
   static literal: typeof literal;
+  /**
+   * @deprecated use top level {@link literal} instead
+   * @hidden
+   */
   literal: typeof literal;
 
   /**
    * An AND query
    *
    * @param args Each argument will be joined by AND
+   *
+   * @deprecated use top level {@link and} instead
+   * @hidden
    */
   static and: typeof and;
+  /**
+   * @deprecated use top level {@link and} instead
+   * @hidden
+   */
   and: typeof and;
 
   /**
    * An OR query
    *
    * @param args Each argument will be joined by OR
+   *
+   * @deprecated use top level {@link or} instead
+   * @hidden
    */
   static or: typeof or;
+
+  /**
+   * @deprecated use top level {@link or} instead
+   * @hidden
+   */
   or: typeof or;
 
   /**
@@ -658,8 +690,15 @@ export class Sequelize extends SequelizeTypeScript {
    *   notation or a string using postgres json syntax.
    * @param value An optional value to compare against.
    *   Produces a string of the form "&lt;json path&gt; = '&lt;value&gt;'"`.
+   *
+   * @deprecated use top level {@link json} instead
+   * @hidden
    */
   static json: typeof json;
+  /**
+   * @deprecated use top level {@link json} instead
+   * @hidden
+   */
   json: typeof json;
 
   /**
@@ -679,11 +718,27 @@ export class Sequelize extends SequelizeTypeScript {
    * @param comparator Comparator
    * @param logic The condition. Can be both a simply type, or a further condition (`.or`, `.and`, `.literal`
    *   etc.)
+   *
+   * @deprecated use top level {@link where} instead
+   * @hidden
    */
   static where: typeof where;
+  /**
+   * @deprecated use top level {@link where} instead
+   * @hidden
+   */
   where: typeof where;
 
+  /**
+   * @deprecated use top level {@link Op} instead
+   * @hidden
+   */
   static Op: typeof Op;
+
+  /**
+   * @deprecated use top level {@link DataTypes} instead
+   * @hidden
+   */
   static DataTypes: typeof DataTypes;
 
   /**
@@ -708,7 +763,7 @@ export class Sequelize extends SequelizeTypeScript {
    * Dictionary of all models linked with this instance.
    */
   models: {
-    [key: string]: ModelStatic<Model>,
+    [key: string]: ModelStatic,
   };
 
   /**
@@ -772,6 +827,11 @@ export class Sequelize extends SequelizeTypeScript {
    * The QueryInterface instance, dialect dependant.
    */
   queryInterface: AbstractQueryInterface;
+
+  /**
+   * The QueryGenerator instance, dialect dependant.
+   */
+  queryGenerator: AbstractQueryGenerator;
 
   /**
    * Define a new model, representing a table in the DB.
@@ -984,7 +1044,7 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @param [options] The options passed to Model.destroy in addition to truncate
    */
-  truncate(options?: DestroyOptions<any>): Promise<unknown[]>;
+  truncate(options?: DestroyOptions): Promise<unknown[]>;
 
   /**
    * Drop all tables defined through this sequelize instance. This is done by calling Model.drop on each model
@@ -1035,50 +1095,6 @@ export class Sequelize extends SequelizeTypeScript {
 // Utilities
 
 /**
- * Creates a object representing a database function. This can be used in search queries, both in where and
- * order parts, and as default values in column definitions. If you want to refer to columns in your
- * function, you should use `sequelize.col`, so that the columns are properly interpreted as columns and
- * not a strings.
- *
- * Convert a user's username to upper case
- * ```js
- * instance.update({
- *   username: self.sequelize.fn('upper', self.sequelize.col('username'))
- * })
- * ```
- *
- * @param sqlFunction The function you want to call
- * @param args All further arguments will be passed as arguments to the function
- */
-export function fn(
-  sqlFunction: string,
-  ...args: Fn['args']
-): Fn;
-
-/**
- * Creates a object representing a column in the DB. This is often useful in conjunction with
- * `sequelize.fn`, since raw string arguments to fn will be escaped.
- *
- * @param columnName The name of the column
- */
-export function col(columnName: string): Col;
-
-/**
- * Creates a object representing a call to the cast function.
- *
- * @param val The value to cast
- * @param type The type to cast it to
- */
-export function cast(val: unknown, type: string): Cast;
-
-/**
- * Creates a object representing a literal, i.e. something that will not be escaped.
- *
- * @param val
- */
-export function literal(val: string): Literal;
-
-/**
  * An AND query
  *
  * @param args Each argument will be joined by AND
@@ -1092,62 +1108,4 @@ export function and<T extends any[]>(...args: T): { [Op.and]: T };
  */
 export function or<T extends any[]>(...args: T): { [Op.or]: T };
 
-/**
- * Creates an object representing nested where conditions for postgres's json data-type.
- *
- * @param conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot
- *   notation or a string using postgres json syntax.
- * @param value An optional value to compare against.
- *   Produces a string of the form "&lt;json path&gt; = '&lt;value&gt;'".
- */
-export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
-
-export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | AttributeOptions;
-
-/**
- * A way of specifying "attr = condition".
- * Can be used as a replacement for the POJO syntax (e.g. `where: { name: 'Lily' }`) when you need to compare a column that the POJO syntax cannot represent.
- *
- * @param leftOperand The left side of the comparison.
- *  - A value taken from YourModel.rawAttributes, to reference an attribute.
- *    The attribute must be defined in your model definition.
- *  - A Literal (using {@link Sequelize#literal})
- *  - A SQL Function (using {@link Sequelize#fn})
- *  - A Column name (using {@link Sequelize#col})
- *  Note that simple strings to reference an attribute are not supported. You can use the POJO syntax instead.
- * @param operator The comparison operator to use. If unspecified, defaults to {@link Op.eq}.
- * @param rightOperand The right side of the comparison. Its value depends on the used operator.
- *  See {@link WhereOperators} for information about what value is valid for each operator.
- *
- * @example
- * // Using an attribute as the left operand.
- * // Equal to: WHERE first_name = 'Lily'
- * where(User.rawAttributes.firstName, Op.eq, 'Lily');
- *
- * @example
- * // Using a column name as the left operand.
- * // Equal to: WHERE first_name = 'Lily'
- * where(col('first_name'), Op.eq, 'Lily');
- *
- * @example
- * // Using a SQL function on the left operand.
- * // Equal to: WHERE LOWER(first_name) = 'lily'
- * where(fn('LOWER', col('first_name')), Op.eq, 'lily');
- *
- * @example
- * // Using raw SQL as the left operand.
- * // Equal to: WHERE 'Lily' = 'Lily'
- * where(literal(`'Lily'`), Op.eq, 'Lily');
- */
-export function where<OpSymbol extends keyof WhereOperators>(
-  leftOperand: WhereLeftOperand | Where,
-  operator: OpSymbol,
-  rightOperand: WhereOperators[OpSymbol]
-): Where;
-export function where(leftOperand: any, operator: string, rightOperand: any): Where;
-export function where(leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>): Where;
-
-type ContinuationLocalStorageNamespace = {
-  get(key: string): unknown,
-  set(key: string, value: unknown): void,
-};
+export type Expression = ColumnReference | DynamicSqlExpression | unknown;

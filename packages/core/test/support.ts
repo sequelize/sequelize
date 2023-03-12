@@ -47,7 +47,11 @@ function withInlineCause(cb: (() => any)): () => void {
   };
 }
 
-function inlineErrorCause(error: Error) {
+export function inlineErrorCause(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return String(error);
+  }
+
   let message = error.message;
 
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
@@ -278,12 +282,17 @@ export function getPoolMax(): number {
   return Config[getTestDialect()].pool?.max ?? 1;
 }
 
-type ExpectationKey = 'default' | Permutations<Dialect>;
+type ExpectationKey = 'default' | Permutations<Dialect, 4>;
 
 export type ExpectationRecord<V> = PartialRecord<ExpectationKey, V | Expectation<V> | Error>;
 
-type Permutations<T extends string, U extends string = T> =
-  T extends any ? (T | `${T} ${Permutations<Exclude<U, T>>}`) : never;
+type DecrementedDepth = [never, 0, 1, 2, 3];
+
+type Permutations<T extends string, Depth extends number, U extends string = T> = Depth extends 0
+  ? never
+  : T extends any
+    ? T | `${T} ${Permutations<Exclude<U, T>, DecrementedDepth[Depth]>}`
+    : never;
 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
@@ -327,9 +336,9 @@ export function expectPerDialect<Out>(
   if (expectation instanceof Error) {
     assert(result instanceof Error, `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`);
 
-    expect(result.message).to.equal(expectation.message);
+    expect(inlineErrorCause(result)).to.include(expectation.message);
   } else {
-    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${result instanceof Error ? result.message : ''}`);
+    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`);
 
     assertMatchesExpectation(result, expectation);
   }
@@ -398,7 +407,7 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(properties
 type MaybeLazy<T> = T | (() => T);
 
 export function expectsql(
-  query: MaybeLazy<{ query: string, bind: unknown } | Error>,
+  query: MaybeLazy<{ query: string, bind?: unknown } | Error>,
   assertions: {
     query: PartialRecord<ExpectationKey, string | Error>,
     bind: PartialRecord<ExpectationKey, unknown>,
@@ -409,7 +418,7 @@ export function expectsql(
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: MaybeLazy<string | Error | { query: string, bind: unknown }>,
+  query: MaybeLazy<string | Error | { query: string, bind?: unknown }>,
   assertions:
     | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
     | PartialRecord<ExpectationKey, string | Error>,
@@ -417,8 +426,21 @@ export function expectsql(
   const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> = 'query' in assertions ? assertions.query : assertions;
   const expectations: PartialRecord<'default' | Dialect, string | Error> = Object.create(null);
 
+  /**
+   * The list of expectations that are run against more than one dialect, which enables the transformation of
+   * identifier quoting to match the dialect.
+   */
+  const combinedExpectations = new Set<Dialect | 'default'>();
+  combinedExpectations.add('default');
+
   for (const [key, value] of Object.entries(rawExpectationMap)) {
     const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+
+    if (acceptedDialects.length > 1) {
+      for (const dialect of acceptedDialects) {
+        combinedExpectations.add(dialect);
+      }
+    }
 
     for (const dialect of acceptedDialects) {
       if (dialect === 'default' && acceptedDialects.length > 1) {
@@ -433,23 +455,20 @@ export function expectsql(
     }
   }
 
-  let expectation = expectations[sequelize.dialect.name];
-
   const dialect = sequelize.dialect;
+  const usedExpectationName = dialect.name in expectations ? dialect.name : 'default';
 
-  if (!expectation) {
-    if (expectations.default !== undefined) {
-      expectation = expectations.default;
-      if (typeof expectation === 'string') {
-        // replace [...] with the proper quote character for the dialect
-        // except for ARRAY[...]
-        expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
-        if (dialect.name === 'ibmi') {
-          expectation = expectation.trim().replace(/;$/, '');
-        }
-      }
-    } else {
-      throw new Error(`Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
+  let expectation = expectations[usedExpectationName];
+  if (expectation == null) {
+    throw new Error(`Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
+  }
+
+  if (combinedExpectations.has(usedExpectationName) && typeof expectation === 'string') {
+    // replace [...] with the proper quote character for the dialect
+    // except for ARRAY[...]
+    expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
+    if (dialect.name === 'ibmi') {
+      expectation = expectation.trim().replace(/;$/, '');
     }
   }
 
@@ -468,9 +487,9 @@ export function expectsql(
   if (expectation instanceof Error) {
     assert(query instanceof Error, `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`);
 
-    expect(query.message).to.equal(expectation.message);
+    expect(inlineErrorCause(query)).to.include(expectation.message);
   } else {
-    assert(!(query instanceof Error), `Expected query to equal ${minifySql(expectation)}, but it errored with ${query instanceof Error ? query.message : ''}`);
+    assert(!(query instanceof Error), `Expected query to equal:\n${minifySql(expectation)}\n\nBut it errored with:\n${inlineErrorCause(query)}`);
 
     expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
   }

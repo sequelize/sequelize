@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import type { Class } from 'type-fest';
-import type { Logging, Deferrable, PartlyRequired, Connection, Sequelize } from './index.js';
+import type { RequiredBy } from './utils/types.js';
+import type { Logging, Deferrable, Connection, Sequelize } from './index.js';
 
 type AfterTransactionCommitCallback = (transaction: Transaction) => void | Promise<void>;
 
@@ -18,7 +19,7 @@ export class Transaction {
 
   private readonly _afterCommitHooks: Set<AfterTransactionCommitCallback> = new Set();
   private readonly savepoints: Transaction[] = [];
-  private readonly options: PartlyRequired<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
+  private readonly options: RequiredBy<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
   private readonly parent: Transaction | null;
   readonly id: string;
   private readonly name: string;
@@ -283,7 +284,8 @@ export class Transaction {
    *   lock: t1.LOCK...
    * });
    *
-   * @example <caption>Postgres also supports specific locks while eager loading by using OF:</caption>
+   * @example Postgres also supports specific locks while eager loading by using OF:
+   * ```ts
    * UserModel.findAll({
    *   where: ...,
    *   include: [TaskModel, ...],
@@ -293,10 +295,12 @@ export class Transaction {
    *     of: UserModel
    *   }
    * });
+   * ```
    *
-   * # UserModel will be locked but TaskModel won't!
+   * UserModel will be locked but TaskModel won't!
    *
-   * @example <caption>You can also skip locked rows:</caption>
+   * @example You can also skip locked rows:
+   * ```ts
    * // t1 is a transaction
    * Model.findAll({
    *   where: ...,
@@ -304,7 +308,9 @@ export class Transaction {
    *   lock: true,
    *   skipLocked: true
    * });
-   * # The query will now return any rows that aren't locked by another transaction
+   * ```
+   *
+   * The query will now return any rows that aren't locked by another transaction
    *
    * @returns possible options for row locking
    * @property UPDATE
@@ -354,6 +360,7 @@ export class Transaction {
  * }
  * ```
  */
+// TODO [>=8]: Rename to IsolationLevel
 export enum ISOLATION_LEVELS {
   READ_UNCOMMITTED = 'READ UNCOMMITTED',
   READ_COMMITTED = 'READ COMMITTED',
@@ -361,6 +368,7 @@ export enum ISOLATION_LEVELS {
   SERIALIZABLE = 'SERIALIZABLE',
 }
 
+// TODO [>=8]: Rename to TransactionType
 export enum TRANSACTION_TYPES {
   DEFERRED = 'DEFERRED',
   IMMEDIATE = 'IMMEDIATE',
@@ -396,6 +404,7 @@ export enum TRANSACTION_TYPES {
  *
  * [Read more on transaction locks here](https://sequelize.org/docs/v7/other-topics/transactions/#locks)
  */
+// TODO [>=8]: Rename to Lock
 export enum LOCK {
   UPDATE = 'UPDATE',
   SHARE = 'SHARE',

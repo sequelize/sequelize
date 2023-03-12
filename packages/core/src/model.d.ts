@@ -10,36 +10,36 @@ import type {
   HasOne,
   HasOneOptions,
 } from './associations/index';
-import type { LOCK, Op, Transaction, TableHints } from './index';
 import type { Deferrable } from './deferrable';
-import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
+import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
 import type {
   IndexOptions,
   TableName,
   TableNameWithSchema,
   IndexField,
 } from './dialects/abstract/query-interface';
+import type {
+  DynamicSqlExpression,
+} from './expression-builders/base-sql-expression.js';
+import type { Cast } from './expression-builders/cast.js';
+import type { Col } from './expression-builders/col.js';
+import type { Fn } from './expression-builders/fn.js';
+import type { Literal } from './expression-builders/literal.js';
+import type { Where } from './expression-builders/where.js';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
 import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
 import type {
-  Cast,
-  Col,
-  Fn,
-  Json,
-  Literal,
-  Where,
-} from './utils/sequelize-method.js';
-import type {
   AllowArray,
   AllowReadonlyArray,
   AnyFunction,
   MakeNullishOptional,
   Nullish,
-  OmitConstructors, PartlyRequired,
+  OmitConstructors, RequiredBy,
 } from './utils/types.js';
+import type { LOCK, Op, Transaction, TableHints, WhereOptions } from './index';
 
 export interface Logging {
   /**
@@ -168,38 +168,6 @@ export interface ScopeOptions {
 
 type InvalidInSqlArray = ColumnReference | Fn | Cast | null | Literal;
 
-/**
- * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
- * It also supports using a plain Array as an alias for `Op.and`. (unlike {@link AllowNotOrAndRecursive}).
- *
- * Example of plain-array treated as `Op.and`:
- * User.findAll({ where: [{ id: 1 }, { id: 2 }] });
- *
- * Meant to be used by {@link WhereOptions}.
- */
-type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
-  // this is the equivalent of Op.and
-  | T
-  | { [Op.or]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
-  | { [Op.and]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
-  | { [Op.not]: AllowNotOrAndWithImplicitAndArrayRecursive<T> }
-  >;
-
-/**
- * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
- * Unlike {@link AllowNotOrAndWithImplicitAndArrayRecursive}, it does not allow the 'implicit AND Array'.
- *
- * Example of plain-array NOT treated as Op.and:
- * User.findAll({ where: { id: [1, 2] } });
- *
- * Meant to be used by {@link WhereAttributeHashValue}.
- */
-type AllowNotOrAndRecursive<T> =
-  | T
-  | { [Op.or]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.and]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.not]: AllowNotOrAndRecursive<T> };
-
 type AllowAnyAll<T> =
   | T
   // Op.all: [x, z] results in ALL (ARRAY[x, z])
@@ -207,20 +175,9 @@ type AllowAnyAll<T> =
   | { [Op.all]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } }
   | { [Op.any]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } };
 
-/**
- * The type accepted by every `where` option
- */
-export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayRecursive<
-  | WhereAttributeHash<TAttributes>
-  | Literal
-  | Fn
-  | Where
-  | Json
->;
-
 // number is always allowed because -Infinity & +Infinity are valid
 /**
- * This type represents a valid input when describing a {@link RANGE}.
+ * This type represents a valid input when describing a {@link <internal>~RANGE}.
  */
 export type Rangable<T> = readonly [
   lower: T | InputRangePart<T> | number | null,
@@ -228,7 +185,7 @@ export type Rangable<T> = readonly [
 ] | EmptyRange;
 
 /**
- * This type represents the output of the {@link RANGE} data type.
+ * This type represents the output of the {@link <internal>~RANGE} data type.
  */
 // number is always allowed because -Infinity & +Infinity are valid
 export type Range<T> = readonly [
@@ -326,11 +283,8 @@ export interface WhereOperators<AttributeType = any> {
    */
   [Op.is]?: Extract<AttributeType, null | boolean> | Literal;
 
-  /**
-   * @example `[Op.not]: true` becomes `IS NOT TRUE`
-   * @example `{ col: { [Op.not]: { [Op.gt]: 5 } } }` becomes `NOT (col > 5)`
-   */
-  [Op.not]?: WhereOperators<AttributeType>[typeof Op.eq]; // accepts the same types as Op.eq ('Op.not' is not strictly the opposite of 'Op.is' due to legacy reasons)
+  /** Example: `[Op.isNot]: null,` becomes `IS NOT NULL` */
+  [Op.isNot]?: WhereOperators<AttributeType>[typeof Op.is]; // accepts the same types as Op.is
 
   /** @example `[Op.gte]: 6` becomes `>= 6` */
   [Op.gte]?: AllowAnyAll<OperatorValues<NonNullable<AttributeType>>>;
@@ -624,52 +578,6 @@ export interface WhereGeometryOptions {
 }
 
 /**
- * A hash of attributes to describe your search.
- *
- * Possible key values:
- *
- * - An attribute name: `{ id: 1 }`
- * - A nested attribute: `{ '$projects.id$': 1 }`
- * - A JSON key: `{ 'object.key': 1 }`
- * - A cast: `{ 'id::integer': 1 }`
- *
- * - A combination of the above: `{ '$join.attribute$.json.path::integer': 1 }`
- */
-export type WhereAttributeHash<TAttributes = any> = {
-  // support 'attribute' & '$attribute$'
-  [AttributeName in keyof TAttributes as AttributeName extends string ? AttributeName | `$${AttributeName}$` : never]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
-} & {
-  [AttributeName in keyof TAttributes as AttributeName extends string ?
-    // support 'json.path', '$json$.path'
-    | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`
-    // support 'attribute::cast', '$attribute$::cast', 'json.path::cast' & '$json$.path::cast'
-    | `${AttributeName | `$${AttributeName}$` | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`}::${string}`
-  : never]?: WhereAttributeHashValue<any>;
-} & {
-  // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast'
-  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>,
-};
-
-/**
- * Types that can be compared to an attribute in a WHERE context.
- */
-export type WhereAttributeHashValue<AttributeType> =
-  | AllowNotOrAndRecursive<
-    // if the right-hand side is an array, it will be equal to Op.in
-    // otherwise it will be equal to Op.eq
-    // Exception: array attribtues always use Op.eq, never Op.in.
-    | AttributeType extends any[]
-      ? WhereOperators<AttributeType>[typeof Op.eq] | WhereOperators<AttributeType>
-      : (
-        | WhereOperators<AttributeType>[typeof Op.in]
-        | WhereOperators<AttributeType>[typeof Op.eq]
-        | WhereOperators<AttributeType>
-      )
-    >
-  // TODO: this needs a simplified version just for JSON columns
-  | WhereAttributeHash<any>; // for JSON columns
-
-/**
  * Through options for Include Options
  */
 export interface IncludeThroughOptions extends Filterable<any>, Projectable {
@@ -832,7 +740,10 @@ export type Order = Fn | Col | Literal | OrderItem[];
  * Please note if this is used the aliased property will not be available on the model instance
  * as a property but only via `instance.get('alias')`.
  */
-export type ProjectionAlias = readonly [string | Literal | Fn | Col | Cast, string];
+export type ProjectionAlias = readonly [
+  expressionOrAttributeName: string | DynamicSqlExpression,
+  alias: string,
+];
 
 export type FindAttributeOptions =
   | Array<string | ProjectionAlias | Literal>
@@ -951,6 +862,12 @@ export interface FindOptions<TAttributes = any>
    * Return raw result. See {@link Sequelize#query} for more information.
    */
   raw?: boolean;
+
+  /**
+   * Controls whether aliases are minified in this query.
+   * This overrides the global option
+   */
+  minifyAliases?: boolean;
 
   /**
    * Select group rows after groups and aggregates are computed.
@@ -1143,6 +1060,12 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    */
   validate?: boolean;
   /**
+   * An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query
+   * (in particular: for applying to partial unique indexes).
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
+  /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
@@ -1196,6 +1119,18 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+
+  /**
+   * An optional parameter to specify a where clause for partial unique indexes
+   * (note: `ON CONFLICT WHERE` not `ON CONFLICT DO UPDATE WHERE`).
+   * Only supported in Postgres >= 9.5 and sqlite >= 9.5
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
+  /**
+   * Optional override for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictAttributes?: Array<keyof TAttributes>;
 }
 
 /**
@@ -1668,7 +1603,7 @@ export interface AttributeReferencesOptions {
   /**
    * The Model to reference.
    *
-   * Ignored if {@link tableName} is specified.
+   * Ignored if {@link table} is specified.
    */
   model?: ModelStatic;
 
@@ -1701,8 +1636,10 @@ export interface NormalizedAttributeReferencesOptions extends Omit<AttributeRefe
 export type ReferentialAction = 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NULL' | 'NO ACTION';
 
 /**
- * Column options for the model schema attributes
+ * Column options for the model schema attributes.
+ * Used in {@link Model.init} and {@link Sequelize#define}, and the Attribute decorator.
  */
+// TODO: Link to Attribute decorator once it's possible to have multiple entry points in the docs: https://github.com/TypeStrong/typedoc/issues/2138
 export interface AttributeOptions<M extends Model = Model> {
   /**
    * A string or a data type.
@@ -1816,7 +1753,6 @@ export interface AttributeOptions<M extends Model = Model> {
    * This attribute is added by sequelize. Do not use!
    *
    * @private
-   * @internal
    */
   // TODO: use a private symbol
   _autoGenerated?: boolean;
@@ -1830,7 +1766,7 @@ export interface AttributeIndexOptions extends Omit<IndexOptions, 'fields'> {
 }
 
 export interface NormalizedAttributeOptions<M extends Model = Model> extends Readonly<Omit<
-  PartlyRequired<AttributeOptions<M>, 'columnName'>,
+  RequiredBy<AttributeOptions<M>, 'columnName'>,
   | 'type'
   // index and unique are always removed from attribute options, Model.getIndexes() must be used instead.
   | 'index' | 'unique'
@@ -1849,7 +1785,7 @@ export interface NormalizedAttributeOptions<M extends Model = Model> extends Rea
   /**
    * Like {@link AttributeOptions.type}, but normalized.
    */
-  readonly type: string | AbstractDataType<any>;
+  readonly type: NormalizedDataType;
   readonly references?: NormalizedAttributeReferencesOptions;
 }
 
@@ -1864,17 +1800,13 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
 };
 
 /**
- * Possible types for primary keys
- */
-export type Identifier = number | bigint | string | Buffer;
-
-/**
  * Options for model definition.
  *
- * Used by {@link Sequelize.define} and {@link Model.init}
+ * Used by {@link Sequelize.define}, {@link Model.init}, and the Table decorator.
  *
  * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
  */
+// TODO: Link to Table decorator once it's possible to have multiple entry points in the docs: https://github.com/TypeStrong/typedoc/issues/2138
 export interface ModelOptions<M extends Model = Model> {
   /**
    * Define the default search scope to use for this model. Scopes have the same form as the options passed to
@@ -2044,7 +1976,7 @@ export interface ModelOptions<M extends Model = Model> {
    * Add hooks to the model.
    * Hooks will be called before and after certain operations.
    *
-   * This can also be done through {@link Model.addHook}, or the individual hook methods such as {@link Model.afterQuery}.
+   * This can also be done through {@link Model.addHook}, or the individual hook methods such as {@link Model.afterBulkCreate}.
    * Each property can either be a function, or an array of functions.
    *
    * @see https://sequelize.org/docs/v7/other-topics/hooks/
@@ -2091,7 +2023,7 @@ export interface InitOptions<M extends Model = Model> extends ModelOptions<M> {
 }
 
 export type BuiltModelName = Required<ModelNameOptions>;
-export type BuiltModelOptions<M extends Model = Model> = Omit<PartlyRequired<InitOptions<M>, 'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'>, 'name'> & {
+export type BuiltModelOptions<M extends Model = Model> = Omit<RequiredBy<InitOptions<M>, 'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'>, 'name'> & {
   name: BuiltModelName,
 };
 
@@ -2128,6 +2060,9 @@ export interface ModelGetOptions {
   raw?: boolean;
 }
 
+/**
+ * A Model represents a table in the database. Instances of this class represent a database row.
+ */
 export abstract class Model<TModelAttributes extends {} = any, TCreationAttributes extends {} = TModelAttributes>
   extends ModelTypeScript {
   /**
@@ -2258,7 +2193,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withSchema<M extends Model>(
     this: ModelStatic<M>,
-    schema: string | SchemaOptions,
+    schema: Nullish<string | SchemaOptions>,
   ): ModelStatic<M>;
 
   /**
@@ -2267,7 +2202,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static schema<M extends Model>(
     this: ModelStatic<M>,
-    schema: string,
+    schema: Nullish<string>,
     options?: { schemaDelimiter?: string } | string
   ): ModelStatic<M>;
 
@@ -2293,7 +2228,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withScope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
   ): ModelStatic<M>;
 
   /**
@@ -2302,7 +2237,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
   ): ModelStatic<M>;
 
   /**
@@ -2390,22 +2325,22 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: FindByPkOptions<M> & { raw: true, rejectOnEmpty?: false }
   ): Promise<R | null>;
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M> & { raw: true }
   ): Promise<R>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M>
   ): Promise<M>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier?: Identifier,
+    identifier: unknown,
     options?: FindByPkOptions<M>
   ): Promise<M | null>;
 
@@ -2744,17 +2679,17 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * The increment is done using a `SET column = column + X WHERE foo = 'bar'` query.
    *
-   * @example <caption>increment number by 1</caption>
+   * @example increment number by 1
    * ```javascript
    * Model.increment('number', { where: { foo: 'bar' });
    * ```
    *
-   * @example <caption>increment number and count by 2</caption>
+   * @example increment number and count by 2
    * ```javascript
    * Model.increment(['number', 'count'], { by: 2, where: { foo: 'bar' } });
    * ```
    *
-   * @example <caption>increment answer by 42, and decrement tries by 1</caption>
+   * @example increment answer by 42, and decrement tries by 1
    * ```javascript
    * // `by` cannot be used, as each attribute specifies its own value
    * Model.increment({ answer: 42, tries: -1}, { where: { foo: 'bar' } });
@@ -3033,10 +2968,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   reload(options?: FindOptions<TModelAttributes>): Promise<this>;
 
   /**
-   * Validate the attribute of this instance according to validation rules set in the model definition.
+   * Runs all validators defined for this model, including non-null validators, DataTypes validators, custom attribute validators and model-level validators.
    *
-   * Emits null if and only if validation successful; otherwise an Error instance containing
-   * { field name : [error msgs] } entries.
+   * If validation fails, this method will throw a {@link ValidationError}.
    */
   validate(options?: ValidationOptions): Promise<void>;
 
@@ -3172,6 +3106,8 @@ type BrandedKeysOf<T, Brand extends symbol> = {
  * Dummy Symbol used as branding by {@link NonAttribute}.
  *
  * Do not export, Do not use.
+ *
+ * @private
  */
 declare const NonAttributeBrand: unique symbol;
 
@@ -3191,6 +3127,8 @@ export type NonAttribute<T> =
  * Dummy Symbol used as branding by {@link ForeignKey}.
  *
  * Do not export, Do not use.
+ *
+ * @private
  */
 declare const ForeignKeyBrand: unique symbol;
 
@@ -3275,14 +3213,31 @@ export type InferAttributes<
  * Dummy Symbol used as branding by {@link CreationOptional}.
  *
  * Do not export, Do not use.
+ *
+ * @private
  */
 declare const CreationAttributeBrand: unique symbol;
 
 /**
  * This is a Branded Type.
- * You can use it to tag attributes that can be ommited during Model Creation.
+ * You can use it to tag attributes that can be omitted during Model Creation.
+ * Use it on attributes that have a default value or are marked as autoIncrement.
  *
  * For use with {@link InferCreationAttributes}.
+ *
+ * @example
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   @Attribute(DataTypes.INTEGER)
+ *   @PrimaryKey
+ *   @AutoIncrement
+ *   declare internalId: CreationOptional<number>;
+ *
+ *   @Attribute(DataTypes.STRING)
+ *   @Default('John Doe')
+ *   declare name: CreationOptional<string>;
+ * }
+ * ```
  */
 export type CreationOptional<T> =
   // we don't brand null & undefined as they can't have properties.
@@ -3326,7 +3281,7 @@ export type InferCreationAttributes<
  * - functions
  * - branded using {@link NonAttribute}
  * - inherited from {@link Model}
- * - Excluded manually using {@link InferAttributesOptions#omit}
+ * - Excluded manually using the omit option of {@link InferAttributesOptions}
  */
 type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, Options extends InferAttributesOptions<keyof M | never | ''>> =
   // fields inherited from Model are all excluded

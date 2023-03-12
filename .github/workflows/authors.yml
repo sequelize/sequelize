@@ -6,17 +6,23 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   authors_update:
+    permissions:
+      contents: write  # for gr2m/create-or-update-pull-request-action to push local changes
+      pull-requests: write  # for gr2m/create-or-update-pull-request-action to create a PR
     if: github.repository == 'sequelize/sequelize'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
         with:
           fetch-depth: "0" # This is required to actually get all the authors
           persist-credentials: false
       - run: "dev/update-authors.js" # Run the AUTHORS tool
-      - uses: gr2m/create-or-update-pull-request-action@v1 # Create a PR or update the Action's existing PR
+      - uses: gr2m/create-or-update-pull-request-action@df20b2c073090271599a08c55ae26e0c3522b329 # v1.9.2 # Create a PR or update the Action's existing PR
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

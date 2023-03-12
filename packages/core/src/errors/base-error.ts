@@ -1,9 +1,4 @@
 import { useErrorCause } from '../utils/deprecations.js';
-import type { Nullish } from '../utils/types.js';
-
-export interface SequelizeErrorOptions {
-  stack?: Nullish<string>;
-}
 
 export interface CommonErrorProperties {
   /** The SQL that triggered the error */
@@ -28,22 +23,27 @@ const supportsErrorCause = (() => {
 /**
  * The Base Error all Sequelize Errors inherit from.
  *
- * Sequelize provides a host of custom error classes, to allow you to do easier debugging. All of these errors are exposed on the sequelize object and the sequelize constructor.
+ * Sequelize provides a host of custom error classes, to allow you to do easier debugging.
+ * All of these errors are exported by the `@sequelize/core` package.
  * All sequelize errors inherit from the base JS error object.
- *
- * This means that errors can be accessed using `Sequelize.ValidationError`
  */
-class BaseError extends Error {
+export class BaseError extends Error {
   // 'cause' is incorrectly typed as Error instead of unknown in TypeScript <= 4.7.
-  // TODO [20223-05-24]: Change this type to unknown once we drop support for TypeScript <= 4.7
+  // TODO [2023-05-24]: Change this type to unknown once we drop support for TypeScript <= 4.7
   declare cause?: any;
 
+  /**
+   * @deprecated use {@link cause}.
+   */
   get parent(): this['cause'] {
     useErrorCause();
 
     return this.cause;
   }
 
+  /**
+   * @deprecated use {@link cause}.
+   */
   get original(): this['cause'] {
     useErrorCause();
 
@@ -66,13 +66,11 @@ class BaseError extends Error {
   }
 }
 
-const indentation = '  ';
-
 function addCause(message: string = '', cause?: unknown) {
   let out = message;
 
   if (cause) {
-    out += `\n\n${indentation}Caused by:\n${indentation}${getErrorMessage(cause).replace(/\n/g, `\n${indentation}`)}`;
+    out += `\nCaused by: ${getErrorMessage(cause)}`;
   }
 
   return out;
@@ -86,5 +84,3 @@ function getErrorMessage(error: unknown) {
 
   return String(error);
 }
-
-export default BaseError;
