@@ -20,9 +20,9 @@ describe('QueryInterface#update', () => {
 
     await sequelize.getQueryInterface().update(
       instance,
-      User.tableName,
+      User.table,
       { firstName: ':name' },
-      { id: ':id' },
+      { firstName: ':firstName' },
       {
         returning: [':data'],
         replacements: {
@@ -35,14 +35,14 @@ describe('QueryInterface#update', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0] as string, {
-      default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $sequelize_2',
-      postgres: 'UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING ":data"',
-      mssql: 'UPDATE [Users] SET [firstName]=$sequelize_1 OUTPUT INSERTED.[:data] WHERE [id] = $sequelize_2',
-      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $sequelize_2);`,
+      default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $sequelize_2',
+      postgres: 'UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2 RETURNING ":data"',
+      mssql: 'UPDATE [Users] SET [firstName]=$sequelize_1 OUTPUT INSERTED.[:data] WHERE [firstName] = $sequelize_2',
+      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2);`,
     });
     expect(firstCall.args[1]?.bind).to.deep.eq({
       sequelize_1: ':name',
-      sequelize_2: ':id',
+      sequelize_2: ':firstName',
     });
   });
 
@@ -53,7 +53,7 @@ describe('QueryInterface#update', () => {
 
     await expect(sequelize.getQueryInterface().update(
       instance,
-      User.tableName,
+      User.table,
       { firstName: 'newName' },
       { id: literal('$sequelize_test') },
       {
@@ -71,7 +71,7 @@ describe('QueryInterface#update', () => {
 
     await sequelize.getQueryInterface().update(
       instance,
-      User.tableName,
+      User.table,
       { firstName: 'newName' },
       { id: { [Op.eq]: literal('$id') } },
       {
@@ -101,7 +101,7 @@ describe('QueryInterface#update', () => {
 
     await sequelize.getQueryInterface().update(
       instance,
-      User.tableName,
+      User.table,
       { firstName: 'newName' },
       { id: { [Op.eq]: literal('$1') } },
       {

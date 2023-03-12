@@ -209,6 +209,19 @@ export interface OpTypes {
    * ```
    */
   readonly is: unique symbol;
+
+  /**
+   * Operator IS NOT
+   *
+   * ```js
+   * [Op.isNot]: null
+   * ```
+   * In SQL
+   * ```sql
+   * IS NOT null
+   * ```
+   */
+  readonly isNot: unique symbol;
   /**
    * Operator LIKE
    *
@@ -438,14 +451,6 @@ export interface OpTypes {
    */
   readonly overlap: unique symbol;
   /**
-   * Internal placeholder
-   *
-   * ```js
-   * [Op.placeholder]: true
-   * ```
-   */
-  readonly placeholder: unique symbol;
-  /**
    * Operator REGEXP (MySQL/PG only)
    *
    * ```js
@@ -557,6 +562,7 @@ export const Op: OpTypes = {
   lt: Symbol.for('lt'),
   not: Symbol.for('not'),
   is: Symbol.for('is'),
+  isNot: Symbol.for('isNot'),
   in: Symbol.for('in'),
   notIn: Symbol.for('notIn'),
   like: Symbol.for('like'),
@@ -589,8 +595,6 @@ export const Op: OpTypes = {
   all: Symbol.for('all'),
   values: Symbol.for('values'),
   col: Symbol.for('col'),
-  placeholder: Symbol.for('placeholder'),
-  join: Symbol.for('join'),
   match: Symbol.for('match'),
   anyKeyExists: Symbol.for('anyKeyExists'),
   allKeysExist: Symbol.for('allKeysExist'),
