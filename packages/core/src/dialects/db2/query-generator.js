@@ -187,7 +187,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   }
 
   showTablesQuery() {
-    return 'SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = \'T\' ORDER BY TABSCHEMA, TABNAME';
+    return `SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "schema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = 'T' ORDER BY TABSCHEMA, TABNAME`;
   }
 
   tableExistsQuery(table) {
@@ -761,7 +761,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   }
 
   dropForeignKeyQuery(tableName, foreignKey) {
-    return _.template('ALTER TABLE <%= table %> DROP <%= key %>', this._templateSettings)({
+    return _.template('ALTER TABLE <%= table %> DROP FOREIGN KEY <%= key %>', this._templateSettings)({
       table: this.quoteTable(tableName),
       key: this.quoteIdentifier(foreignKey),
     });
