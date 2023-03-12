@@ -85,7 +85,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT conname as constraint_name,',
+      'SELECT conname as constraintName,',
       'pg_catalog.pg_get_constraintdef(r.oid, true) as condef',
       'FROM pg_catalog.pg_constraint r',
       'WHERE r.conrelid IN',

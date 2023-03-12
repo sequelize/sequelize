@@ -11,23 +11,19 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
   it('produces a query to get all foreign keys of a table', () => {
     expectsql(() => queryGenerator.getForeignKeyQuery('myTable'), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
-        CONSTRAINT_NAME as constraintName,
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
-        CONSTRAINT_SCHEMA as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
-        TABLE_SCHEMA as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `SELECT conname as constraint_name,
+      postgres: `SELECT conname as constraintName,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid IN
@@ -38,18 +34,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE nspname = 'public'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
-      mssql: `SELECT constraint_name = OBJ.NAME,
-        constraintName = OBJ.NAME,
-        constraintCatalog = N'sequelize_test',
-        constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName = TB.NAME,
-        tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog = N'sequelize_test',
-        columnName = COL.NAME,
-        referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedCatalog = N'sequelize_test',
-        referencedTableName = RTB.NAME,
-        referencedColumnName = RCOL.NAME
+      mssql: `SELECT constraintName AS OBJ.NAME,
+        constraintCatalog AS N'sequelize_test',
+        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
+        tableName AS TB.NAME,
+        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
+        tableCatalog AS N'sequelize_test',
+        columnName AS COL.NAME,
+        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
+        referencedTableCatalog AS N'sequelize_test',
+        referencedTableName AS RTB.NAME,
+        referencedColumnName AS RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -89,7 +84,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKTABLE_CAT AS "tableCatalog",
         FKTABLE_SCHEM AS "tableSchema",
         FKTABLE_NAME AS "tableName",
-        FKTABLE_SCHEM AS "tableSchema",
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
@@ -102,23 +96,19 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
 
     expectsql(() => queryGenerator.getForeignKeyQuery(MyModel), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
-        CONSTRAINT_NAME as constraintName,
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
-        CONSTRAINT_SCHEMA as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
-        TABLE_SCHEMA as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myModels'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `SELECT conname as constraint_name,
+      postgres: `SELECT conname as constraintName,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid IN
@@ -129,18 +119,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE nspname = 'public'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
-      mssql: `SELECT constraint_name = OBJ.NAME,
-        constraintName = OBJ.NAME,
-        constraintCatalog = N'sequelize_test',
-        constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName = TB.NAME,
-        tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog = N'sequelize_test',
-        columnName = COL.NAME,
-        referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedCatalog = N'sequelize_test',
-        referencedTableName = RTB.NAME,
-        referencedColumnName = RCOL.NAME
+      mssql: `SELECT constraintName AS OBJ.NAME,
+        constraintCatalog AS N'sequelize_test',
+        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
+        tableName AS TB.NAME,
+        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
+        tableCatalog AS N'sequelize_test',
+        columnName AS COL.NAME,
+        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
+        referencedTableCatalog AS N'sequelize_test',
+        referencedTableName AS RTB.NAME,
+        referencedColumnName AS RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -180,7 +169,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKTABLE_CAT AS "tableCatalog",
         FKTABLE_SCHEM AS "tableSchema",
         FKTABLE_NAME AS "tableName",
-        FKTABLE_SCHEM AS "tableSchema",
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
@@ -191,23 +179,19 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
   it('produces a query to get all foreign keys of a table with schema in tableName object', () => {
     expectsql(() => queryGenerator.getForeignKeyQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
-        CONSTRAINT_NAME as constraintName,
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
-        CONSTRAINT_SCHEMA as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
-        TABLE_SCHEMA as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'mySchema'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `SELECT conname as constraint_name,
+      postgres: `SELECT conname as constraintName,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid IN
@@ -218,18 +202,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE nspname = 'mySchema'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
-      mssql: `SELECT constraint_name = OBJ.NAME,
-        constraintName = OBJ.NAME,
-        constraintCatalog = N'sequelize_test',
-        constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName = TB.NAME,
-        tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog = N'sequelize_test',
-        columnName = COL.NAME,
-        referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedCatalog = N'sequelize_test',
-        referencedTableName = RTB.NAME,
-        referencedColumnName = RCOL.NAME
+      mssql: `SELECT constraintName AS OBJ.NAME,
+        constraintCatalog AS N'sequelize_test',
+        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
+        tableName AS TB.NAME,
+        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
+        tableCatalog AS N'sequelize_test',
+        columnName AS COL.NAME,
+        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
+        referencedTableCatalog AS N'sequelize_test',
+        referencedTableName AS RTB.NAME,
+        referencedColumnName AS RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -269,7 +252,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKTABLE_CAT AS "tableCatalog",
         FKTABLE_SCHEM AS "tableSchema",
         FKTABLE_NAME AS "tableName",
-        FKTABLE_SCHEM AS "tableSchema",
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = 'mySchema'
@@ -280,23 +262,19 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
   it('produces a query to get all foreign keys of a table with default schema in tableName object', () => {
     expectsql(() => queryGenerator.getForeignKeyQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
-        CONSTRAINT_NAME as constraintName,
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
-        CONSTRAINT_SCHEMA as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
-        TABLE_SCHEMA as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `SELECT conname as constraint_name,
+      postgres: `SELECT conname as constraintName,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid IN
@@ -307,18 +285,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE nspname = 'public'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
-      mssql: `SELECT constraint_name = OBJ.NAME,
-        constraintName = OBJ.NAME,
-        constraintCatalog = N'sequelize_test',
-        constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName = TB.NAME,
-        tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog = N'sequelize_test',
-        columnName = COL.NAME,
-        referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedCatalog = N'sequelize_test',
-        referencedTableName = RTB.NAME,
-        referencedColumnName = RCOL.NAME
+      mssql: `SELECT constraintName AS OBJ.NAME,
+        constraintCatalog AS N'sequelize_test',
+        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
+        tableName AS TB.NAME,
+        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
+        tableCatalog AS N'sequelize_test',
+        columnName AS COL.NAME,
+        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
+        referencedTableCatalog AS N'sequelize_test',
+        referencedTableName AS RTB.NAME,
+        referencedColumnName AS RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -358,7 +335,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKTABLE_CAT AS "tableCatalog",
         FKTABLE_SCHEM AS "tableSchema",
         FKTABLE_NAME AS "tableName",
-        FKTABLE_SCHEM AS "tableSchema",
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
@@ -372,23 +348,19 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
 
     expectsql(() => queryGeneratorSchema.getForeignKeyQuery('myTable'), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
-        CONSTRAINT_NAME as constraintName,
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
-        CONSTRAINT_SCHEMA as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
-        TABLE_SCHEMA as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'mySchema'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `SELECT conname as constraint_name,
+      postgres: `SELECT conname as constraintName,
         pg_catalog.pg_get_constraintdef(r.oid, true) as condef
         FROM pg_catalog.pg_constraint r
         WHERE r.conrelid IN
@@ -399,18 +371,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE nspname = 'mySchema'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
-      mssql: `SELECT constraint_name = OBJ.NAME,
-        constraintName = OBJ.NAME,
-        constraintCatalog = N'sequelize_test',
-        constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName = TB.NAME,
-        tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog = N'sequelize_test',
-        columnName = COL.NAME,
-        referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedCatalog = N'sequelize_test',
-        referencedTableName = RTB.NAME,
-        referencedColumnName = RCOL.NAME
+      mssql: `SELECT constraintName AS OBJ.NAME,
+        constraintCatalog AS N'sequelize_test',
+        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
+        tableName AS TB.NAME,
+        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
+        tableCatalog AS N'sequelize_test',
+        columnName AS COL.NAME,
+        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
+        referencedTableCatalog AS N'sequelize_test',
+        referencedTableName AS RTB.NAME,
+        referencedColumnName AS RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -450,7 +421,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKTABLE_CAT AS "tableCatalog",
         FKTABLE_SCHEM AS "tableSchema",
         FKTABLE_NAME AS "tableName",
-        FKTABLE_SCHEM AS "tableSchema",
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = 'mySchema'
@@ -472,16 +442,12 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
   it('produces a query to get the foreign key constraint of a given column', () => {
     expectsql(() => queryGenerator.getForeignKeyQuery('myTable', 'myColumn'), {
       default: notImplementedError,
-      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraint_name,
-        CONSTRAINT_NAME as constraintName,
+      'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
-        CONSTRAINT_SCHEMA as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
-        TABLE_SCHEMA as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
-        REFERENCED_TABLE_SCHEMA as referencedTableCatalog,
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
@@ -490,18 +456,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         AND COLUMN_NAME = 'myColumn'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       'postgres sqlite': notSupportedError,
-      mssql: `SELECT constraint_name = OBJ.NAME,
-        constraintName = OBJ.NAME,
-        constraintCatalog = N'sequelize_test',
-        constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName = TB.NAME,
-        tableSchema = SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog = N'sequelize_test',
-        columnName = COL.NAME,
-        referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedCatalog = N'sequelize_test',
-        referencedTableName = RTB.NAME,
-        referencedColumnName = RCOL.NAME
+      mssql: `SELECT constraintName AS OBJ.NAME,
+        constraintCatalog AS N'sequelize_test',
+        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
+        tableName AS TB.NAME,
+        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
+        tableCatalog AS N'sequelize_test',
+        columnName AS COL.NAME,
+        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
+        referencedTableCatalog AS N'sequelize_test',
+        referencedTableName AS RTB.NAME,
+        referencedColumnName AS RCOL.NAME
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -542,7 +507,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKTABLE_CAT AS "tableCatalog",
         FKTABLE_SCHEM AS "tableSchema",
         FKTABLE_NAME AS "tableName",
-        FKTABLE_SCHEM AS "tableSchema",
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
