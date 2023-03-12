@@ -77,6 +77,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       columnName && `AND COLUMN_NAME = ${this.escape(columnName)}`,
       'AND REFERENCED_TABLE_NAME IS NOT NULL',
     ]);
+  }
 
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
     let jsonPathStr = '$';

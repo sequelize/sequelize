@@ -96,6 +96,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE nspname = ${this.escape(table.schema!)} LIMIT 1)`,
       `AND r.contype = 'f' ORDER BY 1`,
     ]);
+  }
 
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
     const operator = path.length === 1
