@@ -20,7 +20,7 @@ describe('@CreatedAt', () => {
 });
 
 describe('@UpdatedAt', () => {
-  it('marks a column as the createdAt attribute', () => {
+  it('marks a column as the updatedAt attribute', () => {
     class Test extends Model {
       @UpdatedAt
       declare customUpdatedAt: Date;
