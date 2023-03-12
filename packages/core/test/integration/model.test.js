@@ -1000,28 +1000,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    it('throws an error if where has a key with undefined value', async function () {
-      const data = [
-        { username: 'Peter', secretValue: '42' },
-        { username: 'Paul', secretValue: '42' },
-        { username: 'Bob', secretValue: '43' },
-      ];
-
-      await this.User.bulkCreate(data);
-      try {
-        await this.User.update({ username: 'Bill' }, {
-          where: {
-            secretValue: '42',
-            username: undefined,
-          },
-        });
-        throw new Error('Update should throw an error if where has a key with undefined value');
-      } catch (error) {
-        expect(error).to.be.an.instanceof(Error);
-        expect(error.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
-      }
-    });
-
     it('updates only values that match the allowed fields', async function () {
       const data = [{ username: 'Peter', secretValue: '42' }];
 
@@ -1349,19 +1327,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.findAll()).to.have.lengthOf(0);
     });
 
-    it('throws an error if where has a key with undefined value', async function () {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-
-      await this.sequelize.sync({ force: true });
-      try {
-        await User.destroy({ where: { username: undefined } });
-        throw new Error('Destroy should throw an error if where has a key with undefined value');
-      } catch (error) {
-        expect(error).to.be.an.instanceof(Error);
-        expect(error.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
-      }
-    });
-
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
@@ -1525,7 +1490,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
         const user = await User.findByPk(1);
         await user.destroy();
-        expect(await User.findOne({ where: 1, paranoid: false })).to.exist;
+        expect(await User.findOne({ where: { id: 1 }, paranoid: false })).to.exist;
         expect(await User.findByPk(1)).to.be.null;
         expect(await User.count()).to.equal(2);
         expect(await User.count({ paranoid: false })).to.equal(3);
@@ -2578,12 +2543,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       expect(res).to.have.length(2);
-    });
-
-    it('should fail when array contains strings', async function () {
-      await expect(this.User.findAll({
-        where: ['this is a mistake', ['dont do it!']],
-      })).to.eventually.be.rejectedWith(Error, 'Support for literal replacements in the `where` object has been removed.');
     });
 
     it('should not fail with an include', async function () {

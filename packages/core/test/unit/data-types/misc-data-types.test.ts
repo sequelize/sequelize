@@ -2,10 +2,11 @@ import assert from 'node:assert';
 import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
-import { expectsql, sequelize, getTestDialect } from '../../support';
+import { expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
-const dialectName = getTestDialect();
+const { queryGenerator, dialect } = sequelize;
+const dialectName = dialect.name;
 
 describe('DataTypes.BOOLEAN', () => {
   testDataTypeSql('BOOLEAN', DataTypes.BOOLEAN, {
@@ -131,6 +132,62 @@ describe('DataTypes.JSON', () => {
     // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
     mssql: 'NVARCHAR(MAX)',
     sqlite: 'TEXT',
+  });
+
+  describe('escape', () => {
+    if (!dialect.supports.dataTypes.JSON) {
+      return;
+    }
+
+    it('escapes plain string', () => {
+      expectsql(queryGenerator.escape('string', { type: new DataTypes.JSON() }), {
+        default: `'"string"'`,
+        mysql: `CAST('"string"' AS JSON)`,
+        mssql: `N'"string"'`,
+      });
+    });
+
+    it('escapes plain int', () => {
+      expectsql(queryGenerator.escape(0, { type: new DataTypes.JSON() }), {
+        default: `'0'`,
+        mysql: `CAST('0' AS JSON)`,
+        mssql: `N'0'`,
+      });
+      expectsql(queryGenerator.escape(123, { type: new DataTypes.JSON() }), {
+        default: `'123'`,
+        mysql: `CAST('123' AS JSON)`,
+        mssql: `N'123'`,
+      });
+    });
+
+    it('escapes boolean', () => {
+      expectsql(queryGenerator.escape(true, { type: new DataTypes.JSON() }), {
+        default: `'true'`,
+        mysql: `CAST('true' AS JSON)`,
+        mssql: `N'true'`,
+      });
+      expectsql(queryGenerator.escape(false, { type: new DataTypes.JSON() }), {
+        default: `'false'`,
+        mysql: `CAST('false' AS JSON)`,
+        mssql: `N'false'`,
+      });
+    });
+
+    it('escapes NULL', () => {
+      expectsql(queryGenerator.escape(null, { type: new DataTypes.JSON() }), {
+        default: `'null'`,
+        mysql: `CAST('null' AS JSON)`,
+        mssql: `N'null'`,
+      });
+    });
+
+    it('nested object', () => {
+      expectsql(queryGenerator.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
+        default: `'{"some":"nested","more":{"nested":true},"answer":42}'`,
+        mysql: `CAST('{"some":"nested","more":{"nested":true},"answer":42}' AS JSON)`,
+        mssql: `N'{"some":"nested","more":{"nested":true},"answer":42}'`,
+      });
+    });
   });
 });
 

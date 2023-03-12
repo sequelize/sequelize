@@ -1,54 +1,75 @@
-import { expectsql, getTestDialect, sequelize } from '../../support';
+import { expectPerDialect, sequelize } from '../../support';
 
-const dialectName = getTestDialect();
+const dialect = sequelize.dialect;
+const dialectName = dialect.name;
 
-const notSupportedError = new Error(`JSON operations are not supported in ${dialectName}.`);
+const notSupportedError = new Error(`JSON Paths are not supported in ${dialectName}.`);
 
 describe('QueryGenerator#jsonPathExtractionQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 
-  // TODO: add tests that check that profile can start and end with ` or "
-  // TODO: add tests where id contains characters like ., $, ', ", ,, { or }
-  // TODO: throw if isJson is used but not supported by the dialect
-
-  it('should handle isJson parameter true', () => {
-    expectsql(() => queryGenerator.jsonPathExtractionQuery('profile', 'id', true), {
+  it('creates a json extract operation (object)', () => {
+    // "jsonPathExtractionQuery" does not quote the first parameter, because the first parameter is *not* an identifier,
+    // it can be any SQL expression, e.g. a column name, a function call, a subquery, etc.
+    expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), ['id'], false), {
       default: notSupportedError,
-      // TODO: mariadb should be consistent with mysql
-      mariadb: 'json_unquote(json_extract(`profile`,\'$.id\'))',
-      mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\'))',
-      postgres: `("profile"#>'{id}')`,
-      sqlite: 'json_extract(`profile`,\'$.id\')',
+      mariadb: `json_compact(json_extract(\`profile\`,'$.id'))`,
+      'mysql sqlite': `json_extract(\`profile\`,'$.id')`,
+      postgres: `"profile"->'id'`,
     });
   });
 
-  it('should use default handling if isJson is false', () => {
-    expectsql(() => queryGenerator.jsonPathExtractionQuery('profile', 'id', false), {
+  it('creates a json extract operation (array)', () => {
+    expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), [0], false), {
       default: notSupportedError,
-      mariadb: 'json_unquote(json_extract(`profile`,\'$.id\'))',
-      mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\'))',
-      postgres: `("profile"#>>'{id}')`,
-      sqlite: 'json_extract(`profile`,\'$.id\')',
+      mariadb: `json_compact(json_extract(\`profile\`,'$[0]'))`,
+      'mysql sqlite': `json_extract(\`profile\`,'$[0]')`,
+      postgres: `"profile"->0`,
     });
   });
 
-  it('should use default handling if isJson is not passed', () => {
-    expectsql(() => queryGenerator.jsonPathExtractionQuery('profile', 'id'), {
+  it('creates a nested json extract operation', () => {
+    expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), ['id', 'username', 0, '0', 'name'], false), {
       default: notSupportedError,
-      mariadb: 'json_unquote(json_extract(`profile`,\'$.id\'))',
-      mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\'))',
-      postgres: `("profile"#>>'{id}')`,
-      sqlite: 'json_extract(`profile`,\'$.id\')',
+      mariadb: `json_compact(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
+      'mysql sqlite': `json_extract(\`profile\`,'$.id.username[0]."0".name')`,
+      postgres: `"profile"#>ARRAY['id','username','0','0','name']`,
     });
   });
 
-  it('should support passing a string array as path', () => {
-    expectsql(() => queryGenerator.jsonPathExtractionQuery('profile', ['id', 'username']), {
+  it(`escapes characters such as ", $, and '`, () => {
+    expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), [`"`, `'`, `$`], false), {
       default: notSupportedError,
-      mariadb: 'json_unquote(json_extract(`profile`,\'$.id.username\'))',
-      mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\".\\"username\\"\'))',
-      postgres: `("profile"#>>'{id,username}')`,
-      sqlite: 'json_extract(`profile`,\'$.id.username\')',
+      mysql: `json_extract(\`profile\`,'$."\\\\""."\\'"."$"')`,
+      mariadb: `json_compact(json_extract(\`profile\`,'$."\\\\""."\\'"."$"'))`,
+      sqlite: `json_extract(\`profile\`,'$."\\""."''"."$"')`,
+      postgres: `"profile"#>ARRAY['"','''','$']`,
+    });
+  });
+
+  it('creates a json extract+unquote operation (object)', () => {
+    // "jsonPathExtractionQuery" does not quote the first parameter, because the first parameter is *not* an identifier,
+    // it can be any SQL expression, e.g. a column name, a function call, a subquery, etc.
+    expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), ['id'], true), {
+      default: notSupportedError,
+      'mariadb mysql sqlite': `json_unquote(json_extract(\`profile\`,'$.id'))`,
+      postgres: `"profile"->>'id'`,
+    });
+  });
+
+  it('creates a json extract+unquote operation (array)', () => {
+    expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), [0], true), {
+      default: notSupportedError,
+      'mariadb mysql sqlite': `json_unquote(json_extract(\`profile\`,'$[0]'))`,
+      postgres: `"profile"->>0`,
+    });
+  });
+
+  it('creates a nested json extract+unquote operation', () => {
+    expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), ['id', 'username', 0, '0', 'name'], true), {
+      default: notSupportedError,
+      'mysql mariadb sqlite': `json_unquote(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
+      postgres: `"profile"#>>ARRAY['id','username','0','0','name']`,
     });
   });
 });

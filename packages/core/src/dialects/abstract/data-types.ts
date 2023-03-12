@@ -174,6 +174,14 @@ export abstract class AbstractDataType<
   }
 
   /**
+   * Whether this DataType wishes to handle NULL values itself.
+   * This is almost exclusively used by {@link JSON} and {@link JSONB} which serialize `null` as the JSON string `'null'`.
+   */
+  acceptsNull(): boolean {
+    return false;
+  }
+
+  /**
    * Called when a value is retrieved from the Database, and its DataType is specified.
    * Used to normalize values from the database.
    *
@@ -1603,6 +1611,13 @@ export class JSON extends AbstractDataType<any> {
     if (!dialect.supports.dataTypes.JSON) {
       throwUnsupportedDataType(dialect, 'JSON');
     }
+  }
+
+  /**
+   * We stringify null too.
+   */
+  acceptsNull(): boolean {
+    return true;
   }
 
   toBindableValue(value: any): string {

@@ -16,7 +16,6 @@ import {
   mapFinderOptions,
   mapOptionFieldNames,
   mapValueFieldNames,
-  mapWhereFieldNames,
 } from './utils/format';
 import { every, find } from './utils/iterators';
 import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap, EMPTY_OBJECT } from './utils/object';
@@ -3102,7 +3101,7 @@ Instead of specifying a Model, either:
       where[versionAttr] = this.get(versionAttr, { raw: true });
     }
 
-    return mapWhereFieldNames(where, this.constructor);
+    return where;
   }
 
   toString() {
@@ -3888,7 +3887,7 @@ Instead of specifying a Model, either:
       throw new Error('You attempted to update an instance that is not persisted.');
     }
 
-    options = options || EMPTY_OBJECT;
+    options = options ?? EMPTY_OBJECT;
     if (Array.isArray(options)) {
       options = { fields: options };
     }

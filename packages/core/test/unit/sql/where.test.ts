@@ -11,23 +11,20 @@ import type {
   Col,
   Literal,
   Fn,
-  Cast,
+  Cast, AttributeNames,
 } from '@sequelize/core';
-import { DataTypes, QueryTypes, Op, literal, col, where, fn, json, cast, and, or, Model } from '@sequelize/core';
-import type { WhereItemsQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import { DataTypes, Op, and, or, Model, sql, json } from '@sequelize/core';
+import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
 import { createTester, sequelize, expectsql, getTestDialectTeaser } from '../../support';
 
-const sql = sequelize.dialect.queryGenerator;
+const { literal, col, where, fn, cast, attribute } = sql;
+
+const queryGen = sequelize.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character
 // when there is no dialect specific expectation but only a default expectation
 
-// TODO:
-//  - fix and resolve any .skip test
-//  - don't disable test suites if the dialect doesn't support. Instead, ensure dialect throws an error if these operators are used.
-//  - drop Op.values & automatically determine if Op.any & Op.all need to use Op.values?
-
-type Options = Omit<WhereItemsQueryOptions, 'model'>;
+// TODO: fix and resolve any .skip test
 
 type Expectations = {
   [dialectName: string]: string | Error,
@@ -37,6 +34,7 @@ const dialectSupportsArray = () => sequelize.dialect.supports.dataTypes.ARRAY;
 const dialectSupportsRange = () => sequelize.dialect.supports.dataTypes.RANGE;
 const dialectSupportsJsonB = () => sequelize.dialect.supports.dataTypes.JSONB;
 const dialectSupportsJson = () => sequelize.dialect.supports.dataTypes.JSON;
+const dialectSupportsJsonOperations = () => sequelize.dialect.supports.jsonOperations;
 
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
@@ -60,6 +58,8 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare aliasedInt: number;
   declare aliasedJsonAttr: object;
   declare aliasedJsonbAttr: object;
+
+  declare uuidAttr: string;
 }
 
 type TestModelWhere = WhereOptions<Attributes<TestModel>>;
@@ -93,13 +93,15 @@ TestModel.init({
     jsonbAttr: { type: DataTypes.JSONB },
     aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
   }),
+
+  uuidAttr: DataTypes.UUID,
 }, { sequelize });
 
 describe(getTestDialectTeaser('SQL'), () => {
   describe('whereQuery', () => {
     it('prefixes its output with WHERE when it is not empty', () => {
       expectsql(
-        sql.whereQuery({ firstName: 'abc' }),
+        queryGen.whereQuery({ firstName: 'abc' }),
         {
           default: `WHERE [firstName] = 'abc'`,
           mssql: `WHERE [firstName] = N'abc'`,
@@ -109,7 +111,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
     it('returns an empty string if the input results in an empty query', () => {
       expectsql(
-        sql.whereQuery({ firstName: { [Op.notIn]: [] } }),
+        queryGen.whereQuery({ firstName: { [Op.notIn]: [] } }),
         {
           default: '',
         },
@@ -170,7 +172,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: `[intAttr1] ${sqlOperator} NOW()`,
       });
 
-      testSql.skip({ intAttr1: { [operator]: fn('SUM', { [Op.col]: 'intAttr2' }) } }, {
+      testSql({ intAttr1: { [operator]: fn('SUM', { [Op.col]: 'intAttr2' }) } }, {
         default: `[intAttr1] ${sqlOperator} SUM([intAttr2])`,
       });
 
@@ -178,7 +180,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: `[intAttr1] ${sqlOperator} CAST([intAttr2] AS STRING)`,
       });
 
-      testSql.skip({ intAttr1: { [operator]: cast({ [Op.col]: 'intAttr2' }, 'string') } }, {
+      testSql({ intAttr1: { [operator]: cast({ [Op.col]: 'intAttr2' }, 'string') } }, {
         default: `[intAttr1] ${sqlOperator} CAST([intAttr2] AS STRING)`,
       });
 
@@ -212,11 +214,13 @@ describe(getTestDialectTeaser('SQL'), () => {
      * @param operator
      * @param sqlOperator
      * @param testWithValues
+     * @param attributeName
      */
     function testSupportsAnyAll<TestWithValue>(
       operator: OperatorsSupportingAnyAll<TestWithValue>,
       sqlOperator: string,
       testWithValues: TestWithValue[],
+      attributeName: AttributeNames<TestModel> = 'intAttr1',
     ) {
       if (!dialectSupportsArray()) {
         return;
@@ -226,19 +230,19 @@ describe(getTestDialectTeaser('SQL'), () => {
         [Op.any, 'ANY'],
         [Op.all, 'ALL'],
       ];
+
       for (const [arrayOperator, arraySqlOperator] of arrayOperators) {
-        // doesn't work at all
-        testSql.skip({ intAttr1: { [operator]: { [arrayOperator]: testWithValues } } }, {
-          default: `[intAttr1] ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}])`,
+        testSql({ [attributeName]: { [operator]: { [arrayOperator]: testWithValues } } }, {
+          default: `[${attributeName}] ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}])`,
         });
 
-        testSql({ intAttr1: { [operator]: { [arrayOperator]: literal('literal') } } }, {
-          default: `[intAttr1] ${sqlOperator} ${arraySqlOperator} (literal)`,
+        testSql({ [attributeName]: { [operator]: { [arrayOperator]: literal('literal') } } }, {
+          default: `[${attributeName}] ${sqlOperator} ${arraySqlOperator} (literal)`,
         });
 
         // e.g. "col" LIKE ANY (VALUES ("col2"))
-        testSql.skip({
-          intAttr1: {
+        testSql({
+          [attributeName]: {
             [operator]: {
               [arrayOperator]: {
                 [Op.values]: [
@@ -246,23 +250,21 @@ describe(getTestDialectTeaser('SQL'), () => {
                   fn('UPPER', col('col2')),
                   col('col3'),
                   cast(col('col'), 'string'),
-                  'abc',
-                  12,
+                  testWithValues[0],
                 ],
               },
             },
           },
         }, {
-          default: `[intAttr1] ${sqlOperator} ${arraySqlOperator} (VALUES (literal), (UPPER("col2")), ("col3"), (CAST("col" AS STRING)), ('abc'), (12))`,
-          mssql: `[intAttr1] ${sqlOperator} ${arraySqlOperator} (VALUES (literal), (UPPER("col2")), ("col3"), (CAST("col" AS STRING)), (N'abc'), (12))`,
+          default: `[${attributeName}] ${sqlOperator} ${arraySqlOperator} (VALUES (literal), (UPPER("col2")), ("col3"), (CAST("col" AS STRING)), (${util.inspect(testWithValues[0])}))`,
         });
       }
     }
 
     const testSql = createTester(
-      (it, whereObj: TestModelWhere, expectations: Expectations, options?: Options) => {
+      (it, whereObj: TestModelWhere, expectations: Expectations, options?: FormatWhereOptions) => {
         it(util.inspect(whereObj, { depth: 10 }) + (options ? `, ${util.inspect(options)}` : ''), () => {
-          const sqlOrError = attempt(() => sql.whereItemsQuery(whereObj, {
+          const sqlOrError = attempt(() => queryGen.whereItemsQuery(whereObj, {
             ...options,
             model: TestModel,
           }));
@@ -271,6 +273,11 @@ describe(getTestDialectTeaser('SQL'), () => {
         });
       },
     );
+
+    // "where" is typically optional. If the user sets it to undefined, we treat is as if the option was not set.
+    testSql(undefined, {
+      default: '',
+    });
 
     testSql({}, {
       default: '',
@@ -281,53 +288,33 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     // @ts-expect-error -- not supported, testing that it throws
-    testSql.skip(10, {
-      default: new Error('Unexpected value "10" received. Expected an object, array or a literal()'),
+    testSql(null, {
+      default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
+Value: null
+Caused by: Invalid Query: expected a plain object, an array or a sequelize SQL method but got null`),
+    });
+
+    // @ts-expect-error -- not supported, testing that it throws
+    testSql(10, {
+      default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
+Value: 10
+Caused by: Invalid Query: expected a plain object, an array or a sequelize SQL method but got 10`),
     });
 
     testSql({ intAttr1: undefined }, {
-      default: new Error('WHERE parameter "intAttr1" has invalid "undefined" value'),
+      default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
+Value: { intAttr1: undefined }
+Caused by: "undefined" cannot be escaped`),
     });
 
     // @ts-expect-error -- user does not exist
-    testSql({ intAttr1: 1, user: undefined }, {
-      default: new Error('WHERE parameter "user" has invalid "undefined" value'),
-    });
-
-    // @ts-expect-error -- user does not exist
-    testSql({ intAttr1: 1, user: undefined }, {
-      default: new Error('WHERE parameter "user" has invalid "undefined" value'),
-    }, { type: QueryTypes.SELECT });
-
-    // @ts-expect-error -- user does not exist
-    testSql({ intAttr1: 1, user: undefined }, {
-      default: new Error('WHERE parameter "user" has invalid "undefined" value'),
-    }, { type: QueryTypes.BULKDELETE });
-
-    // @ts-expect-error -- user does not exist
-    testSql({ intAttr1: 1, user: undefined }, {
-      default: new Error('WHERE parameter "user" has invalid "undefined" value'),
-    }, { type: QueryTypes.BULKUPDATE });
+    testSql({ intAttr1: 1, user: undefined }, { default: new Error('"undefined" cannot be escaped') });
 
     testSql({ intAttr1: 1 }, {
       default: '[User].[intAttr1] = 1',
-    }, { prefix: 'User' });
+    }, { mainAlias: 'User' });
 
-    testSql({ dateAttr: { $gte: '2022-11-06' } }, {
-      default: new Error(`{ '$gte': '2022-11-06' } is not a valid date`),
-    });
-
-    it('{ id: 1 }, { prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, {schema: \'yolo\', tableName: \'User\'})) }', () => {
-      expectsql(sql.whereItemsQuery({ id: 1 }, {
-        prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, {
-          schema: 'yolo',
-          tableName: 'User',
-        })),
-      }), {
-        default: '[yolo].[User].[id] = 1',
-        sqlite: '`yolo.User`.`id` = 1',
-      });
-    });
+    testSql({ dateAttr: { $gte: '2022-11-06' } }, { default: new Error(`{ '$gte': '2022-11-06' } is not a valid date`) });
 
     testSql(literal('raw sql'), {
       default: 'raw sql',
@@ -401,11 +388,9 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] IN (N'1', N'2')`,
       });
 
-      testSql({ intAttr1: ['not-an-int'] }, {
-        default: new Error(`'not-an-int' is not a valid integer`),
-      });
+      testSql({ intAttr1: ['not-an-int'] }, { default: new Error(`'not-an-int' is not a valid integer`) });
 
-      testSql.skip({ 'stringAttr::integer': 1 }, {
+      testSql({ 'stringAttr::integer': 1 }, {
         default: 'CAST([stringAttr] AS INTEGER) = 1',
       });
 
@@ -413,7 +398,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: '[intAttr1] = 1',
       });
 
-      testSql.skip({ '$stringAttr$::integer': 1 }, {
+      testSql({ '$stringAttr$::integer': 1 }, {
         default: 'CAST([stringAttr] AS INTEGER) = 1',
       });
 
@@ -421,7 +406,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: '[association].[attribute] = 1',
       });
 
-      testSql.skip({ '$association.attribute$::integer': 1 }, {
+      testSql({ '$association.attribute$::integer': 1 }, {
         default: 'CAST([association].[attribute] AS INTEGER) = 1',
       });
 
@@ -460,11 +445,11 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: '[intAttr1] = [intAttr2]',
       });
 
-      testSql.skip({ intAttr1: col('intAttr2') }, {
+      testSql({ intAttr1: col('intAttr2') }, {
         default: '[intAttr1] = [intAttr2]',
       });
 
-      testSql.skip({ intAttr1: literal('literal') }, {
+      testSql({ intAttr1: literal('literal') }, {
         default: '[intAttr1] = literal',
       });
 
@@ -472,26 +457,26 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: '[stringAttr] = UPPER([stringAttr])',
       });
 
-      testSql({ stringAttr: fn('UPPER', { [Op.col]: col('stringAttr') }) }, {
+      testSql({ stringAttr: fn('UPPER', { [Op.col]: 'stringAttr' }) }, {
         default: '[stringAttr] = UPPER([stringAttr])',
       });
 
-      testSql.skip({ stringAttr: cast(col('intAttr1'), 'string') }, {
+      testSql({ stringAttr: cast(col('intAttr1'), 'string') }, {
         default: '[stringAttr] = CAST([intAttr1] AS STRING)',
       });
 
-      testSql.skip({ stringAttr: cast({ [Op.col]: 'intAttr1' }, 'string') }, {
+      testSql({ stringAttr: cast({ [Op.col]: 'intAttr1' }, 'string') }, {
         default: '[stringAttr] = CAST([intAttr1] AS STRING)',
       });
 
-      testSql.skip({ stringAttr: cast('abc', 'string') }, {
+      testSql({ stringAttr: cast('abc', 'string') }, {
         default: `[stringAttr] = CAST('abc' AS STRING)`,
         mssql: `[stringAttr] = CAST(N'abc' AS STRING)`,
       });
 
       if (dialectSupportsArray()) {
         testSql({ intArrayAttr: [1, 2] }, {
-          default: `[intArrayAttr] = ARRAY[1,2]::INTEGER[]`,
+          default: `[intArrayAttr] = ARRAY[1,2]`,
         });
 
         testSql({ intArrayAttr: [] }, {
@@ -500,11 +485,9 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         // when using arrays, Op.in is never included
         // @ts-expect-error -- Omitting the operator with an array attribute is always Op.eq, never Op.in
-        testSql.skip({ intArrayAttr: [[1, 2]] }, {
-          default: new Error(`"intArrayAttr" cannot be compared to [[1, 2]], did you mean to use Op.in?`),
-        });
+        testSql({ intArrayAttr: [[1, 2]] }, { default: new Error('[ 1, 2 ] is not a valid integer') });
 
-        testSql.skip({ intAttr1: { [Op.any]: [2, 3, 4] } }, {
+        testSql({ intAttr1: { [Op.any]: [2, 3, 4] } }, {
           default: '[intAttr1] = ANY (ARRAY[2,3,4])',
         });
 
@@ -516,7 +499,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           default: '[intAttr1] = ANY (VALUES ([col]))',
         });
 
-        testSql.skip({ intAttr1: { [Op.all]: [2, 3, 4] } }, {
+        testSql({ intAttr1: { [Op.all]: [2, 3, 4] } }, {
           default: '[intAttr1] = ALL (ARRAY[2,3,4])',
         });
 
@@ -537,14 +520,12 @@ describe(getTestDialectTeaser('SQL'), () => {
                 fn('UPPER', col('col2')),
                 col('col3'),
                 cast(col('col'), 'string'),
-                'abc',
                 1,
               ],
             },
           },
         }, {
-          default: `[intAttr1] = ANY (VALUES (literal), (UPPER([col2])), ([col3]), (CAST([col] AS STRING)), ('abc'), (1))`,
-          mssql: `[intAttr1] = ANY (VALUES (literal), (UPPER([col2])), ([col3]), (CAST([col] AS STRING)), (N'abc'), (1))`,
+          default: `[intAttr1] = ANY (VALUES (literal), (UPPER([col2])), ([col3]), (CAST([col] AS STRING)), (1))`,
         });
       }
     });
@@ -554,7 +535,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: '[intAttr1] = 1',
       });
 
-      testSql.skip({ 'intAttr1::integer': { [Op.eq]: 1 } }, {
+      testSql({ 'intAttr1::integer': { [Op.eq]: 1 } }, {
         default: 'CAST([intAttr1] AS INTEGER) = 1',
       });
 
@@ -562,7 +543,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: '[intAttr1] = 1',
       });
 
-      testSql.skip({ '$intAttr1$::integer': { [Op.eq]: 1 } }, {
+      testSql({ '$intAttr1$::integer': { [Op.eq]: 1 } }, {
         default: 'CAST([intAttr1] AS INTEGER) = 1',
       });
 
@@ -570,8 +551,8 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: '[association].[attribute] = 1',
       });
 
-      testSql.skip({ '$association.attribute$::integer': { [Op.eq]: 1 } }, {
-        default: 'CAST([association].[attribute] AS INTEGER) = 1',
+      testSql({ '$association.attribute$::integer': { [Op.eq]: 1 } }, {
+        default: `CAST([association].[attribute] AS INTEGER) = 1`,
       });
 
       if (dialectSupportsArray()) {
@@ -579,7 +560,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         const ignore: TestModelWhere = { intAttr1: { [Op.eq]: [1, 2] } };
 
         testSql({ intArrayAttr: { [Op.eq]: [1, 2] } }, {
-          default: '[intArrayAttr] = ARRAY[1,2]::INTEGER[]',
+          default: '[intArrayAttr] = ARRAY[1,2]',
         });
       }
 
@@ -595,9 +576,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testSql({ booleanAttr: { [Op.eq]: true } }, {
         default: '[booleanAttr] = true',
-        mssql: '[booleanAttr] = 1',
-        sqlite: '`booleanAttr` = 1',
-        ibmi: '"booleanAttr" = 1',
+        'mssql sqlite ibmi': '[booleanAttr] = 1',
       });
 
       testSequelizeValueMethods(Op.eq, '=');
@@ -611,7 +590,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       if (dialectSupportsArray()) {
         testSql({ intArrayAttr: { [Op.ne]: [1, 2] } }, {
-          default: '[intArrayAttr] != ARRAY[1,2]::INTEGER[]',
+          default: '[intArrayAttr] != ARRAY[1,2]',
         });
       }
 
@@ -621,9 +600,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testSql({ booleanAttr: { [Op.ne]: true } }, {
         default: '[booleanAttr] != true',
-        mssql: '[booleanAttr] != 1',
-        ibmi: '"booleanAttr" != 1',
-        sqlite: '`booleanAttr` != 1',
+        'mssql ibmi sqlite': '[booleanAttr] != 1',
       });
 
       testSequelizeValueMethods(Op.ne, '!=');
@@ -647,97 +624,118 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       testSql({ booleanAttr: { [Op.is]: false } }, {
         default: '[booleanAttr] IS false',
-        mssql: '[booleanAttr] IS 0',
-        ibmi: '"booleanAttr" IS 0',
-        sqlite: '`booleanAttr` IS 0',
+        'mssql ibmi sqlite': '[booleanAttr] IS 0',
       });
 
       testSql({ booleanAttr: { [Op.is]: true } }, {
         default: '[booleanAttr] IS true',
-        mssql: '[booleanAttr] IS 1',
-        ibmi: '"booleanAttr" IS 1',
-        sqlite: '`booleanAttr` IS 1',
+        'mssql ibmi sqlite': '[booleanAttr] IS 1',
       });
 
       // @ts-expect-error -- not supported, testing that it throws
-      testSql.skip({ intAttr1: { [Op.is]: 1 } }, {
-        default: new Error('Op.is expected a boolean or null, but received 1'),
+      testSql({ intAttr1: { [Op.is]: 1 } }, {
+        default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
       });
 
       // @ts-expect-error -- not supported, testing that it throws
-      testSql.skip({ intAttr1: { [Op.is]: { [Op.col]: 'intAttr2' } } }, {
-        default: new Error('column references are not supported by Op.is'),
+      testSql({ intAttr1: { [Op.is]: { [Op.col]: 'intAttr2' } } }, {
+        default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
       });
 
       // @ts-expect-error -- not supported, testing that it throws
-      testSql.skip({ intAttr1: { [Op.is]: col('intAttr2') } }, {
-        default: new Error('column references are not supported by Op.is'),
+      testSql({ intAttr1: { [Op.is]: col('intAttr2') } }, {
+        default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
       });
 
-      testSql({ intAttr1: { [Op.is]: literal('literal') } }, {
-        default: '[intAttr1] IS literal',
-      });
-
-      // @ts-expect-error -- not supported, testing that it throws
-      testSql.skip({ intAttr1: { [Op.is]: fn('UPPER', col('intAttr2')) } }, {
-        default: new Error('SQL functions are not supported by Op.is'),
+      testSql({ intAttr1: { [Op.is]: literal('UNKNOWN') } }, {
+        default: '[intAttr1] IS UNKNOWN',
       });
 
       // @ts-expect-error -- not supported, testing that it throws
-      testSql.skip({ intAttr1: { [Op.is]: cast(col('intAttr2'), 'boolean') } }, {
-        default: new Error('CAST is not supported by Op.is'),
+      testSql({ intAttr1: { [Op.is]: fn('UPPER', col('intAttr2')) } }, {
+        default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
+      });
+
+      // @ts-expect-error -- not supported, testing that it throws
+      testSql({ intAttr1: { [Op.is]: cast(col('intAttr2'), 'boolean') } }, {
+        default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
       });
 
       if (dialectSupportsArray()) {
         // @ts-expect-error -- not supported, testing that it throws
-        testSql.skip({ intAttr1: { [Op.is]: { [Op.any]: [2, 3] } } }, {
-          default: new Error('Op.any is not supported by Op.is'),
+        testSql({ intAttr1: { [Op.is]: { [Op.any]: [2, 3] } } }, {
+          default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
         });
 
         // @ts-expect-error -- not supported, testing that it throws
-        testSql.skip({ intAttr1: { [Op.is]: { [Op.all]: [2, 3, 4] } } }, {
-          default: new Error('Op.all is not supported by Op.is'),
+        testSql({ intAttr1: { [Op.is]: { [Op.all]: [2, 3, 4] } } }, {
+          default: new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.'),
         });
       }
     });
 
-    describe('Op.not', () => {
-      testSql({ [Op.not]: {} }, {
-        default: '0 = 1',
-      });
-
-      testSql({ [Op.not]: [] }, {
-        default: '0 = 1',
-      });
-
-      testSql({ nullableIntAttr: { [Op.not]: null } }, {
+    describe('Op.isNot', () => {
+      testSql({ nullableIntAttr: { [Op.isNot]: null } }, {
         default: '[nullableIntAttr] IS NOT NULL',
       });
 
-      testSql({ booleanAttr: { [Op.not]: false } }, {
+      testSql({ booleanAttr: { [Op.isNot]: false } }, {
         default: '[booleanAttr] IS NOT false',
-        mssql: '[booleanAttr] IS NOT 0',
-        ibmi: '"booleanAttr" IS NOT 0',
-        sqlite: '`booleanAttr` IS NOT 0',
+        'mssql ibmi sqlite': '[booleanAttr] IS NOT 0',
+      });
+
+      testSql({ booleanAttr: { [Op.isNot]: true } }, {
+        default: '[booleanAttr] IS NOT true',
+        'mssql ibmi sqlite': '[booleanAttr] IS NOT 1',
+      });
+    });
+
+    describe('Op.not', () => {
+      testSql({ [Op.not]: {} }, {
+        default: '',
+      });
+
+      testSql({
+        [Op.not]: {
+          [Op.not]: {},
+        },
+      }, {
+        default: '',
+      });
+
+      testSql({ [Op.not]: [] }, {
+        default: '',
+      });
+
+      testSql({ nullableIntAttr: { [Op.not]: {} } }, {
+        default: '',
+      });
+
+      testSql({ nullableIntAttr: { [Op.not]: null } }, {
+        default: 'NOT ([nullableIntAttr] IS NULL)',
+      });
+
+      testSql({ booleanAttr: { [Op.not]: false } }, {
+        default: 'NOT ([booleanAttr] = false)',
+        mssql: 'NOT ([booleanAttr] = 0)',
+        ibmi: 'NOT ("booleanAttr" = 0)',
+        sqlite: 'NOT (`booleanAttr` = 0)',
       });
 
       testSql({ booleanAttr: { [Op.not]: true } }, {
-        default: '[booleanAttr] IS NOT true',
-        mssql: '[booleanAttr] IS NOT 1',
-        ibmi: '"booleanAttr" IS NOT 1',
-        sqlite: '`booleanAttr` IS NOT 1',
+        default: 'NOT ([booleanAttr] = true)',
+        mssql: 'NOT ([booleanAttr] = 1)',
+        ibmi: 'NOT ("booleanAttr" = 1)',
+        sqlite: 'NOT (`booleanAttr` = 1)',
       });
 
       testSql({ intAttr1: { [Op.not]: 1 } }, {
-        default: '[intAttr1] != 1',
+        default: 'NOT ([intAttr1] = 1)',
       });
 
       testSql({ intAttr1: { [Op.not]: [1, 2] } }, {
-        default: '[intAttr1] NOT IN (1, 2)',
+        default: 'NOT ([intAttr1] IN (1, 2))',
       });
-
-      testSequelizeValueMethods(Op.not, '!=');
-      testSupportsAnyAll(Op.not, '!=', [2, 3, 4]);
 
       {
         // @ts-expect-error -- not a valid query: attribute does not exist.
@@ -752,15 +750,21 @@ describe(getTestDialectTeaser('SQL'), () => {
         default: 'NOT ([intAttr1] > 5)',
       });
 
-      testSql.skip({ [Op.not]: where(col('intAttr1'), Op.eq, '5') }, {
-        default: 'NOT ([intAttr1] = 5)',
+      testSql({ [Op.not]: where(col('intAttr1'), Op.eq, '5') }, {
+        default: `NOT ([intAttr1] = '5')`,
+        mssql: `NOT ([intAttr1] = N'5')`,
       });
 
-      testSql.skip({ [Op.not]: json('data.key', 10) }, {
-        default: 'NOT (([data]#>>\'{key}\') = 10)',
-      });
+      if (dialectSupportsJsonOperations()) {
+        testSql({ [Op.not]: json('data.key', 10) }, {
+          postgres: `NOT ("data"->'key' = '10')`,
+          sqlite: `NOT (json_extract(\`data\`,'$.key') = '10')`,
+          mariadb: `NOT (json_compact(json_extract(\`data\`,'$.key')) = '10')`,
+          mysql: `NOT (json_extract(\`data\`,'$.key') = CAST('10' AS JSON))`,
+        });
+      }
 
-      testSql.skip({ intAttr1: { [Op.not]: { [Op.gt]: 5 } } }, {
+      testSql({ intAttr1: { [Op.not]: { [Op.gt]: 5 } } }, {
         default: 'NOT ([intAttr1] > 5)',
       });
     });
@@ -796,13 +800,13 @@ describe(getTestDialectTeaser('SQL'), () => {
         if (dialectSupportsArray()) {
           const ignore: TestModelWhere = { intArrayAttr: { [Op.gt]: [1, 2] } };
           testSql({ intArrayAttr: { [operator]: [1, 2] } }, {
-            default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2]::INTEGER[]`,
+            default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2]`,
           });
         }
 
         expectTypeOf({ intAttr1: { [Op.gt]: null } }).not.toMatchTypeOf<WhereOperators>();
-        testSql.skip({ intAttr1: { [operator]: null } }, {
-          default: new Error(`Op.${operator.description} cannot be used with null`),
+        testSql({ intAttr1: { [operator]: null } }, {
+          default: `[intAttr1] ${sqlOperator} NULL`,
         });
 
         testSequelizeValueMethods(operator, sqlOperator);
@@ -846,8 +850,8 @@ describe(getTestDialectTeaser('SQL'), () => {
           // @ts-expect-error -- must pass exactly 2 items
           const ignoreWrong2: TestModelWhere = { intAttr1: { [Op.between]: [1] } };
 
-          testSql.skip({ intAttr1: { [operator]: [1] } }, {
-            default: new Error(`Op.${operator.description} expects an array of exactly 2 items.`),
+          testSql({ intAttr1: { [operator]: [1] } }, {
+            default: new Error('Operators Op.between and Op.notBetween must be used with an array of two values, or a literal.'),
           });
 
           // @ts-expect-error -- must pass exactly 2 items
@@ -858,7 +862,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           {
             const ignoreRight: TestModelWhere = { intArrayAttr: { [Op.between]: [[1, 2], [3, 4]] } };
             testSql({ intArrayAttr: { [operator]: [[1, 2], [3, 4]] } }, {
-              default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2]::INTEGER[] AND ARRAY[3,4]::INTEGER[]`,
+              default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2] AND ARRAY[3,4]`,
             });
           }
 
@@ -891,8 +895,8 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         {
           const ignoreRight: TestModelWhere = { intAttr1: { [Op.between]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } };
-          testSql.skip({ intAttr1: { [operator]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } }, {
-            default: `[intAttr1] ${sqlOperator} "col1" AND "col2"`,
+          testSql({ intAttr1: { [operator]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } }, {
+            default: `[intAttr1] ${sqlOperator} [col1] AND [col2]`,
           });
         }
 
@@ -905,8 +909,8 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         {
           const ignoreRight: TestModelWhere = { intAttr1: { [Op.between]: literal('literal1 AND literal2') } };
-          testSql.skip({ intAttr1: { [operator]: literal('literal1 AND literal2') } }, {
-            default: `[intAttr1] ${sqlOperator} BETWEEN literal1 AND literal2`,
+          testSql({ intAttr1: { [operator]: literal('literal1 AND literal2') } }, {
+            default: `[intAttr1] ${sqlOperator} literal1 AND literal2`,
           });
         }
       });
@@ -939,7 +943,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             // valid
             const ignore: TestModelWhere = { intArrayAttr: { [Op.in]: [[1, 2], [3, 4]] } };
             testSql({ intArrayAttr: { [operator]: [[1, 2], [3, 4]] } }, {
-              default: `[intArrayAttr] ${sqlOperator} (ARRAY[1,2]::INTEGER[], ARRAY[3,4]::INTEGER[])`,
+              default: `[intArrayAttr] ${sqlOperator} (ARRAY[1,2], ARRAY[3,4])`,
             });
           }
 
@@ -947,7 +951,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             // @ts-expect-error -- intAttr1 is not an array
             const ignore: TestModelWhere = { intAttr1: { [Op.in]: [[1, 2], [3, 4]] } };
             testSql({ intArrayAttr: { [operator]: [[1, 2], [3, 4]] } }, {
-              default: `[intArrayAttr] ${sqlOperator} (ARRAY[1,2]::INTEGER[], ARRAY[3,4]::INTEGER[])`,
+              default: `[intArrayAttr] ${sqlOperator} (ARRAY[1,2], ARRAY[3,4])`,
             });
           }
         }
@@ -960,16 +964,16 @@ describe(getTestDialectTeaser('SQL'), () => {
         {
           // @ts-expect-error -- not supported, testing that it throws
           const ignoreWrong: TestModelWhere = { intAttr1: { [Op.in]: 1 } };
-          testSql.skip({ intAttr1: { [operator]: 1 } }, {
-            default: new Error(`Op.${operator.description} expects an array.`),
+          testSql({ intAttr1: { [operator]: 1 } }, {
+            default: new Error('Operators Op.in and Op.notIn must be called with an array of values, or a literal'),
           });
         }
 
         {
           // @ts-expect-error -- not supported, testing that it throws
           const ignoreWrong: TestModelWhere = { intAttr1: { [Op.in]: col('col2') } };
-          testSql.skip({ intAttr1: { [operator]: col('col1') } }, {
-            default: new Error(`Op.${operator.description} expects an array.`),
+          testSql({ intAttr1: { [operator]: col('col1') } }, {
+            default: new Error('Operators Op.in and Op.notIn must be called with an array of values, or a literal'),
           });
         }
 
@@ -996,8 +1000,8 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         {
           const ignoreRight: TestModelWhere = { intAttr1: { [Op.in]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } };
-          testSql.skip({ intAttr1: { [operator]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } }, {
-            default: `[intAttr1] ${sqlOperator} ("col1", "col2")`,
+          testSql({ intAttr1: { [operator]: [{ [Op.col]: 'col1' }, { [Op.col]: 'col2' }] } }, {
+            default: `[intAttr1] ${sqlOperator} ([col1], [col2])`,
           });
         }
 
@@ -1055,8 +1059,14 @@ describe(getTestDialectTeaser('SQL'), () => {
           mssql: `[stringAttr] ${sqlOperator} N'%id'`,
         });
 
+        // This test checks that the right data type is used to stringify the right operand
+        testSql({ 'intAttr1::text': { [operator]: '%id' } }, {
+          default: `CAST([intAttr1] AS TEXT) ${sqlOperator} '%id'`,
+          mssql: `CAST([intAttr1] AS TEXT) ${sqlOperator} N'%id'`,
+        });
+
         testSequelizeValueMethods(operator, sqlOperator);
-        testSupportsAnyAll(operator, sqlOperator, ['a', 'b', 'c']);
+        testSupportsAnyAll(operator, sqlOperator, ['a', 'b', 'c'], 'stringAttr');
       });
     }
 
@@ -1078,7 +1088,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           {
             const ignoreRight: TestModelWhere = { intArrayAttr: { [Op.overlap]: [1, 2, 3] } };
             testSql({ intArrayAttr: { [operator]: [1, 2, 3] } }, {
-              default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2,3]::INTEGER[]`,
+              default: `[intArrayAttr] ${sqlOperator} ARRAY[1,2,3]`,
             });
           }
 
@@ -1089,56 +1099,32 @@ describe(getTestDialectTeaser('SQL'), () => {
           {
             // @ts-expect-error -- cannot compare an array with a range!
             const ignore: TestModelWhere = { intArrayAttr: { [Op.overlap]: [1, { value: 2, inclusive: true }] } };
-            testSql.skip({ intArrayAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
-              default: new Error('"intArrayAttr" is an array and cannot be compared to a [1, { value: 2, inclusive: true }]'),
+            testSql({ intArrayAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
+              default: new Error('{ value: 2, inclusive: true } is not a valid integer'),
             });
           }
 
           {
             // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [col('col')] } };
-            testSql.skip({ intArrayAttr: { [operator]: [col('col')] } }, {
-              default: new Error(`Op.${operator.description} does not support arrays of cols`),
-            });
-          }
-
-          {
-            // @ts-expect-error -- not supported, testing that it throws
-            const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [col('col')] } };
-            testSql.skip({ intArrayAttr: { [operator]: [col('col')] } }, {
-              default: new Error(`Op.${operator.description} does not support arrays of cols`),
+            testSql({ intArrayAttr: { [operator]: [col('col')] } }, {
+              default: new Error(`Col { identifiers: [ 'col' ] } is not a valid integer`),
             });
           }
 
           {
             // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [{ [Op.col]: 'col' }] } };
-            testSql.skip({ intArrayAttr: { [operator]: [{ [Op.col]: 'col' }] } }, {
-              default: new Error(`Op.${operator.description} does not support arrays of cols`),
+            testSql({ intArrayAttr: { [operator]: [{ [Op.col]: 'col' }] } }, {
+              default: new Error(`{ [Symbol(col)]: 'col' } is not a valid integer`),
             });
           }
 
           {
             // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [literal('literal')] } };
-            testSql.skip({ intArrayAttr: { [operator]: [literal('literal')] } }, {
-              default: new Error(`Op.${operator.description} does not support arrays of literals`),
-            });
-          }
-
-          {
-            // @ts-expect-error -- not supported, testing that it throws
-            const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [fn('NOW')] } };
-            testSql.skip({ intArrayAttr: { [operator]: [fn('NOW')] } }, {
-              default: new Error(`Op.${operator.description} does not support arrays of fn`),
-            });
-          }
-
-          {
-            // @ts-expect-error -- not supported, testing that it throws
-            const ignoreWrong: TestModelWhere = { intArrayAttr: { [Op.overlap]: [cast(col('col'), 'string')] } };
-            testSql.skip({ intArrayAttr: { [operator]: [cast(col('col'), 'string')] } }, {
-              default: new Error(`Op.${operator.description} does not support arrays of cast`),
+            testSql({ intArrayAttr: { [operator]: [literal('literal')] } }, {
+              default: new Error(`Literal { val: [ 'literal' ] } is not a valid integer`),
             });
           }
         });
@@ -1149,7 +1135,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           {
             const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2] } };
             testSql({ intRangeAttr: { [operator]: [1, 2] } }, {
-              default: `[intRangeAttr] ${sqlOperator} '[1,2)'`,
+              default: `[intRangeAttr] ${sqlOperator} '[1,2)'::int4range`,
             });
           }
 
@@ -1157,14 +1143,14 @@ describe(getTestDialectTeaser('SQL'), () => {
             const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, { value: 2, inclusive: true }] } };
             testSql({ intRangeAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
               // used 'postgres' because otherwise range is transformed to "1,2"
-              postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
+              postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'::int4range`,
             });
           }
 
           {
             const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.overlap]: [{ value: 1, inclusive: false }, 2] } };
             testSql({ intRangeAttr: { [operator]: [{ value: 1, inclusive: false }, 2] } }, {
-              default: `[intRangeAttr] ${sqlOperator} '(1,2)'`,
+              default: `[intRangeAttr] ${sqlOperator} '(1,2)'::int4range`,
             });
           }
 
@@ -1173,7 +1159,7 @@ describe(getTestDialectTeaser('SQL'), () => {
               intRangeAttr: { [Op.overlap]: [{ value: 1, inclusive: false }, { value: 2, inclusive: false }] },
             };
             testSql({ intRangeAttr: { [operator]: [{ value: 1, inclusive: false }, { value: 2, inclusive: false }] } }, {
-              default: `[intRangeAttr] ${sqlOperator} '(1,2)'`,
+              default: `[intRangeAttr] ${sqlOperator} '(1,2)'::int4range`,
             });
           }
 
@@ -1183,7 +1169,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               intRangeAttr: { [operator]: [10, null] },
             }, {
-              postgres: `"intRangeAttr" ${sqlOperator} '[10,)'`,
+              postgres: `"intRangeAttr" ${sqlOperator} '[10,)'::int4range`,
             });
           }
 
@@ -1193,7 +1179,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               intRangeAttr: { [operator]: [null, 10] },
             }, {
-              postgres: `"intRangeAttr" ${sqlOperator} '[,10)'`,
+              postgres: `"intRangeAttr" ${sqlOperator} '[,10)'::int4range`,
             });
           }
 
@@ -1203,7 +1189,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               intRangeAttr: { [operator]: [null, null] },
             }, {
-              postgres: `"intRangeAttr" ${sqlOperator} '[,)'`,
+              postgres: `"intRangeAttr" ${sqlOperator} '[,)'::int4range`,
             });
           }
 
@@ -1217,7 +1203,7 @@ describe(getTestDialectTeaser('SQL'), () => {
                 [operator]: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY],
               },
             }, {
-              postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
+              postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'::tstzrange`,
             });
           }
 
@@ -1228,15 +1214,15 @@ describe(getTestDialectTeaser('SQL'), () => {
             testSql({
               dateRangeAttr: { [operator]: [] },
             }, {
-              postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+              postgres: `"dateRangeAttr" ${sqlOperator} 'empty'::tstzrange`,
             });
           }
 
           {
             // @ts-expect-error -- 'intRangeAttr' is a range, but right-hand side is a regular Array
             const ignore: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2, 3] } };
-            testSql.skip({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
-              default: new Error('"intRangeAttr" is a range and cannot be compared to array [1, 2, 3]'),
+            testSql({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
+              default: new Error('A range must either be an array with two elements, or an empty array for the empty range. Got [ 1, 2, 3 ].'),
             });
           }
 
@@ -1258,8 +1244,8 @@ describe(getTestDialectTeaser('SQL'), () => {
         });
 
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
-        testSql.skip({ intArrayAttr: { [Op.contains]: 1 } }, {
-          default: new Error(`Op.contains doesn't support comparing with a non-array value.`),
+        testSql({ intArrayAttr: { [Op.contains]: 1 } }, {
+          default: new Error('1 is not a valid array'),
         });
       });
     }
@@ -1267,22 +1253,26 @@ describe(getTestDialectTeaser('SQL'), () => {
     describeOverlapSuite(Op.contained, '<@');
 
     describe('ELEMENT Op.contained RANGE', () => {
-      testSql.skip({
+      if (!dialectSupportsRange()) {
+        return;
+      }
+
+      testSql({
         intAttr1: { [Op.contained]: [1, 2] },
       }, {
-        postgres: '"intAttr1" <@ \'[1,2)\'::int4range',
+        postgres: `"intAttr1" <@ '[1,2)'::int4range`,
       });
 
-      testSql.skip({
+      testSql({
         bigIntAttr: { [Op.contained]: [1, 2] },
       }, {
-        postgres: '"intAttr1" <@ \'[1,2)\'::int8range',
+        postgres: `"bigIntAttr" <@ '[1,2)'::int8range`,
       });
 
-      testSql.skip({
+      testSql({
         dateAttr: { [Op.contained]: [new Date('2020-01-01T00:00:00Z'), new Date('2021-01-01T00:00:00Z')] },
       }, {
-        postgres: '"intAttr1" <@ \'["2020-01-01 00:00:00.000 +00:00", "2021-01-01 00:00:00.000 +00:00")\'::tstzrange',
+        postgres: `"dateAttr" <@ '[2020-01-01 00:00:00.000 +00:00,2021-01-01 00:00:00.000 +00:00)'::tstzrange`,
       });
 
       /*
@@ -1295,6 +1285,13 @@ describe(getTestDialectTeaser('SQL'), () => {
     });
 
     describe('Op.startsWith', () => {
+      // TODO: use implementation not based on "LIKE"
+      //  mysql, mariadb: locate()
+      //  postgres:, ^@
+      //  snowflake, ibmi, db2: position()
+      //  mssql: CHARINDEX()
+      //  sqlite: INSTR()
+
       testSql({
         stringAttr: {
           [Op.startsWith]: 'swagger',
@@ -1325,22 +1322,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: String.raw`[stringAttr] LIKE N'sql\%injection%' ESCAPE '\'`,
       });
 
-      // TODO: remove this test in v7 (breaking change)
       testSql({
-        stringAttr: {
-          [Op.startsWith]: literal('swagger'),
-        },
-      }, {
-        default: `[stringAttr] LIKE 'swagger%'`,
-        mssql: `[stringAttr] LIKE N'swagger%'`,
-      });
-
-      // TODO: in v7: support `col`, `literal`, and others
-      // TODO: these would require escaping LIKE values in SQL itself
-      //  output should be something like:
-      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
-      //  with missing special characters.
-      testSql.skip({
         stringAttr: {
           [Op.startsWith]: literal('$bind'),
         },
@@ -1349,25 +1331,25 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT($bind, N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.startsWith]: col('username'),
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT("username", '%')`,
-        mssql: `[stringAttr] LIKE CONCAT("username", N'%')`,
+        default: `[stringAttr] LIKE CONCAT([username], '%')`,
+        mssql: `[stringAttr] LIKE CONCAT([username], N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.startsWith]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT("username", '%')`,
-        mssql: `[stringAttr] LIKE CONCAT("username", N'%')`,
+        default: `[stringAttr] LIKE CONCAT([username], '%')`,
+        mssql: `[stringAttr] LIKE CONCAT([username], N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.startsWith]: fn('NOW'),
         },
@@ -1376,34 +1358,24 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(NOW(), N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.startsWith]: cast(fn('NOW'), 'string'),
         },
       }, {
-        default: `[username] LIKE CONCAT(CAST(NOW() AS STRING), '%')`,
-        mssql: `[username] LIKE CONCAT(CAST(NOW() AS STRING), N'%')`,
+        default: `[stringAttr] LIKE CONCAT(CAST(NOW() AS STRING), '%')`,
+        mssql: `[stringAttr] LIKE CONCAT(CAST(NOW() AS STRING), N'%')`,
       });
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPe is '\')
       // @ts-expect-error -- startsWith is not compatible with Op.any
-      testSql.skip({ stringAttr: { [Op.startsWith]: { [Op.any]: ['test'] } } }, {
-        default: new Error('Op.startsWith is not compatible with Op.any'),
+      testSql({ stringAttr: { [Op.startsWith]: { [Op.any]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- startsWith is not compatible with Op.all
-      testSql.skip({ stringAttr: { [Op.startsWith]: { [Op.all]: ['test'] } } }, {
-        default: new Error('Op.startsWith is not compatible with Op.all'),
-      });
-
-      // @ts-expect-error -- startsWith is not compatible with Op.any + Op.values
-      testSql.skip({ stringAttr: { [Op.startsWith]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.startsWith is not compatible with Op.any'),
-      });
-
-      // @ts-expect-error -- startsWith is not compatible with Op.all + Op.values
-      testSql.skip({ stringAttr: { [Op.startsWith]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.startsWith is not compatible with Op.all'),
+      testSql({ stringAttr: { [Op.startsWith]: { [Op.all]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
@@ -1438,22 +1410,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: String.raw`[stringAttr] LIKE N'%sql\%injection' ESCAPE '\'`,
       });
 
-      // TODO: remove this test in v7 (breaking change)
       testSql({
-        stringAttr: {
-          [Op.endsWith]: literal('swagger'),
-        },
-      }, {
-        default: `[stringAttr] LIKE '%swagger'`,
-        mssql: `[stringAttr] LIKE N'%swagger'`,
-      });
-
-      // TODO: in v7: support `col`, `literal`, and others
-      // TODO: these would require escaping LIKE values in SQL itself
-      //  output should be something like:
-      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
-      //  with missing special characters.
-      testSql.skip({
         stringAttr: {
           [Op.endsWith]: literal('$bind'),
         },
@@ -1462,25 +1419,25 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(N'%', $bind)`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.endsWith]: col('username'),
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT('%', "username")`,
-        mssql: `[stringAttr] LIKE CONCAT(N'%', "username")`,
+        default: `[stringAttr] LIKE CONCAT('%', [username])`,
+        mssql: `[stringAttr] LIKE CONCAT(N'%', [username])`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.endsWith]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT('%', "username")`,
-        mssql: `[stringAttr] LIKE CONCAT(N'%', "username")`,
+        default: `[stringAttr] LIKE CONCAT('%', [username])`,
+        mssql: `[stringAttr] LIKE CONCAT(N'%', [username])`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.endsWith]: fn('NOW'),
         },
@@ -1489,7 +1446,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(N'%', NOW())`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.endsWith]: cast(fn('NOW'), 'string'),
         },
@@ -1500,27 +1457,24 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
       // @ts-expect-error -- startsWith is not compatible with Op.any
-      testSql.skip({ stringAttr: { [Op.endsWith]: { [Op.any]: ['test'] } } }, {
-        default: new Error('Op.endsWith is not compatible with Op.any'),
+      testSql({ stringAttr: { [Op.endsWith]: { [Op.any]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- startsWith is not compatible with Op.all
-      testSql.skip({ stringAttr: { [Op.endsWith]: { [Op.all]: ['test'] } } }, {
-        default: new Error('Op.endsWith is not compatible with Op.all'),
-      });
-
-      // @ts-expect-error -- startsWith is not compatible with Op.any + Op.values
-      testSql.skip({ stringAttr: { [Op.endsWith]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.endsWith is not compatible with Op.any'),
-      });
-
-      // @ts-expect-error -- startsWith is not compatible with Op.all + Op.values
-      testSql.skip({ stringAttr: { [Op.endsWith]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.endsWith is not compatible with Op.all'),
+      testSql({ stringAttr: { [Op.endsWith]: { [Op.all]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
     describe('Op.substring', () => {
+      // TODO: use implementation not based on "LIKE"
+      //  mysql, mariadb: locate()
+      //  postgres:, position()
+      //  snowflake, ibmi, db2: position()
+      //  mssql: CHARINDEX()
+      //  sqlite: INSTR()
+
       testSql({
         stringAttr: {
           [Op.substring]: 'swagger',
@@ -1551,22 +1505,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: String.raw`[stringAttr] LIKE N'%sql\%injection%' ESCAPE '\'`,
       });
 
-      // TODO: remove this test in v7 (breaking change)
       testSql({
-        stringAttr: {
-          [Op.substring]: literal('swagger'),
-        },
-      }, {
-        default: `[stringAttr] LIKE '%swagger%'`,
-        mssql: `[stringAttr] LIKE N'%swagger%'`,
-      });
-
-      // TODO: in v7: support `col`, `literal`, and others
-      // TODO: these would require escaping LIKE values in SQL itself
-      //  output should be something like:
-      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
-      //  with missing special characters.
-      testSql.skip({
         stringAttr: {
           [Op.substring]: literal('$bind'),
         },
@@ -1575,25 +1514,25 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(N'%', $bind, N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.substring]: col('username'),
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT('%', "username", '%')`,
-        mssql: `[stringAttr] LIKE CONCAT(N'%', "username", N'%')`,
+        default: `[stringAttr] LIKE CONCAT('%', [username], '%')`,
+        mssql: `[stringAttr] LIKE CONCAT(N'%', [username], N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.substring]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] LIKE CONCAT('%', "username", '%')`,
-        mssql: `[stringAttr] LIKE CONCAT(N'%', "username", N'%')`,
+        default: `[stringAttr] LIKE CONCAT('%', [username], '%')`,
+        mssql: `[stringAttr] LIKE CONCAT(N'%', [username], N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.substring]: fn('NOW'),
         },
@@ -1602,7 +1541,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] LIKE CONCAT(N'%', NOW(), N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.substring]: cast(fn('NOW'), 'string'),
         },
@@ -1613,23 +1552,13 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
       // @ts-expect-error -- startsWith is not compatible with Op.any
-      testSql.skip({ stringAttr: { [Op.substring]: { [Op.any]: ['test'] } } }, {
-        default: new Error('Op.substring is not compatible with Op.any'),
+      testSql({ stringAttr: { [Op.substring]: { [Op.any]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- startsWith is not compatible with Op.all
-      testSql.skip({ stringAttr: { [Op.substring]: { [Op.all]: ['test'] } } }, {
-        default: new Error('Op.substring is not compatible with Op.all'),
-      });
-
-      // @ts-expect-error -- startsWith is not compatible with Op.any + Op.values
-      testSql.skip({ stringAttr: { [Op.substring]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.substring is not compatible with Op.any'),
-      });
-
-      // @ts-expect-error -- startsWith is not compatible with Op.all + Op.values
-      testSql.skip({ stringAttr: { [Op.substring]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.substring is not compatible with Op.all'),
+      testSql({ stringAttr: { [Op.substring]: { [Op.all]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
@@ -1664,22 +1593,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: String.raw`[stringAttr] NOT LIKE N'sql\%injection%' ESCAPE '\'`,
       });
 
-      // TODO: remove this test in v7 (breaking change)
       testSql({
-        stringAttr: {
-          [Op.notStartsWith]: literal('swagger'),
-        },
-      }, {
-        default: `[stringAttr] NOT LIKE 'swagger%'`,
-        mssql: `[stringAttr] NOT LIKE N'swagger%'`,
-      });
-
-      // TODO: in v7: support `col`, `literal`, and others
-      // TODO: these would require escaping LIKE values in SQL itself
-      //  output should be something like:
-      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
-      //  with missing special characters.
-      testSql.skip({
         stringAttr: {
           [Op.notStartsWith]: literal('$bind'),
         },
@@ -1688,25 +1602,25 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] NOT LIKE CONCAT($bind, N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notStartsWith]: col('username'),
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT("username", '%')`,
-        mssql: `[stringAttr] NOT LIKE CONCAT("username", N'%')`,
+        default: `[stringAttr] NOT LIKE CONCAT([username], '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT([username], N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notStartsWith]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT("username", '%')`,
-        mssql: `[stringAttr] NOT LIKE CONCAT("username", N'%')`,
+        default: `[stringAttr] NOT LIKE CONCAT([username], '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT([username], N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notStartsWith]: fn('NOW'),
         },
@@ -1715,38 +1629,28 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] NOT LIKE CONCAT(NOW(), N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notStartsWith]: cast(fn('NOW'), 'string'),
         },
       }, {
-        default: `[username] NOT LIKE CONCAT(CAST(NOW() AS STRING), '%')`,
-        mssql: `[username] NOT LIKE CONCAT(CAST(NOW() AS STRING), N'%')`,
+        default: `[stringAttr] NOT LIKE CONCAT(CAST(NOW() AS STRING), '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(CAST(NOW() AS STRING), N'%')`,
       });
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPe is '\')
       // @ts-expect-error -- notStartsWith is not compatible with Op.any
-      testSql.skip({ stringAttr: { [Op.notStartsWith]: { [Op.any]: ['test'] } } }, {
-        default: new Error('Op.notStartsWith is not compatible with Op.any'),
+      testSql({ stringAttr: { [Op.notStartsWith]: { [Op.any]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- notStartsWith is not compatible with Op.all
-      testSql.skip({ stringAttr: { [Op.notStartsWith]: { [Op.all]: ['test'] } } }, {
-        default: new Error('Op.notStartsWith is not compatible with Op.all'),
-      });
-
-      // @ts-expect-error -- notStartsWith is not compatible with Op.any + Op.values
-      testSql.skip({ stringAttr: { [Op.notStartsWith]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.notStartsWith is not compatible with Op.any'),
-      });
-
-      // @ts-expect-error -- notStartsWith is not compatible with Op.all + Op.values
-      testSql.skip({ stringAttr: { [Op.notStartsWith]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.notStartsWith is not compatible with Op.all'),
+      testSql({ stringAttr: { [Op.notStartsWith]: { [Op.all]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
-    describe.skip('Op.notEndsWith', () => {
+    describe('Op.notEndsWith', () => {
       testSql({
         stringAttr: {
           [Op.notEndsWith]: 'swagger',
@@ -1777,22 +1681,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: String.raw`[stringAttr] NOT LIKE N'%sql\%injection' ESCAPE '\'`,
       });
 
-      // TODO: remove this test in v7 (breaking change)
       testSql({
-        stringAttr: {
-          [Op.notEndsWith]: literal('swagger'),
-        },
-      }, {
-        default: `[stringAttr] NOT LIKE '%swagger'`,
-        mssql: `[stringAttr] NOT LIKE N'%swagger'`,
-      });
-
-      // TODO: in v7: support `col`, `literal`, and others
-      // TODO: these would require escaping LIKE values in SQL itself
-      //  output should be something like:
-      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
-      //  with missing special characters.
-      testSql.skip({
         stringAttr: {
           [Op.notEndsWith]: literal('$bind'),
         },
@@ -1801,25 +1690,25 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] NOT LIKE CONCAT(N'%', $bind)`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notEndsWith]: col('username'),
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT('%', "username")`,
-        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username")`,
+        default: `[stringAttr] NOT LIKE CONCAT('%', [username])`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', [username])`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notEndsWith]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT('%', "username")`,
-        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username")`,
+        default: `[stringAttr] NOT LIKE CONCAT('%', [username])`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', [username])`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notEndsWith]: fn('NOW'),
         },
@@ -1828,7 +1717,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] NOT LIKE CONCAT(N'%', NOW())`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notEndsWith]: cast(fn('NOW'), 'string'),
         },
@@ -1839,27 +1728,17 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
       // @ts-expect-error -- notEndsWith is not compatible with Op.any
-      testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.any]: ['test'] } } }, {
-        default: new Error('Op.notEndsWith is not compatible with Op.any'),
+      testSql({ stringAttr: { [Op.notEndsWith]: { [Op.any]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- notEndsWith is not compatible with Op.all
-      testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.all]: ['test'] } } }, {
-        default: new Error('Op.notEndsWith is not compatible with Op.all'),
-      });
-
-      // @ts-expect-error -- notEndsWith is not compatible with Op.any + Op.values
-      testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.notEndsWith is not compatible with Op.any'),
-      });
-
-      // @ts-expect-error -- notEndsWith is not compatible with Op.all + Op.values
-      testSql.skip({ stringAttr: { [Op.notEndsWith]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.notEndsWith is not compatible with Op.all'),
+      testSql({ stringAttr: { [Op.notEndsWith]: { [Op.all]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
-    describe.skip('Op.notSubstring', () => {
+    describe('Op.notSubstring', () => {
       testSql({
         stringAttr: {
           [Op.notSubstring]: 'swagger',
@@ -1890,22 +1769,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: String.raw`[stringAttr] NOT LIKE N'%sql\%injection%' ESCAPE '\'`,
       });
 
-      // TODO: remove this test in v7 (breaking change)
       testSql({
-        stringAttr: {
-          [Op.notSubstring]: literal('swagger'),
-        },
-      }, {
-        default: `[stringAttr] NOT LIKE '%swagger%'`,
-        mssql: `[stringAttr] NOT LIKE N'%swagger%'`,
-      });
-
-      // TODO: in v7: support `col`, `literal`, and others
-      // TODO: these would require escaping LIKE values in SQL itself
-      //  output should be something like:
-      //  `LIKE CONCAT(ESCAPE($bind, '%', '\\%'), '%') ESCAPE '\\'`
-      //  with missing special characters.
-      testSql.skip({
         stringAttr: {
           [Op.notSubstring]: literal('$bind'),
         },
@@ -1914,25 +1778,25 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] NOT LIKE CONCAT(N'%', $bind, N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notSubstring]: col('username'),
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT('%', "username", '%')`,
-        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username", N'%')`,
+        default: `[stringAttr] NOT LIKE CONCAT('%', [username], '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', [username], N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notSubstring]: { [Op.col]: 'username' },
         },
       }, {
-        default: `[stringAttr] NOT LIKE CONCAT('%', "username", '%')`,
-        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', "username", N'%')`,
+        default: `[stringAttr] NOT LIKE CONCAT('%', [username], '%')`,
+        mssql: `[stringAttr] NOT LIKE CONCAT(N'%', [username], N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notSubstring]: fn('NOW'),
         },
@@ -1941,7 +1805,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         mssql: `[stringAttr] NOT LIKE CONCAT(N'%', NOW(), N'%')`,
       });
 
-      testSql.skip({
+      testSql({
         stringAttr: {
           [Op.notSubstring]: cast(fn('NOW'), 'string'),
         },
@@ -1952,23 +1816,13 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
       // @ts-expect-error -- notSubstring is not compatible with Op.any
-      testSql.skip({ stringAttr: { [Op.notSubstring]: { [Op.any]: ['test'] } } }, {
-        default: new Error('Op.notSubstring is not compatible with Op.any'),
+      testSql({ stringAttr: { [Op.notSubstring]: { [Op.any]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
 
       // @ts-expect-error -- notSubstring is not compatible with Op.all
-      testSql.skip({ stringAttr: { [Op.notSubstring]: { [Op.all]: ['test'] } } }, {
-        default: new Error('Op.notSubstring is not compatible with Op.all'),
-      });
-
-      // @ts-expect-error -- notSubstring is not compatible with Op.any + Op.values
-      testSql.skip({ stringAttr: { [Op.notSubstring]: { [Op.any]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.notSubstring is not compatible with Op.any'),
-      });
-
-      // @ts-expect-error -- notSubstring is not compatible with Op.all + Op.values
-      testSql.skip({ stringAttr: { [Op.notSubstring]: { [Op.all]: { [Op.values]: ['test'] } } } }, {
-        default: new Error('Op.notSubstring is not compatible with Op.all'),
+      testSql({ stringAttr: { [Op.notSubstring]: { [Op.all]: ['test'] } } }, {
+        default: new Error(`{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`),
       });
     });
 
@@ -1996,7 +1850,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         });
 
         testSequelizeValueMethods(operator, sqlOperator);
-        testSupportsAnyAll(operator, sqlOperator, ['^a$', '^b$']);
+        testSupportsAnyAll(operator, sqlOperator, ['^a$', '^b$'], 'stringAttr');
       });
     }
 
@@ -2017,7 +1871,8 @@ describe(getTestDialectTeaser('SQL'), () => {
         });
 
         testSequelizeValueMethods(Op.match, '@@');
-        testSupportsAnyAll(Op.match, '@@', [fn('to_tsvector', 'a'), fn('to_tsvector', 'b')]);
+        // TODO
+        // testSupportsAnyAll(Op.match, '@@', [fn('to_tsvector', 'a'), fn('to_tsvector', 'b')]);
       });
     }
 
@@ -2039,7 +1894,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         {
           const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.adjacent]: [1, 2] } };
           testSql({ intRangeAttr: { [operator]: [1, 2] } }, {
-            default: `[intRangeAttr] ${sqlOperator} '[1,2)'`,
+            default: `[intRangeAttr] ${sqlOperator} '[1,2)'::int4range`,
           });
         }
 
@@ -2047,14 +1902,14 @@ describe(getTestDialectTeaser('SQL'), () => {
           const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.adjacent]: [1, { value: 2, inclusive: true }] } };
           testSql({ intRangeAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
             // used 'postgres' because otherwise range is transformed to "1,2"
-            postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
+            postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'::int4range`,
           });
         }
 
         {
           const ignoreRight: TestModelWhere = { intRangeAttr: { [Op.adjacent]: [{ value: 1, inclusive: false }, 2] } };
           testSql({ intRangeAttr: { [operator]: [{ value: 1, inclusive: false }, 2] } }, {
-            default: `[intRangeAttr] ${sqlOperator} '(1,2)'`,
+            default: `[intRangeAttr] ${sqlOperator} '(1,2)'::int4range`,
           });
         }
 
@@ -2063,7 +1918,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             intRangeAttr: { [Op.adjacent]: [{ value: 1, inclusive: false }, { value: 2, inclusive: false }] },
           };
           testSql({ intRangeAttr: { [operator]: [{ value: 1, inclusive: false }, { value: 2, inclusive: false }] } }, {
-            default: `[intRangeAttr] ${sqlOperator} '(1,2)'`,
+            default: `[intRangeAttr] ${sqlOperator} '(1,2)'::int4range`,
           });
         }
 
@@ -2073,7 +1928,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           testSql({
             intRangeAttr: { [operator]: [10, null] },
           }, {
-            postgres: `"intRangeAttr" ${sqlOperator} '[10,)'`,
+            postgres: `"intRangeAttr" ${sqlOperator} '[10,)'::int4range`,
           });
         }
 
@@ -2083,7 +1938,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           testSql({
             intRangeAttr: { [operator]: [null, 10] },
           }, {
-            postgres: `"intRangeAttr" ${sqlOperator} '[,10)'`,
+            postgres: `"intRangeAttr" ${sqlOperator} '[,10)'::int4range`,
           });
         }
 
@@ -2093,7 +1948,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           testSql({
             intRangeAttr: { [operator]: [null, null] },
           }, {
-            postgres: `"intRangeAttr" ${sqlOperator} '[,)'`,
+            postgres: `"intRangeAttr" ${sqlOperator} '[,)'::int4range`,
           });
         }
 
@@ -2107,7 +1962,7 @@ describe(getTestDialectTeaser('SQL'), () => {
               [operator]: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY],
             },
           }, {
-            postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'`,
+            postgres: `"dateRangeAttr" ${sqlOperator} '[-infinity,infinity)'::tstzrange`,
           });
         }
 
@@ -2118,15 +1973,15 @@ describe(getTestDialectTeaser('SQL'), () => {
           testSql({
             dateRangeAttr: { [operator]: [] },
           }, {
-            postgres: `"dateRangeAttr" ${sqlOperator} 'empty'`,
+            postgres: `"dateRangeAttr" ${sqlOperator} 'empty'::tstzrange`,
           });
         }
 
         {
           // @ts-expect-error -- 'intRangeAttr' is a range, but right-hand side is a regular Array
           const ignore: TestModelWhere = { intRangeAttr: { [Op.overlap]: [1, 2, 3] } };
-          testSql.skip({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
-            default: new Error('"intRangeAttr" is a range and cannot be compared to array [1, 2, 3]'),
+          testSql({ intRangeAttr: { [operator]: [1, 2, 3] } }, {
+            default: new Error('A range must either be an array with two elements, or an empty array for the empty range. Got [ 1, 2, 3 ].'),
           });
         }
       });
@@ -2150,110 +2005,202 @@ describe(getTestDialectTeaser('SQL'), () => {
           const ignore: TestModelWhere = { '$doesNotExist$.nested': 'value' };
         }
 
+        testSql({ jsonAttr: 'value' }, {
+          default: `[jsonAttr] = '"value"'`,
+          mysql: `\`jsonAttr\` = CAST('"value"' AS JSON)`,
+        });
+
+        testSql({ 'jsonAttr.nested': 'value' }, {
+          postgres: `"jsonAttr"->'nested' = '"value"'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
+          mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+        });
+
+        testSql(where('value', Op.eq, attribute('jsonAttr.nested')), {
+          postgres: `'"value"' = "jsonAttr"->'nested'`,
+          sqlite: `'"value"' = json_extract(\`jsonAttr\`,'$.nested')`,
+          mariadb: `'"value"' = json_compact(json_extract(\`jsonAttr\`,'$.nested'))`,
+          mysql: `CAST('"value"' AS JSON) = json_extract(\`jsonAttr\`,'$.nested')`,
+        });
+
+        testSql({ 'jsonAttr.nested.twice': 'value' }, {
+          postgres: `"jsonAttr"#>ARRAY['nested','twice'] = '"value"'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
+          mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
+        });
+
         testSql({
-          'jsonAttr.nested': {
-            attribute: 'value',
-          },
+          jsonAttr: { nested: 'value' },
         }, {
-          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
-          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
-          postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
+          postgres: `"jsonAttr"->'nested' = '"value"'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
+          mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
         });
 
-        testSql.skip({
-          '$jsonAttr$.nested': {
-            [Op.eq]: 'value',
-          },
+        testSql({
+          'jsonAttr.nested': { twice: 'value' },
         }, {
-          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested')) = 'value'`,
-          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) = 'value'`,
-          postgres: `("jsonAttr"#>>'{nested}') = 'value'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested') = 'value'`,
+          postgres: `"jsonAttr"#>ARRAY['nested','twice'] = '"value"'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
+          mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
         });
 
-        testSql.skip({
-          '$jsonAttr$.nested': {
-            attribute: 'value',
-          },
+        testSql({
+          jsonAttr: { [Op.eq]: { key: 'value' } },
         }, {
-          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
-          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
-          postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
+          default: `[jsonAttr] = '{"key":"value"}'`,
+          mysql: `\`jsonAttr\` = CAST('{"key":"value"}' AS JSON)`,
         });
 
-        testSql.skip({
-          '$association.jsonAttr$.nested': {
-            attribute: 'value',
-          },
+        testSql({
+          'jsonAttr.nested': { [Op.ne]: 'value' },
         }, {
-          mariadb: `json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
-          mysql: `json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
-          postgres: `("association"."jsonAttr"#>>'{nested,attribute}') = 'value'`,
-          sqlite: `json_extract(\`association\`.\`jsonAttr\`,'$.nested.attribute') = 'value'`,
+          postgres: `"jsonAttr"->'nested' != '"value"'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested') != '"value"'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) != '"value"'`,
+          mysql: `json_extract(\`jsonAttr\`,'$.nested') != CAST('"value"' AS JSON)`,
+        });
+
+        testSql({
+          '$jsonAttr$.nested': 'value',
+        }, {
+          postgres: `"jsonAttr"->'nested' = '"value"'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
+          mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+        });
+
+        testSql({
+          '$association.jsonAttr$.nested': 'value',
+        }, {
+          postgres: `"association"."jsonAttr"->'nested' = '"value"'`,
+          sqlite: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = '"value"'`,
+          mariadb: `json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested')) = '"value"'`,
+          mysql: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
         });
 
         testSql({
           'jsonAttr.nested::STRING': 'value',
         }, {
-          mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
-          mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
-          postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
-          sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
+          // with the left value cast to a string, we serialize the right value as a string, not as a JSON value
+          postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
+          mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
+          'sqlite mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
-        testSql.skip({
-          '$jsonAttr$.nested::STRING': 'value',
-        }, {
-          mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
-          mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
-          postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
-          sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
-        });
-
-        testSql.skip({
+        testSql({
           '$association.jsonAttr$.nested::STRING': {
             attribute: 'value',
           },
+        }, { default: new Error(`Could not guess type of value { attribute: 'value' }`) });
+
+        testSql({
+          '$association.jsonAttr$.nested.deep::STRING': 'value',
         }, {
-          mariadb: `CAST(json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
-          mysql: `CAST(json_unquote(json_extract(\`association\`.\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
-          postgres: `CAST(("association"."jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
-          sqlite: `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
+          postgres: `CAST("association"."jsonAttr"#>ARRAY['nested','deep'] AS STRING) = 'value'`,
+          mariadb: `CAST(json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep')) AS STRING) = 'value'`,
+          'sqlite mysql': `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep') AS STRING) = 'value'`,
         });
 
-        testSql.skip({
-          $jsonAttr$: { nested: 'value' },
-        }, {
-          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$.nested.attribute')) = 'value'`,
-          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\".\\"attribute\\"')) = 'value'`,
-          postgres: `("jsonAttr"#>>'{nested,attribute}') = 'value'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = 'value'`,
-        });
-
-        testSql.skip({
+        testSql({
           $jsonAttr$: { 'nested::string': 'value' },
         }, {
-          mariadb: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
-          mysql: `CAST(json_unquote(json_extract(\`jsonAttr\`,'$.\\"nested\\"')) AS STRING) = 'value'`,
-          postgres: `CAST(("jsonAttr"#>>'{nested}') AS STRING) = 'value'`,
-          sqlite: `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
+          postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
+          mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
+          'sqlite mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
         });
 
         testSql({ 'jsonAttr.nested.attribute': 4 }, {
-          mariadb: 'CAST(json_unquote(json_extract(`jsonAttr`,\'$.nested.attribute\')) AS DECIMAL) = 4',
-          mysql: 'CAST(json_unquote(json_extract(`jsonAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) = 4',
-          postgres: 'CAST(("jsonAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
-          sqlite: 'CAST(json_extract(`jsonAttr`,\'$.nested.attribute\') AS DOUBLE PRECISION) = 4',
+          postgres: `"jsonAttr"#>ARRAY['nested','attribute'] = '4'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = '4'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.attribute')) = '4'`,
+          mysql: `json_extract(\`jsonAttr\`,'$.nested.attribute') = CAST('4' AS JSON)`,
         });
 
-        // aliases correctly
-        testSql.skip({ 'aliasedJsonAttr.nested.attribute': 4 }, {
-          mariadb: 'CAST(json_unquote(json_extract(`aliased_json`,\'$.nested.attribute\')) AS DECIMAL) = 4',
-          mysql: 'CAST(json_unquote(json_extract(`aliased_json`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) = 4',
-          postgres: 'CAST(("aliased_json"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) = 4',
-          sqlite: 'CAST(json_extract(`aliased_json`,\'$.nested.attribute\') AS DOUBLE PRECISION) = 4',
+        // 0 is treated as a string key here, not an array index
+        testSql({ 'jsonAttr.0': 4 }, {
+          postgres: `"jsonAttr"->'0' = '4'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$."0"') = '4'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0"')) = '4'`,
+          mysql: `json_extract(\`jsonAttr\`,'$."0"') = CAST('4' AS JSON)`,
+        });
+
+        // 0 is treated as an index here, not a string key
+        testSql({ 'jsonAttr[0]': 4 }, {
+          postgres: `"jsonAttr"->0 = '4'`,
+
+          // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
+          sqlite: `json_extract(\`jsonAttr\`,'$[0]') = '4'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$[0]')) = '4'`,
+          mysql: `json_extract(\`jsonAttr\`,'$[0]') = CAST('4' AS JSON)`,
+        });
+
+        testSql({ 'jsonAttr.0.attribute': 4 }, {
+          postgres: `"jsonAttr"#>ARRAY['0','attribute'] = '4'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$."0".attribute') = '4'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0".attribute')) = '4'`,
+          mysql: `json_extract(\`jsonAttr\`,'$."0".attribute') = CAST('4' AS JSON)`,
+        });
+
+        // Regression test: https://github.com/sequelize/sequelize/issues/8718
+        testSql({ jsonAttr: { 'hyphenated-key': 4 } }, {
+          postgres: `"jsonAttr"->'hyphenated-key' = '4'`,
+          sqlite: `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = '4'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."hyphenated-key"')) = '4'`,
+          mysql: `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = CAST('4' AS JSON)`,
+        });
+
+        // SQL injection test
+        testSql({ jsonAttr: { '"a\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "': 1 } }, {
+          postgres: `"jsonAttr"->'a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ' = '1'`,
+          mysql: `json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = CAST('1' AS JSON)`,
+          sqlite: `json_extract(\`jsonAttr\`,'$."a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = '1'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "')) = '1'`,
+        });
+
+        testSql({ 'jsonAttr[0].nested.attribute': 4 }, {
+          postgres: `"jsonAttr"#>ARRAY['0','nested','attribute'] = '4'`,
+
+          // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
+          sqlite: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = '4'`,
+          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$[0].nested.attribute')) = '4'`,
+          mysql: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = CAST('4' AS JSON)`,
+        });
+
+        // aliases attribute -> column correctly
+        testSql({ 'aliasedJsonAttr.nested.attribute': 4 }, {
+          postgres: `"aliased_json"#>ARRAY['nested','attribute'] = '4'`,
+          sqlite: `json_extract(\`aliased_json\`,'$.nested.attribute') = '4'`,
+          mariadb: `json_compact(json_extract(\`aliased_json\`,'$.nested.attribute')) = '4'`,
+          mysql: `json_extract(\`aliased_json\`,'$.nested.attribute') = CAST('4' AS JSON)`,
+        });
+
+        testSql({ 'jsonAttr:unquote': 0 }, {
+          postgres: `"jsonAttr"#>>ARRAY[]::TEXT[] = 0`,
+          'sqlite mysql mariadb': `json_unquote([jsonAttr]) = 0`,
+        });
+
+        testSql({ 'jsonAttr.key:unquote': 0 }, {
+          postgres: `"jsonAttr"->>'key' = 0`,
+          'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.key')) = 0`,
+        });
+
+        testSql({ 'jsonAttr.nested.key:unquote': 0 }, {
+          postgres: `"jsonAttr"#>>ARRAY['nested','key'] = 0`,
+          'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.nested.key')) = 0`,
+        });
+
+        testSql({ 'jsonAttr[0]:unquote': 0 }, {
+          postgres: `"jsonAttr"->>0 = 0`,
+
+          // must be separate because [0] will be replaced by `0` by expectsql
+          sqlite: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
+          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
+          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
         });
       });
     }
@@ -2265,7 +2212,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.anyKeyExists]: ['a', 'b'],
           },
         }, {
-          default: `[jsonbAttr] ?| ARRAY['a', 'b']`,
+          default: `[jsonbAttr] ?| ARRAY['a','b']`,
         });
 
         testSql({
@@ -2273,7 +2220,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.allKeysExist]: ['a', 'b'],
           },
         }, {
-          default: `[jsonbAttr] ?& ARRAY['a', 'b']`,
+          default: `[jsonbAttr] ?& ARRAY['a','b']`,
         });
 
         testSql({
@@ -2290,22 +2237,6 @@ describe(getTestDialectTeaser('SQL'), () => {
           },
         }, {
           default: `[jsonbAttr] ?& ARRAY(SELECT jsonb_array_elements_text('ARRAY["a","b"]'))`,
-        });
-
-        testSql({
-          jsonbAttr: {
-            [Op.anyKeyExists]: [literal(`"gamer"`)],
-          },
-        }, {
-          default: `[jsonbAttr] ?| ARRAY["gamer"]`,
-        });
-
-        testSql({
-          jsonbAttr: {
-            [Op.allKeysExist]: [literal(`"gamer"`)],
-          },
-        }, {
-          default: `[jsonbAttr] ?& ARRAY["gamer"]`,
         });
 
         testSql({
@@ -2345,7 +2276,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.anyKeyExists]: [],
           },
         }, {
-          default: `[jsonbAttr] ?| ARRAY[]::text[]`,
+          default: `[jsonbAttr] ?| ARRAY[]::TEXT[]`,
         });
 
         testSql({
@@ -2353,7 +2284,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.allKeysExist]: [],
           },
         }, {
-          default: `[jsonbAttr] ?& ARRAY[]::text[]`,
+          default: `[jsonbAttr] ?& ARRAY[]::TEXT[]`,
         });
 
         testSql({
@@ -2374,32 +2305,20 @@ describe(getTestDialectTeaser('SQL'), () => {
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql({ id: { [Op.eq]: json('profile.id') } }, {
-          default: '"id" = ("profile"#>>\'{id}\')',
+          default: `"id" = "profile"->'id'`,
         });
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql(json('profile.id', cast('12346-78912', 'text')), {
-          postgres: '("profile"#>>\'{id}\') = CAST(\'12346-78912\' AS TEXT)',
-          sqlite: 'json_extract(`profile`,\'$.id\') = CAST(\'12346-78912\' AS TEXT)',
-          mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = CAST(\'12346-78912\' AS CHAR)',
-          mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = CAST(\'12346-78912\' AS CHAR)',
+          postgres: `"User"."profile"->'id' = CAST('12346-78912' AS TEXT)`,
         }, {
-          field: {
-            type: new DataTypes.JSONB(),
-          },
-          prefix: 'User',
+          mainAlias: 'User',
         });
 
         testSql(json({ profile: { id: '12346-78912', name: 'test' } }), {
-          postgres: '("profile"#>>\'{id}\') = \'12346-78912\' AND ("profile"#>>\'{name}\') = \'test\'',
-          sqlite: 'json_extract(`profile`,\'$.id\') = \'12346-78912\' AND json_extract(`profile`,\'$.name\') = \'test\'',
-          mariadb: 'json_unquote(json_extract(`profile`,\'$.id\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.name\')) = \'test\'',
-          mysql: 'json_unquote(json_extract(`profile`,\'$.\\"id\\"\')) = \'12346-78912\' AND json_unquote(json_extract(`profile`,\'$.\\"name\\"\')) = \'test\'',
+          postgres: `"User"."profile"->'id' = '"12346-78912"' AND "User"."profile"->'name' = '"test"'`,
         }, {
-          field: {
-            type: new DataTypes.JSONB(),
-          },
-          prefix: 'User',
+          mainAlias: 'User',
         });
 
         testSql({
@@ -2409,12 +2328,9 @@ describe(getTestDialectTeaser('SQL'), () => {
             },
           },
         }, {
-          mariadb: 'json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\')) = \'value\'',
-          mysql: 'json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
-          postgres: '("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
-          sqlite: 'json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\') = \'value\'',
+          postgres: `"User"."jsonbAttr"#>ARRAY['nested','attribute'] = '"value"'`,
         }, {
-          prefix: 'User',
+          mainAlias: 'User',
         });
 
         testSql({
@@ -2424,10 +2340,15 @@ describe(getTestDialectTeaser('SQL'), () => {
             },
           },
         }, {
-          mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested\')) AS DECIMAL) IN (1, 2)',
-          mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\"\')) AS DECIMAL) IN (1, 2)',
-          postgres: 'CAST(("jsonbAttr"#>>\'{nested}\') AS DOUBLE PRECISION) IN (1, 2)',
-          sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested\') AS DOUBLE PRECISION) IN (1, 2)',
+          postgres: `"jsonbAttr"->'nested' IN ('1', '2')`,
+        });
+
+        testSql({
+          'jsonbAttr.nested.attribute': {
+            [Op.in]: [3, 7],
+          },
+        }, {
+          postgres: `"jsonbAttr"#>ARRAY['nested','attribute'] IN ('3', '7')`,
         });
 
         testSql({
@@ -2437,28 +2358,16 @@ describe(getTestDialectTeaser('SQL'), () => {
             },
           },
         }, {
-          mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested\')) AS DECIMAL) BETWEEN 1 AND 2',
-          mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\"\')) AS DECIMAL) BETWEEN 1 AND 2',
-          postgres: 'CAST(("jsonbAttr"#>>\'{nested}\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
-          sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
+          postgres: `"jsonbAttr"->'nested' BETWEEN '1' AND '2'`,
         });
 
         testSql({
           jsonbAttr: {
-            nested: {
-              attribute: 'value',
-              prop: {
-                [Op.ne]: 'None',
-              },
-            },
+            price: 5,
+            name: 'Product',
           },
         }, {
-          mariadb: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\')) = \'value\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.nested.prop\')) != \'None\')',
-          mysql: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"nested\\".\\"prop\\"\')) != \'None\')',
-          postgres: '(("User"."jsonbAttr"#>>\'{nested,attribute}\') = \'value\' AND ("User"."jsonbAttr"#>>\'{nested,prop}\') != \'None\')',
-          sqlite: '(json_extract(`User`.`jsonbAttr`,\'$.nested.attribute\') = \'value\' AND json_extract(`User`.`jsonbAttr`,\'$.nested.prop\') != \'None\')',
-        }, {
-          prefix: literal(sql.quoteTable.call(sequelize.dialect.queryGenerator, { tableName: 'User' })),
+          postgres: `"jsonbAttr"->'price' = '5' AND "jsonbAttr"->'name' = '"Product"'`,
         });
 
         testSql({
@@ -2471,68 +2380,13 @@ describe(getTestDialectTeaser('SQL'), () => {
             },
           },
         }, {
-          mariadb: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.name.last\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.employment\')) != \'None\')',
-          mysql: '(json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"name\\".\\"last\\"\')) = \'Simpson\' AND json_unquote(json_extract(`User`.`jsonbAttr`,\'$.\\"employment\\"\')) != \'None\')',
-          postgres: '(("User"."jsonbAttr"#>>\'{name,last}\') = \'Simpson\' AND ("User"."jsonbAttr"#>>\'{employment}\') != \'None\')',
-          sqlite: '(json_extract(`User`.`jsonbAttr`,\'$.name.last\') = \'Simpson\' AND json_extract(`User`.`jsonbAttr`,\'$.employment\') != \'None\')',
+          postgres: `"User"."jsonbAttr"#>ARRAY['name','last'] = '"Simpson"' AND "User"."jsonbAttr"->'employment' != '"None"'`,
         }, {
-          prefix: 'User',
-        });
-
-        testSql({
-          jsonbAttr: {
-            price: 5,
-            name: 'Product',
-          },
-        }, {
-          mariadb: '(CAST(json_unquote(json_extract(`jsonbAttr`,\'$.price\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`jsonbAttr`,\'$.name\')) = \'Product\')',
-          mysql: '(CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"price\\"\')) AS DECIMAL) = 5 AND json_unquote(json_extract(`jsonbAttr`,\'$.\\"name\\"\')) = \'Product\')',
-          postgres: '(CAST(("jsonbAttr"#>>\'{price}\') AS DOUBLE PRECISION) = 5 AND ("jsonbAttr"#>>\'{name}\') = \'Product\')',
-          sqlite: '(CAST(json_extract(`jsonbAttr`,\'$.price\') AS DOUBLE PRECISION) = 5 AND json_extract(`jsonbAttr`,\'$.name\') = \'Product\')',
-        });
-
-        testSql({
-          'jsonbAttr.nested.attribute': {
-            [Op.in]: [3, 7],
-          },
-        }, {
-          mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) AS DECIMAL) IN (3, 7)',
-          mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) IN (3, 7)',
-          postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) IN (3, 7)',
-          sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS DOUBLE PRECISION) IN (3, 7)',
-        });
-
-        testSql({
-          jsonbAttr: {
-            nested: {
-              attribute: {
-                [Op.gt]: 2,
-              },
-            },
-          },
-        }, {
-          mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) AS DECIMAL) > 2',
-          mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) > 2',
-          postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS DOUBLE PRECISION) > 2',
-          sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS DOUBLE PRECISION) > 2',
-        });
-
-        testSql({
-          jsonbAttr: {
-            nested: {
-              'attribute::integer': {
-                [Op.gt]: 2,
-              },
-            },
-          },
-        }, {
-          mariadb: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) AS DECIMAL) > 2',
-          mysql: 'CAST(json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) AS DECIMAL) > 2',
-          postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS INTEGER) > 2',
-          sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS INTEGER) > 2',
+          mainAlias: 'User',
         });
 
         const dt = new Date();
+        const jsonDt = JSON.stringify(dt);
         testSql({
           jsonbAttr: {
             nested: {
@@ -2542,10 +2396,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             },
           },
         }, {
-          mariadb: `CAST(json_unquote(json_extract(\`jsonbAttr\`,'$.nested.attribute')) AS DATETIME) > ${sql.escape(dt)}`,
-          mysql: `CAST(json_unquote(json_extract(\`jsonbAttr\`,'$.\\"nested\\".\\"attribute\\"')) AS DATETIME) > ${sql.escape(dt)}`,
-          postgres: `CAST(("jsonbAttr"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
-          sqlite: `json_extract(\`jsonbAttr\`,'$.nested.attribute') > ${sql.escape(dt.toISOString())}`,
+          postgres: `"jsonbAttr"#>ARRAY['nested','attribute'] > ${queryGen.escape(jsonDt)}`,
         });
 
         testSql({
@@ -2555,17 +2406,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             },
           },
         }, {
-          mariadb: 'json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) = \'true\'',
-          mysql: 'json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'true\'',
-          postgres: 'CAST(("jsonbAttr"#>>\'{nested,attribute}\') AS BOOLEAN) = true',
-          sqlite: 'CAST(json_extract(`jsonbAttr`,\'$.nested.attribute\') AS BOOLEAN) = 1',
-        });
-
-        testSql({ 'jsonbAttr.nested.attribute': 'value' }, {
-          mariadb: 'json_unquote(json_extract(`jsonbAttr`,\'$.nested.attribute\')) = \'value\'',
-          mysql: 'json_unquote(json_extract(`jsonbAttr`,\'$.\\"nested\\".\\"attribute\\"\')) = \'value\'',
-          postgres: '("jsonbAttr"#>>\'{nested,attribute}\') = \'value\'',
-          sqlite: 'json_extract(`jsonbAttr`,\'$.nested.attribute\') = \'value\'',
+          postgres: `"jsonbAttr"#>ARRAY['nested','attribute'] = 'true'`,
         });
 
         testSql({
@@ -2573,16 +2414,13 @@ describe(getTestDialectTeaser('SQL'), () => {
             [Op.contains]: { company: 'Magnafone' },
           },
         }, {
-          default: '[jsonbAttr] @> \'{"company":"Magnafone"}\'',
+          default: `[jsonbAttr] @> '{"company":"Magnafone"}'`,
         });
 
         // aliases correctly
 
-        testSql.skip({ aliasedJsonbAttr: { key: 'value' } }, {
-          mariadb: 'json_unquote(json_extract(`aliased_jsonb`,\'$.key\')) = \'value\'',
-          mysql: 'json_unquote(json_extract(`aliased_jsonb`,\'$.\\"key\\"\')) = \'value\'',
-          postgres: '("aliased_jsonb"#>>\'{key}\') = \'value\'',
-          sqlite: 'json_extract(`aliased_jsonb`,\'$.key\') = \'value\'',
+        testSql({ aliasedJsonbAttr: { key: 'value' } }, {
+          postgres: `"aliased_jsonb"->'key' = '"value"'`,
         });
       });
     }
@@ -2603,6 +2441,14 @@ describe(getTestDialectTeaser('SQL'), () => {
         expect(util.inspect(and('a', 'b'))).to.deep.equal(util.inspect({ [Op.and]: ['a', 'b'] }));
       });
 
+      testSql(and([]), {
+        default: '',
+      });
+
+      testSql(and({}), {
+        default: '',
+      });
+
       // by default: it already is Op.and
       testSql({ intAttr1: 1, intAttr2: 2 }, {
         default: `[intAttr1] = 1 AND [intAttr2] = 2`,
@@ -2610,7 +2456,7 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       // top-level array is Op.and
       testSql([{ intAttr1: 1 }, { intAttr1: 2 }], {
-        default: `([intAttr1] = 1 AND [intAttr1] = 2)`,
+        default: `[intAttr1] = 1 AND [intAttr1] = 2`,
       });
 
       // $intAttr1$ doesn't override intAttr1
@@ -2620,23 +2466,23 @@ describe(getTestDialectTeaser('SQL'), () => {
 
       // can pass a simple object
       testSql({ [Op.and]: { intAttr1: 1, intAttr2: 2 } }, {
-        default: `([intAttr1] = 1 AND [intAttr2] = 2)`,
+        default: `[intAttr1] = 1 AND [intAttr2] = 2`,
       });
 
       // can pass an array
       testSql({ [Op.and]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] }, {
-        default: `(([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = '')`,
-        mssql: `(([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = N'')`,
+        default: `([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = ''`,
+        mssql: `([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = N''`,
       });
 
       // can be used on attribute
       testSql({ intAttr1: { [Op.and]: [1, { [Op.gt]: 1 }] } }, {
-        default: `([intAttr1] = 1 AND [intAttr1] > 1)`,
+        default: `[intAttr1] = 1 AND [intAttr1] > 1`,
       });
 
       // @ts-expect-error -- cannot be used after operator
-      testSql.skip({ intAttr1: { [Op.gt]: { [Op.and]: [1, 2] } } }, {
-        default: new Error('Op.and cannot be used inside Op.gt'),
+      testSql({ intAttr1: { [Op.gt]: { [Op.and]: [1, 2] } } }, {
+        default: new Error(`{ [Symbol(and)]: [ 1, 2 ] } is not a valid integer`),
       });
     });
 
@@ -2646,32 +2492,32 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
 
       testSql(or([]), {
-        default: '0 = 1',
+        default: '',
       });
 
       testSql(or({}), {
-        default: '0 = 1',
+        default: '',
       });
 
       // can pass a simple object
       testSql({ [Op.or]: { intAttr1: 1, intAttr2: 2 } }, {
-        default: `([intAttr1] = 1 OR [intAttr2] = 2)`,
+        default: `[intAttr1] = 1 OR [intAttr2] = 2`,
       });
 
       // can pass an array
       testSql({ [Op.or]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] }, {
-        default: `(([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = '')`,
-        mssql: `(([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = N'')`,
+        default: `([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = ''`,
+        mssql: `([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = N''`,
       });
 
       // can be used on attribute
       testSql({ intAttr1: { [Op.or]: [1, { [Op.gt]: 1 }] } }, {
-        default: `([intAttr1] = 1 OR [intAttr1] > 1)`,
+        default: `[intAttr1] = 1 OR [intAttr1] > 1`,
       });
 
       // @ts-expect-error -- cannot be used after operator
-      testSql.skip({ intAttr1: { [Op.gt]: { [Op.or]: [1, 2] } } }, {
-        default: new Error('Op.or cannot be used inside Op.gt'),
+      testSql({ intAttr1: { [Op.gt]: { [Op.or]: [1, 2] } } }, {
+        default: new Error(`{ [Symbol(or)]: [ 1, 2 ] } is not a valid integer`),
       });
 
       testSql({
@@ -2682,7 +2528,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           },
         },
       }, {
-        default: '([intAttr1] IN (1, 3) OR [intAttr2] IN (2, 4))',
+        default: '[intAttr1] IN (1, 3) OR [intAttr2] IN (2, 4)',
       });
     });
 
@@ -2702,7 +2548,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           { intAttr1: 3 },
         ],
       }, {
-        default: '((([intAttr1] = 1 AND [intAttr1] = 2)) OR [intAttr1] = 3)',
+        default: '([intAttr1] = 1 AND [intAttr1] = 2) OR [intAttr1] = 3',
       });
 
       // can be nested *after* attribute
@@ -2716,7 +2562,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           ],
         },
       }, {
-        default: '([intAttr1] = 1 AND [intAttr1] = 2 AND ([intAttr1] = 3 OR [intAttr1] = 4) AND [intAttr1] != 5 AND [intAttr1] IN (6, 7))',
+        default: '[intAttr1] = 1 AND [intAttr1] = 2 AND ([intAttr1] = 3 OR [intAttr1] = 4) AND NOT ([intAttr1] = 5) AND [intAttr1] IN (6, 7)',
       });
 
       // can be nested
@@ -2732,7 +2578,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           },
         },
       }, {
-        default: 'NOT (((([intAttr1] = 1 AND [intAttr2] = 2))))',
+        default: 'NOT ([intAttr1] = 1 AND [intAttr2] = 2)',
       });
 
       // Op.not, Op.and, Op.or can reside on the same object as attributes
@@ -2752,7 +2598,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           },
         },
       }, {
-        default: 'NOT (((([intAttr1] = 5 AND [intAttr2] = 6) OR [intAttr1] = 4) AND [intAttr1] = 3) AND [intAttr1] = 2) AND [intAttr1] = 1',
+        default: '(NOT (((([intAttr1] = 5 AND [intAttr2] = 6) OR [intAttr1] = 4) AND [intAttr1] = 3) AND [intAttr1] = 2)) AND [intAttr1] = 1',
       });
     });
 
@@ -2762,7 +2608,11 @@ describe(getTestDialectTeaser('SQL'), () => {
         const ignore: TestModelWhere = { intAttr1: where(fn('lower', col('name')), null) };
       }
 
-      testSql.skip({ booleanAttr: where(fn('lower', col('name')), null) }, {
+      testSql({ booleanAttr: where(fn('lower', col('name')), null) }, {
+        default: `[booleanAttr] = (lower([name]) IS NULL)`,
+      });
+
+      testSql({ booleanAttr: where(fn('lower', col('name')), null) }, {
         default: `[booleanAttr] = (lower([name]) IS NULL)`,
       });
 
@@ -2780,51 +2630,49 @@ describe(getTestDialectTeaser('SQL'), () => {
         // some dialects support having a filter inside aggregate functions, but require casting:
         //  https://github.com/sequelize/sequelize/issues/6666
         testSql(where(fn('sum', cast({ id: 1 }, 'int')), Op.eq, 1), {
-          default: 'sum(CAST([id] = 1 AS INT)) = 1',
+          default: 'sum(CAST(([id] = 1) AS INT)) = 1',
         });
 
         // comparing the output of `where` to `where`
-        testSql.skip(
+        testSql(
           where(
             where(col('col'), Op.eq, '1'),
             Op.eq,
             where(col('col'), Op.eq, '2'),
           ),
           {
-            default: '([col] = 1) = ([col] = 2)',
+            default: `([col] = '1') = ([col] = '2')`,
+            mssql: `([col] = N'1') = ([col] = N'2')`,
           },
         );
 
-        // TODO: v7
-        // comparing literals
-        // testSql(
-        //   // @ts-expect-error -- not yet supported
-        //   where(1, Op.eq, 2),
-        //   {
-        //     default: '1 = 2',
-        //   },
-        // );
+        testSql(
+          where(1, Op.eq, 2),
+          {
+            default: '1 = 2',
+          },
+        );
 
-        // testSql.skip(where(1, Op.eq, col('col')), {
-        //   default: '1 = [col]',
-        // });
-        //
-        // testSql.skip(where('string', Op.eq, col('col')), {
-        //   default: `'string' = [col]`,
-        // });
+        testSql(where(1, Op.eq, col('col')), {
+          default: '1 = [col]',
+        });
 
-        testSql.skip(
-          // @ts-expect-error -- not yet supported
+        testSql(where('string', Op.eq, col('col')), {
+          default: `'string' = [col]`,
+          mssql: `N'string' = [col]`,
+        });
+
+        testSql(
           where('a', Op.eq, 'b'),
           {
-            default: `N'a' = N'b'`,
+            default: `'a' = 'b'`,
+            mssql: `N'a' = N'b'`,
           },
         );
 
-        // TODO: remove support for string operators.
-        //  They're inconsistent. It's better to use a literal or a supported Operator.
-        testSql(where(fn('SUM', col('hours')), '>', 0), {
-          default: 'SUM([hours]) > 0',
+        it('does not allow string operators', () => {
+          // @ts-expect-error -- testing that this errors
+          expect(() => where(fn('SUM', col('hours')), '>', 0)).to.throw('where(left, operator, right) does not accept a string as the operator');
         });
 
         testSql(where(fn('SUM', col('hours')), Op.gt, 0), {
@@ -2835,7 +2683,12 @@ describe(getTestDialectTeaser('SQL'), () => {
           default: 'lower([name]) IS NOT NULL',
         });
 
+        // @ts-expect-error -- While these are supported for backwards compatibility, they are not documented. Users should use isNot
         testSql(where(fn('lower', col('name')), Op.not, null), {
+          default: 'NOT (lower([name]) IS NULL)',
+        });
+
+        testSql(where(fn('lower', col('name')), Op.isNot, null), {
           default: 'lower([name]) IS NOT NULL',
         });
 
@@ -2847,15 +2700,15 @@ describe(getTestDialectTeaser('SQL'), () => {
           default: '[hours] NOT BETWEEN 0 AND 5',
         });
 
-        testSql.skip(where({ [Op.col]: 'hours' }, Op.notBetween, [0, 5]), {
+        testSql(where({ [Op.col]: 'hours' }, Op.notBetween, [0, 5]), {
           default: '[hours] NOT BETWEEN 0 AND 5',
         });
 
-        testSql.skip(where(cast({ [Op.col]: 'hours' }, 'integer'), Op.notBetween, [0, 5]), {
+        testSql(where(cast({ [Op.col]: 'hours' }, 'integer'), Op.notBetween, [0, 5]), {
           default: 'CAST([hours] AS INTEGER) NOT BETWEEN 0 AND 5',
         });
 
-        testSql.skip(where(fn('SUM', { [Op.col]: 'hours' }), Op.notBetween, [0, 5]), {
+        testSql(where(fn('SUM', { [Op.col]: 'hours' }), Op.notBetween, [0, 5]), {
           default: 'SUM([hours]) NOT BETWEEN 0 AND 5',
         });
 
@@ -2864,18 +2717,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           mssql: `'hours' = N'hours'`,
         });
 
-        // TODO: remove support for this:
-        //   - it only works as the first argument of where when 3 parameters are used.
-        //   - it's inconsistent with other ways to reference attributes.
-        //   - the following variant does not work: where(TestModel.getAttributes().intAttr1, { [Op.eq]: 1 })
-        //  to be replaced with Sequelize.attr()
-        testSql(where(TestModel.getAttributes().intAttr1, Op.eq, 1), {
-          default: '[TestModel].[intAttr1] = 1',
-        });
-
-        testSql.skip(where(col('col'), Op.eq, { [Op.in]: [1, 2] }), {
-          default: new Error('Unexpected operator Op.in'),
-        });
+        testSql(where(col('col'), Op.eq, { [Op.in]: [1, 2] }), { default: new Error('Could not guess type of value { [Symbol(in)]: [ 1, 2 ] }') });
       });
 
       describe('where(leftOperand, whereAttributeHashValue)', () => {
@@ -2891,22 +2733,17 @@ describe(getTestDialectTeaser('SQL'), () => {
           default: 'abc = 10',
         });
 
-        testSql.skip(
+        testSql(
           where(col('name'), { [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } }),
-          { default: `[name] = '123' AND NOT ([name] = '456')` },
-        );
-
-        testSql.skip(
-          where(col('name'), or({ [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } })),
-          { default: `[name] = '123' OR NOT ([name] = '456')` },
+          {
+            default: `[name] = '123' AND NOT ([name] = '456')`,
+            mssql: `[name] = N'123' AND NOT ([name] = N'456')`,
+          },
         );
 
         testSql(
-          where(col('name'), { [Op.not]: '123' }),
-          {
-            default: `[name] != '123'`,
-            mssql: `[name] != N'123'`,
-          },
+          where(col('name'), or({ [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } })),
+          { default: `[name] = '123' OR NOT ([name] = '456')`, mssql: `[name] = N'123' OR NOT ([name] = N'456')` },
         );
 
         testSql(
@@ -2928,13 +2765,17 @@ describe(getTestDialectTeaser('SQL'), () => {
         );
 
         testSql(where(col('col'), { [Op.and]: [1, 2] }), {
-          default: '([col] = 1 AND [col] = 2)',
+          default: '[col] = 1 AND [col] = 2',
         });
 
-        // TODO: Either allow json.path.syntax here, or remove WhereAttributeHash from what this version of where() accepts.
-        testSql.skip(where(col('col'), { jsonPath: 'value' }), {
-          default: new Error('Unexpected key "nested" found, expected an operator.'),
-        });
+        if (dialectSupportsJsonOperations()) {
+          testSql(where(col('col'), { jsonPath: 'value' }), {
+            postgres: `"col"->'jsonPath' = '"value"'`,
+            sqlite: `json_extract(\`col\`,'$.jsonPath') = '"value"'`,
+            mariadb: `json_compact(json_extract(\`col\`,'$.jsonPath')) = '"value"'`,
+            mysql: `json_extract(\`col\`,'$.jsonPath') = CAST('"value"' AS JSON)`,
+          });
+        }
       });
     });
   });

@@ -1,15 +1,17 @@
-import type { WhereAttributeHash } from '../model.js';
+import { Op } from '../operators.js';
+import type { Expression } from '../sequelize.js';
+import { isPlainObject } from '../utils/check.js';
 import { BaseSqlExpression } from './base-sql-expression.js';
+import { where } from './where.js';
 
 /**
  * Do not use me directly. Use {@link fn}
  */
 export class Fn extends BaseSqlExpression {
-  private readonly fn: string;
+  declare private readonly brand: 'fn';
 
-  // unknown already covers the other two types, but they've been added explicitly to document
-  // passing WhereAttributeHash generates a condition inside the function.
-  private readonly args: Array<unknown | BaseSqlExpression | WhereAttributeHash>;
+  readonly fn: string;
+  readonly args: readonly Expression[];
 
   constructor(fnName: string, args: Fn['args']) {
     super();
@@ -24,7 +26,10 @@ export class Fn extends BaseSqlExpression {
 
 /**
  * Creates an object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
- * If you want to refer to columns in your function, you should use {@link col}, so that the columns are properly interpreted as columns and not a strings.
+ * If you want to refer to columns in your function, you should use {@link attribute} (recommended), {@link identifier}, or {@link col} (discouraged)
+ * otherwise the value will be interpreted as a string.
+ *
+ * ℹ️ This method is usually verbose and we recommend using the {@link sql} template string tag instead.
  *
  * @param fnName The SQL function you want to call
  * @param args All further arguments will be passed as arguments to the function
@@ -37,5 +42,15 @@ export class Fn extends BaseSqlExpression {
  * ```
  */
 export function fn(fnName: string, ...args: Fn['args']): Fn {
+  for (let i = 0; i < args.length; i++) {
+    // Users should wrap this parameter with `where` themselves, but we do it to ensure backwards compatibility
+    // with https://github.com/sequelize/sequelize/issues/6666
+    // @ts-expect-error -- backwards compatibility hack
+    if (isPlainObject(args[i]) && !(Op.col in args[i])) {
+      // @ts-expect-error -- backwards compatibility hack
+      args[i] = where(args[i]);
+    }
+  }
+
   return new Fn(fnName, args);
 }

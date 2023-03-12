@@ -849,13 +849,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('is possible to use casting when creating an instance', async function () {
       const type = ['mysql', 'mariadb'].includes(dialectName) ? 'signed' : 'integer';
+      const bindParam = dialectName === 'postgres' ? '$1'
+        : dialectName === 'sqlite' ? '$sequelize_1'
+        : dialectName === 'mssql' ? '@sequelize_1'
+        : '?';
       let match = false;
 
       const user = await this.User.create({
         intVal: this.sequelize.cast('1', type),
       }, {
         logging(sql) {
-          expect(sql).to.match(new RegExp(`CAST\\(N?'1' AS ${type.toUpperCase()}\\)`));
+          expect(sql).to.include(`CAST(${bindParam} AS ${type.toUpperCase()})`);
           match = true;
         },
       });

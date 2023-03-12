@@ -7,7 +7,6 @@ import type {
   Logging,
   Model,
   AttributeOptions,
-  WhereOptions,
   Filterable,
   ModelStatic,
   CreationAttributes,
@@ -21,6 +20,7 @@ import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
+import type { WhereOptions } from './where-sql-builder-types.js';
 
 interface Replaceable {
   /**

@@ -1,13 +1,10 @@
 'use strict';
 
-import { Cast } from '../../expression-builders/cast.js';
-import { Json } from '../../expression-builders/json.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { underscore } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -41,16 +38,6 @@ const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
-  constructor(options) {
-    super(options);
-
-    this.OperatorMap = {
-      ...this.OperatorMap,
-      [Op.regexp]: 'REGEXP',
-      [Op.notRegexp]: 'NOT REGEXP',
-    };
-  }
-
   createSchemaQuery(schemaName, options) {
     return joinSQLFragments([
       'CREATE SCHEMA IF NOT EXISTS',
@@ -280,64 +267,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     ]);
   }
 
-  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Json) {
-      // Parse nested object
-      if (smth.conditions) {
-        const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`);
-
-        return conditions.join(' AND ');
-      }
-
-      if (smth.path) {
-        let str;
-
-        // Allow specifying conditions using the sqlite json functions
-        if (this._checkValidJsonStatement(smth.path)) {
-          str = smth.path;
-        } else {
-          // Also support json property accessors
-          const paths = _.toPath(smth.path);
-          const column = paths.shift();
-          str = this.jsonPathExtractionQuery(column, paths);
-        }
-
-        if (smth.value) {
-          str += ` = ${this.escape(smth.value, undefined, options)}`;
-        }
-
-        return str;
-      }
-    } else if (smth instanceof Cast) {
-      if (/timestamp/i.test(smth.type)) {
-        smth.type = 'datetime';
-      } else if (smth.json && /boolean/i.test(smth.type)) {
-        // true or false cannot be casted as booleans within a JSON structure
-        smth.type = 'char';
-      } else if (/double precision/i.test(smth.type) || /boolean/i.test(smth.type) || /integer/i.test(smth.type)) {
-        smth.type = 'decimal';
-      } else if (/text/i.test(smth.type)) {
-        smth.type = 'char';
-      }
-    }
-
-    return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
-  }
-
-  _toJSONValue(value) {
-    // true/false are stored as strings in mysql
-    if (typeof value === 'boolean') {
-      return value.toString();
-    }
-
-    // null is stored as a string in mysql
-    if (value === null) {
-      return 'null';
-    }
-
-    return value;
-  }
-
   truncateTableQuery(tableName) {
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
@@ -345,13 +274,14 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 
-    where = this.getWhereConditions(where, null, model, options);
-    if (where) {
-      query += ` WHERE ${where}`;
+    const escapeOptions = { ...options, model };
+    const whereSql = this.whereQuery(where, escapeOptions);
+    if (whereSql) {
+      query += ` ${whereSql}`;
     }
 
     if (options.limit) {
-      query += ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['bind', 'replacements']))}`;
+      query += ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
     }
 
     return query;
@@ -460,70 +390,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   }
 
   /**
-   * Check whether the statement is json function or simple path
-   *
-   * @param   {string}  stmt  The statement to validate
-   * @returns {boolean}       true if the given statement is json function
-   * @throws  {Error}         throw if the statement looks like json function but has invalid token
-   * @private
-   */
-  _checkValidJsonStatement(stmt) {
-    if (typeof stmt !== 'string') {
-      return false;
-    }
-
-    let currentIndex = 0;
-    let openingBrackets = 0;
-    let closingBrackets = 0;
-    let hasJsonFunction = false;
-    let hasInvalidToken = false;
-
-    while (currentIndex < stmt.length) {
-      const string = stmt.slice(currentIndex);
-      const functionMatches = JSON_FUNCTION_REGEX.exec(string);
-      if (functionMatches) {
-        currentIndex += functionMatches[0].indexOf('(');
-        hasJsonFunction = true;
-        continue;
-      }
-
-      const operatorMatches = JSON_OPERATOR_REGEX.exec(string);
-      if (operatorMatches) {
-        currentIndex += operatorMatches[0].length;
-        hasJsonFunction = true;
-        continue;
-      }
-
-      const tokenMatches = TOKEN_CAPTURE_REGEX.exec(string);
-      if (tokenMatches) {
-        const capturedToken = tokenMatches[1];
-
-        if (capturedToken === '(') {
-          openingBrackets++;
-        } else if (capturedToken === ')') {
-          closingBrackets++;
-        } else if (capturedToken === ';') {
-          hasInvalidToken = true;
-          break;
-        }
-
-        currentIndex += tokenMatches[0].length;
-        continue;
-      }
-
-      break;
-    }
-
-    // Check invalid json statement
-    if (hasJsonFunction && (hasInvalidToken || openingBrackets !== closingBrackets)) {
-      throw new Error(`Invalid json statement: ${stmt}`);
-    }
-
-    // return true if the statement has valid json function
-    return hasJsonFunction;
-  }
-
-  /**
    * Generates an SQL query that returns all foreign keys of a table.
    *
    * @param {object} table The table.
@@ -595,38 +461,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       this.quoteIdentifier(foreignKey),
       ';',
     ]);
-  }
-
-  /**
-   * Generates an SQL query that extract JSON property of given path.
-   *
-   * @param   {string}               column  The JSON column
-   * @param   {string|Array<string>} [path]  The path to extract (optional)
-   * @returns {string}                       The generated sql query
-   * @private
-   */
-  jsonPathExtractionQuery(column, path) {
-    let paths = _.toPath(path);
-    const quotedColumn = this.isIdentifierQuoted(column)
-      ? column
-      : this.quoteIdentifier(column);
-
-    /**
-     * Non digit sub paths need to be quoted as ECMAScript identifiers
-     * https://bugs.mysql.com/bug.php?id=81896
-     */
-    paths = paths.map(subPath => {
-      return /\D/.test(subPath)
-        ? addTicks(subPath, '"')
-        : subPath;
-    });
-
-    const pathStr = this.escape(['$']
-      .concat(paths)
-      .join('.')
-      .replace(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
-
-    return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
   }
 }
 

@@ -1,7 +1,8 @@
+import type { Expression } from '../../sequelize.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableNameOrModel, EscapeOptions } from '../abstract/query-generator-typescript';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -74,5 +75,24 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `${this.quoteIdentifier(table.schema!)}.${this.quoteIdentifier(indexName)}`,
       options?.cascade ? 'CASCADE' : '',
     ]);
+  }
+
+  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
+    const operator = path.length === 1
+      ? (unquote ? '->>' : '->')
+      : (unquote ? '#>>' : '#>');
+
+    const pathSql = path.length === 1
+      // when accessing an array index with ->, the index must be a number
+      // when accessing an object key with ->, the key must be a string
+      ? this.escape(path[0])
+      // when accessing with #>, the path is always an array of strings
+      : this.escape(path.map(value => String(value)));
+
+    return sqlExpression + operator + pathSql;
+  }
+
+  formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
+    return `${this.escape(arg, options)}#>>ARRAY[]::TEXT[]`;
   }
 }

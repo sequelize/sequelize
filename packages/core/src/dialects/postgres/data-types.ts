@@ -324,7 +324,7 @@ export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = IN
     const value = this.toBindableValue(values);
     const dialect = this._getDialect();
 
-    return dialect.escapeString(value);
+    return `${dialect.escapeString(value)}::${this.toSql()}`;
   }
 
   getBindParamSql(
@@ -357,7 +357,14 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
 
     const mappedValues = isString(type) ? values : values.map(value => type.escape(value));
 
-    return `ARRAY[${mappedValues.join(',')}]::${attributeTypeToSql(type)}[]`;
+    // Types that don't need to specify their cast
+    const unambiguousType = type instanceof BaseTypes.STRING
+      || type instanceof BaseTypes.TEXT
+      || type instanceof BaseTypes.INTEGER;
+
+    const cast = mappedValues.length === 0 || !unambiguousType ? `::${attributeTypeToSql(type)}[]` : '';
+
+    return `ARRAY[${mappedValues.join(',')}]${cast}`;
   }
 
   getBindParamSql(

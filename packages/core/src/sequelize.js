@@ -3,10 +3,17 @@
 import isPlainObject from 'lodash/isPlainObject';
 import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
+import { AssociationPath } from './expression-builders/association-path';
+import { Attribute } from './expression-builders/attribute';
+import { Identifier } from './expression-builders/identifier';
+import { JsonPath } from './expression-builders/json-path';
+import { Value } from './expression-builders/value';
+import { List } from './expression-builders/list';
+import { sql } from './expression-builders/sql';
 import { Cast, cast } from './expression-builders/cast.js';
 import { Col, col } from './expression-builders/col.js';
 import { Fn, fn } from './expression-builders/fn.js';
-import { Json, json } from './expression-builders/json.js';
+import { json } from './expression-builders/json.js';
 import { Literal, literal } from './expression-builders/literal.js';
 import { Where, where } from './expression-builders/where.js';
 import { SequelizeTypeScript } from './sequelize-typescript';
@@ -195,7 +202,6 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {Function} [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
    * @param {string}   [options.retry.name='unknown'] Name used when composing error/reporting messages.
    * @param {boolean}  [options.noTypeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
-   * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
    * @param {boolean}  [options.minifyAliases=false] A flag that defines if aliases should be minified (mostly useful to avoid Postgres alias character limit of 64)
    * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
@@ -407,13 +413,8 @@ export class Sequelize extends SequelizeTypeScript {
       throw new Error(`Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`);
     }
 
-    this.dialect.queryGenerator.noTypeValidation = options.noTypeValidation;
-
-    if (_.isPlainObject(this.options.operatorsAliases)) {
-      deprecations.noStringOperators();
-      this.dialect.queryGenerator.setOperatorsAliases(this.options.operatorsAliases);
-    } else if (typeof this.options.operatorsAliases === 'boolean') {
-      deprecations.noBoolOperatorAliases();
+    if (this.options.operatorsAliases) {
+      throw new Error('String based operators have been removed. Please use Symbol operators, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases');
     }
 
     /**
@@ -1095,29 +1096,27 @@ Use Sequelize#query if you wish to use replacements.`);
     return fn('RAND');
   }
 
-  static fn = fn;
-
   static Fn = Fn;
-
-  static col = col;
-
   static Col = Col;
-
-  static cast = cast;
-
   static Cast = Cast;
-
-  static literal = literal;
-
   static Literal = Literal;
-
-  static json = json;
-
-  static Json = Json;
-
-  static where = where;
-
   static Where = Where;
+  static List = List;
+  static Identifier = Identifier;
+  static Attribute = Attribute;
+  static Value = Value;
+  static AssociationPath = AssociationPath;
+  static JsonPath = JsonPath;
+
+  static sql = sql;
+
+  // these are all available on the "sql" object, but are exposed for backwards compatibility
+  static fn = fn;
+  static col = col;
+  static cast = cast;
+  static literal = literal;
+  static json = json;
+  static where = where;
 
   static and = and;
 
@@ -1370,6 +1369,9 @@ export function and(...args) {
  * @returns {Sequelize.or}
  */
 export function or(...args) {
+  if (args.length === 1) {
+    return { [Op.or]: args[0] };
+  }
+
   return { [Op.or]: args };
 }
-

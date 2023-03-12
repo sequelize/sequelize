@@ -943,7 +943,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     const modelDefinition = instance?.constructor.modelDefinition;
 
-    options = { ...options };
+    options = { ...options, model: instance?.constructor };
     options.hasTrigger = modelDefinition?.options.hasTrigger;
 
     const { query, bind } = this.queryGenerator.updateQuery(

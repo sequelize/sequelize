@@ -1,10 +1,6 @@
 import assert from 'node:assert';
 import forIn from 'lodash/forIn';
-import isPlainObject from 'lodash/isPlainObject';
 import type { Attributes, Model, ModelStatic, NormalizedAttributeOptions, WhereOptions } from '..';
-import * as DataTypes from '../data-types';
-import { isString } from './check.js';
-import { getComplexKeys } from './where.js';
 
 export type FinderOptions<TAttributes> = {
   attributes?: string[],
@@ -44,9 +40,11 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<Attrib
 }
 
 /**
- * Used to map field names in attributes and where conditions.
+ * Used to map field names in attributes
  *
  * Mutates the "options" parameter.
+ *
+ * ⚠️ This function does not map the "where" or "having" options, this is handled by QueryGenerator's WHERE generation.
  *
  * @param options
  * @param Model
@@ -79,71 +77,7 @@ export function mapOptionFieldNames<M extends Model>(
     });
   }
 
-  if (options.where != null && isPlainObject(options.where)) {
-    // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- this fails in TS 4.4 and up, but not before
-    // @ts-ignore the work necessary to type the return type of mapWhereFieldNames is not worth it
-    out.where = mapWhereFieldNames(options.where, Model);
-  }
-
   return out;
-}
-
-export function mapWhereFieldNames(where: Record<PropertyKey, any>, Model: ModelStatic<Model>): object {
-  if (!where) {
-    return where;
-  }
-
-  const modelDefinition = Model.modelDefinition;
-
-  const newWhere: Record<PropertyKey, any> = Object.create(null);
-  for (const attributeNameOrOperator of getComplexKeys(where)) {
-    const rawAttribute: NormalizedAttributeOptions | undefined = isString(attributeNameOrOperator)
-      ? modelDefinition.attributes.get(attributeNameOrOperator)
-      : undefined;
-
-    const columnNameOrOperator: PropertyKey = rawAttribute?.field ?? attributeNameOrOperator;
-
-    if (
-      isPlainObject(where[attributeNameOrOperator])
-        && !(
-          rawAttribute
-          && (rawAttribute.type instanceof DataTypes.HSTORE
-            || rawAttribute.type instanceof DataTypes.JSON)
-        )
-    ) {
-      // Prevent renaming of HSTORE & JSON fields
-      newWhere[columnNameOrOperator] = mapOptionFieldNames(
-        {
-          where: where[attributeNameOrOperator],
-        },
-        Model,
-      ).where;
-
-      continue;
-    }
-
-    if (Array.isArray(where[attributeNameOrOperator])) {
-      newWhere[columnNameOrOperator] = [...where[attributeNameOrOperator]];
-
-      for (const [index, wherePart] of where[attributeNameOrOperator].entries()) {
-        if (isPlainObject(wherePart)) {
-          newWhere[columnNameOrOperator][index] = mapWhereFieldNames(wherePart, Model);
-        }
-      }
-
-      continue;
-    }
-
-    newWhere[columnNameOrOperator] = where[attributeNameOrOperator];
-  }
-
-  return newWhere;
-}
-
-export function combineTableNames(tableName1: string, tableName2: string): string {
-  return tableName1.toLowerCase() < tableName2.toLowerCase()
-    ? tableName1 + tableName2
-    : tableName2 + tableName1;
 }
 
 /**

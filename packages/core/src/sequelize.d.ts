@@ -4,6 +4,7 @@ import type { AbstractConnectionManager } from './dialects/abstract/connection-m
 import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type { CreateSchemaOptions } from './dialects/abstract/query-interface.types';
+import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { cast } from './expression-builders/cast.js';
 import type { col } from './expression-builders/col.js';
 import type { fn, Fn } from './expression-builders/fn.js';
@@ -21,6 +22,7 @@ import type {
   Hookable,
   ModelStatic,
   Attributes,
+  ColumnReference,
   Transactionable,
   Poolable,
 } from './model';
@@ -145,13 +147,6 @@ export interface NormalizedReplicationOptions {
   read: ConnectionOptions[];
 
   write: ConnectionOptions;
-}
-
-/**
- * Used to map operators to their Symbol representations
- */
-export interface OperatorsAliases {
-  [K: string]: symbol;
 }
 
 /**
@@ -387,15 +382,6 @@ export interface Options extends Logging {
    * @default false
    */
   noTypeValidation?: boolean;
-
-  /**
-   * Sets available operator aliases.
-   * See (https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#operators) for more information.
-   * WARNING: Setting this to boolean value was deprecated and is no-op.
-   *
-   * @default all aliases
-   */
-  operatorsAliases?: OperatorsAliases;
 
   /**
    * The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option.
@@ -1121,3 +1107,5 @@ export function and<T extends any[]>(...args: T): { [Op.and]: T };
  * @param args Each argument will be joined by OR
  */
 export function or<T extends any[]>(...args: T): { [Op.or]: T };
+
+export type Expression = ColumnReference | DynamicSqlExpression | unknown;

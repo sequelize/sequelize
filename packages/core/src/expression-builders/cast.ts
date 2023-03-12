@@ -1,27 +1,37 @@
+import type { DataType } from '../dialects/abstract/data-types.js';
+import { Op } from '../operators.js';
+import type { Expression } from '../sequelize.js';
+import { isPlainObject } from '../utils/check.js';
 import { BaseSqlExpression } from './base-sql-expression.js';
+import { where } from './where.js';
 
 /**
  * Do not use me directly. Use {@link cast}
  */
 export class Cast extends BaseSqlExpression {
-  private readonly val: any;
-  private readonly type: string;
-  private readonly json: boolean;
+  declare private readonly brand: 'cast';
 
-  constructor(val: unknown, type: string = '', json: boolean = false) {
+  constructor(
+    readonly expression: Expression,
+    readonly type: DataType,
+  ) {
     super();
-    this.val = val;
-    this.type = type.trim();
-    this.json = json;
   }
 }
 
 /**
- * Creates a object representing a call to the cast function.
+ * Creates an object representing a call to the cast function.
  *
  * @param val The value to cast
  * @param type The type to cast it to
  */
-export function cast(val: unknown, type: string): Cast {
+export function cast(val: unknown, type: DataType): Cast {
+  if (isPlainObject(val) && !(Op.col in val)) {
+    // Users should wrap this parameter with `where` themselves, but we do it to ensure backwards compatibility
+    // with https://github.com/sequelize/sequelize/issues/6666
+    // @ts-expect-error -- backwards compatibility hack
+    val = where(val);
+  }
+
   return new Cast(val, type);
 }

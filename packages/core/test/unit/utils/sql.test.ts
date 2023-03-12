@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { sql as sqlTag } from '@sequelize/core';
 import { injectReplacements, mapBindParameters } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import {
   createSequelizeInstance,
@@ -8,6 +9,8 @@ import {
   toHaveProperties,
   toMatchSql,
 } from '../../support';
+
+const { list } = sqlTag;
 
 const dialect = sequelize.dialect;
 
@@ -797,11 +800,13 @@ SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = ?`),
     expect(injectReplacements('foo = ?', dialect, [0])).to.equal('foo = 0');
   });
 
-  it('formats arrays as an expression instead of an ARRAY data type', async () => {
-    const sql = injectReplacements('INSERT INTO users (username, email, created_at, updated_at) VALUES ?;', dialect, [[
-      ['john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
-      ['michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'],
-    ]]);
+  it('formats arrays as an expression when they are wrapped with list(), instead of an ARRAY data type', async () => {
+    const sql = injectReplacements('INSERT INTO users (username, email, created_at, updated_at) VALUES ?;', dialect, [
+      [
+        list(['john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10']),
+        list(['michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10']),
+      ],
+    ]);
 
     expectsql(sql, {
       default: `

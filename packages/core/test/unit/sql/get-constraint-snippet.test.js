@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           },
         }), {
-          default: 'CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100))',
+          default: 'CONSTRAINT [check_mycolumn_where] CHECK ([myColumn] > 50 AND [myColumn] < 100)',
         });
       });
 

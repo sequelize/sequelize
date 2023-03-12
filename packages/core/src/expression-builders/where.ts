@@ -1,64 +1,126 @@
-import type { WhereAttributeHashValue, WhereOperators, AttributeOptions, ColumnReference } from '../model.js';
+import type { WhereAttributeHashValue, WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
+import { PojoWhere } from '../dialects/abstract/where-sql-builder.js';
+import type { WhereOperators } from '../model.js';
 import type { Op } from '../operators.js';
+import type { Expression } from '../sequelize.js';
 import { BaseSqlExpression } from './base-sql-expression.js';
-import type { Cast } from './cast.js';
-import type { Fn } from './fn.js';
-import type { Literal } from './literal.js';
-
-export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | AttributeOptions;
 
 /**
  * Do not use me directly. Use {@link where}
  */
 export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends BaseSqlExpression {
-  // TODO [=7]: rename to leftOperand after typescript migration
-  private readonly attribute: WhereLeftOperand;
-  // TODO [=7]: rename to operator after typescript migration
-  private readonly comparator: string | Operator;
-  // TODO [=7]: rename to rightOperand after typescript migration
-  private readonly logic: WhereOperators[Operator] | WhereAttributeHashValue<any> | any;
+  declare private readonly brand: 'where';
 
-  constructor(leftOperand: WhereLeftOperand, operator: Operator, rightOperand: WhereOperators[Operator]);
-  constructor(leftOperand: WhereLeftOperand, operator: string, rightOperand: any);
-  constructor(leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>);
+  readonly where: PojoWhere | WhereOptions;
+
+  /**
+   * @example
+   * ```ts
+   * where({ id: 1 })
+   * ```
+   *
+   * @param whereOptions
+   */
+  constructor(whereOptions: WhereOptions);
+
+  /**
+   * @example
+   * ```ts
+   * where(col('id'), { [Op.eq]: 1 })
+   * ```
+   *
+   * @param leftOperand
+   * @param whereAttributeHashValue
+   */
+  constructor(leftOperand: Expression, whereAttributeHashValue: WhereAttributeHashValue<any>);
+
+  /**
+   * @example
+   * ```ts
+   * where(col('id'), Op.eq, 1)
+   * ```
+   *
+   * @param leftOperand
+   * @param operator
+   * @param rightOperand
+   */
+  constructor(leftOperand: Expression, operator: Operator, rightOperand: WhereOperators[Operator]);
+
   constructor(
-    leftOperand: WhereLeftOperand,
-    operatorOrRightOperand: string | Operator | WhereAttributeHashValue<any>,
-    rightOperand?: WhereOperators[Operator] | any,
+    ...args:
+      | [whereOptions: WhereOptions]
+      | [leftOperand: Expression, whereAttributeHashValue: WhereAttributeHashValue<any>]
+      | [leftOperand: Expression, operator: Operator, rightOperand: WhereOperators[Operator]]
   ) {
     super();
 
-    this.attribute = leftOperand;
-
-    if (rightOperand !== undefined) {
-      this.logic = rightOperand;
-      this.comparator = operatorOrRightOperand;
+    if (args.length === 1) {
+      this.where = args[0];
+    } else if (args.length === 2) {
+      this.where = PojoWhere.create(args[0], args[1]);
     } else {
-      this.logic = operatorOrRightOperand;
-      this.comparator = '=';
+      if (typeof args[1] === 'string') {
+        // TODO: link to actual page
+        throw new TypeError(`where(left, operator, right) does not accept a string as the operator. Use one of the operators available in the Op object.
+If you wish to use custom operators not provided by Sequelize, you can use the "sql" template literal tag. Refer to the documentation on custom operators on https://sequelize.org/ for more details.`);
+      }
+
+      // normalize where(col, op, val)
+      // to where(col, { [op]: val })
+      this.where = PojoWhere.create(args[0], { [args[1]]: args[2] });
     }
   }
 }
 
 /**
- * A way of specifying "attr = condition".
- * Can be used as a replacement for the POJO syntax (e.g. `where: { name: 'Lily' }`) when you need to compare a column that the POJO syntax cannot represent.
+ * A way of writing an SQL binary operator, or more complex where conditions.
  *
- * @param leftOperand The left side of the comparison.
- *  - A value taken from YourModel.rawAttributes, to reference an attribute.
- *    The attribute must be defined in your model definition.
- *  - A Literal (using {@link literal})
- *  - A SQL Function (using {@link fn})
- *  - A Column name (using {@link col})
- *  Note that simple strings to reference an attribute are not supported. You can use the POJO syntax instead.
- * @param operator The comparison operator to use. If unspecified, defaults to {@link OpTypes.eq}.
- * @param rightOperand The right side of the comparison. Its value depends on the used operator.
- *  See {@link WhereOperators} for information about what value is valid for each operator.
+ * This solution is slightly more verbose than the POJO syntax, but allows any value on the left hand side of the operator (unlike the POJO syntax which only accepts attribute names).
+ * For instance, either the left or right hand side of the operator can be {@link fn}, {@link col}, {@link literal} etc.
+ *
+ * If your left operand is an attribute name, using the regular POJO syntax (`{ where: { attrName: value }}`) syntax is usually more convenient.
+ *
+ * ⚠️ Unlike the POJO syntax, if the left operand is a string, it will be treated as a _value_, not an attribute name. If you wish to refer to an attribute, use {@link attribute} instead.
  *
  * @example
- * // Using an attribute as the left operand.
- * // Equal to: WHERE first_name = 'Lily'
- * where(User.rawAttributes.firstName, Op.eq, 'Lily');
+ * ```ts
+ * where(attribute('id'), { [Op.eq]: 1 });
+ * where(attribute('id'), {
+ *   [Op.or]: {
+ *     [Op.eq]: 1,
+ *     [Op.gt]: 10,
+ *   },
+ * });
+ * ```
+ *
+ * @param leftOperand The left operand
+ * @param whereAttributeHashValue The POJO containing the operators and the right operands
+ */
+export function where(leftOperand: Expression, whereAttributeHashValue: WhereAttributeHashValue<any>): Where;
+/**
+ * This version of `where` is used to opt back into the POJO syntax. Useful in combination with {@link sql}.
+ *
+ * @example
+ * ```ts
+ * sequelize.query(sql`
+ *   SELECT * FROM users WHERE ${where({ id: 1 })};
+ * `)
+ * ```
+ *
+ * produces
+ *
+ * ```sql
+ * SELECT * FROM users WHERE "id" = 1;
+ * ```
+ *
+ * @param whereOptions
+ */
+export function where(whereOptions: WhereOptions): Where;
+/**
+ * @example
+ * ```ts
+ * where(col('id'), Op.eq, 1)
+ * ```
  *
  * @example
  * // Using a column name as the left operand.
@@ -74,20 +136,17 @@ export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends
  * // Using raw SQL as the left operand.
  * // Equal to: WHERE 'Lily' = 'Lily'
  * where(literal(`'Lily'`), Op.eq, 'Lily');
+ *
+ * @param leftOperand The left operand
+ * @param operator The operator to use (one of the different values available in the {@link Op} object)
+ * @param rightOperand The right operand
  */
-export function where<OpSymbol extends keyof WhereOperators>(
-  leftOperand: WhereLeftOperand | Where,
-  operator: OpSymbol,
-  rightOperand: WhereOperators[OpSymbol]
-): Where;
-export function where(leftOperand: any, operator: string, rightOperand: any): Where;
-export function where(leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>): Where;
-
-export function where<OpSymbol extends keyof WhereOperators>(
+export function where(leftOperand: Expression, operator: keyof WhereOperators, rightOperand: Expression): Where;
+export function where(
   ...args:
-    | [leftOperand: WhereLeftOperand | Where, operator: OpSymbol, rightOperand: WhereOperators[OpSymbol]]
-    | [leftOperand: any, operator: string, rightOperand: any]
-    | [leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>]
+    | [whereOptions: WhereOptions]
+    | [leftOperand: Expression, whereAttributeHashValue: WhereAttributeHashValue<any>]
+    | [leftOperand: Expression, operator: keyof WhereOperators, rightOperand: Expression]
 ): Where {
   // @ts-expect-error -- they are the same type but this overload is internal
   return new Where(...args);
