@@ -9,10 +9,13 @@ import isPlainObject from 'lodash/isPlainObject';
 import isUndefined from 'lodash/isUndefined.js';
 import mergeWith from 'lodash/mergeWith';
 import omitBy from 'lodash/omitBy.js';
-import { getComplexKeys } from './format';
 import type { MapView } from './immutability.js';
 import { combinedIterator, map } from './iterators.js';
 import { camelize } from './string';
+import { getComplexKeys } from './where.js';
+
+export const EMPTY_OBJECT = Object.freeze(Object.create(null));
+export const EMPTY_ARRAY = Object.freeze([]);
 
 /**
  * Deeply merges object `b` into `a`.

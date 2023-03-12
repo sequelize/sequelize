@@ -3,8 +3,6 @@ import { deprecate } from 'node:util';
 const noop = () => { /* noop */ };
 
 export const noTrueLogging = deprecate(noop, 'The logging-option should be either a function or false. Default: console.log', 'SEQUELIZE0002');
-export const noStringOperators = deprecate(noop, 'String based operators are deprecated. Please use Symbol based operators for better security, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases', 'SEQUELIZE0003');
-export const noBoolOperatorAliases = deprecate(noop, 'A boolean value was passed to options.operatorsAliases. This is a no-op with v5 and should be removed.', 'SEQUELIZE0004');
 export const noDoubleNestedGroup = deprecate(noop, 'Passing a double nested nested array to `group` is unsupported and will be removed in v6.', 'SEQUELIZE0005');
 export const unsupportedEngine = deprecate(noop, 'This database engine version is not supported, please update your database server. More information https://github.com/sequelize/sequelize/blob/main/ENGINE.md', 'SEQUELIZE0006');
 export const useErrorCause = deprecate(noop, 'The "parent" and "original" properties in Sequelize errors have been replaced with the native "cause" property. Use that one instead.', 'SEQUELIZE0007');
@@ -22,3 +20,5 @@ export const columnToAttribute = deprecate(noop, 'The @Column decorator has been
 export const fieldToColumn = deprecate(noop, 'The "field" option in attribute definitions has been renamed to "columnName".', 'SEQUELIZE0018');
 export const noModelTableName = deprecate(noop, 'Model.tableName has been replaced with the more complete Model.modelDefinition.table, or Model.table', 'SEQUELIZE0019');
 export const noNewModel = deprecate(noop, `Do not use "new YourModel()" to instantiate a model. Use "YourModel.build()" instead. The previous option is being removed to resolve a conflict with class properties. See https://github.com/sequelize/sequelize/issues/14300#issuecomment-1355188077 for more information.`, 'SEQUELIZE0020');
+export const noOpCol = deprecate(noop, 'Do not use Op.col, use col(), attribute(), or identifier() instead. Read more about these in the Raw Queries guide in the sequelize docs.', 'SEQUELIZE0021');
+export const noSqlJson = deprecate(noop, 'The json() function used to generate JSON queries is deprecated. All of its features are available through where(), attribute() or jsonPath(). Some of its features have been removed but can be replicated using the "sql" tag. See our Sequelize 7 upgrade guide.', 'SEQUELIZE0022');

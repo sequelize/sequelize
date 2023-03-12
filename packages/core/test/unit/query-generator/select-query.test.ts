@@ -1,8 +1,10 @@
 import { expect } from 'chai';
 import type { InferAttributes, Model } from '@sequelize/core';
-import { Op, literal, DataTypes, or, fn, where, cast, col } from '@sequelize/core';
+import { Op, DataTypes, or, sql as sqlTag } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
-import { createSequelizeInstance, expectsql, sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
+
+const { attribute, col, cast, where, fn, literal } = sqlTag;
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -36,7 +38,7 @@ describe('QueryGenerator#selectQuery', () => {
   });
 
   it('supports offset without limit', () => {
-    const sql = queryGenerator.selectQuery(User.tableName, {
+    const sql = queryGenerator.selectQuery(User.table, {
       model: User,
       attributes: ['id'],
       offset: 1,
@@ -55,7 +57,7 @@ describe('QueryGenerator#selectQuery', () => {
   });
 
   it('supports querying for bigint values', () => {
-    const sql = queryGenerator.selectQuery(Project.tableName, {
+    const sql = queryGenerator.selectQuery(Project.table, {
       model: Project,
       attributes: ['id'],
       where: {
@@ -76,7 +78,7 @@ describe('QueryGenerator#selectQuery', () => {
   });
 
   it('supports cast in attributes', () => {
-    const sql = queryGenerator.selectQuery(User.tableName, {
+    const sql = queryGenerator.selectQuery(User.table, {
       model: User,
       attributes: [
         'id',
@@ -89,13 +91,64 @@ describe('QueryGenerator#selectQuery', () => {
     });
   });
 
+  it('supports empty where object', () => {
+    const sql = queryGenerator.selectQuery(User.table, {
+      model: User,
+      attributes: [
+        'id',
+      ],
+      where: {},
+    }, User);
+
+    expectsql(sql, {
+      default: `SELECT [id] FROM [Users] AS [User];`,
+    });
+  });
+
+  it('escapes WHERE clause correctly', () => {
+    const sql = queryGenerator.selectQuery(User.table, {
+      model: User,
+      attributes: [
+        'id',
+      ],
+      where: { username: 'foo\';DROP TABLE mySchema.myTable;' },
+    }, User);
+
+    expectsql(sql, {
+      default: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo'';DROP TABLE mySchema.myTable;';`,
+      'mysql mariadb': `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo\\';DROP TABLE mySchema.myTable;';`,
+      mssql: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = N'foo'';DROP TABLE mySchema.myTable;';`,
+    });
+  });
+
+  if (sequelize.dialect.supports.jsonOperations) {
+    it('accepts json paths in attributes', () => {
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: [
+          [attribute('data.email'), 'email'],
+        ],
+      }, User);
+
+      expectsql(sql, {
+        postgres: `SELECT "data"->'email' AS "email" FROM "Users" AS "User";`,
+        mariadb: `SELECT json_compact(json_extract(\`data\`,'$.email')) AS \`email\` FROM \`Users\` AS \`User\`;`,
+        'sqlite mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
+      });
+
+    });
+  }
+
   describe('replacements', () => {
     it('parses named replacements in literals', () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
 
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
-        attributes: [[fn('uppercase', literal(':attr')), 'id'], literal(':attr2')],
+        attributes: [
+          [fn('uppercase', literal(':attr')), 'id'],
+          literal(':attr2'),
+        ],
         where: {
           username: or(
             { [Op.eq]: literal(':data') },
@@ -126,9 +179,9 @@ describe('QueryGenerator#selectQuery', () => {
         default: `
           SELECT uppercase('id') AS [id], 'id2'
           FROM [Users] AS [User]
-          WHERE ([User].[username] = 'repl1' OR uppercase(CAST('repl1' AS STRING)) = 'repl1')
+          WHERE [User].[username] = 'repl1' OR [User].[username] = (uppercase(CAST('repl1' AS STRING)) = 'repl1')
           GROUP BY 'the group'
-          HAVING [username] = 'repl1'
+          HAVING [User].[username] = 'repl1'
           ORDER BY 'repl2'
           LIMIT 'repl3'
           OFFSET 'repl4';
@@ -136,32 +189,22 @@ describe('QueryGenerator#selectQuery', () => {
         mssql: `
           SELECT uppercase(N'id') AS [id], N'id2'
           FROM [Users] AS [User]
-          WHERE ([User].[username] = N'repl1' OR uppercase(CAST(N'repl1' AS STRING)) = N'repl1')
+          WHERE [User].[username] = N'repl1' OR [User].[username] = (uppercase(CAST(N'repl1' AS STRING)) = N'repl1')
           GROUP BY N'the group'
-          HAVING [username] = N'repl1'
+          HAVING [User].[username] = N'repl1'
           ORDER BY N'repl2'
           OFFSET N'repl4' ROWS
           FETCH NEXT N'repl3' ROWS ONLY;
         `,
-        db2: `
+        'db2 ibmi': `
           SELECT uppercase('id') AS "id", 'id2'
           FROM "Users" AS "User"
-          WHERE ("User"."username" = 'repl1' OR uppercase(CAST('repl1' AS STRING)) = 'repl1')
+          WHERE "User"."username" = 'repl1' OR "User"."username" = (uppercase(CAST('repl1' AS STRING)) = 'repl1')
           GROUP BY 'the group'
-          HAVING "username" = 'repl1'
+          HAVING "User"."username" = 'repl1'
           ORDER BY 'repl2'
           OFFSET 'repl4' ROWS
           FETCH NEXT 'repl3' ROWS ONLY;
-        `,
-        ibmi: `
-          SELECT uppercase('id') AS "id", 'id2'
-          FROM "Users" AS "User"
-          WHERE ("User"."username" = 'repl1' OR uppercase(CAST('repl1' AS STRING)) = 'repl1')
-          GROUP BY 'the group'
-          HAVING "username" = 'repl1'
-          ORDER BY 'repl2'
-          OFFSET 'repl4' ROWS
-          FETCH NEXT 'repl3' ROWS ONLY
         `,
       });
     });
@@ -170,7 +213,7 @@ describe('QueryGenerator#selectQuery', () => {
     it('does not parse replacements in strings in literals', () => {
       // The goal of this test is to test that :replacements are parsed in literals in as many places as possible
 
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: [literal('id')],
         where: literal(`id = ':id'`),
@@ -185,7 +228,7 @@ describe('QueryGenerator#selectQuery', () => {
     });
 
     it('parses named replacements in literals in includes', () => {
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: ['id'],
         include: _validateIncludedElements({
@@ -256,7 +299,7 @@ describe('QueryGenerator#selectQuery', () => {
     });
 
     it(`parses named replacements in belongsToMany includes' through tables`, () => {
-      const sql = queryGenerator.selectQuery(Project.tableName, {
+      const sql = queryGenerator.selectQuery(Project.table, {
         model: Project,
         attributes: ['id'],
         include: _validateIncludedElements({
@@ -309,7 +352,7 @@ describe('QueryGenerator#selectQuery', () => {
     });
 
     it('parses named replacements in literals in includes (subQuery)', () => {
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: ['id'],
         include: _validateIncludedElements({
@@ -428,7 +471,7 @@ describe('QueryGenerator#selectQuery', () => {
 
     it('rejects positional replacements, because their execution order is hard to determine', () => {
       expect(
-        () => queryGenerator.selectQuery(User.tableName, {
+        () => queryGenerator.selectQuery(User.table, {
           model: User,
           where: {
             username: {
@@ -437,13 +480,13 @@ describe('QueryGenerator#selectQuery', () => {
           },
           replacements: ['repl1', 'repl2', 'repl3'],
         }, User),
-      ).to.throw(`The following literal includes positional replacements (?).
+      ).to.throwWithCause(`The following literal includes positional replacements (?).
 Only named replacements (:name) are allowed in literal() because we cannot guarantee the order in which they will be evaluated:
 ➜ literal("?")`);
     });
 
     it(`always escapes the attribute if it's provided as a string`, () => {
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: [
           // these used to have special escaping logic, now they're always escaped like any other strings. col, fn, and literal can be used for advanced logic.
@@ -491,7 +534,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     });
 
     it('supports a "having" option', () => {
-      const sql = queryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: [
           literal('*'),
@@ -502,20 +545,107 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       }, User);
 
       expectsql(sql, {
-        default: `SELECT *, YEAR([createdAt]) AS [creationYear] FROM [Users] AS [User] GROUP BY [creationYear], [title] HAVING [creationYear] > 2002;`,
+        default: `SELECT *, YEAR([createdAt]) AS [creationYear] FROM [Users] AS [User] GROUP BY [creationYear], [title] HAVING [User].[creationYear] > 2002;`,
       });
     });
   });
 
-  describe('minifyAliases', () => {
-    const minifyAliasesSequelize = createSequelizeInstance({
-      minifyAliases: true,
+  describe('previously supported values', () => {
+    it('raw replacements for where', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          where: ['name IN (?)', [1, 'test', 3, 'derp']],
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got 'name IN (?)'`);
     });
 
-    const minifyQueryGenerator = minifyAliasesSequelize.queryInterface.queryGenerator;
+    it('raw replacements for nested where', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          where: [['name IN (?)', [1, 'test', 3, 'derp']]],
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got 'name IN (?)'`);
+    });
 
+    it('raw replacements for having', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          having: ['name IN (?)', [1, 'test', 3, 'derp']],
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got 'name IN (?)'`);
+    });
+
+    it('raw replacements for nested having', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          having: [['name IN (?)', [1, 'test', 3, 'derp']]],
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got 'name IN (?)'`);
+    });
+
+    it('raw string from where', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          where: `name = 'something'`,
+        });
+      }).to.throwWithCause(Error, 'Support for `{ where: \'raw query\' }` has been removed.');
+    });
+
+    it('raw string from having', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          having: `name = 'something'`,
+        });
+      }).to.throwWithCause(Error, 'Support for `{ where: \'raw query\' }` has been removed.');
+    });
+
+    it('rejects where: null', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          where: null,
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got null`);
+    });
+
+    it('rejects where: primitive', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          where: 1,
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got 1`);
+    });
+
+    it('rejects where: array of primitives', () => {
+      expect(() => {
+        queryGenerator.selectQuery('User', {
+          attributes: ['*'],
+          // @ts-expect-error -- this is not a valid value anymore
+          where: [''],
+        });
+      }).to.throwWithCause(Error, `Invalid Query: expected a plain object, an array or a sequelize SQL method but got ''`);
+    });
+  });
+
+  describe('minifyAliases', () => {
     it('minifies custom attributes', () => {
-      const sql = minifyQueryGenerator.selectQuery(User.tableName, {
+      const sql = queryGenerator.selectQuery(User.table, {
+        minifyAliases: true,
         model: User,
         attributes: [
           [literal('1'), 'customAttr'],
