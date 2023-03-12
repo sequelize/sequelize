@@ -9,8 +9,6 @@ import type {
   AttributeOptions,
   ModelStatic,
   SearchPathable,
-  ModelAttributes,
-  CreationAttributes,
 } from '../../model.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions } from './query-generator-typescript.js';
@@ -173,9 +171,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: ArithmeticQueryOptions,
   ): string;
 
-  createTableQuery<M extends Model>(
+  createTableQuery(
     tableName: TableName,
-    attributes: ModelAttributes<M, CreationAttributes<M>>,
+    // TODO: rename attributes to columns in the implementation when migrating to TS
+    columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions
   ): string;
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;

@@ -32,7 +32,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR attributes and a tableName object', () => {
+  it('produces a CREATE TABLE query with two VARCHAR attributes and a TableNameWithSchema object', () => {
     expectsql(queryGenerator.createTableQuery({ tableName: 'myTable', schema: 'mySchema' }, { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }), {
       default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([title] VARCHAR(255), [name] VARCHAR(255));',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;',
@@ -237,7 +237,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('produces a CREATE TABLE query with an auto-incremented INTEGER with speicified initial auto increment', () => {
+  it('produces a CREATE TABLE query with an auto-incremented INTEGER with specified initial auto increment', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER auto_increment PRIMARY KEY' }, { initialAutoIncrement: 1_000_001 }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([id] INTEGER auto_increment, PRIMARY KEY ([id]));',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
