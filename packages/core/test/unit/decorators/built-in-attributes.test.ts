@@ -36,7 +36,7 @@ describe('@UpdatedAt', () => {
 });
 
 describe('@DeletedAt', () => {
-  it('marks a column as the createdAt attribute', () => {
+  it('marks a column as the deletedAt attribute', () => {
     class Test extends Model {
       @DeletedAt
       declare customDeletedAt: Date | null;
@@ -54,7 +54,7 @@ describe('@DeletedAt', () => {
 });
 
 describe('@Version', () => {
-  it('marks a column as the createdAt attribute', () => {
+  it('marks a column as the version attribute', () => {
     class Test extends Model {
       @Version
       declare customVersionAttribute: number;
