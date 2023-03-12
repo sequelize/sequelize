@@ -132,11 +132,22 @@ describe('QueryGenerator#attributesToSQL', () => {
   });
 
   // TODO: check what this test is supposed to do and update the possible defaultValue accordingly
-  it(`No Default value for BLOB allowed for some dialects`, () => {
+  it(`No empty array as default value for BLOB allowed for some dialects`, () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'BLOB', defaultValue: [] } }), {
       default: { id: 'BLOB' },
-      postgres: new Error('Could not guess type of value [] because it is an empty array'),
-      'mssql sqlite db2': { id: 'BLOB DEFAULT ' },
+      'postgres sqlite mssql db2': new Error('Could not guess type of value [] because it is an empty array'),
+    });
+  });
+
+  // TODO: this test is broken for at least DB2. It adds the default value because the data type is a string, which can't have special behaviors.
+  //  change type to an actual Sequelize DataType & re-enable
+  it(`No buffer from empty array as default value for BLOB allowed for some dialects`, () => {
+    expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'BLOB', defaultValue: Buffer.from([]) } }), {
+      default: { id: 'BLOB' },
+      postgres: { id: 'BLOB DEFAULT \'\\x\'' },
+      mssql: { id: 'BLOB DEFAULT 0x' },
+      sqlite: { id: 'BLOB DEFAULT X\'\'' },
+      db2: { id: 'BLOB DEFAULT BLOB(\'\')' },
     });
   });
 
@@ -144,26 +155,23 @@ describe('QueryGenerator#attributesToSQL', () => {
   it(`No Default value for TEXT allowed for some dialects`, () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'TEXT', defaultValue: [] } }), {
       default: { id: 'TEXT' },
-      postgres: new Error('Could not guess type of value [] because it is an empty array'),
-      'sqlite ibmi': { id: 'TEXT DEFAULT ' },
+      'postgres sqlite ibmi': new Error('Could not guess type of value [] because it is an empty array'),
     });
   });
 
   // TODO: check what this test is supposed to do and update the possible defaultValue accordingly
   it(`No Default value for GEOMETRY allowed for some dialects`, () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'GEOMETRY', defaultValue: [] } }), {
-      default: { id: 'GEOMETRY' },
-      postgres: new Error('Could not guess type of value [] because it is an empty array'),
-      'mssql sqlite db2 ibmi': { id: 'GEOMETRY DEFAULT ' },
+      default: new Error('Could not guess type of value [] because it is an empty array'),
+      'mariadb mysql snowflake': { id: 'GEOMETRY' },
     });
   });
 
   // TODO: check what this test is supposed to do and update the possible defaultValue accordingly
   it(`No Default value for JSON allowed for some dialects`, () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'JSON', defaultValue: [] } }), {
-      default: { id: 'JSON' },
-      postgres: new Error('Could not guess type of value [] because it is an empty array'),
-      'mssql sqlite db2 ibmi': { id: 'JSON DEFAULT ' },
+      default: new Error('Could not guess type of value [] because it is an empty array'),
+      'mariadb mysql snowflake': { id: 'JSON' },
     });
   });
 

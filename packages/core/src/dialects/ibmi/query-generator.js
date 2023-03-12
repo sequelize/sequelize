@@ -592,7 +592,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = Object.create(null);
+    const result = {};
 
     for (const key of Object.keys(attributes)) {
       const attribute = {

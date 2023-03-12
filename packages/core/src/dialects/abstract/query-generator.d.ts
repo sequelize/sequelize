@@ -60,7 +60,7 @@ type ArithmeticQueryOptions = ParameterOptions & {
 };
 
 // TODO: remove tableName and schema when migrating to TypeScript in favour of a table that supports TableNameOrModel
-type AttributeToSQLOptions = EscapeOptions & {
+type AttributeToSQLOptions = ParameterOptions & {
   table?: TableName,
   tableName?: string,
   context?: 'createTable' | 'addColumn' | 'changeColumn',
