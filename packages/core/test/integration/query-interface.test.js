@@ -485,12 +485,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[0])).to.have.length(2);
         expect(Object.keys(foreignKeys[1])).to.have.length(2);
         expect(Object.keys(foreignKeys[2])).to.have.length(2);
-      } else if (['sqlite', 'db2'].includes(dialectName)) {
+      } else if (['mariadb', 'mysql', 'sqlite', 'db2'].includes(dialectName)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
-      } else if (dialectName === 'ibmi') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(9);
-      } else if (['mysql', 'mariadb', 'mssql'].includes(dialectName)) {
-        expect(Object.keys(foreignKeys[0])).to.have.length(12);
+      } else if (['mssql', 'ibmi'].includes(dialectName)) {
+        expect(Object.keys(foreignKeys[0])).to.have.length(11);
       } else {
         throw new Error(`This test doesn't support ${dialectName}`);
       }
