@@ -102,7 +102,7 @@ describe('QueryGenerator#createTableQuery', () => {
   });
 
   it('produces a CREATE TABLE query with a normalized BLOB attribute', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { data: sequelize.normalizeDataType(DataTypes.BLOB).toSql({ dialect: sequelize.dialect }) }), {
+    expectsql(queryGenerator.createTableQuery('myTable', { data: sequelize.normalizeDataType(DataTypes.BLOB).toSql() }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([data] BLOB);',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);',
@@ -113,7 +113,7 @@ describe('QueryGenerator#createTableQuery', () => {
   });
 
   it('produces a CREATE TABLE query with a normalized long BLOB attribute', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { data: sequelize.normalizeDataType(DataTypes.BLOB('long')).toSql({ dialect: sequelize.dialect }) }), {
+    expectsql(queryGenerator.createTableQuery('myTable', { data: sequelize.normalizeDataType(DataTypes.BLOB('long')).toSql() }), {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB) ENGINE=InnoDB;',
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] VARBINARY(MAX));`,
