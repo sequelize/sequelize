@@ -7,8 +7,6 @@ import { isValidTimeZone } from '../../utils/dayjs';
 import * as BaseTypes from '../abstract/data-types.js';
 import type {
   AcceptedDate,
-  StringifyOptions,
-  ToSqlOptions,
   BindParamOptions,
 } from '../abstract/data-types.js';
 
@@ -92,8 +90,8 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
 }
 
 export class DATE extends BaseTypes.DATE {
-  toBindableValue(date: AcceptedDate, options: StringifyOptions) {
-    date = this._applyTimezone(date, options);
+  toBindableValue(date: AcceptedDate) {
+    date = this._applyTimezone(date);
 
     return date.format('YYYY-MM-DD HH:mm:ss.SSS');
   }
@@ -111,6 +109,19 @@ export class DATE extends BaseTypes.DATE {
   }
 }
 
+export class JSON extends BaseTypes.JSON {
+  escape(value: any): string {
+    // In MySQL, JSON cannot be directly compared to a text, we need to cast it to JSON
+    // This is not necessary for the values of INSERT & UPDATE statements, so we could omit this
+    // if we add context to the escape & getBindParamSql methods
+    return `CAST(${super.escape(value)} AS JSON)`;
+  }
+
+  getBindParamSql(value: any, options: BindParamOptions): string {
+    return `CAST(${super.getBindParamSql(value, options)} AS JSON)`;
+  }
+}
+
 export class UUID extends BaseTypes.UUID {
   // TODO: add check constraint to enforce GUID format
   toSql() {
@@ -119,8 +130,8 @@ export class UUID extends BaseTypes.UUID {
 }
 
 export class GEOMETRY extends BaseTypes.GEOMETRY {
-  toBindableValue(value: GeoJson, options: StringifyOptions) {
-    return `ST_GeomFromText(${options.dialect.escapeString(
+  toBindableValue(value: GeoJson) {
+    return `ST_GeomFromText(${this._getDialect().escapeString(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
     )})`;
   }
@@ -137,7 +148,9 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
 }
 
 export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
-  toSql(options: ToSqlOptions) {
-    return `ENUM(${this.options.values.map(value => options.dialect.escapeString(value)).join(', ')})`;
+  toSql() {
+    const dialect = this._getDialect();
+
+    return `ENUM(${this.options.values.map(value => dialect.escapeString(value)).join(', ')})`;
   }
 }

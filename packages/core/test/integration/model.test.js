@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('throws an error if a custom model-wide validation is not a function', function () {
       expect(() => {
         this.sequelize.define('Foo', {
-          field: DataTypes.INTEGER,
+          columnName: DataTypes.INTEGER,
         }, {
           validate: {
             notFunction: 33,
@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('allows unique on column with field aliases', async function () {
       const User = this.sequelize.define('UserWithUniqueFieldAlias', {
-        userName: { type: DataTypes.STRING, unique: 'user_name_unique', field: 'user_name' },
+        userName: { type: DataTypes.STRING, unique: 'user_name_unique', columnName: 'user_name' },
       });
 
       await User.sync({ force: true });
@@ -451,7 +451,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.sequelize.sync();
       await this.sequelize.sync(); // The second call should not try to create the indices again
-      const args = await this.sequelize.queryInterface.showIndex(Model.tableName);
+      const args = await this.sequelize.queryInterface.showIndex(Model.table);
       let primary;
       let idx1;
       let idx2;
@@ -837,17 +837,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should map the correct fields when saving instance (#10589)', async function () {
       const User = this.sequelize.define('User', {
         id3: {
-          field: 'id',
+          columnName: 'id',
           type: DataTypes.INTEGER,
           primaryKey: true,
         },
         id: {
-          field: 'id2',
+          columnName: 'id2',
           type: DataTypes.INTEGER,
           allowNull: false,
         },
         id2: {
-          field: 'id3',
+          columnName: 'id3',
           type: DataTypes.INTEGER,
           allowNull: false,
         },
@@ -879,17 +879,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should map the correct fields when updating instance (#10589)', async function () {
       const User = this.sequelize.define('User', {
         id3: {
-          field: 'id',
+          columnName: 'id',
           type: DataTypes.INTEGER,
           primaryKey: true,
         },
         id: {
-          field: 'id2',
+          columnName: 'id2',
           type: DataTypes.INTEGER,
           allowNull: false,
         },
         id2: {
-          field: 'id3',
+          columnName: 'id3',
           type: DataTypes.INTEGER,
           allowNull: false,
         },
@@ -997,28 +997,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         } else {
           expect(user.username).to.equal('Bob');
         }
-      }
-    });
-
-    it('throws an error if where has a key with undefined value', async function () {
-      const data = [
-        { username: 'Peter', secretValue: '42' },
-        { username: 'Paul', secretValue: '42' },
-        { username: 'Bob', secretValue: '43' },
-      ];
-
-      await this.User.bulkCreate(data);
-      try {
-        await this.User.update({ username: 'Bill' }, {
-          where: {
-            secretValue: '42',
-            username: undefined,
-          },
-        });
-        throw new Error('Update should throw an error if where has a key with undefined value');
-      } catch (error) {
-        expect(error).to.be.an.instanceof(Error);
-        expect(error.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
       }
     });
 
@@ -1349,19 +1327,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await User.findAll()).to.have.lengthOf(0);
     });
 
-    it('throws an error if where has a key with undefined value', async function () {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-
-      await this.sequelize.sync({ force: true });
-      try {
-        await User.destroy({ where: { username: undefined } });
-        throw new Error('Destroy should throw an error if where has a key with undefined value');
-      } catch (error) {
-        expect(error).to.be.an.instanceof(Error);
-        expect(error.message).to.equal('WHERE parameter "username" has invalid "undefined" value');
-      }
-    });
-
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
@@ -1422,7 +1387,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const UserProject = this.sequelize.define('UserProject', {
         userId: {
           type: DataTypes.INTEGER,
-          field: 'user_id',
+          columnName: 'user_id',
         },
       });
 
@@ -1525,7 +1490,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
         const user = await User.findByPk(1);
         await user.destroy();
-        expect(await User.findOne({ where: 1, paranoid: false })).to.exist;
+        expect(await User.findOne({ where: { id: 1 }, paranoid: false })).to.exist;
         expect(await User.findByPk(1)).to.be.null;
         expect(await User.count()).to.equal(2);
         expect(await User.count({ paranoid: false })).to.equal(3);
@@ -1958,12 +1923,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.UserWithFields = this.sequelize.define('UserWithFields', {
         age: {
           type: DataTypes.INTEGER,
-          field: 'user_age',
+          columnName: 'user_age',
         },
         order: DataTypes.INTEGER,
         gender: {
           type: DataTypes.ENUM('male', 'female'),
-          field: 'male_female',
+          columnName: 'male_female',
         },
       });
 
@@ -2580,12 +2545,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(res).to.have.length(2);
     });
 
-    it('should fail when array contains strings', async function () {
-      await expect(this.User.findAll({
-        where: ['this is a mistake', ['dont do it!']],
-      })).to.eventually.be.rejectedWith(Error, 'Support for literal replacements in the `where` object has been removed.');
-    });
-
     it('should not fail with an include', async function () {
       const users = await this.User.findAll({
         where: this.sequelize.literal(`${this.sequelize.queryInterface.queryGenerator.quoteIdentifiers('Projects.title')} = ${this.sequelize.queryInterface.queryGenerator.escape('republic')}`),
@@ -2739,7 +2698,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         username: {
           type: DataTypes.STRING,
           allowNull: false,
-          field: 'data',
+          columnName: 'data',
           get() {
             const val = this.getDataValue('username');
 

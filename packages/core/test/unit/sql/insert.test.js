@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         returning: true,
         hasTrigger: true,
       };
-      expectsql(sql.insertQuery(User.tableName, { user_name: 'triggertest' }, User.getAttributes(), options),
+      expectsql(sql.insertQuery(User.table, { user_name: 'triggertest' }, User.getAttributes(), options),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       });
 
-      expectsql(sql.insertQuery(M.tableName, { id: 0 }, M.getAttributes()),
+      expectsql(sql.insertQuery(M.table, { id: 0 }, M.getAttributes()),
         {
           query: {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($sequelize_1); SET IDENTITY_INSERT [ms] OFF;',
@@ -66,6 +66,68 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           bind: { sequelize_1: 0 },
         });
     });
+
+    it(
+      current.dialect.supports.inserts.onConflictWhere
+        ? 'adds conflictWhere clause to generated queries'
+        : 'throws error if conflictWhere is provided',
+      () => {
+        const User = Support.sequelize.define(
+          'user',
+          {
+            username: {
+              type: DataTypes.STRING,
+              field: 'user_name',
+              primaryKey: true,
+            },
+            password: {
+              type: DataTypes.STRING,
+              field: 'pass_word',
+            },
+            createdAt: {
+              type: DataTypes.DATE,
+              field: 'created_at',
+            },
+            updatedAt: {
+              type: DataTypes.DATE,
+              field: 'updated_at',
+            },
+          },
+          {
+            timestamps: true,
+          },
+        );
+
+        const upsertKeys = ['user_name'];
+
+        let result;
+
+        try {
+          result = sql.insertQuery(
+            User.table,
+            { user_name: 'testuser', pass_word: '12345' },
+            User.fieldRawAttributesMap,
+            {
+              updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+              conflictWhere: {
+                user_name: 'test where value',
+              },
+              upsertKeys,
+            },
+          );
+        } catch (error) {
+          result = error;
+        }
+
+        expectsql(result, {
+          default: new Error(
+            'missing dialect support for conflictWhere option',
+          ),
+          'postgres sqlite':
+            `INSERT INTO [users] ([user_name],[pass_word]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [user_name] = 'test where value' DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];`,
+        });
+      },
+    );
   });
 
   describe('dates', () => {
@@ -87,7 +149,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           timestamps: false,
         });
 
-        expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.getAttributes(), {}),
+        expectsql(timezoneSequelize.dialect.queryGenerator.insertQuery(User.table, { date: new Date(Date.UTC(2015, 0, 20)) }, User.getAttributes(), {}),
           {
             query: {
               default: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
@@ -114,7 +176,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false,
       });
 
-      expectsql(current.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20)) }, User.getAttributes(), {}),
+      expectsql(current.dialect.queryGenerator.insertQuery(User.table, { date: new Date(Date.UTC(2015, 0, 20)) }, User.getAttributes(), {}),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1))',
@@ -146,7 +208,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false,
       });
 
-      expectsql(current.dialect.queryGenerator.insertQuery(User.tableName, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.getAttributes(), {}),
+      expectsql(current.dialect.queryGenerator.insertQuery(User.table, { date: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) }, User.getAttributes(), {}),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1))',
@@ -181,7 +243,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false,
       });
 
-      expectsql(sql.insertQuery(User.tableName, { user_name: 'null\0test' }, User.getAttributes()),
+      expectsql(sql.insertQuery(User.table, { user_name: 'null\0test' }, User.getAttributes()),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
@@ -224,7 +286,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       // mapping primary keys to their "field" override values
       const primaryKeys = User.primaryKeyAttributes.map(attr => User.getAttributes()[attr].field || attr);
 
-      expectsql(sql.bulkInsertQuery(User.tableName, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys }, User.fieldRawAttributesMap),
+      expectsql(sql.bulkInsertQuery(User.table, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys }, User.fieldRawAttributesMap),
         {
           default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
           ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\'))',
@@ -247,7 +309,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       });
 
-      expectsql(sql.bulkInsertQuery(M.tableName, [{ id: 0 }, { id: null }], {}, M.fieldRawAttributesMap),
+      expectsql(sql.bulkInsertQuery(M.table, [{ id: 0 }, { id: null }], {}, M.fieldRawAttributesMap),
         {
           query: {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL); SET IDENTITY_INSERT [ms] OFF;',
@@ -259,5 +321,69 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
         });
     });
+
+    if (
+      current.dialect.supports.inserts.updateOnDuplicate
+    ) {
+      it('correctly generates SQL for conflictWhere', () => {
+        const User = Support.sequelize.define(
+          'user',
+          {
+            username: {
+              type: DataTypes.STRING,
+              field: 'user_name',
+              primaryKey: true,
+            },
+            password: {
+              type: DataTypes.STRING,
+              field: 'pass_word',
+            },
+            createdAt: {
+              type: DataTypes.DATE,
+              field: 'created_at',
+            },
+            updatedAt: {
+              type: DataTypes.DATE,
+              field: 'updated_at',
+            },
+            deletedAt: {
+              type: DataTypes.DATE,
+              field: 'deleted_at',
+            },
+          },
+          {
+            timestamps: true,
+          },
+        );
+
+        // mapping primary keys to their "field" override values
+        const primaryKeys = User.primaryKeyAttributes.map(attr => User.getAttributes()[attr].field || attr);
+
+        let result;
+
+        try {
+          result = sql.bulkInsertQuery(
+            User.table,
+            [{ user_name: 'testuser', pass_word: '12345' }],
+            {
+              updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+              upsertKeys: primaryKeys,
+              conflictWhere: { deleted_at: null },
+            },
+            User.fieldRawAttributesMap,
+          );
+        } catch (error) {
+          result = error;
+        }
+
+        expectsql(result, {
+          default: new Error(
+            `conflictWhere not supported for dialect ${dialect.name}`,
+          ),
+          'postgres sqlite':
+            'INSERT INTO [users] ([user_name],[pass_word]) VALUES (\'testuser\',\'12345\') ON CONFLICT ([user_name]) WHERE [deleted_at] IS NULL DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];',
+        });
+      });
+    }
   });
 });

@@ -3,24 +3,6 @@ import type { AbstractDataType } from './dialects/abstract/data-types.js';
 import type { AbstractDialect } from './dialects/abstract/index.js';
 import { logger } from './utils/logger';
 
-function arrayToList(array: unknown[], timeZone: string | undefined, dialect: AbstractDialect, format: boolean) {
-  // TODO: rewrite
-  // eslint-disable-next-line unicorn/no-array-reduce
-  return array.reduce((sql: string, val, i) => {
-    if (i !== 0) {
-      sql += ', ';
-    }
-
-    if (Array.isArray(val)) {
-      sql += `(${arrayToList(val, timeZone, dialect, format)})`;
-    } else {
-      sql += escape(val, timeZone, dialect, format);
-    }
-
-    return sql;
-  }, '');
-}
-
 const textDataTypeMap = new Map<string, AbstractDataType<any>>();
 export function getTextDataTypeForDialect(dialect: AbstractDialect): AbstractDataType<any> {
   let type = textDataTypeMap.get(dialect.name);
@@ -32,7 +14,7 @@ export function getTextDataTypeForDialect(dialect: AbstractDialect): AbstractDat
   return type;
 }
 
-function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): AbstractDataType<any> {
+export function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): AbstractDataType<any> {
   // TODO: cache simple types
   switch (typeof val) {
     case 'bigint':
@@ -80,34 +62,4 @@ function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): Abstrac
   }
 
   throw new TypeError(`Could not guess type of value ${logger.inspect(val)}`);
-}
-
-export function escape(
-  val: unknown,
-  timeZone: string | undefined,
-  dialect: AbstractDialect,
-  format: boolean = false,
-): string {
-  const dialectName = dialect.name;
-
-  if (val == null) {
-    // There are cases in Db2 for i where 'NULL' isn't accepted, such as
-    // comparison with a WHERE() statement. In those cases, we have to cast.
-    if (dialectName === 'ibmi' && format) {
-      return 'cast(NULL as int)';
-    }
-
-    return 'NULL';
-  }
-
-  if (Array.isArray(val) && (dialectName !== 'postgres' || format)) {
-    return arrayToList(val, timeZone, dialect, format);
-  }
-
-  const dataType = bestGuessDataTypeOfVal(val, dialect);
-
-  return dataType.escape(val, {
-    dialect,
-    timezone: timeZone,
-  });
 }

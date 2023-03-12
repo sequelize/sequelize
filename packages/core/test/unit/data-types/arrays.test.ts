@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import { ValidationErrorItem, DataTypes } from '@sequelize/core';
-import { sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
-const dialect = sequelize.dialect;
+const { dialect, queryGenerator } = sequelize;
 
 describe('DataTypes.ARRAY', () => {
   const unsupportedError = new Error(`${dialect.name} does not support the ARRAY data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
@@ -111,5 +111,39 @@ describe('DataTypes.ARRAY', () => {
         expect(() => type.validate(['foo', 'bar'])).not.to.throw();
       });
     });
+  });
+
+  describe('escape', () => {
+    if (!dialect.supports.dataTypes.ARRAY) {
+      return;
+    }
+
+    it('escapes array of JSON', () => {
+      expectsql(queryGenerator.escape([
+        { some: 'nested', more: { nested: true }, answer: 42 },
+        43,
+        'joe',
+      ], { type: DataTypes.ARRAY(DataTypes.JSON) }), {
+        postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]',
+      });
+    });
+
+    if (dialect.supports.dataTypes.JSONB) {
+      it('escapes array of JSONB', () => {
+        expectsql(
+          queryGenerator.escape(
+            [
+              { some: 'nested', more: { nested: true }, answer: 42 },
+              43,
+              'joe',
+            ],
+            { type: DataTypes.ARRAY(DataTypes.JSONB) },
+          ),
+          {
+            postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
+          },
+        );
+      });
+    }
   });
 });

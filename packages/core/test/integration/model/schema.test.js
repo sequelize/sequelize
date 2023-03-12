@@ -317,16 +317,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         beforeEach(async function () {
           const Location = this.Location;
 
-          try {
-            await Location.sync({ force: true });
-            await Location.create({ name: 'HQ' });
-            const obj = await Location.findOne({ where: { name: 'HQ' } });
-            expect(obj).to.not.be.null;
-            expect(obj.name).to.equal('HQ');
-            locationId = obj.id;
-          } catch (error) {
-            expect(error).to.be.null;
-          }
+          await Location.sync({ force: true });
+          await Location.create({ name: 'HQ' });
+          const obj = await Location.findOne({ where: { name: 'HQ' } });
+          expect(obj).to.not.be.null;
+          expect(obj.name).to.equal('HQ');
+          locationId = obj.id;
         });
 
         it('should be able to insert and retrieve associated data into the table in schema_one', async function () {

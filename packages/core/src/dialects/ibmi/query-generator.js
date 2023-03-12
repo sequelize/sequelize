@@ -1,10 +1,9 @@
 'use strict';
 
-import { underscore } from 'inflection';
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import { conformIndex } from '../../model-internals';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
-import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
 import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
@@ -246,106 +245,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return `ALTER TABLE ${this.quoteTable(tableName)} RENAME COLUMN ${attrString.join(', ')};`;
   }
 
-  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Json) {
-      // Parse nested object
-      if (smth.conditions) {
-        const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.quoteIdentifier(condition.path[0])}->>'$.${_.tail(condition.path).join('.')}' = '${condition.value}'`);
-
-        return conditions.join(' and ');
-      }
-
-      if (smth.path) {
-        let str;
-
-        // Allow specifying conditions using the sqlite json functions
-        if (this._checkValidJsonStatement(smth.path)) {
-          str = smth.path;
-        } else {
-          // Also support json dot notation
-          let path = smth.path;
-          let startWithDot = true;
-
-          // Convert .number. to [number].
-          path = path.replace(/\.(\d+)\./g, '[$1].');
-          // Convert .number$ to [number]
-          path = path.replace(/\.(\d+)$/, '[$1]');
-
-          path = path.split('.');
-
-          let columnName = path.shift();
-          const match = columnName.match(/\[\d+\]$/);
-          // If columnName ends with [\d+]
-          if (match !== null) {
-            path.unshift(columnName.slice(match.index));
-            columnName = columnName.slice(0, Math.max(0, match.index));
-            startWithDot = false;
-          }
-
-          str = `${this.quoteIdentifier(columnName)}->>'$${startWithDot ? '.' : ''}${path.join('.')}'`;
-        }
-
-        if (smth.value) {
-          str += util.format(' = %s', this.escape(smth.value, undefined, { replacements: options.replacements }));
-        }
-
-        return str;
-      }
-    } else if (smth instanceof Cast) {
-      if (/timestamp/i.test(smth.type)) {
-        smth.type = 'timestamp';
-      } else if (smth.json && /boolean/i.test(smth.type)) {
-        // true or false cannot be casted as booleans within a JSON structure
-        smth.type = 'char';
-      } else if (/double precision/i.test(smth.type) || /boolean/i.test(smth.type) || /integer/i.test(smth.type)) {
-        smth.type = 'integer';
-      } else if (/text/i.test(smth.type)) {
-        smth.type = 'char';
-      }
-    }
-
-    return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
-  }
-
-  escape(value, attribute, options) {
-    if (value instanceof SequelizeMethod) {
-      return this.handleSequelizeMethod(value, undefined, undefined, { replacements: options.replacements });
-    }
-
-    if (value == null || attribute?.type == null || typeof attribute.type === 'string') {
-      const format = (value === null && options.where);
-
-      // use default escape mechanism instead of the DataType's.
-      return SqlString.escape(value, this.options.timezone, this.dialect, format);
-    }
-
-    if (!attribute.type.belongsToDialect(this.dialect)) {
-      attribute = {
-        ...attribute,
-        type: attribute.type.toDialectDataType(this.dialect),
-      };
-    }
-
-    if (options.isList && Array.isArray(value)) {
-      const escapeOptions = { ...options, isList: false };
-
-      return `(${value.map(valueItem => {
-        return this.escape(valueItem, attribute, escapeOptions);
-      }).join(', ')})`;
-    }
-
-    this.validate(value, attribute);
-
-    return attribute.type.escape(value, {
-      // Users shouldn't have to worry about these args - just give them a function that takes a single arg
-      escape: this.simpleEscape,
-      field: attribute,
-      timezone: this.options.timezone,
-      operation: options.operation,
-      dialect: this.dialect,
-    });
-  }
-
   /*
     Returns an add index query.
     Parameters:
@@ -384,8 +283,8 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         return this.quoteIdentifier(field);
       }
 
-      if (field instanceof SequelizeMethod) {
-        return this.handleSequelizeMethod(field);
+      if (field instanceof BaseSqlExpression) {
+        return this.formatSqlExpression(field);
       }
 
       let result = '';
@@ -459,20 +358,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return query.replace(/;$/, '');
   }
 
-  // _toJSONValue(value) {
-  //   // true/false are stored as strings in mysql
-  //   if (typeof value === 'boolean') {
-  //     return value.toString();
-  //   }
-
-  //   // null is stored as a string in mysql
-  //   if (value === null) {
-  //     return 'null';
-  //   }
-
-  //   return value;
-  // }
-
   updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
     const out = super.updateQuery(tableName, attrValueHash, where, options, columnDefinitions);
 
@@ -541,10 +426,9 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   deleteQuery(tableName, where, options = {}, model) {
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 
-    where = this.getWhereConditions(where, null, model, options);
-
-    if (where) {
-      query += ` WHERE ${where}`;
+    const whereSql = this.whereQuery(where, { ...options, model });
+    if (whereSql) {
+      query += ` ${whereSql}`;
     }
 
     if (options.offset || options.limit) {
@@ -565,11 +449,11 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     let fragment = '';
 
     if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)} ROWS`;
+      fragment += ` OFFSET ${this.escape(options.offset, options)} ROWS`;
     }
 
     if (options.limit) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, undefined, options)} ROWS ONLY`;
+      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
     }
 
     return fragment;
@@ -628,7 +512,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       }
 
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
-        return this.escape(value, undefined, { replacements: options?.replacements });
+        return this.escape(value);
       }).join(', ')}))`;
     } else {
       template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
@@ -654,7 +538,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         attribute.defaultValue = 0;
       }
 
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, { replacements: options?.replacements })}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
     }
 
     if (attribute.unique === true && !attribute.primaryKey) {
@@ -797,14 +681,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   dropForeignKeyQuery(tableName, foreignKey) {
     return `ALTER TABLE ${this.quoteTable(tableName)}
       DROP FOREIGN KEY ${this.quoteIdentifier(foreignKey)};`;
-  }
-
-  booleanValue(value) {
-    if (value) {
-      return 1;
-    }
-
-    return 0;
   }
 }
 

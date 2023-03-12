@@ -11,11 +11,9 @@ describe('QueryGenerator#updateQuery', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('parses named replacements in literals', async () => {
-    const { query, bind } = queryGenerator.updateQuery(User.tableName, {
+    const { query, bind } = queryGenerator.updateQuery(User.table, {
       firstName: literal(':name'),
-    }, {
-      where: literal('name = :name'),
-    }, {
+    }, literal('name = :name'), {
       replacements: {
         name: 'Zoe',
       },
@@ -30,7 +28,7 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('generates extra bind params', async () => {
-    const { query, bind } = queryGenerator.updateQuery(User.tableName, {
+    const { query, bind } = queryGenerator.updateQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
@@ -48,13 +46,11 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('does not generate extra bind params with bindParams: false', async () => {
-    const { query, bind } = queryGenerator.updateQuery(User.tableName, {
+    const { query, bind } = queryGenerator.updateQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
-    }, {
-      where: literal('first_name = $2'),
-    }, {
+    }, literal('first_name = $2'), {
       bindParam: false,
     });
 
@@ -66,5 +62,127 @@ describe('QueryGenerator#updateQuery', () => {
     });
 
     expect(bind).to.be.undefined;
+  });
+
+  it('binds date values', () => {
+    const result = queryGenerator.updateQuery('myTable', {
+      date: new Date('2011-03-27T10:01:55Z'),
+    }, { id: 2 });
+
+    expectsql(result, {
+      query: {
+        default: 'UPDATE [myTable] SET [date]=$sequelize_1 WHERE [id] = $sequelize_2',
+        db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "date"=$sequelize_1 WHERE "id" = $sequelize_2);',
+      },
+      bind: {
+        mysql: {
+          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
+        mariadb: {
+          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
+        db2: {
+          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
+        ibmi: {
+          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
+        snowflake: {
+          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
+        sqlite: {
+          sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          sequelize_2: 2,
+        },
+        postgres: {
+          sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          sequelize_2: 2,
+        },
+        mssql: {
+          sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          sequelize_2: 2,
+        },
+      },
+    });
+  });
+
+  it('binds boolean values', () => {
+    const result = queryGenerator.updateQuery('myTable', {
+      positive: true,
+      negative: false,
+    }, { id: 2 });
+
+    expectsql(result, {
+      query: {
+        default: 'UPDATE [myTable] SET [positive]=$sequelize_1,[negative]=$sequelize_2 WHERE [id] = $sequelize_3',
+        db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "positive"=$sequelize_1,"negative"=$sequelize_2 WHERE "id" = $sequelize_3);',
+      },
+      bind: {
+        sqlite: {
+          sequelize_1: 1,
+          sequelize_2: 0,
+          sequelize_3: 2,
+        },
+        mysql: {
+          sequelize_1: 1,
+          sequelize_2: 0,
+          sequelize_3: 2,
+        },
+        mariadb: {
+          sequelize_1: 1,
+          sequelize_2: 0,
+          sequelize_3: 2,
+        },
+        mssql: {
+          sequelize_1: 1,
+          sequelize_2: 0,
+          sequelize_3: 2,
+        },
+        postgres: {
+          sequelize_1: true,
+          sequelize_2: false,
+          sequelize_3: 2,
+        },
+        db2: {
+          sequelize_1: true,
+          sequelize_2: false,
+          sequelize_3: 2,
+        },
+        ibmi: {
+          sequelize_1: 1,
+          sequelize_2: 0,
+          sequelize_3: 2,
+        },
+        snowflake: {
+          sequelize_1: true,
+          sequelize_2: false,
+          sequelize_3: 2,
+        },
+      },
+    });
+  });
+
+  // TODO: Should we ignore undefined values instead? undefined is closer to "missing property" than null
+  it('treats undefined as null', () => {
+    const { query, bind } = queryGenerator.updateQuery('myTable', {
+      value: undefined,
+      name: 'bar',
+    }, { id: 2 });
+
+    expectsql(query, {
+      default: 'UPDATE [myTable] SET [value]=$sequelize_1,[name]=$sequelize_2 WHERE [id] = $sequelize_3',
+      db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "value"=$sequelize_1,"name"=$sequelize_2 WHERE "id" = $sequelize_3);',
+    });
+
+    expect(bind).to.deep.eq({
+      sequelize_1: null,
+      sequelize_2: 'bar',
+      sequelize_3: 2,
+    });
   });
 });

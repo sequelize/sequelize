@@ -1,7 +1,7 @@
 import NodeUtil from 'node:util';
 import * as _inflection from 'inflection';
 import type { IndexOptions, TableName } from '../dialects/abstract/query-interface.js';
-import { SequelizeMethod } from './sequelize-method.js';
+import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 
 /* Inflection */
 type Inflection = typeof _inflection;
@@ -101,7 +101,7 @@ ${NodeUtil.inspect(index)}`);
       return field;
     }
 
-    if (field instanceof SequelizeMethod) {
+    if (field instanceof BaseSqlExpression) {
       // eslint-disable-next-line unicorn/prefer-type-error -- not a type error.
       throw new Error(`Index on table ${tableName} uses Sequelize's ${field.constructor.name} as one of its fields. You need to name this index manually.`);
     }

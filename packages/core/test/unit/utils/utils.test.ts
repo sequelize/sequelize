@@ -1,13 +1,12 @@
 import { expect } from 'chai';
-import { cast, col, DataTypes, fn, Op, Where, Json } from '@sequelize/core';
-import type { AbstractQueryGenerator } from '@sequelize/core';
+import { col, DataTypes, Where } from '@sequelize/core';
 import { canTreatArrayAsAnd } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { toDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
-import { mapFinderOptions, mapOptionFieldNames } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
+import { mapFinderOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import { defaults, merge, cloneDeep, flattenObjectDeep } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { underscoredIf, camelizeIf, pluralize, singularize } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
-import { sequelize, getTestDialect, expectsql } from '../../support';
+import { sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
@@ -80,43 +79,6 @@ describe('Utils', () => {
       }).to.not.throw();
     });
   });
-
-  if (getTestDialect() === 'postgres') {
-    describe('json', () => {
-      let queryGenerator: AbstractQueryGenerator;
-      beforeEach(() => {
-        queryGenerator = sequelize.getQueryInterface().queryGenerator;
-      });
-
-      it('successfully parses a complex nested condition hash', () => {
-        const conditions = {
-          metadata: {
-            language: 'icelandic',
-            pg_rating: { dk: 'G' },
-          },
-          another_json_field: { x: 1 },
-        };
-        const expected = '("metadata"#>>\'{language}\') = \'icelandic\' AND ("metadata"#>>\'{pg_rating,dk}\') = \'G\' AND ("another_json_field"#>>\'{x}\') = \'1\'';
-        expect(queryGenerator.handleSequelizeMethod(new Json(conditions))).to.deep.equal(expected);
-      });
-
-      it('successfully parses a string using dot notation', () => {
-        const path = 'metadata.pg_rating.dk';
-        expect(queryGenerator.handleSequelizeMethod(new Json(path))).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
-      });
-
-      it('allows postgres json syntax', () => {
-        const path = 'metadata->pg_rating->>dk';
-        expect(queryGenerator.handleSequelizeMethod(new Json(path))).to.equal(path);
-      });
-
-      it('can take a value to compare against', () => {
-        const path = 'metadata.pg_rating.is';
-        const value = 'U';
-        expect(queryGenerator.handleSequelizeMethod(new Json(path, value))).to.equal('("metadata"#>>\'{pg_rating,is}\') = \'U\'');
-      });
-    });
-  }
 
   describe('inflection', () => {
     it('should pluralize/singularize words correctly', () => {
@@ -199,23 +161,20 @@ describe('Utils', () => {
   });
 
   describe('toDefaultValue', () => {
-    it('return plain data types', () => {
-      expect(() => toDefaultValue(DataTypes.UUIDV4, dialect)).to.throw();
-    });
     it('return uuid v1', () => {
-      expect(/^[\da-z-]{36}$/.test(toDefaultValue(DataTypes.UUIDV1(), dialect) as string)).to.be.equal(true);
+      expect(/^[\da-z-]{36}$/.test(toDefaultValue(new DataTypes.UUIDV1().toDialectDataType(dialect)) as string)).to.be.equal(true);
     });
     it('return uuid v4', () => {
-      expect(/^[\da-z-]{36}/.test(toDefaultValue(DataTypes.UUIDV4(), dialect) as string)).to.be.equal(true);
+      expect(/^[\da-z-]{36}/.test(toDefaultValue(new DataTypes.UUIDV4().toDialectDataType(dialect)) as string)).to.be.equal(true);
     });
     it('return now', () => {
-      expect(Object.prototype.toString.call(toDefaultValue(DataTypes.NOW(), dialect))).to.be.equal('[object Date]');
+      expect(Object.prototype.toString.call(toDefaultValue(new DataTypes.NOW().toDialectDataType(dialect)))).to.be.equal('[object Date]');
     });
     it('return plain string', () => {
-      expect(toDefaultValue('Test', dialect)).to.equal('Test');
+      expect(toDefaultValue('Test')).to.equal('Test');
     });
     it('return plain object', () => {
-      expect(toDefaultValue({}, dialect)).to.deep.equal({});
+      expect(toDefaultValue({})).to.deep.equal({});
     });
   });
 
@@ -293,128 +252,6 @@ describe('Utils', () => {
       ).to.eql([
         ['created_at', 'createdAt'],
       ]);
-    });
-  });
-
-  describe('mapOptionFieldNames', () => {
-    it('plain where', () => {
-      expect(mapOptionFieldNames({
-        where: {
-          firstName: 'Paul',
-          lastName: 'Atreides',
-        },
-      }, sequelize.define('User', {
-        firstName: {
-          type: DataTypes.STRING,
-          field: 'first_name',
-        },
-        lastName: {
-          type: DataTypes.STRING,
-          field: 'last_name',
-        },
-      }))).to.eql({
-        where: {
-          first_name: 'Paul',
-          last_name: 'Atreides',
-        },
-      });
-    });
-
-    it('Op.or where', () => {
-      expect(mapOptionFieldNames({
-        where: {
-          [Op.or]: {
-            firstName: 'Paul',
-            lastName: 'Atreides',
-          },
-        },
-      }, sequelize.define('User', {
-        firstName: {
-          type: DataTypes.STRING,
-          field: 'first_name',
-        },
-        lastName: {
-          type: DataTypes.STRING,
-          field: 'last_name',
-        },
-      }))).to.eql({
-        where: {
-          [Op.or]: {
-            first_name: 'Paul',
-            last_name: 'Atreides',
-          },
-        },
-      });
-    });
-
-    it('Op.or[] where', () => {
-      expect(mapOptionFieldNames({
-        where: {
-          [Op.or]: [
-            { firstName: 'Paul' },
-            { lastName: 'Atreides' },
-          ],
-        },
-      }, sequelize.define('User', {
-        firstName: {
-          type: DataTypes.STRING,
-          field: 'first_name',
-        },
-        lastName: {
-          type: DataTypes.STRING,
-          field: 'last_name',
-        },
-      }))).to.eql({
-        where: {
-          [Op.or]: [
-            { first_name: 'Paul' },
-            { last_name: 'Atreides' },
-          ],
-        },
-      });
-    });
-
-    it('$and where', () => {
-      expect(mapOptionFieldNames({
-        where: {
-          [Op.and]: {
-            firstName: 'Paul',
-            lastName: 'Atreides',
-          },
-        },
-      }, sequelize.define('User', {
-        firstName: {
-          type: DataTypes.STRING,
-          field: 'first_name',
-        },
-        lastName: {
-          type: DataTypes.STRING,
-          field: 'last_name',
-        },
-      }))).to.eql({
-        where: {
-          [Op.and]: {
-            first_name: 'Paul',
-            last_name: 'Atreides',
-          },
-        },
-      });
-    });
-  });
-
-  describe('Sequelize.cast', () => {
-    const generator = sequelize.queryInterface.queryGenerator;
-
-    it('accepts condition object (auto casting)', () => {
-      expectsql(() => generator.handleSequelizeMethod(fn('SUM', cast({
-        [Op.or]: {
-          foo: 'foo',
-          bar: 'bar',
-        },
-      }, 'int'))), {
-        default: `SUM(CAST(([foo] = 'foo' OR [bar] = 'bar') AS INT))`,
-        mssql: `SUM(CAST(([foo] = N'foo' OR [bar] = N'bar') AS INT))`,
-      });
     });
   });
 });

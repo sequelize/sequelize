@@ -1,8 +1,9 @@
 import { expect } from 'chai';
 import each from 'lodash/each';
 import sinon from 'sinon';
-import type { ModelStatic } from '@sequelize/core';
-import { DataTypes, Deferrable } from '@sequelize/core';
+import type { CreationOptional, ModelStatic, NonAttribute } from '@sequelize/core';
+import { DataTypes, Deferrable, Model } from '@sequelize/core';
+import { BelongsTo } from '@sequelize/core/decorators-legacy';
 import { sequelize, getTestDialectTeaser } from '../../support';
 
 describe(getTestDialectTeaser('belongsTo'), () => {
@@ -103,6 +104,39 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     expect(A.getAttributes().BId.references?.deferrable).to.equal(Deferrable.INITIALLY_IMMEDIATE);
   });
 
+  // See https://github.com/sequelize/sequelize/issues/15625 for more details
+  it('should be possible to define two belongsTo associations with the same target #15625', () => {
+    class Post extends Model {
+      declare id: CreationOptional<number>;
+
+      @BelongsTo(() => Author, {
+        foreignKey: 'authorId',
+        targetKey: 'id',
+        inverse: { as: 'myBooks', type: 'hasMany' },
+      })
+      declare author: NonAttribute<Author>;
+
+      declare authorId: number;
+
+      @BelongsTo(() => Author, {
+        foreignKey: 'coAuthorId',
+        targetKey: 'id',
+        inverse: { as: 'notMyBooks', type: 'hasMany' },
+      })
+      declare coAuthor: NonAttribute<Author>;
+
+      declare coAuthorId: number;
+    }
+
+    class Author extends Model {
+      declare id: number;
+    }
+
+    // This would previously fail because the BelongsTo association would create an hasMany association which would
+    // then try to create a redundant belongsTo association
+    sequelize.addModels([Post, Author]);
+  });
+
   describe('association hooks', () => {
     let Projects: ModelStatic<any>;
     let Tasks: ModelStatic<any>;
@@ -112,7 +146,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
       Tasks = sequelize.define('Task', { title: DataTypes.STRING });
     });
 
-    describe('beforeBelongsToAssociate', () => {
+    describe('beforeAssociate', () => {
       it('should trigger', () => {
         const beforeAssociate = sinon.spy();
         Projects.beforeAssociate(beforeAssociate);
@@ -138,7 +172,8 @@ describe(getTestDialectTeaser('belongsTo'), () => {
         expect(beforeAssociate).to.not.have.been.called;
       });
     });
-    describe('afterBelongsToAssociate', () => {
+
+    describe('afterAssociate', () => {
       it('should trigger', () => {
         const afterAssociate = sinon.spy();
         Projects.afterAssociate(afterAssociate);
@@ -159,6 +194,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
         expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
       });
+
       it('should not trigger association hooks', () => {
         const afterAssociate = sinon.spy();
         Projects.afterAssociate(afterAssociate);
