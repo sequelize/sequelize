@@ -34,17 +34,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE nspname = 'public'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
-      mssql: `SELECT constraintName AS OBJ.NAME,
-        constraintCatalog AS N'sequelize_test',
-        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName AS TB.NAME,
-        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog AS N'sequelize_test',
-        columnName AS COL.NAME,
-        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableCatalog AS N'sequelize_test',
-        referencedTableName AS RTB.NAME,
-        referencedColumnName AS RCOL.NAME
+      mssql: `SELECT OBJ.NAME AS 'constraintName',
+        N'sequelize_test' AS 'constraintCatalog',
+        SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
+        TB.NAME AS 'tableName',
+        SCHEMA_NAME(TB.SCHEMA_ID) AS 'tableSchema',
+        N'sequelize_test' AS 'tableCatalog',
+        COL.NAME AS 'columnName',
+        SCHEMA_NAME(RTB.SCHEMA_ID) AS 'referencedTableSchema',
+        N'sequelize_test' AS 'referencedTableCatalog',
+        RTB.NAME AS 'referencedTableName',
+        RCOL.NAME AS 'referencedColumnName'
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -121,17 +121,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE nspname = 'public'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
-      mssql: `SELECT constraintName AS OBJ.NAME,
-        constraintCatalog AS N'sequelize_test',
-        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName AS TB.NAME,
-        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog AS N'sequelize_test',
-        columnName AS COL.NAME,
-        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableCatalog AS N'sequelize_test',
-        referencedTableName AS RTB.NAME,
-        referencedColumnName AS RCOL.NAME
+      mssql: `SELECT OBJ.NAME AS 'constraintName',
+        N'sequelize_test' AS 'constraintCatalog',
+        SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
+        TB.NAME AS 'tableName',
+        SCHEMA_NAME(TB.SCHEMA_ID) AS 'tableSchema',
+        N'sequelize_test' AS 'tableCatalog',
+        COL.NAME AS 'columnName',
+        SCHEMA_NAME(RTB.SCHEMA_ID) AS 'referencedTableSchema',
+        N'sequelize_test' AS 'referencedTableCatalog',
+        RTB.NAME AS 'referencedTableName',
+        RCOL.NAME AS 'referencedColumnName'
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -206,17 +206,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE nspname = 'mySchema'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
-      mssql: `SELECT constraintName AS OBJ.NAME,
-        constraintCatalog AS N'sequelize_test',
-        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName AS TB.NAME,
-        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog AS N'sequelize_test',
-        columnName AS COL.NAME,
-        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableCatalog AS N'sequelize_test',
-        referencedTableName AS RTB.NAME,
-        referencedColumnName AS RCOL.NAME
+      mssql: `SELECT OBJ.NAME AS 'constraintName',
+        N'sequelize_test' AS 'constraintCatalog',
+        SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
+        TB.NAME AS 'tableName',
+        SCHEMA_NAME(TB.SCHEMA_ID) AS 'tableSchema',
+        N'sequelize_test' AS 'tableCatalog',
+        COL.NAME AS 'columnName',
+        SCHEMA_NAME(RTB.SCHEMA_ID) AS 'referencedTableSchema',
+        N'sequelize_test' AS 'referencedTableCatalog',
+        RTB.NAME AS 'referencedTableName',
+        RCOL.NAME AS 'referencedColumnName'
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -291,17 +291,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE nspname = 'public'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
-      mssql: `SELECT constraintName AS OBJ.NAME,
-        constraintCatalog AS N'sequelize_test',
-        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName AS TB.NAME,
-        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog AS N'sequelize_test',
-        columnName AS COL.NAME,
-        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableCatalog AS N'sequelize_test',
-        referencedTableName AS RTB.NAME,
-        referencedColumnName AS RCOL.NAME
+      mssql: `SELECT OBJ.NAME AS 'constraintName',
+        N'sequelize_test' AS 'constraintCatalog',
+        SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
+        TB.NAME AS 'tableName',
+        SCHEMA_NAME(TB.SCHEMA_ID) AS 'tableSchema',
+        N'sequelize_test' AS 'tableCatalog',
+        COL.NAME AS 'columnName',
+        SCHEMA_NAME(RTB.SCHEMA_ID) AS 'referencedTableSchema',
+        N'sequelize_test' AS 'referencedTableCatalog',
+        RTB.NAME AS 'referencedTableName',
+        RCOL.NAME AS 'referencedColumnName'
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -379,17 +379,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE nspname = 'mySchema'
         LIMIT 1)
         AND r.contype = 'f' ORDER BY 1`,
-      mssql: `SELECT constraintName AS OBJ.NAME,
-        constraintCatalog AS N'sequelize_test',
-        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName AS TB.NAME,
-        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog AS N'sequelize_test',
-        columnName AS COL.NAME,
-        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableCatalog AS N'sequelize_test',
-        referencedTableName AS RTB.NAME,
-        referencedColumnName AS RCOL.NAME
+      mssql: `SELECT OBJ.NAME AS 'constraintName',
+        N'sequelize_test' AS 'constraintCatalog',
+        SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
+        TB.NAME AS 'tableName',
+        SCHEMA_NAME(TB.SCHEMA_ID) AS 'tableSchema',
+        N'sequelize_test' AS 'tableCatalog',
+        COL.NAME AS 'columnName',
+        SCHEMA_NAME(RTB.SCHEMA_ID) AS 'referencedTableSchema',
+        N'sequelize_test' AS 'referencedTableCatalog',
+        RTB.NAME AS 'referencedTableName',
+        RCOL.NAME AS 'referencedColumnName'
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID
@@ -466,17 +466,17 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         AND COLUMN_NAME = 'myColumn'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       'postgres sqlite': notSupportedError,
-      mssql: `SELECT constraintName AS OBJ.NAME,
-        constraintCatalog AS N'sequelize_test',
-        constraintSchema AS SCHEMA_NAME(OBJ.SCHEMA_ID),
-        tableName AS TB.NAME,
-        tableSchema AS SCHEMA_NAME(TB.SCHEMA_ID),
-        tableCatalog AS N'sequelize_test',
-        columnName AS COL.NAME,
-        referencedTableSchema AS SCHEMA_NAME(RTB.SCHEMA_ID),
-        referencedTableCatalog AS N'sequelize_test',
-        referencedTableName AS RTB.NAME,
-        referencedColumnName AS RCOL.NAME
+      mssql: `SELECT OBJ.NAME AS 'constraintName',
+        N'sequelize_test' AS 'constraintCatalog',
+        SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
+        TB.NAME AS 'tableName',
+        SCHEMA_NAME(TB.SCHEMA_ID) AS 'tableSchema',
+        N'sequelize_test' AS 'tableCatalog',
+        COL.NAME AS 'columnName',
+        SCHEMA_NAME(RTB.SCHEMA_ID) AS 'referencedTableSchema',
+        N'sequelize_test' AS 'referencedTableCatalog',
+        RTB.NAME AS 'referencedTableName',
+        RCOL.NAME AS 'referencedColumnName'
         FROM sys.foreign_key_columns FKC
         INNER JOIN sys.objects OBJ
         ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID

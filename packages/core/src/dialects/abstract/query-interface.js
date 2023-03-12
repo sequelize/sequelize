@@ -628,8 +628,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       }
 
       result[tableName] = Array.isArray(results[i])
-        ? results[i].map(r => r.constraint_name)
-        : [results[i] && results[i].constraint_name];
+        ? results[i].map(r => r.constraintName)
+        : [results[i] && results[i].constraintName];
 
       result[tableName] = result[tableName].filter(_.identity);
     }

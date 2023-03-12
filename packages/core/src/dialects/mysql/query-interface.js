@@ -25,9 +25,9 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
     );
 
     // Exclude primary key constraint
-    if (results.length > 0 && results[0].constraint_name !== 'PRIMARY') {
+    if (results.length > 0 && results[0].constraintName !== 'PRIMARY') {
       await Promise.all(results.map(constraint => this.sequelize.queryRaw(
-        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraint_name),
+        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraintName),
         { raw: true, ...options },
       )));
     }

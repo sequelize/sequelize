@@ -17,24 +17,6 @@ const _ = require('lodash');
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { Op } = require('../../operators');
 
-const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
-const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[&|]?|\|{2}|#-)/i;
-const TOKEN_CAPTURE_REGEX = /^\s*((?:(["'`])(?:(?!\2).|\2{2})*\2)|[\s\w]+|[()+,.;-])/i;
-const FOREIGN_KEY_FIELDS = [
-  'CONSTRAINT_NAME as constraint_name',
-  'CONSTRAINT_NAME as constraintName',
-  'CONSTRAINT_SCHEMA as constraintSchema',
-  'CONSTRAINT_SCHEMA as constraintCatalog',
-  'TABLE_NAME as tableName',
-  'TABLE_SCHEMA as tableSchema',
-  'TABLE_SCHEMA as tableCatalog',
-  'COLUMN_NAME as columnName',
-  'REFERENCED_TABLE_SCHEMA as referencedTableSchema',
-  'REFERENCED_TABLE_SCHEMA as referencedTableCatalog',
-  'REFERENCED_TABLE_NAME as referencedTableName',
-  'REFERENCED_COLUMN_NAME as referencedColumnName',
-].join(',');
-
 /**
  * list of reserved words in Snowflake
  * source: https://docs.snowflake.com/en/sql-reference/reserved-keywords.html

@@ -33,7 +33,7 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
     const [results] = await this.sequelize.queryRaw(findForeignKeySql, options);
     if (results.length > 0) {
       // No foreign key constraints found, so we can remove the column
-      const dropForeignKeySql = this.queryGenerator.dropForeignKeyQuery(tableName, results[0].constraint_name);
+      const dropForeignKeySql = this.queryGenerator.dropForeignKeyQuery(tableName, results[0].constraintName);
       await this.sequelize.queryRaw(dropForeignKeySql, options);
     }
 

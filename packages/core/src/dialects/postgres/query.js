@@ -164,7 +164,7 @@ export class PostgresQuery extends AbstractQuery {
       for (const row of rows) {
         let defParts;
         if (row.condef !== undefined && (defParts = row.condef.match(/FOREIGN KEY \((.+)\) REFERENCES (.+)\((.+)\)( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?/))) {
-          row.id = row.constraint_name;
+          row.id = row.constraintName;
           row.table = defParts[2];
           row.from = defParts[1];
           row.to = defParts[3];
@@ -412,7 +412,7 @@ export class PostgresQuery extends AbstractQuery {
   }
 
   isForeignKeysQuery() {
-    return /SELECT conname as constraint_name, pg_catalog\.pg_get_constraintdef\(r\.oid, true\) as condef FROM pg_catalog\.pg_constraint r WHERE r\.conrelid = \(SELECT oid FROM pg_class WHERE relname = '.*' LIMIT 1\) AND r\.contype = 'f' ORDER BY 1;/.test(this.sql);
+    return /SELECT conname as constraintName, pg_catalog\.pg_get_constraintdef\(r\.oid, true\) as condef FROM pg_catalog\.pg_constraint r WHERE r\.conrelid = \(SELECT oid FROM pg_class WHERE relname = '.*' LIMIT 1\) AND r\.contype = 'f' ORDER BY 1;/.test(this.sql);
   }
 
   getInsertIdField() {
