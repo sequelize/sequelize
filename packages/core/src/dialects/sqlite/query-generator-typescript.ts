@@ -54,15 +54,28 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
       throw new Error(`Providing a columnName in getForeignKeyQuery is not supported by ${this.dialect.name}.`);
     }
 
-    const quotedTable = this.quoteTable(tableName);
+    const escapedTable = this.escapeTable(tableName);
 
     return joinSQLFragments([
       'SELECT id as `constraintName`,',
-      `${quotedTable} as \`tableName\`,`,
+      `${escapedTable} as \`tableName\`,`,
       'pragma.`from` AS `columnName`,',
       'pragma.`table` AS `referencedTableName`,',
-      'pragma.`to` AS `referencedColumnName`',
-      `FROM pragma_foreign_key_list(${quotedTable}) AS pragma;`,
+      'pragma.`to` AS `referencedColumnName`,',
+      'pragma.`on_update`,',
+      'pragma.`on_delete`',
+      `FROM pragma_foreign_key_list(${escapedTable}) AS pragma;`,
     ]);
+  }
+
+  escapeTable(tableName: TableNameOrModel): string {
+    const table = this.extractTableDetails(tableName);
+
+    if (table.schema) {
+      return this.escape(`${table.schema}${table.delimiter}${table.tableName}`);
+    }
+
+    return this.escape(table.tableName);
+
   }
 }

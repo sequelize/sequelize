@@ -155,17 +155,22 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
    * @override
    */
   async getForeignKeyReferencesForTable(tableName, options) {
-    const database = this.sequelize.config.database;
-    const query = this.queryGenerator.getForeignKeyQuery(tableName);
-    const result = await this.sequelize.queryRaw(query, options);
+    const queryOptions = {
+      ...options,
+      type: QueryTypes.FOREIGNKEYS,
+    };
 
+    const query = this.queryGenerator.getForeignKeyQuery(tableName);
+
+    const result = await this.sequelize.queryRaw(query, queryOptions);
+
+    // Mapping the result for the constraints is the only change
     return result.map(row => ({
-      tableName,
-      columnName: row.from,
-      referencedTableName: row.table,
-      referencedColumnName: row.to,
-      tableCatalog: database,
-      referencedTableCatalog: database,
+      tableName: row.tableName,
+      constraintName: row.constraintName,
+      columnName: row.columnName,
+      referencedTableName: row.referencedTableName,
+      referencedColumnName: row.referencedColumnName,
       constraints: {
         onUpdate: row.on_update,
         onDelete: row.on_delete,

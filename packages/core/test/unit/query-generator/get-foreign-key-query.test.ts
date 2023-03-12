@@ -61,11 +61,13 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TB.NAME = N'myTable'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
       sqlite: `SELECT id as \`constraintName\`,
-        \`myTable\` as \`tableName\`,
+        'myTable' as \`tableName\`,
         pragma.\`from\` AS \`columnName\`,
         pragma.\`table\` AS \`referencedTableName\`,
-        pragma.\`to\` AS \`referencedColumnName\`
-        FROM pragma_foreign_key_list(\`myTable\`) AS pragma;`,
+        pragma.\`to\` AS \`referencedColumnName\`,
+        pragma.\`on_update\`,
+        pragma.\`on_delete\`
+        FROM pragma_foreign_key_list('myTable') AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -153,11 +155,13 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TB.NAME = N'myModels'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
       sqlite: `SELECT id as \`constraintName\`,
-        \`myModels\` as \`tableName\`,
+        'myModels' as \`tableName\`,
         pragma.\`from\` AS \`columnName\`,
         pragma.\`table\` AS \`referencedTableName\`,
-        pragma.\`to\` AS \`referencedColumnName\`
-        FROM pragma_foreign_key_list(\`myModels\`) AS pragma;`,
+        pragma.\`to\` AS \`referencedColumnName\`,
+        pragma.\`on_update\`,
+        pragma.\`on_delete\`
+        FROM pragma_foreign_key_list('myModels') AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -243,11 +247,13 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TB.NAME = N'myTable'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'mySchema'`,
       sqlite: `SELECT id as \`constraintName\`,
-        \`mySchema.myTable\` as \`tableName\`,
+        'mySchema.myTable' as \`tableName\`,
         pragma.\`from\` AS \`columnName\`,
         pragma.\`table\` AS \`referencedTableName\`,
-        pragma.\`to\` AS \`referencedColumnName\`
-        FROM pragma_foreign_key_list(\`mySchema.myTable\`) AS pragma;`,
+        pragma.\`to\` AS \`referencedColumnName\`,
+        pragma.\`on_update\`,
+        pragma.\`on_delete\`
+        FROM pragma_foreign_key_list('mySchema.myTable') AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -333,11 +339,13 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TB.NAME = N'myTable'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
       sqlite: `SELECT id as \`constraintName\`,
-        \`myTable\` as \`tableName\`,
+        'myTable' as \`tableName\`,
         pragma.\`from\` AS \`columnName\`,
         pragma.\`table\` AS \`referencedTableName\`,
-        pragma.\`to\` AS \`referencedColumnName\`
-        FROM pragma_foreign_key_list(\`myTable\`) AS pragma;`,
+        pragma.\`to\` AS \`referencedColumnName\`,
+        pragma.\`on_update\`,
+        pragma.\`on_delete\`
+        FROM pragma_foreign_key_list('myTable') AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -426,11 +434,13 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TB.NAME = N'myTable'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'mySchema'`,
       sqlite: `SELECT id as \`constraintName\`,
-        \`mySchema.myTable\` as \`tableName\`,
+        'mySchema.myTable' as \`tableName\`,
         pragma.\`from\` AS \`columnName\`,
         pragma.\`table\` AS \`referencedTableName\`,
-        pragma.\`to\` AS \`referencedColumnName\`
-        FROM pragma_foreign_key_list(\`mySchema.myTable\`) AS pragma;`,
+        pragma.\`to\` AS \`referencedColumnName\`,
+        pragma.\`on_update\`,
+        pragma.\`on_delete\`
+        FROM pragma_foreign_key_list('mySchema.myTable') AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -471,11 +481,13 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
 
     expectsql(() => queryGenerator.getForeignKeyQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }), {
       sqlite: `SELECT id as \`constraintName\`,
-        \`mySchemacustommyTable\` as \`tableName\`,
+        'mySchemacustommyTable' as \`tableName\`,
         pragma.\`from\` AS \`columnName\`,
         pragma.\`table\` AS \`referencedTableName\`,
-        pragma.\`to\` AS \`referencedColumnName\`
-        FROM pragma_foreign_key_list(\`mySchemacustommyTable\`) AS pragma;`,
+        pragma.\`to\` AS \`referencedColumnName\`,
+        pragma.\`on_update\`,
+        pragma.\`on_delete\`
+        FROM pragma_foreign_key_list('mySchemacustommyTable') AS pragma;`,
     });
   });
 

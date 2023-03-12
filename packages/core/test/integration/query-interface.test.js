@@ -485,7 +485,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[0])).to.have.length(2);
         expect(Object.keys(foreignKeys[1])).to.have.length(2);
         expect(Object.keys(foreignKeys[2])).to.have.length(2);
-      } else if (['mariadb', 'mysql', 'sqlite', 'db2'].includes(dialectName)) {
+      } else if (dialectName === 'sqlite') {
+        expect(Object.keys(foreignKeys[0])).to.have.length(7);
+      } else if (['mariadb', 'mysql', 'db2'].includes(dialectName)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
       } else if (['mssql', 'ibmi'].includes(dialectName)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(11);
