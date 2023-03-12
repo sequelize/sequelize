@@ -1,9 +1,11 @@
+import { Op } from '../../operators.js';
+import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableNameOrModel, QueryGeneratorOptions, EscapeOptions } from '../abstract/query-generator-typescript';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -11,6 +13,13 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  constructor(options: QueryGeneratorOptions) {
+    super(options);
+
+    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
+    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
@@ -68,5 +77,35 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       columnName && `AND COLUMN_NAME = ${this.escape(columnName)}`,
       'AND REFERENCED_TABLE_NAME IS NOT NULL',
     ]);
+
+  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
+    let jsonPathStr = '$';
+    for (const pathElement of path) {
+      if (typeof pathElement === 'number') {
+        jsonPathStr += `[${pathElement}]`;
+      } else {
+        jsonPathStr += `.${this.#quoteJsonPathIdentifier(pathElement)}`;
+      }
+    }
+
+    const extractQuery = `json_extract(${sqlExpression},${this.escape(jsonPathStr)})`;
+    if (unquote) {
+      return `json_unquote(${extractQuery})`;
+    }
+
+    return extractQuery;
+  }
+
+  formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
+    return `json_unquote(${this.escape(arg, options)})`;
+  }
+
+  #quoteJsonPathIdentifier(identifier: string): string {
+    if (/^[a-z_][a-z0-9_]*$/i.test(identifier)) {
+      return identifier;
+    }
+
+    // Escape backslashes and double quotes
+    return `"${identifier.replace(/["\\]/g, s => `\\${s}`)}"`;
   }
 }

@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [{ model: this.Project.scope('foobar'), as: 'projects' }],
         });
 
-        expect(options.include[0]).to.have.property('where').which.deep.equals({ foo: 42 });
+        expect(options.include[0]).to.have.property('where').which.deep.equals({ bar: 42 });
       });
     });
 

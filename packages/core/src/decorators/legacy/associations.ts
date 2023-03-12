@@ -81,7 +81,7 @@ export function BelongsTo<SourceKey extends string, Target extends Model>(
   return (
     // This type is a hack to make sure the source model declares a property named [SourceKey].
     // The error message is going to be horrendous, but at least it's enforced.
-    source: Model<{ [key in SourceKey]: unknown }>,
+    source: Model<{ [key in SourceKey]: any }>,
     associationName: string,
   ) => {
     const options = isString(optionsOrForeignKey) ? { foreignKey: optionsOrForeignKey } : optionsOrForeignKey;

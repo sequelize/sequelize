@@ -1,7 +1,7 @@
 import isEmpty from 'lodash/isEmpty.js';
 import * as DataTypes from '../data-types';
 import type { DataType } from '../dialects/abstract/data-types.js';
-import { getOperators } from './format.js';
+import { getOperators } from './where.js';
 
 /**
  * Determine if the default value provided exists and can be described

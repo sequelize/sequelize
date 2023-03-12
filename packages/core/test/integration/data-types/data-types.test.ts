@@ -1343,6 +1343,25 @@ describe('DataTypes', () => {
         return { User };
       });
 
+      it('produces the right DataType in the database', async () => {
+        const table = await sequelize.queryInterface.describeTable(vars.User.table);
+        switch (dialect.name) {
+          // mssql & sqlite use text columns with CHECK constraints
+          case 'mssql':
+            expect(table.jsonStr.type).to.equal('NVARCHAR(MAX)');
+            break;
+          case 'sqlite':
+            expect(table.jsonStr.type).to.equal('TEXT');
+            break;
+          case 'mariadb':
+            // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
+            expect(table.jsonStr.type).to.equal('LONGTEXT');
+            break;
+          default:
+            expect(table.jsonStr.type).to.equal(jsonTypeName);
+        }
+      });
+
       it('properly serializes default values', async () => {
         const createdUser = await vars.User.create();
         await createdUser.reload();
@@ -1383,8 +1402,7 @@ describe('DataTypes', () => {
             await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, '123.4');
             await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], '[1,2]');
             await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, '{"a":1}');
-            // this isn't the JSON null value, but a SQL null value
-            await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
+            await testSimpleInOutRaw(vars.User, 'jsonNull', null, 'null');
           });
         } else {
           it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {

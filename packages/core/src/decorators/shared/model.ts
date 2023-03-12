@@ -1,3 +1,4 @@
+import { BaseError } from '../../errors/base-error.js';
 import { mergeModelOptions } from '../../model-definition.js';
 import { initModel } from '../../model-typescript.js';
 import type { AttributeOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';
@@ -35,8 +36,7 @@ export function registerModelOptions(
   try {
     mergeModelOptions(existingModelOptions, options, false);
   } catch (error) {
-    // TODO [TS 4.8]: remove this "as Error" cast once support for TS < 4.8 is dropped, as the typing of "cause" has been fixed in TS 4.8
-    throw new Error(`Multiple decorators are trying to register conflicting options on model ${model.name}`, { cause: error as Error });
+    throw new BaseError(`Multiple decorators are trying to register conflicting options on model ${model.name}`, { cause: error });
   }
 }
 

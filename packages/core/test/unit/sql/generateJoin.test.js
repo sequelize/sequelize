@@ -303,7 +303,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           },
         ],
-      }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON ([User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2)' },
+      }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2' },
     );
 
     testsql(
@@ -343,7 +343,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       },
       {
-        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON ([Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2)',
+        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2',
       },
     );
 
