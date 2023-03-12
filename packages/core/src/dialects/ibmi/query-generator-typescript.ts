@@ -88,9 +88,10 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
   getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
     const table = this.extractTableDetails(tableName);
 
-    // TODO: SELECT constraintSchema
     return joinSQLFragments([
-      'SELECT FK_NAME AS "constraintName",',
+      'SELECT FK_CAT AS "constraintCatalog",',
+      'FK_SCHEM AS "constraintSchema",',
+      'FK_NAME AS "constraintName",',
       'PKTABLE_CAT AS "referencedTableCatalog",',
       'PKTABLE_SCHEM AS "referencedTableSchema",',
       'PKTABLE_NAME AS "referencedTableName",',
