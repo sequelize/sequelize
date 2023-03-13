@@ -979,7 +979,7 @@ export interface Silent {
  * Options for Model.create method
  */
 export interface CreateOptions<TAttributes = any>
-  extends BuildOptions, Logging, Silent, Transactionable, Hookable, SearchPathable {
+  extends Omit<BuildOptions, 'include'>, Logging, Silent, Transactionable, Hookable, SearchPathable {
   /**
    * If set, only columns matching those in fields will be saved
    */

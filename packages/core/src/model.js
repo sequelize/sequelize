@@ -1726,7 +1726,6 @@ ${associationOwner._getAssociationDebugList()}`);
     return await this.build(values, {
       isNewRecord: true,
       attributes: options.fields,
-      include: options.include,
       raw: options.raw,
       silent: options.silent,
     }).save(options);
