@@ -14,17 +14,62 @@ function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType
   }
 }
 
+export class TINYINT extends BaseTypes.TINYINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
+  toSql(): string {
+    return 'SMALLINT';
+  }
+}
+
 export class INTEGER extends BaseTypes.INTEGER {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
     removeUnsupportedIntegerOptions(this, dialect);
   }
 
-  toSql() {
+  toSql(): string {
     if (this.options.unsigned) {
       return 'BIGINT';
     }
 
+    return 'INTEGER';
+  }
+
+  sanitize(value: number): unknown {
+    if (value > Number.MAX_SAFE_INTEGER) {
+      return String(value);
+    }
+
+    return value;
+  }
+}
+
+export class SMALLINT extends BaseTypes.SMALLINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
+  toSql(): string {
+    if (this.options.unsigned) {
+      return 'INTEGER';
+    }
+
+    return 'SMALLINT';
+  }
+}
+
+export class MEDIUMINT extends BaseTypes.MEDIUMINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    removeUnsupportedIntegerOptions(this, dialect);
+  }
+
+  toSql(): string {
     return 'INTEGER';
   }
 }
@@ -78,49 +123,6 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
 
   getBindParamSql(value: BaseTypes.AcceptableTypeOf<BaseTypes.GEOMETRY>, options: BaseTypes.BindParamOptions) {
     return `ST_GeomFromGeoJSON(${options.bindParam(value)})`;
-  }
-}
-
-export class TINYINT extends BaseTypes.TINYINT {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this, dialect);
-  }
-
-  toSql(): string {
-    return 'SMALLINT';
-  }
-}
-
-export class SMALLINT extends BaseTypes.SMALLINT {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this, dialect);
-  }
-
-  toSql(): string {
-    if (this.options.unsigned) {
-      return 'INTEGER';
-    }
-
-    return 'SMALLINT';
-  }
-}
-
-export class MEDIUMINT extends BaseTypes.MEDIUMINT {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this, dialect);
-  }
-
-  toSql(): string {
-    return 'INTEGER';
-  }
-}
-
-export class ENUMS<Members extends string> extends BaseTypes.ENUM<Members> {
-  toSql(options: BaseTypes.ToSqlOptions): string {
-    return `ENUM(${this.options.values.map(value => options.dialect.escapeString(value)).join(', ')})`;
   }
 }
 
@@ -202,4 +204,10 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends PostgresAr
 
 export class DECIMAL extends BaseTypes.DECIMAL {
   // TODO: add check constraint >= 0 if unsigned is true
+}
+
+export class ENUMS<Members extends string> extends BaseTypes.ENUM<Members> {
+  toSql(options: BaseTypes.ToSqlOptions): string {
+    return `ENUM(${this.options.values.map(value => options.dialect.escapeString(value)).join(', ')})`;
+  }
 }

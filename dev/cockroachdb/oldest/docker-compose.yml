@@ -7,7 +7,7 @@ services:
       - 8080:8080
     command: start-single-node --cluster-name=cockroach-sequilize-example --advertise-addr='localhost' --insecure
     environment:
-      COCKROACH_DATABASE: cockroachdbsingle
+      COCKROACH_DATABASE: defaultdb
     volumes:
       - cockroach-single:/cockroach/cockroach-data
       - ~/init-scripts:/docker-entrypoint-initdb.d
@@ -19,5 +19,5 @@ services:
 networks:
   default:
     name: sequelize-cockroachdb-oldest-network
-volumes: 
+volumes:
   cockroach-single:

@@ -838,7 +838,7 @@ ${associationOwner._getAssociationDebugList()}`);
     const missingIndexes = this.getIndexes()
       .filter(item1 => !existingIndexes.some(item2 => item1.name === item2.name))
       .sort((index1, index2) => {
-        if (this.sequelize.options.dialect === 'postgres') {
+        if (this.sequelize.options.dialect === 'postgres' || this.sequelize.options.dialect === 'cockroachdb') {
           // move concurrent indexes to the bottom to avoid weird deadlocks
           if (index1.concurrently === true) {
             return 1;
