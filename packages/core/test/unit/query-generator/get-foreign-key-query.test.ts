@@ -13,11 +13,14 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
       default: notImplementedError,
       'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_CATALOG as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
+        TABLE_CATALOG as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
+        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
@@ -107,11 +110,14 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
       default: notImplementedError,
       'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_CATALOG as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
+        TABLE_CATALOG as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
+        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myModels'
@@ -199,11 +205,14 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
       default: notImplementedError,
       'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_CATALOG as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
+        TABLE_CATALOG as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
+        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
@@ -291,11 +300,14 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
       default: notImplementedError,
       'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_CATALOG as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
+        TABLE_CATALOG as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
+        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
@@ -386,11 +398,14 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
       default: notImplementedError,
       'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_CATALOG as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
+        TABLE_CATALOG as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
+        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
@@ -496,11 +511,14 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
       default: notImplementedError,
       'mariadb mysql': `SELECT CONSTRAINT_NAME as constraintName,
         CONSTRAINT_SCHEMA as constraintSchema,
+        CONSTRAINT_CATALOG as constraintCatalog,
         TABLE_NAME as tableName,
         TABLE_SCHEMA as tableSchema,
+        TABLE_CATALOG as tableCatalog,
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
+        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
