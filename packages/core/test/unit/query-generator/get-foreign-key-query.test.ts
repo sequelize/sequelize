@@ -25,17 +25,38 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `SELECT conname as constraintName,
-        pg_catalog.pg_get_constraintdef(r.oid, true) as condef
-        FROM pg_catalog.pg_constraint r
-        WHERE r.conrelid IN
-        (SELECT oid FROM pg_catalog.pg_class
-        WHERE relname = 'myTable')
-        AND r.connamespace =
-        (SELECT oid FROM pg_catalog.pg_namespace
-        WHERE nspname = 'public'
-        LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1`,
+      postgres: `WITH unnested_pg_constraint AS (
+        SELECT conname, confrelid, connamespace, conrelid, contype, oid,
+        unnest(conkey) AS conkey, unnest(confkey) AS confkey
+        FROM pg_constraint)
+        SELECT "constraint".conname as "constraintName",
+        constraint_schema.nspname as "constraintSchema",
+        current_database() as "constraintCatalog",
+        "table".relname as "tableName",
+        table_schema.nspname as "tableSchema",
+        current_database() as "tableCatalog",
+        "column".attname as "columnName",
+        referenced_table.relname as "referencedTableName",
+        referenced_schema.nspname as "referencedTableSchema",
+        current_database() as "referencedTableCatalog",
+        "referenced_column".attname as "referencedColumnName"
+        FROM unnested_pg_constraint "constraint"
+        INNER JOIN pg_catalog.pg_class referenced_table ON
+        referenced_table.oid = "constraint".confrelid
+        INNER JOIN pg_catalog.pg_namespace referenced_schema ON
+        referenced_schema.oid = referenced_table.relnamespace
+        INNER JOIN pg_catalog.pg_namespace constraint_schema ON
+        "constraint".connamespace = constraint_schema.oid
+        INNER JOIN pg_catalog.pg_class "table" ON "constraint".conrelid = "table".oid
+        INNER JOIN pg_catalog.pg_namespace table_schema ON "table".relnamespace = table_schema.oid
+        INNER JOIN pg_catalog.pg_attribute "column" ON
+        "column".attnum = "constraint".conkey AND "column".attrelid = "constraint".conrelid
+        INNER JOIN pg_catalog.pg_attribute "referenced_column" ON
+        "referenced_column".attnum = "constraint".confkey AND
+        "referenced_column".attrelid = "constraint".confrelid
+        WHERE "constraint".contype = 'f'
+        AND "table".relname = 'myTable'
+        AND table_schema.nspname = 'public'`,
       mssql: `SELECT OBJ.NAME AS 'constraintName',
         N'sequelize_test' AS 'constraintCatalog',
         SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
@@ -121,17 +142,38 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TABLE_NAME = 'myModels'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `SELECT conname as constraintName,
-        pg_catalog.pg_get_constraintdef(r.oid, true) as condef
-        FROM pg_catalog.pg_constraint r
-        WHERE r.conrelid IN
-        (SELECT oid FROM pg_catalog.pg_class
-        WHERE relname = 'myModels')
-        AND r.connamespace =
-        (SELECT oid FROM pg_catalog.pg_namespace
-        WHERE nspname = 'public'
-        LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1`,
+      postgres: `WITH unnested_pg_constraint AS (
+        SELECT conname, confrelid, connamespace, conrelid, contype, oid,
+        unnest(conkey) AS conkey, unnest(confkey) AS confkey
+        FROM pg_constraint)
+        SELECT "constraint".conname as "constraintName",
+        constraint_schema.nspname as "constraintSchema",
+        current_database() as "constraintCatalog",
+        "table".relname as "tableName",
+        table_schema.nspname as "tableSchema",
+        current_database() as "tableCatalog",
+        "column".attname as "columnName",
+        referenced_table.relname as "referencedTableName",
+        referenced_schema.nspname as "referencedTableSchema",
+        current_database() as "referencedTableCatalog",
+        "referenced_column".attname as "referencedColumnName"
+        FROM unnested_pg_constraint "constraint"
+        INNER JOIN pg_catalog.pg_class referenced_table ON
+        referenced_table.oid = "constraint".confrelid
+        INNER JOIN pg_catalog.pg_namespace referenced_schema ON
+        referenced_schema.oid = referenced_table.relnamespace
+        INNER JOIN pg_catalog.pg_namespace constraint_schema ON
+        "constraint".connamespace = constraint_schema.oid
+        INNER JOIN pg_catalog.pg_class "table" ON "constraint".conrelid = "table".oid
+        INNER JOIN pg_catalog.pg_namespace table_schema ON "table".relnamespace = table_schema.oid
+        INNER JOIN pg_catalog.pg_attribute "column" ON
+        "column".attnum = "constraint".conkey AND "column".attrelid = "constraint".conrelid
+        INNER JOIN pg_catalog.pg_attribute "referenced_column" ON
+        "referenced_column".attnum = "constraint".confkey AND
+        "referenced_column".attrelid = "constraint".confrelid
+        WHERE "constraint".contype = 'f'
+        AND "table".relname = 'myModels'
+        AND table_schema.nspname = 'public'`,
       mssql: `SELECT OBJ.NAME AS 'constraintName',
         N'sequelize_test' AS 'constraintCatalog',
         SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
@@ -215,17 +257,38 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'mySchema'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `SELECT conname as constraintName,
-        pg_catalog.pg_get_constraintdef(r.oid, true) as condef
-        FROM pg_catalog.pg_constraint r
-        WHERE r.conrelid IN
-        (SELECT oid FROM pg_catalog.pg_class
-        WHERE relname = 'myTable')
-        AND r.connamespace =
-        (SELECT oid FROM pg_catalog.pg_namespace
-        WHERE nspname = 'mySchema'
-        LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1`,
+      postgres: `WITH unnested_pg_constraint AS (
+        SELECT conname, confrelid, connamespace, conrelid, contype, oid,
+        unnest(conkey) AS conkey, unnest(confkey) AS confkey
+        FROM pg_constraint)
+        SELECT "constraint".conname as "constraintName",
+        constraint_schema.nspname as "constraintSchema",
+        current_database() as "constraintCatalog",
+        "table".relname as "tableName",
+        table_schema.nspname as "tableSchema",
+        current_database() as "tableCatalog",
+        "column".attname as "columnName",
+        referenced_table.relname as "referencedTableName",
+        referenced_schema.nspname as "referencedTableSchema",
+        current_database() as "referencedTableCatalog",
+        "referenced_column".attname as "referencedColumnName"
+        FROM unnested_pg_constraint "constraint"
+        INNER JOIN pg_catalog.pg_class referenced_table ON
+        referenced_table.oid = "constraint".confrelid
+        INNER JOIN pg_catalog.pg_namespace referenced_schema ON
+        referenced_schema.oid = referenced_table.relnamespace
+        INNER JOIN pg_catalog.pg_namespace constraint_schema ON
+        "constraint".connamespace = constraint_schema.oid
+        INNER JOIN pg_catalog.pg_class "table" ON "constraint".conrelid = "table".oid
+        INNER JOIN pg_catalog.pg_namespace table_schema ON "table".relnamespace = table_schema.oid
+        INNER JOIN pg_catalog.pg_attribute "column" ON
+        "column".attnum = "constraint".conkey AND "column".attrelid = "constraint".conrelid
+        INNER JOIN pg_catalog.pg_attribute "referenced_column" ON
+        "referenced_column".attnum = "constraint".confkey AND
+        "referenced_column".attrelid = "constraint".confrelid
+        WHERE "constraint".contype = 'f'
+        AND "table".relname = 'myTable'
+        AND table_schema.nspname = 'mySchema'`,
       mssql: `SELECT OBJ.NAME AS 'constraintName',
         N'sequelize_test' AS 'constraintCatalog',
         SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
@@ -309,17 +372,38 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `SELECT conname as constraintName,
-        pg_catalog.pg_get_constraintdef(r.oid, true) as condef
-        FROM pg_catalog.pg_constraint r
-        WHERE r.conrelid IN
-        (SELECT oid FROM pg_catalog.pg_class
-        WHERE relname = 'myTable')
-        AND r.connamespace =
-        (SELECT oid FROM pg_catalog.pg_namespace
-        WHERE nspname = 'public'
-        LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1`,
+      postgres: `WITH unnested_pg_constraint AS (
+        SELECT conname, confrelid, connamespace, conrelid, contype, oid,
+        unnest(conkey) AS conkey, unnest(confkey) AS confkey
+        FROM pg_constraint)
+        SELECT "constraint".conname as "constraintName",
+        constraint_schema.nspname as "constraintSchema",
+        current_database() as "constraintCatalog",
+        "table".relname as "tableName",
+        table_schema.nspname as "tableSchema",
+        current_database() as "tableCatalog",
+        "column".attname as "columnName",
+        referenced_table.relname as "referencedTableName",
+        referenced_schema.nspname as "referencedTableSchema",
+        current_database() as "referencedTableCatalog",
+        "referenced_column".attname as "referencedColumnName"
+        FROM unnested_pg_constraint "constraint"
+        INNER JOIN pg_catalog.pg_class referenced_table ON
+        referenced_table.oid = "constraint".confrelid
+        INNER JOIN pg_catalog.pg_namespace referenced_schema ON
+        referenced_schema.oid = referenced_table.relnamespace
+        INNER JOIN pg_catalog.pg_namespace constraint_schema ON
+        "constraint".connamespace = constraint_schema.oid
+        INNER JOIN pg_catalog.pg_class "table" ON "constraint".conrelid = "table".oid
+        INNER JOIN pg_catalog.pg_namespace table_schema ON "table".relnamespace = table_schema.oid
+        INNER JOIN pg_catalog.pg_attribute "column" ON
+        "column".attnum = "constraint".conkey AND "column".attrelid = "constraint".conrelid
+        INNER JOIN pg_catalog.pg_attribute "referenced_column" ON
+        "referenced_column".attnum = "constraint".confkey AND
+        "referenced_column".attrelid = "constraint".confrelid
+        WHERE "constraint".contype = 'f'
+        AND "table".relname = 'myTable'
+        AND table_schema.nspname = 'public'`,
       mssql: `SELECT OBJ.NAME AS 'constraintName',
         N'sequelize_test' AS 'constraintCatalog',
         SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
@@ -406,17 +490,38 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'mySchema'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `SELECT conname as constraintName,
-        pg_catalog.pg_get_constraintdef(r.oid, true) as condef
-        FROM pg_catalog.pg_constraint r
-        WHERE r.conrelid IN
-        (SELECT oid FROM pg_catalog.pg_class
-        WHERE relname = 'myTable')
-        AND r.connamespace =
-        (SELECT oid FROM pg_catalog.pg_namespace
-        WHERE nspname = 'mySchema'
-        LIMIT 1)
-        AND r.contype = 'f' ORDER BY 1`,
+      postgres: `WITH unnested_pg_constraint AS (
+        SELECT conname, confrelid, connamespace, conrelid, contype, oid,
+        unnest(conkey) AS conkey, unnest(confkey) AS confkey
+        FROM pg_constraint)
+        SELECT "constraint".conname as "constraintName",
+        constraint_schema.nspname as "constraintSchema",
+        current_database() as "constraintCatalog",
+        "table".relname as "tableName",
+        table_schema.nspname as "tableSchema",
+        current_database() as "tableCatalog",
+        "column".attname as "columnName",
+        referenced_table.relname as "referencedTableName",
+        referenced_schema.nspname as "referencedTableSchema",
+        current_database() as "referencedTableCatalog",
+        "referenced_column".attname as "referencedColumnName"
+        FROM unnested_pg_constraint "constraint"
+        INNER JOIN pg_catalog.pg_class referenced_table ON
+        referenced_table.oid = "constraint".confrelid
+        INNER JOIN pg_catalog.pg_namespace referenced_schema ON
+        referenced_schema.oid = referenced_table.relnamespace
+        INNER JOIN pg_catalog.pg_namespace constraint_schema ON
+        "constraint".connamespace = constraint_schema.oid
+        INNER JOIN pg_catalog.pg_class "table" ON "constraint".conrelid = "table".oid
+        INNER JOIN pg_catalog.pg_namespace table_schema ON "table".relnamespace = table_schema.oid
+        INNER JOIN pg_catalog.pg_attribute "column" ON
+        "column".attnum = "constraint".conkey AND "column".attrelid = "constraint".conrelid
+        INNER JOIN pg_catalog.pg_attribute "referenced_column" ON
+        "referenced_column".attnum = "constraint".confkey AND
+        "referenced_column".attrelid = "constraint".confrelid
+        WHERE "constraint".contype = 'f'
+        AND "table".relname = 'myTable'
+        AND table_schema.nspname = 'mySchema'`,
       mssql: `SELECT OBJ.NAME AS 'constraintName',
         N'sequelize_test' AS 'constraintCatalog',
         SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
@@ -519,7 +624,39 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         AND TABLE_SCHEMA = 'sequelize_test'
         AND COLUMN_NAME = 'myColumn'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      'postgres sqlite': notSupportedError,
+      postgres: `WITH unnested_pg_constraint AS (
+        SELECT conname, confrelid, connamespace, conrelid, contype, oid,
+        unnest(conkey) AS conkey, unnest(confkey) AS confkey
+        FROM pg_constraint)
+        SELECT "constraint".conname as "constraintName",
+        constraint_schema.nspname as "constraintSchema",
+        current_database() as "constraintCatalog",
+        "table".relname as "tableName",
+        table_schema.nspname as "tableSchema",
+        current_database() as "tableCatalog",
+        "column".attname as "columnName",
+        referenced_table.relname as "referencedTableName",
+        referenced_schema.nspname as "referencedTableSchema",
+        current_database() as "referencedTableCatalog",
+        "referenced_column".attname as "referencedColumnName"
+        FROM unnested_pg_constraint "constraint"
+        INNER JOIN pg_catalog.pg_class referenced_table ON
+        referenced_table.oid = "constraint".confrelid
+        INNER JOIN pg_catalog.pg_namespace referenced_schema ON
+        referenced_schema.oid = referenced_table.relnamespace
+        INNER JOIN pg_catalog.pg_namespace constraint_schema ON
+        "constraint".connamespace = constraint_schema.oid
+        INNER JOIN pg_catalog.pg_class "table" ON "constraint".conrelid = "table".oid
+        INNER JOIN pg_catalog.pg_namespace table_schema ON "table".relnamespace = table_schema.oid
+        INNER JOIN pg_catalog.pg_attribute "column" ON
+        "column".attnum = "constraint".conkey AND "column".attrelid = "constraint".conrelid
+        INNER JOIN pg_catalog.pg_attribute "referenced_column" ON
+        "referenced_column".attnum = "constraint".confkey AND
+        "referenced_column".attrelid = "constraint".confrelid
+        WHERE "constraint".contype = 'f'
+        AND "table".relname = 'myTable'
+        AND table_schema.nspname = 'public'
+        AND "column".attname = 'myColumn';`,
       mssql: `SELECT OBJ.NAME AS 'constraintName',
         N'sequelize_test' AS 'constraintCatalog',
         SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',
@@ -547,6 +684,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TB.NAME = N'myTable'
         AND COL.NAME = N'myColumn'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
+      sqlite: notSupportedError,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",

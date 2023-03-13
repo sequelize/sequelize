@@ -481,11 +481,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       expect(foreignKeys).to.have.length(3);
 
-      if (dialectName === 'postgres') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(2);
-        expect(Object.keys(foreignKeys[1])).to.have.length(2);
-        expect(Object.keys(foreignKeys[2])).to.have.length(2);
-      } else if (dialectName === 'sqlite') {
+      if (dialectName === 'sqlite') {
         expect(Object.keys(foreignKeys[0])).to.have.length(7);
       } else if (dialectName === 'db2') {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
