@@ -30,6 +30,7 @@ const ignoredCjsKeysMap = {
     'CITEXT',
     'DATE',
     'DATEONLY',
+    'DATETIME',
     'DECIMAL',
     'DOUBLE',
     'ENUM',
