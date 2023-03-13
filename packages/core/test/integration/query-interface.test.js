@@ -489,6 +489,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[0])).to.have.length(7);
       } else if (dialectName === 'db2') {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
+      } else if (['mariadb', 'mysql'].includes(dialectName)) {
+        expect(Object.keys(foreignKeys[0])).to.have.length(10);
       } else {
         expect(Object.keys(foreignKeys[0])).to.have.length(11);
       }

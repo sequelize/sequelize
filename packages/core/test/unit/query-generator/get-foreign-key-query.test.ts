@@ -20,7 +20,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
-        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
@@ -117,7 +116,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
-        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myModels'
@@ -212,7 +210,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
-        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
@@ -307,7 +304,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
-        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
@@ -405,7 +401,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
-        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
@@ -518,7 +513,6 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         COLUMN_NAME as columnName,
         REFERENCED_TABLE_SCHEMA as referencedTableSchema,
         REFERENCED_TABLE_NAME as referencedTableName,
-        REFERENCED_TABLE_CATALOG as referencedTableCatalog,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
         WHERE TABLE_NAME = 'myTable'
