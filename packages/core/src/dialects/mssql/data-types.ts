@@ -106,6 +106,24 @@ export class DATE extends BaseTypes.DATE {
   }
 }
 
+export class DATETIME extends BaseTypes.DATETIME {
+  toSql() {
+    let result: string;
+
+    if (this.options.offset) {
+      result = 'DATETIMEOFFSET';
+    } else {
+      result = 'DATETIME2';
+    }
+
+    if (this.options.precision != null) {
+      result += `(${this.options.precision})`;
+    }
+
+    return result;
+  }
+}
+
 export class TINYINT extends BaseTypes.TINYINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);

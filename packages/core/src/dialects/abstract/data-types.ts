@@ -1545,6 +1545,221 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
   }
 }
 
+export interface DateTimeOptions {
+  /**
+   * The precision of the date.
+   */
+  precision?: string | number | undefined;
+  /**
+   * Indicates whether the datetime value has an offset.
+   */
+  offset?: boolean | undefined;
+  /**
+   * Indicates whether the datetime value is plain.
+   */
+  plain?: boolean | undefined;
+  /**
+   * Indicates whether the datetime value is zoned.
+   */
+  zoned?: boolean | undefined;
+}
+
+export type AcceptedDateTime = string | Date | Temporal.Instant | Temporal.PlainDateTime;
+
+/**
+ * A date and time.
+ *
+ * __Fallback policy:__
+ * If the dialect does not support this type natively, it will be replaced by a string type,
+ * and a CHECK constraint to enforce a valid ISO 8601 date-only format.
+ *
+ * @example
+ * ```ts
+ * DataTypes.DATETIME(3)
+ * ```
+ *
+ * @category DataTypes
+ */
+export class DATETIME extends AbstractDataType<AcceptedDateTime> {
+  /** @hidden */
+  static readonly [kDataTypeIdentifier]: string = 'DATETIME';
+  readonly options: DateTimeOptions;
+
+  /**
+   * @param precisionOrOptions precision to allow storing milliseconds
+   */
+  constructor(precisionOrOptions?: number | DateTimeOptions) {
+    super();
+
+    this.options = {
+      precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
+    };
+
+    if (typeof precisionOrOptions === 'object') {
+      this.options = precisionOrOptions;
+    } else {
+      this.options = { precision: precisionOrOptions };
+    }
+
+    if (this.options.precision != null && (this.options.precision < 0 || !Number.isInteger(this.options.precision))) {
+      throw new TypeError('Option "precision" must be a positive integer');
+    }
+  }
+
+  protected _checkOptionSupport(dialect: AbstractDialect): void {
+    super._checkOptionSupport(dialect);
+
+    if (!this.options.offset && !this.options.plain && !this.options.zoned) {
+      throw new TypeError(`${dialect.name} does not support the DATETIME data type. Please use DATETIME.OFFSET, DATETIME.ZONED or DATETIME.PLAIN instead.`);
+    }
+
+    if (this.options.offset && !dialect.supports.dataTypes.DATETIME.offset) {
+      throwUnsupportedDataType(dialect, 'DATETIME.OFFSET');
+    }
+
+    if (this.options.plain && !dialect.supports.dataTypes.DATETIME.plain) {
+      throwUnsupportedDataType(dialect, 'DATETIME.PLAIN');
+    }
+
+    if (this.options.zoned && !dialect.supports.dataTypes.DATETIME.zoned) {
+      throw new TypeError(`${dialect.name} does not support the DATETIME.ZONED data type.
+      As a workaround, you can split the attribute into two columns, one for the plain datetime and one for the timezone.`);
+    }
+  }
+
+  toSql() {
+    let result = 'TIMESTAMP';
+
+    if (this.options.precision != null) {
+      result += `(${this.options.precision})`;
+    }
+
+    if (this.options.offset) {
+      result += ' WITH TIME ZONE';
+    }
+
+    return result;
+  }
+
+  validate(value: any) {
+    try {
+      if (this.options.offset) {
+        value instanceof Date ? value.toTemporalInstant() : Temporal.Instant.from(value);
+      } else if (this.options.plain) {
+        Temporal.PlainDateTime.from(value);
+      } else {
+        throw new Error('Invalid value');
+      }
+    } catch {
+      ValidationErrorItem.throwDataTypeValidationError(
+        util.format('%O is not a valid datetime', value),
+      );
+    }
+  }
+
+  sanitize(value: unknown) {
+    if (this.options.offset && (typeof value === 'string' || value instanceof Date || value instanceof Temporal.Instant)) {
+      return typeof value === 'string' ? Temporal.Instant.from(value)
+        : value instanceof Date ? value.toTemporalInstant()
+        : value;
+    }
+
+    if (this.options.plain && (typeof value === 'string' || value instanceof Temporal.PlainDateTime)) {
+      return typeof value === 'string' ? Temporal.PlainDateTime.from(value) : value;
+    }
+
+    throw new TypeError(`${util.inspect(value)} cannot be converted to a Temporal object`);
+  }
+
+  parseDatabaseValue(value: unknown): unknown {
+    return this.sanitize(value);
+  }
+
+  areValuesEqual(
+    value: AcceptedDateTime,
+    originalValue: AcceptedDateTime,
+  ): boolean {
+    try {
+      const newValue = this.sanitize(value);
+      const oldValue = this.sanitize(originalValue);
+
+      if (newValue instanceof Temporal.Instant && oldValue instanceof Temporal.Instant) {
+        return newValue.equals(oldValue);
+      }
+
+      if (newValue instanceof Temporal.PlainDateTime && oldValue instanceof Temporal.PlainDateTime) {
+        return newValue.equals(oldValue);
+      }
+
+      return false;
+    } catch {
+      // not changed when set to same empty value
+      if (!originalValue && !value && originalValue === value) {
+        return true;
+      }
+
+      return false;
+    }
+  }
+
+  protected _applyTimezone(date: AcceptedDate) {
+    const timezone = this._getDialect().sequelize.options.timezone;
+
+    if (timezone) {
+      if (isValidTimeZone(timezone)) {
+        return dayjs(date).tz(timezone);
+      }
+
+      return dayjs(date).utcOffset(timezone);
+    }
+
+    return dayjs(date);
+  }
+
+  toBindableValue(dateTime: AcceptedDateTime) {
+    const value = this.sanitize(dateTime);
+
+    if (this.options.offset && value instanceof Temporal.Instant) {
+      const timezone = this._getDialect().sequelize.options.timezone;
+      if (timezone !== undefined) {
+        return value.toString({ timeZone: Temporal.TimeZone.from(timezone) });
+      }
+
+      return value.toString();
+    }
+
+    if (this.options.plain && value instanceof Temporal.PlainDateTime) {
+      return value.toString();
+    }
+
+    throw new Error('Invalid options');
+  }
+
+  get OFFSET(): this {
+    return this._construct<typeof DATETIME>({ ...this.options, offset: true });
+  }
+
+  get PLAIN(): this {
+    return this._construct<typeof DATETIME>({ ...this.options, plain: true });
+  }
+
+  get ZONED(): this {
+    return this._construct<typeof DATETIME>({ ...this.options, zoned: true });
+  }
+
+  static get OFFSET() {
+    return new this({ offset: true });
+  }
+
+  static get PLAIN() {
+    return new this({ plain: true });
+  }
+
+  static get ZONED() {
+    return new this({ zoned: true });
+  }
+}
+
 /**
  * A key / value store column. Only available in Postgres.
  *

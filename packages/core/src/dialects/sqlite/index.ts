@@ -37,6 +37,7 @@ export class SqliteDialect extends AbstractDialect {
       CHAR: false,
       COLLATE_BINARY: true,
       CITEXT: true,
+      DATETIME: { offset: true, plain: true },
       DECIMAL: false,
       JSON: true,
     },

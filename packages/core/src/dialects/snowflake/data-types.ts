@@ -1,6 +1,6 @@
 import maxBy from 'lodash/maxBy.js';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { AcceptedDate } from '../abstract/data-types.js';
+import type { AcceptedDate, AcceptedDateTime } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 export class DATE extends BaseTypes.DATE {
@@ -12,6 +12,32 @@ export class DATE extends BaseTypes.DATE {
     date = this._applyTimezone(date);
 
     return date.format('YYYY-MM-DD HH:mm:ss.SSS');
+  }
+}
+
+export class DATETIME extends BaseTypes.DATETIME {
+  toSql() {
+    let result = 'TIMESTAMP';
+
+    if (this.options.precision != null) {
+      result += `(${this.options.precision})`;
+    }
+
+    if (this.options.offset) {
+      result += ` WITH TIME ZONE`;
+    }
+
+    if (this.options.plain) {
+      result += ' WITHOUT TIME ZONE';
+    }
+
+    return result;
+  }
+
+  toBindableValue(date: AcceptedDateTime) {
+    const value = super.toBindableValue(date);
+
+    return value.replace('T', ' ');
   }
 }
 

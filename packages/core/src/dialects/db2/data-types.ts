@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import maxBy from 'lodash/maxBy.js';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { AcceptedDate } from '../abstract/data-types.js';
+import type { AcceptedDate, AcceptedDateTime } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
@@ -125,6 +125,22 @@ export class DATE extends BaseTypes.DATE {
     date = dayjs(date).utc(false);
 
     return date.format('YYYY-MM-DD HH:mm:ss.SSS');
+  }
+}
+
+export class DATETIME extends BaseTypes.DATETIME {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    if (this.options.precision != null && this.options.precision > 12) {
+      this.options.precision = 12;
+    }
+  }
+
+  toBindableValue(date: AcceptedDateTime) {
+    const value = super.toBindableValue(date);
+
+    return value.replace('T', ' ');
   }
 }
 

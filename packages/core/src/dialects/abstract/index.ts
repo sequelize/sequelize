@@ -186,6 +186,12 @@ export type DialectSupports = {
     DATETIME: {
       /** Whether "infinity" is a valid value in this dialect's DATETIME data type */
       infinity: boolean,
+      /** Whether this dialect DATETIME data type supports values with offsets */
+      offset: boolean,
+      /** Whether this dialect DATETIME data type supports plain values */
+      plain: boolean,
+      /** Whether this dialect DATETIME data type supports zoned values */
+      zoned: boolean,
     },
     DATEONLY: {
       /** Whether "infinity" is a valid value in this dialect's DATEONLY data type */
@@ -340,6 +346,9 @@ export abstract class AbstractDialect {
       TSVECTOR: false,
       DATETIME: {
         infinity: false,
+        offset: false,
+        plain: true,
+        zoned: false,
       },
       DATEONLY: {
         infinity: false,

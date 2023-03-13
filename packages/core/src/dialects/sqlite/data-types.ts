@@ -193,6 +193,15 @@ export class DATE extends BaseTypes.DATE {
   }
 }
 
+export class DATETIME extends BaseTypes.DATETIME {
+  // TODO: add CHECK constraint
+  //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743
+
+  toSql(): string {
+    return 'TEXT';
+  }
+}
+
 export class DATEONLY extends BaseTypes.DATEONLY {
   // TODO: add CHECK constraint
   //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743

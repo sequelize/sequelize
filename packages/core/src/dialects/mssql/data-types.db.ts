@@ -27,7 +27,7 @@ export function registerMsSqlDbDataTypeParsers(dialect: MssqlDialect) {
     return value;
   });
 
-  dialect.registerDataTypeParser(['DATETIMEOFFSETN'], (value: unknown) => {
+  dialect.registerDataTypeParser(['DATETIME2N', 'DATETIMEOFFSETN'], (value: unknown) => {
     if (value instanceof Date) {
       // Tedious pre-parses the value as a Date, but we want
       // to provide a string in raw queries and let the user decide on which date library to use.
