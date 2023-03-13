@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { beforeEach2, sequelize, setResetMode } from '../support';
-import { testSimpleInOut, testSimpleInOutRaw } from './data-types.test';
+import { testSimpleInOut, testSimpleInOutRaw } from './_utils';
 
 enum TestEnum {
   A = 'A',
