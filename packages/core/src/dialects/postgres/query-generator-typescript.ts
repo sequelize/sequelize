@@ -81,6 +81,8 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
+      // conkey and confkey are arrays for composite foreign keys.
+      // This splits them as matching separate rows
       'WITH unnested_pg_constraint AS (',
       'SELECT conname, confrelid, connamespace, conrelid, contype, oid,',
       'unnest(conkey) AS conkey, unnest(confkey) AS confkey',
