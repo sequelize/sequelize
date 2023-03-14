@@ -60,7 +60,8 @@ PostgresDialect.prototype.supports = _.merge(
     inserts: {
       onConflictDoNothing: ' ON CONFLICT DO NOTHING',
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
-      conflictFields: true
+      conflictFields: true,
+      onConflictWhere: true
     },
     NUMERIC: true,
     ARRAY: true,
