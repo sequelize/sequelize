@@ -1078,6 +1078,12 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | (keyof TAttributes)[];
+
+  /**
+   * Optional override for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+  conflictAttributes?: Array<keyof TAttributes>;
 }
 
 /**

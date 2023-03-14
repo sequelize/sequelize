@@ -2817,23 +2817,29 @@ class Model {
         if (options.updateOnDuplicate) {
           options.updateOnDuplicate = options.updateOnDuplicate.map(attr => model.rawAttributes[attr].field || attr);
 
-          const upsertKeys = [];
+          if (options.conflictAttributes) {
+            options.upsertKeys = options.conflictAttributes.map(
+              attrName => model.rawAttributes[attrName].field || attrName
+            );
+          } else {
+            const upsertKeys = [];
 
-          for (const i of model._indexes) {
-            if (i.unique && !i.where) { // Don't infer partial indexes
-              upsertKeys.push(...i.fields);
+            for (const i of model._indexes) {
+              if (i.unique && !i.where) { // Don't infer partial indexes
+                upsertKeys.push(...i.fields);
+              }
             }
+
+            const firstUniqueKey = Object.values(model.uniqueKeys).find(c => c.fields.length > 0);
+
+            if (firstUniqueKey && firstUniqueKey.fields) {
+              upsertKeys.push(...firstUniqueKey.fields);
+            }
+
+            options.upsertKeys = upsertKeys.length > 0
+              ? upsertKeys
+              : Object.values(model.primaryKeys).map(x => x.field);
           }
-
-          const firstUniqueKey = Object.values(model.uniqueKeys).find(c => c.fields.length > 0);
-
-          if (firstUniqueKey && firstUniqueKey.fields) {
-            upsertKeys.push(...firstUniqueKey.fields);
-          }
-
-          options.upsertKeys = upsertKeys.length > 0
-            ? upsertKeys
-            : Object.values(model.primaryKeys).map(x => x.field);
         }
 
         // Map returning attributes to fields
