@@ -3,12 +3,24 @@
 import isPlainObject from 'lodash/isPlainObject';
 import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
+import { AssociationPath } from './expression-builders/association-path';
+import { Attribute } from './expression-builders/attribute';
+import { Identifier } from './expression-builders/identifier';
+import { JsonPath } from './expression-builders/json-path';
+import { Value } from './expression-builders/value';
+import { List } from './expression-builders/list';
+import { sql } from './expression-builders/sql';
+import { Cast, cast } from './expression-builders/cast.js';
+import { Col, col } from './expression-builders/col.js';
+import { Fn, fn } from './expression-builders/fn.js';
+import { json } from './expression-builders/json.js';
+import { Literal, literal } from './expression-builders/literal.js';
+import { Where, where } from './expression-builders/where.js';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { isString } from './utils/check.js';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
@@ -190,7 +202,6 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {Function} [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
    * @param {string}   [options.retry.name='unknown'] Name used when composing error/reporting messages.
    * @param {boolean}  [options.noTypeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
-   * @param {object}   [options.operatorsAliases] String based operator alias. Pass object to limit set of aliased operators.
    * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
    * @param {boolean}  [options.minifyAliases=false] A flag that defines if aliases should be minified (mostly useful to avoid Postgres alias character limit of 64)
    * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
@@ -402,13 +413,8 @@ export class Sequelize extends SequelizeTypeScript {
       throw new Error(`Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`);
     }
 
-    this.dialect.queryGenerator.noTypeValidation = options.noTypeValidation;
-
-    if (_.isPlainObject(this.options.operatorsAliases)) {
-      deprecations.noStringOperators();
-      this.dialect.queryGenerator.setOperatorsAliases(this.options.operatorsAliases);
-    } else if (typeof this.options.operatorsAliases === 'boolean') {
-      deprecations.noBoolOperatorAliases();
+    if (this.options.operatorsAliases) {
+      throw new Error('String based operators have been removed. Please use Symbol operators, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases');
     }
 
     /**
@@ -1090,29 +1096,27 @@ Use Sequelize#query if you wish to use replacements.`);
     return fn('RAND');
   }
 
-  static fn = fn;
-
   static Fn = Fn;
-
-  static col = col;
-
   static Col = Col;
-
-  static cast = cast;
-
   static Cast = Cast;
-
-  static literal = literal;
-
   static Literal = Literal;
-
-  static json = json;
-
-  static Json = Json;
-
-  static where = where;
-
   static Where = Where;
+  static List = List;
+  static Identifier = Identifier;
+  static Attribute = Attribute;
+  static Value = Value;
+  static AssociationPath = AssociationPath;
+  static JsonPath = JsonPath;
+
+  static sql = sql;
+
+  // these are all available on the "sql" object, but are exposed for backwards compatibility
+  static fn = fn;
+  static col = col;
+  static cast = cast;
+  static literal = literal;
+  static json = json;
+  static where = where;
 
   static and = and;
 
@@ -1338,74 +1342,6 @@ for (const error of Object.keys(sequelizeErrors)) {
 }
 
 /**
- * Creates an object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
- * If you want to refer to columns in your function, you should use `sequelize.col`, so that the columns are properly interpreted as columns and not a strings.
- *
- * @see Model.findAll
- * @see Sequelize.define
- * @see Sequelize.col
- *
- * @param {string} fn The function you want to call
- * @param {any} args All further arguments will be passed as arguments to the function
- *
- * @since v2.0.0-dev3
- * @memberof Sequelize
- * @returns {Sequelize.fn}
- *
- * @example Convert a user's username to upper case
- * ```ts
- * instance.update({
- *   username: fn('upper', col('username'))
- * });
- * ```
- */
-export function fn(fn, ...args) {
-  return new Fn(fn, args);
-}
-
-/**
- * Creates an object which represents a column in the DB, this allows referencing another column in your query. This is often useful in conjunction with `sequelize.fn`, since raw string arguments to fn will be escaped.
- *
- * @see Sequelize#fn
- *
- * @param {string} col The name of the column
- * @since v2.0.0-dev3
- * @memberof Sequelize
- *
- * @returns {Sequelize.col}
- */
-export function col(col) {
-  return new Col(col);
-}
-
-/**
- * Creates an object representing a call to the cast function.
- *
- * @param {any} val The value to cast
- * @param {string} type The type to cast it to
- * @since v2.0.0-dev3
- * @memberof Sequelize
- *
- * @returns {Sequelize.cast}
- */
-export function cast(val, type) {
-  return new Cast(val, type);
-}
-
-/**
- * Creates an object representing a literal, i.e. something that will not be escaped.
- *
- * @param {any} val literal value
- * @since v2.0.0-dev3
- * @memberof Sequelize
- *
- * @returns {Sequelize.literal}
- */
-export function literal(val) {
-  return new Literal(val);
-}
-
-/**
  * An AND query
  *
  * @see Model.findAll
@@ -1433,39 +1369,9 @@ export function and(...args) {
  * @returns {Sequelize.or}
  */
 export function or(...args) {
+  if (args.length === 1) {
+    return { [Op.or]: args[0] };
+  }
+
   return { [Op.or]: args };
-}
-
-/**
- * Creates an object representing nested where conditions for postgres/sqlite/mysql json data-type.
- *
- * @see Model.findAll
- *
- * @param {string|object} conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot notation or a string using postgres/sqlite/mysql json syntax.
- * @param {string|number|boolean} [value] An optional value to compare against. Produces a string of the form "<json path> = '<value>'".
- * @memberof Sequelize
- *
- * @returns {Sequelize.json}
- */
-export function json(conditionsOrPath, value) {
-  return new Json(conditionsOrPath, value);
-}
-
-/**
- * A way of specifying attr = condition.
- *
- * The attr can either be an object taken from `Model.rawAttributes` (for example `Model.rawAttributes.id` or `Model.rawAttributes.name`). The
- * attribute should be defined in your model definition. The attribute can also be an object from one of the sequelize utility functions (`sequelize.fn`, `sequelize.col` etc.)
- *
- * For string attributes, use the regular `{ where: { attr: something }}` syntax. If you don't want your string to be escaped, use `sequelize.literal`.
- *
- * @see Model.findAll
- *
- * @param {object} attr The attribute, which can be either an attribute object from `Model.rawAttributes` or a sequelize object, for example an instance of `sequelize.fn`. For simple string attributes, use the POJO syntax
- * @param {symbol} [comparator='Op.eq'] operator
- * @param {string|object} logic The condition. Can be both a simply type, or a further condition (`or`, `and`, `.literal` etc.)
- * @since v2.0.0-dev3
- */
-export function where(attr, comparator, logic) {
-  return new Where(attr, comparator, logic);
 }

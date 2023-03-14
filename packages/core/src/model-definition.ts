@@ -505,7 +505,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
         if (builtAttribute.type instanceof AbstractDataType) {
           // @ts-expect-error -- defaultValue is not readOnly yet!
           builtAttribute.type
-            = builtAttribute.type.clone().attachUsageContext({
+            = builtAttribute.type.withUsageContext({
               // TODO: Repository Pattern - replace with ModelDefinition
               model: this.#model,
               attributeName,
@@ -520,7 +520,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
               = new builtAttribute.defaultValue();
           }
 
-          this.#defaultValues.set(attributeName, () => toDefaultValue(builtAttribute.defaultValue, this.sequelize.dialect));
+          this.#defaultValues.set(attributeName, () => toDefaultValue(builtAttribute.defaultValue));
         }
 
         // TODO: remove "notNull" & "isNull" validators
@@ -753,6 +753,42 @@ Specify a different name for either index to resolve this issue.`);
     const attribute = this.#attributes.get(attributeName);
 
     return attribute?.columnName ?? attributeName;
+  }
+
+  /**
+   * Follows the association path and returns the association at the end of the path.
+   * For instance, say we have a model User, associated to a model Profile, associated to a model Address.
+   *
+   * If we call `User.modelDefinition.getAssociation(['profile', 'address'])`, we will get the association named `address` in the model Profile.
+   * If we call `User.modelDefinition.getAssociation(['profile'])`, we will get the association named `profile` in the model User.
+   *
+   * @param associationPath
+   */
+  getAssociation(associationPath: readonly string[] | string): Association | undefined {
+    if (typeof associationPath === 'string') {
+      return this.associations[associationPath];
+    }
+
+    return this.#getAssociationFromPathMut([...associationPath]);
+  }
+
+  #getAssociationFromPathMut(associationPath: string[]): Association | undefined {
+    if (associationPath.length === 0) {
+      return undefined;
+    }
+
+    const associationName = associationPath.shift()!;
+    const association = this.associations[associationName];
+
+    if (association == null) {
+      return undefined;
+    }
+
+    if (associationPath.length === 0) {
+      return association;
+    }
+
+    return association.target.modelDefinition.#getAssociationFromPathMut(associationPath);
   }
 }
 

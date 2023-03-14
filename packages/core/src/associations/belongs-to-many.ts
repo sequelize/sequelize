@@ -2,7 +2,10 @@ import each from 'lodash/each';
 import isEqual from 'lodash/isEqual';
 import omit from 'lodash/omit';
 import upperFirst from 'lodash/upperFirst';
+import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
 import { AssociationError } from '../errors';
+import { col } from '../expression-builders/col.js';
+import { fn } from '../expression-builders/fn.js';
 import type {
   AttributeNames,
   Attributes,
@@ -21,11 +24,9 @@ import type {
   ModelStatic,
   Transactionable,
   UpdateOptions,
-  WhereOptions,
 } from '../model';
 import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
-import { col, fn } from '../sequelize';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
@@ -663,6 +664,8 @@ Add your own primary key to the through model, on different attributes than the 
         ...options,
         raw: true,
         where,
+        // force this option to be false, in case the user enabled
+        rejectOnEmpty: false,
       });
     }
 

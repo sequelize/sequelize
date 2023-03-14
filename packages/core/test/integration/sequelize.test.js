@@ -38,16 +38,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(sequelize.config.host).to.equal('127.0.0.1');
     });
 
-    it('should set operators aliases on dialect queryGenerator', () => {
-      const operatorsAliases = { fake: true };
-      const sequelize = Support.createSequelizeInstance({ operatorsAliases });
-
-      expect(sequelize).to.have.property('dialect');
-      expect(sequelize.dialect).to.have.property('queryGenerator');
-      expect(sequelize.dialect.queryGenerator).to.have.property('OperatorsAliasMap');
-      expect(sequelize.dialect.queryGenerator.OperatorsAliasMap).to.be.eql(operatorsAliases);
-    });
-
     if (dialect === 'sqlite') {
       it('should work with connection strings (1)', () => {
         new Sequelize('sqlite://test.sqlite');
