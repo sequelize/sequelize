@@ -2097,9 +2097,9 @@ bn.js@^4.0.0:
   integrity sha512-c98Bf3tPniI+scsdk237ku1Dc3ujXQTSgyiPUDEOe7tRkhrqridvh8klBv0HCEso1OLOYcHuCv/cS6DNxKH+ZA==
 
 bnf-parser@^3.1.1:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/bnf-parser/-/bnf-parser-3.1.1.tgz#4726c4d415bb63b65eff3a10f6cbee1ce46ad0ac"
-  integrity sha512-Eu/NvBzIYcqejCPbKfoWKl37dENtsZKznzLTHTGthENyuQuPBrQGrILxDjyARQNke2DADv14gn3mremhOUaDxA==
+  version "3.1.2"
+  resolved "https://registry.yarnpkg.com/bnf-parser/-/bnf-parser-3.1.2.tgz#2271de80d8255a7efd9d425af0127327ca033951"
+  integrity sha512-hepytZl/xYrHTx+w1WaM7E+2MZFnCZkaob2HoWAwC0vQIH1a8F5ClAWn1WGuRslsbo9ctp61QRpBvu02bwjAZw==
 
 brace-expansion@^1.1.7:
   version "1.1.11"
