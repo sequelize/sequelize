@@ -5,11 +5,6 @@ on:
       - v7
   pull_request:
 
-env:
-  SEQ_DB: sequelize_test
-  SEQ_USER: sequelize_test
-  SEQ_PW: sequelize_test
-
 # This configuration cancels previous runs if a new run is started on the same PR. Only one run at a time per PR.
 # This does not affect pushes to the v7 branch itself, only PRs.
 # from https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-a-fallback-value
@@ -135,43 +130,13 @@ jobs:
       - name: Install TypeScript
         run: yarn workspace @sequelize/core add typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
-        run: yarn test-typings
-  test-db2:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [14, 18]
-    name: DB2 (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [ unit-test, test-typings ]
-    env:
-      DIALECT: db2
-      SEQ_DB: testdb
-      SEQ_USER: db2inst1
-      SEQ_PW: password
-      SEQ_TEST_CLEANUP_TIMEOUT: 1200000
-      SEQ_PORT: 50000
-    steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: install-build-artifact-node-${{ matrix.node-version }}
-      - name: Extract artifact
-        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Install Local DB2 Copy
-        run: yarn start-db2-oldest
-      - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
+        run: yarn workspace @sequelize/core test-typings
   test-sqlite:
     strategy:
       fail-fast: false
       matrix:
         node-version: [14, 18]
-    name: SQLite (Node ${{ matrix.node-version }})
+    name: sqlite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
@@ -197,7 +162,7 @@ jobs:
         postgres-version: [oldest, latest]
         minify-aliases: [true, false]
         native: [true, false]
-    name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
+    name: postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
@@ -219,13 +184,13 @@ jobs:
       - run: yarn start-postgres-${{ matrix.postgres-version }}
       - name: Integration Tests
         run: yarn workspace @sequelize/core test-integration
-  test-mysql-mariadb:
+  test-oldest-latest:
     strategy:
       fail-fast: false
       matrix:
         node-version: [14, 18]
         database-version: [oldest, latest]
-        dialect: [mysql, mariadb]
+        dialect: [mysql, mariadb, mssql, db2]
     name: ${{ matrix.dialect }} ${{ matrix.database-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
@@ -245,48 +210,6 @@ jobs:
       - run: yarn start-${{ matrix.dialect }}-${{ matrix.database-version }}
       - name: Integration Tests
         run: yarn workspace @sequelize/core test-integration
-  test-mssql:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [14, 18]
-        mssql-version: [2017, 2022]
-    name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [ unit-test, test-typings ]
-    services:
-      mssql:
-        image: mcr.microsoft.com/mssql/server:${{ matrix.mssql-version }}-latest
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: Password12!
-        ports:
-          - 1433:1433
-        options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P \"Password12!\" -l 30 -Q \"SELECT 1\""
-          --health-start-period 10s
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DIALECT: mssql
-      SEQ_USER: SA
-      SEQ_PW: Password12!
-      SEQ_PORT: 1433
-    steps:
-      - run: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: install-build-artifact-node-${{ matrix.node-version }}
-      - name: Extract artifact
-        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -295,10 +218,9 @@ jobs:
         docs,
         test-sqlite,
         test-postgres,
-        test-mysql-mariadb,
-        test-mssql,
+        test-oldest-latest
       ]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v7')
+    if: github.event_name == 'push'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
