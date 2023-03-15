@@ -48,7 +48,7 @@
   "dependencies": {
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
-    "bnf-parser": "^3.1.1",
+    "bnf-parser": "3.1.1",
     "dayjs": "^1.11.5",
     "debug": "^4.3.4",
     "dottie": "^2.0.2",
