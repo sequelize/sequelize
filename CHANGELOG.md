@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.25](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.24...v7.0.0-alpha.25) (2023-03-15)
+
+
+### Bug Fixes
+
+* **mssql:** make inner enqueue function async ([#15785](https://github.com/sequelize/sequelize/issues/15785)) ([e6690cd](https://github.com/sequelize/sequelize/commit/e6690cdf27980d57be1bb9f138b04124775b153b))
+* pin bnf-parser ([#15793](https://github.com/sequelize/sequelize/issues/15793)) ([9a9a404](https://github.com/sequelize/sequelize/commit/9a9a404fcd155079af9208626aa67df4ad335879))
+
+
+### Features
+
+* add timestamp & version attributes ([#15767](https://github.com/sequelize/sequelize/issues/15767)) ([9795fcf](https://github.com/sequelize/sequelize/commit/9795fcf82e5c66d1f5be28852778b6886942fe7f))
+
+
+
+
+
 # [7.0.0-alpha.24](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.23...v7.0.0-alpha.24) (2023-03-12)
 
 

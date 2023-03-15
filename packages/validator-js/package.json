@@ -1,6 +1,6 @@
 {
   "name": "@sequelize/validator.js",
-  "version": "7.0.0-alpha.24",
+  "version": "7.0.0-alpha.25",
   "description": "Integration between validator.js and Sequelize",
   "funding": [
     {
@@ -37,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@sequelize/core": "^7.0.0-alpha.24",
+    "@sequelize/core": "^7.0.0-alpha.25",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
