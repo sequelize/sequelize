@@ -3188,7 +3188,6 @@ Instead of specifying a Model, either:
       || options.clone
     ) {
       const values = Object.create(null);
-      const modelDefinition = this.constructor.modelDefinition;
       if (attributesWithGetters.size > 0) {
         for (const attributeName2 of attributesWithGetters) {
           if (!this._options.attributes?.includes(attributeName2)) {
