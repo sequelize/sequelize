@@ -2748,7 +2748,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('BulkUpdate', () => {
-    it('should update correctly when model defined has attributes with virtual getters', async function () {
+    it('should update correctly when model defined has attributes with custom getters', async function () {
       const User = this.sequelize.define('users', {
         id: {
           type: DataTypes.UUID,
