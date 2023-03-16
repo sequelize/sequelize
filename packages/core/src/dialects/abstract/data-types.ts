@@ -655,7 +655,7 @@ export interface DecimalNumberOptions extends NumberOptions {
   /**
    * Total number of digits.
    *
-   * {@link DecimalNumberOptions#scale} must be specified if is specified.
+   * {@link DecimalNumberOptions#scale} must be specified if precision is specified.
    */
   precision?: number | undefined;
 
