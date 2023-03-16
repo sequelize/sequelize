@@ -9059,10 +9059,10 @@ typedoc-plugin-missing-exports@1.0.0:
   resolved "https://registry.yarnpkg.com/typedoc-plugin-missing-exports/-/typedoc-plugin-missing-exports-1.0.0.tgz#7212a2cfaba7b48264df4b4110f3a5684b5c49a1"
   integrity sha512-7s6znXnuAj1eD9KYPyzVzR1lBF5nwAY8IKccP5sdoO9crG4lpd16RoFpLsh2PccJM+I2NASpr0+/NMka6ThwVA==
 
-typedoc@0.23.26:
-  version "0.23.26"
-  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.23.26.tgz#ae082683698bad68757d8fe619242a56d6b5bf36"
-  integrity sha512-5m4KwR5tOLnk0OtMaRn9IdbeRM32uPemN9kur7YK9wFqx8U0CYrvO9aVq6ysdZSV1c824BTm+BuQl2Ze/k1HtA==
+typedoc@0.23.27:
+  version "0.23.27"
+  resolved "https://registry.yarnpkg.com/typedoc/-/typedoc-0.23.27.tgz#3491f4331d181d9c7f4064971295a9b32718b72c"
+  integrity sha512-YKjlxX3LEhYbMCkemjlpNh1OKDiFa+ynqP0VRPsH28bEugrMTGI6l8DC6oX5kzFcUKKlYWKpZDSGWszuO/FR3g==
   dependencies:
     lunr "^2.3.9"
     marked "^4.2.12"
