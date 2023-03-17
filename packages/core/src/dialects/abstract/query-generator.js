@@ -103,6 +103,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
+  createTableQuery() {
+    throw new Error(`Create Table is not implemented in ${this.dialect.name}.`);
+  }
+
   dropTableQuery(tableName, options) {
     const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 

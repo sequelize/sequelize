@@ -199,6 +199,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: ArithmeticQueryOptions,
   ): string;
 
+  createTableQuery(): string;
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
