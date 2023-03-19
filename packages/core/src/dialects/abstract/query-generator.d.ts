@@ -11,7 +11,7 @@ import type {
   SearchPathable,
 } from '../../model.js';
 import type { DataType } from './data-types.js';
-import type { QueryGeneratorOptions } from './query-generator-typescript.js';
+import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
@@ -77,6 +77,7 @@ export interface CreateTableQueryOptions {
   charset?: string;
   engine?: string;
   rowFormat?: string;
+  comment?: string;
   initialAutoIncrement?: number;
   /**
    * Used for compound unique keys.
@@ -172,9 +173,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   ): string;
 
   createTableQuery(
-    tableName: TableName,
+    tableName: TableNameOrModel,
     // TODO: rename attributes to columns in the implementation when migrating to TS
     columns: { [columnName: string]: string },
+    // TODO: throw when using invalid options when migrating to TS
     options?: CreateTableQueryOptions
   ): string;
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;

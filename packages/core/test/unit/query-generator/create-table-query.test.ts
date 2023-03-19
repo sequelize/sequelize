@@ -1,342 +1,420 @@
-import { DataTypes } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
-// TODO: overhaul this test suite when migrating createTableQuery to TypeScript
-/**
- * Make methods stricter, throw when using invalid options
- * Accept and test for TableNameOrModel
- * Check if createTableQuery is typed correctly
- * Check if all tests make sense, the current tests are just copied from dialect specific tests and other expectations are added
- * Give tests better names
- * Make sure that all resulting queries are valid by adding integration tests for QueryInterface.createTable
- */
+const dialect = sequelize.dialect;
+
+// TODO: check the tests with COMMENT after attributeToSQL quotes the comment
+// TODO: double check if all column SQL types are possible results of attributeToSQL after #15533 has been merged
+// TODO: see if some logic in handling columns can be moved to attributeToSQL which could make some tests here redundant
 
 describe('QueryGenerator#createTableQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 
-  it('produces a CREATE TABLE query with a single INTEGER attribute', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER' }, {}), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([int] INTEGER);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("int" INTEGER); END`,
+  it('produces a query to create a table', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR attributes', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)); END`,
+  it('produces a query to create a table from a model', () => {
+    const MyModel = sequelize.define('myModel', {});
+
+    expectsql(queryGenerator.createTableQuery(MyModel, { myColumn: 'DATE' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myModels] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myModels` (`myColumn` DATE) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myModels]', 'U') IS NULL CREATE TABLE [myModels] ([myColumn] DATE);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myModels" ("myColumn" DATE); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR attributes and a TableNameWithSchema object', () => {
-    expectsql(queryGenerator.createTableQuery({ tableName: 'myTable', schema: 'mySchema' }, { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([title] VARCHAR(255), [name] VARCHAR(255));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`title` VARCHAR(255), `name` VARCHAR(255));',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("title" VARCHAR(255), "name" VARCHAR(255)); END`,
+  it('produces a query to create a table with schema in tableName object', () => {
+    expectsql(queryGenerator.createTableQuery({ tableName: 'myTable', schema: 'mySchema' }, { myColumn: 'DATE' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`myColumn` DATE) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with three different INT attributes', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER', bigint: 'BIGINT', smallint: 'SMALLINT' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([int] INTEGER, [bigint] BIGINT, [smallint] SMALLINT);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER, `bigint` BIGINT, `smallint` SMALLINT) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [bigint] BIGINT, [smallint] SMALLINT);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("int" INTEGER, "bigint" BIGINT, "smallint" SMALLINT); END`,
+  it('produces a query to create a table with default schema in tableName object', () => {
+    expectsql(queryGenerator.createTableQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }, { myColumn: 'DATE' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with three different INT SERIAL attributes', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { serial: 'INTEGER SERIAL', bigserial: 'BIGINT SERIAL', smallserial: 'SMALLINT SERIAL' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([serial] INTEGER SERIAL, [bigserial] BIGINT SERIAL, [smallserial] SMALLINT SERIAL);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`serial` INTEGER SERIAL, `bigserial` BIGINT SERIAL, `smallserial` SMALLINT SERIAL) ENGINE=InnoDB;',
-      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("serial" SERIAL, "bigserial" BIGSERIAL, "smallserial" SMALLSERIAL);',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([serial] INTEGER SERIAL, [bigserial] BIGINT SERIAL, [smallserial] SMALLINT SERIAL);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("serial" INTEGER SERIAL, "bigserial" BIGINT SERIAL, "smallserial" SMALLINT SERIAL); END`,
+  it('produces a query to create a table from a table and globally set schema', () => {
+    const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
+    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+
+    expectsql(queryGeneratorSchema.createTableQuery('myTable', { myColumn: 'DATE' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`myColumn` DATE) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two INTEGER attributes with comments', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Test', foo: 'INTEGER COMMENT Foo Comment' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([int] INTEGER COMMENT Test, [foo] INTEGER COMMENT Foo Comment);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER COMMENT Test, `foo` INTEGER COMMENT Foo Comment) ENGINE=InnoDB;',
-      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER , "foo" INTEGER ); COMMENT ON COLUMN "myTable"."int" IS 'Test'; COMMENT ON COLUMN "myTable"."foo" IS 'Foo Comment';`,
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [foo] INTEGER); EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Test',
-        @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [int]; EXEC sp_addextendedproperty
-        @name = N'MS_Description', @value = N'Foo Comment', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [foo];`,
-      db2: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "foo" INTEGER); -- 'Test', TableName = "myTable", ColumnName = "int"; -- 'Foo Comment', TableName = "myTable", ColumnName = "foo";`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("int" INTEGER COMMENT Test, "foo" INTEGER COMMENT Foo Comment); END`,
+  it('produces a query to create a table with schema and delimiter in tableName object', () => {
+    // This test is only relevant for dialects that do not support schemas
+    if (dialect.supports.schemas) {
+      return;
+    }
+
+    expectsql(queryGenerator.createTableQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }, { myColumn: 'DATE' }), {
+      sqlite: 'CREATE TABLE IF NOT EXISTS `mySchemacustommyTable` (`myColumn` DATE);',
     });
   });
 
-  it('produces a CREATE TABLE query with a BLOB attribute', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { data: 'BLOB' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([data] BLOB);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] BLOB);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("data" BLOB); END`,
+  it('produces a query to create a table with multiple columns', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, [secondColumn] TEXT);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with a LONGBLOB attribute', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { data: 'LONGBLOB' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([data] LONGBLOB);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] LONGBLOB);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("data" LONGBLOB); END`,
+  it('produces a query to create a table with a primary key', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY);',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with a BLOB(16M) attribute', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { data: 'BLOB(16M)' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([data] BLOB(16M));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB(16M)) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] BLOB(16M));`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("data" BLOB(16M)); END`,
+  it('produces a query to create a table with multiple primary keys', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY', secondColumn: 'TEXT PRIMARY KEY' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, PRIMARY KEY (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with a normalized BLOB attribute', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { data: sequelize.normalizeDataType(DataTypes.BLOB).toSql() }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([data] BLOB);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB) ENGINE=InnoDB;',
-      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] VARBINARY(MAX));`,
-      db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BLOB(1M));',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("data" BLOB(1M)); END`,
+  // quoting the identifiers after REFERENCES is done by attributesToSQL
+  it('produces a query to create a table with references', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE REFERENCES "Bar" ("id")' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE REFERENCES "Bar" ("id"));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, FOREIGN KEY (`myColumn`) REFERENCES "Bar" ("id")) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));`,
+      'snowflake db2': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with a normalized long BLOB attribute', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { data: sequelize.normalizeDataType(DataTypes.BLOB('long')).toSql() }), {
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB) ENGINE=InnoDB;',
-      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([data] VARBINARY(MAX));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB);',
-      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" LONGBLOB);',
-      db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BLOB(2G));',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("data" BLOB(2G)); END`,
+  it('produces a query to create a table with references and a primary key', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY REFERENCES "Bar" ("id")' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE REFERENCES "Bar" ("id"), PRIMARY KEY ("myColumn"));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, PRIMARY KEY (`myColumn`), FOREIGN KEY (`myColumn`) REFERENCES "Bar" ("id")) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]), FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY REFERENCES "Bar" ("id"));',
+      'snowflake db2': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), PRIMARY KEY ("myColumn")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with an ENUM and a VARCHAR attribute', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }), {
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255)) ENGINE=InnoDB;',
-      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" "public"."enum_myTable_title", "name" VARCHAR(255));',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] ENUM("A", "B", "C"), [name] VARCHAR(255));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255));',
-      'snowflake db2': 'CREATE TABLE IF NOT EXISTS "myTable" ("title" ENUM("A", "B", "C"), "name" VARCHAR(255));',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" ENUM("A", "B", "C"), "name" VARCHAR(255)); END`,
+  // TODO: REFERENCES should be pushed to the end, this is likely a bug in mysql/mariadb
+  //       mssql and db2 use the same logic but there does not seem to be a valid attributeToSQL result that causes issues
+  it('produces a query to create a table with references and a comment', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE REFERENCES "Bar" ("id") COMMENT Foo' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE REFERENCES "Bar" ("id") COMMENT Foo);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, FOREIGN KEY (`myColumn`) REFERENCES "Bar" ("id") COMMENT Foo) ENGINE=InnoDB;',
+      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE REFERENCES "Bar" ("id")); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = 'dbo',
+        @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
+      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id") COMMENT Foo);',
+      db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")); -- 'Foo', TableName = "myTable", ColumnName = "myColumn";`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id") COMMENT Foo); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR attributes with specified engine', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { engine: 'MyISAM' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=MyISAM;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)); END`,
+  it('produces a query to create a table with a non-null column', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE NOT NULL' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE NOT NULL);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE NOT NULL);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE NOT NULL); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR attributes with specified charset and collation', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'utf8', collate: 'utf8_unicode_ci' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
-      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)); END`,
+  it('produces a query to create a table with multiple columns with comments', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo', secondColumn: 'DATE COMMENT Foo Bar' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE COMMENT Foo, [secondColumn] DATE COMMENT Foo Bar);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo, `secondColumn` DATE COMMENT Foo Bar) ENGINE=InnoDB;',
+      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo'; COMMENT ON COLUMN "myTable"."secondColumn" IS 'Foo Bar';`,
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] DATE);
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = 'dbo',
+        @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar', @level0type = N'Schema', @level0name = 'dbo',
+        @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [secondColumn];`,
+      db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" DATE); -- 'Foo', TableName = "myTable", ColumnName = "myColumn"; -- 'Foo Bar', TableName = "myTable", ColumnName = "secondColumn";`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, "secondColumn" DATE COMMENT Foo Bar); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR attributes with specified charset', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'latin1' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
-      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) DEFAULT CHARSET=latin1;',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)); END`,
+  // TODO: the second COMMENT should likely be replaced by an empty string in DB2 and MSSQL
+  it('produces a query to create a table with multiple comments in one column', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo COMMENT Bar' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE COMMENT Foo COMMENT Bar);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo COMMENT Bar) ENGINE=InnoDB;',
+      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo COMMENT Bar';`,
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE COMMENT Foo);
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Bar', @level0type = N'Schema', @level0name = 'dbo',
+        @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
+      db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo); -- 'Bar', TableName = "myTable", ColumnName = "myColumn";`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo COMMENT Bar); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with an ENUM and a VARCHAR attribute with specified charset', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }, { charset: 'latin1' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([title] ENUM("A", "B", "C"), [name] VARCHAR(255));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;',
-      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" "public"."enum_myTable_title", "name" VARCHAR(255));',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] ENUM("A", "B", "C"), [name] VARCHAR(255));`,
-      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" ENUM("A", "B", "C"), "name" VARCHAR(255)) DEFAULT CHARSET=latin1;',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" ENUM("A", "B", "C"), "name" VARCHAR(255)); END`,
+  it('produces a query to create a table with a primary key specified after the comment', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo PRIMARY KEY' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE COMMENT Foo, PRIMARY KEY ([myColumn]));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
+      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo PRIMARY KEY';`,
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo PRIMARY KEY', @level0type = N'Schema', @level0name = 'dbo',
+        @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo PRIMARY KEY);',
+      db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); -- 'Foo PRIMARY KEY', TableName = "myTable", ColumnName = "myColumn";`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, PRIMARY KEY ("myColumn")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR attributes with specified row format', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { rowFormat: 'default' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB ROW_FORMAT=default;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255));`,
-      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)) ROW_FORMAT=default;',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255)); END`,
+  it('produces a query to create a table with both a table comment and a column comment', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo' }, { comment: 'Bar' }), {
+      default: `CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE COMMENT Foo) COMMENT 'Bar';`,
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo) ENGINE=InnoDB COMMENT \'Bar\';',
+      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Bar'; COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = 'dbo',
+        @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo);',
+      db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); -- 'Foo', TableName = "myTable", ColumnName = "myColumn";`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR and a primary key INTEGER attribute', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }), {
-      default: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "id" INTEGER , PRIMARY KEY ("id"));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `id` INTEGER , PRIMARY KEY (`id`)) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [id] INTEGER, PRIMARY KEY ([id]));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `id` INTEGER PRIMARY KEY);',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "id" INTEGER, PRIMARY KEY ("id")); END`,
+  // quoting the enum values is done by attributesToSQL
+  it('produces a query to create a table with an enum', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'ENUM("foo", "bar")' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] ENUM("foo", "bar"));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` ENUM("foo", "bar")) ENGINE=InnoDB;',
+      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" "public"."enum_myTable_myColumn");',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] ENUM("foo", "bar"));`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" ENUM("foo", "bar")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR and a complex INTEGER attribute (no quotes)', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [otherId] INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [otherId] INTEGER, FOREIGN KEY ([otherId]) REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);`,
-      'snowflake db2': 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER, FOREIGN KEY ("otherId") REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION);',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER REFERENCES otherTable (id) ON DELETE CASCADE ON UPDATE NO ACTION); END`,
+  it('produces a query to create a table with various integer types', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER', secondColumn: 'BIGINT', thirdColumn: 'SMALLINT' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER, [secondColumn] BIGINT, [thirdColumn] SMALLINT);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER, `secondColumn` BIGINT, `thirdColumn` SMALLINT) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, [secondColumn] BIGINT, [thirdColumn] SMALLINT);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, "secondColumn" BIGINT, "thirdColumn" SMALLINT); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR and a complex INTEGER attribute (double quotes)', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [otherId] INTEGER REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [otherId] INTEGER, FOREIGN KEY ([otherId]) REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION);`,
-      'snowflake db2': 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER, FOREIGN KEY ("otherId") REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION);',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION); END`,
+  it('produces a query to create a table with various integer serial types', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER SERIAL', secondColumn: 'BIGINT SERIAL', thirdColumn: 'SMALLINT SERIAL' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER SERIAL, [secondColumn] BIGINT SERIAL, [thirdColumn] SMALLINT SERIAL);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER SERIAL, `secondColumn` BIGINT SERIAL, `thirdColumn` SMALLINT SERIAL) ENGINE=InnoDB;',
+      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" SERIAL, "secondColumn" BIGSERIAL, "thirdColumn" SMALLSERIAL);',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER SERIAL, [secondColumn] BIGINT SERIAL, [thirdColumn] SMALLINT SERIAL);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER SERIAL, "secondColumn" BIGINT SERIAL, "thirdColumn" SMALLINT SERIAL); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR and a complex INTEGER attribute (backtick quotes)', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [otherId] INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
-      mssql: 'IF OBJECT_ID(N\'[myTable]\', \'U\') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), [otherId] INTEGER, FOREIGN KEY ([otherId]) REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);',
-      'snowflake db2': 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER, FOREIGN KEY ("otherId") REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION);',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER REFERENCES \`otherTable\` (\`id\`) ON DELETE CASCADE ON UPDATE NO ACTION); END`,
+  it('produces a query to create a table with a non-null integer serial', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER SERIAL NOT NULL' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER SERIAL NOT NULL);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER SERIAL NOT NULL) ENGINE=InnoDB;',
+      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" SERIAL);',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER SERIAL NOT NULL);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER SERIAL NOT NULL); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR attributes with specified unique keys', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'] }] }), {
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), UNIQUE `uniq_myTable_title_name` (`title`, `name`)) ENGINE=InnoDB;',
-      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), CONSTRAINT "my_table_title_name" UNIQUE ("title", "name"));',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), CONSTRAINT [my_table_title_name] UNIQUE ([title], [name]));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));',
-      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), UNIQUE "uniq_myTable_title_name" ("title", "name"));',
-      db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255) NOT NULL, "name" VARCHAR(255) NOT NULL, CONSTRAINT "uniq_myTable_title_name" UNIQUE ("title", "name"));',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), CONSTRAINT "uniq_myTable_title_name" UNIQUE ("title", "name")); END`,
+  it('produces a query to create a table with an autoincremented integer', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER AUTOINCREMENT' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER AUTOINCREMENT);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER AUTOINCREMENT) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER AUTOINCREMENT);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with an auto-incremented INTEGER with specified initial auto increment', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER auto_increment PRIMARY KEY' }, { initialAutoIncrement: 1_000_001 }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([id] INTEGER auto_increment, PRIMARY KEY ([id]));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] INTEGER auto_increment, PRIMARY KEY ([id]));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY);',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("id" INTEGER auto_increment, PRIMARY KEY ("id")); END`,
+  it('produces a query to create a table with a primary key integer', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER PRIMARY KEY' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER, PRIMARY KEY ([myColumn]));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, PRIMARY KEY ([myColumn]));`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, PRIMARY KEY ("myColumn")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with a BINARY VARCHAR attribute and a unsigned primary key INTEGER with specified length', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR BINARY(255)', number: 'INTEGER(5) UNSIGNED PRIMARY KEY ' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([title] VARCHAR BINARY(255), [number] INTEGER(5) UNSIGNED, PRIMARY KEY ([number]));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER(5) UNSIGNED, PRIMARY KEY (`number`)) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR BINARY(255), [number] INTEGER(5) UNSIGNED, PRIMARY KEY ([number]));`,
-      // length and unsigned are not allowed on primary key for sqlite
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR BINARY(255), `number` INTEGER PRIMARY KEY);',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR BINARY(255), "number" INTEGER(5) UNSIGNED, PRIMARY KEY ("number")); END`,
+  it('produces a query to create a table with an integer and multiple primary keys', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER PRIMARY KEY', secondColumn: 'TEXT PRIMARY KEY' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER, `secondColumn` TEXT, PRIMARY KEY (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with a VARCHAR attribute and a auto-incremented primary key INTEGER', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([id] INTEGER AUTOINCREMENT, [name] VARCHAR(255), PRIMARY KEY ([id]));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER AUTOINCREMENT, `name` VARCHAR(255), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] INTEGER AUTOINCREMENT, [name] VARCHAR(255), PRIMARY KEY ([id]));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), PRIMARY KEY ("id")); END`,
+  it('produces a query to create a table with non-null integers and multiple primary keys', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER NOT NULL', secondColumn: 'INTEGER PRIMARY KEY NOT NULL', thirdColumn: 'TEXT PRIMARY KEY' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER NOT NULL, [secondColumn] INTEGER NOT NULL, [thirdColumn] TEXT, PRIMARY KEY ([secondColumn], [thirdColumn]));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` INTEGER NOT NULL, `thirdColumn` TEXT, PRIMARY KEY (`secondColumn`, `thirdColumn`)) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER NOT NULL, [secondColumn] INTEGER NOT NULL, [thirdColumn] TEXT, PRIMARY KEY ([secondColumn], [thirdColumn]));`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` INTEGER NOT NULL, `thirdColumn` TEXT NOT NULL, PRIMARY KEY (`secondColumn`, `thirdColumn`));',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER NOT NULL, "secondColumn" INTEGER NOT NULL, "thirdColumn" TEXT, PRIMARY KEY ("secondColumn", "thirdColumn")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with a VARCHAR attribute and a auto-incremented primary key INTEGER with specified length', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER(4) PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([id] INTEGER(4) AUTOINCREMENT, [name] VARCHAR(255), PRIMARY KEY ([id]));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER(4) AUTOINCREMENT, `name` VARCHAR(255), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] INTEGER(4) AUTOINCREMENT, [name] VARCHAR(255), PRIMARY KEY ([id]));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("id" INTEGER(4) AUTOINCREMENT, "name" VARCHAR(255), PRIMARY KEY ("id")); END`,
+  it('produces a query to create a table with an autoincremented primary key integer', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER AUTOINCREMENT PRIMARY KEY' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER AUTOINCREMENT, PRIMARY KEY ([myColumn]));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER AUTOINCREMENT, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER AUTOINCREMENT, PRIMARY KEY ([myColumn]));`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY AUTOINCREMENT);',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT, PRIMARY KEY ("myColumn")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with a VARCHAR attribute and a auto-incremented primary key SMALLINT with specified length', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { id: 'SMALLINT(4) PRIMARY KEY AUTOINCREMENT UNSIGNED', name: 'VARCHAR(255)' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([id] SMALLINT(4) AUTOINCREMENT UNSIGNED, [name] VARCHAR(255), PRIMARY KEY ([id]));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` SMALLINT(4) AUTOINCREMENT UNSIGNED, `name` VARCHAR(255), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] SMALLINT(4) AUTOINCREMENT UNSIGNED, [name] VARCHAR(255), PRIMARY KEY ([id]));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255));',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("id" SMALLINT(4) AUTOINCREMENT UNSIGNED, "name" VARCHAR(255), PRIMARY KEY ("id")); END`,
+  it('produces a query to create a table with primary key integer with specified length and unsigned', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER(5) UNSIGNED PRIMARY KEY' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER(5) UNSIGNED, PRIMARY KEY ([myColumn]));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER(5) UNSIGNED, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER(5) UNSIGNED, PRIMARY KEY ([myColumn]));`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED, PRIMARY KEY ("myColumn")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two VARCHAR attributes and a auto-incremented primary key INTEGER with specified unique contraints', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'] } } }), {
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE `uniqueConstraint` (`name`, `surname`), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
-      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255), CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id"));',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] INTEGER AUTOINCREMENT, [name] VARCHAR(255), [surname] VARCHAR(255), CONSTRAINT [uniqueConstraint] UNIQUE ([name], [surname]), PRIMARY KEY ([id]));`,
-      // SQLITE does not respect the index name when the index is created through CREATE TABLE
-      // As such, Sequelize's createTable does not add the constraint in the Sequelize Dialect.
-      // Instead, `sequelize.sync` calls CREATE INDEX after the table has been created,
-      // as that query *does* respect the index name.
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255));',
-      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255), UNIQUE "uniqueConstraint" ("name", "surname"), PRIMARY KEY ("id"));',
-      db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255) NOT NULL, "surname" VARCHAR(255) NOT NULL, CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id"));',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255),
-        CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id")); END`,
+  it('produces a query to create a table with integer with specified length and unsigned', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER(5) UNSIGNED' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER(5) UNSIGNED);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER(5) UNSIGNED) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER(5) UNSIGNED);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with two not-null primary key INTEGER attributes', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { foo1: 'INTEGER PRIMARY KEY NOT NULL', foo2: 'INTEGER PRIMARY KEY NOT NULL' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([foo1] INTEGER NOT NULL, [foo2] INTEGER NOT NULL, PRIMARY KEY ([foo1], [foo2]));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`foo1` INTEGER NOT NULL, `foo2` INTEGER NOT NULL, PRIMARY KEY (`foo1`, `foo2`)) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([foo1] INTEGER NOT NULL, [foo2] INTEGER NOT NULL, PRIMARY KEY ([foo1], [foo2]));`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("foo1" INTEGER NOT NULL, "foo2" INTEGER NOT NULL, PRIMARY KEY ("foo1", "foo2")); END`,
+  it('produces a query to create a table with integer with references', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER REFERENCES "Bar" ("id")' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER REFERENCES "Bar" ("id"));',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER, FOREIGN KEY (`myColumn`) REFERENCES "Bar" ("id")) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));`,
+      'snowflake db2': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER REFERENCES "Bar" ("id")); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with an INTEGER and a VARCHAR attributes, both with comments', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([int] INTEGER COMMENT Foo Bar, [varchar] VARCHAR(50) UNIQUE COMMENT Bar Foo);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER COMMENT Foo Bar, `varchar` VARCHAR(50) UNIQUE COMMENT Bar Foo) ENGINE=InnoDB;',
-      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "varchar" VARCHAR(50) UNIQUE); COMMENT ON COLUMN "myTable"."int" IS 'Foo Bar'; COMMENT ON COLUMN "myTable"."varchar" IS 'Bar Foo';`,
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar',
-        @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [int]; EXEC sp_addextendedproperty @name = N'MS_Description',
-        @value = N'Bar Foo', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [varchar];`,
-      db2: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "varchar" VARCHAR(50) UNIQUE); -- 'Foo Bar', TableName = "myTable", ColumnName = "int"; -- 'Bar Foo', TableName = "myTable", ColumnName = "varchar";`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("int" INTEGER COMMENT Foo Bar, "varchar" VARCHAR(50) UNIQUE COMMENT Bar Foo); END`,
+  it('supports the engine option', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { engine: 'MyISAM' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=MyISAM;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
     });
   });
 
-  it('produces a CREATE TABLE query with an INTEGER and a VARCHAR attributes, both with comments, with a table name in tableName object', () => {
-    expectsql(queryGenerator.createTableQuery({ tableName: 'myTable' }, { int: 'INTEGER COMMENT Foo Bar', varchar: 'VARCHAR(50) UNIQUE COMMENT Bar Foo' }, {}), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([int] INTEGER COMMENT Foo Bar, [varchar] VARCHAR(50) UNIQUE COMMENT Bar Foo);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`int` INTEGER COMMENT Foo Bar, `varchar` VARCHAR(50) UNIQUE COMMENT Bar Foo) ENGINE=InnoDB;',
-      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "varchar" VARCHAR(50) UNIQUE); COMMENT ON COLUMN "myTable"."int" IS 'Foo Bar'; COMMENT ON COLUMN "myTable"."varchar" IS 'Bar Foo';`,
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE); EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar',
-        @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [int]; EXEC sp_addextendedproperty @name = N'MS_Description',
-        @value = N'Bar Foo', @level0type = N'Schema', @level0name = 'dbo', @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [varchar];`,
-      db2: `CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "varchar" VARCHAR(50) UNIQUE); -- 'Foo Bar', TableName = "myTable", ColumnName = "int"; -- 'Bar Foo', TableName = "myTable", ColumnName = "varchar";`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("int" INTEGER COMMENT Foo Bar, "varchar" VARCHAR(50) UNIQUE COMMENT Bar Foo); END`,
+  it('supports the charset option', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { charset: 'utf8mb4' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE) DEFAULT CHARSET=utf8mb4;',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+    });
+  });
+
+  it('supports the collate option', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { collate: 'en_US.UTF-8' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB COLLATE en_US.UTF-8;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE) COLLATE en_US.UTF-8;',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+    });
+  });
+
+  it('supports the rowFormat option', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { rowFormat: 'default' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB ROW_FORMAT=default;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+      snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE) ROW_FORMAT=default;',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+    });
+  });
+
+  it('supports the comment option', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { comment: 'Foo' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB COMMENT \'Foo\';',
+      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Foo';`,
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+      snowflake: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE) COMMENT 'Foo';`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+    });
+  });
+
+  it('supports the initialAutoIncrement option', () => {
+    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { initialAutoIncrement: 1_000_001 }), {
+      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
+      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+    });
+  });
+
+  describe('supports the uniqueKeys option', () => {
+    // TODO: Add (additional) test cases for options.uniqueKeys here
+
+    // --------------------------------------------------
+
+    // SQLITE does not respect the index name when the index is created through CREATE TABLE
+    // As such, Sequelize's createTable does not add the constraint in the Sequelize Dialect.
+    // Instead, `sequelize.sync` calls CREATE INDEX after the table has been created,
+    // as that query *does* respect the index name.
+
+    it('produces a CREATE TABLE query with two VARCHAR attributes with specified unique keys', () => {
+      expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'] }] }), {
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), UNIQUE `uniq_myTable_title_name` (`title`, `name`)) ENGINE=InnoDB;',
+        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), CONSTRAINT "my_table_title_name" UNIQUE ("title", "name"));',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), CONSTRAINT [my_table_title_name] UNIQUE ([title], [name]));`,
+        sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));',
+        snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), UNIQUE "uniq_myTable_title_name" ("title", "name"));',
+        db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255) NOT NULL, "name" VARCHAR(255) NOT NULL, CONSTRAINT "uniq_myTable_title_name" UNIQUE ("title", "name"));',
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), CONSTRAINT "uniq_myTable_title_name" UNIQUE ("title", "name")); END`,
+      });
+    });
+
+    it('produces a CREATE TABLE query with two VARCHAR attributes and a auto-incremented primary key INTEGER with specified unique contraints', () => {
+      expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'] } } }), {
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE `uniqueConstraint` (`name`, `surname`), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
+        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255), CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id"));',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] INTEGER AUTOINCREMENT, [name] VARCHAR(255), [surname] VARCHAR(255), CONSTRAINT [uniqueConstraint] UNIQUE ([name], [surname]), PRIMARY KEY ([id]));`,
+        sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255));',
+        snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255), UNIQUE "uniqueConstraint" ("name", "surname"), PRIMARY KEY ("id"));',
+        db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255) NOT NULL, "surname" VARCHAR(255) NOT NULL, CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id"));',
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255),
+          CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id")); END`,
+      });
     });
   });
 });
