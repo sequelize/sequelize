@@ -383,37 +383,80 @@ describe('QueryGenerator#createTableQuery', () => {
   });
 
   describe('supports the uniqueKeys option', () => {
-    // TODO: Add (additional) test cases for options.uniqueKeys here
-
-    // --------------------------------------------------
-
     // SQLITE does not respect the index name when the index is created through CREATE TABLE
     // As such, Sequelize's createTable does not add the constraint in the Sequelize Dialect.
     // Instead, `sequelize.sync` calls CREATE INDEX after the table has been created,
     // as that query *does* respect the index name.
 
-    it('produces a CREATE TABLE query with two VARCHAR attributes with specified unique keys', () => {
-      expectsql(queryGenerator.createTableQuery('myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'] }] }), {
-        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), UNIQUE `uniq_myTable_title_name` (`title`, `name`)) ENGINE=InnoDB;',
-        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), CONSTRAINT "my_table_title_name" UNIQUE ("title", "name"));',
-        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([title] VARCHAR(255), [name] VARCHAR(255), CONSTRAINT [my_table_title_name] UNIQUE ([title], [name]));`,
-        sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255));',
-        snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), UNIQUE "uniq_myTable_title_name" ("title", "name"));',
-        db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255) NOT NULL, "name" VARCHAR(255) NOT NULL, CONSTRAINT "uniq_myTable_title_name" UNIQUE ("title", "name"));',
-        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), CONSTRAINT "uniq_myTable_title_name" UNIQUE ("title", "name")); END`,
+    it('with an array', () => {
+      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
+        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, [secondColumn] TEXT);',
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
+        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"));',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]));`,
+        snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"));',
+        db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT NOT NULL, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn")); END`,
       });
     });
 
-    it('produces a CREATE TABLE query with two VARCHAR attributes and a auto-incremented primary key INTEGER with specified unique contraints', () => {
-      expectsql(queryGenerator.createTableQuery('myTable', { id: 'INTEGER PRIMARY KEY AUTOINCREMENT', name: 'VARCHAR(255)', surname: 'VARCHAR(255)' }, { uniqueKeys: { uniqueConstraint: { fields: ['name', 'surname'] } } }), {
-        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255), UNIQUE `uniqueConstraint` (`name`, `surname`), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
-        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255), CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id"));',
-        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([id] INTEGER AUTOINCREMENT, [name] VARCHAR(255), [surname] VARCHAR(255), CONSTRAINT [uniqueConstraint] UNIQUE ([name], [surname]), PRIMARY KEY ([id]));`,
-        sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `name` VARCHAR(255), `surname` VARCHAR(255));',
-        snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255), UNIQUE "uniqueConstraint" ("name", "surname"), PRIMARY KEY ("id"));',
-        db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255) NOT NULL, "surname" VARCHAR(255) NOT NULL, CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id"));',
-        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("id" INTEGER AUTOINCREMENT, "name" VARCHAR(255), "surname" VARCHAR(255),
-          CONSTRAINT "uniqueConstraint" UNIQUE ("name", "surname"), PRIMARY KEY ("id")); END`,
+    it('with an indexName', () => {
+      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }, { uniqueKeys: { myIndex: { fields: ['myColumn', 'secondColumn'] } } }), {
+        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, [secondColumn] TEXT);',
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `myIndex` (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
+        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn"));',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [myIndex] UNIQUE ([myColumn], [secondColumn]));`,
+        snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "myIndex" ("myColumn", "secondColumn"));',
+        db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT NOT NULL, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn"));',
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn")); END`,
+      });
+    });
+
+    it('with a single field', () => {
+      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { uniqueKeys: [{ fields: ['myColumn'] }] }), {
+        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, UNIQUE `uniq_myTable_myColumn` (`myColumn`)) ENGINE=InnoDB;',
+        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, CONSTRAINT "my_table_my_column" UNIQUE ("myColumn"));',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, CONSTRAINT [my_table_my_column] UNIQUE ([myColumn]));`,
+        snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, UNIQUE "uniq_myTable_myColumn" ("myColumn"));',
+        db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, CONSTRAINT "uniq_myTable_myColumn" UNIQUE ("myColumn"));',
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, CONSTRAINT "uniq_myTable_myColumn" UNIQUE ("myColumn")); END`,
+      });
+    });
+
+    it('with primary key fields', () => {
+      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY', secondColumn: 'TEXT PRIMARY KEY' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
+        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE NOT NULL, [secondColumn] TEXT NOT NULL, PRIMARY KEY ([myColumn], [secondColumn]));',
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`), PRIMARY KEY (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
+        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]), PRIMARY KEY ([myColumn], [secondColumn]));`,
+        snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
+        db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
+      });
+    });
+
+    it('with a non-null column', () => {
+      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE NOT NULL', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
+        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE NOT NULL, [secondColumn] TEXT);',
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
+        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"));',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE NOT NULL, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]));`,
+        snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"));',
+        db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT NOT NULL, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn")); END`,
+      });
+    });
+
+    it('with a primary key column with references', () => {
+      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY REFERENCES "Bar" ("id")', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
+        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE PRIMARY KEY REFERENCES "Bar" ("id"), [secondColumn] TEXT);',
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`), PRIMARY KEY (`myColumn`), FOREIGN KEY (`myColumn`) REFERENCES "Bar" ("id")) ENGINE=InnoDB;',
+        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"));',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]), PRIMARY KEY ([myColumn]), FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));`,
+        snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+        db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT NOT NULL, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn")); END`,
       });
     });
   });
