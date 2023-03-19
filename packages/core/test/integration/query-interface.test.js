@@ -132,7 +132,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('dropAllTables', () => {
     it('should drop all tables', async function () {
-
       // MSSQL includes `spt_values` table which is system defined, hence can't be dropped
       const showAllTablesIgnoringSpecialMSSQLTable = async () => {
         const tableNames = await this.queryInterface.showAllTables();
@@ -170,6 +169,55 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
 
       expect(tableNames).to.contain('skipme');
+    });
+
+    it('should be able to drop a foreign key', async function () {
+      // MSSQL includes `spt_values` table which is system defined, hence can't be dropped
+      const showAllTablesIgnoringSpecialMSSQLTable = async () => {
+        const tableNames = await this.queryInterface.showAllTables();
+
+        return tableNames.filter(t => t.tableName !== 'spt_values');
+      };
+
+      await this.queryInterface.dropAllTables();
+
+      expect(
+        await showAllTablesIgnoringSpecialMSSQLTable(),
+      ).to.be.empty;
+
+      await this.queryInterface.createTable('users', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+      });
+      await this.queryInterface.createTable('level', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+      });
+      await this.queryInterface.addColumn('users', 'level_id', {
+        type: DataTypes.INTEGER,
+        references: {
+          table: 'level',
+          key: 'id',
+        },
+        onUpdate: 'cascade',
+        onDelete: 'set null',
+      });
+
+      expect(
+        await showAllTablesIgnoringSpecialMSSQLTable(),
+      ).to.have.length(2);
+
+      await this.queryInterface.dropAllTables();
+
+      expect(
+        await showAllTablesIgnoringSpecialMSSQLTable(),
+      ).to.be.empty;
     });
   });
 

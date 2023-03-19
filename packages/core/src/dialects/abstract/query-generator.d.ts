@@ -11,7 +11,7 @@ import type {
   SearchPathable,
 } from '../../model.js';
 import type { DataType } from './data-types.js';
-import type { QueryGeneratorOptions } from './query-generator-typescript.js';
+import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
@@ -168,6 +168,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
   dropDatabaseQuery(databaseName: string): string;
   listDatabasesQuery(): string;
+
+  dropForeignKeyQuery(tableName: TableNameOrModel, foreignKey: string): string;
 
   /**
    * Creates a function that can be used to collect bind parameters.
