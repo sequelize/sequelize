@@ -1323,7 +1323,7 @@ export interface TimeOptions {
   /**
    * The precision of the date.
    */
-  precision?: string | number | undefined;
+  precision?: number | undefined;
 }
 
 /**
@@ -1377,7 +1377,7 @@ export interface DateOptions {
   /**
    * The precision of the date.
    */
-  precision?: string | number | undefined;
+  precision?: number | undefined;
 }
 
 type RawDate = Date | string | number;
