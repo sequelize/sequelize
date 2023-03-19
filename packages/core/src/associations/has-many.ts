@@ -313,6 +313,7 @@ export class HasMany<
     const where = {
       [Op.or]: targetInstances.map(instance => {
         if (instance instanceof this.target) {
+
           return (instance as T).where();
         }
 
@@ -474,6 +475,7 @@ export class HasMany<
       [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => {
         if (targetInstance instanceof this.target) {
           // @ts-expect-error -- TODO: what if the target has no primary key?
+
           return (targetInstance as T).get(this.target.primaryKeyAttribute);
         }
 
