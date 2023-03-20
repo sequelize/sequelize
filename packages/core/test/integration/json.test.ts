@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import semver from 'semver';
 import type { CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute } from '@sequelize/core';
 import { DataTypes, Model, Op, sql } from '@sequelize/core';
-import { Attribute, BelongsTo } from '@sequelize/core/decorators-legacy';
+import { Attribute, AutoIncrement, BelongsTo, PrimaryKey } from '@sequelize/core/decorators-legacy';
 import { beforeAll2, beforeEach2, inlineErrorCause, sequelize, setResetMode } from './support';
 
 const dialect = sequelize.dialect;
@@ -73,6 +73,9 @@ describe('JSON Querying', () => {
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+      @Attribute(DataTypes.INTEGER)
+      @PrimaryKey
+      @AutoIncrement
       declare id: CreationOptional<number>;
 
       @Attribute(DataTypes.JSON)
@@ -82,7 +85,12 @@ describe('JSON Querying', () => {
       declare stringJsonAttr: string;
     }
 
-    class Order extends Model<InferAttributes<Order>> {
+    class Order extends Model<InferAttributes<Order>, InferCreationAttributes<Order>> {
+      @Attribute(DataTypes.INTEGER)
+      @PrimaryKey
+      @AutoIncrement
+      declare id: CreationOptional<number>;
+
       @BelongsTo(User, 'userId')
       declare user: NonAttribute<User>;
 
@@ -357,6 +365,9 @@ describe('JSONB Querying', () => {
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+      @Attribute(DataTypes.INTEGER)
+      @PrimaryKey
+      @AutoIncrement
       declare id: CreationOptional<number>;
 
       @Attribute(DataTypes.JSONB)
@@ -366,7 +377,12 @@ describe('JSONB Querying', () => {
       declare stringJsonbAttr: CreationOptional<string>;
     }
 
-    class Order extends Model<InferAttributes<Order>> {
+    class Order extends Model<InferAttributes<Order>, InferCreationAttributes<Order>> {
+      @Attribute(DataTypes.INTEGER)
+      @PrimaryKey
+      @AutoIncrement
+      declare id: CreationOptional<number>;
+
       @BelongsTo(User, 'userId')
       declare user: NonAttribute<User>;
 

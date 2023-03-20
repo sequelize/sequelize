@@ -754,15 +754,14 @@ export type ProjectionAlias = readonly [
 ];
 
 export type FindAttributeOptions<TAttributes = any> =
-  | Array<string | ProjectionAlias | Literal>
-  | Array<Extract<keyof TAttributes, string>>
+  | Array<Extract<keyof TAttributes, string> | ProjectionAlias | Literal>
   | {
-    exclude: string[] | Array<Extract<keyof TAttributes, string>>,
-    include?: Array<string | ProjectionAlias> | Array<Extract<keyof TAttributes, string>>,
+    exclude: Array<Extract<keyof TAttributes, string>>,
+    include?: Array<Extract<keyof TAttributes, string> | ProjectionAlias>,
   }
   | {
-    exclude?: string[] | Array<Extract<keyof TAttributes, string>>,
-    include: Array<string | ProjectionAlias> | Array<Extract<keyof TAttributes, string>>,
+    exclude?: Array<Extract<keyof TAttributes, string>>,
+    include: Array<Extract<keyof TAttributes, string> | ProjectionAlias>,
   };
 
 export interface IndexHint {
