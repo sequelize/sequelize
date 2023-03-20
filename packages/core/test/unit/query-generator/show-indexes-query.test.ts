@@ -124,4 +124,15 @@ describe('QueryGenerator#showIndexesQuery', () => {
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
     });
   });
+
+  it('produces a SHOW INDEX query with schema and custom delimiter argument', () => {
+    // This test is only relevant for dialects that do not support schemas
+    if (dialect.supports.schemas) {
+      return;
+    }
+
+    expectsql(() => queryGenerator.showIndexesQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }), {
+      sqlite: 'PRAGMA INDEX_LIST(`mySchemacustommyTable`)',
+    });
+  });
 });

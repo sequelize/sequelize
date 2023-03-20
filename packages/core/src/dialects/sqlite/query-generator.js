@@ -304,15 +304,12 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     attributes = this.attributesToSQL(attributes);
 
-    let backupTableName;
-    if (typeof tableName === 'object') {
-      backupTableName = {
-        tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
-      };
-    } else {
-      backupTableName = `${tableName}_backup`;
-    }
+    const table = this.extractTableDetails(tableName);
+
+    const backupTableName = {
+      tableName: `${table.tableName}_backup`,
+      schema: table.schema,
+    };
 
     const quotedTableName = this.quoteTable(tableName);
     const quotedBackupTableName = this.quoteTable(backupTableName);

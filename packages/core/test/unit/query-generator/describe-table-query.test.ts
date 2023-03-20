@@ -382,7 +382,7 @@ describe('QueryGenerator#describeTableQuery', () => {
     });
   });
 
-  it('produces a query to describe a table with schema and custom schemaDelimiter argument', () => {
+  it('produces a query to describe a table with schema and custom delimiter argument', () => {
     // This test is only relevant for dialects that do not support schemas
     if (dialect.supports.schemas) {
       return;

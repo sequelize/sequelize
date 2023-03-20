@@ -11,7 +11,7 @@ import type {
   SearchPathable,
 } from '../../model.js';
 import type { DataType } from './data-types.js';
-import type { QueryGeneratorOptions } from './query-generator-typescript.js';
+import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
@@ -129,7 +129,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   ): string;
 
   removeColumnQuery(
-    table: TableName,
+    table: TableNameOrModel,
     attributeName: string,
     options?: RemoveColumnQueryOptions,
   ): string;
@@ -158,7 +158,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: ArithmeticQueryOptions,
   ): string;
 
-  dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
+  dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string;
+  renameTableQuery(before: TableNameOrModel, after: TableNameOrModel): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
@@ -168,6 +169,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
   dropDatabaseQuery(databaseName: string): string;
   listDatabasesQuery(): string;
+
+  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string): string;
+
+  versionQuery(): string;
 
   /**
    * Creates a function that can be used to collect bind parameters.

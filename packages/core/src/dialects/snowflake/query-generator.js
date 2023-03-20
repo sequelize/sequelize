@@ -17,9 +17,6 @@ const _ = require('lodash');
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { Op } = require('../../operators');
 
-const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
-const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[&|]?|\|{2}|#-)/i;
-const TOKEN_CAPTURE_REGEX = /^\s*((?:(["'`])(?:(?!\2).|\2{2})*\2)|[\s\w]+|[()+,.;-])/i;
 const FOREIGN_KEY_FIELDS = [
   'CONSTRAINT_NAME as constraint_name',
   'CONSTRAINT_NAME as constraintName',
@@ -197,10 +194,10 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  showTablesQuery(database, options) {
+  showTablesQuery(database) {
     return joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
+      database ? `AND TABLE_SCHEMA = ${this.escape(database)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
       ';',
     ]);
   }
