@@ -508,6 +508,10 @@ export class Sequelize extends SequelizeTypeScript {
     options.modelName = modelName;
     options.sequelize = this;
 
+    if (this.isDefined(modelName)) {
+      throw new Error(`${modelName} is already defined`);
+    }
+
     const model = class extends Model {};
 
     model.init(attributes, options);
