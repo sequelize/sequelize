@@ -311,7 +311,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const backupTableName = {
       tableName: `${table.tableName}_backup`,
       schema: table.schema,
-      delimiter: table.delimiter
+      delimiter: table.delimiter,
     };
 
     const quotedTableName = this.quoteTable(tableName);
