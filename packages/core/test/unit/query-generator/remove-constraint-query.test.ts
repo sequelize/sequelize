@@ -12,14 +12,14 @@ describe('QueryGenerator#removeConstraintQuery', () => {
   });
 
   it('generates a query that drops a column from a model', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expectsql(() => queryGenerator.removeConstraintQuery(MyModel, 'myConstraint'), {
-      default: 'ALTER TABLE [myModels] DROP CONSTRAINT [myConstraint]',
+      default: 'ALTER TABLE [MyModels] DROP CONSTRAINT [myConstraint]',
     });
   });
 
-  it('generates a query that drops a column with schems', () => {
+  it('generates a query that drops a column with schema', () => {
     expectsql(() => queryGenerator.removeConstraintQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myConstraint'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP CONSTRAINT [myConstraint]',
       sqlite: 'ALTER TABLE `mySchema.myTable` DROP CONSTRAINT `myConstraint`',

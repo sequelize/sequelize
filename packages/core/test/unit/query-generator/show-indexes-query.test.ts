@@ -29,27 +29,27 @@ describe('QueryGenerator#showIndexesQuery', () => {
   });
 
   it('produces a SHOW INDEX query from a model', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expectsql(() => queryGenerator.showIndexesQuery(MyModel), {
-      default: `SHOW INDEX FROM [myModels]`,
+      default: `SHOW INDEX FROM [MyModels]`,
       postgres: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey,
         array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
         AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
-        t.relkind = 'r' and t.relname = 'myModels' AND s.oid = t.relnamespace AND s.nspname = 'public'
+        t.relkind = 'r' and t.relname = 'MyModels' AND s.oid = t.relnamespace AND s.nspname = 'public'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
-      mssql: `EXEC sys.sp_helpindex @objname = N'[myModels]';`,
-      sqlite: 'PRAGMA INDEX_LIST(`myModels`)',
+      mssql: `EXEC sys.sp_helpindex @objname = N'[MyModels]';`,
+      sqlite: 'PRAGMA INDEX_LIST(`MyModels`)',
       snowflake: `SELECT '' FROM DUAL`,
-      db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'myModels' AND TBCREATOR = USER ORDER BY NAME;`,
+      db2: `SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES WHERE TBNAME = 'MyModels' AND TBCREATOR = USER ORDER BY NAME;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,
         QSYS2.SYSCST.TABLE_NAME from QSYS2.SYSCSTCOL left outer join QSYS2.SYSCST on QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA and
         QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME and QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME where
-        QSYS2.SYSCSTCOL.TABLE_SCHEMA = CURRENT SCHEMA and QSYS2.SYSCSTCOL.TABLE_NAME = 'myModels' union select QSYS2.SYSKEYS.INDEX_NAME AS NAME,
+        QSYS2.SYSCSTCOL.TABLE_SCHEMA = CURRENT SCHEMA and QSYS2.SYSCSTCOL.TABLE_NAME = 'MyModels' union select QSYS2.SYSKEYS.INDEX_NAME AS NAME,
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
-        and QSYS2.SYSINDEXES.TABLE_NAME = 'myModels'`,
+        and QSYS2.SYSINDEXES.TABLE_NAME = 'MyModels'`,
     });
   });
 

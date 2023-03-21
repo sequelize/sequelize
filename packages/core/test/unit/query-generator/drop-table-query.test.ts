@@ -22,11 +22,11 @@ describe('QueryGenerator#dropTableQuery', () => {
   });
 
   it('produces a query that drops a table from a model', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expectsql(() => queryGenerator.dropTableQuery(MyModel), {
-      default: `DROP TABLE IF EXISTS [myModels];`,
-      mssql: `IF OBJECT_ID('[myModels]', 'U') IS NOT NULL DROP TABLE [myModels];`,
+      default: `DROP TABLE IF EXISTS [MyModels];`,
+      mssql: `IF OBJECT_ID('[MyModels]', 'U') IS NOT NULL DROP TABLE [MyModels];`,
     });
   });
 

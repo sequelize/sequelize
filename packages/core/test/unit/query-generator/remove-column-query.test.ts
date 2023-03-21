@@ -4,8 +4,6 @@ import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '.
 const dialect = sequelize.dialect;
 const dialectName = getTestDialect();
 
-// TODO: add additional tests and type altered behaviour for sqlite
-
 describe('QueryGenerator#removeColumnQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 
@@ -26,16 +24,16 @@ describe('QueryGenerator#removeColumnQuery', () => {
   });
 
   it('generates a query that drops a column from a model', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expectsql(() => queryGenerator.removeColumnQuery(MyModel, 'myColumn'), {
-      default: 'ALTER TABLE [myModels] DROP COLUMN [myColumn];',
-      'mariadb mysql snowflake': 'ALTER TABLE [myModels] DROP [myColumn];',
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myModels_backup` (`0` m, `1` y, `2` C, `3` o, `4` l, `5` u, `6` m, `7` n);INSERT INTO `myModels_backup` SELECT `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7` FROM `myModels`;DROP TABLE `myModels`;ALTER TABLE `myModels_backup` RENAME TO `myModels`;',
+      default: 'ALTER TABLE [MyModels] DROP COLUMN [myColumn];',
+      'mariadb mysql snowflake': 'ALTER TABLE [MyModels] DROP [myColumn];',
+      sqlite: 'CREATE TABLE IF NOT EXISTS `MyModels_backup` (`0` m, `1` y, `2` C, `3` o, `4` l, `5` u, `6` m, `7` n);INSERT INTO `MyModels_backup` SELECT `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7` FROM `MyModels`;DROP TABLE `MyModels`;ALTER TABLE `MyModels_backup` RENAME TO `MyModels`;',
     });
   });
 
-  it('generates a query that drops a column with schems', () => {
+  it('generates a query that drops a column with schema', () => {
     expectsql(() => queryGenerator.removeColumnQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myColumn'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP COLUMN [myColumn];',
       'mariadb mysql snowflake': 'ALTER TABLE [mySchema].[myTable] DROP [myColumn];',
@@ -69,7 +67,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
     }
 
     expectsql(() => queryGenerator.removeColumnQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }, 'myColumn'), {
-      sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable_backup` (`0` m, `1` y, `2` C, `3` o, `4` l, `5` u, `6` m, `7` n);INSERT INTO `mySchema.myTable_backup` SELECT `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7` FROM `mySchemacustommyTable`;DROP TABLE `mySchemacustommyTable`;ALTER TABLE `mySchema.myTable_backup` RENAME TO `mySchemacustommyTable`;',
+      sqlite: 'CREATE TABLE IF NOT EXISTS `mySchemacustommyTable_backup` (`0` m, `1` y, `2` C, `3` o, `4` l, `5` u, `6` m, `7` n);INSERT INTO `mySchemacustommyTable_backup` SELECT `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7` FROM `mySchemacustommyTable`;DROP TABLE `mySchemacustommyTable`;ALTER TABLE `mySchemacustommyTable_backup` RENAME TO `mySchemacustommyTable`;',
     });
   });
 });
