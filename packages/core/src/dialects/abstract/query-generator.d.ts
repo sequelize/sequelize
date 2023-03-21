@@ -174,7 +174,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   createTableQuery(
     tableName: TableNameOrModel,
-    // TODO: rename attributes to columns in the implementation when migrating to TS
+    // TODO: rename attributes to columns and accept a map of attributes in the implementation when migrating to TS, see https://github.com/sequelize/sequelize/pull/15526/files#r1143840411
     columns: { [columnName: string]: string },
     // TODO: throw when using invalid options when migrating to TS
     options?: CreateTableQueryOptions

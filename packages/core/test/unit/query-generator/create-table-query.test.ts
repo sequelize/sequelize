@@ -19,13 +19,13 @@ describe('QueryGenerator#createTableQuery', () => {
   });
 
   it('produces a query to create a table from a model', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expectsql(queryGenerator.createTableQuery(MyModel, { myColumn: 'DATE' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myModels] ([myColumn] DATE);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myModels` (`myColumn` DATE) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myModels]', 'U') IS NULL CREATE TABLE [myModels] ([myColumn] DATE);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myModels" ("myColumn" DATE); END`,
+      default: 'CREATE TABLE IF NOT EXISTS [MyModels] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `MyModels` (`myColumn` DATE) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[MyModels]', 'U') IS NULL CREATE TABLE [MyModels] ([myColumn] DATE);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "MyModels" ("myColumn" DATE); END`,
     });
   });
 
