@@ -177,7 +177,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         Project.hasOne(Task);
-        Task.belongsTo(Project);
 
         await this.sequelize.sync({ force: true });
         this.Project = Project;
@@ -321,7 +320,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         Project.hasOne(Task);
-        Task.belongsTo(Project);
 
         await Project.sync({ force: true });
         await Task.sync({ force: true });

@@ -210,10 +210,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
 
       A.hasOne(B);
-      B.belongsTo(A);
-
       B.hasMany(C);
-      C.belongsTo(B);
 
       await this.sequelize
         .sync({ force: true });

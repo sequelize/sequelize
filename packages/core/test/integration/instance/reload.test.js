@@ -226,7 +226,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const Player = this.sequelize.define('Player', { name: DataTypes.STRING });
 
       Player.hasOne(Shoe);
-      Shoe.belongsTo(Player);
 
       await this.sequelize.sync({ force: true });
 

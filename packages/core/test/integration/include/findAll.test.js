@@ -178,19 +178,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const Capital = this.sequelize.define('Capital', {});
 
       User.hasOne(SubscriptionForm, { foreignKey: 'boundUser' });
-      SubscriptionForm.belongsTo(User, { foreignKey: 'boundUser' });
-
       SubscriptionForm.hasOne(Collection, { foreignKey: 'boundDesigner' });
-      Collection.belongsTo(SubscriptionForm, { foreignKey: 'boundDesigner' });
-
-      SubscriptionForm.belongsTo(Category, { foreignKey: 'boundCategory' });
       Category.hasMany(SubscriptionForm, { foreignKey: 'boundCategory' });
-
       Capital.hasMany(Category, { foreignKey: 'boundCapital' });
-      Category.belongsTo(Capital, { foreignKey: 'boundCapital' });
-
       Category.hasMany(SubCategory, { foreignKey: 'boundCategory' });
-      SubCategory.belongsTo(Category, { foreignKey: 'boundCategory' });
 
       await this.sequelize.sync({ force: true });
 
@@ -1728,12 +1719,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         },
       });
 
-      UserPerson.belongsTo(Person, {
-        foreignKey: {
-          allowNull: false,
-          onDelete: 'CASCADE',
-        },
-      });
       Person.hasOne(UserPerson, {
         foreignKey: {
           allowNull: false,
@@ -1741,13 +1726,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         },
       });
 
-      User.belongsTo(UserPerson, {
-        foreignKey: {
-          name: 'UserPersonId',
-          allowNull: false,
-          onDelete: 'CASCADE',
-        },
-      });
       UserPerson.hasOne(User, {
         foreignKey: {
           name: 'UserPersonId',
@@ -2081,9 +2059,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ShippingAddress.belongsTo(Customer);
 
       Customer.hasMany(Order);
-      Order.belongsTo(Customer);
-
-      Shipment.belongsTo(Order);
       Order.hasOne(Shipment);
 
       await this.sequelize.sync({ force: true });

@@ -1415,7 +1415,6 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         User.hasOne(Image);
-        Image.belongsTo(User);
 
         await this.sequelize.sync({ force: true });
 

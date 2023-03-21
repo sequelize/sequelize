@@ -300,7 +300,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               include: [{ model: Child }],
             });
 
-            Child.belongsTo(Parent);
             Parent.hasOne(Child);
 
             await this.sequelize.sync({ force: true });
@@ -360,7 +359,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           });
           const Parent = this.sequelize.define('Parent');
-          Child.belongsTo(Parent);
           Parent.hasOne(Child);
 
           await this.sequelize.sync({ force: true });
