@@ -14,12 +14,12 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
   });
 
   it('produces a query to drop a foreign key from a model', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expectsql(() => queryGenerator.dropForeignKeyQuery(MyModel, 'myColumnKey'), {
-      default: 'ALTER TABLE [myModels] DROP FOREIGN KEY [myColumnKey];',
-      postgres: 'ALTER TABLE "myModels" DROP CONSTRAINT "myColumnKey";',
-      mssql: 'ALTER TABLE [myModels] DROP [myColumnKey]',
+      default: 'ALTER TABLE [MyModels] DROP FOREIGN KEY [myColumnKey];',
+      postgres: 'ALTER TABLE "MyModels" DROP CONSTRAINT "myColumnKey";',
+      mssql: 'ALTER TABLE [MyModels] DROP [myColumnKey]',
     });
   });
 
