@@ -1,5 +1,7 @@
 'use strict';
 
+const util = require('node:util');
+
 const AbstractQuery = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('db2');
