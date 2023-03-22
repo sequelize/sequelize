@@ -50,6 +50,7 @@ AbstractDialect.prototype.supports = {
     ignoreDuplicates: '', /* dialect specific words for INSERT IGNORE or DO NOTHING */
     updateOnDuplicate: false, /* whether dialect supports ON DUPLICATE KEY UPDATE */
     onConflictDoNothing: '', /* dialect specific words for ON CONFLICT DO NOTHING */
+    onConflictWhere: false, /* whether dialect supports ON CONFLICT WHERE */
     conflictFields: false /* whether the dialect supports specifying conflict fields or not */
   },
   constraints: {

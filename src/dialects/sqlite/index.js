@@ -35,7 +35,8 @@ SqliteDialect.prototype.supports = _.merge(
     inserts: {
       ignoreDuplicates: ' OR IGNORE',
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
-      conflictFields: true
+      conflictFields: true,
+      onConflictWhere: true
     },
     index: {
       using: false,

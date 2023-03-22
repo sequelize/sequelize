@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
             oracle: 'INSERT INTO "users" ("user_name") VALUES (:1) RETURNING "id","user_name" INTO :2,:3;',
-            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'            
+            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
           },
           bind: ['triggertest']
         });
@@ -63,6 +63,70 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
     });
   });
+
+  it(
+    current.dialect.supports.inserts.onConflictWhere
+      ? 'adds conflictWhere clause to generated queries'
+      : 'throws error if conflictWhere is provided',
+    () => {
+      const User = Support.sequelize.define(
+        'user',
+        {
+          username: {
+            type: DataTypes.STRING,
+            field: 'user_name',
+            primaryKey: true
+          },
+          password: {
+            type: DataTypes.STRING,
+            field: 'pass_word'
+          },
+          createdAt: {
+            type: DataTypes.DATE,
+            field: 'created_at'
+          },
+          updatedAt: {
+            type: DataTypes.DATE,
+            field: 'updated_at'
+          }
+        },
+        {
+          timestamps: true
+        }
+      );
+
+      const upsertKeys = ['user_name'];
+
+      let result;
+
+      try {
+        result = sql.insertQuery(
+          User.tableName,
+          { user_name: 'testuser', pass_word: '12345' },
+          User.fieldRawAttributesMap,
+          {
+            updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+            conflictWhere: {
+              user_name: 'test where value'
+            },
+            upsertKeys
+          }
+        );
+      } catch (error) {
+        result = error;
+      }
+
+      expectsql(result, {
+        default: new Error(
+          'missing dialect support for conflictWhere option'
+        ),
+        postgres:
+          'INSERT INTO "users" ("user_name","pass_word") VALUES ($1,$2) ON CONFLICT ("user_name") WHERE "user_name" = \'test where value\' DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
+        sqlite:
+          'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($1,$2) ON CONFLICT (`user_name`) WHERE `user_name` = \'test where value\' DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;'
+      });
+    }
+  );
 
   describe('dates', () => {
     it('formats the date correctly when inserting', () => {
