@@ -1759,6 +1759,14 @@ class Model {
     tableNames[this.getTableName(options)] = true;
     options = Utils.cloneDeep(options);
 
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     _.defaults(options, { hooks: true });
 
     // set rejectOnEmpty option, defaults to model options
@@ -1965,6 +1973,14 @@ class Model {
     }
     options = Utils.cloneDeep(options);
 
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     if (options.limit === undefined) {
       const uniqueSingleColumns = _.chain(this.uniqueKeys).values().filter(c => c.fields.length === 1).map('column').value();
 
@@ -2075,6 +2091,15 @@ class Model {
   static async count(options) {
     options = Utils.cloneDeep(options);
     options = _.defaults(options, { hooks: true });
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     options.raw = true;
     if (options.hooks) {
       await this.runHooks('beforeCount', options);
@@ -2521,6 +2546,14 @@ class Model {
       ...Utils.cloneDeep(options)
     };
 
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     const createdAtAttr = this._timestampAttributes.createdAt;
     const updatedAtAttr = this._timestampAttributes.updatedAt;
     const hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
@@ -2615,6 +2648,14 @@ class Model {
     const dialect = this.sequelize.options.dialect;
     const now = Utils.now(this.sequelize.options.dialect);
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
 
     options.model = this;
 
@@ -2972,6 +3013,14 @@ class Model {
   static async destroy(options) {
     options = Utils.cloneDeep(options);
 
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     this._injectScope(options);
 
     if (!options || !(options.where || options.truncate)) {
@@ -3062,6 +3111,14 @@ class Model {
       ...options
     };
 
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     options.type = QueryTypes.RAW;
     options.model = this;
 
@@ -3126,6 +3183,14 @@ class Model {
    */
   static async update(values, options) {
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
 
     this._injectScope(options);
     this._optionsMustContainWhere(options);
@@ -3917,6 +3982,15 @@ class Model {
     }
 
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     options = _.defaults(options, {
       hooks: true,
       validate: true
@@ -4237,6 +4311,15 @@ class Model {
     if (Array.isArray(options)) options = { fields: options };
 
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     const setOptions = Utils.cloneDeep(options);
     setOptions.attributes = options.fields;
     this.set(values, setOptions);
@@ -4270,6 +4353,14 @@ class Model {
       force: false,
       ...options
     };
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
 
     // Run before hook
     if (options.hooks) {
@@ -4339,6 +4430,14 @@ class Model {
       force: false,
       ...options
     };
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
 
     // Run before hook
     if (options.hooks) {
