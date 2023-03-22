@@ -2360,7 +2360,10 @@ https://github.com/sequelize/sequelize/discussions/15694`);
       if (Array.isArray(smth.col) && !factory) {
         throw new Error('Cannot call Sequelize.col() with array outside of order / group clause');
       }
-      if (smth.col.startsWith.?('*')) {
+      if (smth.col instanceof Utils.Literal) {
+        return smth.col.val;
+      }
+      if (smth.col.startsWith('*')) {
         return '*';
       }
       return this.quote(smth.col, factory);
