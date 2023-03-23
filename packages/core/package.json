@@ -106,7 +106,7 @@
     "rimraf": "4.4.1",
     "sinon": "15.0.2",
     "sinon-chai": "3.7.0",
-    "snowflake-sdk": "1.6.19",
+    "snowflake-sdk": "1.6.20",
     "sqlite3": "5.1.6",
     "tedious": "15.1.3"
   },
