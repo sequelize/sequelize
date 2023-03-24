@@ -537,6 +537,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targetInstancesOrPks.map(instance => {
       if (instance instanceof this.target) {
+
         return (instance as TargetModel).get(this.targetKey);
       }
 

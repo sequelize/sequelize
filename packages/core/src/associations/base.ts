@@ -216,6 +216,7 @@ export abstract class MultiAssociation<
 
     return input.map(element => {
       if (element instanceof this.target) {
+
         return element as T;
       }
 
