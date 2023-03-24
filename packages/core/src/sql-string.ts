@@ -41,7 +41,7 @@ export function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): 
       }
 
       if (val instanceof Date) {
-        return new DataTypes.DATE().toDialectDataType(dialect);
+        return new DataTypes.DATE(3).toDialectDataType(dialect);
       }
 
       if (Buffer.isBuffer(val)) {

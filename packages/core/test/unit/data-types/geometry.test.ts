@@ -32,6 +32,7 @@ describe('GEOMETRY', () => {
   testDataTypeSql(`GEOMETRY('POINT',4326)`, DataTypes.GEOMETRY(GeoJsonType.Point, 4326), {
     default: unsupportedError,
     postgres: 'GEOMETRY(POINT,4326)',
-    'mysql mariadb': 'POINT',
+    mysql: 'POINT /*!80003 SRID 4326 */',
+    mariadb: 'POINT REF_SYSTEM_ID=4326',
   });
 });
