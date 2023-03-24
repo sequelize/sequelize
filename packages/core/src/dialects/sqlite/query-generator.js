@@ -216,7 +216,8 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);
+
     for (const name in attributes) {
       const attribute = attributes[name];
       const columnName = attribute.field || attribute.columnName || name;

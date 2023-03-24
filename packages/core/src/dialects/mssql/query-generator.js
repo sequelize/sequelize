@@ -690,7 +690,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);
     const existingConstraints = [];
 
     for (const key of Object.keys(attributes)) {

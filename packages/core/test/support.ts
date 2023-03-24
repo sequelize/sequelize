@@ -49,7 +49,7 @@ function withInlineCause(cb: (() => any)): () => void {
 
 export function inlineErrorCause(error: unknown): string {
   if (!(error instanceof Error)) {
-    return String(error);
+    return inspect(error);
   }
 
   let message = error.message;

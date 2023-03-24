@@ -496,7 +496,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attribute.type?.toString({ escape: this.escape.bind(this), dialect: this.dialect });
+    const attributeString = attribute.type.toString({ escape: this.escape.bind(this), dialect: this.dialect });
     let template = attributeString;
 
     if (attribute.type instanceof DataTypes.ENUM) {
@@ -587,7 +587,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);
 
     for (const key of Object.keys(attributes)) {
       const attribute = {
