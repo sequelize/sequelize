@@ -105,7 +105,8 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
             const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
             commentStr += _.template(commentTemplate, this._templateSettings)({
               table: this.quoteTable(tableName),
-              comment: this.escape(commentText),
+              // escaping is done by attributeToSQL
+              comment: commentText,
               column: this.quoteIdentifier(attr),
             });
             // remove comment related substring from dataType
@@ -684,7 +685,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     if (attribute.comment && typeof attribute.comment === 'string') {
-      template += ` COMMENT ${attribute.comment}`;
+      template += ` COMMENT ${this.escape(attribute.comment)}`;
     }
 
     return template;

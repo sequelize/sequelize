@@ -88,9 +88,8 @@ describe('QueryGenerator#attributesToSQL', () => {
 
   it('Add column level comment', () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'INTEGER', comment: 'Test' } }), {
-      default: { id: 'INTEGER COMMENT Test' },
-      'mariadb mysql snowflake': { id: `INTEGER COMMENT 'Test'` },
-      mssql: { id: 'INTEGER NULL COMMENT Test' },
+      default: { id: `INTEGER COMMENT 'Test'` },
+      mssql: { id: `INTEGER NULL COMMENT N'Test'` },
       'sqlite ibmi': { id: 'INTEGER' },
     });
   });
@@ -104,19 +103,17 @@ describe('QueryGenerator#attributesToSQL', () => {
 
   it(`{ id: { type: 'INTEGER', unique: true, comment: 'This is my comment' } }`, () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'INTEGER', unique: true, comment: 'This is my comment' } }), {
-      default: { id: 'INTEGER UNIQUE COMMENT This is my comment' },
-      'mariadb mysql snowflake': { id: `INTEGER UNIQUE COMMENT 'This is my comment'` },
-      mssql: { id: 'INTEGER NULL UNIQUE COMMENT This is my comment' },
+      default: { id: `INTEGER UNIQUE COMMENT 'This is my comment'` },
+      mssql: { id: `INTEGER NULL UNIQUE COMMENT N'This is my comment'` },
       'sqlite ibmi': { id: 'INTEGER UNIQUE' },
     });
   });
 
   it(`{ id: { type: 'INTEGER', unique: true, comment: 'This is my comment' } }, { context: 'addColumn', key: 'column', table: { schema: 'foo', tableName: 'bar' } }`, () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'INTEGER', unique: true, comment: 'This is my comment' } }, { context: 'addColumn', key: 'column', table: { schema: 'foo', tableName: 'bar' } }), {
-      default: { id: 'INTEGER UNIQUE COMMENT This is my comment' },
-      'mariadb mysql snowflake': { id: `INTEGER UNIQUE COMMENT 'This is my comment'` },
+      default: { id: `INTEGER UNIQUE COMMENT 'This is my comment'` },
       postgres: { id: `INTEGER UNIQUE; COMMENT ON COLUMN "foo"."bar"."column" IS 'This is my comment'` },
-      mssql: { id: 'INTEGER NULL UNIQUE COMMENT This is my comment' },
+      mssql: { id: `INTEGER NULL UNIQUE COMMENT N'This is my comment'` },
       'sqlite ibmi': { id: 'INTEGER UNIQUE' },
     });
   });

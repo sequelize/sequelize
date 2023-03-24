@@ -287,7 +287,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     let commentStr = '';
 
     if (dataType.comment && _.isString(dataType.comment)) {
-      commentStr = this.commentTemplate(dataType.comment, table, key);
+      commentStr = this.commentTemplate(this.escape(dataType.comment), table, key);
       // attributeToSQL will try to include `COMMENT 'Comment Text'` when it returns if the comment key
       // is present. This is needed for createTable statement where that part is extracted with regex.
       // Here we can intercept the object and remove comment property since we have the original object.
@@ -307,7 +307,8 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   commentTemplate(comment, table, column) {
     return ' EXEC sp_addextendedproperty '
-        + `@name = N'MS_Description', @value = ${this.escape(comment)}, `
+        // escaping is done by attributeToSQL and addColumnQuery
+        + `@name = N'MS_Description', @value = ${comment}, `
         + '@level0type = N\'Schema\', @level0name = \'dbo\', '
         + `@level1type = N'Table', @level1name = ${this.quoteTable(table)}, `
         + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
@@ -683,7 +684,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     if (attribute.comment && typeof attribute.comment === 'string') {
-      template += ` COMMENT ${attribute.comment}`;
+      template += ` COMMENT ${this.escape(attribute.comment)}`;
     }
 
     return template;

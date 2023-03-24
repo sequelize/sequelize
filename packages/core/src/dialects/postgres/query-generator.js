@@ -111,9 +111,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       const quotedAttr = this.quoteIdentifier(attr);
       const i = attributes[attr].indexOf('COMMENT ');
       if (i !== -1) {
-        // Move comment to a separate query
-        const escapedCommentText = this.escape(attributes[attr].slice(Math.max(0, i + 8)));
-        columnComments += `; COMMENT ON COLUMN ${quotedTable}.${quotedAttr} IS ${escapedCommentText}`;
+        // escaping is done in attributeToSQL
+        columnComments += `; COMMENT ON COLUMN ${quotedTable}.${quotedAttr} IS ${attributes[attr].slice(Math.max(0, i + 8))}`;
         attributes[attr] = attributes[attr].slice(0, Math.max(0, i));
       }
 
@@ -454,7 +453,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       } else {
         // for createTable event which does it's own parsing
         // TODO: centralize creation of comment statements here
-        sql += ` COMMENT ${attribute.comment}`;
+        sql += ` COMMENT ${this.escape(attribute.comment)}`;
       }
     }
 
