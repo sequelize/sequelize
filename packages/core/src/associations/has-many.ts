@@ -318,6 +318,7 @@ export class HasMany<
       [Op.or]: targetInstances.map(instance => {
         if (instance instanceof this.target) {
 
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
           return (instance as T).where();
         }
 
@@ -476,7 +477,7 @@ export class HasMany<
       [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => {
         if (targetInstance instanceof this.target) {
           // @ts-expect-error -- TODO: what if the target has no primary key?
-
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
           return (targetInstance as T).get(this.target.primaryKeyAttribute);
         }
 
