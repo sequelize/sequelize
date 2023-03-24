@@ -190,6 +190,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   dropDatabaseQuery(databaseName: string): string;
   listDatabasesQuery(): string;
 
+  dropForeignKeyQuery(tableName: TableNameOrModel, foreignKey: string): string;
+
   /**
    * Creates a function that can be used to collect bind parameters.
    *

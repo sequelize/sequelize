@@ -143,7 +143,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         const User = timezoneSequelize.define('user', {
           date: {
-            type: DataTypes.DATE,
+            type: DataTypes.DATE(3),
           },
         }, {
           timestamps: false,
@@ -170,7 +170,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     it('formats the date correctly when inserting', () => {
       const User = current.define('user', {
         date: {
-          type: DataTypes.DATE,
+          type: DataTypes.DATE(3),
         },
       }, {
         timestamps: false,
