@@ -11,26 +11,26 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
-import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
+import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
 import type {
   IndexOptions,
   TableName,
   TableNameWithSchema,
   IndexField,
 } from './dialects/abstract/query-interface';
+import type {
+  DynamicSqlExpression,
+} from './expression-builders/base-sql-expression.js';
+import type { Cast } from './expression-builders/cast.js';
+import type { Col } from './expression-builders/col.js';
+import type { Fn } from './expression-builders/fn.js';
+import type { Literal } from './expression-builders/literal.js';
+import type { Where } from './expression-builders/where.js';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
 import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
-import type {
-  Cast,
-  Col,
-  Fn,
-  Json,
-  Literal,
-  Where,
-} from './utils/sequelize-method.js';
 import type {
   AllowArray,
   AllowReadonlyArray,
@@ -39,7 +39,7 @@ import type {
   Nullish,
   OmitConstructors, RequiredBy,
 } from './utils/types.js';
-import type { LOCK, Op, Transaction, TableHints } from './index';
+import type { LOCK, Op, Transaction, TableHints, WhereOptions } from './index';
 
 export interface Logging {
   /**
@@ -168,59 +168,12 @@ export interface ScopeOptions {
 
 type InvalidInSqlArray = ColumnReference | Fn | Cast | null | Literal;
 
-/**
- * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
- * It also supports using a plain Array as an alias for `Op.and`. (unlike {@link AllowNotOrAndRecursive}).
- *
- * Example of plain-array treated as `Op.and`:
- * ```ts
- * User.findAll({ where: [{ id: 1 }, { id: 2 }] });
- * ```
- *
- * Meant to be used by {@link WhereOptions}.
- */
-type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
-  // this is the equivalent of Op.and
-  | T
-  | { [Op.or]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
-  | { [Op.and]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
-  | { [Op.not]: AllowNotOrAndWithImplicitAndArrayRecursive<T> }
-  >;
-
-/**
- * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
- * Unlike {@link AllowNotOrAndWithImplicitAndArrayRecursive}, it does not allow the 'implicit AND Array'.
- *
- * Example of plain-array NOT treated as Op.and:
- * ```ts
- * User.findAll({ where: { id: [1, 2] } });
- * ```
- *
- * Meant to be used by {@link WhereAttributeHashValue}.
- */
-type AllowNotOrAndRecursive<T> =
-  | T
-  | { [Op.or]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.and]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.not]: AllowNotOrAndRecursive<T> };
-
 type AllowAnyAll<T> =
   | T
   // Op.all: [x, z] results in ALL (ARRAY[x, z])
   // Some things cannot go in ARRAY. Op.values must be used to support them.
   | { [Op.all]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } }
   | { [Op.any]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } };
-
-/**
- * The type accepted by every `where` option
- */
-export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayRecursive<
-  | WhereAttributeHash<TAttributes>
-  | Literal
-  | Fn
-  | Where
-  | Json
->;
 
 // number is always allowed because -Infinity & +Infinity are valid
 /**
@@ -330,11 +283,8 @@ export interface WhereOperators<AttributeType = any> {
    */
   [Op.is]?: Extract<AttributeType, null | boolean> | Literal;
 
-  /**
-   * @example `[Op.not]: true` becomes `IS NOT TRUE`
-   * @example `{ col: { [Op.not]: { [Op.gt]: 5 } } }` becomes `NOT (col > 5)`
-   */
-  [Op.not]?: WhereOperators<AttributeType>[typeof Op.eq]; // accepts the same types as Op.eq ('Op.not' is not strictly the opposite of 'Op.is' due to legacy reasons)
+  /** Example: `[Op.isNot]: null,` becomes `IS NOT NULL` */
+  [Op.isNot]?: WhereOperators<AttributeType>[typeof Op.is]; // accepts the same types as Op.is
 
   /** @example `[Op.gte]: 6` becomes `>= 6` */
   [Op.gte]?: AllowAnyAll<OperatorValues<NonNullable<AttributeType>>>;
@@ -628,52 +578,6 @@ export interface WhereGeometryOptions {
 }
 
 /**
- * A hash of attributes to describe your search.
- *
- * Possible key values:
- *
- * - An attribute name: `{ id: 1 }`
- * - A nested attribute: `{ '$projects.id$': 1 }`
- * - A JSON key: `{ 'object.key': 1 }`
- * - A cast: `{ 'id::integer': 1 }`
- *
- * - A combination of the above: `{ '$join.attribute$.json.path::integer': 1 }`
- */
-export type WhereAttributeHash<TAttributes = any> = {
-  // support 'attribute' & '$attribute$'
-  [AttributeName in keyof TAttributes as AttributeName extends string ? AttributeName | `$${AttributeName}$` : never]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
-} & {
-  [AttributeName in keyof TAttributes as AttributeName extends string ?
-    // support 'json.path', '$json$.path'
-    | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`
-    // support 'attribute::cast', '$attribute$::cast', 'json.path::cast' & '$json$.path::cast'
-    | `${AttributeName | `$${AttributeName}$` | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`}::${string}`
-  : never]?: WhereAttributeHashValue<any>;
-} & {
-  // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast'
-  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>,
-};
-
-/**
- * Types that can be compared to an attribute in a WHERE context.
- */
-export type WhereAttributeHashValue<AttributeType> =
-  | AllowNotOrAndRecursive<
-    // if the right-hand side is an array, it will be equal to Op.in
-    // otherwise it will be equal to Op.eq
-    // Exception: array attribtues always use Op.eq, never Op.in.
-    | AttributeType extends any[]
-      ? WhereOperators<AttributeType>[typeof Op.eq] | WhereOperators<AttributeType>
-      : (
-        | WhereOperators<AttributeType>[typeof Op.in]
-        | WhereOperators<AttributeType>[typeof Op.eq]
-        | WhereOperators<AttributeType>
-      )
-    >
-  // TODO: this needs a simplified version just for JSON columns
-  | WhereAttributeHash<any>; // for JSON columns
-
-/**
  * Through options for Include Options
  */
 export interface IncludeThroughOptions extends Filterable<any>, Projectable {
@@ -836,7 +740,10 @@ export type Order = Fn | Col | Literal | OrderItem[];
  * Please note if this is used the aliased property will not be available on the model instance
  * as a property but only via `instance.get('alias')`.
  */
-export type ProjectionAlias = readonly [string | Literal | Fn | Col | Cast, string];
+export type ProjectionAlias = readonly [
+  expressionOrAttributeName: string | DynamicSqlExpression,
+  alias: string,
+];
 
 export type FindAttributeOptions =
   | Array<string | ProjectionAlias | Literal>
@@ -955,6 +862,12 @@ export interface FindOptions<TAttributes = any>
    * Return raw result. See {@link Sequelize#query} for more information.
    */
   raw?: boolean;
+
+  /**
+   * Controls whether aliases are minified in this query.
+   * This overrides the global option
+   */
+  minifyAliases?: boolean;
 
   /**
    * Select group rows after groups and aggregates are computed.
@@ -1207,6 +1120,12 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    */
   returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
+  /**
+   * An optional parameter to specify a where clause for partial unique indexes
+   * (note: `ON CONFLICT WHERE` not `ON CONFLICT DO UPDATE WHERE`).
+   * Only supported in Postgres >= 9.5 and sqlite >= 9.5
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
   /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
@@ -1866,7 +1785,7 @@ export interface NormalizedAttributeOptions<M extends Model = Model> extends Rea
   /**
    * Like {@link AttributeOptions.type}, but normalized.
    */
-  readonly type: string | AbstractDataType<any>;
+  readonly type: NormalizedDataType;
   readonly references?: NormalizedAttributeReferencesOptions;
 }
 
@@ -1879,11 +1798,6 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
    */
   [name in keyof TAttributes]: DataType | AttributeOptions<M>;
 };
-
-/**
- * Possible types for primary keys
- */
-export type Identifier = number | bigint | string | Buffer;
 
 /**
  * Options for model definition.
@@ -2314,7 +2228,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withScope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
   ): ModelStatic<M>;
 
   /**
@@ -2323,7 +2237,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
   ): ModelStatic<M>;
 
   /**
@@ -2411,22 +2325,22 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: FindByPkOptions<M> & { raw: true, rejectOnEmpty?: false }
   ): Promise<R | null>;
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M> & { raw: true }
   ): Promise<R>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M>
   ): Promise<M>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier?: Identifier,
+    identifier: unknown,
     options?: FindByPkOptions<M>
   ): Promise<M | null>;
 

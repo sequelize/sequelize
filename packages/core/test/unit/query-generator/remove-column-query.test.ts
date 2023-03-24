@@ -13,7 +13,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
   }, { timestamps: false });
 
   it('generates a DROP COLUMN query in supported dialects', () => {
-    expectsql(() => queryGenerator.removeColumnQuery(User.tableName, 'age'), {
+    expectsql(() => queryGenerator.removeColumnQuery(User.table, 'age'), {
       default: `ALTER TABLE [Users] DROP COLUMN [age];`,
       postgres: `ALTER TABLE "Users" DROP COLUMN "age";`,
       snowflake: `ALTER TABLE "Users" DROP "age";`,
@@ -23,7 +23,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
   });
 
   it('generates a DROP COLUMN IF EXISTS query in supported dialects', () => {
-    expectsql(() => queryGenerator.removeColumnQuery(User.tableName, 'age', { ifExists: true }), {
+    expectsql(() => queryGenerator.removeColumnQuery(User.table, 'age', { ifExists: true }), {
       default: buildInvalidOptionReceivedError('removeColumnQuery', dialectName, ['ifExists']),
       mariadb: 'ALTER TABLE `Users` DROP IF EXISTS `age`;',
       mssql: 'ALTER TABLE [Users] DROP COLUMN IF EXISTS [age];',
