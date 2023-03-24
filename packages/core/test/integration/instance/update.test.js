@@ -365,6 +365,26 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user0.username).to.equal('user');
     });
 
+    // NOTE: This is a regression test for https://github.com/sequelize/sequelize/issues/12717
+    it('updates attributes for model with date pk (#12717)', async function () {
+      const Event = this.sequelize.define('Event', {
+        date: { type: DataTypes.DATE, allowNull: false, primaryKey: true },
+        name: { type: DataTypes.STRING },
+      });
+
+      await Event.sync({ force: true });
+      const event = await Event.create({
+        date: new Date(),
+        name: 'event',
+      });
+
+      expect(event.name).to.equal('event');
+      await event.update({ name: 'event updated' });
+
+      const event0 = await Event.findOne({ where: { date: event.date } });
+      expect(event0.name).to.equal('event updated');
+    });
+
     it('doesn\'t update primary keys or timestamps', async function () {
       const User = this.sequelize.define(`User${Support.rand()}`, {
         name: DataTypes.STRING,
