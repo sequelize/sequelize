@@ -231,6 +231,13 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     return "SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';";
   }
 
+  tableExistsQuery(table) {
+    const tableName = table.tableName || table;
+    const schemaName = table.schema || 'dbo';
+
+    return `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(tableName)} AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
+  }
+
   dropTableQuery(tableName) {
     const quoteTbl = this.quoteTable(tableName);
     return Utils.joinSQLFragments([
@@ -557,7 +564,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     return `DROP INDEX ${this.quoteIdentifiers(indexName)} ON ${this.quoteIdentifiers(tableName)}`;
   }
 
-  attributeToSQL(attribute) {
+  attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute
@@ -613,7 +620,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       template += ' PRIMARY KEY';
     }
 
-    if (attribute.references) {
+    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       template += ` REFERENCES ${this.quoteTable(attribute.references.model)}`;
 
       if (attribute.references.key) {
@@ -969,12 +976,39 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
       // TODO: document why this is adding the primary key of the model in ORDER BY
       //  if options.include is set
       if (!options.order || options.order.length === 0 || options.include && orders.subQueryOrder.length === 0) {
-        const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(model.primaryKeyField)}`;
+        let primaryKey = model.primaryKeyField;
+
+        const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(primaryKey)}`;
+        const aliasedAttribute = (options.attributes || []).find(attr => Array.isArray(attr)
+            && attr[1]
+            && (attr[0] === primaryKey || attr[1] === primaryKey));
+
+        if (aliasedAttribute) {
+          const modelName = this.quoteIdentifier(options.tableAs || model.name);
+          const alias = this._getAliasForField(modelName, aliasedAttribute[1], options);
+
+          primaryKey = new Utils.Col(alias || aliasedAttribute[1]);
+        }
+
         if (!options.order || !options.order.length) {
           fragment += ` ORDER BY ${tablePkFragment}`;
         } else {
-          const orderFieldNames = _.map(options.order, order => order[0]);
-          const primaryKeyFieldAlreadyPresent = _.includes(orderFieldNames, model.primaryKeyField);
+          const orderFieldNames = (options.order || []).map(order => {
+            const value = Array.isArray(order) ? order[0] : order;
+
+            if (value instanceof Utils.Col) {
+              return value.col;
+            }
+
+            if (value instanceof Utils.Literal) {
+              return value.val;
+            }
+
+            return value;
+          });
+          const primaryKeyFieldAlreadyPresent = orderFieldNames.some(
+            fieldName => fieldName === (primaryKey.col || primaryKey)
+          );
 
           if (!primaryKeyFieldAlreadyPresent) {
             fragment += options.order && !isSubQuery ? ', ' : ' ORDER BY ';

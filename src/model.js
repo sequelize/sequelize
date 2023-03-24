@@ -824,10 +824,16 @@ class Model {
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
       return _.union(objValue, srcValue);
     }
+
     if (['where', 'having'].includes(key)) {
+      if (this.options && this.options.whereMergeStrategy === 'and') {
+        return combineWheresWithAnd(objValue, srcValue);
+      }
+
       if (srcValue instanceof Utils.SequelizeMethod) {
         srcValue = { [Op.and]: srcValue };
       }
+
       if (_.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
         return Object.assign(objValue, srcValue);
       }
@@ -848,7 +854,7 @@ class Model {
   }
 
   static _assignOptions(...args) {
-    return this._baseMerge(...args, this._mergeFunction);
+    return this._baseMerge(...args, this._mergeFunction.bind(this));
   }
 
   static _defaultsOptions(target, opts) {
@@ -945,6 +951,7 @@ class Model {
    * @param {string}                  [options.initialAutoIncrement] Set the initial AUTO_INCREMENT value for the table in MySQL.
    * @param {object}                  [options.hooks] An object of hook function that are called before and after certain lifecycle events. The possible hooks are: beforeValidate, afterValidate, validationFailed, beforeBulkCreate, beforeBulkDestroy, beforeBulkUpdate, beforeCreate, beforeDestroy, beforeUpdate, afterCreate, beforeSave, afterDestroy, afterUpdate, afterBulkCreate, afterSave, afterBulkDestroy and afterBulkUpdate. See Hooks for more information about hook functions and their signatures. Each property can either be a function, or an array of functions.
    * @param {object}                  [options.validate] An object of model wide validations. Validations have access to all model values via `this`. If the validator function takes an argument, it is assumed to be async, and is called with a callback that accepts an optional error.
+   * @param {'and'|'overwrite'}       [options.whereMergeStrategy] Specify the scopes merging strategy (default 'overwrite'). 'and' strategy will merge `where` properties of scopes together by adding `Op.and` at the top-most level. 'overwrite' strategy will overwrite similar attributes using the lastly defined one.
    *
    * @returns {Model}
    */
@@ -993,6 +1000,7 @@ class Model {
       defaultScope: {},
       scopes: {},
       indexes: [],
+      whereMergeStrategy: 'overwrite',
       ...options
     };
 
@@ -1025,6 +1033,11 @@ class Model {
         throw new Error(`Members of the validate option must be functions. Model: ${this.name}, error with validate member ${validatorType}`);
       }
     });
+
+    if (!_.includes(['and', 'overwrite'], this.options && this.options.whereMergeStrategy)) {
+      throw new Error(`Invalid value ${this.options && this.options.whereMergeStrategy} for whereMergeStrategy. Allowed values are 'and' and 'overwrite'.`);
+    }
+
 
     this.rawAttributes = _.mapValues(attributes, (attribute, name) => {
       attribute = this.sequelize.normalizeAttribute(attribute);
@@ -1325,19 +1338,30 @@ class Model {
     if (options.hooks) {
       await this.runHooks('beforeSync', options);
     }
-    if (options.force) {
-      await this.drop(options);
-    }
 
     const tableName = this.getTableName(options);
 
-    await this.queryInterface.createTable(tableName, attributes, options, this);
+    let tableExists;
+    if (options.force) {
+      await this.drop(options);
+      tableExists = false;
+    } else {
+      tableExists = await this.queryInterface.tableExists(tableName, options);
+    }
 
-    if (options.alter) {
+    if (!tableExists) {
+      await this.queryInterface.createTable(tableName, attributes, options, this);
+    } else {
+      // enums are always updated, even if alter is not set. createTable calls it too.
+      await this.queryInterface.ensureEnums(tableName, attributes, options, this);
+    }
+
+    if (tableExists && options.alter) {
       const tableInfos = await Promise.all([
         this.queryInterface.describeTable(tableName, options),
         this.queryInterface.getForeignKeyReferencesForTable(tableName, options)
       ]);
+
       const columns = tableInfos[0];
       // Use for alter foreign keys
       const foreignKeyReferences = tableInfos[1];
@@ -1380,13 +1404,15 @@ class Model {
               }
             }
           }
+
           await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, options);
         }
       }
     }
-    let indexes = await this.queryInterface.showIndex(tableName, options);
-    indexes = this._indexes.filter(item1 =>
-      !indexes.some(item2 => item1.name === item2.name)
+
+    const existingIndexes = await this.queryInterface.showIndex(tableName, options);
+    const missingIndexes = this._indexes.filter(item1 =>
+      !existingIndexes.some(item2 => item1.name === item2.name)
     ).sort((index1, index2) => {
       if (this.sequelize.options.dialect === 'postgres') {
       // move concurrent indexes to the bottom to avoid weird deadlocks
@@ -1397,7 +1423,7 @@ class Model {
       return 0;
     });
 
-    for (const index of indexes) {
+    for (const index of missingIndexes) {
       await this.queryInterface.addIndex(tableName, { ...options, ...index });
     }
 
@@ -1677,7 +1703,7 @@ class Model {
    * @param  {Array<string>}                                             [options.attributes.include] Select all the attributes of the model, plus some additional ones. Useful for aggregations, e.g. `{ attributes: { include: [[sequelize.fn('COUNT', sequelize.col('id')), 'total']] }`
    * @param  {Array<string>}                                             [options.attributes.exclude] Select all the attributes of the model, except some few. Useful for security purposes e.g. `{ attributes: { exclude: ['password'] } }`
    * @param  {boolean}                                                   [options.paranoid=true] If true, only non-deleted records will be returned. If false, both deleted and non-deleted records will be returned. Only applies if `options.paranoid` is true for the model.
-   * @param  {Array<object|Model|string>}                                [options.include] A list of associations to eagerly load using a left join. Supported is either `{ include: [ Model1, Model2, ...]}` or `{ include: [{ model: Model1, as: 'Alias' }]}` or `{ include: ['Alias']}`. If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z }`, you need to specify Z in the as attribute when eager loading Y).
+   * @param  {Array<object|Model|string>}                                [options.include] A list of associations to eagerly load using a left join. Supported is either `{ include: [ Model1, Model2, ...]}` or `{ include: [{ model: Model1, as: 'Alias' }]}` or `{ include: ['Alias']}`. If your association are set up with an `as` (eg. `X.hasMany(Y, { as: 'Z' }`, you need to specify Z in the as attribute when eager loading Y).
    * @param  {Model}                                                     [options.include[].model] The model you want to eagerly load
    * @param  {string}                                                    [options.include[].as] The alias of the relation, in case the model you want to eagerly load is aliased. For `hasOne` / `belongsTo`, this should be the singular name, and for `hasMany`, it should be the plural
    * @param  {Association}                                               [options.include[].association] The association you want to eagerly load. (This can be used instead of providing a model/as pair)
@@ -1708,6 +1734,7 @@ class Model {
    * @param  {string}                                                    [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
    * @param  {boolean|Error}                                             [options.rejectOnEmpty=false] Throws an error when no records found
    * @param  {boolean}                                                   [options.dotNotation] Allows including tables having the same attribute/column names - which have a dot in them.
+   * @param  {boolean}                                                   [options.nest=false] If true, transforms objects with `.` separated property names into nested objects.
    *
    * @see
    * {@link Sequelize#query}
@@ -1731,6 +1758,14 @@ class Model {
 
     tableNames[this.getTableName(options)] = true;
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
 
     _.defaults(options, { hooks: true });
 
@@ -1889,10 +1924,10 @@ class Model {
   /**
    * Search for a single instance by its primary key._
    *
-   * @param  {number|string|Buffer}      param The value of the desired instance's primary key.
-   * @param  {object}                    [options] find options
-   * @param  {Transaction}               [options.transaction] Transaction to run query under
-   * @param  {string}                    [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
+   * @param  {number|bigint|string|Buffer}      param The value of the desired instance's primary key.
+   * @param  {object}                           [options] find options
+   * @param  {Transaction}                      [options.transaction] Transaction to run query under
+   * @param  {string}                           [options.searchPath=DEFAULT] An optional parameter to specify the schema search_path (Postgres only)
    *
    * @see
    * {@link Model.findAll}           for a full explanation of options, Note that options.where is not supported.
@@ -1907,7 +1942,7 @@ class Model {
 
     options = Utils.cloneDeep(options) || {};
 
-    if (typeof param === 'number' || typeof param === 'string' || Buffer.isBuffer(param)) {
+    if (typeof param === 'number' || typeof param === 'bigint' || typeof param === 'string' || Buffer.isBuffer(param)) {
       options.where = {
         [this.primaryKeyAttribute]: param
       };
@@ -1937,6 +1972,14 @@ class Model {
       throw new Error('The argument passed to findOne must be an options object, use findByPk if you wish to pass a single primary key value');
     }
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
 
     if (options.limit === undefined) {
       const uniqueSingleColumns = _.chain(this.uniqueKeys).values().filter(c => c.fields.length === 1).map('column').value();
@@ -2048,6 +2091,15 @@ class Model {
   static async count(options) {
     options = Utils.cloneDeep(options);
     options = _.defaults(options, { hooks: true });
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     options.raw = true;
     if (options.hooks) {
       await this.runHooks('beforeCount', options);
@@ -2494,6 +2546,14 @@ class Model {
       ...Utils.cloneDeep(options)
     };
 
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     const createdAtAttr = this._timestampAttributes.createdAt;
     const updatedAtAttr = this._timestampAttributes.updatedAt;
     const hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
@@ -2589,6 +2649,14 @@ class Model {
     const now = Utils.now(this.sequelize.options.dialect);
     options = Utils.cloneDeep(options);
 
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     options.model = this;
 
     if (!options.includeValidated) {
@@ -2617,8 +2685,8 @@ class Model {
           options.returning = true;
         }
       }
-
-      if (options.ignoreDuplicates && ['mssql', 'db2'].includes(dialect)) {
+      if (options.ignoreDuplicates && !this.sequelize.dialect.supports.inserts.ignoreDuplicates &&
+          !this.sequelize.dialect.supports.inserts.onConflictDoNothing) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
       if (options.updateOnDuplicate && (dialect !== 'mysql' && dialect !== 'mariadb' && dialect !== 'sqlite' && dialect !== 'postgres')) {
@@ -2749,23 +2817,29 @@ class Model {
         if (options.updateOnDuplicate) {
           options.updateOnDuplicate = options.updateOnDuplicate.map(attr => model.rawAttributes[attr].field || attr);
 
-          const upsertKeys = [];
+          if (options.conflictAttributes) {
+            options.upsertKeys = options.conflictAttributes.map(
+              attrName => model.rawAttributes[attrName].field || attrName
+            );
+          } else {
+            const upsertKeys = [];
 
-          for (const i of model._indexes) {
-            if (i.unique && !i.where) { // Don't infer partial indexes
-              upsertKeys.push(...i.fields);
+            for (const i of model._indexes) {
+              if (i.unique && !i.where) { // Don't infer partial indexes
+                upsertKeys.push(...i.fields);
+              }
             }
+
+            const firstUniqueKey = Object.values(model.uniqueKeys).find(c => c.fields.length > 0);
+
+            if (firstUniqueKey && firstUniqueKey.fields) {
+              upsertKeys.push(...firstUniqueKey.fields);
+            }
+
+            options.upsertKeys = upsertKeys.length > 0
+              ? upsertKeys
+              : Object.values(model.primaryKeys).map(x => x.field);
           }
-
-          const firstUniqueKey = Object.values(model.uniqueKeys).find(c => c.fields.length > 0);
-
-          if (firstUniqueKey && firstUniqueKey.fields) {
-            upsertKeys.push(...firstUniqueKey.fields);
-          }
-
-          options.upsertKeys = upsertKeys.length > 0
-            ? upsertKeys
-            : Object.values(model.primaryKeys).map(x => x.field);
         }
 
         // Map returning attributes to fields
@@ -2945,6 +3019,14 @@ class Model {
   static async destroy(options) {
     options = Utils.cloneDeep(options);
 
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     this._injectScope(options);
 
     if (!options || !(options.where || options.truncate)) {
@@ -3035,6 +3117,14 @@ class Model {
       ...options
     };
 
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     options.type = QueryTypes.RAW;
     options.model = this;
 
@@ -3099,6 +3189,14 @@ class Model {
    */
   static async update(values, options) {
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
 
     this._injectScope(options);
     this._optionsMustContainWhere(options);
@@ -3890,6 +3988,15 @@ class Model {
     }
 
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     options = _.defaults(options, {
       hooks: true,
       validate: true
@@ -4210,6 +4317,15 @@ class Model {
     if (Array.isArray(options)) options = { fields: options };
 
     options = Utils.cloneDeep(options);
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
+
     const setOptions = Utils.cloneDeep(options);
     setOptions.attributes = options.fields;
     this.set(values, setOptions);
@@ -4243,6 +4359,14 @@ class Model {
       force: false,
       ...options
     };
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
 
     // Run before hook
     if (options.hooks) {
@@ -4312,6 +4436,14 @@ class Model {
       force: false,
       ...options
     };
+
+    // Add CLS transaction
+    if (options.transaction === undefined && this.sequelize.constructor._cls) {
+      const t = this.sequelize.constructor._cls.get('transaction');
+      if (t) {
+        options.transaction = t;
+      }
+    }
 
     // Run before hook
     if (options.hooks) {
@@ -4495,6 +4627,7 @@ class Model {
    * @param {Model}               [options.through.model] The model used to join both sides of the N:M association.
    * @param {object}              [options.through.scope] A key/value set that will be used for association create and find defaults on the through model. (Remember to add the attributes to the through model)
    * @param {boolean}             [options.through.unique=true] If true a unique key will be generated from the foreign keys used (might want to turn this off and create specific unique keys when using scopes)
+   * @param {boolean}             [options.through.paranoid=false] If true the generated join table will be paranoid
    * @param {string|object}       [options.as] The alias of this association. If you provide a string, it should be plural, and will be singularized using node.inflection. If you want to control the singular version yourself, provide an object with `plural` and `singular` keys. See also the `name` option passed to `sequelize.define`. If you create multiple associations between the same tables, you should provide an alias to be able to distinguish between them. If you provide an alias when creating the association, you should provide the same alias when eager loading and when getting associated models. Defaults to the pluralized name of target
    * @param {string|object}       [options.foreignKey] The name of the foreign key in the join table (representing the source model) or an object representing the type definition for the foreign column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of source + primary key of source
    * @param {string|object}       [options.otherKey] The name of the foreign key in the join table (representing the target model) or an object representing the type definition for the other column (see `Sequelize.define` for syntax). When using an object, you can add a `name` property to set the name of the column. Defaults to the name of target + primary key of target
@@ -4560,6 +4693,58 @@ class Model {
    * Profile.belongsTo(User) // This will add userId to the profile table
    */
   static belongsTo(target, options) {} // eslint-disable-line
+}
+
+/**
+ * Unpacks an object that only contains a single Op.and key to the value of Op.and
+ *
+ * Internal method used by {@link combineWheresWithAnd}
+ *
+ * @param {WhereOptions} where The object to unpack
+ * @example `{ [Op.and]: [a, b] }` becomes `[a, b]`
+ * @example `{ [Op.and]: { key: val } }` becomes `{ key: val }`
+ * @example `{ [Op.or]: [a, b] }` remains as `{ [Op.or]: [a, b] }`
+ * @example `{ [Op.and]: [a, b], key: c }` remains as `{ [Op.and]: [a, b], key: c }`
+ * @private
+ */
+function unpackAnd(where) {
+  if (!_.isObject(where)) {
+    return where;
+  }
+
+  const keys = Utils.getComplexKeys(where);
+
+  // object is empty, remove it.
+  if (keys.length === 0) {
+    return;
+  }
+
+  // we have more than just Op.and, keep as-is
+  if (keys.length !== 1 || keys[0] !== Op.and) {
+    return where;
+  }
+
+  const andParts = where[Op.and];
+
+  return andParts;
+}
+
+function combineWheresWithAnd(whereA, whereB) {
+  const unpackedA = unpackAnd(whereA);
+
+  if (unpackedA === undefined) {
+    return whereB;
+  }
+
+  const unpackedB = unpackAnd(whereB);
+
+  if (unpackedB === undefined) {
+    return whereA;
+  }
+
+  return {
+    [Op.and]: _.flatten([unpackedA, unpackedB])
+  };
 }
 
 Object.assign(Model, associationsMixin);

@@ -1,5 +1,7 @@
 import { expectTypeOf } from 'expect-type'
 import { User } from './models/User';
+import { Model } from 'sequelize';
+import { UserGroup } from './models/UserGroup.js';
 
 (async () => {
     const user = await User.create({
@@ -71,4 +73,31 @@ import { User } from './models/User';
         // @ts-expect-error unknown attribute
         unknown: '<unknown>',
     });
+})();
+
+// reasons for this test: https://github.com/sequelize/sequelize/issues/14129
+(async () => {
+  interface User2Attributes {
+    groupId: number;
+  }
+
+  type User2CreationAttributes = { id: number } & (
+    | { groupId: number }
+    | { group: { id: number } }
+  );
+
+  class User2 extends Model<User2Attributes, User2CreationAttributes> {
+    declare groupId: number;
+    declare group?: UserGroup;
+  }
+
+  await User2.create({
+    id: 1,
+    groupId: 1,
+  });
+
+  await User2.create({
+    id: 2,
+    group: { id: 1 },
+  }, { include: [User2.associations.group] });
 })();

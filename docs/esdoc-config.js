@@ -1,10 +1,7 @@
 'use strict';
 
-const { getDeclaredManuals, checkManuals } = require('./manual-utils');
-
-checkManuals();
-
 module.exports = {
+  index: `${__dirname}/index.md`,
   source: './src',
   destination: './esdoc',
   includes: ['\\.[tj]s$'],
@@ -46,10 +43,8 @@ module.exports = {
           site: 'https://sequelize.org/master/'
         },
         manual: {
-          index: './docs/index.md',
-          globalIndex: true,
           asset: './docs/images',
-          files: getDeclaredManuals()
+          files: []
         }
       }
     },

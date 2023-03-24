@@ -114,6 +114,12 @@ function pluralize(str) {
 }
 exports.pluralize = pluralize;
 
+/**
+ * @deprecated use {@link injectReplacements} instead. This method has been removed in v7.
+ *
+ * @param {unknown[]} arr - first item is the SQL, following items are the positional replacements.
+ * @param {AbstractDialect} dialect
+ */
 function format(arr, dialect) {
   const timeZone = null;
   // Make a clone of the array beacuse format modifies the passed args
@@ -121,6 +127,13 @@ function format(arr, dialect) {
 }
 exports.format = format;
 
+/**
+ * @deprecated use {@link injectReplacements} instead. This method has been removed in v7.
+ *
+ * @param {string} sql
+ * @param {object} parameters
+ * @param {AbstractDialect} dialect
+ */
 function formatNamedParameters(sql, parameters, dialect) {
   const timeZone = null;
   return SqlString.formatNamedParameters(sql, parameters, timeZone, dialect);
@@ -323,7 +336,7 @@ function removeNullValuesFromHash(hash, omitNull, options) {
 }
 exports.removeNullValuesFromHash = removeNullValuesFromHash;
 
-const dialects = new Set(['mariadb', 'mysql', 'postgres', 'sqlite', 'mssql', 'db2']);
+const dialects = new Set(['mariadb', 'mysql', 'postgres', 'sqlite', 'mssql', 'db2', 'oracle']);
 
 function now(dialect) {
   const d = new Date();

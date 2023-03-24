@@ -219,10 +219,32 @@ class QueryInterface {
       });
     }
 
-    attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable' });
+    attributes = this.queryGenerator.attributesToSQL(attributes, {
+      table: tableName,
+      context: 'createTable',
+      withoutForeignKeyConstraints: options.withoutForeignKeyConstraints
+    });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
     return await this.sequelize.query(sql, options);
+  }
+
+  /**
+   * Returns a promise that will resolve to true if the table exists in the database, false otherwise.
+   *
+   * @param {TableName} tableName - The name of the table
+   * @param {QueryOptions} options - Query options
+   * @returns {Promise<boolean>}
+   */
+  async tableExists(tableName, options) {
+    const sql = this.queryGenerator.tableExistsQuery(tableName);
+
+    const out = await this.sequelize.query(sql, {
+      ...options,
+      type: QueryTypes.SHOWTABLES
+    });
+
+    return out.length === 1;
   }
 
   /**
@@ -901,7 +923,7 @@ class QueryInterface {
 
     const sql = this.queryGenerator.updateQuery(tableName, values, identifier, options, attributes);
     const table = _.isObject(tableName) ? tableName : { tableName };
-    const model = _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const model = options.model ? options.model : _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;

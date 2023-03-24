@@ -17,16 +17,26 @@
   },
   "homepage": "https://sequelize.org/",
   "main": "./lib/index.js",
-  "types": "./types",
+  "types": "./types/index.d.ts",
   "type": "commonjs",
   "exports": {
     ".": {
       "import": "./lib/index.mjs",
-      "require": "./lib/index.js"
+      "require": "./lib/index.js",
+      "types": "./types/index.d.ts"
     },
-    "./lib/*": "./lib/*.js",
-    "./lib/errors": "./lib/errors/index.js",
-    "./*": "./*"
+    "./lib/*": {
+      "default": "./lib/*.js",
+      "types": "./types/*.d.ts"
+    },
+    "./lib/errors": {
+      "default": "./lib/errors/index.js",
+      "types": "./types/errors/index.d.ts"
+    },
+    "./package.json": "./package.json",
+    "./types/*": {
+      "types": "./types/*.d.ts"
+    }
   },
   "engines": {
     "node": ">=10.0.0"
@@ -39,14 +49,15 @@
   "license": "MIT",
   "dependencies": {
     "@types/debug": "^4.1.7",
+    "@types/validator": "^13.7.1",
     "debug": "^4.3.3",
     "dottie": "^2.0.2",
-    "inflection": "^1.13.1",
+    "inflection": "^1.13.2",
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
-    "moment-timezone": "^0.5.34",
+    "moment-timezone": "^0.5.35",
     "pg-connection-string": "^2.5.0",
-    "retry-as-promised": "^5.0.0",
+    "retry-as-promised": "^7.0.3",
     "semver": "^7.3.5",
     "sequelize-pool": "^7.1.0",
     "toposort-class": "^1.0.1",
@@ -60,10 +71,10 @@
     "@octokit/rest": "^18.12.0",
     "@octokit/types": "^6.34.0",
     "@types/chai": "^4.3.0",
+    "@types/lodash": "4.14.182",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.17",
     "@types/sinon": "^10.0.6",
-    "@types/validator": "^13.7.1",
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",
     "acorn": "^8.7.0",
@@ -98,6 +109,7 @@
     "mysql2": "^2.3.3",
     "node-hook": "^1.0.0",
     "nyc": "^15.1.0",
+    "oracledb": "^5.5.0",
     "p-map": "^4.0.0",
     "p-props": "^4.0.0",
     "p-settle": "^4.1.1",
@@ -139,6 +151,9 @@
     },
     "tedious": {
       "optional": true
+    },
+    "oracledb": {
+      "optional": true
     }
   },
   "keywords": [
@@ -152,6 +167,7 @@
     "db2",
     "ibm_db",
     "sql",
+    "oracledb",
     "sqlserver",
     "snowflake",
     "orm",
@@ -212,7 +228,7 @@
     "lint-docs": "markdownlint docs",
     "test-typings": "tsc --noEmit --emitDeclarationOnly false && tsc -b test/tsconfig.json",
     "----------------------------------------- documentation -------------------------------------------": "",
-    "docs": "rimraf esdoc && esdoc -c docs/esdoc-config.js && cp docs/favicon.ico esdoc/favicon.ico && cp docs/ROUTER.txt esdoc/ROUTER && node docs/run-docs-transforms.js && node docs/redirects/create-redirects.js && rimraf esdoc/file esdoc/source.html",
+    "docs": "sh docs.sh",
     "----------------------------------------- tests ---------------------------------------------------": "",
     "mocha": "mocha -r ./test/registerEsbuild",
     "test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",
@@ -231,17 +247,23 @@
     "start-postgres": "bash dev/postgres/10/start.sh",
     "start-mssql": "bash dev/mssql/2019/start.sh",
     "start-db2": "bash dev/db2/11.5/start.sh",
+    "start-oracle-oldest": "bash dev/oracle/18-slim/start.sh",
+    "start-oracle-latest": "bash dev/oracle/21-slim/start.sh",
     "stop-mariadb": "bash dev/mariadb/10.3/stop.sh",
     "stop-mysql": "bash dev/mysql/5.7/stop.sh",
     "stop-mysql-8": "bash dev/mysql/8.0/stop.sh",
     "stop-postgres": "bash dev/postgres/10/stop.sh",
     "stop-mssql": "bash dev/mssql/2019/stop.sh",
     "stop-db2": "bash dev/db2/11.5/stop.sh",
+    "stop-oracle-oldest": "bash dev/oracle/18-slim/stop.sh",
+    "stop-oracle-latest": "bash dev/oracle/21-slim/stop.sh",
     "restart-mariadb": "npm run start-mariadb",
     "restart-mysql": "npm run start-mysql",
     "restart-postgres": "npm run start-postgres",
     "restart-mssql": "npm run start-mssql",
     "restart-db2": "npm run start-db2",
+    "restart-oracle-oldest": "npm run start-oracle-oldest",
+    "restart-oracle-latest": "npm run start-oracle-latest",
     "----------------------------------------- local tests ---------------------------------------------": "",
     "test-unit-mariadb": "cross-env DIALECT=mariadb npm run test-unit",
     "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
@@ -251,7 +273,8 @@
     "test-unit-mssql": "cross-env DIALECT=mssql npm run test-unit",
     "test-unit-db2": "cross-env DIALECT=db2 npm run test-unit",
     "test-unit-snowflake": "cross-env DIALECT=snowflake npm run test-unit",
-    "test-unit-all": "npm run test-unit-mariadb && npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite && npm run test-unit-snowflake && npm run test-unit-db2",
+    "test-unit-oracle": "cross-env DIALECT=oracle npm run test-unit",
+    "test-unit-all": "npm run test-unit-mariadb && npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite && npm run test-unit-snowflake && npm run test-unit-db2 && npm run test-unit-oracle",
     "test-integration-mariadb": "cross-env DIALECT=mariadb npm run test-integration",
     "test-integration-mysql": "cross-env DIALECT=mysql npm run test-integration",
     "test-integration-postgres": "cross-env DIALECT=postgres npm run test-integration",
@@ -260,6 +283,7 @@
     "test-integration-mssql": "cross-env DIALECT=mssql npm run test-integration",
     "test-integration-db2": "cross-env DIALECT=db2 npm run test-integration",
     "test-integration-snowflake": "cross-env DIALECT=snowflake npm run test-integration",
+    "test-integration-oracle": "cross-env LD_LIBRARY_PATH=\"$PWD/.oracle/instantclient/\" DIALECT=oracle UV_THREADPOOL_SIZE=128 npm run test-integration",
     "test-mariadb": "cross-env DIALECT=mariadb npm test",
     "test-mysql": "cross-env DIALECT=mysql npm test",
     "test-sqlite": "cross-env DIALECT=sqlite npm test",
@@ -267,6 +291,7 @@
     "test-postgres-native": "cross-env DIALECT=postgres-native npm test",
     "test-mssql": "cross-env DIALECT=mssql npm test",
     "test-db2": "cross-env DIALECT=db2 npm test",
+    "test-oracle": "cross-env LD_LIBRARY_PATH=\"$PWD/.oracle/instantclient/\" DIALECT=oracle UV_THREADPOOL_SIZE=128 npm test",
     "----------------------------------------- development ---------------------------------------------": "",
     "sscce": "node sscce.js",
     "sscce-mariadb": "cross-env DIALECT=mariadb node sscce.js",
@@ -276,6 +301,7 @@
     "sscce-sqlite": "cross-env DIALECT=sqlite node sscce.js",
     "sscce-mssql": "cross-env DIALECT=mssql node sscce.js",
     "sscce-db2": "cross-env DIALECT=db2 node sscce.js",
+    "sscce-oracle": "cross-env LD_LIBRARY_PATH=\"$PWD/.oracle/instantclient/\" DIALECT=oracle UV_THREADPOOL_SIZE=128 node sscce.js",
     "prepare": "npm run build && husky install",
     "build": "node ./build.js",
     "---------------------------------------------------------------------------------------------------": ""

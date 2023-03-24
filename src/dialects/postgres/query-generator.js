@@ -46,14 +46,14 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
 
     if (databaseVersion && semver.gte(databaseVersion, '9.2.0')) {
-      return `CREATE SCHEMA IF NOT EXISTS ${schema};`;
+      return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
     }
 
-    return `CREATE SCHEMA ${schema};`;
+    return `CREATE SCHEMA ${this.quoteIdentifier(schema)};`;
   }
 
   dropSchema(schema) {
-    return `DROP SCHEMA IF EXISTS ${schema} CASCADE;`;
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
   showSchemasQuery() {
@@ -124,11 +124,20 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
   }
 
   showTablesQuery() {
-    return "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';";
+    const schema = this.options.schema || 'public';
+
+    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`;
+  }
+
+  tableExistsQuery(tableName) {
+    const table = tableName.tableName || tableName;
+    const schema = tableName.schema || 'public';
+
+    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
   }
 
   describeTableQuery(tableName, schema) {
-    if (!schema) schema = 'public';
+    schema = schema || this.options.schema || 'public';
 
     return 'SELECT ' +
       'pk.constraint_type as "Constraint",' +
@@ -149,7 +158,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       'ON pk.table_schema=c.table_schema ' +
       'AND pk.table_name=c.table_name ' +
       'AND pk.column_name=c.column_name ' +
-      `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)} `;
+      `WHERE c.table_name = ${this.escape(tableName)} AND c.table_schema = ${this.escape(schema)}`;
   }
 
   /**
@@ -524,24 +533,26 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
 
       let referencesKey;
 
-      if (attribute.references.key) {
-        referencesKey = this.quoteIdentifiers(attribute.references.key);
-      } else {
-        referencesKey = this.quoteIdentifier('id');
-      }
+      if (!options.withoutForeignKeyConstraints) {
+        if (attribute.references.key) {
+          referencesKey = this.quoteIdentifiers(attribute.references.key);
+        } else {
+          referencesKey = this.quoteIdentifier('id');
+        }
 
-      sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
+        sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
 
-      if (attribute.onDelete) {
-        sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-      }
+        if (attribute.onDelete) {
+          sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+        }
 
-      if (attribute.onUpdate) {
-        sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-      }
+        if (attribute.onUpdate) {
+          sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+        }
 
-      if (attribute.references.deferrable) {
-        sql += ` ${attribute.references.deferrable.toString(this)}`;
+        if (attribute.references.deferrable) {
+          sql += ` ${attribute.references.deferrable.toString(this)}`;
+        }
       }
     }
 
@@ -772,7 +783,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       values = dataType.toString().match(/^ENUM\(.+\)/)[0];
     }
 
-    let sql = `CREATE TYPE ${enumName} AS ${values};`;
+    let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${enumName} AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
     if (!!options && options.force === true) {
       sql = this.pgEnumDrop(tableName, attr) + sql;
     }
@@ -865,6 +876,8 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       'tc.table_name as table_name,' +
       'tc.table_schema as table_schema,' +
       'tc.table_catalog as table_catalog,' +
+      'tc.initially_deferred as initially_deferred,' +
+      'tc.is_deferrable as is_deferrable,' +
       'kcu.column_name as column_name,' +
       'ccu.table_schema  AS referenced_table_schema,' +
       'ccu.table_catalog  AS referenced_table_catalog,' +

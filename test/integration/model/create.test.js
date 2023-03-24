@@ -450,7 +450,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      (dialect !== 'sqlite' && dialect !== 'mssql' && dialect !== 'db2' ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function() {
+      (!['sqlite', 'mssql', 'db2', 'oracle'].includes(dialect) ? it : it.skip)('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function() {
         const User = this.sequelize.define('user', {
           username: {
             type: DataTypes.STRING,
@@ -912,6 +912,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(user0.secretValue).to.equal('$SEQUELIZE');
     });
 
+    it('should escape multiple instances of $ in sequelize functions arguments', async function() {
+      const user = await this.User.create({
+        secretValue: this.sequelize.fn('upper', '$sequelize and $sequelize2 and some money $42.69')
+      });
+
+      const user0 = await this.User.findByPk(user.id);
+      expect(user0.secretValue).to.equal('$SEQUELIZE AND $SEQUELIZE2 AND SOME MONEY $42.69');
+    });
+
     it('should work with a non-id named uuid primary key columns', async function() {
       const Monkey = this.sequelize.define('Monkey', {
         monkeyId: { type: DataTypes.UUID, primaryKey: true, defaultValue: DataTypes.UUIDV4, allowNull: false }
@@ -1218,7 +1227,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(test).to.be.true;
     });
 
-    it('should only store the values passed in the whitelist', async function() {      
+    it('should only store the values passed in the whitelist', async function() {
       // A unique column do not accept NULL in Db2. Unique column must have value in insert statement.
       const data = { username: 'Peter', secretValue: '42', uniqueName: 'name' };
       const fields = dialect === 'db2' ? { fields: ['username', 'uniqueName'] } : { fields: ['username'] };

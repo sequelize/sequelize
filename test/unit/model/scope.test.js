@@ -242,6 +242,242 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
+    describe('merging scopes using `and` whereMergeStrategy', () => {
+      const testModelScopes = {
+        whereAttributeIs1: {
+          where: {
+            field: 1
+          }
+        },
+        whereAttributeIs2: {
+          where: {
+            field: 2
+          }
+        },
+        whereAttributeIs3: {
+          where: {
+            field: 3
+          }
+        },
+        whereOtherAttributeIs4: {
+          where: {
+            otherField: 4
+          }
+        },
+        whereOpAnd1: {
+          where: {
+            [Op.and]: [{ field: 1 }, { field: 1 }]
+          }
+        },
+        whereOpAnd2: {
+          where: {
+            [Op.and]: [{ field: 2 }, { field: 2 }]
+          }
+        },
+        whereOpAnd3: {
+          where: {
+            [Op.and]: [{ field: 3 }, { field: 3 }]
+          }
+        },
+        whereOpOr1: {
+          where: {
+            [Op.or]: [{ field: 1 }, { field: 1 }]
+          }
+        },
+        whereOpOr2: {
+          where: {
+            [Op.or]: [{ field: 2 }, { field: 2 }]
+          }
+        },
+        whereOpOr3: {
+          where: {
+            [Op.or]: [{ field: 3 }, { field: 3 }]
+          }
+        },
+        whereSequelizeWhere1: {
+          where: Sequelize.where('field', Op.is, 1)
+        },
+        whereSequelizeWhere2: {
+          where: Sequelize.where('field', Op.is, 2)
+        }
+      };
+
+      const TestModel = current.define('testModel', {}, {
+        whereMergeStrategy: 'and',
+        scopes: testModelScopes
+      });
+
+      describe('attributes', () => {
+        it('should group 2 similar attributes with an Op.and', () => {
+          const scope = TestModel.scope(['whereAttributeIs1', 'whereAttributeIs2'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 },
+                { field: 2 }
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+
+        it('should group multiple similar attributes with an unique Op.and', () => {
+          const scope = TestModel.scope(['whereAttributeIs1', 'whereAttributeIs2', 'whereAttributeIs3'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 },
+                { field: 2 },
+                { field: 3 }
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+
+        it('should group different attributes with an Op.and', () => {
+          const scope = TestModel.scope(['whereAttributeIs1', 'whereOtherAttributeIs4'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 },
+                { otherField: 4 }
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+      });
+
+      describe('and operators', () => {
+        it('should concatenate 2 Op.and into an unique one', () => {
+          const scope = TestModel.scope(['whereOpAnd1', 'whereOpAnd2'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 }
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+
+        it('should concatenate multiple Op.and into an unique one', () => {
+          const scope = TestModel.scope(['whereOpAnd1', 'whereOpAnd2', 'whereOpAnd3'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 },
+                { field: 3 },
+                { field: 3 }
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+      });
+
+      describe('or operators', () => {
+        it('should group 2 Op.or with an Op.and', () => {
+          const scope = TestModel.scope(['whereOpOr1', 'whereOpOr2'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { [Op.or]: [{ field: 1 }, { field: 1 }] },
+                { [Op.or]: [{ field: 2 }, { field: 2 }] }
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+
+        it('should group multiple Op.or with an unique Op.and', () => {
+          const scope = TestModel.scope(['whereOpOr1', 'whereOpOr2', 'whereOpOr3'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { [Op.or]: [{ field: 1 }, { field: 1 }] },
+                { [Op.or]: [{ field: 2 }, { field: 2 }] },
+                { [Op.or]: [{ field: 3 }, { field: 3 }] }
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+
+        it('should group multiple Op.or and Op.and with an unique Op.and', () => {
+          const scope = TestModel.scope(['whereOpOr1', 'whereOpOr2', 'whereOpAnd1', 'whereOpAnd2'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { [Op.or]: [{ field: 1 }, { field: 1 }] },
+                { [Op.or]: [{ field: 2 }, { field: 2 }] },
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 }
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+
+        it('should group multiple Op.and and Op.or with an unique Op.and', () => {
+          const scope = TestModel.scope(['whereOpAnd1', 'whereOpAnd2', 'whereOpOr1', 'whereOpOr2'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 },
+                { field: 1 },
+                { field: 2 },
+                { field: 2 },
+                { [Op.or]: [{ field: 1 }, { field: 1 }] },
+                { [Op.or]: [{ field: 2 }, { field: 2 }] }
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+      });
+
+      describe('sequelize where', () => {
+        it('should group 2 sequelize.where with an Op.and', () => {
+          const scope = TestModel.scope(['whereSequelizeWhere1', 'whereSequelizeWhere2'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                Sequelize.where('field', Op.is, 1),
+                Sequelize.where('field', Op.is, 2)
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+
+        it('should group 2 sequelize.where and other scopes with an Op.and', () => {
+          const scope = TestModel.scope(['whereAttributeIs1', 'whereOpAnd1', 'whereOpOr1', 'whereSequelizeWhere1'])._scope;
+          const expected = {
+            where: {
+              [Op.and]: [
+                { field: 1 },
+                { field: 1 },
+                { field: 1 },
+                { [Op.or]: [{ field: 1 }, { field: 1 }] },
+                Sequelize.where('field', Op.is, 1)
+              ]
+            }
+          };
+          expect(scope).to.deepEqual(expected);
+        });
+      });
+    });
+
     it('should be able to use raw queries', () => {
       expect(Company.scope([{ method: ['complexFunction', 'qux'] }])._scope).to.deep.equal({
         where: ['qux IN (SELECT foobar FROM some_sql_function(foo.bar))']
@@ -492,6 +728,115 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(options.include).to.have.length(2);
       expect(options.include[0]).to.deep.equal({ model: Project, where: { something: false } });
       expect(options.include[1]).to.deep.equal({ model: User, where: { something: true } });
+    });
+
+    describe('using `and` whereMergeStrategy', () => {
+      before(() => {
+        Sequelize.Model.options = { whereMergeStrategy: 'and' };
+      });
+
+      after(() => {
+        Sequelize.Model.options = { whereMergeStrategy: 'overwrite' };
+      });
+
+      it('should be able to merge scope and where', () => {
+        Sequelize.Model._scope = {
+          where: { something: true, somethingElse: 42 },
+          limit: 15,
+          offset: 3
+        };
+        const options = {
+          where: {
+            something: false
+          },
+          limit: 9
+        };
+
+        Sequelize.Model._injectScope(options);
+
+        expect(options).to.deepEqual({
+          where: {
+            [Op.and]: [
+              { something: true, somethingElse: 42 },
+              { something: false }
+            ]
+          },
+          limit: 9,
+          offset: 3
+        });
+      });
+
+      it('should be able to merge scope and having', () => {
+        Sequelize.Model._scope = {
+          having: { something: true, somethingElse: 42 },
+          limit: 15,
+          offset: 3
+        };
+        const options = {
+          having: {
+            something: false
+          },
+          limit: 9
+        };
+
+        Sequelize.Model._injectScope(options);
+
+        expect(options).to.deepEqual({
+          having: {
+            [Op.and]: [
+              { something: true, somethingElse: 42 },
+              { something: false }
+            ]
+          },
+          limit: 9,
+          offset: 3
+        });
+      });
+
+      it('should be able to merge scopes with the same include', () => {
+        Sequelize.Model._scope = {
+          include: [
+            { model: Project, where: { something: false, somethingElse: 99 } },
+            { model: Project, where: { something: true }, limit: 1 }
+          ]
+        };
+        const options = {};
+        Sequelize.Model._injectScope(options);
+
+        expect(options.include).to.have.length(1);
+        expect(options.include[0]).to.deepEqual({
+          model: Project,
+          where: {
+            [Op.and]: [
+              { something: false, somethingElse: 99 },
+              { something: true }
+            ]
+          },
+          limit: 1
+        });
+      });
+
+      it('should be able to merge scoped include', () => {
+        Sequelize.Model._scope = {
+          include: [{ model: Project, where: { something: false, somethingElse: 99 } }]
+        };
+        const options = {
+          include: [{ model: Project, where: { something: true }, limit: 1 }]
+        };
+        Sequelize.Model._injectScope(options);
+
+        expect(options.include).to.have.length(1);
+        expect(options.include[0]).to.deepEqual({
+          model: Project,
+          where: {
+            [Op.and]: [
+              { something: false, somethingElse: 99 },
+              { something: true }
+            ]
+          },
+          limit: 1
+        });
+      });
     });
 
     describe('include all', () => {

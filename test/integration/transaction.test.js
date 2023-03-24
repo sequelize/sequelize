@@ -88,7 +88,7 @@ if (current.dialect.supports.transactions) {
           await this.sequelize.transaction(t => {
             transaction = t;
             transaction.afterCommit(hook);
-            return this.sequelize.query('SELECT 1+1', { transaction, type: QueryTypes.SELECT });
+            return this.sequelize.query(`SELECT 1+1${  Support.addDualInSelect()}`, { transaction, type: QueryTypes.SELECT });
           });
 
           expect(hook).to.have.been.calledOnce;
@@ -189,24 +189,24 @@ if (current.dialect.supports.transactions) {
 
     it('does not allow queries after commit', async function() {
       const t = await this.sequelize.transaction();
-      await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+      await this.sequelize.query(`SELECT 1+1${  Support.addDualInSelect()}`, { transaction: t, raw: true });
       await t.commit();
-      await expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+      await expect(this.sequelize.query(`SELECT 1+1${  Support.addDualInSelect()}`, { transaction: t, raw: true })).to.be.eventually.rejectedWith(
         Error,
         /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
-      ).and.have.deep.property('sql').that.equal('SELECT 1+1');
+      ).and.have.deep.property('sql').that.equal(`SELECT 1+1${  Support.addDualInSelect()}`);
     });
 
     it('does not allow queries immediately after commit call', async function() {
       await expect((async () => {
         const t = await this.sequelize.transaction();
-        await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+        await this.sequelize.query(`SELECT 1+1${  Support.addDualInSelect()}`, { transaction: t, raw: true });
         await Promise.all([
           expect(t.commit()).to.eventually.be.fulfilled,
-          expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+          expect(this.sequelize.query(`SELECT 1+1${  Support.addDualInSelect()}`, { transaction: t, raw: true })).to.be.eventually.rejectedWith(
             Error,
             /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/
-          ).and.have.deep.property('sql').that.equal('SELECT 1+1')
+          ).and.have.deep.property('sql').that.equal(`SELECT 1+1${  Support.addDualInSelect()}`)
         ]);
       })()).to.be.eventually.fulfilled;
     });
@@ -422,7 +422,11 @@ if (current.dialect.supports.transactions) {
     });
 
     if (['mysql', 'mariadb'].includes(dialect)) {
-      describe('deadlock handling', () => {
+      // Both MariaDB and MySQL (probably innoDB) seem to have changed the way they handle this deadlock
+      //  and the deadlock does not occur anymore.
+      // We have not managed to recreate this deadlock and, for now, are disabling this test.
+      // See https://github.com/sequelize/sequelize/issues/14174
+      describe.skip('deadlock handling', () => {
         // Create the `Task` table and ensure it's initialized with 2 rows
         const getAndInitializeTaskModel = async sequelize => {
           const Task = sequelize.define('task', {
@@ -524,6 +528,15 @@ if (current.dialect.supports.transactions) {
         });
 
         it('should release the connection for a deadlocked transaction (2/2)', async function() {
+          // TODO [>=2022-06-01]: The following code is supposed to cause a deadlock in MariaDB,
+          //  but starting with MariaDB 10.5.15, this does not happen anymore.
+          //  We think it may be a bug in MariaDB, so we temporarily disable this test for that specific version
+          //  If this still happens on newer releases, update this check, or look into why this is not working.
+          //  See https://github.com/sequelize/sequelize/issues/14174
+          if (dialect === 'mariadb' && this.sequelize.options.databaseVersion === '10.5.15') {
+            return;
+          }
+
           const verifyDeadlock = async () => {
             const User = this.sequelize.define('user', {
               username: DataTypes.STRING,
@@ -767,7 +780,7 @@ if (current.dialect.supports.transactions) {
       }
 
       // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-      if (!['sqlite', 'postgres', 'postgres-native', 'db2'].includes(dialect)) {
+      if (!['sqlite', 'postgres', 'postgres-native', 'db2', 'oracle'].includes(dialect)) {
         it('should block updates after reading a row using SERIALIZABLE', async function() {
           const User = this.sequelize.define('user', {
               username: Support.Sequelize.STRING

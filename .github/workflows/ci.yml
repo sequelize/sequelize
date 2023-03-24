@@ -36,7 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ["4.1", "4.2", "4.3", "4.4", "4.5"]
+        ts-version: ["4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     steps:
@@ -47,6 +47,39 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn add --dev typescript@~${{ matrix.ts-version }}
       - run: yarn test-typings
+  test-oracle:
+    strategy:
+      fail-fast: false
+      matrix:
+        oracle-version: [18, 21]
+        node-version: [10, 18]
+    name: Oracle DB ${{ matrix.oracle-version }} (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    env:
+      DIALECT: oracle
+      SEQ_ORACLE_USER: sequelizetest
+      SEQ_ORACLE_PW: sequelizepassword
+      SEQ_ORACLE_DB: XEPDB1
+      SEQ_ORACLE_HOST: localhost
+      SEQ_ORACLE_PORT: 1521
+      LD_LIBRARY_PATH: ${{ github.workspace }}/.oracle/instantclient
+      UV_THREADPOOL_SIZE: 128
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - if: matrix.oracle-version == '18'
+        name: Install Local Oracle DB 18
+        run: yarn start-oracle-oldest
+      - if: matrix.oracle-version == '21'
+        name: Install Local Oracle DB 21
+        run: yarn start-oracle-latest
+      - name: Unit Tests
+        run: yarn test-unit
+      - name: Integration Tests
+        run: yarn test-integration
   test-db2:
     strategy:
       fail-fast: false
@@ -286,4 +319,4 @@ jobs:
           curl -XPOST -u "sdepold:${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/sequelize/dispatches --data '{"event_type":"Release notifier","client_payload":{"release-id": ${{ steps.sequelize.outputs.id }}}}'
       - name: Notify docs repo
         run: |
-          curl -XPOST -u "sdepold:${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/sequelize.org/dispatches --data '{"event_type":"Build website"}'
+          curl -XPOST -u "sdepold:${{ secrets.GH_TOKEN }}" -H "Accept: application/vnd.github.v3+json" -H "Content-Type: application/json" https://api.github.com/repos/sequelize/website/dispatches --data '{"event_type":"Build website"}'

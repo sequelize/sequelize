@@ -25,17 +25,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('STRING', () => {
       testsql('STRING', DataTypes.STRING, {
         default: 'VARCHAR(255)',
-        mssql: 'NVARCHAR(255)'
+        mssql: 'NVARCHAR(255)',
+        oracle: 'NVARCHAR2(255)'
       });
 
       testsql('STRING(1234)', DataTypes.STRING(1234), {
         default: 'VARCHAR(1234)',
-        mssql: 'NVARCHAR(1234)'
+        mssql: 'NVARCHAR(1234)',
+        oracle: 'NVARCHAR2(1234)'
       });
 
       testsql('STRING({ length: 1234 })', DataTypes.STRING({ length: 1234 }), {
         default: 'VARCHAR(1234)',
-        mssql: 'NVARCHAR(1234)'
+        mssql: 'NVARCHAR(1234)',
+        oracle: 'NVARCHAR2(1234)'
       });
 
       testsql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
@@ -43,7 +46,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         db2: 'VARCHAR(1234) FOR BIT DATA',
         sqlite: 'VARCHAR BINARY(1234)',
         mssql: 'BINARY(1234)',
-        postgres: 'BYTEA'
+        postgres: 'BYTEA',
+        oracle: 'RAW(1234)'
       });
 
       testsql('STRING.BINARY', DataTypes.STRING.BINARY, {
@@ -51,7 +55,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         db2: 'VARCHAR(255) FOR BIT DATA',
         sqlite: 'VARCHAR BINARY(255)',
         mssql: 'BINARY(255)',
-        postgres: 'BYTEA'
+        postgres: 'BYTEA',
+        oracle: 'RAW(255)'
       });
 
       describe('validate', () => {
@@ -69,6 +74,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('TEXT', DataTypes.TEXT, {
         default: 'TEXT',
         db2: 'VARCHAR(32672)',
+        oracle: 'CLOB',
         mssql: 'NVARCHAR(MAX)' // in mssql text is actually representing a non unicode text field
       });
 
@@ -77,6 +83,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'NVARCHAR(256)',
         db2: 'VARCHAR(256)',
         mariadb: 'TINYTEXT',
+        oracle: 'CLOB',
         mysql: 'TINYTEXT'
       });
 
@@ -85,6 +92,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'NVARCHAR(256)',
         db2: 'VARCHAR(256)',
         mariadb: 'TINYTEXT',
+        oracle: 'CLOB',
         mysql: 'TINYTEXT'
       });
 
@@ -93,6 +101,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'NVARCHAR(MAX)',
         db2: 'VARCHAR(8192)',
         mariadb: 'MEDIUMTEXT',
+        oracle: 'CLOB',
         mysql: 'MEDIUMTEXT'
       });
 
@@ -101,6 +110,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mssql: 'NVARCHAR(MAX)',
         db2: 'CLOB(65536)',
         mariadb: 'LONGTEXT',
+        oracle: 'CLOB',
         mysql: 'LONGTEXT'
       });
 
@@ -136,12 +146,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('CHAR(12).BINARY', DataTypes.CHAR(12).BINARY, {
         default: 'CHAR(12) BINARY',
+        oracle: 'RAW(12)',
         sqlite: 'CHAR BINARY(12)',
         postgres: 'BYTEA'
       });
 
       testsql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
         default: 'CHAR(255) BINARY',
+        oracle: 'RAW(255)',
         sqlite: 'CHAR BINARY(255)',
         postgres: 'BYTEA'
       });
@@ -155,6 +167,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mariadb: 'TINYINT(1)',
         mysql: 'TINYINT(1)',
         sqlite: 'TINYINT(1)',
+        oracle: 'CHAR(1)',
         snowflake: 'BOOLEAN'
       });
 
@@ -188,6 +201,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mysql: 'DATETIME',
         db2: 'TIMESTAMP',
         sqlite: 'DATETIME',
+        oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
         snowflake: 'TIMESTAMP'
       });
 
@@ -198,6 +212,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mysql: 'DATETIME(6)',
         db2: 'TIMESTAMP(6)',
         sqlite: 'DATETIME',
+        oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
         snowflake: 'TIMESTAMP'
       });
 
@@ -246,6 +261,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mariadb: 'CHAR(36) BINARY',
         mysql: 'CHAR(36) BINARY',
         sqlite: 'UUID',
+        oracle: 'VARCHAR2(36)',
         snowflake: 'VARCHAR(36)'
       });
 
@@ -345,6 +361,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       testsql('NOW', DataTypes.NOW, {
         default: 'NOW',
         db2: 'CURRENT TIME',
+        oracle: 'SYSDATE',
         mssql: 'GETDATE()'
       });
     });
@@ -448,6 +465,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'TINYINT',
           dataType: DataTypes.TINYINT,
           expect: {
+            oracle: 'NUMBER(3)',
             default: 'TINYINT'
           }
         },
@@ -457,6 +475,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2)',
             db2: 'TINYINT',
+            oracle: 'NUMBER(3)',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
           }
@@ -467,6 +486,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2)',
             db2: 'TINYINT',
+            oracle: 'NUMBER(3)',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
           }
@@ -477,6 +497,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT UNSIGNED',
             db2: 'TINYINT',
+            oracle: 'NUMBER(3)',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
             sqlite: 'TINYINT'
@@ -488,6 +509,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2) UNSIGNED',
             db2: 'TINYINT',
+            oracle: 'NUMBER(3)',
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
@@ -499,6 +521,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT UNSIGNED ZEROFILL',
             db2: 'TINYINT',
+            oracle: 'NUMBER(3)',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
             sqlite: 'TINYINT'
@@ -510,6 +533,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2) UNSIGNED ZEROFILL',
             db2: 'TINYINT',
+            oracle: 'NUMBER(3)',
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
@@ -521,6 +545,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT ZEROFILL',
             db2: 'TINYINT',
+            oracle: 'NUMBER(3)',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
             sqlite: 'TINYINT'
@@ -532,6 +557,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2) ZEROFILL',
             db2: 'TINYINT',
+            oracle: 'NUMBER(3)',
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
@@ -543,6 +569,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT UNSIGNED ZEROFILL',
             db2: 'TINYINT',
+            oracle: 'NUMBER(3)',
             mssql: 'TINYINT',
             postgres: 'TINYINT',
             sqlite: 'TINYINT'
@@ -554,6 +581,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect: {
             default: 'TINYINT(2) UNSIGNED ZEROFILL',
             db2: 'TINYINT',
+            oracle: 'NUMBER(3)',
             sqlite: 'TINYINT(2)',
             mssql: 'TINYINT',
             postgres: 'TINYINT'
@@ -592,6 +620,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'SMALLINT',
           dataType: DataTypes.SMALLINT,
           expect: {
+            oracle: 'NUMBER(5)',
             default: 'SMALLINT'
           }
         },
@@ -600,6 +629,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4),
           expect: {
             default: 'SMALLINT(4)',
+            oracle: 'NUMBER(5)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT'
@@ -610,6 +640,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT({ length: 4 }),
           expect: {
             default: 'SMALLINT(4)',
+            oracle: 'NUMBER(5)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT'
@@ -620,6 +651,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.UNSIGNED,
           expect: {
             default: 'SMALLINT UNSIGNED',
+            oracle: 'NUMBER(5)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
@@ -631,6 +663,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).UNSIGNED,
           expect: {
             default: 'SMALLINT(4) UNSIGNED',
+            oracle: 'NUMBER(5)',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
@@ -642,6 +675,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.UNSIGNED.ZEROFILL,
           expect: {
             default: 'SMALLINT UNSIGNED ZEROFILL',
+            oracle: 'NUMBER(5)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
@@ -653,6 +687,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).UNSIGNED.ZEROFILL,
           expect: {
             default: 'SMALLINT(4) UNSIGNED ZEROFILL',
+            oracle: 'NUMBER(5)',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
@@ -664,6 +699,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.ZEROFILL,
           expect: {
             default: 'SMALLINT ZEROFILL',
+            oracle: 'NUMBER(5)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
@@ -675,6 +711,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).ZEROFILL,
           expect: {
             default: 'SMALLINT(4) ZEROFILL',
+            oracle: 'NUMBER(5)',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
@@ -686,6 +723,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.ZEROFILL.UNSIGNED,
           expect: {
             default: 'SMALLINT UNSIGNED ZEROFILL',
+            oracle: 'NUMBER(5)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
@@ -697,6 +735,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).ZEROFILL.UNSIGNED,
           expect: {
             default: 'SMALLINT(4) UNSIGNED ZEROFILL',
+            oracle: 'NUMBER(5)',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
@@ -736,6 +775,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'MEDIUMINT',
           dataType: DataTypes.MEDIUMINT,
           expect: {
+            oracle: 'NUMBER(8)',
             default: 'MEDIUMINT'
           }
         },
@@ -743,6 +783,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'MEDIUMINT(6)',
           dataType: DataTypes.MEDIUMINT(6),
           expect: {
+            oracle: 'NUMBER(8)',
             default: 'MEDIUMINT(6)'
           }
         },
@@ -750,6 +791,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'MEDIUMINT({ length: 6 })',
           dataType: DataTypes.MEDIUMINT({ length: 6 }),
           expect: {
+            oracle: 'NUMBER(8)',
             default: 'MEDIUMINT(6)'
           }
         },
@@ -758,6 +800,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT.UNSIGNED,
           expect: {
             default: 'MEDIUMINT UNSIGNED',
+            oracle: 'NUMBER(8)',
             sqlite: 'MEDIUMINT'
           }
         },
@@ -766,6 +809,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).UNSIGNED,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED',
+            oracle: 'NUMBER(8)',
             sqlite: 'MEDIUMINT(6)'
           }
         },
@@ -774,6 +818,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT.UNSIGNED.ZEROFILL,
           expect: {
             default: 'MEDIUMINT UNSIGNED ZEROFILL',
+            oracle: 'NUMBER(8)',
             sqlite: 'MEDIUMINT'
           }
         },
@@ -782,6 +827,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).UNSIGNED.ZEROFILL,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
+            oracle: 'NUMBER(8)',
             sqlite: 'MEDIUMINT(6)'
           }
         },
@@ -790,6 +836,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT.ZEROFILL,
           expect: {
             default: 'MEDIUMINT ZEROFILL',
+            oracle: 'NUMBER(8)',
             sqlite: 'MEDIUMINT'
           }
         },
@@ -798,6 +845,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).ZEROFILL,
           expect: {
             default: 'MEDIUMINT(6) ZEROFILL',
+            oracle: 'NUMBER(8)',
             sqlite: 'MEDIUMINT(6)'
           }
         },
@@ -806,6 +854,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT.ZEROFILL.UNSIGNED,
           expect: {
             default: 'MEDIUMINT UNSIGNED ZEROFILL',
+            oracle: 'NUMBER(8)',
             sqlite: 'MEDIUMINT'
           }
         },
@@ -814,6 +863,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.MEDIUMINT(6).ZEROFILL.UNSIGNED,
           expect: {
             default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
+            oracle: 'NUMBER(8)',
             sqlite: 'MEDIUMINT(6)'
           }
         }
@@ -846,7 +896,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('BIGINT', () => {
       testsql('BIGINT', DataTypes.BIGINT, {
-        default: 'BIGINT'
+        default: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
@@ -854,7 +905,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
-        sqlite: 'BIGINT'
+        sqlite: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
@@ -862,13 +914,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'BIGINT',
         db2: 'BIGINT',
         mssql: 'BIGINT',
-        sqlite: 'BIGINT'
+        sqlite: 'BIGINT',
+        oracle: 'NUMBER(19)'
       });
 
       testsql('BIGINT(11)', DataTypes.BIGINT(11), {
         default: 'BIGINT(11)',
         postgres: 'BIGINT',
         db2: 'BIGINT',
+        oracle: 'NUMBER(19)',
         mssql: 'BIGINT'
       });
 
@@ -876,6 +930,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'BIGINT(11)',
         postgres: 'BIGINT',
         db2: 'BIGINT',
+        oracle: 'NUMBER(19)',
         mssql: 'BIGINT'
       });
 
@@ -884,6 +939,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
         db2: 'BIGINT',
+        oracle: 'NUMBER(19)',
         mssql: 'BIGINT'
       });
 
@@ -892,6 +948,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
         db2: 'BIGINT',
+        oracle: 'NUMBER(19)',
         mssql: 'BIGINT'
       });
 
@@ -900,6 +957,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
         db2: 'BIGINT',
+        oracle: 'NUMBER(19)',
         mssql: 'BIGINT'
       });
 
@@ -908,6 +966,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'BIGINT(11)',
         postgres: 'BIGINT',
         db2: 'BIGINT',
+        oracle: 'NUMBER(19)',
         mssql: 'BIGINT'
       });
 
@@ -934,6 +993,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('REAL', () => {
       testsql('REAL', DataTypes.REAL, {
+        oracle: 'BINARY_DOUBLE',
         default: 'REAL'
       });
 
@@ -941,6 +1001,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL UNSIGNED',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -948,6 +1009,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL(11)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -955,6 +1017,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL(11)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -963,6 +1026,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'REAL UNSIGNED(11)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -971,6 +1035,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'REAL UNSIGNED ZEROFILL(11)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -979,6 +1044,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'REAL ZEROFILL(11)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -987,6 +1053,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'REAL UNSIGNED ZEROFILL(11)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -994,6 +1061,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'REAL(11,12)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -1002,6 +1070,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'REAL UNSIGNED(11,12)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -1010,6 +1079,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'REAL UNSIGNED(11,12)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -1018,6 +1088,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'REAL UNSIGNED ZEROFILL(11,12)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -1026,6 +1097,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'REAL ZEROFILL(11,12)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
 
@@ -1034,6 +1106,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'REAL UNSIGNED ZEROFILL(11,12)',
         postgres: 'REAL',
         db2: 'REAL',
+        oracle: 'BINARY_DOUBLE',
         mssql: 'REAL'
       });
     });
@@ -1041,18 +1114,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('DOUBLE PRECISION', () => {
       testsql('DOUBLE', DataTypes.DOUBLE, {
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         default: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE.UNSIGNED', DataTypes.DOUBLE.UNSIGNED, {
         default: 'DOUBLE PRECISION UNSIGNED',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11)', DataTypes.DOUBLE(11), {
         default: 'DOUBLE PRECISION(11)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
@@ -1060,6 +1136,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DOUBLE PRECISION(11) UNSIGNED',
         sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
@@ -1067,6 +1144,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DOUBLE PRECISION(11) UNSIGNED',
         sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
@@ -1074,6 +1152,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DOUBLE PRECISION(11) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
@@ -1081,6 +1160,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DOUBLE PRECISION(11) ZEROFILL',
         sqlite: 'DOUBLE PRECISION ZEROFILL(11)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
@@ -1088,12 +1168,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DOUBLE PRECISION(11) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
         default: 'DOUBLE PRECISION(11,12)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
@@ -1101,6 +1183,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED',
         sqlite: 'DOUBLE PRECISION UNSIGNED(11,12)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
@@ -1108,6 +1191,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
@@ -1115,6 +1199,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DOUBLE PRECISION(11,12) ZEROFILL',
         sqlite: 'DOUBLE PRECISION ZEROFILL(11,12)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
 
@@ -1122,6 +1207,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED ZEROFILL',
         sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
         db2: 'DOUBLE',
+        oracle: 'BINARY_DOUBLE',
         postgres: 'DOUBLE PRECISION'
       });
     });
@@ -1129,11 +1215,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('FLOAT', () => {
       testsql('FLOAT', DataTypes.FLOAT, {
         default: 'FLOAT',
+        oracle: 'BINARY_FLOAT',
         postgres: 'FLOAT'
       });
 
       testsql('FLOAT.UNSIGNED', DataTypes.FLOAT.UNSIGNED, {
         default: 'FLOAT UNSIGNED',
+        oracle: 'BINARY_FLOAT',
         postgres: 'FLOAT',
         db2: 'FLOAT',
         mssql: 'FLOAT'
@@ -1141,6 +1229,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11)', DataTypes.FLOAT(11), {
         default: 'FLOAT(11)',
+        oracle: 'BINARY_FLOAT',
         postgres: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
         db2: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
         mssql: 'FLOAT(11)' // 1-24 = 4 bytes; 35-53 = 8 bytes
@@ -1148,6 +1237,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11).UNSIGNED', DataTypes.FLOAT(11).UNSIGNED, {
         default: 'FLOAT(11) UNSIGNED',
+        oracle: 'BINARY_FLOAT',
         sqlite: 'FLOAT UNSIGNED(11)',
         postgres: 'FLOAT(11)',
         db2: 'FLOAT(11)',
@@ -1156,6 +1246,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11).UNSIGNED.ZEROFILL', DataTypes.FLOAT(11).UNSIGNED.ZEROFILL, {
         default: 'FLOAT(11) UNSIGNED ZEROFILL',
+        oracle: 'BINARY_FLOAT',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11)',
         postgres: 'FLOAT(11)',
         db2: 'FLOAT(11)',
@@ -1164,6 +1255,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11).ZEROFILL', DataTypes.FLOAT(11).ZEROFILL, {
         default: 'FLOAT(11) ZEROFILL',
+        oracle: 'BINARY_FLOAT',
         sqlite: 'FLOAT ZEROFILL(11)',
         postgres: 'FLOAT(11)',
         db2: 'FLOAT(11)',
@@ -1172,6 +1264,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT({ length: 11 }).ZEROFILL', DataTypes.FLOAT({ length: 11 }).ZEROFILL, {
         default: 'FLOAT(11) ZEROFILL',
+        oracle: 'BINARY_FLOAT',
         sqlite: 'FLOAT ZEROFILL(11)',
         postgres: 'FLOAT(11)',
         db2: 'FLOAT(11)',
@@ -1180,6 +1273,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11).ZEROFILL.UNSIGNED', DataTypes.FLOAT(11).ZEROFILL.UNSIGNED, {
         default: 'FLOAT(11) UNSIGNED ZEROFILL',
+        oracle: 'BINARY_FLOAT',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11)',
         postgres: 'FLOAT(11)',
         db2: 'FLOAT(11)',
@@ -1188,6 +1282,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11, 12)', DataTypes.FLOAT(11, 12), {
         default: 'FLOAT(11,12)',
+        oracle: 'BINARY_FLOAT',
         postgres: 'FLOAT',
         db2: 'FLOAT',
         mssql: 'FLOAT'
@@ -1195,6 +1290,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11, 12).UNSIGNED', DataTypes.FLOAT(11, 12).UNSIGNED, {
         default: 'FLOAT(11,12) UNSIGNED',
+        oracle: 'BINARY_FLOAT',
         sqlite: 'FLOAT UNSIGNED(11,12)',
         postgres: 'FLOAT',
         db2: 'FLOAT',
@@ -1203,6 +1299,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.FLOAT({ length: 11, decimals: 12 }).UNSIGNED, {
         default: 'FLOAT(11,12) UNSIGNED',
+        oracle: 'BINARY_FLOAT',
         sqlite: 'FLOAT UNSIGNED(11,12)',
         postgres: 'FLOAT',
         db2: 'FLOAT',
@@ -1211,6 +1308,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11, 12).UNSIGNED.ZEROFILL', DataTypes.FLOAT(11, 12).UNSIGNED.ZEROFILL, {
         default: 'FLOAT(11,12) UNSIGNED ZEROFILL',
+        oracle: 'BINARY_FLOAT',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11,12)',
         postgres: 'FLOAT',
         db2: 'FLOAT',
@@ -1219,6 +1317,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11, 12).ZEROFILL', DataTypes.FLOAT(11, 12).ZEROFILL, {
         default: 'FLOAT(11,12) ZEROFILL',
+        oracle: 'BINARY_FLOAT',
         sqlite: 'FLOAT ZEROFILL(11,12)',
         postgres: 'FLOAT',
         db2: 'FLOAT',
@@ -1227,6 +1326,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT(11, 12).ZEROFILL.UNSIGNED', DataTypes.FLOAT(11, 12).ZEROFILL.UNSIGNED, {
         default: 'FLOAT(11,12) UNSIGNED ZEROFILL',
+        oracle: 'BINARY_FLOAT',
         sqlite: 'FLOAT UNSIGNED ZEROFILL(11,12)',
         postgres: 'FLOAT',
         db2: 'FLOAT',
@@ -1256,51 +1356,61 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     if (current.dialect.supports.NUMERIC) {
       testsql('NUMERIC', DataTypes.NUMERIC, {
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('NUMERIC(15,5)', DataTypes.NUMERIC(15, 5), {
-        default: 'DECIMAL(15,5)'
+        default: 'DECIMAL(15,5)',
+        oracle: 'NUMBER'
       });
     }
 
     describe('DECIMAL', () => {
       testsql('DECIMAL', DataTypes.DECIMAL, {
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {
-        default: 'DECIMAL(10,2)'
+        default: 'DECIMAL(10,2)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 })', DataTypes.DECIMAL({ precision: 10, scale: 2 }), {
-        default: 'DECIMAL(10,2)'
+        default: 'DECIMAL(10,2)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL(10)', DataTypes.DECIMAL(10), {
-        default: 'DECIMAL(10)'
+        default: 'DECIMAL(10)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL({ precision: 10 })', DataTypes.DECIMAL({ precision: 10 }), {
-        default: 'DECIMAL(10)'
+        default: 'DECIMAL(10)',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
         mariadb: 'DECIMAL UNSIGNED',
         mysql: 'DECIMAL UNSIGNED',
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL.UNSIGNED.ZEROFILL', DataTypes.DECIMAL.UNSIGNED.ZEROFILL, {
         mariadb: 'DECIMAL UNSIGNED ZEROFILL',
         mysql: 'DECIMAL UNSIGNED ZEROFILL',
-        default: 'DECIMAL'
+        default: 'DECIMAL',
+        oracle: 'NUMBER'
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
         mariadb: 'DECIMAL(10,2) UNSIGNED',
         mysql: 'DECIMAL(10,2) UNSIGNED',
-        default: 'DECIMAL(10,2)'
+        default: 'DECIMAL(10,2)',
+        oracle: 'NUMBER'
       });
 
       describe('validate', () => {
@@ -1368,6 +1478,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('BLOB("tiny")', DataTypes.BLOB('tiny'), {
         default: 'TINYBLOB',
+        oracle: 'BLOB',
         mssql: 'VARBINARY(256)',
         db2: 'BLOB(255)',
         postgres: 'BYTEA'
@@ -1375,6 +1486,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('BLOB("medium")', DataTypes.BLOB('medium'), {
         default: 'MEDIUMBLOB',
+        oracle: 'BLOB',
         mssql: 'VARBINARY(MAX)',
         db2: 'BLOB(16M)',
         postgres: 'BYTEA'
@@ -1382,6 +1494,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('BLOB({ length: "medium" })', DataTypes.BLOB({ length: 'medium' }), {
         default: 'MEDIUMBLOB',
+        oracle: 'BLOB',
         mssql: 'VARBINARY(MAX)',
         db2: 'BLOB(16M)',
         postgres: 'BYTEA'
@@ -1389,6 +1502,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('BLOB("long")', DataTypes.BLOB('long'), {
         default: 'LONGBLOB',
+        oracle: 'BLOB',
         mssql: 'VARBINARY(MAX)',
         db2: 'BLOB(2G)',
         postgres: 'BYTEA'

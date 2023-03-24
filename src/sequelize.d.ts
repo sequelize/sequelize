@@ -1,3 +1,4 @@
+import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import { HookReturn, Hooks, SequelizeHooks } from './hooks';
 import { ValidationOptions } from './instance-validator';
 import {
@@ -15,13 +16,13 @@ import {
   ModelOptions,
   OrOperator,
   UpdateOptions,
-  WhereAttributeHash,
   WhereOperators,
   ModelCtor,
   Hookable,
   ModelType,
   CreationAttributes,
-  Attributes
+  Attributes,
+  ColumnReference, WhereAttributeHashValue,
 } from './model';
 import { ModelManager } from './model-manager';
 import { QueryInterface, QueryOptions, QueryOptionsWithModel, QueryOptionsWithType, ColumnsDescription } from './dialects/abstract/query-interface';
@@ -30,6 +31,8 @@ import { Transaction, TransactionOptions } from './transaction';
 import { Op } from './index';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
 import { ConnectionManager } from './dialects/abstract/connection-manager';
+
+export type RetryOptions = RetryAsPromisedOptions;
 
 /**
  * Additional options for table altering during sync
@@ -160,7 +163,7 @@ export interface Config {
   readonly protocol: 'tcp';
   readonly native: boolean;
   readonly ssl: boolean;
-  readonly replication: boolean;
+  readonly replication: ReplicationOptions | false;
   readonly dialectModulePath: null | string;
   readonly keepDefaultTimezone?: boolean;
   readonly dialectOptions?: {
@@ -169,12 +172,7 @@ export interface Config {
   };
 }
 
-export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql';
-
-export interface RetryOptions {
-  match?: (RegExp | string | Function)[];
-  max?: number;
-}
+export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle';
 
 /**
  * Options for the constructor of Sequelize main class
@@ -307,7 +305,7 @@ export interface Options extends Logging {
    *
    * @default false
    */
-  replication?: ReplicationOptions;
+  replication?: ReplicationOptions | false;
 
   /**
    * Connection pool options
@@ -400,6 +398,13 @@ export interface Options extends Logging {
    * If defined the connection will use the provided schema instead of the default ("public").
    */
   schema?: string;
+
+  /**
+   * Sequelize had to introduce a breaking change to fix vulnerability CVE-2023-22578.
+   * This option allows you to revert to the old behavior (unsafe-legacy), or to opt in to the new behavior (escape).
+   * The default behavior throws an error to warn you about the change (throw).
+   */
+  attributeBehavior?: 'escape' | 'throw' | 'unsafe-legacy';
 }
 
 export interface QueryOptionsTransactionRequired { }
@@ -1465,14 +1470,14 @@ export function literal(val: string): Literal;
  *
  * @param args Each argument will be joined by AND
  */
-export function and(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]): AndOperator<any>;
+export function and<T extends Array<any>>(...args: T): { [Op.and]: T };
 
 /**
  * An OR query
  *
  * @param args Each argument will be joined by OR
  */
-export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]): OrOperator<any>;
+export function or<T extends Array<any>>(...args: T): { [Op.or]: T };
 
 /**
  * Creates an object representing nested where conditions for postgres's json data-type.
@@ -1484,7 +1489,7 @@ export function or(...args: (WhereOperators | WhereAttributeHash<any> | Where)[]
  */
 export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
 
-export type WhereLeftOperand = Fn | Col | Literal | ModelAttributeColumnOptions;
+export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | ModelAttributeColumnOptions;
 
 // TODO [>6]: Remove
 /**
@@ -1533,8 +1538,8 @@ export type LogicType = Fn | Col | Literal | OrOperator<any> | AndOperator<any> 
  * // Equal to: WHERE 'Lily' = 'Lily'
  * where(literal(`'Lily'`), Op.eq, 'Lily');
  */
-export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: Op, rightOperand: WhereOperators[Op]): Where;
-export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand, operator: string, rightOperand: any): Where;
-export function where(leftOperand: WhereLeftOperand, rightOperand: WhereOperators[typeof Op.eq]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: WhereLeftOperand | Where, operator: Op, rightOperand: WhereOperators[Op]): Where;
+export function where<Op extends keyof WhereOperators>(leftOperand: any, operator: string, rightOperand: any): Where;
+export function where(leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>): Where;
 
 export default Sequelize;

@@ -26,7 +26,10 @@ describe('model', () => {
       it('should tell me that a column is json', async function() {
         const table = await this.sequelize.queryInterface.describeTable('Users');
         // expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
-        if (dialect !== 'mariadb') {
+        // oracledb 19c doesn't support JSON and the DB datatype is BLOB
+        if (dialect === 'oracle') {
+          expect(table.emergency_contact.type).to.equal('BLOB');
+        } else if (dialect !== 'mariadb') {
           expect(table.emergency_contact.type).to.equal('JSON');
         }
       });
@@ -40,6 +43,8 @@ describe('model', () => {
           logging: sql => {
             if (dialect.match(/^mysql|mariadb/)) {
               expect(sql).to.include('?');
+            } else if (dialect === 'oracle') {
+              expect(sql).to.include(':1');
             } else {
               expect(sql).to.include('$1');
             }
@@ -194,6 +199,19 @@ describe('model', () => {
         expect(user0.username).to.equal('swen');
         const user = await this.User.findOne({ where: Sequelize.json('emergency_contact[0].name', 'joe') });
         expect(user.username).to.equal('anna');
+      });
+
+      it('should be able to store strings', async function() {
+        if (dialect === 'oracle') {
+          const dbVersion = this.sequelize.options.databaseVersion;
+          // Oracle DB below 21c doesn't recognize a string as a valid json
+          if (dbVersion.localeCompare('21.0.0.0') === -1) {
+            this.skip();
+          }
+        }
+        await this.User.create({ username: 'swen', emergency_contact: 'joe' });
+        const user = await this.User.findOne({ where: { username: 'swen' } });
+        expect(user.emergency_contact).to.equal('joe');
       });
 
       it('should be able to store values that require JSON escaping', async function() {

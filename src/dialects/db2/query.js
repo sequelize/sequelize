@@ -1,5 +1,7 @@
 'use strict';
 
+const util = require('util');
+
 const AbstractQuery = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('db2');
@@ -14,15 +16,19 @@ class Query extends AbstractQuery {
   }
 
   getSQLTypeFromJsType(value) {
-    const param = { ParamType: 'INPUT', Data: value };
     if (Buffer.isBuffer(value)) {
-      param.DataType = 'BLOB';
-      return param;
+      return { ParamType: 'INPUT', DataType: 'BLOB', Data: value };
     }
+
+    if (typeof value === 'bigint') {
+      // The ibm_db module does not handle bigint, send as a string instead:
+      return value.toString();
+    }
+
     return value;
   }
 
-  async _run(connection, sql, parameters) {	
+  async _run(connection, sql, parameters) {
     this.sql = sql;
     const benchmark = this.sequelize.options.benchmark || this.options.benchmark;
     let queryBegin;
@@ -98,10 +104,10 @@ class Query extends AbstractQuery {
           }
 
           stmt.execute(params, (err, result, outparams) => {
-            debug(`executed(${this.connection.uuid || 'default'}):${newSql} ${parameters ? JSON.stringify(parameters) : ''}`);
+            debug(`executed(${this.connection.uuid || 'default'}):${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`);
 
             if (benchmark) {
-              this.sequelize.log(`Executed (${ this.connection.uuid || 'default' }): ${ newSql} ${parameters ? JSON.stringify(parameters) : ''}`, Date.now() - queryBegin, this.options);
+              this.sequelize.log(`Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`, Date.now() - queryBegin, this.options);
             }
 
             if (err && err.message) {
@@ -454,7 +460,7 @@ class Query extends AbstractQuery {
     result = result || this.sql.startsWith('SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES');
     return result;
   }
-  
+
   handleShowIndexesQuery(data) {
     let currItem;
     const result = [];
@@ -468,7 +474,7 @@ class Query extends AbstractQuery {
           unique: item.keyType === 'U',
           type: item.type
         };
-        
+
         _.forEach(item.COLNAMES.replace(/\+|-/g, x => { return ` ${ x}`; }).split(' '), column => {
           let columnName = column.trim();
           if ( columnName ) {
@@ -484,7 +490,7 @@ class Query extends AbstractQuery {
         result.push(currItem);
       }
     });
-    return result;    
+    return result;
   }
 
   handleInsertQuery(results, metaData) {

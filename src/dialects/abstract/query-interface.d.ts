@@ -378,6 +378,14 @@ export class QueryInterface {
   public showAllTables(options?: QueryOptions): Promise<string[]>;
 
   /**
+   * Returns a promise that resolves to true if the table exists in the database, false otherwise.
+   *
+   * @param tableName The name of the table
+   * @param options Options passed to {@link Sequelize#query}
+   */
+  public tableExists(tableName: TableName, options?: QueryOptions): Promise<boolean>;
+
+  /**
    * Describe a table
    */
   public describeTable(
@@ -486,13 +494,12 @@ export class QueryInterface {
   /**
    * Inserts or Updates a record in the database
    */
-  public upsert(
+  public upsert<M extends Model>(
     tableName: TableName,
     insertValues: object,
     updateValues: object,
     where: object,
-    model: ModelType,
-    options?: QueryOptions
+    options?: QueryOptionsWithModel<M>
   ): Promise<object>;
 
   /**

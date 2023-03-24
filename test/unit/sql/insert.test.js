@@ -32,7 +32,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'INSERT INTO "users" ("user_name") VALUES ($1) RETURNING "id","user_name";',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
-            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'            
+            oracle: 'INSERT INTO "users" ("user_name") VALUES (:1) RETURNING "id","user_name" INTO :2,:3;',
+            default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
           },
           bind: ['triggertest']
         });
@@ -55,12 +56,77 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "ms" ("id") VALUES ($1));',
             postgres: 'INSERT INTO "ms" ("id") VALUES ($1);',
             snowflake: 'INSERT INTO "ms" ("id") VALUES ($1);',
+            oracle: 'INSERT INTO "ms" ("id") VALUES (:1);',
             default: 'INSERT INTO `ms` (`id`) VALUES ($1);'
           },
           bind: [0]
         });
     });
   });
+
+  it(
+    current.dialect.supports.inserts.onConflictWhere
+      ? 'adds conflictWhere clause to generated queries'
+      : 'throws error if conflictWhere is provided',
+    () => {
+      const User = Support.sequelize.define(
+        'user',
+        {
+          username: {
+            type: DataTypes.STRING,
+            field: 'user_name',
+            primaryKey: true
+          },
+          password: {
+            type: DataTypes.STRING,
+            field: 'pass_word'
+          },
+          createdAt: {
+            type: DataTypes.DATE,
+            field: 'created_at'
+          },
+          updatedAt: {
+            type: DataTypes.DATE,
+            field: 'updated_at'
+          }
+        },
+        {
+          timestamps: true
+        }
+      );
+
+      const upsertKeys = ['user_name'];
+
+      let result;
+
+      try {
+        result = sql.insertQuery(
+          User.tableName,
+          { user_name: 'testuser', pass_word: '12345' },
+          User.fieldRawAttributesMap,
+          {
+            updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+            conflictWhere: {
+              user_name: 'test where value'
+            },
+            upsertKeys
+          }
+        );
+      } catch (error) {
+        result = error;
+      }
+
+      expectsql(result, {
+        default: new Error(
+          'missing dialect support for conflictWhere option'
+        ),
+        postgres:
+          'INSERT INTO "users" ("user_name","pass_word") VALUES ($1,$2) ON CONFLICT ("user_name") WHERE "user_name" = \'test where value\' DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
+        sqlite:
+          'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($1,$2) ON CONFLICT (`user_name`) WHERE `user_name` = \'test where value\' DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;'
+      });
+    }
+  );
 
   describe('dates', () => {
     it('formats the date correctly when inserting', () => {
@@ -82,6 +148,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: 'INSERT INTO "users" ("date") VALUES ($1);',
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
+            oracle: 'INSERT INTO "users" ("date") VALUES (:1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($1);'
           },
@@ -91,6 +158,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mysql: ['2015-01-20 01:00:00'],
             snowflake: ['2015-01-20 01:00:00'],
             mariadb: ['2015-01-20 01:00:00.000'],
+            oracle: [new Date(Date.UTC(2015, 0, 20))],
             default: ['2015-01-20 01:00:00.000 +01:00']
           }
         });
@@ -116,11 +184,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("date") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($1);',
+            oracle: 'INSERT INTO "users" ("date") VALUES (:1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($1);'
           },
           bind: {
             sqlite: ['2015-01-20 01:02:03.089 +00:00'],
             mariadb: ['2015-01-20 02:02:03.089'],
+            oracle: [new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89))],
             mysql: ['2015-01-20 02:02:03.089'],
             db2: ['2015-01-20 02:02:03.089'],
             snowflake: ['2015-01-20 02:02:03.089'],
@@ -148,6 +218,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE(INSERT INTO "users" ("user_name") VALUES ($1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($1);',
             mssql: 'INSERT INTO [users] ([user_name]) VALUES ($1);',
+            oracle: 'INSERT INTO "users" ("user_name") VALUES (:1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($1);'
           },
           bind: {
@@ -189,6 +260,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         {
           default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
           snowflake: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
+          oracle: 'INSERT INTO "users" ("user_name","pass_word") VALUES (:1,:2)',
           postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
           mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
           db2: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
@@ -198,7 +270,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
     });
 
-    it('allow bulk insert primary key with 0', () => {
+    // Oracle dialect doesn't support mix of null and non-null in auto-increment column
+    (current.dialect.name !== 'oracle' ? it : it.skip)('allow bulk insert primary key with 0', () => {
       const M = Support.sequelize.define('m', {
         id: {
           type: DataTypes.INTEGER,

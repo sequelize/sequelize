@@ -29,7 +29,10 @@ if (dialect !== 'sqlite') {
       let query = `SELECT ${now} as now`;
       if (dialect === 'db2') {
         query = `SELECT ${now} as "now"`;
+      } else if (dialect === 'oracle') {
+        query = 'SELECT sysdate AS "now" FROM DUAL';
       }
+
       const [now1, now2] = await Promise.all([
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
         this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT })

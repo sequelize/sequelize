@@ -4,7 +4,8 @@ const chai = require('chai'),
   expect = chai.expect,
   Op = require('../../../../lib/operators'),
   Support = require('../../support'),
-  getAbstractQueryGenerator = Support.getAbstractQueryGenerator;
+  getAbstractQueryGenerator = Support.getAbstractQueryGenerator,
+  expectsql = Support.expectsql;
 const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
 
 describe('QueryGenerator', () => {
@@ -120,10 +121,22 @@ describe('QueryGenerator', () => {
         .should.be.equal('foo IS NOT NULL');
     });
 
-    it('should correctly escape $ in sequelize.fn arguments', function() {
+    it('should correctly escape a single $ in sequelize.fn arguments', function() {
       const QG = getAbstractQueryGenerator(this.sequelize);
-      QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'))
-        .should.include('$$user');
+      const value = QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user'));
+      expectsql(value, {
+        mssql: "upper(N'$$user')",
+        default: "upper('$$user')"
+      });
+    });
+
+    it('should correctly escape multiple instances of "$" in sequelize.fn arguments', function() {
+      const QG = getAbstractQueryGenerator(this.sequelize);
+      const value = QG.handleSequelizeMethod(this.sequelize.fn('upper', '$user and then another $user and some dollars: $42.69'));
+      expectsql(value, {
+        mssql: 'upper(N\'$$user and then another $$user and some dollars: $$42.69\')',
+        default: 'upper(\'$$user and then another $$user and some dollars: $$42.69\')'
+      });
     });
   });
 
@@ -153,6 +166,7 @@ describe('QueryGenerator', () => {
         mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
         mssql: query => expect(query).to.throw(Error),
         snowflake: query => expect(query).to.throw(Error),
+        oracle: query => expect(query).to.throw(Error),
         db2: query => expect(query).to.throw(Error)
       });
     });
@@ -166,6 +180,7 @@ describe('QueryGenerator', () => {
         mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
         mssql: query => expect(query).to.throw(Error),
         snowflake: query => expect(query).to.throw(Error),
+        oracle: query => expect(query).to.throw(Error),
         db2: query => expect(query).to.throw(Error)
       });
     });
@@ -179,6 +194,7 @@ describe('QueryGenerator', () => {
         mysql: query => expect(query()).to.equal("json_unquote(json_extract(profile,'$.\\\"id\\\"'))"),
         mssql: query => expect(query).to.throw(Error),
         snowflake: query => expect(query).to.throw(Error),
+        oracle: query => expect(query).to.throw(Error),
         db2: query => expect(query).to.throw(Error)
       });
     });

@@ -38,13 +38,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       async function cleanup(sequelize) {
         if (dialect === 'db2') {
           await sequelize.query('DROP VIEW V_Fail');
+        } else if (dialect === 'oracle') {
+          const plsql = [
+            'BEGIN',
+            'EXECUTE IMMEDIATE',
+            '\'DROP VIEW V_Fail\';',
+            'EXCEPTION WHEN OTHERS THEN',
+            '  IF SQLCODE != -942 THEN',
+            '    RAISE;',
+            '  END IF;',
+            'END;'
+          ].join(' ');
+          await sequelize.query(plsql);
         } else {
           await sequelize.query('DROP VIEW IF EXISTS V_Fail');
         }
       }
       await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup(this.sequelize);
-      const sql = dialect === 'db2' ? 'CREATE VIEW V_Fail AS SELECT 1 Id FROM SYSIBM.SYSDUMMY1' : 'CREATE VIEW V_Fail AS SELECT 1 Id';
+      const sql = dialect === 'db2' ? 'CREATE VIEW V_Fail AS SELECT 1 Id FROM SYSIBM.SYSDUMMY1' : `CREATE VIEW V_Fail AS SELECT 1 Id${  Support.addDualInSelect()}`;
       await this.sequelize.query(sql);
       let tableNames = await this.queryInterface.showAllTables();
       await cleanup(this.sequelize);
@@ -54,7 +66,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(tableNames).to.deep.equal(['my_test_table']);
     });
 
-    if (dialect !== 'sqlite' && dialect !== 'postgres' && dialect !== 'db2') {
+    if (!['sqlite', 'postgres', 'db2', 'oracle'].includes(dialect)) {
       // NOTE: sqlite doesn't allow querying between databases and
       // postgres requires creating a new connection to create a new table.
       it('should not show tables in other databases', async function() {
@@ -101,7 +113,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
       let tableNames = await this.queryInterface.showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (['mssql', 'mariadb', 'db2', 'oracle'].includes(dialect)) {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('my_test_table_new');
@@ -143,7 +155,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
       let tableNames = await this.queryInterface.showAllTables();
-      if (['mssql', 'mariadb', 'db2'].includes(dialect)) {
+      if (['mssql', 'mariadb', 'db2', 'oracle'].includes(dialect)) {
         tableNames = tableNames.map(v => v.tableName);
       }
       expect(tableNames).to.contain('skipme');
@@ -463,6 +475,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
       } else if (['mysql', 'mariadb', 'mssql'].includes(dialect)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
+      } else if (dialect === 'oracle') {
+        expect(Object.keys(foreignKeys[0])).to.have.length(6);
       } else {
         throw new Error(`This test doesn't support ${dialect}`);
       }
@@ -631,7 +645,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             field: 'username'
           },
           onDelete: 'cascade',
-          onUpdate: 'cascade',
+          onUpdate: dialect !== 'oracle' ? 'cascade' : null,
           type: 'foreign key'
         });
         let constraints = await this.queryInterface.showConstraint('posts');
@@ -653,8 +667,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           throw new Error('Error not thrown...');
         } catch (error) {
           expect(error).to.be.instanceOf(Sequelize.UnknownConstraintError);
-          expect(error.table).to.equal('users');
-          expect(error.constraint).to.equal('unknown__constraint__name');
+          // The Oracle dialect, error messages doesn't have table and constraint information
+          if (dialect != 'oracle') {
+            expect(error.table).to.equal('users');
+            expect(error.constraint).to.equal('unknown__constraint__name');
+          }
         }
       });
     });

@@ -46,6 +46,7 @@ describe('ESM module', () => {
       'mariadb',
       'sqlite',
       'snowflake',
+      'oracle',
       'db2',
       'mssql',
       '_setupHooks',

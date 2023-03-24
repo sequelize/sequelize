@@ -43,7 +43,7 @@ class QueryGenerator {
     options = options || {};
     tableName = tableName || {};
     return {
-      schema: tableName.schema || options.schema || 'public',
+      schema: tableName.schema || options.schema || this.options.schema || 'public',
       tableName: _.isPlainObject(tableName) ? tableName.tableName : tableName,
       delimiter: tableName.delimiter || options.delimiter || '.'
     };
@@ -89,6 +89,16 @@ class QueryGenerator {
   }
 
   /**
+   * Helper method for populating the returning into bind information
+   * that is needed by some dialects (currently Oracle)
+   *
+   * @private
+   */
+  populateInsertQueryReturnIntoBinds() {
+    // noop by default
+  }
+
+  /**
    * Returns an insert into command
    *
    * @param {string} table
@@ -103,12 +113,14 @@ class QueryGenerator {
     _.defaults(options, this.options);
 
     const modelAttributeMap = {};
-    const bind = [];
+    const bind = options.bind || [];
     const fields = [];
     const returningModelAttributes = [];
+    const returnTypes = [];
     const values = [];
     const quotedTable = this.quoteTable(table);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    const returnAttributes = [];
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -132,10 +144,14 @@ class QueryGenerator {
       emptyQuery += ' VALUES ()';
     }
 
-    if (this._dialect.supports.returnValues && options.returning) {
+    if ((this._dialect.supports.returnValues || this._dialect.supports.returnIntoValues) && options.returning) {
       const returnValues = this.generateReturnValues(modelAttributes, options);
 
       returningModelAttributes.push(...returnValues.returnFields);
+      // Storing the returnTypes for dialects that need to have returning into bind information for outbinds
+      if (this._dialect.supports.returnIntoValues) {
+        returnTypes.push(...returnValues.returnTypes);
+      }
       returningFragment = returnValues.returningFragment;
       tmpTable = returnValues.tmpTable || '';
       outputFragment = returnValues.outputFragment || '';
@@ -182,6 +198,13 @@ class QueryGenerator {
 
     let onDuplicateKeyUpdate = '';
 
+    if (
+      !_.isEmpty(options.conflictWhere)
+      && !this._dialect.supports.inserts.onConflictWhere
+    ) {
+      throw new Error('missing dialect support for conflictWhere option');
+    }
+
     // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
     // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
     // upsert function.
@@ -190,10 +213,28 @@ class QueryGenerator {
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
-        onDuplicateKeyUpdate = ` ON CONFLICT (${conflictKeys.join(',')})`;
+
+        const fragments = [
+          'ON CONFLICT',
+          '(',
+          conflictKeys.join(','),
+          ')'
+        ];
+
+        if (!_.isEmpty(options.conflictWhere)) {
+          fragments.push(this.whereQuery(options.conflictWhere, options));
+        }
+
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
         // do an update.  Instead, fall back to DO NOTHING.
-        onDuplicateKeyUpdate += _.isEmpty(updateKeys) ? ' DO NOTHING ' : ` DO UPDATE SET ${updateKeys.join(',')}`;
+        if (_.isEmpty(updateKeys)) {
+          fragments.push('DO NOTHING');
+        } else {
+          fragments.push('DO UPDATE SET', updateKeys.join(','));
+        }
+
+        onDuplicateKeyUpdate = ` ${Utils.joinSQLFragments(fragments)}`;
+
       } else {
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
         // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id
@@ -244,7 +285,12 @@ class QueryGenerator {
       emptyQuery += returningFragment;
     }
 
-    query = `${replacements.attributes.length ? valueQuery : emptyQuery};`;
+    if (this._dialect.supports.returnIntoValues && options.returning) {
+      // Populating the returnAttributes array and performing operations needed for output binds of insertQuery
+      this.populateInsertQueryReturnIntoBinds(returningModelAttributes, returnTypes, bind.length, returnAttributes, options);
+    }
+
+    query = `${replacements.attributes.length ? valueQuery : emptyQuery}${returnAttributes.join(',')};`;
     if (this._dialect.supports.finalTable) {
       query = `SELECT * FROM FINAL TABLE(${ replacements.attributes.length ? valueQuery : emptyQuery });`;
     }
@@ -383,8 +429,18 @@ class QueryGenerator {
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
     if (this._dialect.supports['LIMIT ON UPDATE'] && options.limit) {
-      if (this.dialect !== 'mssql' && this.dialect !== 'db2') {
+      if (!['mssql', 'db2', 'oracle'].includes(this.dialect)) {
         suffix = ` LIMIT ${this.escape(options.limit)} `;
+      } else if (this.dialect === 'oracle') {
+        // This cannot be setted in where because rownum will be quoted
+        if (where && (where.length && where.length > 0 || Object.keys(where).length > 0)) {
+          // If we have a where clause, we add AND
+          suffix += ' AND ';
+        } else {
+          // No where clause, we add where
+          suffix += ' WHERE ';
+        }
+        suffix += `rownum <= ${this.escape(options.limit)} `;
       }
     }
 
@@ -676,7 +732,7 @@ class QueryGenerator {
         break;
       case 'DEFAULT':
         if (options.defaultValue === undefined) {
-          throw new Error('Default value must be specifed for DEFAULT CONSTRAINT');
+          throw new Error('Default value must be specified for DEFAULT CONSTRAINT');
         }
 
         if (this._dialect.name !== 'mssql') {
@@ -939,8 +995,8 @@ class QueryGenerator {
   /**
    * Split a list of identifiers by "." and quote each part.
    *
-   * @param {string} identifiers 
-   * 
+   * @param {string} identifiers
+   *
    * @returns {string}
    */
   quoteIdentifiers(identifiers) {
@@ -961,6 +1017,15 @@ class QueryGenerator {
       return this.quoteIdentifier(attribute);
     }
     return this.quoteIdentifiers(attribute);
+  }
+
+  /**
+   * Returns the alias token
+   *
+   * @returns {string}
+   */
+  getAliasToken() {
+    return 'AS';
   }
 
   /**
@@ -998,7 +1063,7 @@ class QueryGenerator {
     }
 
     if (alias) {
-      table += ` AS ${this.quoteIdentifier(alias)}`;
+      table += ` ${this.getAliasToken()} ${this.quoteIdentifier(alias)}`;
     }
 
     return table;
@@ -1312,7 +1377,12 @@ class QueryGenerator {
         } else {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
-          delete options.order;
+
+          // For the Oracle dialect, the result of a select is a set, not a sequence, and so is the result of UNION.
+          // So the top level ORDER BY is required
+          if (!this._dialect.supports.topLevelOrderByRequired) {
+            delete options.order;
+          }
           where[Op.placeholder] = true;
         }
 
@@ -1332,7 +1402,7 @@ class QueryGenerator {
             model
           },
           model
-        ).replace(/;$/, '')}) AS sub`; // Every derived table must have its own alias
+        ).replace(/;$/, '')}) ${this.getAliasToken()} sub`; // Every derived table must have its own alias
         const placeHolder = this.whereItemQuery(Op.placeholder, true, { model });
         const splicePos = baseQuery.indexOf(placeHolder);
 
@@ -1426,7 +1496,7 @@ class QueryGenerator {
 
     if (subQuery) {
       this._throwOnEmptyAttributes(attributes.main, { modelName: model && model.name, as: mainTable.as });
-      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${mainTable.as}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) ${this.getAliasToken()} ${mainTable.as}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
     } else {
       query = mainQueryItems.join('');
     }
@@ -1476,11 +1546,24 @@ class QueryGenerator {
         if (attr[0] instanceof Utils.SequelizeMethod) {
           attr[0] = this.handleSequelizeMethod(attr[0]);
           addTable = false;
-        } else if (!attr[0].includes('(') && !attr[0].includes(')')) {
+        } else if (this.options.attributeBehavior === 'escape' || !attr[0].includes('(') && !attr[0].includes(')')) {
           attr[0] = this.quoteIdentifier(attr[0]);
-        } else {
-          deprecations.noRawAttributes();
+        } else if (this.options.attributeBehavior !== 'unsafe-legacy') {
+          throw new Error(`Attributes cannot include parentheses in Sequelize 6:
+In order to fix the vulnerability CVE-2023-22578, we had to remove support for treating attributes as raw SQL if they included parentheses.
+Sequelize 7 escapes all attributes, even if they include parentheses.
+For Sequelize 6, because we're introducing this change in a minor release, we've opted for throwing an error instead of silently escaping the attribute as a way to warn you about this change.
+
+Here is what you can do to fix this error:
+- Wrap the attribute in a literal() call. This will make Sequelize treat it as raw SQL.
+- Set the "attributeBehavior" sequelize option to "escape" to make Sequelize escape the attribute, like in Sequelize v7. We highly recommend this option.
+- Set the "attributeBehavior" sequelize option to "unsafe-legacy" to make Sequelize escape the attribute, like in Sequelize v5.
+
+We sincerely apologize for the inconvenience this may cause you. You can find more information on the following threads:
+https://github.com/sequelize/sequelize/security/advisories/GHSA-f598-mfpv-gmfx
+https://github.com/sequelize/sequelize/discussions/15694`);
         }
+
         let alias = attr[1];
 
         if (this.options.minifyAliases) {
@@ -1566,6 +1649,8 @@ class QueryGenerator {
           prefix = `(${this.quoteIdentifier(includeAs.internalAs)}.${attr.replace(/\(|\)/g, '')})`;
         } else if (/json_extract\(/.test(attr)) {
           prefix = attr.replace(/json_extract\(/i, `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`);
+        } else if (/json_value\(/.test(attr)) {
+          prefix = attr.replace(/json_value\(/i, `json_value(${this.quoteIdentifier(includeAs.internalAs)}.`);
         } else {
           prefix = `${this.quoteIdentifier(includeAs.internalAs)}.${this.quoteIdentifier(attr)}`;
         }
@@ -1822,6 +1907,8 @@ class QueryGenerator {
 
     if (this._dialect.supports.returnValues.returning) {
       returningFragment = ` RETURNING ${returnFields.join(',')}`;
+    } else if (this._dialect.supports.returnIntoValues) {
+      returningFragment = ` RETURNING ${returnFields.join(',')} INTO `;
     } else if (this._dialect.supports.returnValues.output) {
       outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(',')}`;
 
@@ -1835,7 +1922,7 @@ class QueryGenerator {
       }
     }
 
-    return { outputFragment, returnFields, returningFragment, tmpTable };
+    return { outputFragment, returnFields, returnTypes, returningFragment, tmpTable };
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo) {
@@ -2083,17 +2170,39 @@ class QueryGenerator {
           && !(typeof order[0].model === 'function' && order[0].model.prototype instanceof Model)
           && !(typeof order[0] === 'string' && model && model.associations !== undefined && model.associations[order[0]])
         ) {
-          subQueryOrder.push(this.quote(order, model, '->'));
+          const field = model.rawAttributes[order[0]] ? model.rawAttributes[order[0]].field : order[0];
+          const subQueryAlias = this._getAliasForField(this.quoteIdentifier(model.name), field, options);
+
+          let parent = null;
+          let orderToQuote = [];
+
+          // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
+          // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
+          // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
+          if (subQueryAlias === null) {
+            orderToQuote = order;
+            parent = model;
+          } else {
+            orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
+            parent = null;
+          }
+
+          subQueryOrder.push(this.quote(orderToQuote, parent, '->'));
         }
 
-        if (subQuery) {
-          // Handle case where sub-query renames attribute we want to order by,
-          // see https://github.com/sequelize/sequelize/issues/8739
-          const subQueryAttribute = options.attributes.find(a => Array.isArray(a) && a[0] === order[0] && a[1]);
-          if (subQueryAttribute) {
-            const modelName = this.quoteIdentifier(model.name);
+        // Handle case where renamed attributes are used to order by,
+        // see https://github.com/sequelize/sequelize/issues/8739
+        // need to check if either of the attribute options match the order
+        if (options.attributes && model) {
+          const aliasedAttribute = options.attributes.find(attr => Array.isArray(attr)
+              && attr[1]
+              && (attr[0] === order[0] || attr[1] === order[0]));
 
-            order[0] = new Utils.Col(this._getAliasForField(modelName, subQueryAttribute[1], options) || subQueryAttribute[1]);
+          if (aliasedAttribute) {
+            const modelName = this.quoteIdentifier(model.name);
+            const alias = this._getAliasForField(modelName, aliasedAttribute[1], options);
+
+            order[0] = new Utils.Col(alias || aliasedAttribute[1]);
           }
         }
 
@@ -2126,7 +2235,7 @@ class QueryGenerator {
     let fragment = `SELECT ${attributes.join(', ')} FROM ${tables}`;
 
     if (mainTableAs) {
-      fragment += ` AS ${mainTableAs}`;
+      fragment += ` ${this.getAliasToken()} ${mainTableAs}`;
     }
 
     if (options.indexHints && this._dialect.supports.indexHints) {
@@ -2243,7 +2352,7 @@ class QueryGenerator {
           if (_.isPlainObject(arg)) {
             return this.whereItemsQuery(arg);
           }
-          return this.escape(typeof arg === 'string' ? arg.replace('$', '$$$') : arg);
+          return this.escape(typeof arg === 'string' ? arg.replace(/\$/g, '$$$') : arg);
         }).join(', ')
       })`;
     }
@@ -2721,7 +2830,7 @@ class QueryGenerator {
         type: options.type
       });
     }
-    if (typeof smth === 'number') {
+    if (typeof smth === 'number' || typeof smth === 'bigint') {
       let primaryKeys = factory ? Object.keys(factory.primaryKeys) : [];
 
       if (primaryKeys.length > 0) {
@@ -2755,14 +2864,14 @@ class QueryGenerator {
       }
       throw new Error('Support for literal replacements in the `where` object has been removed.');
     }
-    if (smth === null) {
+    if (smth == null) {
       return this.whereItemsQuery(smth, {
         model: factory,
         prefix: prepend && tableName
       });
     }
 
-    return '1=1';
+    throw new Error(`Unsupported where option value: ${util.inspect(smth)}. Please refer to the Sequelize documentation to learn more about which values are accepted as part of the where option.`);
   }
 
   // A recursive parser for nested where conditions
@@ -2779,6 +2888,13 @@ class QueryGenerator {
 
   booleanValue(value) {
     return value;
+  }
+
+  /**
+   * Returns the authenticate test query string
+   */
+  authTestQuery() {
+    return 'SELECT 1+1 AS result';
   }
 }
 

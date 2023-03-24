@@ -22,6 +22,10 @@ class MariadbDialect extends AbstractDialect {
       this.queryGenerator
     );
   }
+
+  canBackslashEscape() {
+    return true;
+  }
 }
 
 MariadbDialect.prototype.supports = _.merge(

@@ -211,7 +211,7 @@ class NUMBER extends ABSTRACT {
     return true;
   }
   _stringify(number) {
-    if (typeof number === 'number' || typeof number === 'boolean' || number === null || number === undefined) {
+    if (typeof number === 'number' || typeof number === 'bigint' || typeof number === 'boolean' || number === null || number === undefined) {
       return number;
     }
     if (typeof number.toString === 'function') {
@@ -1060,6 +1060,7 @@ dialectMap.sqlite = require('./dialects/sqlite/data-types')(DataTypes);
 dialectMap.mssql = require('./dialects/mssql/data-types')(DataTypes);
 dialectMap.db2 = require('./dialects/db2/data-types')(DataTypes);
 dialectMap.snowflake = require('./dialects/snowflake/data-types')(DataTypes);
+dialectMap.oracle = require('./dialects/oracle/data-types')(DataTypes);
 
 const dialectList = Object.values(dialectMap);
 

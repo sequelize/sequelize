@@ -22,6 +22,10 @@ class MysqlDialect extends AbstractDialect {
       this.queryGenerator
     );
   }
+
+  canBackslashEscape() {
+    return true;
+  }
 }
 
 MysqlDialect.prototype.supports = _.merge(
