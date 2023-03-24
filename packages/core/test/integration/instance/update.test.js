@@ -88,7 +88,7 @@ describe('Model#update', () => {
       expect(user.get('createdAt')).to.equalTime(testDate);
     });
 
-    it('doesn\'t update primary keys or timestamps', async function () {
+    it(`doesn't update primary keys or timestamps`, async function () {
       const User = this.sequelize.define(`User${Support.rand()}`, {
         name: DataTypes.STRING,
         bio: DataTypes.TEXT,
