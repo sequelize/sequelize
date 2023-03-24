@@ -89,7 +89,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     let attributesClause = attrStr.join(', ');
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
-    if (options.uniqueKeys) {
+    if (options?.uniqueKeys) {
       // only need to sort primary keys once, don't do it in place
       const sortedPrimaryKeys = [...primaryKeys];
       sortedPrimaryKeys.sort();
@@ -127,17 +127,12 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       }
     }
 
-    let tableObject;
-    if (typeof tableName === 'string') {
-      tableObject = { table: tableName };
-    } else {
-      tableObject = tableName;
-    }
+    const quotedTable = this.quoteTable(tableName);
 
     return `BEGIN
     DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710'
       BEGIN END;
-      CREATE TABLE ${tableName.schema ? `"${tableObject.schema}".` : ''}"${tableObject.table ? tableObject.table : tableObject.tableName}" (${attributesClause});
+      CREATE TABLE ${quotedTable} (${attributesClause});
       END`;
   }
 

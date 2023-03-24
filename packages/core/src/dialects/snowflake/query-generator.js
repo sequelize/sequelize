@@ -186,7 +186,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       'CREATE TABLE IF NOT EXISTS',
       table,
       `(${attributesClause})`,
-      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment, options)}`,
+      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
