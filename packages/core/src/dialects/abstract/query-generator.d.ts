@@ -72,6 +72,20 @@ export interface CreateSchemaQueryOptions {
   charset?: string;
 }
 
+export interface CreateTableQueryOptions {
+  collate?: string;
+  charset?: string;
+  engine?: string;
+  rowFormat?: string;
+  comment?: string;
+  initialAutoIncrement?: number;
+  /**
+   * Used for compound unique keys.
+   */
+  uniqueKeys?: Array<{ fields: string[] }>
+   | { [indexName: string]: { fields: string[] } };
+}
+
 // keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface DropTableQueryOptions {
   cascade?: boolean;
@@ -158,6 +172,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: ArithmeticQueryOptions,
   ): string;
 
+  createTableQuery(
+    tableName: TableNameOrModel,
+    // TODO: rename attributes to columns and accept a map of attributes in the implementation when migrating to TS, see https://github.com/sequelize/sequelize/pull/15526/files#r1143840411
+    columns: { [columnName: string]: string },
+    // TODO: throw when using invalid options when migrating to TS
+    options?: CreateTableQueryOptions
+  ): string;
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
