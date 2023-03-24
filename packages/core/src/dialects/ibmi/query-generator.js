@@ -616,7 +616,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
    */
   dropForeignKeyQuery(tableName, foreignKey) {
     return `ALTER TABLE ${this.quoteTable(tableName)}
-      DROP FOREIGN KEY ${this.quoteIdentifier(foreignKey)};`;
+      DROP FOREIGN KEY ${this.quoteIdentifier(foreignKey)}`;
   }
 }
 

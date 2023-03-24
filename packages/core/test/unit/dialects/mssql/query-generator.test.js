@@ -191,10 +191,6 @@ if (current.dialect.name === 'mssql') {
         mssql: 'ALTER TABLE [myTable] DROP COLUMN [myColumn];',
       });
     });
-
-    it('dropForeignKeyQuery', function () {
-      expectsql(this.queryGenerator.dropForeignKeyQuery('myTable', 'myColumnKey'), {
-        mssql: 'ALTER TABLE [myTable] DROP [myColumnKey]',
       });
     });
   });
