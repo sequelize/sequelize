@@ -187,8 +187,6 @@ export class ModelDefinition {
       throw new Error('new ModelDefinition() expects a modelName to be passed through the option bag, which is the second parameter.');
     }
 
-    const definedModelOptions = removeUndefined(modelOptions);
-
     this.#sequelize = modelOptions.sequelize;
     this.#model = model;
 
@@ -215,7 +213,7 @@ export class ModelDefinition {
         },
         globalOptions.define as ModelOptions,
       ),
-      definedModelOptions,
+      removeUndefined(modelOptions),
       true,
     ) as BuiltModelOptions;
 
@@ -228,13 +226,11 @@ If you need regular getters & setters, define your model as a class and add gett
 See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprecated-in-sequelize-v7-gettermethods-and-settermethods for more information.`);
     }
 
-    this.options.name.plural ??= pluralize(definedModelOptions.modelName!);
+    this.options.name.plural ??= pluralize(this.options.modelName);
     // Model Names must be singular!
-    this.options.name.singular ??= definedModelOptions.modelName!;
+    this.options.name.singular ??= this.options.modelName;
 
     this.#sequelize.hooks.runSync('beforeDefine', attributesOptions, this.options);
-
-    delete definedModelOptions.modelName;
 
     // if you call "define" multiple times for the same modelName, do not clutter the factory
     if (this.sequelize.isDefined(this.modelName)) {
