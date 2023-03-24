@@ -13,22 +13,6 @@ import { expectPerDialect, sequelize } from '../../support';
 describe('QueryGenerator#attributesToSQL', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 
-  // TODO: remove this functionality?
-  it(`{ id: 'INTEGER' }`, () => {
-    expectPerDialect(() => queryGenerator.attributesToSQL({ id: 'INTEGER' }), {
-      default: { id: 'INTEGER' },
-      'mssql ibmi': new Error('attributeTypeToSql received a type that is neither a string or an instance of AbstractDataType'),
-    });
-  });
-
-  // TODO: remove this functionality?
-  it(`{ id: 'INTEGER', foo: 'VARCHAR(255)' }`, () => {
-    expectPerDialect(() => queryGenerator.attributesToSQL({ id: 'INTEGER', foo: 'VARCHAR(255)' }), {
-      default: { id: 'INTEGER', foo: 'VARCHAR(255)' },
-      'mssql ibmi': new Error('attributeTypeToSql received a type that is neither a string or an instance of AbstractDataType'),
-    });
-  });
-
   it(`{ id: { type: 'INTEGER' } }`, () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'INTEGER' } }), {
       default: { id: 'INTEGER' },
