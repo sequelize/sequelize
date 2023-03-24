@@ -1418,6 +1418,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
   }
 
   toSql() {
+    // TODO [>=8]: Consider making precision default to 3 instead of being dialect-dependent.
     if (this.options.precision != null) {
       return `DATETIME(${this.options.precision})`;
     }
