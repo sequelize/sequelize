@@ -109,7 +109,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
       expect(afterRollback).to.not.have.been.called;
     });
 
-    it('runs afterRollback & afterTransaction hooks when a transaction is committed', async function () {
+    it('runs afterRollback & afterTransaction hooks when a transaction is rolled back', async function () {
       const afterCommit = sinon.spy();
       const afterTransaction = sinon.spy();
       const afterRollback = sinon.spy();
