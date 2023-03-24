@@ -278,7 +278,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     dataType = {
       ...dataType,
-      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      // TODO: attributeToSql SHOULD be using attributes in addColumnQuery
       //       but instead we need to pass the key along as the field here
       field: key,
       type: normalizeDataType(dataType.type, this.dialect),
@@ -288,7 +288,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (dataType.comment && _.isString(dataType.comment)) {
       commentStr = this.commentTemplate(this.escape(dataType.comment), table, key);
-      // attributeToSQL will try to include `COMMENT 'Comment Text'` when it returns if the comment key
+      // attributeToSql will try to include `COMMENT 'Comment Text'` when it returns if the comment key
       // is present. This is needed for createTable statement where that part is extracted with regex.
       // Here we can intercept the object and remove comment property since we have the original object.
       delete dataType.comment;
@@ -299,7 +299,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       this.quoteTable(table),
       'ADD',
       this.quoteIdentifier(key),
-      this.attributeToSQL(dataType, { context: 'addColumn' }),
+      this.attributeToSql(dataType, { context: 'addColumn' }),
       ';',
       commentStr,
     ]);
@@ -307,7 +307,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   commentTemplate(comment, table, column) {
     return ' EXEC sp_addextendedproperty '
-        // escaping is done by attributeToSQL and addColumnQuery
+        // escaping is done by attributeToSql and addColumnQuery
         + `@name = N'MS_Description', @value = ${comment}, `
         + '@level0type = N\'Schema\', @level0name = \'dbo\', '
         + `@level1type = N'Table', @level1name = ${this.quoteTable(table)}, `
@@ -612,7 +612,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return `EXEC sp_helpconstraint @objname = ${this.escape(this.quoteTable(tableName))};`;
   }
 
-  attributeToSQL(attribute, options) {
+  attributeToSql(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,
@@ -690,7 +690,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return template;
   }
 
-  attributesToSQL(attributes, options) {
+  attributesToSql(attributes, options) {
     const result = Object.create(null);
     const existingConstraints = [];
 
@@ -716,7 +716,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         attribute.field = key;
       }
 
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+      result[attribute.field || key] = this.attributeToSql(attribute, options);
     }
 
     return result;

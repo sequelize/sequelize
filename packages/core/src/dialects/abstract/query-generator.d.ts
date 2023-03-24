@@ -60,7 +60,7 @@ type ArithmeticQueryOptions = ParameterOptions & {
 };
 
 // TODO: remove tableName and schema when migrating to TypeScript in favour of a table that supports TableNameOrModel
-interface AttributeToSQLOptions extends ParameterOptions {
+interface AttributeToSqlOptions extends ParameterOptions {
   table?: TableName;
   tableName?: string;
   context?: 'createTable' | 'addColumn' | 'changeColumn';
@@ -134,14 +134,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   generateTransactionId(): string;
   quoteIdentifiers(identifiers: string): string;
 
-  attributeToSQL(
+  attributeToSql(
     attribute: NormalizedAttributeOptions,
-    options?: AttributeToSQLOptions,
+    options?: AttributeToSqlOptions,
   ): string;
 
-  attributesToSQL<M extends Model>(
+  attributesToSql<M extends Model>(
     attributes: ModelAttributes<M, CreationAttributes<M>>,
-    options?: AttributeToSQLOptions,
+    options?: AttributeToSqlOptions,
   ): object;
 
   selectQuery<M extends Model>(tableName: TableName, options?: SelectOptions<M>, model?: ModelStatic<M>): string;

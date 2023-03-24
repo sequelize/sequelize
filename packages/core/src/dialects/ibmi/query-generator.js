@@ -167,13 +167,13 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
     dataType = {
       ...dataType,
-      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      // TODO: attributeToSql SHOULD be using attributes in addColumnQuery
       //       but instead we need to pass the key along as the field here
       field: key,
       type: normalizeDataType(dataType.type, this.dialect),
     };
 
-    const definition = this.attributeToSQL(dataType, {
+    const definition = this.attributeToSql(dataType, {
       context: 'addColumn',
       tableName: table,
       foreignKey: key,
@@ -489,7 +489,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   //   };
   // }
 
-  attributeToSQL(attribute, options) {
+  attributeToSql(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,
@@ -586,16 +586,12 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return template;
   }
 
-  attributesToSQL(attributes, options) {
+  attributesToSql(attributes, options) {
     const result = Object.create(null);
 
-    for (const key of Object.keys(attributes)) {
-      const attribute = {
-        ...attributes[key],
-        field: attributes[key].field || key,
-      };
-
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+    for (const key in attributes) {
+      const attribute = attributes[key];
+      result[attribute.field || key] = this.attributeToSql(attribute, options);
     }
 
     return result;

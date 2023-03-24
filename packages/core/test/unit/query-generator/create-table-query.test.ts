@@ -2,9 +2,9 @@ import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
-// TODO: check the tests with COMMENT to see if they are valid results of attributeToSQL since some tests are broken
-// TODO: double check if all column SQL types are possible results of attributeToSQL after #15533 has been merged
-// TODO: see if some logic in handling columns can be moved to attributeToSQL which could make some tests here redundant
+// TODO: check the tests with COMMENT to see if they are valid results of attributeToSql since some tests are broken
+// TODO: double check if all column SQL types are possible results of attributeToSql after #15533 has been merged
+// TODO: see if some logic in handling columns can be moved to attributeToSql which could make some tests here redundant
 
 describe('QueryGenerator#createTableQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -101,7 +101,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  // quoting the identifiers after REFERENCES is done by attributesToSQL
+  // quoting the identifiers after REFERENCES is done by attributesToSql
   it('produces a query to create a table with references', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE REFERENCES "Bar" ("id")' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE REFERENCES "Bar" ("id"));',
@@ -124,7 +124,7 @@ describe('QueryGenerator#createTableQuery', () => {
   });
 
   // TODO: REFERENCES should be pushed to the end, this is likely a bug in mysql/mariadb
-  //       mssql and db2 use the same logic but there does not seem to be a valid attributeToSQL result that causes issues
+  //       mssql and db2 use the same logic but there does not seem to be a valid attributeToSql result that causes issues
   it('produces a query to create a table with references and a comment', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE REFERENCES "Bar" ("id") COMMENT "Foo"' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE REFERENCES "Bar" ("id") COMMENT "Foo");',
@@ -205,7 +205,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  // quoting the enum values is done by attributesToSQL
+  // quoting the enum values is done by attributesToSql
   it('produces a query to create a table with an enum', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'ENUM("foo", "bar")' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] ENUM("foo", "bar"));',

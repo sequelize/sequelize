@@ -111,7 +111,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       const quotedAttr = this.quoteIdentifier(attr);
       const i = attributes[attr].indexOf('COMMENT ');
       if (i !== -1) {
-        // escaping is done in attributeToSQL
+        // escaping is done in attributeToSql
         columnComments += `; COMMENT ON COLUMN ${quotedTable}.${quotedAttr} IS ${attributes[attr].slice(Math.max(0, i + 8))}`;
         attributes[attr] = attributes[attr].slice(0, Math.max(0, i));
       }
@@ -182,7 +182,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   addColumnQuery(table, key, attribute, options) {
     options = options || {};
 
-    const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
+    const dbDataType = this.attributeToSql(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
@@ -348,7 +348,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return fragment;
   }
 
-  attributeToSQL(attribute, options) {
+  attributeToSql(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,
@@ -482,12 +482,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return this.setConstraintQuery(columns, 'IMMEDIATE');
   }
 
-  attributesToSQL(attributes, options) {
+  attributesToSql(attributes, options) {
     const result = Object.create(null);
 
     for (const key in attributes) {
       const attribute = attributes[key];
-      result[attribute.field || key] = this.attributeToSQL(attribute, { key, ...options });
+      result[attribute.field || key] = this.attributeToSql(attribute, { key, ...options });
     }
 
     return result;

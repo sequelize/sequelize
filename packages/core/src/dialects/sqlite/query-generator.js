@@ -131,7 +131,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     const attributes = {};
     attributes[key] = dataType;
-    const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
+    const fields = this.attributesToSql(attributes, { context: 'addColumn' });
     const attribute = `${this.quoteIdentifier(key)} ${fields[key]}`;
 
     const sql = `ALTER TABLE ${this.quoteTable(table)} ADD ${attribute};`;
@@ -215,64 +215,68 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`.trim();
   }
 
-  attributesToSQL(attributes, options) {
+  attributeToSql(attribute, options) {
+    if (!_.isPlainObject(attribute)) {
+      attribute = {
+        type: attribute,
+      };
+    }
+
+    let sql = attribute.type.toString();
+
+    if (attribute.allowNull === false) {
+      sql += ' NOT NULL';
+    }
+
+    if (defaultValueSchemable(attribute.defaultValue)) {
+      // TODO thoroughly check that DataTypes.NOW will properly
+      // get populated on all databases as DEFAULT value
+      // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
+      sql += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
+    }
+
+    if (attribute.unique === true) {
+      sql += ' UNIQUE';
+    }
+
+    if (attribute.primaryKey) {
+      sql += ' PRIMARY KEY';
+
+      if (attribute.autoIncrement) {
+        sql += ' AUTOINCREMENT';
+      }
+    }
+
+    if (attribute.references) {
+      const referencesTable = this.quoteTable(attribute.references.table);
+
+      let referencesKey;
+      if (attribute.references.key) {
+        referencesKey = this.quoteIdentifier(attribute.references.key);
+      } else {
+        referencesKey = this.quoteIdentifier('id');
+      }
+
+      sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
+
+      if (attribute.onDelete) {
+        sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+      }
+
+      if (attribute.onUpdate) {
+        sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+      }
+    }
+
+    return sql;
+  }
+
+  attributesToSql(attributes, options) {
     const result = Object.create(null);
 
-    for (const name in attributes) {
-      const attribute = attributes[name];
-      const columnName = attribute.field || attribute.columnName || name;
-
-      if (_.isObject(attribute)) {
-        let sql = attribute.type.toString();
-
-        if (attribute.allowNull === false) {
-          sql += ' NOT NULL';
-        }
-
-        if (defaultValueSchemable(attribute.defaultValue)) {
-          // TODO thoroughly check that DataTypes.NOW will properly
-          // get populated on all databases as DEFAULT value
-          // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
-          sql += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
-        }
-
-        if (attribute.unique === true) {
-          sql += ' UNIQUE';
-        }
-
-        if (attribute.primaryKey) {
-          sql += ' PRIMARY KEY';
-
-          if (attribute.autoIncrement) {
-            sql += ' AUTOINCREMENT';
-          }
-        }
-
-        if (attribute.references) {
-          const referencesTable = this.quoteTable(attribute.references.table);
-
-          let referencesKey;
-          if (attribute.references.key) {
-            referencesKey = this.quoteIdentifier(attribute.references.key);
-          } else {
-            referencesKey = this.quoteIdentifier('id');
-          }
-
-          sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
-
-          if (attribute.onDelete) {
-            sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-          }
-
-          if (attribute.onUpdate) {
-            sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-          }
-        }
-
-        result[columnName] = sql;
-      } else {
-        result[columnName] = attribute;
-      }
+    for (const key in attributes) {
+      const attribute = attributes[key];
+      result[attribute.field || key] = this.attributeToSql(attribute, options);
     }
 
     return result;
@@ -303,7 +307,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       );
     }
 
-    attributes = this.attributesToSQL(attributes);
+    attributes = this.attributesToSql(attributes);
 
     let backupTableName;
     if (typeof tableName === 'object') {
@@ -328,7 +332,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   _alterConstraintQuery(tableName, attributes, createTableSql) {
     let backupTableName;
 
-    attributes = this.attributesToSQL(attributes);
+    attributes = this.attributesToSql(attributes);
 
     if (typeof tableName === 'object') {
       backupTableName = {
@@ -355,7 +359,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     let backupTableName;
 
-    attributes = this.attributesToSQL(attributes);
+    attributes = this.attributesToSql(attributes);
 
     if (typeof tableName === 'object') {
       backupTableName = {

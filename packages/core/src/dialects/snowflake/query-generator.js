@@ -233,7 +233,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       this.quoteTable(table),
       'ADD',
       this.quoteIdentifier(key),
-      this.attributeToSQL(dataType, {
+      this.attributeToSql(dataType, {
         context: 'addColumn',
         tableName: table,
         foreignKey: key,
@@ -397,7 +397,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  attributeToSQL(attribute, options) {
+  attributeToSql(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,
@@ -470,12 +470,12 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     return template;
   }
 
-  attributesToSQL(attributes, options) {
+  attributesToSql(attributes, options) {
     const result = Object.create(null);
 
     for (const key in attributes) {
       const attribute = attributes[key];
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+      result[attribute.field || key] = this.attributeToSql(attribute, options);
     }
 
     return result;
