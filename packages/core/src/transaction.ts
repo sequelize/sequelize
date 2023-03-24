@@ -3,7 +3,7 @@ import type { Class } from 'type-fest';
 import type { RequiredBy } from './utils/types.js';
 import type { Logging, Deferrable, Connection, Sequelize } from './index.js';
 
-type AfterTransactionCommitCallback = (transaction: Transaction) => void | Promise<void>;
+type TransactionCallback = (transaction: Transaction) => void | Promise<void>;
 
 /**
  * The transaction object is used to identify a running transaction.
@@ -17,7 +17,10 @@ export class Transaction {
 
   sequelize: Sequelize;
 
-  private readonly _afterCommitHooks: Set<AfterTransactionCommitCallback> = new Set();
+  readonly #afterCommitHooks: Set<TransactionCallback> = new Set();
+  readonly #afterRollbackHooks: Set<TransactionCallback> = new Set();
+  readonly #afterHooks: Set<TransactionCallback> = new Set();
+
   private readonly savepoints: Transaction[] = [];
   private readonly options: RequiredBy<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
   private readonly parent: Transaction | null;
@@ -75,10 +78,9 @@ export class Transaction {
 
     try {
       await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
-      for (const hook of this._afterCommitHooks) {
-        // eslint-disable-next-line no-await-in-loop -- sequentially call hooks
-        await Reflect.apply(hook, this, [this]);
-      }
+
+      await this.#dispatchHooks(this.#afterCommitHooks);
+      await this.#dispatchHooks(this.#afterHooks);
 
       this.cleanup();
     } catch (error) {
@@ -109,12 +111,22 @@ export class Transaction {
         .getQueryInterface()
         .rollbackTransaction(this, this.options);
 
+      await this.#dispatchHooks(this.#afterRollbackHooks);
+      await this.#dispatchHooks(this.#afterHooks);
+
       this.cleanup();
     } catch (error) {
       console.warn(`Rolling back transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`);
       await this.forceCleanup();
 
       throw error;
+    }
+  }
+
+  async #dispatchHooks(hooks: Set<TransactionCallback>) {
+    for (const hook of hooks) {
+      // eslint-disable-next-line no-await-in-loop -- sequentially call hooks
+      await Reflect.apply(hook, this, [this]);
     }
   }
 
@@ -209,16 +221,44 @@ export class Transaction {
   /**
    * Adds a hook that is run after a transaction is committed.
    *
-   * @param fn   A callback function that is called with the committed transaction
-   * @name afterCommit
-   * @memberof Sequelize.Transaction
+   * @param callback A callback function that is called with the transaction
    */
-  afterCommit(fn: AfterTransactionCommitCallback): this {
-    if (typeof fn !== 'function') {
-      throw new TypeError('"fn" must be a function');
+  afterCommit(callback: TransactionCallback): this {
+    if (typeof callback !== 'function') {
+      throw new TypeError('"callback" must be a function');
     }
 
-    this._afterCommitHooks.add(fn);
+    this.#afterCommitHooks.add(callback);
+
+    return this;
+  }
+
+  /**
+   * Adds a hook that is run after a transaction is rolled back.
+   *
+   * @param callback A callback function that is called with the transaction
+   */
+  afterRollback(callback: TransactionCallback): this {
+    if (typeof callback !== 'function') {
+      throw new TypeError('"callback" must be a function');
+    }
+
+    this.#afterRollbackHooks.add(callback);
+
+    return this;
+  }
+
+  /**
+   * Adds a hook that is run after a transaction completes, no matter if it was committed or rolled back.
+   *
+   * @param callback A callback function that is called with the transaction
+   */
+  afterTransaction(callback: TransactionCallback): this {
+    if (typeof callback !== 'function') {
+      throw new TypeError('"callback" must be a function');
+    }
+
+    this.#afterHooks.add(callback);
 
     return this;
   }
