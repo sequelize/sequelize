@@ -439,15 +439,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
+      const ModelOptions = ['mariadb', 'mysql'].includes(dialectName) ? { indexes: indices, engine: 'MyISAM' } : { indexes: indices };
+
       const Model = this.sequelize.define('model', {
         fieldA: DataTypes.STRING,
         fieldB: DataTypes.INTEGER,
         fieldC: DataTypes.STRING,
         fieldD: DataTypes.STRING,
-      }, {
-        indexes: indices,
-        engine: 'MyISAM',
-      });
+      }, ModelOptions);
 
       await this.sequelize.sync();
       await this.sequelize.sync(); // The second call should not try to create the indices again
