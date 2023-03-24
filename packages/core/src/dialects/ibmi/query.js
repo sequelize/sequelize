@@ -25,7 +25,7 @@ export class IBMiQuery extends AbstractQuery {
       throw this.formatError(error);
     } finally {
       if (this.connection) {
-        await this.connection.close5();
+        await this.connection.close();
       }
     }
 
