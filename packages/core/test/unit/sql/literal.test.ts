@@ -23,6 +23,7 @@ describe('json', () => {
       sqlite: `(json_extract(\`metadata\`,'$.language') = '"icelandic"' AND json_extract(\`metadata\`,'$.pg_rating.dk') = '"G"') AND json_extract(\`another_json_field\`,'$.x') = '1'`,
       mariadb: `(json_compact(json_extract(\`metadata\`,'$.language')) = '"icelandic"' AND json_compact(json_extract(\`metadata\`,'$.pg_rating.dk')) = '"G"') AND json_compact(json_extract(\`another_json_field\`,'$.x')) = '1'`,
       mysql: `(json_extract(\`metadata\`,'$.language') = CAST('"icelandic"' AS JSON) AND json_extract(\`metadata\`,'$.pg_rating.dk') = CAST('"G"' AS JSON)) AND json_extract(\`another_json_field\`,'$.x') = CAST('1' AS JSON)`,
+      mssql: `(JSON_VALUE([metadata], N'$.language') = N'icelandic' AND JSON_VALUE([metadata], N'$.pg_rating.dk') = N'G') AND JSON_VALUE([another_json_field], N'$.x') = N'1'`,
     });
   });
 
@@ -32,6 +33,7 @@ describe('json', () => {
     expectsql(() => queryGenerator.escape(json(path)), {
       postgres: `"metadata"#>ARRAY['pg_rating','dk']`,
       mariadb: `json_compact(json_extract(\`metadata\`,'$.pg_rating.dk'))`,
+      mssql: `JSON_VALUE([metadata], N'$.pg_rating.dk')`,
       'sqlite mysql': `json_extract(\`metadata\`,'$.pg_rating.dk')`,
     });
   });
@@ -40,6 +42,7 @@ describe('json', () => {
     expectsql(queryGenerator.escape(json('profile.id.0.1')), {
       postgres: `"profile"#>ARRAY['id','0','1']`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id."0"."1"'))`,
+      mssql: `JSON_VALUE([profile], N'$.id."0"."1"')`,
       'sqlite mysql': `json_extract(\`profile\`,'$.id."0"."1"')`,
     });
   });
@@ -53,6 +56,7 @@ describe('json', () => {
       sqlite: `json_extract(\`metadata\`,'$.pg_rating.is') = '"U"'`,
       mariadb: `json_compact(json_extract(\`metadata\`,'$.pg_rating.is')) = '"U"'`,
       mysql: `json_extract(\`metadata\`,'$.pg_rating.is') = CAST('"U"' AS JSON)`,
+      mssql: `JSON_VALUE([metadata], N'$.pg_rating.is') = N'U'`,
     });
   });
 
@@ -75,6 +79,7 @@ describe('json', () => {
       sqlite: `json_extract(\`profile\`,'$.id') = '1'`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id')) = '1'`,
       mysql: `json_extract(\`profile\`,'$.id') = CAST('1' AS JSON)`,
+      mssql: `JSON_VALUE([profile], N'$.id') = N'1'`,
     });
   });
 
@@ -84,6 +89,7 @@ describe('json', () => {
       sqlite: `json_extract(\`property\`,'$.value') = '1' AND json_extract(\`another\`,'$.value') = '"string"'`,
       mariadb: `json_compact(json_extract(\`property\`,'$.value')) = '1' AND json_compact(json_extract(\`another\`,'$.value')) = '"string"'`,
       mysql: `json_extract(\`property\`,'$.value') = CAST('1' AS JSON) AND json_extract(\`another\`,'$.value') = CAST('"string"' AS JSON)`,
+      mssql: `JSON_VALUE([property], N'$.value') = N'1' AND JSON_VALUE([another], N'$.value') = N'string'`,
     });
   });
 
@@ -93,6 +99,7 @@ describe('json', () => {
       sqlite: `json_extract(\`profile\`,'$.id') = '"1"'`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id')) = '"1"'`,
       mysql: `json_extract(\`profile\`,'$.id') = CAST('"1"' AS JSON)`,
+      mssql: `JSON_VALUE([profile], N'$.id') = N'1'`,
     });
   });
 });

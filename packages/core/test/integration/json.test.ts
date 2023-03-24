@@ -13,7 +13,7 @@ const dialectName = dialect.name;
  * In dialects like postgres, no "json = json" operator exists, we need to cast to text first.
  * It does however support "jsonb = jsonb".
  */
-const dialectSupportsJsonEquality = ['sqlite', 'mysql', 'mariadb', 'mssql'].includes(dialectName);
+const dialectSupportsJsonEquality = ['sqlite', 'mysql', 'mariadb'].includes(dialectName);
 
 describe('JSON Manipulation', () => {
   if (!dialect.supports.dataTypes.JSON) {
@@ -119,6 +119,16 @@ describe('JSON Querying', () => {
       });
 
       expect(user).to.exist;
+    });
+  } else if (dialectName === 'mssql') {
+    it('should not be able to compare JSON to JSON directly', async () => {
+      const user = await vars.User.findOne({
+        where: {
+          stringJsonAttr: JSON_STRING,
+        },
+      });
+
+      expect(user).to.not.exist;
     });
   } else {
     it('should not be able to compare JSON to JSON directly', async () => {
@@ -250,7 +260,11 @@ describe('JSON Casting', () => {
       },
     });
 
-    const cast = dialectName === 'mysql' || dialectName === 'mariadb' ? 'DATETIME' : 'TIMESTAMPTZ';
+    const cast = dialectName === 'mysql' || dialectName === 'mariadb'
+      ? 'DATETIME'
+      : dialectName === 'mssql'
+      ? 'DATETIMEOFFSET'
+      : 'TIMESTAMPTZ';
 
     const user = await vars.User.findOne({
       where: {
@@ -273,7 +287,7 @@ describe('JSON Casting', () => {
 
   it('supports casting to boolean', async () => {
     // These dialects do not have a native BOOLEAN type
-    if (dialectName === 'mariadb' || dialectName === 'mysql') {
+    if (['mariadb', 'mysql', 'mssql'].includes(dialectName)) {
       return;
     }
 
