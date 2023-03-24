@@ -141,19 +141,32 @@ export class UUID extends BaseTypes.UUID {
 
 export class GEOMETRY extends BaseTypes.GEOMETRY {
   toBindableValue(value: GeoJson) {
+    const srid = this.options.srid ? `, ${this.options.srid}` : '';
+
     return `ST_GeomFromText(${this._getDialect().escapeString(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
-    )})`;
+    )}${srid})`;
   }
 
   getBindParamSql(value: GeoJson, options: BindParamOptions) {
+    const srid = this.options.srid ? `, ${options.bindParam(this.options.srid)}` : '';
+
     return `ST_GeomFromText(${options.bindParam(
       wkx.Geometry.parseGeoJSON(value).toWkt(),
-    )})`;
+    )}${srid})`;
   }
 
   toSql() {
-    return this.options.type?.toUpperCase() || 'GEOMETRY';
+    const sql = this.options.type?.toUpperCase() || 'GEOMETRY';
+
+    if (this.options.srid) {
+      // According to the documentation examples the format is: POINT NOT NULL SRID 4326
+      // however in practise the order of NOT NULL and the SRID specification doesn't seem to matter.
+      // Using the /*!80003 ... */ syntax is for backwards compat with MySQL versions before 8.0: MySQL 5.7 doesn't support SRIDs on table columns.
+      return `${sql} /*!80003 SRID ${this.options.srid} */`;
+    }
+
+    return sql;
   }
 }
 
