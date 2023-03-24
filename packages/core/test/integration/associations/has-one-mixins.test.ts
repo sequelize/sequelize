@@ -65,7 +65,7 @@ describe('hasOne Mixins', () => {
       ]);
 
       // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
-      expect(label.articleId).to.equal(undefined);
+      expect(label.articleId).to.beNullish();
 
       await article.setLabel(label);
       await label.reload();
@@ -82,7 +82,7 @@ describe('hasOne Mixins', () => {
 
       expect(label1.articleId).to.equal(article.id);
       // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
-      expect(label2.articleId).to.equal(undefined);
+      expect(label2.articleId).to.beNullish();
 
       await article.setLabel(label2);
       await Promise.all([label1.reload(), label2.reload()]);
