@@ -93,7 +93,17 @@ export class DATE extends BaseTypes.DATE {
   toBindableValue(date: AcceptedDate) {
     date = this._applyTimezone(date);
 
-    return date.format('YYYY-MM-DD HH:mm:ss.SSS');
+    // MySQL datetime precision defaults to 0
+    const precision = this.options.precision ?? 0;
+    let format = 'YYYY-MM-DD HH:mm:ss';
+    // TODO: We should normally use `S`, `SS` or `SSS` based on the precision, but
+    //  dayjs has a bug which causes `S` and `SS` to be ignored:
+    //  https://github.com/iamkun/dayjs/issues/1734
+    if (precision > 0) {
+      format += `.SSS`;
+    }
+
+    return date.format(format);
   }
 
   sanitize(value: unknown, options?: { timezone?: string }): unknown {
