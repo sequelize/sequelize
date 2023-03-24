@@ -216,6 +216,7 @@ export abstract class MultiAssociation<
 
     return input.map(element => {
       if (element instanceof this.target) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
         return element as T;
       }
 
