@@ -115,14 +115,16 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
       const afterRollback = sinon.spy();
       let transaction;
 
-      await this.sequelize.transaction(t => {
-        transaction = t;
-        transaction.afterCommit(afterCommit);
-        transaction.afterRollback(afterRollback);
-        transaction.afterTransaction(afterTransaction);
+      try {
+        await this.sequelize.transaction(t => {
+          transaction = t;
+          transaction.afterCommit(afterCommit);
+          transaction.afterRollback(afterRollback);
+          transaction.afterTransaction(afterTransaction);
 
-        throw new Error('Rollback');
-      });
+          throw new Error('Rollback');
+        });
+      } catch { /* ignore */ }
 
       expect(afterRollback).to.have.been.calledOnce;
       expect(afterRollback).to.have.been.calledWith(transaction);
@@ -384,7 +386,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
           throw error;
         }
       })(),
-    ).to.eventually.be.rejectedWith('"fn" must be a function');
+    ).to.eventually.be.rejectedWith('"callback" must be a function');
   });
 
   it('should throw an error if undefined is passed to afterCommit', async function () {
@@ -410,7 +412,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
           throw error;
         }
       })(),
-    ).to.eventually.be.rejectedWith('"fn" must be a function');
+    ).to.eventually.be.rejectedWith('"callback" must be a function');
   });
 
   it('should throw an error if an object is passed to afterCommit', async function () {
@@ -436,7 +438,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
           throw error;
         }
       })(),
-    ).to.eventually.be.rejectedWith('"fn" must be a function');
+    ).to.eventually.be.rejectedWith('"callback" must be a function');
   });
 
   it('does not allow commits after rollback', async function () {
