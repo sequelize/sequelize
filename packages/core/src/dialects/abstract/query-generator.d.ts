@@ -72,6 +72,7 @@ export interface CreateSchemaQueryOptions {
   charset?: string;
 }
 
+// keep CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateTableQueryOptions {
   collate?: string;
   charset?: string;
@@ -176,7 +177,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     tableName: TableNameOrModel,
     // TODO: rename attributes to columns and accept a map of attributes in the implementation when migrating to TS, see https://github.com/sequelize/sequelize/pull/15526/files#r1143840411
     columns: { [columnName: string]: string },
-    // TODO: throw when using invalid options when migrating to TS
     options?: CreateTableQueryOptions
   ): string;
   dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;

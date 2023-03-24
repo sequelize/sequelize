@@ -1,6 +1,8 @@
-import { createSequelizeInstance, expectsql, sequelize } from '../../support';
+import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
+const dialectName = getTestDialect();
 
 // TODO: check the tests with COMMENT after attributeToSQL quotes the comment
 // TODO: double check if all column SQL types are possible results of attributeToSQL after #15533 has been merged
@@ -192,16 +194,11 @@ describe('QueryGenerator#createTableQuery', () => {
   });
 
   it('produces a query to create a table with both a table comment and a column comment', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo' }, { comment: 'Bar' }), {
-      default: `CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE COMMENT Foo) COMMENT 'Bar';`,
+    expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo' }, { comment: 'Bar' }), {
+      default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['comment']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo) ENGINE=InnoDB COMMENT \'Bar\';',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Bar'; COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);
-        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = 'dbo',
-        @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo);',
-      db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); -- 'Foo', TableName = "myTable", ColumnName = "myColumn";`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo); END`,
+      snowflake: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo) COMMENT 'Bar';`,
     });
   });
 
@@ -324,61 +321,49 @@ describe('QueryGenerator#createTableQuery', () => {
   });
 
   it('supports the engine option', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { engine: 'MyISAM' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+    expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { engine: 'MyISAM' }), {
+      default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['engine']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=MyISAM;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
     });
   });
 
   it('supports the charset option', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { charset: 'utf8mb4' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+    expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { charset: 'utf8mb4' }), {
+      default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['charset']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
       snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE) DEFAULT CHARSET=utf8mb4;',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
     });
   });
 
   it('supports the collate option', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { collate: 'en_US.UTF-8' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+    expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { collate: 'en_US.UTF-8' }), {
+      default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['collate']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB COLLATE en_US.UTF-8;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
       snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE) COLLATE en_US.UTF-8;',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
     });
   });
 
   it('supports the rowFormat option', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { rowFormat: 'default' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+    expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { rowFormat: 'default' }), {
+      default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['rowFormat']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB ROW_FORMAT=default;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
       snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE) ROW_FORMAT=default;',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
     });
   });
 
   it('supports the comment option', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { comment: 'Foo' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+    expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { comment: 'Foo' }), {
+      default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['comment']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB COMMENT \'Foo\';',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Foo';`,
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
       snowflake: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE) COMMENT 'Foo';`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
     });
   });
 
   it('supports the initialAutoIncrement option', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { initialAutoIncrement: 1_000_001 }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+    expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { initialAutoIncrement: 1_000_001 }), {
+      default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['initialAutoIncrement']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
     });
   });
 
@@ -389,8 +374,8 @@ describe('QueryGenerator#createTableQuery', () => {
     // as that query *does* respect the index name.
 
     it('with an array', () => {
-      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
-        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, [secondColumn] TEXT);',
+      expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
+        default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
         postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]));`,
@@ -401,8 +386,8 @@ describe('QueryGenerator#createTableQuery', () => {
     });
 
     it('with an indexName', () => {
-      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }, { uniqueKeys: { myIndex: { fields: ['myColumn', 'secondColumn'] } } }), {
-        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, [secondColumn] TEXT);',
+      expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }, { uniqueKeys: { myIndex: { fields: ['myColumn', 'secondColumn'] } } }), {
+        default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `myIndex` (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
         postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [myIndex] UNIQUE ([myColumn], [secondColumn]));`,
@@ -413,8 +398,8 @@ describe('QueryGenerator#createTableQuery', () => {
     });
 
     it('with a single field', () => {
-      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { uniqueKeys: [{ fields: ['myColumn'] }] }), {
-        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+      expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { uniqueKeys: [{ fields: ['myColumn'] }] }), {
+        default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, UNIQUE `uniq_myTable_myColumn` (`myColumn`)) ENGINE=InnoDB;',
         postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, CONSTRAINT "my_table_my_column" UNIQUE ("myColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, CONSTRAINT [my_table_my_column] UNIQUE ([myColumn]));`,
@@ -425,8 +410,8 @@ describe('QueryGenerator#createTableQuery', () => {
     });
 
     it('with primary key fields', () => {
-      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY', secondColumn: 'TEXT PRIMARY KEY' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
-        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE NOT NULL, [secondColumn] TEXT NOT NULL, PRIMARY KEY ([myColumn], [secondColumn]));',
+      expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY', secondColumn: 'TEXT PRIMARY KEY' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
+        default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`), PRIMARY KEY (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
         postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]), PRIMARY KEY ([myColumn], [secondColumn]));`,
@@ -437,8 +422,8 @@ describe('QueryGenerator#createTableQuery', () => {
     });
 
     it('with a non-null column', () => {
-      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE NOT NULL', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
-        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE NOT NULL, [secondColumn] TEXT);',
+      expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE NOT NULL', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
+        default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
         postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE NOT NULL, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]));`,
@@ -449,8 +434,8 @@ describe('QueryGenerator#createTableQuery', () => {
     });
 
     it('with a primary key column with references', () => {
-      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY REFERENCES "Bar" ("id")', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
-        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE PRIMARY KEY REFERENCES "Bar" ("id"), [secondColumn] TEXT);',
+      expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY REFERENCES "Bar" ("id")', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
+        default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`), PRIMARY KEY (`myColumn`), FOREIGN KEY (`myColumn`) REFERENCES "Bar" ("id")) ENGINE=InnoDB;',
         postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]), PRIMARY KEY ([myColumn]), FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));`,
