@@ -295,14 +295,14 @@ export class BelongsTo<
     let Target = this.target;
     if (options.scope != null) {
       if (!options.scope) {
-        Target = Target.unscoped();
+        Target = Target.withoutScope();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
-        Target = Target.scope(options.scope);
+        Target = Target.withScope(options.scope);
       }
     }
 
     if (options.schema != null) {
-      Target = Target.schema(options.schema, options.schemaDelimiter);
+      Target = Target.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
     }
 
     let isManyMode = true;

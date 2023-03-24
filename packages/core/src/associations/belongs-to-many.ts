@@ -483,14 +483,14 @@ Add your own primary key to the through model, on different attributes than the 
     let model = this.target;
     if (options?.scope != null) {
       if (!options.scope) {
-        model = model.unscoped();
+        model = model.withoutScope();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
-        model = model.scope(options.scope);
+        model = model.withScope(options.scope);
       }
     }
 
     if (options?.schema) {
-      model = model.schema(options.schema, options.schemaDelimiter);
+      model = model.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
     }
 
     return model.findAll(findOptions);
@@ -537,7 +537,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targetInstancesOrPks.map(instance => {
       if (instance instanceof this.target) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
+
         return (instance as TargetModel).get(this.targetKey);
       }
 

@@ -121,139 +121,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     }
   });
 
-  describe('setAssociation', () => {
-    if (current.dialect.supports.transactions) {
-      it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
-        const User = sequelize.define('User', { username: DataTypes.STRING });
-        const Group = sequelize.define('Group', { name: DataTypes.STRING });
-
-        Group.hasOne(User);
-
-        await sequelize.sync({ force: true });
-        const user = await User.create({ username: 'foo' });
-        const group = await Group.create({ name: 'bar' });
-        const t = await sequelize.startUnmanagedTransaction();
-        await group.setUser(user, { transaction: t });
-        const groups = await Group.findAll();
-        const associatedUser = await groups[0].getUser();
-        expect(associatedUser).to.be.null;
-        await t.rollback();
-      });
-    }
-
-    it('can set an association with predefined primary keys', async function () {
-      const User = this.sequelize.define('UserXYZZ', { userCoolIdTag: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
-      const Task = this.sequelize.define('TaskXYZZ', { taskOrSomething: { type: DataTypes.INTEGER, primaryKey: true }, title: DataTypes.STRING });
-
-      User.hasOne(Task, { foreignKey: 'userCoolIdTag' });
-
-      await User.sync({ force: true });
-      await Task.sync({ force: true });
-      const user = await User.create({ userCoolIdTag: 1, username: 'foo' });
-      const task = await Task.create({ taskOrSomething: 1, title: 'bar' });
-      await user.setTaskXYZZ(task);
-      const task0 = await user.getTaskXYZZ();
-      expect(task0).not.to.be.null;
-
-      await user.setTaskXYZZ(null);
-      const _task = await user.getTaskXYZZ();
-      expect(_task).to.be.null;
-    });
-
-    it('clears the association if null is passed', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING });
-
-      User.hasOne(Task);
-
-      await User.sync({ force: true });
-      await Task.sync({ force: true });
-      const user = await User.create({ username: 'foo' });
-      const task = await Task.create({ title: 'task' });
-      await user.setTaskXYZ(task);
-      const task1 = await user.getTaskXYZ();
-      expect(task1).not.to.equal(null);
-
-      await user.setTaskXYZ(null);
-      const task0 = await user.getTaskXYZ();
-      expect(task0).to.equal(null);
-    });
-
-    it('should throw a ForeignKeyConstraintError if the associated record does not exist', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING });
-
-      User.hasOne(Task);
-
-      await User.sync({ force: true });
-      await Task.sync({ force: true });
-      await expect(Task.create({ title: 'task', UserXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
-      const task = await Task.create({ title: 'task' });
-
-      await expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
-    });
-
-    it('supports passing the primary key instead of an object', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING });
-
-      User.hasOne(Task);
-
-      await this.sequelize.sync({ force: true });
-      const user = await User.create({});
-      const task = await Task.create({ id: 19, title: 'task it!' });
-      await user.setTaskXYZ(task.id);
-      const task0 = await user.getTaskXYZ();
-      expect(task0.title).to.equal('task it!');
-    });
-
-    it('supports updating with a primary key instead of an object', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING });
-
-      User.hasOne(Task);
-
-      await this.sequelize.sync({ force: true });
-
-      const [user0, task1] = await Promise.all([
-        User.create({ id: 1, username: 'foo' }),
-        Task.create({ id: 20, title: 'bar' }),
-      ]);
-
-      await user0.setTaskXYZ(task1.id);
-      const task0 = await user0.getTaskXYZ();
-      expect(task0).not.to.be.null;
-
-      const [user, task2] = await Promise.all([
-        user0,
-        Task.create({ id: 2, title: 'bar2' }),
-      ]);
-
-      await user.setTaskXYZ(task2.id);
-      const task = await user.getTaskXYZ();
-      expect(task).not.to.be.null;
-    });
-
-    it('supports setting same association twice', async function () {
-      const Home = this.sequelize.define('home', {});
-      const User = this.sequelize.define('user');
-
-      User.hasOne(Home);
-
-      await this.sequelize.sync({ force: true });
-
-      const [home, user] = await Promise.all([
-        Home.create(),
-        User.create(),
-      ]);
-
-      await user.setHome(home);
-      await user.setHome(home);
-      await expect(user.getHome()).to.eventually.have.property('id', home.get('id'));
-    });
-  });
-
   describe('createAssociation', () => {
     it('creates an associated model instance', async function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
@@ -294,6 +161,20 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
   });
 
   describe('foreign key', () => {
+    it('throws a ForeignKeyConstraintError if the associated record does not exist', async function () {
+      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
+      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING });
+
+      User.hasOne(Task);
+
+      await User.sync({ force: true });
+      await Task.sync({ force: true });
+      await expect(Task.create({ title: 'task', UserXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      const task = await Task.create({ title: 'task' });
+
+      await expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+    });
+
     it('should setup underscored field with foreign keys when using underscored', function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: true });
       const Account = this.sequelize.define('Account', { name: DataTypes.STRING }, { underscored: true });

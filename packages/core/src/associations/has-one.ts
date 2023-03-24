@@ -1,3 +1,4 @@
+import isObject from 'lodash/isObject';
 import upperFirst from 'lodash/upperFirst';
 import { AssociationError } from '../errors/index.js';
 import { Model } from '../model';
@@ -5,10 +6,11 @@ import type {
   CreateOptions,
   CreationAttributes,
   FindOptions,
-  SaveOptions,
   ModelStatic,
   AttributeNames,
   Attributes,
+  InstanceDestroyOptions,
+  InstanceUpdateOptions,
 } from '../model';
 import { Op } from '../operators';
 import { isSameInitialModel } from '../utils/model-utils.js';
@@ -180,14 +182,14 @@ If having two associations does not make sense (for instance a "spouse" associat
     let Target = this.target;
     if (options.scope != null) {
       if (!options.scope) {
-        Target = Target.unscoped();
+        Target = Target.withoutScope();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
-        Target = Target.scope(options.scope);
+        Target = Target.withScope(options.scope);
       }
     }
 
     if (options.schema != null) {
-      Target = Target.schema(options.schema, options.schemaDelimiter);
+      Target = Target.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
     }
 
     let isManyMode = true;
@@ -251,7 +253,9 @@ If having two associations does not make sense (for instance a "spouse" associat
     // @ts-expect-error -- .save isn't listed in the options because it's not supported, but we'll still warn users if they use it.
     if (options.save === false) {
       throw new Error(`The "save: false" option cannot be honoured in ${this.source.name}#${this.accessors.set}
-because, as this is a hasOne association, the foreign key we need to update is located on the model ${this.target.name}.`);
+because, as this is a hasOne association, the foreign key we need to update is located on the model ${this.target.name}.
+
+This option is only available in BelongsTo associations.`);
     }
 
     // calls the 'get' mixin
@@ -271,14 +275,23 @@ because, as this is a hasOne association, the foreign key we need to update is l
     }
 
     if (oldInstance) {
-      // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
-      oldInstance.set(this.foreignKey, null);
+      const foreignKeyIsNullable = this.target.modelDefinition.attributes.get(this.foreignKey)?.allowNull ?? true;
 
-      await oldInstance.save({
-        ...options,
-        fields: [this.foreignKey],
-        association: true,
-      });
+      if (options.destroyPrevious || !foreignKeyIsNullable) {
+        await oldInstance.destroy({
+          ...(isObject(options.destroyPrevious) ? options.destroyPrevious : undefined),
+          logging: options.logging,
+          benchmark: options.benchmark,
+          transaction: options.transaction,
+        });
+      } else {
+        await oldInstance.update({
+          [this.foreignKey]: null,
+        }, {
+          ...options,
+          association: true,
+        });
+      }
     }
 
     if (associatedInstanceOrPk) {
@@ -413,7 +426,15 @@ export type HasOneGetAssociationMixin<
  * @see HasOneSetAssociationMixin
  */
 export interface HasOneSetAssociationMixinOptions<T extends Model>
-  extends HasOneGetAssociationMixinOptions<T>, SaveOptions<Attributes<T>> {
+  extends HasOneGetAssociationMixinOptions<T>, InstanceUpdateOptions<Attributes<T>> {
+
+  /**
+   * Delete the previous associated model. Default to false.
+   *
+   * Only applies if the foreign key is nullable. If the foreign key is not nullable,
+   * the previous associated model is always deleted.
+   */
+  destroyPrevious?: boolean | Omit<InstanceDestroyOptions, 'transaction' | 'logging' | 'benchmark'>;
 }
 
 /**

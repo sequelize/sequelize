@@ -45,12 +45,12 @@ export interface Logging {
   /**
    * A function that gets executed while running the query to log the sql.
    */
-  logging?: boolean | ((sql: string, timing?: number) => void);
+  logging?: boolean | ((sql: string, timing?: number) => void) | undefined;
 
   /**
    * Pass query execution time in milliseconds as second argument to logging function (options.logging).
    */
-  benchmark?: boolean;
+  benchmark?: boolean | undefined;
 }
 
 export interface Poolable {
@@ -149,7 +149,7 @@ export interface SchemaOptions {
   /**
    * The character(s) that separates the schema name from the table name
    */
-  schemaDelimiter?: string;
+  schemaDelimiter?: string | undefined;
 }
 
 /**
