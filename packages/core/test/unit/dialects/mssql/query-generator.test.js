@@ -220,11 +220,5 @@ if (current.dialect.name === 'mssql') {
         mssql: 'SELECT constraint_name = OBJ.NAME, constraintName = OBJ.NAME, constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID), tableName = TB.NAME, tableSchema = SCHEMA_NAME(TB.SCHEMA_ID), columnName = COL.NAME, referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID), referencedTableName = RTB.NAME, referencedColumnName = RCOL.NAME FROM sys.foreign_key_columns FKC INNER JOIN sys.objects OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID INNER JOIN sys.tables TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID INNER JOIN sys.columns COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID INNER JOIN sys.tables RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID WHERE TB.NAME =\'myTable\' AND COL.NAME =\'myColumn\' AND SCHEMA_NAME(TB.SCHEMA_ID) =\'mySchema\'',
       });
     });
-
-    it('dropForeignKeyQuery', function () {
-      expectsql(this.queryGenerator.dropForeignKeyQuery('myTable', 'myColumnKey'), {
-        mssql: 'ALTER TABLE [myTable] DROP [myColumnKey]',
-      });
-    });
   });
 }
