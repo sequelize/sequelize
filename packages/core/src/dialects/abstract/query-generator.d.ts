@@ -170,6 +170,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   dropDatabaseQuery(databaseName: string): string;
   listDatabasesQuery(): string;
 
+  dropForeignKeyQuery(tableName: TableNameOrModel, foreignKey: string): string;
+
   removeConstraintQuery(tableName: TableNameOrModel, constraintName: string): string;
 
   versionQuery(): string;
