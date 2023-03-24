@@ -51,6 +51,8 @@ sequelize.beforeCreate('test', () => {
   // noop
 });
 
+sequelize.addHook('beforePoolConnection', (config: ConnectionOptions) => {});
+
 sequelize
   .addHook('beforeConnect', (config: ConnectionOptions) => {
     // noop
@@ -65,9 +67,13 @@ Sequelize.addHook('beforeInit', () => {
   // noop
 });
 
+sequelize.beforePoolConnection(() => {});
+
 sequelize.beforeConnect(() => {});
 
 sequelize.afterConnect(() => {});
+
+sequelize.afterPoolConnection(() => {});
 
 const rnd: Fn = sequelize.random();
 

@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   it('does not expose non-model hooks', function () {
-    for (const badHook of ['beforeDefine', 'afterDefine', 'beforeConnect', 'afterConnect', 'beforeDisconnect', 'afterDisconnect', 'beforeInit', 'afterInit']) {
+    for (const badHook of ['beforeDefine', 'afterDefine', 'beforeConnect', 'afterConnect', 'beforePoolConnection', 'afterPoolConnection', 'beforeDisconnect', 'afterDisconnect', 'beforeInit', 'afterInit']) {
       expect(this.Model).to.not.have.property(badHook);
     }
   });

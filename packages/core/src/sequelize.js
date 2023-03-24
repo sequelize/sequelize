@@ -714,10 +714,19 @@ Use Sequelize#query if you wish to use replacements.`);
 
       checkTransaction();
 
+      if (!options.transaction) {
+        await this.runHooks('beforePoolConnection', this.config.database);
+
+      }
+
       const connection = await (options.transaction ? options.transaction.connection : this.connectionManager.getConnection({
         useMaster: options.useMaster,
         type: options.type === 'SELECT' ? 'read' : 'write',
       }));
+
+      if (!options.transaction) {
+        await this.runHooks('afterPoolConnection', connection, this.config.database);
+      }
 
       if (this.options.dialect === 'db2' && options.alter && options.alter.drop === false) {
         connection.dropTable = false;
