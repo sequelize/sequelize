@@ -17,8 +17,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it(`{ id: 'INTEGER' }`, () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: 'INTEGER' }), {
       default: { id: 'INTEGER' },
-      mssql: new Error('attributeTypeToSql received a type that is neither a string or an instance of AbstractDataType'),
-      ibmi: new Error(`Cannot read properties of undefined (reading 'toString')`),
+      'mssql ibmi': new Error('attributeTypeToSql received a type that is neither a string or an instance of AbstractDataType'),
     });
   });
 
@@ -26,8 +25,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it(`{ id: 'INTEGER', foo: 'VARCHAR(255)' }`, () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: 'INTEGER', foo: 'VARCHAR(255)' }), {
       default: { id: 'INTEGER', foo: 'VARCHAR(255)' },
-      mssql: new Error('attributeTypeToSql received a type that is neither a string or an instance of AbstractDataType'),
-      ibmi: new Error(`Cannot read properties of undefined (reading 'toString')`),
+      'mssql ibmi': new Error('attributeTypeToSql received a type that is neither a string or an instance of AbstractDataType'),
     });
   });
 
