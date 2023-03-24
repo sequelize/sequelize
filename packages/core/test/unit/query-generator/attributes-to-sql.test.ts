@@ -1,5 +1,6 @@
 import { expectPerDialect, sequelize } from '../../support';
 
+// TODO: write 2 test suites, since attributeToSql is also used separately. This one should be converted to attributeToSql, while a new one should be written for attributesToSql
 // TODO: overhaul this test suite when migrating attributesToSql and attributeToSql to TypeScript
 /**
  * Make methods stricter, throw when using invalid options

@@ -140,6 +140,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   ): string;
 
   attributesToSql<M extends Model>(
+    // TODO: update this type based on feedback from ephys
+    /**
+     * Considering multiple dialects don't accept ModelAttributes here, what you want is this type:
+     * {
+     *   readonly [Key in keyof Attributes<M>]: NormalizedAttributeOptions & { after?: string }
+     * }
+     */
     attributes: ModelAttributes<M, CreationAttributes<M>>,
     options?: AttributeToSqlOptions,
   ): object;
