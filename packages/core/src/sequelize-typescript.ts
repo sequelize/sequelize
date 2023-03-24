@@ -14,10 +14,11 @@ import type { AsyncHookReturn, HookHandler } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
 import type { ModelHooks } from './model-hooks.js';
 import { validModelHooks } from './model-hooks.js';
+import type { ModelManager } from './model-manager.js';
 import type { ConnectionOptions, Options, Sequelize } from './sequelize.js';
 import type { TransactionOptions } from './transaction.js';
 import { Transaction } from './transaction.js';
-import type { ModelAttributes, ModelOptions, ModelStatic, QueryOptions, SyncOptions } from '.';
+import type { DestroyOptions, ModelAttributes, ModelOptions, ModelStatic, QueryOptions, SyncOptions } from '.';
 
 export interface SequelizeHooks extends ModelHooks {
   /**
@@ -96,6 +97,9 @@ type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
  * Always use {@link Sequelize} instead.
  */
 export abstract class SequelizeTypeScript {
+  // created by the Sequelize subclass. Will eventually be migrated here.
+  abstract readonly modelManager: ModelManager;
+
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);
   }
@@ -341,5 +345,22 @@ export abstract class SequelizeTypeScript {
     await transaction.prepareEnvironment();
 
     return transaction;
+  }
+
+  /**
+   * A slower alternative to {@link truncate} that uses DELETE FROM instead of TRUNCATE,
+   * but which works with foreign key constraints in dialects that don't support TRUNCATE CASCADE (postgres),
+   * or temporarily disabling foreign key constraints (mysql, mariadb, sqlite).
+   *
+   * @param options
+   */
+  async destroyAll(options: Omit<DestroyOptions, 'restartIdentity' | 'cascade' | 'where'>) {
+    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+    const models = sortedModels || this.modelManager.models;
+
+    for (const model of models) {
+      // eslint-disable-next-line no-await-in-loop
+      await model.destroy({ ...options, restartIdentity: true, cascade: true, where: {} });
+    }
   }
 }

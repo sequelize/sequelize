@@ -80,7 +80,12 @@ beforeEach(async () => {
   }
 
   if (databaseTruncateEnabled) {
-    await Support.sequelize.truncate({ cascade: true });
+    const dialect = Support.sequelize.dialect;
+    if (dialect.supports.constraints.foreignKeyChecksDisableable || dialect.supports.truncate.cascade) {
+      await Support.sequelize.truncate({ cascade: true });
+    } else {
+      await Support.sequelize.destroyAll({ cascade: true });
+    }
   }
 });
 

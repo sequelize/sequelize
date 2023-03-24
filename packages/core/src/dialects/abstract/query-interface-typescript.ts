@@ -82,4 +82,37 @@ export class AbstractQueryInterfaceTypeScript {
 
     return schemaNames.flatMap((value: any) => (value.schema_name ? value.schema_name : value));
   }
+
+  /**
+   * Disables foreign key checks for the duration of the callback.
+   *
+   * @param options
+   * @param cb
+   */
+  async withoutForeignKeyChecks<T>(
+    options: QueryRawOptions,
+    cb: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      await this.unsafeToggleForeignKeyChecks(false, options);
+
+      return await cb();
+    } finally {
+      await this.unsafeToggleForeignKeyChecks(true, options);
+    }
+  }
+
+  /**
+   * Toggles foreign key checks.
+   * Don't forget to turn them back on, use {@link withoutForeignKeyChecks} to do this automatically.
+   *
+   * @param enable
+   * @param options
+   */
+  async unsafeToggleForeignKeyChecks(
+    enable: boolean,
+    options?: QueryRawOptions,
+  ): Promise<void> {
+    await this.sequelize.queryRaw(this.queryGenerator.getToggleForeignKeyChecksQuery(enable), options);
+  }
 }

@@ -966,11 +966,17 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
-    if (hasCyclicDependencies && this.dialect.name === 'sqlite') {
-      // Workaround: SQLite does not support options.cascade, but we can disable its foreign key constraints while we
-      // truncate all tables.
-      return withSqliteForeignKeysOff(this, options, async () => {
-        await Promise.all(models.map(model => model.truncate(options)));
+    if (!this.dialect.supports.truncate.cascade && this.dialect.supports.constraints.foreignKeyChecksDisableable) {
+      // Dialects that don't support cascade will throw if a foreign key references a table that is truncated,
+      // even if there are no actual rows in the referencing table. To work around this, we disable foreign key.
+      return this.queryInterface.withoutForeignKeyChecks(options, async () => {
+        if (this.dialect.name === 'sqlite') {
+          await Promise.all(models.map(model => model.truncate(options)));
+        } else {
+          for (const model of models) {
+            await model.truncate(options);
+          }
+        }
       });
     }
 
