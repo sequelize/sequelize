@@ -6,10 +6,8 @@ import { Attribute, BelongsTo } from '@sequelize/core/decorators-legacy';
 import {
   beforeAll2,
   beforeEach2,
-  disableDatabaseResetForSuite,
-  enableTruncateDatabaseForSuite,
   inlineErrorCause,
-  sequelize,
+  sequelize, setResetMode,
 } from './support';
 
 const dialect = sequelize.dialect;
@@ -76,7 +74,7 @@ describe('JSON Querying', () => {
     return;
   }
 
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -210,7 +208,7 @@ describe('JSON Casting', () => {
     return;
   }
 
-  enableTruncateDatabaseForSuite();
+  setResetMode('truncate');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -297,7 +295,7 @@ describe('JSONB Querying', () => {
     return;
   }
 
-  disableDatabaseResetForSuite();
+  setResetMode('truncate');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -417,7 +415,7 @@ describe('JSONB Casting', () => {
     return;
   }
 
-  enableTruncateDatabaseForSuite();
+  setResetMode('truncate');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {

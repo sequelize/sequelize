@@ -1,11 +1,9 @@
-import assert from 'node:assert';
 import pTimeout from 'p-timeout';
 import { QueryTypes } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import * as Support from '../support';
 
 // Mocha still relies on 'this' https://github.com/mochajs/mocha/issues/2657
-/* eslint-disable @typescript-eslint/no-invalid-this */
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
@@ -13,7 +11,7 @@ import * as Support from '../support';
 const { setTimeout, clearTimeout } = global;
 const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT ?? '', 10) || 10_000;
 
-let runningQueries = new Set<AbstractQuery>();
+const runningQueries = new Set<AbstractQuery>();
 
 before(async () => {
   // Sometimes the SYSTOOLSPACE tablespace is not available when running tests on DB2. This creates it.
@@ -48,95 +46,70 @@ before(async () => {
   });
 });
 
-let databaseResetDisabled = false;
-export function disableDatabaseResetForSuite() {
+type ResetMode = 'none' | 'truncate' | 'destroy' | 'drop';
+let currentSuiteResetMode: ResetMode = 'drop';
+
+// TODO: make "none" the default.
+/**
+ * Controls how the current test suite will reset the database.
+ *
+ * @param mode The reset mode to use:
+ * - `drop`: All tables will be dropped and recreated (default).
+ * - `none`: The database will not be reset at all.
+ * - `truncate`: All tables will be truncated, but not dropped.
+ * - `destroy`: All rows of all tables will be deleted using DELETE FROM, and identity columns will be reset.
+ */
+export function setResetMode(mode: ResetMode) {
+  let previousMode: ResetMode | undefined;
   before(async () => {
-    databaseResetDisabled = true;
+    previousMode = currentSuiteResetMode;
+    currentSuiteResetMode = mode;
+
     // Reset the DB a single time for the whole suite
-    await Support.clearDatabase(Support.sequelize);
+    await clearDatabase();
   });
 
   after(() => {
-    databaseResetDisabled = false;
-  });
-}
-
-let databaseTruncateEnabled = false;
-export function enableTruncateDatabaseForSuite() {
-  disableDatabaseResetForSuite();
-
-  before(async () => {
-    databaseTruncateEnabled = true;
-  });
-
-  after(() => {
-    databaseTruncateEnabled = false;
+    currentSuiteResetMode = previousMode ?? 'drop';
   });
 }
 
 beforeEach(async () => {
-  if (!databaseResetDisabled) {
-    await Support.clearDatabase(Support.sequelize);
-  }
+  switch (currentSuiteResetMode) {
+    case 'drop':
+      await clearDatabase();
+      break;
 
-  if (databaseTruncateEnabled) {
-    const dialect = Support.sequelize.dialect;
-    if (dialect.supports.constraints.foreignKeyChecksDisableable || dialect.supports.truncate.cascade) {
+    case 'truncate':
       await Support.sequelize.truncate({ cascade: true });
-    } else {
-      await Support.sequelize.destroyAll({ cascade: true });
-    }
+      break;
+
+    case 'destroy':
+      await Support.sequelize.destroyAll({ cascade: true, restartIdentity: true });
+      break;
+
+    case 'none':
+    default:
+      break;
   }
 });
 
-afterEach(async function checkRunningQueries() {
-  // Note: recall that throwing an error from a `beforeEach` or `afterEach` hook in Mocha causes the entire test suite to abort.
-  if (databaseResetDisabled) {
-    return;
-  }
+async function clearDatabase() {
+  await pTimeout(
+    Support.clearDatabase(Support.sequelize),
+    CLEANUP_TIMEOUT,
+    `Could not clear database after this test in less than ${CLEANUP_TIMEOUT}ms. This test crashed the DB, and testing cannot continue. Aborting.`,
+    { customTimers: { setTimeout, clearTimeout } },
+  );
+}
 
-  let runningQueriesProblem;
-
+afterEach(() => {
   if (runningQueries.size > 0) {
-    runningQueriesProblem = `Expected 0 queries running after this test, but there are still ${
+    throw new Error(`Expected 0 queries running after this test, but there are still ${
       runningQueries.size
     } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${
       [...runningQueries].map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`).join('\n')
-    }`;
-  }
-
-  runningQueries = new Set();
-
-  try {
-    await pTimeout(
-      Support.clearDatabase(Support.sequelize),
-      CLEANUP_TIMEOUT,
-      `Could not clear database after this test in less than ${CLEANUP_TIMEOUT}ms. This test crashed the DB, and testing cannot continue. Aborting.`,
-      { customTimers: { setTimeout, clearTimeout } },
-    );
-  } catch (error) {
-    assert(error instanceof Error, 'A non-Error error was thrown');
-
-    let message = error.message;
-    if (runningQueriesProblem) {
-      message += `\n\n     Also, ${runningQueriesProblem}`;
-    }
-
-    message += `\n\n     Full test name:\n       ${this.currentTest!.fullTitle()}`;
-
-    // Throw, aborting the entire Mocha execution
-    throw new Error(message);
-  }
-
-  if (runningQueriesProblem) {
-    if (this.test!.ctx!.currentTest!.state === 'passed') {
-      // `this.test.error` is an obscure Mocha API that allows failing a test from the `afterEach` hook
-      // This is better than throwing because throwing would cause the entire Mocha execution to abort
-      // @ts-expect-error -- it is not declared in mocha's typings
-      this.test!.error(new Error(`This test passed, but ${runningQueriesProblem}`));
-    } else {
-      console.error(`     ${runningQueriesProblem}`);
-    }
+    }`);
   }
 });
 

@@ -948,12 +948,11 @@ Use Sequelize#query if you wish to use replacements.`);
    * Truncate all tables defined through the sequelize models.
    * This is done by calling `Model.truncate()` on each model.
    *
+   * See {@link Model.truncate} for more information
+   *
    * @param {object} [options] The options passed to Model.destroy in addition to truncate
    * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
    * @returns {Promise}
-   *
-   * @see
-   * {@link Model.truncate} for more information
    */
   async truncate(options) {
     const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();

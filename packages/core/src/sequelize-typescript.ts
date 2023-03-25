@@ -354,13 +354,24 @@ export abstract class SequelizeTypeScript {
    *
    * @param options
    */
-  async destroyAll(options: Omit<DestroyOptions, 'restartIdentity' | 'cascade' | 'where'>) {
-    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+  async destroyAll(options: Omit<DestroyOptions, 'where' | 'limit' | 'truncate'>) {
+    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey()?.reverse();
     const models = sortedModels || this.modelManager.models;
+
+    // It does not make sense to apply a limit to something that will run on all models
+    if ('limit' in options) {
+      throw new Error('sequelize.destroyAll does not support the limit option.');
+    }
+
+    // We will eventually remove the "truncate" option from Model.destroy, in favor of using Model.truncate,
+    // so we don't support it in new methods.
+    if ('truncate' in options) {
+      throw new Error('sequelize.destroyAll does not support the truncate option. Use sequelize.truncate instead.');
+    }
 
     for (const model of models) {
       // eslint-disable-next-line no-await-in-loop
-      await model.destroy({ ...options, restartIdentity: true, cascade: true, where: {} });
+      await model.destroy({ ...options, where: {} });
     }
   }
 }
