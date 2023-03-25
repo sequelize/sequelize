@@ -18,7 +18,7 @@ describe('Sequelize#destroyAll', () => {
       @BelongsTo(() => B, {
         foreignKey: {
           name: 'bId',
-          onDelete: 'RESTRICT',
+          onDelete: 'NO ACTION',
         },
       })
       declare b?: NonAttribute<B>;
@@ -34,7 +34,7 @@ describe('Sequelize#destroyAll', () => {
       @BelongsTo(() => C, {
         foreignKey: {
           name: 'cId',
-          onDelete: 'RESTRICT',
+          onDelete: 'NO ACTION',
         },
       })
       declare c?: NonAttribute<C>;

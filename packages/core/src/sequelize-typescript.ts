@@ -405,7 +405,7 @@ export abstract class SequelizeTypeScript {
    * Truncate all models registered in this instance.
    * This is done by calling {@link Model.truncate} on each model.
    *
-   * @param options The options passed to {@link Model.truncate}, plus {@link SequelizeTruncateOptions.withoutForeignKeyChecks}.
+   * @param options The options passed to {@link Model.truncate}, plus "withoutForeignKeyChecks".
    */
   async truncate(options?: SequelizeTruncateOptions): Promise<void> {
     const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
