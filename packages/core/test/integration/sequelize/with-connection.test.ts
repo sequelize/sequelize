@@ -1,7 +1,22 @@
 import { expect } from 'chai';
-import { createSequelizeInstance } from '../../support';
+import { createSequelizeInstance, getTestDialect } from '../../support';
 
 describe('sequelize.withConnection', () => {
+  if (getTestDialect() === 'sqlite') {
+    // SQLite does not use the connection pool
+    it('returns the connection', async () => {
+      const sequelize = createSequelizeInstance();
+
+      await sequelize.withConnection(async connection1 => {
+        await sequelize.withConnection(async connection2 => {
+          expect(connection1).to.eq(connection2);
+        });
+      });
+    });
+
+    return;
+  }
+
   it('reserves a connection, to ensure multiple queries run on the same connection', async () => {
     const sequelize = createSequelizeInstance();
 
