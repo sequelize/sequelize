@@ -10,7 +10,7 @@ const debug = logger.debugContext('connection:ibmi');
 
 export interface IBMiConnection extends Connection, OdbcConnection {
   // properties of ObdcConnection, but not declared in their typings
-  isConnected: boolean;
+  connected: boolean;
 }
 
 // TODO: once the code has been split into packages, we won't need to lazy load this anymore
@@ -97,6 +97,6 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiConnect
   }
 
   validate(connection: IBMiConnection): boolean {
-    return connection.isConnected;
+    return connection.connected;
   }
 }

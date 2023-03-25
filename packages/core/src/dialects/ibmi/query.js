@@ -23,10 +23,6 @@ export class IBMiQuery extends AbstractQuery {
       results = await this.connection.query(this.sql, parameters);
     } catch (error) {
       throw this.formatError(error);
-    } finally {
-      if (this.connection) {
-        await this.connection.close();
-      }
     }
 
     complete();
