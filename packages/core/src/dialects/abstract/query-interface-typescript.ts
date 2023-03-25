@@ -89,6 +89,8 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options
    * @param cb
    */
+  // TODO: This query only impacts the current session, so this needs to provide the connection that can be used within the callback.
+  //  https://github.com/sequelize/sequelize/issues/15388
   async withoutForeignKeyChecks<T>(
     options: QueryRawOptions | undefined,
     cb: () => Promise<T>,
