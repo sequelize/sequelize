@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
 import type { Connection } from './dialects/abstract/connection-manager.js';
+import type { AbstractDialect } from './dialects/abstract/index.js';
 import type { AbstractQuery } from './dialects/abstract/query.js';
 import {
   legacyBuildHasHook,
@@ -18,7 +19,16 @@ import type { ModelManager } from './model-manager.js';
 import type { ConnectionOptions, Options, Sequelize } from './sequelize.js';
 import type { TransactionOptions } from './transaction.js';
 import { Transaction } from './transaction.js';
-import type { DestroyOptions, ModelAttributes, ModelOptions, ModelStatic, QueryOptions, SyncOptions } from '.';
+import type {
+  DestroyOptions,
+  ModelAttributes,
+  ModelOptions,
+  ModelStatic,
+  QueryOptions,
+  SyncOptions,
+  TruncateOptions,
+  AbstractQueryInterface,
+} from '.';
 
 export interface SequelizeHooks extends ModelHooks {
   /**
@@ -76,6 +86,20 @@ export interface StaticSequelizeHooks {
   afterInit(sequelize: Sequelize): void;
 }
 
+export interface SequelizeTruncateOptions extends TruncateOptions {
+  /**
+   * Most dialects will not allow you to truncate a table while other tables have foreign key references to it (even if they are empty).
+   * This option will disable those checks while truncating all tables, and re-enable them afterwards.
+   *
+   * This option is currently only supported for MySQL, SQLite, and MariaDB.
+   *
+   * Postgres can use {@link TruncateOptions.cascade} to achieve a similar goal.
+   *
+   * If you're experiencing this problem in other dialects, consider using {@link Sequelize.destroyAll} instead.
+   */
+  withoutForeignKeyChecks?: boolean;
+}
+
 const staticSequelizeHooks = new HookHandlerBuilder<StaticSequelizeHooks>([
   'beforeInit', 'afterInit',
 ]);
@@ -99,6 +123,8 @@ type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
 export abstract class SequelizeTypeScript {
   // created by the Sequelize subclass. Will eventually be migrated here.
   abstract readonly modelManager: ModelManager;
+  abstract readonly dialect: AbstractDialect;
+  abstract readonly queryInterface: AbstractQueryInterface;
 
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);
@@ -354,18 +380,18 @@ export abstract class SequelizeTypeScript {
    *
    * @param options
    */
-  async destroyAll(options: Omit<DestroyOptions, 'where' | 'limit' | 'truncate'>) {
-    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey()?.reverse();
+  async destroyAll(options?: Omit<DestroyOptions, 'where' | 'limit' | 'truncate'>) {
+    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
     const models = sortedModels || this.modelManager.models;
 
     // It does not make sense to apply a limit to something that will run on all models
-    if ('limit' in options) {
+    if (options && 'limit' in options) {
       throw new Error('sequelize.destroyAll does not support the limit option.');
     }
 
     // We will eventually remove the "truncate" option from Model.destroy, in favor of using Model.truncate,
     // so we don't support it in new methods.
-    if ('truncate' in options) {
+    if (options && 'truncate' in options) {
       throw new Error('sequelize.destroyAll does not support the truncate option. Use sequelize.truncate instead.');
     }
 
@@ -373,5 +399,48 @@ export abstract class SequelizeTypeScript {
       // eslint-disable-next-line no-await-in-loop
       await model.destroy({ ...options, where: {} });
     }
+  }
+
+  /**
+   * Truncate all models registered in this instance.
+   * This is done by calling {@link Model.truncate} on each model.
+   *
+   * @param options The options passed to {@link Model.truncate}, plus {@link SequelizeTruncateOptions.withoutForeignKeyChecks}.
+   */
+  async truncate(options?: SequelizeTruncateOptions): Promise<void> {
+    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+    const models = sortedModels || this.modelManager.models;
+    const hasCyclicDependencies = sortedModels == null;
+
+    if (hasCyclicDependencies && !options?.cascade && !options?.withoutForeignKeyChecks) {
+      throw new Error('Sequelize#truncate: Some of your models have cyclic references (foreign keys). You need to use the "cascade" or "withoutForeignKeyChecks" options to be able to delete rows from models that have cyclic references.');
+    }
+
+    if (options?.withoutForeignKeyChecks) {
+      if (!this.dialect.supports.constraints.foreignKeyChecksDisableable) {
+        throw new Error(`Sequelize#truncate: ${this.dialect.name} does not support disabling foreign key checks. The "withoutForeignKeyChecks" option cannot be used.`);
+      }
+
+      // Dialects that don't support cascade will throw if a foreign key references a table that is truncated,
+      // even if there are no actual rows in the referencing table. To work around this, we disable foreign key.
+      return this.queryInterface.withoutForeignKeyChecks(options, async () => {
+        for (const model of models) {
+          // eslint-disable-next-line no-await-in-loop -- This operation cannot happen in parallel, it will cause constraint errors, even with foreign key checks disabled.
+          await model.truncate(options);
+        }
+      });
+    }
+
+    if (options?.cascade) {
+      for (const model of models) {
+        // If cascade is enabled, we can assume there are foreign keys between the models, so we must truncate them sequentially.
+        // eslint-disable-next-line no-await-in-loop
+        await model.truncate(options);
+      }
+
+      return;
+    }
+
+    await Promise.all(models.map(async model => model.truncate(options)));
   }
 }

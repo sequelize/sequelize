@@ -295,7 +295,7 @@ describe('JSONB Querying', () => {
     return;
   }
 
-  setResetMode('truncate');
+  setResetMode('none');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {

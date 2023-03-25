@@ -90,7 +90,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param cb
    */
   async withoutForeignKeyChecks<T>(
-    options: QueryRawOptions,
+    options: QueryRawOptions | undefined,
     cb: () => Promise<T>,
   ): Promise<T> {
     try {

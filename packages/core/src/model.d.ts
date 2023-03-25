@@ -1134,14 +1134,14 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
 }
 
 /**
- * The options passed to Model.destroy in addition to truncate
+ * The options accepted by {@link Model.truncate}.
  */
-export interface TruncateOptions<TAttributes = any> extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
+export interface TruncateOptions extends Logging, Transactionable, Hookable {
   /**
-   * Only used in conjuction with TRUNCATE. Truncates all tables that have foreign-key references to the
+   * Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the
    * named table, or to any tables added to the group due to CASCADE.
    *
-   * @default false;
+   * @default false
    */
   cascade?: boolean;
 
@@ -1175,14 +1175,16 @@ export interface TruncateOptions<TAttributes = any> extends Logging, Transaction
 }
 
 /**
- * Options used for Model.destroy
+ * Options accepted by {@link Model.destroy}.
  */
-export interface DestroyOptions<TAttributes = any> extends TruncateOptions<TAttributes> {
+export interface DestroyOptions<TAttributes = any> extends TruncateOptions, Filterable<TAttributes> {
   /**
    * If set to true, dialects that support it will use TRUNCATE instead of DELETE FROM. If a table is
    * truncated the where and limit options are ignored.
    *
    * __Danger__: This will completely empty your table!
+   *
+   * @deprecated use {@link Model.truncate}.
    */
   truncate?: boolean;
 }
@@ -2624,7 +2626,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static truncate<M extends Model>(
     this: ModelStatic<M>,
-    options?: TruncateOptions<Attributes<M>>
+    options?: TruncateOptions
   ): Promise<void>;
 
   /**

@@ -38,10 +38,10 @@ before(async () => {
     }
   }
 
-  Support.sequelize.addHook('beforeQuery', (options, query) => {
+  Support.sequelize.hooks.addListener('beforeQuery', (options, query) => {
     runningQueries.add(query);
   });
-  Support.sequelize.addHook('afterQuery', (options, query) => {
+  Support.sequelize.hooks.addListener('afterQuery', (options, query) => {
     runningQueries.delete(query);
   });
 });
@@ -51,7 +51,8 @@ let currentSuiteResetMode: ResetMode = 'drop';
 
 // TODO: make "none" the default.
 /**
- * Controls how the current test suite will reset the database.
+ * Controls how the current test suite will reset the database between each test.
+ * Note that this does not affect how the database is reset between each suite, only between each test.
  *
  * @param mode The reset mode to use:
  * - `drop`: All tables will be dropped and recreated (default).
@@ -81,11 +82,11 @@ beforeEach(async () => {
       break;
 
     case 'truncate':
-      await Support.sequelize.truncate({ cascade: true });
+      await Support.sequelize.truncate({ restartIdentity: true });
       break;
 
     case 'destroy':
-      await Support.sequelize.destroyAll({ cascade: true, restartIdentity: true });
+      await Support.sequelize.destroyAll({ cascade: true });
       break;
 
     case 'none':

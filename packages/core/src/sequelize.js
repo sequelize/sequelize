@@ -945,55 +945,8 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   /**
-   * Truncate all tables defined through the sequelize models.
-   * This is done by calling `Model.truncate()` on each model.
-   *
-   * See {@link Model.truncate} for more information
-   *
-   * @param {object} [options] The options passed to Model.destroy in addition to truncate
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   * @returns {Promise}
-   */
-  async truncate(options) {
-    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
-    const models = sortedModels || this.modelManager.models;
-    const hasCyclicDependencies = sortedModels == null;
-
-    // we have cyclic dependencies, cascade must be enabled.
-    if (hasCyclicDependencies && (!options || !options.cascade)) {
-      throw new Error('Sequelize#truncate: Some of your models have cyclic references (foreign keys). You need to use the "cascade" option to be able to delete rows from models that have cyclic references.');
-    }
-
-    // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
-    if (!this.dialect.supports.truncate.cascade && this.dialect.supports.constraints.foreignKeyChecksDisableable) {
-      // Dialects that don't support cascade will throw if a foreign key references a table that is truncated,
-      // even if there are no actual rows in the referencing table. To work around this, we disable foreign key.
-      return this.queryInterface.withoutForeignKeyChecks(options, async () => {
-        if (this.dialect.name === 'sqlite') {
-          await Promise.all(models.map(model => model.truncate(options)));
-        } else {
-          for (const model of models) {
-            await model.truncate(options);
-          }
-        }
-      });
-    }
-
-    if (options && options.cascade) {
-      for (const model of models) {
-        await model.truncate(options);
-      }
-    } else {
-      await Promise.all(models.map(model => model.truncate(options)));
-    }
-  }
-
-  /**
    * Drop all tables defined through this sequelize instance.
-   * This is done by calling Model.drop on each model.
-   *
-   * @see
-   * {@link Model.drop} for options
+   * This is done by calling {@link Model.drop} on each model.
    *
    * @param {object} [options] The options passed to each call to Model.drop
    * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
