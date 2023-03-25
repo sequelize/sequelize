@@ -750,16 +750,16 @@ Use Sequelize#query if you wish to use replacements.`);
    */
   async setSessionVariables(variables, options) {
     // Prepare options
-    options = { ...this.options.set, ...options };
+    options = { ...this.options.setSessionVariables, ...options };
 
     if (!['mysql', 'mariadb'].includes(this.options.dialect)) {
-      throw new Error('sequelize.set is only supported for mysql or mariadb');
+      throw new Error('sequelize.setSessionVariables is only supported for mysql or mariadb');
     }
 
     setTransactionFromCls(options, this);
 
     if ((!options.transaction || !(options.transaction instanceof Transaction)) && (!options.connection)) {
-      throw new Error('You must specify either options.transaction or options.connection, as sequelize.set is used to set the session options of a connection');
+      throw new Error('You must specify either options.transaction or options.connection, as sequelize.setSessionVariables is used to set the session options of a connection');
     }
 
     // Override some options, since this isn't a SELECT
