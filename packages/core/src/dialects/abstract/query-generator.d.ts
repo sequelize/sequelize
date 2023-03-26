@@ -2,7 +2,6 @@
 
 import type { Col } from '../../expression-builders/col.js';
 import type { Literal } from '../../expression-builders/literal.js';
-import type { QueryRawOptions } from '../../index';
 import type {
   NormalizedAttributeOptions,
   FindOptions,
@@ -92,11 +91,6 @@ export interface AddColumnQueryOptions {
 // keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveColumnQueryOptions {
   ifExists?: boolean;
-}
-
-export interface ShowAllTablesOptions extends QueryRawOptions {
-  // specify the schema to get the tables from
-  schema?: string;
 }
 
 /**

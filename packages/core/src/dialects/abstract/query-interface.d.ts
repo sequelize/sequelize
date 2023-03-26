@@ -18,7 +18,7 @@ import type { Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
-import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions, ShowAllTablesOptions } from './query-generator.js';
+import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
@@ -300,6 +300,11 @@ export type CreateTableAttributes<
    */
   [name in keyof TAttributes]: DataType | CreateTableAttributeOptions<M>;
 };
+
+export interface ShowAllTablesOptions extends QueryRawOptions {
+  // specify the schema to get the tables from
+  schema?: string;
+}
 
 /**
  * This interface exposes low-level APIs to interact with the database.
