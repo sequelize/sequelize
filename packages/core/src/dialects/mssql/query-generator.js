@@ -420,7 +420,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       for (const attrValueHash of attrValueHashes) {
         tuples.push(`(${
           allAttributes.map(key => {
-            // TODO: pass "type"
             // TODO: bindParam
             // TODO: pass "model"
             return this.escape(attrValueHash[key] ?? null, {
