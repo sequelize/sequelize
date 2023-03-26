@@ -5,6 +5,7 @@ import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-yo
 import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const { attribute, col, cast, where, fn, literal } = sqlTag;
+const notSupportedErrorWithUnquote = new Error(`JSON Paths are not supported in ${sequelize.dialect.name} without unquoting the JSON value.`);
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -123,20 +124,17 @@ describe('QueryGenerator#selectQuery', () => {
 
   if (sequelize.dialect.supports.jsonOperations) {
     it('accepts json paths in attributes', () => {
-      const sql = queryGenerator.selectQuery(User.table, {
+      expectsql(() => queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: [
           [attribute('data.email'), 'email'],
         ],
-      }, User);
-
-      expectsql(sql, {
+      }, User), {
         postgres: `SELECT "data"->'email' AS "email" FROM "Users" AS "User";`,
         mariadb: `SELECT json_compact(json_extract(\`data\`,'$.email')) AS \`email\` FROM \`Users\` AS \`User\`;`,
-        mssql: `SELECT JSON_VALUE([data], N'$.email') AS [email] FROM [Users] AS [User];`,
+        mssql: notSupportedErrorWithUnquote,
         'sqlite mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
       });
-
     });
   }
 

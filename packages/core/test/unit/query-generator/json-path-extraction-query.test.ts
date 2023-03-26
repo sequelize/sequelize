@@ -4,6 +4,7 @@ const dialect = sequelize.dialect;
 const dialectName = dialect.name;
 
 const notSupportedError = new Error(`JSON Paths are not supported in ${dialectName}.`);
+const notSupportedErrorWithUnquote = new Error(`JSON Paths are not supported in ${dialectName} without unquoting the JSON value.`);
 
 describe('QueryGenerator#jsonPathExtractionQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -13,7 +14,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
     // it can be any SQL expression, e.g. a column name, a function call, a subquery, etc.
     expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), ['id'], false), {
       default: notSupportedError,
-      mssql: `JSON_VALUE([profile], N'$.id')`,
+      mssql: notSupportedErrorWithUnquote,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id'))`,
       'mysql sqlite': `json_extract(\`profile\`,'$.id')`,
       postgres: `"profile"->'id'`,
@@ -23,7 +24,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
   it('creates a json extract operation (array)', () => {
     expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), [0], false), {
       default: notSupportedError,
-      mssql: `JSON_VALUE([profile], N'$[0]')`,
+      mssql: notSupportedErrorWithUnquote,
       mariadb: `json_compact(json_extract(\`profile\`,'$[0]'))`,
       'mysql sqlite': `json_extract(\`profile\`,'$[0]')`,
       postgres: `"profile"->0`,
@@ -33,7 +34,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
   it('creates a nested json extract operation', () => {
     expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), ['id', 'username', 0, '0', 'name'], false), {
       default: notSupportedError,
-      mssql: `JSON_VALUE([profile], N'$.id.username[0]."0".name')`,
+      mssql: notSupportedErrorWithUnquote,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
       'mysql sqlite': `json_extract(\`profile\`,'$.id.username[0]."0".name')`,
       postgres: `"profile"#>ARRAY['id','username','0','0','name']`,
@@ -43,7 +44,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
   it(`escapes characters such as ", $, and '`, () => {
     expectPerDialect(() => queryGenerator.jsonPathExtractionQuery(queryGenerator.quoteIdentifier('profile'), [`"`, `'`, `$`], false), {
       default: notSupportedError,
-      mssql: `JSON_VALUE([profile], N'$."\\""."''"."$"')`,
+      mssql: notSupportedErrorWithUnquote,
       mysql: `json_extract(\`profile\`,'$."\\\\""."\\'"."$"')`,
       mariadb: `json_compact(json_extract(\`profile\`,'$."\\\\""."\\'"."$"'))`,
       sqlite: `json_extract(\`profile\`,'$."\\""."''"."$"')`,

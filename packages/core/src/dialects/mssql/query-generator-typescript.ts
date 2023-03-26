@@ -86,7 +86,11 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, _unquote: boolean): string {
+  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
+    if (!unquote) {
+      throw new Error(`JSON Paths are not supported in ${this.dialect.name} without unquoting the JSON value.`);
+    }
+
     return `JSON_VALUE(${sqlExpression}, ${this.escape(buildJsonPath(path))})`;
   }
 

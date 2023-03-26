@@ -10,6 +10,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 const { dialect } = current;
 const dialectName = dialect.name;
+const invalidWhereError = new Error('Invalid value received for the "where" option.');
 
 describe('Paranoid Model', () => {
   before(function () {
@@ -113,35 +114,47 @@ describe('Paranoid Model', () => {
       });
 
       it('should soft delete with JSON condition', async function () {
-        await this.Model.bulkCreate([{
-          name: 'One',
-          data: {
-            field: {
-              deep: true,
-            },
-          },
-        }, {
-          name: 'Two',
-          data: {
-            field: {
-              deep: false,
-            },
-          },
-        }]);
-
-        await this.Model.destroy({
-          where: {
+        try {
+          await this.Model.bulkCreate([{
+            name: 'One',
             data: {
               field: {
                 deep: true,
               },
             },
-          },
-        });
+          }, {
+            name: 'Two',
+            data: {
+              field: {
+                deep: false,
+              },
+            },
+          }]);
 
-        const records = await this.Model.findAll();
-        expect(records.length).to.equal(1);
-        expect(records[0].get('name')).to.equal('Two');
+          await this.Model.destroy({
+            where: {
+              data: {
+                field: {
+                  deep: true,
+                },
+              },
+            },
+          });
+
+          if (dialectName === 'mssql') {
+            expect.fail();
+          } else {
+            const records = await this.Model.findAll();
+            expect(records.length).to.equal(1);
+            expect(records[0].get('name')).to.equal('Two');
+          }
+        } catch (error) {
+          if (dialectName === 'mssql') {
+            expect(Support.inlineErrorCause(error)).to.include(invalidWhereError.message);
+          } else {
+            throw error;
+          }
+        }
       });
     });
   }
