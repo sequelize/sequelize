@@ -1,7 +1,7 @@
-import { Unquote } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/dialect-aware-fn.js';
-import { parseNestedJsonKeySyntax, parseAttributeSyntax } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/attribute-syntax.js';
 import { expect } from 'chai';
 import { sql, AssociationPath, Attribute } from '@sequelize/core';
+import { Unquote } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/dialect-aware-fn.js';
+import { parseNestedJsonKeySyntax, parseAttributeSyntax } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/attribute-syntax.js';
 
 describe('parseAttributeSyntax', () => {
   it('parses simple attributes', () => {
