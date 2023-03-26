@@ -155,7 +155,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async createTable(tableName, attributes, options, model) {
     options = { ...options };
 
-    if (model) {
+    if (model && this.queryGenerator.dialect.supports.uniqueKeys) {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
