@@ -435,11 +435,10 @@ export abstract class SequelizeTypeScript {
 
       // Dialects that don't support cascade will throw if a foreign key references a table that is truncated,
       // even if there are no actual rows in the referencing table. To work around this, we disable foreign key.
-      return this.queryInterface.withoutForeignKeyChecks(options, async () => {
-        for (const model of models) {
-          // eslint-disable-next-line no-await-in-loop -- This operation cannot happen in parallel, it will cause constraint errors, even with foreign key checks disabled.
-          await model.truncate(options);
-        }
+      return this.queryInterface.withoutForeignKeyChecks(options, async connection => {
+        const truncateOptions = { ...options, connection };
+
+        await Promise.all(models.map(async model => model.truncate(truncateOptions)));
       });
     }
 

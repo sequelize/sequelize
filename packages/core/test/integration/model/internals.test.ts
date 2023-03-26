@@ -1,0 +1,98 @@
+import { expect } from 'chai';
+import type { Transactionable } from '@sequelize/core';
+import { setTransactionFromCls } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
+import { beforeAll2, createSequelizeInstance } from '../../support';
+
+describe('setTransactionFromCls', () => {
+  const vars = beforeAll2(async () => {
+    const sequelize = await createSequelizeInstance({
+      disableClsTransactions: false,
+    });
+
+    return { sequelize };
+  });
+
+  it('sets the transaction & connection if they exists in CLS', async () => {
+    const { sequelize } = vars;
+
+    await sequelize.transaction(transaction => {
+      const options: Transactionable = {};
+      setTransactionFromCls(options, sequelize);
+
+      expect(options.transaction).to.eq(transaction);
+      expect(options.connection).to.eq(transaction.getConnection());
+    });
+  });
+
+  it('does not use CLS if a transaction is already provided', async () => {
+    const { sequelize } = vars;
+
+    const manualTransaction = await sequelize.startUnmanagedTransaction();
+
+    await sequelize.transaction(async () => {
+      const options: Transactionable = { transaction: manualTransaction };
+
+      setTransactionFromCls(options, sequelize);
+
+      expect(options.transaction).to.eq(manualTransaction);
+      expect(options.connection).to.eq(manualTransaction.getConnection());
+    });
+
+    await manualTransaction.commit();
+  });
+
+  it('does not use CLS if null is explicitly provided', async () => {
+    const { sequelize } = vars;
+
+    await sequelize.transaction(async () => {
+      const options: Transactionable = { transaction: null };
+
+      setTransactionFromCls(options, sequelize);
+
+      expect(options.transaction).to.eq(null);
+      // eslint-disable-next-line unicorn/no-useless-undefined -- false positive.
+      expect(options.connection).to.eq(undefined);
+    });
+  });
+
+  it('does not set the transaction from CLS if an incompatible connection is provided', async () => {
+    const { sequelize } = vars;
+
+    await sequelize.transaction(async () => {
+      await sequelize.withConnection(async connection => {
+        const options: Transactionable = { connection };
+
+        setTransactionFromCls(options, sequelize);
+
+        // eslint-disable-next-line unicorn/no-useless-undefined -- false positive.
+        expect(options.transaction).to.eq(undefined);
+        expect(options.connection).to.eq(connection);
+      });
+    });
+  });
+
+  it('does not set the transaction from CLS if a compatible connection is provided', async () => {
+    const { sequelize } = vars;
+
+    await sequelize.transaction(async transaction => {
+      const options: Transactionable = { connection: transaction.getConnection() };
+
+      setTransactionFromCls(options, sequelize);
+
+      expect(options.transaction).to.eq(transaction);
+      expect(options.connection).to.eq(transaction.getConnection());
+    });
+  });
+
+  it('does not allow mismatching connection & transaction', async () => {
+    const { sequelize } = vars;
+
+    await sequelize.transaction(async transaction => {
+      await sequelize.withConnection(async connection => {
+        const options: Transactionable = { transaction, connection };
+
+        expect(() => setTransactionFromCls(options, sequelize)).to.throw(`You are using mismatching "transaction" and "connection" options. Please pass either one of them, or make sure they're both using the same connection.`);
+      });
+    });
+  });
+});

@@ -27,7 +27,7 @@ export class Transaction {
   readonly id: string;
   private readonly name: string;
   private finished: 'commit' | undefined;
-  private connection: Connection | undefined;
+  #connection: Connection | undefined;
 
   /**
    * Creates a new transaction instance
@@ -68,6 +68,18 @@ export class Transaction {
     delete this.options.transaction;
   }
 
+  getConnection(): Connection {
+    if (!this.#connection) {
+      throw new Error('This transaction is not bound to a connection.');
+    }
+
+    return this.#connection;
+  }
+
+  getConnectionIfExists(): Connection | undefined {
+    return this.#connection;
+  }
+
   /**
    * Commit the transaction.
    */
@@ -101,7 +113,7 @@ export class Transaction {
       throw new Error(`Transaction cannot be rolled back because it has been finished with state: ${this.finished}`);
     }
 
-    if (!this.connection) {
+    if (!this.#connection) {
       throw new Error('Transaction cannot be rolled back because it never started');
     }
 
@@ -137,7 +149,7 @@ export class Transaction {
   async prepareEnvironment() {
     let connection;
     if (this.parent) {
-      connection = this.parent.connection;
+      connection = this.parent.#connection;
     } else {
       connection = await this.sequelize.connectionManager.getConnection({
         type: this.options.readOnly ? 'read' : 'write',
@@ -149,7 +161,7 @@ export class Transaction {
 
     connection.uuid = this.id;
 
-    this.connection = connection;
+    this.#connection = connection;
 
     let result;
     try {
@@ -193,12 +205,13 @@ export class Transaction {
   cleanup(): void {
     // Don't release the connection if there's a parent transaction or
     // if we've already cleaned up
-    if (this.parent || this.connection?.uuid === undefined) {
+    if (this.parent || this.#connection?.uuid === undefined) {
       return;
     }
 
-    this.sequelize.connectionManager.releaseConnection(this.connection);
-    this.connection.uuid = undefined;
+    this.sequelize.connectionManager.releaseConnection(this.#connection);
+    this.#connection.uuid = undefined;
+    this.#connection = undefined;
   }
 
   /**
@@ -210,12 +223,13 @@ export class Transaction {
   async forceCleanup() {
     // Don't release the connection if there's a parent transaction or
     // if we've already cleaned up
-    if (this.parent || this.connection?.uuid === undefined) {
+    if (this.parent || this.#connection?.uuid === undefined) {
       return;
     }
 
-    await this.sequelize.connectionManager.destroyConnection(this.connection);
-    this.connection.uuid = undefined;
+    await this.sequelize.connectionManager.destroyConnection(this.#connection);
+    this.#connection.uuid = undefined;
+    this.#connection = undefined;
   }
 
   /**

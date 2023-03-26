@@ -712,7 +712,7 @@ Use Sequelize#query if you wish to use replacements.`);
     return await retry(async () => {
       checkTransaction();
 
-      const connection = options.transaction ? options.transaction.connection
+      const connection = options.transaction ? options.transaction.getConnection()
         : options.connection ? options.connection
         : await this.connectionManager.getConnection({
           useMaster: options.useMaster,
