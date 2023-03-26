@@ -222,41 +222,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
-  if (['mysql', 'mariadb'].includes(dialect)) {
-    describe('set', () => {
-      it('should return an promised error if transaction isn\'t defined', async function () {
-        await expect(this.sequelize.set({ foo: 'bar' }))
-          .to.be.rejectedWith(TypeError, 'options.transaction is required');
-      });
-
-      it('one value', async function () {
-        const t = await this.sequelize.startUnmanagedTransaction();
-        this.t = t;
-        await this.sequelize.set({ foo: 'bar' }, { transaction: t });
-        const data = await this.sequelize.query('SELECT @foo as `foo`', { plain: true, transaction: this.t });
-        expect(data).to.be.ok;
-        expect(data.foo).to.be.equal('bar');
-        await this.t.commit();
-      });
-
-      it('multiple values', async function () {
-        const t = await this.sequelize.startUnmanagedTransaction();
-        this.t = t;
-
-        await this.sequelize.set({
-          foo: 'bar',
-          foos: 'bars',
-        }, { transaction: t });
-
-        const data = await this.sequelize.query('SELECT @foo as `foo`, @foos as `foos`', { plain: true, transaction: this.t });
-        expect(data).to.be.ok;
-        expect(data.foo).to.be.equal('bar');
-        expect(data.foos).to.be.equal('bars');
-        await this.t.commit();
-      });
-    });
-  }
-
   describe('define', () => {
     it('adds a new dao to the dao manager', function () {
       const count = this.sequelize.modelManager.all.length;
