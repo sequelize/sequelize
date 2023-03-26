@@ -1,7 +1,9 @@
 import { expect } from 'chai';
 import type { Transactionable } from '@sequelize/core';
 import { setTransactionFromCls } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
-import { beforeAll2, createSequelizeInstance } from '../../support';
+import { beforeAll2, createSequelizeInstance, getTestDialect } from '../../support';
+
+const dialectName = getTestDialect();
 
 describe('setTransactionFromCls', () => {
   const vars = beforeAll2(async () => {
@@ -25,6 +27,11 @@ describe('setTransactionFromCls', () => {
   });
 
   it('does not use CLS if a transaction is already provided', async () => {
+    // SQLite only has a single connection, we can't open a second transaction
+    if (dialectName === 'sqlite') {
+      return;
+    }
+
     const { sequelize } = vars;
 
     const manualTransaction = await sequelize.startUnmanagedTransaction();
@@ -56,6 +63,11 @@ describe('setTransactionFromCls', () => {
   });
 
   it('does not set the transaction from CLS if an incompatible connection is provided', async () => {
+    // SQLite only has a single connection, so it's the same connection
+    if (dialectName === 'sqlite') {
+      return;
+    }
+
     const { sequelize } = vars;
 
     await sequelize.transaction(async () => {
@@ -85,6 +97,11 @@ describe('setTransactionFromCls', () => {
   });
 
   it('does not allow mismatching connection & transaction', async () => {
+    // SQLite only has a single connection, so it's the same connection
+    if (dialectName === 'sqlite') {
+      return;
+    }
+
     const { sequelize } = vars;
 
     await sequelize.transaction(async transaction => {
