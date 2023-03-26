@@ -460,7 +460,7 @@ export interface DialectOptions {
   options?: string | Record<string, unknown>;
 }
 
-export interface QueryOptionsTransactionRequired { }
+export interface SetSessionVariablesOptions extends Omit<QueryOptions, 'raw' | 'plain' | 'type'> { }
 
 export type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -975,7 +975,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param variables object with multiple variables.
    * @param options Query options.
    */
-  set(variables: object, options: QueryOptionsTransactionRequired): Promise<unknown>;
+  setSessionVariables(variables: object, options?: SetSessionVariablesOptions): Promise<unknown>;
 
   /**
    * Escape value.
