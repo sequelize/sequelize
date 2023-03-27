@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
-import type { Connection } from './dialects/abstract/connection-manager.js';
+import type { Connection, AbstractConnectionManager, GetConnectionOptions } from './dialects/abstract/connection-manager.js';
 import type { AbstractQuery } from './dialects/abstract/query.js';
 import {
   legacyBuildHasHook,
@@ -17,6 +17,7 @@ import { validModelHooks } from './model-hooks.js';
 import type { ConnectionOptions, Options, Sequelize } from './sequelize.js';
 import type { TransactionOptions } from './transaction.js';
 import { Transaction } from './transaction.js';
+import type { PartialBy } from './utils/types.js';
 import type { ModelAttributes, ModelOptions, ModelStatic, QueryOptions, SyncOptions } from '.';
 
 export interface SequelizeHooks extends ModelHooks {
@@ -75,6 +76,15 @@ export interface StaticSequelizeHooks {
   afterInit(sequelize: Sequelize): void;
 }
 
+export interface WithConnectionOptions extends PartialBy<GetConnectionOptions, 'type'> {
+  /**
+   * Close the connection when the callback finishes instead of returning it to the pool.
+   * This is useful if you want to ensure that the connection is not reused,
+   * for example if you ran queries that changed session options.
+   */
+  destroyConnection?: boolean;
+}
+
 const staticSequelizeHooks = new HookHandlerBuilder<StaticSequelizeHooks>([
   'beforeInit', 'afterInit',
 ]);
@@ -89,6 +99,7 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
 ]);
 
 type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
+type SessionCallback<T> = (connection: Connection) => PromiseLike<T> | T;
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -96,6 +107,8 @@ type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
  * Always use {@link Sequelize} instead.
  */
 export abstract class SequelizeTypeScript {
+  declare connectionManager: AbstractConnectionManager;
+
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);
   }
@@ -341,5 +354,34 @@ export abstract class SequelizeTypeScript {
     await transaction.prepareEnvironment();
 
     return transaction;
+  }
+
+  async withConnection<T>(options: WithConnectionOptions, callback: SessionCallback<T>): Promise<T>;
+  async withConnection<T>(callback: SessionCallback<T>): Promise<T>;
+  async withConnection<T>(
+    optionsOrCallback: SessionCallback<T> | WithConnectionOptions,
+    maybeCallback?: SessionCallback<T>,
+  ): Promise<T> {
+    let options: WithConnectionOptions;
+    let callback: SessionCallback<T>;
+    if (typeof optionsOrCallback === 'function') {
+      callback = optionsOrCallback;
+      options = { type: 'write' };
+    } else {
+      callback = maybeCallback!;
+      options = { type: 'write', ...optionsOrCallback };
+    }
+
+    const connection = await this.connectionManager.getConnection(options as GetConnectionOptions);
+
+    try {
+      return await callback(connection);
+    } finally {
+      if (options.destroyConnection) {
+        await this.connectionManager.destroyConnection(connection);
+      } else {
+        this.connectionManager.releaseConnection(connection);
+      }
+    }
   }
 }
