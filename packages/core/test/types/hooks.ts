@@ -158,15 +158,15 @@ sequelize.addHook('beforeConnect', (...args) => {
   expectTypeOf(args).toMatchTypeOf<[ConnectionOptions]>();
 });
 
-sequelize.beforePoolConnection('name', (config: ConnectionOptions) => {
+sequelize.beforePoolAcquire('name', (config: ConnectionOptions) => {
   expectTypeOf(config).toMatchTypeOf<ConnectionOptions>();
 });
 
-sequelize.beforePoolConnection((config: ConnectionOptions) => {
+sequelize.beforePoolAcquire((config: ConnectionOptions) => {
   expectTypeOf(config).toMatchTypeOf<ConnectionOptions>();
 });
 
-sequelize.addHook('beforePoolConnection', (...args) => {
+sequelize.addHook('beforePoolAcquire', (...args) => {
   expectTypeOf(args).toMatchTypeOf<[ConnectionOptions]>();
 });
 
