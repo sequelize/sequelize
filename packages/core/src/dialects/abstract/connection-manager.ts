@@ -2,7 +2,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
 import { ConnectionAcquireTimeoutError } from '../../errors';
-import type { Dialect, Sequelize, ConnectionOptions, QueryRawOptions } from '../../sequelize.js';
+import type { Dialect, Sequelize, ConnectionOptions } from '../../sequelize.js';
 import { isNodeError } from '../../utils/check.js';
 import * as deprecations from '../../utils/deprecations';
 import { logger } from '../../utils/logger';
@@ -205,23 +205,17 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
       return;
     }
 
-    // TODO: move to sequelize.queryRaw instead?
     this.#versionPromise = (async () => {
       try {
         const connection = conn ?? await this._connect(this.config.replication.write || this.config);
 
-        // connection might have set databaseVersion value at initialization,
-        // avoiding a useless round trip
-        const options: QueryRawOptions = {
-          logging: () => {},
-          // TODO: add "connection" parameter to QueryRawOptions? Would require a way to reuse the same connection without it going back in the pool,
-          //  something like sequelize.session(connection => {}).
-          //  this would help for SET SESSION queries, like in https://github.com/sequelize/sequelize/discussions/15377
-          // @ts-expect-error -- HACK: Cheat .query to use our private connection
-          transaction: { connection },
-        };
+        const version = await this.sequelize.fetchDatabaseVersion({
+          logging: false,
+          // we must use the current connection for this, otherwise it will try to create a
+          // new connection, which will try to initialize the database version again, and loop forever
+          connection,
+        });
 
-        const version = await this.sequelize.fetchDatabaseVersion(options);
         const parsedVersion = semver.coerce(version)?.version || version;
         this.sequelize.options.databaseVersion = semver.valid(parsedVersion)
           ? parsedVersion
