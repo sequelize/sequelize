@@ -1789,6 +1789,10 @@ ${associationOwner._getAssociationDebugList()}`);
       );
     }
 
+    if (options.connection) {
+      throw new Error('findOrCreate does not support specifying which connection must be used, because findOrCreate must run in a transaction.');
+    }
+
     options = { ...options };
 
     const modelDefinition = this.modelDefinition;
@@ -2186,6 +2190,7 @@ ${associationOwner._getAssociationDebugList()}`);
             const includeOptions = _(cloneDeep(include))
               .omit(['association'])
               .defaults({
+                connection: options.connection,
                 transaction: options.transaction,
                 logging: options.logging,
               })
@@ -2328,6 +2333,7 @@ ${associationOwner._getAssociationDebugList()}`);
           const includeOptions = _(cloneDeep(include))
             .omit(['association'])
             .defaults({
+              connection: options.connection,
               transaction: options.transaction,
               logging: options.logging,
             })
@@ -2370,6 +2376,7 @@ ${associationOwner._getAssociationDebugList()}`);
             const throughOptions = _(cloneDeep(include))
               .omit(['association', 'attributes'])
               .defaults({
+                connection: options.connection,
                 transaction: options.transaction,
                 logging: options.logging,
               })
@@ -2475,7 +2482,13 @@ ${associationOwner._getAssociationDebugList()}`);
     let instances;
     // Get daos and run beforeDestroy hook on each record individually
     if (options.individualHooks) {
-      instances = await this.findAll({ where: options.where, transaction: options.transaction, logging: options.logging, benchmark: options.benchmark });
+      instances = await this.findAll({
+        where: options.where,
+        connection: options.connection,
+        transaction: options.transaction,
+        logging: options.logging,
+        benchmark: options.benchmark,
+      });
 
       await Promise.all(instances.map(instance => {
         return this.hooks.runAsync('beforeDestroy', instance, options);
@@ -2553,7 +2566,14 @@ ${associationOwner._getAssociationDebugList()}`);
     let instances;
     // Get daos and run beforeRestore hook on each record individually
     if (options.individualHooks) {
-      instances = await this.findAll({ where: options.where, transaction: options.transaction, logging: options.logging, benchmark: options.benchmark, paranoid: false });
+      instances = await this.findAll({
+        where: options.where,
+        connection: options.connection,
+        transaction: options.transaction,
+        logging: options.logging,
+        benchmark: options.benchmark,
+        paranoid: false,
+      });
 
       await Promise.all(instances.map(instance => {
         return this.hooks.runAsync('beforeRestore', instance, options);
@@ -2681,6 +2701,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (options.individualHooks) {
       instances = await this.findAll({
         where: options.where,
+        connection: options.connection,
         transaction: options.transaction,
         logging: options.logging,
         benchmark: options.benchmark,
@@ -3670,6 +3691,7 @@ Instead of specifying a Model, either:
         const includeOptions = _(cloneDeep(include))
           .omit(['association'])
           .defaults({
+            connection: options.connection,
             transaction: options.transaction,
             logging: options.logging,
             parentRecord: this,
@@ -3759,6 +3781,7 @@ Instead of specifying a Model, either:
           const includeOptions = _(cloneDeep(include))
             .omit(['association'])
             .defaults({
+              connection: options.connection,
               transaction: options.transaction,
               logging: options.logging,
               parentRecord: this,

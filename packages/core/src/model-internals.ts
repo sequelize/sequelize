@@ -149,7 +149,11 @@ Got ${NodeUtil.inspect(include)} instead`);
 }
 
 export function setTransactionFromCls(options: Transactionable, sequelize: Sequelize): void {
-  if (options.transaction === undefined) {
+  if (options.transaction && options.connection) {
+    throw new Error('You cannot use the "transaction" and "connection" options simultaneously. Please pass either one of them.');
+  }
+
+  if (options.transaction === undefined && options.connection === undefined) {
     options.transaction = sequelize.getCurrentClsTransaction();
   }
 }
