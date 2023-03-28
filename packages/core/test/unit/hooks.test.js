@@ -455,4 +455,19 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       expect(hook2).to.have.been.calledTwice;
     });
   });
+
+  describe('Sequelize hooks', () => {
+    it('should call the before / afterPoolAcquire hook', async () => {
+
+      const hook1 = sinon.spy();
+      const hook2 = sinon.spy();
+      sequelize.addHook('beforePoolAcquire', hook1);
+      sequelize.addHook('afterPoolAcquire', hook2);
+
+      await sequelize.authenticate();
+
+      expect(hook1).to.have.been.calledOnce;
+      expect(hook2).to.have.been.calledOnce;
+    });
+  });
 });
