@@ -154,6 +154,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const primaryKeys = [];
     const foreignKeys = {};
     const attributesClauseParts = [];
+    if (typeof options === 'undefined') {
+      options = {};
+    }
 
     let commentStr = '';
 
@@ -194,7 +197,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
-    if (options.uniqueKeys) {
+    if (Object.prototype.hasOwnProperty.call(options, 'uniqueKeys') && options.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = generateIndexName(tableName, columns);
