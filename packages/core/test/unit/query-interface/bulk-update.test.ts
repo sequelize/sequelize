@@ -17,7 +17,7 @@ describe('QueryInterface#bulkUpdate', () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     await sequelize.getQueryInterface().bulkUpdate(
-      User.tableName,
+      User.table,
       {
         // values
         firstName: ':injection',
@@ -51,7 +51,7 @@ describe('QueryInterface#bulkUpdate', () => {
     sinon.stub(sequelize, 'queryRaw');
 
     await expect(sequelize.getQueryInterface().bulkUpdate(
-      User.tableName,
+      User.table,
       {
         firstName: literal('$sequelize_test'),
       },
@@ -68,7 +68,7 @@ describe('QueryInterface#bulkUpdate', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.getQueryInterface().bulkUpdate(
-      User.tableName,
+      User.table,
       {
         firstName: 'newName',
       },
@@ -98,7 +98,7 @@ describe('QueryInterface#bulkUpdate', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.getQueryInterface().bulkUpdate(
-      User.tableName,
+      User.table,
       {
         firstName: 'newName',
       },

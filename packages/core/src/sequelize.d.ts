@@ -4,6 +4,13 @@ import type { AbstractConnectionManager } from './dialects/abstract/connection-m
 import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface, ColumnsDescription } from './dialects/abstract/query-interface';
 import type { CreateSchemaOptions } from './dialects/abstract/query-interface.types';
+import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
+import type { cast } from './expression-builders/cast.js';
+import type { col } from './expression-builders/col.js';
+import type { fn, Fn } from './expression-builders/fn.js';
+import type { json } from './expression-builders/json.js';
+import type { literal } from './expression-builders/literal.js';
+import type { where } from './expression-builders/where.js';
 import type {
   DestroyOptions,
   DropOptions,
@@ -12,19 +19,16 @@ import type {
   AttributeOptions,
   ModelAttributes,
   ModelOptions,
-  WhereOperators,
   Hookable,
   ModelStatic,
   Attributes,
   ColumnReference,
   Transactionable,
   Poolable,
-  WhereAttributeHashValue,
 } from './model';
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
-import type { Cast, Col, Fn, Json, Literal, Where } from './utils/sequelize-method.js';
 import type { RequiredBy } from './utils/types.js';
 import type { QueryTypes, TRANSACTION_TYPES, ISOLATION_LEVELS, Op, DataTypes, AbstractQueryGenerator } from '.';
 
@@ -143,13 +147,6 @@ export interface NormalizedReplicationOptions {
   read: ConnectionOptions[];
 
   write: ConnectionOptions;
-}
-
-/**
- * Used to map operators to their Symbol representations
- */
-export interface OperatorsAliases {
-  [K: string]: symbol;
 }
 
 /**
@@ -387,15 +384,6 @@ export interface Options extends Logging {
   noTypeValidation?: boolean;
 
   /**
-   * Sets available operator aliases.
-   * See (https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#operators) for more information.
-   * WARNING: Setting this to boolean value was deprecated and is no-op.
-   *
-   * @default all aliases
-   */
-  operatorsAliases?: OperatorsAliases;
-
-  /**
    * The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option.
    * WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    *
@@ -473,7 +461,7 @@ export interface DialectOptions {
   options?: string | Record<string, unknown>;
 }
 
-export interface QueryOptionsTransactionRequired { }
+export interface SetSessionVariablesOptions extends Omit<QueryOptions, 'raw' | 'plain' | 'type'> { }
 
 export type BindOrReplacements = { [key: string]: unknown } | unknown[];
 type FieldMap = { [key: string]: string };
@@ -775,7 +763,7 @@ export class Sequelize extends SequelizeTypeScript {
    * Dictionary of all models linked with this instance.
    */
   models: {
-    [key: string]: ModelStatic<Model>,
+    [key: string]: ModelStatic,
   };
 
   /**
@@ -988,7 +976,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param variables object with multiple variables.
    * @param options Query options.
    */
-  set(variables: object, options: QueryOptionsTransactionRequired): Promise<unknown>;
+  setSessionVariables(variables: object, options?: SetSessionVariablesOptions): Promise<unknown>;
 
   /**
    * Escape value.
@@ -1056,7 +1044,7 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @param [options] The options passed to Model.destroy in addition to truncate
    */
-  truncate(options?: DestroyOptions<any>): Promise<unknown[]>;
+  truncate(options?: DestroyOptions): Promise<unknown[]>;
 
   /**
    * Drop all tables defined through this sequelize instance. This is done by calling Model.drop on each model
@@ -1107,50 +1095,6 @@ export class Sequelize extends SequelizeTypeScript {
 // Utilities
 
 /**
- * Creates a object representing a database function. This can be used in search queries, both in where and
- * order parts, and as default values in column definitions. If you want to refer to columns in your
- * function, you should use `sequelize.col`, so that the columns are properly interpreted as columns and
- * not a strings.
- *
- * Convert a user's username to upper case
- * ```ts
- * instance.update({
- *   username: fn('upper', col('username'))
- * })
- * ```
- *
- * @param sqlFunction The function you want to call
- * @param args All further arguments will be passed as arguments to the function
- */
-export function fn(
-  sqlFunction: string,
-  ...args: Fn['args']
-): Fn;
-
-/**
- * Creates a object representing a column in the DB. This is often useful in conjunction with
- * `sequelize.fn`, since raw string arguments to fn will be escaped.
- *
- * @param columnName The name of the column
- */
-export function col(columnName: string): Col;
-
-/**
- * Creates a object representing a call to the cast function.
- *
- * @param val The value to cast
- * @param type The type to cast it to
- */
-export function cast(val: unknown, type: string): Cast;
-
-/**
- * Creates a object representing a literal, i.e. something that will not be escaped.
- *
- * @param val
- */
-export function literal(val: string): Literal;
-
-/**
  * An AND query
  *
  * @param args Each argument will be joined by AND
@@ -1164,62 +1108,4 @@ export function and<T extends any[]>(...args: T): { [Op.and]: T };
  */
 export function or<T extends any[]>(...args: T): { [Op.or]: T };
 
-/**
- * Creates an object representing nested where conditions for postgres's json data-type.
- *
- * @param conditionsOrPath A hash containing strings/numbers or other nested hash, a string using dot
- *   notation or a string using postgres json syntax.
- * @param value An optional value to compare against.
- *   Produces a string of the form "&lt;json path&gt; = '&lt;value&gt;'".
- */
-export function json(conditionsOrPath: string | object, value?: string | number | boolean): Json;
-
-export type WhereLeftOperand = Fn | ColumnReference | Literal | Cast | AttributeOptions;
-
-/**
- * A way of specifying "attr = condition".
- * Can be used as a replacement for the POJO syntax (e.g. `where: { name: 'Lily' }`) when you need to compare a column that the POJO syntax cannot represent.
- *
- * @param leftOperand The left side of the comparison.
- *  - A value taken from YourModel.rawAttributes, to reference an attribute.
- *    The attribute must be defined in your model definition.
- *  - A Literal (using {@link literal})
- *  - A SQL Function (using {@link fn})
- *  - A Column name (using {@link col})
- *  Note that simple strings to reference an attribute are not supported. You can use the POJO syntax instead.
- * @param operator The comparison operator to use. If unspecified, defaults to {@link OpTypes.eq}.
- * @param rightOperand The right side of the comparison. Its value depends on the used operator.
- *  See {@link WhereOperators} for information about what value is valid for each operator.
- *
- * @example
- * // Using an attribute as the left operand.
- * // Equal to: WHERE first_name = 'Lily'
- * where(User.rawAttributes.firstName, Op.eq, 'Lily');
- *
- * @example
- * // Using a column name as the left operand.
- * // Equal to: WHERE first_name = 'Lily'
- * where(col('first_name'), Op.eq, 'Lily');
- *
- * @example
- * // Using a SQL function on the left operand.
- * // Equal to: WHERE LOWER(first_name) = 'lily'
- * where(fn('LOWER', col('first_name')), Op.eq, 'lily');
- *
- * @example
- * // Using raw SQL as the left operand.
- * // Equal to: WHERE 'Lily' = 'Lily'
- * where(literal(`'Lily'`), Op.eq, 'Lily');
- */
-export function where<OpSymbol extends keyof WhereOperators>(
-  leftOperand: WhereLeftOperand | Where,
-  operator: OpSymbol,
-  rightOperand: WhereOperators[OpSymbol]
-): Where;
-export function where(leftOperand: any, operator: string, rightOperand: any): Where;
-export function where(leftOperand: WhereLeftOperand, rightOperand: WhereAttributeHashValue<any>): Where;
-
-type ContinuationLocalStorageNamespace = {
-  get(key: string): unknown,
-  set(key: string, value: unknown): void,
-};
+export type Expression = ColumnReference | DynamicSqlExpression | unknown;

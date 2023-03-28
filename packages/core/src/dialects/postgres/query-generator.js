@@ -1,7 +1,7 @@
 'use strict';
 
+import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { Json } from '../../utils/sequelize-method';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
 import { quoteIdentifier, removeTicks } from '../../utils/dialect';
@@ -144,7 +144,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       }
 
       return acc;
-    }, []).join(',');
+    }, []).join(', ');
 
     if (pks.length > 0) {
       attributesClause += `, PRIMARY KEY (${pks})`;
@@ -178,107 +178,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const schema = tableName.schema || 'public';
 
     return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
-  }
-
-  /**
-   * Check whether the statmement is json function or simple path
-   *
-   * @param   {string}  stmt  The statement to validate
-   * @returns {boolean}       true if the given statement is json function
-   * @throws  {Error}         throw if the statement looks like json function but has invalid token
-   */
-  _checkValidJsonStatement(stmt) {
-    if (typeof stmt !== 'string') {
-      return false;
-    }
-
-    // https://www.postgresql.org/docs/current/static/functions-json.html
-    const jsonFunctionRegex = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
-    const jsonOperatorRegex = /^\s*(->>?|#>>?|@>|<@|\?[&|]?|\|{2}|#-)/i;
-    const tokenCaptureRegex = /^\s*((?:(["'`])(?:(?!\2).|\2{2})*\2)|[\s\w]+|[()+,.;-])/i;
-
-    let currentIndex = 0;
-    let openingBrackets = 0;
-    let closingBrackets = 0;
-    let hasJsonFunction = false;
-    let hasInvalidToken = false;
-
-    while (currentIndex < stmt.length) {
-      const string = stmt.slice(currentIndex);
-      const functionMatches = jsonFunctionRegex.exec(string);
-      if (functionMatches) {
-        currentIndex += functionMatches[0].indexOf('(');
-        hasJsonFunction = true;
-        continue;
-      }
-
-      const operatorMatches = jsonOperatorRegex.exec(string);
-      if (operatorMatches) {
-        currentIndex += operatorMatches[0].length;
-        hasJsonFunction = true;
-        continue;
-      }
-
-      const tokenMatches = tokenCaptureRegex.exec(string);
-      if (tokenMatches) {
-        const capturedToken = tokenMatches[1];
-        if (capturedToken === '(') {
-          openingBrackets++;
-        } else if (capturedToken === ')') {
-          closingBrackets++;
-        } else if (capturedToken === ';') {
-          hasInvalidToken = true;
-          break;
-        }
-
-        currentIndex += tokenMatches[0].length;
-        continue;
-      }
-
-      break;
-    }
-
-    // Check invalid json statement
-    hasInvalidToken |= openingBrackets !== closingBrackets;
-    if (hasJsonFunction && hasInvalidToken) {
-      throw new Error(`Invalid json statement: ${stmt}`);
-    }
-
-    // return true if the statement has valid json function
-    return hasJsonFunction;
-  }
-
-  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Json) {
-      // Parse nested object
-      if (smth.conditions) {
-        const conditions = this.parseConditionObject(smth.conditions).map(condition => `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`);
-
-        return conditions.join(' AND ');
-      }
-
-      if (smth.path) {
-        let str;
-
-        // Allow specifying conditions using the postgres json syntax
-        if (this._checkValidJsonStatement(smth.path)) {
-          str = smth.path;
-        } else {
-          // Also support json property accessors
-          const paths = _.toPath(smth.path);
-          const column = paths.shift();
-          str = this.jsonPathExtractionQuery(column, paths);
-        }
-
-        if (smth.value) {
-          str += util.format(' = %s', this.escape(smth.value));
-        }
-
-        return str;
-      }
-    }
-
-    return super.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
   addColumnQuery(table, key, attribute, options) {
@@ -387,15 +286,21 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     ].join('');
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
+  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     const table = this.quoteTable(tableName);
-    let whereClause = this.getWhereConditions(where, null, model, options);
-    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, undefined, _.pick(options, ['replacements', 'bind']))}` : '';
+
+    const escapeOptions = {
+      replacements: options.replacements,
+      model,
+    };
+
+    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, escapeOptions)}` : '';
     let primaryKeys = '';
     let primaryKeysSelection = '';
 
+    let whereClause = this.whereQuery(where, { ...options, model });
     if (whereClause) {
-      whereClause = ` WHERE ${whereClause}`;
+      whereClause = ` ${whereClause}`;
     }
 
     if (options.limit) {
@@ -427,18 +332,18 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       'is_deferrable AS "isDeferrable",',
       'initially_deferred AS "initiallyDeferred"',
       'from INFORMATION_SCHEMA.table_constraints',
-      `WHERE table_name='${tableName}';`,
+      `WHERE table_name=${this.escape(tableName)};`,
     ].join(' ');
   }
 
   addLimitAndOffset(options) {
     let fragment = '';
     if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
     }
 
     if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
     }
 
     return fragment;
@@ -490,7 +395,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     if (defaultValueSchemable(attribute.defaultValue)) {
-      sql += ` DEFAULT ${this.escape(attribute.defaultValue, attribute)}`;
+      sql += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
     }
 
     if (attribute.unique === true) {
@@ -791,7 +696,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       values = dataType.toString().match(/^ENUM\(.+\)/)[0];
     }
 
-    let sql = `CREATE TYPE ${enumName} AS ${values};`;
+    let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${enumName} AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
     if (Boolean(options) && options.force === true) {
       sql = this.pgEnumDrop(tableName, attr) + sql;
     }
@@ -949,11 +854,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
    */
   quoteIdentifier(identifier, force) {
     const optForceQuote = force || false;
+    // TODO: remove "quoteIdentifiers: false" option
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
 
     if (
       optForceQuote === true
-      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers.
+      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers based on these rules
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')
@@ -968,27 +874,5 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return identifier;
-  }
-
-  /**
-   * Generates an SQL query that extract JSON property of given path.
-   *
-   * @param   {string}               column   The JSON column
-   * @param   {string|Array<string>} [path]   The path to extract (optional)
-   * @param   {boolean}              [isJson] The value is JSON use alt symbols (optional)
-   * @returns {string}                        The generated sql query
-   * @private
-   */
-  jsonPathExtractionQuery(column, path, isJson) {
-    const quotedColumn = this.isIdentifierQuoted(column)
-      ? column
-      : this.quoteIdentifier(column);
-
-    const join = isJson ? '#>' : '#>>';
-
-    // TODO: drop this custom array building and use the stringifier of the Array DataType
-    const pathStr = this.escape(`{${_.toPath(path).join(',')}}`);
-
-    return `(${quotedColumn}${join}${pathStr})`;
   }
 }

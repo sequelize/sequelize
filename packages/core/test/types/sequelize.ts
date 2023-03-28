@@ -31,7 +31,6 @@ Sequelize.and();
 Sequelize.or();
 Sequelize.json('data.id');
 Sequelize.where(Sequelize.col('ABS'), Op.is, null);
-Sequelize.where(Sequelize.col('ABS'), '=', null);
 
 // instance members
 sequelize.fn('max', sequelize.col('age'));

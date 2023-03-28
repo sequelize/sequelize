@@ -943,7 +943,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     const modelDefinition = instance?.constructor.modelDefinition;
 
-    options = { ...options };
+    options = { ...options, model: instance?.constructor };
     options.hasTrigger = modelDefinition?.options.hasTrigger;
 
     const { query, bind } = this.queryGenerator.updateQuery(
@@ -1091,7 +1091,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   async select(model, tableName, optionsArg) {
-    const options = { ...optionsArg, type: QueryTypes.SELECT, model };
+    const minifyAliases = optionsArg.minifyAliases ?? this.sequelize.options.minifyAliases;
+    const options = { ...optionsArg, type: QueryTypes.SELECT, model, minifyAliases };
 
     const sql = this.queryGenerator.selectQuery(tableName, options, model);
 
@@ -1109,11 +1110,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return this.#arithmeticQuery('-', model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
   }
 
-  async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
+  async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options) {
     options = cloneDeep(options);
     options.model = model;
 
-    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
+    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options);
 
     options.type = QueryTypes.UPDATE;
 

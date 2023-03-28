@@ -38,16 +38,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(sequelize.config.host).to.equal('127.0.0.1');
     });
 
-    it('should set operators aliases on dialect queryGenerator', () => {
-      const operatorsAliases = { fake: true };
-      const sequelize = Support.createSequelizeInstance({ operatorsAliases });
-
-      expect(sequelize).to.have.property('dialect');
-      expect(sequelize.dialect).to.have.property('queryGenerator');
-      expect(sequelize.dialect.queryGenerator).to.have.property('OperatorsAliasMap');
-      expect(sequelize.dialect.queryGenerator.OperatorsAliasMap).to.be.eql(operatorsAliases);
-    });
-
     if (dialect === 'sqlite') {
       it('should work with connection strings (1)', () => {
         new Sequelize('sqlite://test.sqlite');
@@ -231,41 +221,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(this.sequelize.model('Project')).to.equal(project);
     });
   });
-
-  if (['mysql', 'mariadb'].includes(dialect)) {
-    describe('set', () => {
-      it('should return an promised error if transaction isn\'t defined', async function () {
-        await expect(this.sequelize.set({ foo: 'bar' }))
-          .to.be.rejectedWith(TypeError, 'options.transaction is required');
-      });
-
-      it('one value', async function () {
-        const t = await this.sequelize.startUnmanagedTransaction();
-        this.t = t;
-        await this.sequelize.set({ foo: 'bar' }, { transaction: t });
-        const data = await this.sequelize.query('SELECT @foo as `foo`', { plain: true, transaction: this.t });
-        expect(data).to.be.ok;
-        expect(data.foo).to.be.equal('bar');
-        await this.t.commit();
-      });
-
-      it('multiple values', async function () {
-        const t = await this.sequelize.startUnmanagedTransaction();
-        this.t = t;
-
-        await this.sequelize.set({
-          foo: 'bar',
-          foos: 'bars',
-        }, { transaction: t });
-
-        const data = await this.sequelize.query('SELECT @foo as `foo`, @foos as `foos`', { plain: true, transaction: this.t });
-        expect(data).to.be.ok;
-        expect(data.foo).to.be.equal('bar');
-        expect(data.foos).to.be.equal('bars');
-        await this.t.commit();
-      });
-    });
-  }
 
   describe('define', () => {
     it('adds a new dao to the dao manager', function () {

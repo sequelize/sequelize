@@ -1,11 +1,10 @@
 'use strict';
 
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { addTicks, quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
-import { Cast, Json } from '../../utils/sequelize-method';
-import { underscore } from '../../utils/string';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
@@ -16,7 +15,6 @@ import {
 
 const _ = require('lodash');
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const util = require('node:util');
 const { Op } = require('../../operators');
 
 const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
@@ -57,11 +55,8 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   constructor(options) {
     super(options);
 
-    this.OperatorMap = {
-      ...this.OperatorMap,
-      [Op.regexp]: 'REGEXP',
-      [Op.notRegexp]: 'NOT REGEXP',
-    };
+    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
+    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
   }
 
   createDatabaseQuery(databaseName, options) {
@@ -194,7 +189,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       'CREATE TABLE IF NOT EXISTS',
       table,
       `(${attributesClause})`,
-      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment, undefined, options)}`,
+      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
@@ -205,7 +200,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   showTablesQuery(database, options) {
     return joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database, undefined, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
+      database ? `AND TABLE_SCHEMA = ${this.escape(database, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
       ';',
     ]);
   }
@@ -331,50 +326,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  handleSequelizeMethod(attr, tableName, factory, options, prepend) {
-    if (attr instanceof Json) {
-      // Parse nested object
-      if (attr.conditions) {
-        const conditions = this.parseConditionObject(attr.conditions).map(condition => `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`);
-
-        return conditions.join(' AND ');
-      }
-
-      if (attr.path) {
-        let str;
-
-        // Allow specifying conditions using the sqlite json functions
-        if (this._checkValidJsonStatement(attr.path)) {
-          str = attr.path;
-        } else {
-          // Also support json property accessors
-          const paths = _.toPath(attr.path);
-          const column = paths.shift();
-          str = this.jsonPathExtractionQuery(column, paths);
-        }
-
-        if (attr.value) {
-          str += util.format(' = %s', this.escape(attr.value, undefined, options));
-        }
-
-        return str;
-      }
-    } else if (attr instanceof Cast) {
-      if (/timestamp/i.test(attr.type)) {
-        attr.type = 'datetime';
-      } else if (attr.json && /boolean/i.test(attr.type)) {
-        // true or false cannot be casted as booleans within a JSON structure
-        attr.type = 'char';
-      } else if (/double precision/i.test(attr.type) || /boolean/i.test(attr.type) || /integer/i.test(attr.type)) {
-        attr.type = 'decimal';
-      } else if (/text/i.test(attr.type)) {
-        attr.type = 'char';
-      }
-    }
-
-    return super.handleSequelizeMethod(attr, tableName, factory, options, prepend);
-  }
-
   truncateTableQuery(tableName) {
     return joinSQLFragments([
       'TRUNCATE',
@@ -382,15 +333,17 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
+  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
+    const escapeOptions = { ...options, model };
+
     const table = this.quoteTable(tableName);
-    let whereClause = this.getWhereConditions(where, null, model, options);
-    const limit = options.limit && ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+    const limit = options.limit && ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
     let primaryKeys = '';
     let primaryKeysSelection = '';
 
+    let whereClause = this.whereQuery(where, escapeOptions);
     if (whereClause) {
-      whereClause = `WHERE ${whereClause}`;
+      whereClause = ` ${whereClause}`;
     }
 
     if (limit) {
@@ -466,7 +419,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
       && defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, undefined, options)}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 
     if (attribute.unique === true) {
@@ -478,7 +431,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     if (attribute.comment) {
-      template += ` COMMENT ${this.escape(attribute.comment, undefined, options)}`;
+      template += ` COMMENT ${this.escape(attribute.comment, options)}`;
     }
 
     if (attribute.first) {
@@ -526,69 +479,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     return result;
-  }
-
-  /**
-   * Check whether the statmement is json function or simple path
-   *
-   * @param   {string}  stmt  The statement to validate
-   * @returns {boolean}       true if the given statement is json function
-   * @throws  {Error}         throw if the statement looks like json function but has invalid token
-   * @private
-   */
-  _checkValidJsonStatement(stmt) {
-    if (typeof stmt !== 'string') {
-      return false;
-    }
-
-    let currentIndex = 0;
-    let openingBrackets = 0;
-    let closingBrackets = 0;
-    let hasJsonFunction = false;
-    let hasInvalidToken = false;
-
-    while (currentIndex < stmt.length) {
-      const string = stmt.slice(currentIndex);
-      const functionMatches = JSON_FUNCTION_REGEX.exec(string);
-      if (functionMatches) {
-        currentIndex += functionMatches[0].indexOf('(');
-        hasJsonFunction = true;
-        continue;
-      }
-
-      const operatorMatches = JSON_OPERATOR_REGEX.exec(string);
-      if (operatorMatches) {
-        currentIndex += operatorMatches[0].length;
-        hasJsonFunction = true;
-        continue;
-      }
-
-      const tokenMatches = TOKEN_CAPTURE_REGEX.exec(string);
-      if (tokenMatches) {
-        const capturedToken = tokenMatches[1];
-        if (capturedToken === '(') {
-          openingBrackets++;
-        } else if (capturedToken === ')') {
-          closingBrackets++;
-        } else if (capturedToken === ';') {
-          hasInvalidToken = true;
-          break;
-        }
-
-        currentIndex += tokenMatches[0].length;
-        continue;
-      }
-
-      break;
-    }
-
-    // Check invalid json statement
-    if (hasJsonFunction && (hasInvalidToken || openingBrackets !== closingBrackets)) {
-      throw new Error(`Invalid json statement: ${stmt}`);
-    }
-
-    // return true if the statement has valid json function
-    return hasJsonFunction;
   }
 
   dataTypeMapping(tableName, attr, dataType) {
@@ -688,11 +578,11 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
   addLimitAndOffset(options) {
     if (options.offset) {
-      return ` LIMIT ${this.escape(options.limit ?? null, undefined, options)} OFFSET ${this.escape(options.offset, undefined, options)}`;
+      return ` LIMIT ${this.escape(options.limit ?? null, options)} OFFSET ${this.escape(options.offset, options)}`;
     }
 
     if (options.limit != null) {
-      return ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+      return ` LIMIT ${this.escape(options.limit, options)}`;
     }
 
     return '';

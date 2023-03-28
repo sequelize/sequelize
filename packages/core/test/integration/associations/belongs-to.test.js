@@ -37,19 +37,23 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
         await this.sequelize.sync({ force: true });
 
-        const tasks = await Promise.all([Task.create({
-          id: 1,
-          user: { id: 1 },
-        }, {
-          include: [Task.User],
-        }), Task.create({
-          id: 2,
-          user: { id: 2 },
-        }, {
-          include: [Task.User],
-        }), Task.create({
-          id: 3,
-        })]);
+        const tasks = await Promise.all([
+          Task.create({
+            id: 1,
+            user: { id: 1 },
+          }, {
+            include: [Task.User],
+          }),
+          Task.create({
+            id: 2,
+            user: { id: 2 },
+          }, {
+            include: [Task.User],
+          }),
+          Task.create({
+            id: 3,
+          }),
+        ]);
 
         const result = await Task.User.get(tasks);
         expect(result.get(tasks[0].id).id).to.equal(tasks[0].user.id);
