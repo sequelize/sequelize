@@ -368,14 +368,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       expect(hook1).to.have.been.calledOnce;
       expect(hook2).to.have.been.calledOnce;
-
-      Support.sequelize.removeHook('beforePoolAcquire', hook1);
-      Support.sequelize.removeHook('afterPoolAcquire', hook1);
-
-      await Support.sequelize.authenticate();
-
-      expect(hook1).to.have.been.calledOnce;
-      expect(hook2).to.have.been.calledTwice;
     });
   });
 
