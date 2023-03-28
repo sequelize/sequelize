@@ -12,6 +12,7 @@ import type {
   AfterAssociateEventData,
   AssociationOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/associations';
+import type { GetConnectionOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import type { ValidationOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
@@ -158,16 +159,16 @@ sequelize.addHook('beforeConnect', (...args) => {
   expectTypeOf(args).toMatchTypeOf<[ConnectionOptions]>();
 });
 
-sequelize.beforePoolAcquire('name', (config: ConnectionOptions) => {
-  expectTypeOf(config).toMatchTypeOf<ConnectionOptions>();
+sequelize.beforePoolAcquire('name', (options?: GetConnectionOptions) => {
+  expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
 });
 
-sequelize.beforePoolAcquire((config: ConnectionOptions) => {
-  expectTypeOf(config).toMatchTypeOf<ConnectionOptions>();
+sequelize.beforePoolAcquire((options?: GetConnectionOptions) => {
+  expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
 });
 
-sequelize.addHook('beforePoolAcquire', (...args) => {
-  expectTypeOf(args).toMatchTypeOf<[ConnectionOptions]>();
+sequelize.addHook('beforePoolAcquire', (...args: [GetConnectionOptions | undefined]) => {
+  expectTypeOf(args).toMatchTypeOf<[GetConnectionOptions | undefined]>();
 });
 
 sequelize.beforeQuery((options, query) => {

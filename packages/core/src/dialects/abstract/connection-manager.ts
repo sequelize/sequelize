@@ -176,11 +176,11 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
 
     try {
 
-      await this.sequelize.hooks.runAsync('beforePoolAcquire', { ...this.config, password: this.config.password || '' });
+      await this.sequelize.hooks.runAsync('beforePoolAcquire', options);
 
       const result = await this.pool.acquire(options?.type, options?.useMaster);
 
-      await this.sequelize.hooks.runAsync('afterPoolAcquire', result, { ...this.config, password: this.config.password || '' });
+      await this.sequelize.hooks.runAsync('afterPoolAcquire', result, options);
 
       debug('connection acquired');
 

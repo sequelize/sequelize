@@ -66,12 +66,12 @@ export interface SequelizeHooks extends ModelHooks {
   /**
    * A hook that is run before a connection to the pool
    */
-  beforePoolAcquire(config: ConnectionOptions): AsyncHookReturn;
+  beforePoolAcquire(options?: GetConnectionOptions): AsyncHookReturn;
 
   /**
    * A hook that is run after a connection to the pool
    */
-  afterPoolAcquire(connection: Connection, config: ConnectionOptions): AsyncHookReturn;
+  afterPoolAcquire(connection: Connection, options?: GetConnectionOptions): AsyncHookReturn;
 }
 
 export interface StaticSequelizeHooks {
