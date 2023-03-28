@@ -355,4 +355,28 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
   });
+
+  describe('Sequelize hooks', () => {
+    it('should call the before / afterPoolAcquire hook', async () => {
+
+      const hook1 = sinon.spy();
+      const hook2 = sinon.spy();
+      Support.sequelize.addHook('beforePoolAcquire', hook1);
+      Support.sequelize.addHook('afterPoolAcquire', hook2);
+
+      await Support.sequelize.authenticate();
+
+      expect(hook1).to.have.been.calledOnce;
+      expect(hook2).to.have.been.calledOnce;
+
+      Support.sequelize.removeHook('beforePoolAcquire', hook1);
+      Support.sequelize.removeHook('afterPoolAcquire', hook1);
+
+      await Support.sequelize.authenticate();
+
+      expect(hook1).to.have.been.calledOnce;
+      expect(hook2).to.have.been.calledTwice;
+    });
+  });
+
 });
