@@ -464,7 +464,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       sequelize.addHook('beforePoolAcquire', hook1);
       sequelize.addHook('afterPoolAcquire', hook2);
 
-      await sequelize.authenticate();
+      await sequelize.query('SELECT 1+1 AS result');
 
       expect(hook1).to.have.been.calledOnce;
       expect(hook2).to.have.been.calledOnce;
