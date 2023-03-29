@@ -154,7 +154,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       // Don't let a Postgres restart (or error) to take down the whole app
       connection.on('error', error => {
         connection._invalid = true;
-        debug(`connection error ${(error as { code: string }).code || error.message}`);
+        debug(`connection error ${(error as unknown as { code: string }).code || error.message}`);
         void this.pool.destroy(connection);
       });
 
