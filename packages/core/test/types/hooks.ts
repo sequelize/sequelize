@@ -172,12 +172,12 @@ sequelize.addHook('beforePoolAcquire', (...args: [GetConnectionOptions | undefin
 });
 
 sequelize.afterPoolAcquire('name', (connection: Connection, options?: GetConnectionOptions) => {
-  expectTypeOf(connection).toMatchTypeOf<Connection>;
+  expectTypeOf(connection).toMatchTypeOf<Connection>();
   expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
 });
 
 sequelize.afterPoolAcquire((connection: Connection, options?: GetConnectionOptions) => {
-  expectTypeOf(connection).toMatchTypeOf<Connection>;
+  expectTypeOf(connection).toMatchTypeOf<Connection>();
   expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
 });
 
