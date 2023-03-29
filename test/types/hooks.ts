@@ -1,5 +1,6 @@
 import { expectTypeOf } from "expect-type";
 import { FindOptions, Model, QueryOptions, SaveOptions, Sequelize, UpsertOptions, Config, Utils } from "sequelize";
+import { Connection, GetConnectionOptions } from "sequelize/lib/dialects/abstract/connection-manager";
 import { ModelHooks } from "sequelize/lib/hooks";
 import { AbstractQuery } from "sequelize/lib/query";
 import { SemiDeepWritable } from "./type-helpers/deep-writable";
@@ -85,4 +86,29 @@ import { SemiDeepWritable } from "./type-helpers/deep-writable";
   Sequelize.beforeConnect('name', config => expectTypeOf(config).toEqualTypeOf<Utils.DeepWriteable<Config>>());
   Sequelize.beforeConnect(config => expectTypeOf(config).toEqualTypeOf<Utils.DeepWriteable<Config>>());
   Sequelize.addHook('beforeConnect', (...args) => { expectTypeOf(args).toEqualTypeOf<[Utils.DeepWriteable<Config>]>(); });
+  Sequelize.beforePoolAcquire('name', (options?: GetConnectionOptions) => {
+    expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+  });
+
+  Sequelize.beforePoolAcquire((options?: GetConnectionOptions) => {
+    expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+  });
+
+  Sequelize.addHook('beforePoolAcquire', (...args: [GetConnectionOptions | undefined]) => {
+    expectTypeOf(args).toMatchTypeOf<[GetConnectionOptions | undefined]>();
+  });
+
+  Sequelize.afterPoolAcquire('name', (connection: Connection, options?: GetConnectionOptions) => {
+    expectTypeOf(connection).toMatchTypeOf<Connection>();
+    expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+  });
+
+  Sequelize.afterPoolAcquire((connection: Connection, options?: GetConnectionOptions) => {
+    expectTypeOf(connection).toMatchTypeOf<Connection>();
+    expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+  });
+
+  Sequelize.addHook('afterPoolAcquire', (...args: [Connection | GetConnectionOptions | undefined]) => {
+    expectTypeOf(args).toMatchTypeOf<[Connection | GetConnectionOptions | undefined]>();
+  });
 }
