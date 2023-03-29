@@ -167,7 +167,6 @@ class ConnectionManager extends AbstractConnectionManager {
       // Don't let a Postgres restart (or error) to take down the whole app
       connection.on('error', error => {
         debug(`connection error ${error.code || error.message}`);
-        if (connection._invalid) return;
         connection._invalid = true;
         this.pool.destroy(connection);
       });
