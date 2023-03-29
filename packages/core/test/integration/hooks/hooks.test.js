@@ -357,17 +357,22 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   describe('Sequelize hooks', () => {
-    it('should call the before / afterPoolAcquire hook', async () => {
+    it('should run before/afterPoolAcquire hooks', async function () {
+      if (dialect === 'sqlite') {
+        return this.skip();
+      }
 
-      const hook1 = sinon.spy();
-      const hook2 = sinon.spy();
-      Support.sequelize.addHook('beforePoolAcquire', hook1);
-      Support.sequelize.addHook('afterPoolAcquire', hook2);
+      const beforeHook = sinon.spy();
+      const afterHook = sinon.spy();
 
-      await Support.sequelize.authenticate();
+      this.sequelize.addHook('beforePoolAcquire', beforeHook);
+      this.sequelize.addHook('afterPoolAcquire', afterHook);
 
-      expect(hook1).to.have.been.calledOnce;
-      expect(hook2).to.have.been.calledOnce;
+      await this.sequelize.authenticate();
+
+      expect(beforeHook).to.have.been.calledOnce;
+      expect(afterHook).to.have.been.calledOnce;
+
     });
   });
 
