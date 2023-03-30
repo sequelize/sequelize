@@ -303,13 +303,13 @@ export class Sequelize extends SequelizeTypeScript {
       deprecations.noTrueLogging();
       this.options.logging = console.debug;
     }
+    
+    if (this.options.quoteIdentifiers === false) {
+      deprecations.alwaysQuoteIdentifiers();
+    }
 
     if (options.hooks) {
       this.hooks.addListeners(options.hooks);
-    }
-
-    if (options.quoteIdentifiers === false) {
-      deprecations.alwaysQuoteIdentifiers();
     }
 
     // ==========================================
