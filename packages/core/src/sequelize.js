@@ -304,7 +304,7 @@ export class Sequelize extends SequelizeTypeScript {
       this.options.logging = console.debug;
     }
 
-    if (this.options.quoteIdentifiers === false) {
+    if (this.options.quoteIdentifiers === false && (this.options.dialect === 'postgres' || this.options.dialect === 'snowflake')) {
       deprecations.alwaysQuoteIdentifiers();
     }
 
