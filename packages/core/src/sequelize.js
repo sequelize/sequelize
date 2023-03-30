@@ -254,7 +254,7 @@ export class Sequelize extends SequelizeTypeScript {
       native: false,
       replication: false,
       ssl: undefined,
-      // TODO [=7]: print a deprecation warning if quoteIdentifiers is set to false
+      // TODO [>7]: remove this option
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -306,6 +306,10 @@ export class Sequelize extends SequelizeTypeScript {
 
     if (options.hooks) {
       this.hooks.addListeners(options.hooks);
+    }
+
+    if (options.quoteIdentifiers === false) {
+      deprecations.alwaysQuoteIdentifiers();
     }
 
     // ==========================================
