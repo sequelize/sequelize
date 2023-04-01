@@ -10,6 +10,8 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('HasOne'), () => {
+  Support.setResetMode('none');
+
   describe('get', () => {
     describe('multiple', () => {
       it('should fetch associations for multiple instances', async function () {
@@ -370,6 +372,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
   });
 
   describe('foreign key constraints', () => {
+    Support.setResetMode('drop');
+
     it('are enabled by default', async function () {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });

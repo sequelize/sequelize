@@ -12,6 +12,8 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('BelongsTo'), () => {
+  Support.setResetMode('none');
+
   describe('Model.associations', () => {
     it('should store all associations when associating to the same table multiple times', function () {
       const User = this.sequelize.define('User', {});
@@ -334,6 +336,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('createAssociation', () => {
+    Support.setResetMode('drop');
+
     it('creates an associated model instance', async function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
@@ -529,6 +533,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('foreign key constraints', () => {
+    Support.setResetMode('drop');
+
     it('are enabled by default', async function () {
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
@@ -646,6 +652,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('association column', () => {
+    Support.setResetMode('drop');
+
     it('has correct type and name for non-id primary keys with non-integer type', async function () {
       const User = this.sequelize.define('UserPKBT', {
         username: {

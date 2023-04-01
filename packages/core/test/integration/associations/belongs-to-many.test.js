@@ -13,11 +13,15 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
+  Support.setResetMode('none');
+
   beforeEach(() => {
     Support.resetSequelizeInstance();
   });
 
   describe('getAssociations', () => {
+    Support.setResetMode('drop');
+
     beforeEach(async function () {
       this.User = this.sequelize.define('User', { username: DataTypes.STRING });
       this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
@@ -2281,6 +2285,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   }); // end optimization using bulk create, destroy and update
 
   describe('join table creation', () => {
+    Support.setResetMode('drop');
+
     beforeEach(function () {
       this.User = this.sequelize.define('User',
         { username: DataTypes.STRING },
@@ -2419,6 +2425,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   });
 
   describe('foreign key with fields specified', () => {
+    Support.setResetMode('drop');
+
     beforeEach(function () {
       this.User = this.sequelize.define('User', { name: DataTypes.STRING });
       this.Project = this.sequelize.define('Project', { name: DataTypes.STRING });
@@ -2634,6 +2642,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     describe('without sync', () => {
+      Support.setResetMode('drop');
+
       beforeEach(async function () {
         await this.sequelize.queryInterface.createTable('users', {
           id: {
@@ -2765,6 +2775,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     describe('fetching from join table', () => {
+      Support.setResetMode('drop');
+
       beforeEach(function () {
         this.User = this.sequelize.define('User', {});
         this.Project = this.sequelize.define('Project', {});
@@ -2854,6 +2866,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       describe('add', () => {
+        Support.setResetMode('drop');
+
         it('should insert data provided on the object into the join table', async function () {
           const [u, p] = await Promise.all([
             this.User.create(),
@@ -3095,6 +3109,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   });
 
   describe('alias', () => {
+    Support.setResetMode('drop');
+
     it('creates the join table when through is a string', async function () {
       const User = this.sequelize.define('User', {});
       const Group = this.sequelize.define('Group', {});
@@ -3162,6 +3178,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     describe('project has owners and users and owners and users have projects', () => {
+      Support.setResetMode('drop');
+
       beforeEach(function () {
         this.Project.belongsToMany(this.User, { as: 'owners', through: 'projectOwners', inverse: { as: 'ownedProjects' } });
         this.Project.belongsToMany(this.User, { as: 'users', through: 'projectUsers', inverse: { as: 'memberProjects' } });
@@ -3187,6 +3205,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   });
 
   describe('Foreign key constraints', () => {
+    Support.setResetMode('drop');
+
     beforeEach(function () {
       this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
       this.User = this.sequelize.define('user', { username: DataTypes.STRING });
@@ -3372,6 +3392,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   });
 
   describe('thisAssociations', () => {
+    Support.setResetMode('drop');
+
     it('should work with this reference', async function () {
       const User = this.sequelize.define('User', {
         name: DataTypes.STRING(100),

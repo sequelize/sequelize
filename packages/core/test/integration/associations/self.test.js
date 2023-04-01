@@ -7,6 +7,8 @@ const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Self'), () => {
+  Support.setResetMode('none');
+
   it('supports freezeTableName', async function () {
     const Group = this.sequelize.define('Group', {}, {
       tableName: 'user_group',
