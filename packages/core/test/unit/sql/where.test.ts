@@ -73,12 +73,12 @@ TestModel.init({
   ...(dialectSupportsArray() && {
     intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
     intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER),
-    dateRangeAttr: DataTypes.RANGE(DataTypes.DATE),
+    dateRangeAttr: DataTypes.RANGE(DataTypes.DATE(3)),
   }),
 
   stringAttr: DataTypes.STRING,
   binaryAttr: DataTypes.BLOB,
-  dateAttr: DataTypes.DATE,
+  dateAttr: DataTypes.DATE(3),
   booleanAttr: DataTypes.BOOLEAN,
   bigIntAttr: DataTypes.BIGINT,
 

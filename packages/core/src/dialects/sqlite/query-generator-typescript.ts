@@ -19,6 +19,10 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
   }
 
+  getToggleForeignKeyChecksQuery(enable: boolean): string {
+    return `PRAGMA foreign_keys = ${enable ? 'ON' : 'OFF'}`;
+  }
+
   removeIndexQuery(
     tableName: TableNameOrModel,
     indexNameOrAttributes: string | string[],

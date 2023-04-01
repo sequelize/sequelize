@@ -1,11 +1,11 @@
 import { expect } from 'chai';
 import { DataTypes, Op, fn, cast } from '@sequelize/core';
-import { beforeAll2, disableDatabaseResetForSuite, getTestDialectTeaser, sequelize } from './support';
+import { beforeAll2, getTestDialectTeaser, sequelize, setResetMode } from './support';
 
 const dialectName = sequelize.dialect.name;
 
 describe(getTestDialectTeaser('fn()'), () => {
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   const vars = beforeAll2(async () => {
     const Airplane = sequelize.define('Airplane', {

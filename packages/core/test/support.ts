@@ -197,48 +197,6 @@ export function getSequelizeInstance(db: string, user: string, pass: string, opt
   return new Sequelize(db, user, pass, options);
 }
 
-export async function clearDatabase(sequelize: Sequelize) {
-  const qi = sequelize.getQueryInterface();
-  await qi.dropAllTables();
-  sequelize.modelManager.models = [];
-  sequelize.models = {};
-
-  if (qi.dropAllEnums) {
-    await qi.dropAllEnums();
-  }
-
-  await dropTestSchemas(sequelize);
-}
-
-export async function dropTestSchemas(sequelize: Sequelize) {
-  if (!sequelize.dialect.supports.schemas) {
-    await sequelize.drop({});
-
-    return;
-  }
-
-  const schemas = await sequelize.showAllSchemas();
-  const schemasPromise = [];
-  for (const schema of schemas) {
-    // @ts-expect-error -- TODO: type return value of "showAllSchemas"
-    const schemaName = schema.name ? schema.name : schema;
-    if (schemaName !== sequelize.config.database) {
-      const promise = sequelize.dropSchema(schemaName);
-
-      if (getTestDialect() === 'db2') {
-        // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
-        // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
-        // eslint-disable-next-line no-await-in-loop
-        await promise;
-      } else {
-        schemasPromise.push(promise);
-      }
-    }
-  }
-
-  await Promise.all(schemasPromise);
-}
-
 export function getSupportedDialects() {
   return fs.readdirSync(path.join(distDir, 'dialects'))
     .filter(file => !file.includes('.js') && !file.includes('abstract'));
