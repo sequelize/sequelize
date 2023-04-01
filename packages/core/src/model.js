@@ -2431,6 +2431,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async truncate(options) {
+    // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
     options = cloneDeep(options) || {};
     options.truncate = true;
 

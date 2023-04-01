@@ -23,7 +23,7 @@ export class IBMiQueryInterface extends AbstractQueryInterface {
 
     options.transaction.name = transaction.parent ? transaction.name : undefined;
 
-    return transaction.connection.beginTransaction();
+    return transaction.getConnection().beginTransaction();
   }
 
   commitTransaction(transaction) {
@@ -35,7 +35,7 @@ export class IBMiQueryInterface extends AbstractQueryInterface {
       throw new Error('Unable to commit a transaction that has a parent transaction!');
     }
 
-    const promise = transaction.connection.commit();
+    const promise = transaction.getConnection().commit();
     transaction.finished = 'commit';
 
     return promise;
@@ -54,7 +54,7 @@ export class IBMiQueryInterface extends AbstractQueryInterface {
     };
     options.transaction.name = transaction.parent ? transaction.name : undefined;
 
-    const promise = transaction.connection.rollback();
+    const promise = transaction.getConnection().rollback();
     transaction.finished = 'commit';
 
     return promise;
