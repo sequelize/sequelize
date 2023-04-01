@@ -206,7 +206,7 @@ describe('hasMany Mixins + transaction', () => {
     return;
   }
 
-  setResetMode('none');
+  setResetMode('drop');
 
   const vars = beforeAll2(async () => {
     class Article extends Model<InferAttributes<Article>, InferCreationAttributes<Article>> {
@@ -232,10 +232,6 @@ describe('hasMany Mixins + transaction', () => {
     await transactionSequelize.sync({ force: true });
 
     return { Article, Label, transactionSequelize };
-  });
-
-  beforeEach(async () => {
-    await vars.transactionSequelize.truncate({ cascade: true });
   });
 
   describe('setAssociations', () => {
