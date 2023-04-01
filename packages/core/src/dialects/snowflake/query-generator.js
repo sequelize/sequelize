@@ -598,11 +598,12 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
    */
   quoteIdentifier(identifier, force) {
     const optForceQuote = force || false;
+    // TODO [>7]: remove "quoteIdentifiers: false" option
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
 
     if (
       optForceQuote === true
-      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers.
+      // TODO [>7]: drop this.options.quoteIdentifiers. Always quote identifiers.
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')
