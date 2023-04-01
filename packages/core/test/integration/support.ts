@@ -1,9 +1,8 @@
 import pTimeout from 'p-timeout';
+import type { Sequelize } from '@sequelize/core';
 import { QueryTypes } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
-import * as Support from '../support';
-
-// Mocha still relies on 'this' https://github.com/mochajs/mocha/issues/2657
+import { getTestDialect, sequelize } from '../support';
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
@@ -15,8 +14,8 @@ const runningQueries = new Set<AbstractQuery>();
 
 before(async () => {
   // Sometimes the SYSTOOLSPACE tablespace is not available when running tests on DB2. This creates it.
-  if (Support.getTestDialect() === 'db2') {
-    const res = await Support.sequelize.query<{ TBSPACE: string }>(`SELECT TBSPACE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'SYSTOOLSPACE'`, {
+  if (getTestDialect() === 'db2') {
+    const res = await sequelize.query<{ TBSPACE: string }>(`SELECT TBSPACE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'SYSTOOLSPACE'`, {
       type: QueryTypes.SELECT,
     });
 
@@ -24,13 +23,13 @@ before(async () => {
 
     if (!tableExists) {
       // needed by dropSchema function
-      await Support.sequelize.query(`
+      await sequelize.query(`
         CREATE TABLESPACE SYSTOOLSPACE IN IBMCATGROUP
         MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
         EXTENTSIZE 4;
       `);
 
-      await Support.sequelize.query(`
+      await sequelize.query(`
         CREATE USER TEMPORARY TABLESPACE SYSTOOLSTMPSPACE IN IBMCATGROUP
         MANAGED BY AUTOMATIC STORAGE USING STOGROUP IBMSTOGROUP
         EXTENTSIZE 4
@@ -38,10 +37,10 @@ before(async () => {
     }
   }
 
-  Support.sequelize.hooks.addListener('beforeQuery', (options, query) => {
+  sequelize.hooks.addListener('beforeQuery', (options, query) => {
     runningQueries.add(query);
   });
-  Support.sequelize.hooks.addListener('afterQuery', (options, query) => {
+  sequelize.hooks.addListener('afterQuery', (options, query) => {
     runningQueries.delete(query);
   });
 });
@@ -82,11 +81,11 @@ beforeEach(async () => {
       break;
 
     case 'truncate':
-      await Support.sequelize.truncate({ restartIdentity: true });
+      await sequelize.truncate({ restartIdentity: true });
       break;
 
     case 'destroy':
-      await Support.sequelize.destroyAll({ cascade: true });
+      await sequelize.destroyAll({ cascade: true });
       break;
 
     case 'none':
@@ -95,9 +94,22 @@ beforeEach(async () => {
   }
 });
 
-async function clearDatabase() {
+async function clearDatabaseInternal(customSequelize: Sequelize) {
+  const qi = customSequelize.getQueryInterface();
+  await qi.dropAllTables();
+  customSequelize.modelManager.models = [];
+  customSequelize.models = {};
+
+  if (qi.dropAllEnums) {
+    await qi.dropAllEnums();
+  }
+
+  await dropTestSchemas(customSequelize);
+}
+
+export async function clearDatabase(customSequelize: Sequelize = sequelize) {
   await pTimeout(
-    Support.clearDatabase(Support.sequelize),
+    clearDatabaseInternal(customSequelize),
     CLEANUP_TIMEOUT,
     `Could not clear database after this test in less than ${CLEANUP_TIMEOUT}ms. This test crashed the DB, and testing cannot continue. Aborting.`,
     { customTimers: { setTimeout, clearTimeout } },
@@ -113,5 +125,34 @@ afterEach(() => {
     }`);
   }
 });
+
+export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
+  if (!customSequelize.dialect.supports.schemas) {
+    await customSequelize.drop({});
+
+    return;
+  }
+
+  const schemas = await customSequelize.showAllSchemas();
+  const schemasPromise = [];
+  for (const schema of schemas) {
+    // @ts-expect-error -- TODO: type return value of "showAllSchemas"
+    const schemaName = schema.name ? schema.name : schema;
+    if (schemaName !== customSequelize.config.database) {
+      const promise = customSequelize.dropSchema(schemaName);
+
+      if (getTestDialect() === 'db2') {
+        // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
+        // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
+        // eslint-disable-next-line no-await-in-loop
+        await promise;
+      } else {
+        schemasPromise.push(promise);
+      }
+    }
+  }
+
+  await Promise.all(schemasPromise);
+}
 
 export * from '../support';

@@ -6,8 +6,8 @@ import { beforeAll2, createSequelizeInstance, getTestDialect } from '../../suppo
 const dialectName = getTestDialect();
 
 describe('setTransactionFromCls', () => {
-  const vars = beforeAll2(async () => {
-    const sequelize = await createSequelizeInstance({
+  const vars = beforeAll2(() => {
+    const sequelize = createSequelizeInstance({
       disableClsTransactions: false,
     });
 

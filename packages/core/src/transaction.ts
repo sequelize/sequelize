@@ -227,9 +227,12 @@ export class Transaction {
       return;
     }
 
-    await this.sequelize.connectionManager.destroyConnection(this.#connection);
     this.#connection.uuid = undefined;
+
+    const connection = this.#connection;
     this.#connection = undefined;
+
+    await this.sequelize.connectionManager.destroyConnection(connection);
   }
 
   /**
