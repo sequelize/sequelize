@@ -12,8 +12,6 @@ const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('BelongsTo'), () => {
-  Support.setResetMode('none');
-
   describe('Model.associations', () => {
     it('should store all associations when associating to the same table multiple times', function () {
       const User = this.sequelize.define('User', {});

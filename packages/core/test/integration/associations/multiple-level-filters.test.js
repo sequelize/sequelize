@@ -7,8 +7,6 @@ const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
-  Support.setResetMode('none');
-
   it('can filter through belongsTo', async function () {
     const User = this.sequelize.define('User', { username: DataTypes.STRING });
     const Task = this.sequelize.define('Task', { title: DataTypes.STRING });

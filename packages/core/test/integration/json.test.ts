@@ -74,8 +74,6 @@ describe('JSON Querying', () => {
     return;
   }
 
-  setResetMode('none');
-
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
       declare id: CreationOptional<number>;
@@ -143,7 +141,7 @@ describe('JSON Querying', () => {
       return;
     }
 
-    await sequelize.query(`CREATE TABLE Posts (id INTEGER AUTO_INCREMENT PRIMARY KEY, 
+    await sequelize.query(`CREATE TABLE Posts (id INTEGER AUTO_INCREMENT PRIMARY KEY,
       metaOldJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
       metaNewJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK(json_valid(metaNewJSONtype)))`);
 
@@ -320,8 +318,6 @@ describe('JSONB Querying', () => {
   if (!dialect.supports.dataTypes.JSONB) {
     return;
   }
-
-  setResetMode('none');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {

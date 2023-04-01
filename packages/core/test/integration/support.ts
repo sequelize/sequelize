@@ -46,18 +46,17 @@ before(async () => {
 });
 
 type ResetMode = 'none' | 'truncate' | 'destroy' | 'drop';
-let currentSuiteResetMode: ResetMode = 'drop';
+let currentSuiteResetMode: ResetMode = 'none';
 
-// TODO: make "none" the default.
 /**
  * Controls how the current test suite will reset the database between each test.
  * Note that this does not affect how the database is reset between each suite, only between each test.
  *
  * @param mode The reset mode to use:
- * - `drop`: All tables will be dropped and recreated (default).
- * - `none`: The database will not be reset at all.
+ * - `none`: The database will not be reset at all (default).
  * - `truncate`: All tables will be truncated, but not dropped.
  * - `destroy`: All rows of all tables will be deleted using DELETE FROM, and identity columns will be reset.
+ * - `drop`: All tables will be dropped and recreated.
  */
 export function setResetMode(mode: ResetMode) {
   let previousMode: ResetMode | undefined;
@@ -70,7 +69,7 @@ export function setResetMode(mode: ResetMode) {
   });
 
   after(() => {
-    currentSuiteResetMode = previousMode ?? 'drop';
+    currentSuiteResetMode = previousMode ?? 'none';
   });
 }
 

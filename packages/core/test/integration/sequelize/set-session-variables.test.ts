@@ -4,7 +4,7 @@ import {
   createSequelizeInstance,
   getTestDialect,
   prepareTransactionTest,
-  sequelize, setResetMode,
+  sequelize,
 } from '../support';
 
 const dialectName = getTestDialect();
@@ -13,8 +13,6 @@ describe('sequelize.setSessionVariables', () => {
   if (!['mysql', 'mariadb'].includes(dialectName)) {
     return;
   }
-
-  setResetMode('none');
 
   it(`rejects if no connection or transaction is provided`, async () => {
     await expect(sequelize.setSessionVariables({ foo: 'bar' }))
