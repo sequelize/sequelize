@@ -155,7 +155,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async createTable(tableName, attributes, options, model) {
     options = { ...options };
 
-    if (model && this.queryGenerator.dialect.supports.uniqueKeys) {
+    // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query
+    if (model && this.queryGenerator.dialect.name !== 'sqlite') {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
