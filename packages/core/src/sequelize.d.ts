@@ -351,6 +351,7 @@ export interface Options extends Logging {
    */
   pool?: PoolOptions;
 
+  // TODO [>7]: remove this option
   /**
    * Set to `false` to make table names and attributes case-insensitive on Postgres and skip double quoting of
    * them.
