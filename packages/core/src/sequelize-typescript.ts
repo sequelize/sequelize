@@ -73,6 +73,16 @@ export interface SequelizeHooks extends ModelHooks {
    * A hook that is run at the end of {@link Sequelize#sync}
    */
   afterBulkSync(options: SyncOptions): AsyncHookReturn;
+
+  /**
+   * A hook that is run before a connection to the pool
+   */
+  beforePoolAcquire(options?: GetConnectionOptions): AsyncHookReturn;
+
+  /**
+   * A hook that is run after a connection to the pool
+   */
+  afterPoolAcquire(connection: Connection, options?: GetConnectionOptions): AsyncHookReturn;
 }
 
 export interface StaticSequelizeHooks {
@@ -120,6 +130,7 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
   'beforeConnect', 'afterConnect',
   'beforeDisconnect', 'afterDisconnect',
   'beforeDefine', 'afterDefine',
+  'beforePoolAcquire', 'afterPoolAcquire',
   ...validModelHooks,
 ]);
 
@@ -175,6 +186,9 @@ export abstract class SequelizeTypeScript {
 
   beforeDefine = legacyBuildAddHook(instanceSequelizeHooks, 'beforeDefine');
   afterDefine = legacyBuildAddHook(instanceSequelizeHooks, 'afterDefine');
+
+  beforePoolAcquire = legacyBuildAddHook(instanceSequelizeHooks, 'beforePoolAcquire');
+  afterPoolAcquire = legacyBuildAddHook(instanceSequelizeHooks, 'afterPoolAcquire');
 
   beforeValidate = legacyBuildAddHook(instanceSequelizeHooks, 'beforeValidate');
   afterValidate = legacyBuildAddHook(instanceSequelizeHooks, 'afterValidate');
