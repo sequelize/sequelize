@@ -9,15 +9,15 @@ import type {
 import { Model, DataTypes } from '@sequelize/core';
 import { AllowNull, HasMany, Attribute, NotNull } from '@sequelize/core/decorators-legacy';
 import {
-  beforeAll2, disableDatabaseResetForSuite,
-  enableTruncateDatabaseForSuite, prepareTransactionTest,
-  sequelize,
+  beforeAll2,
+  prepareTransactionTest,
+  sequelize, setResetMode,
 } from '../support';
 
 const dialect = sequelize.dialect;
 
 describe('hasMany Mixins', () => {
-  enableTruncateDatabaseForSuite();
+  setResetMode('destroy');
 
   const vars = beforeAll2(async () => {
     class Article extends Model<InferAttributes<Article>, InferCreationAttributes<Article>> {
@@ -206,7 +206,7 @@ describe('hasMany Mixins + transaction', () => {
     return;
   }
 
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   const vars = beforeAll2(async () => {
     class Article extends Model<InferAttributes<Article>, InferCreationAttributes<Article>> {
