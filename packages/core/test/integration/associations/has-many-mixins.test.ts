@@ -206,7 +206,7 @@ describe('hasMany Mixins + transaction', () => {
     return;
   }
 
-  setResetMode('drop');
+  setResetMode('destroy');
 
   const vars = beforeAll2(async () => {
     class Article extends Model<InferAttributes<Article>, InferCreationAttributes<Article>> {
