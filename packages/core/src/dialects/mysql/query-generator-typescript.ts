@@ -27,6 +27,10 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
   }
 
+  getToggleForeignKeyChecksQuery(enable: boolean): string {
+    return `SET FOREIGN_KEY_CHECKS=${enable ? '1' : '0'}`;
+  }
+
   removeIndexQuery(
     tableName: TableNameOrModel,
     indexNameOrAttributes: string | string[],

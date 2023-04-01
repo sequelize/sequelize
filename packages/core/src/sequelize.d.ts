@@ -12,7 +12,6 @@ import type { json } from './expression-builders/json.js';
 import type { literal } from './expression-builders/literal.js';
 import type { where } from './expression-builders/where.js';
 import type {
-  DestroyOptions,
   DropOptions,
   Logging,
   Model,
@@ -1037,14 +1036,6 @@ export class Sequelize extends SequelizeTypeScript {
    * @param options Sync Options
    */
   sync(options?: SyncOptions): Promise<this>;
-
-  /**
-   * Truncate all tables defined through the sequelize models. This is done
-   * by calling Model.truncate() on each model.
-   *
-   * @param [options] The options passed to Model.destroy in addition to truncate
-   */
-  truncate(options?: DestroyOptions): Promise<unknown[]>;
 
   /**
    * Drop all tables defined through this sequelize instance. This is done by calling Model.drop on each model
