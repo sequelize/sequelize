@@ -194,6 +194,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('isDefined', () => {
+    Support.setResetMode('drop');
+
     it('returns false if the dao wasn\'t defined before', function () {
       expect(this.sequelize.isDefined('Project')).to.be.false;
     });
@@ -207,6 +209,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('model', () => {
+    Support.setResetMode('drop');
+
     it('throws an error if the dao being accessed is undefined', function () {
       expect(() => {
         this.sequelize.model('Project');
@@ -295,6 +299,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('sync', () => {
+    Support.setResetMode('drop');
+
     it('synchronizes all models', async function () {
       const Project = this.sequelize.define(`project${Support.rand()}`, { title: DataTypes.STRING });
       const Task = this.sequelize.define(`task${Support.rand()}`, { title: DataTypes.STRING });
@@ -471,7 +477,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
-    describe('doesn\'t emit logging when explicitly saying not to', () => {
+    describe(`doesn't emit logging when explicitly saying not to`, () => {
       afterEach(function () {
         this.sequelize.options.logging = false;
       });
@@ -634,6 +640,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
 
         describe('supports rolling back to savepoints', () => {
+          Support.setResetMode('drop');
+
           beforeEach(async function () {
             this.User = this.sequelizeWithTransaction.define('user', {});
             await this.sequelizeWithTransaction.sync({ force: true });
@@ -746,6 +754,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('paranoid deletedAt non-null default value', () => {
+    Support.setResetMode('drop');
+
     it('should use defaultValue of deletedAt in paranoid clause and restore', async function () {
       const epochObj = new Date(0);
       const epoch = Number(epochObj);

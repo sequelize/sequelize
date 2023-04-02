@@ -261,6 +261,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
   });
 
   describe('createAssociation', () => {
+    Support.setResetMode('drop');
+
     it('creates an associated model instance', async function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });

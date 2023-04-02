@@ -500,6 +500,8 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
   if (['mysql', 'mariadb'].includes(dialect)) {
     describe('deadlock handling', () => {
+      Support.setResetMode('drop');
+
       // Create the `Task` table and ensure it's initialized with 2 rows
       const getAndInitializeTaskModel = async sequelize => {
         const Task = sequelize.define('task', {
@@ -808,6 +810,8 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
   }
 
   describe('isolation levels', () => {
+    Support.setResetMode('drop');
+
     it('should read the most recent committed rows when using the READ COMMITTED isolation level', async function () {
       const User = this.sequelize.define('user', {
         username: DataTypes.STRING,
@@ -886,6 +890,8 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
   if (current.dialect.supports.lock) {
     describe('row locking', () => {
+      Support.setResetMode('drop');
+
       it('supports for update', async function () {
         const User = this.sequelize.define('user', {
           username: DataTypes.STRING,

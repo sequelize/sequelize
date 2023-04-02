@@ -4,11 +4,13 @@ import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type { InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
 import { DataTypes, Transaction } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser, getTestDialect, prepareTransactionTest } from './support';
+import { sequelize, getTestDialect, prepareTransactionTest, setResetMode } from './support';
 
 const dialectName = sequelize.dialect.name;
 
-describe(getTestDialectTeaser('Sequelize#transaction'), () => {
+describe('Sequelize#transaction', () => {
+  setResetMode('drop');
+
   if (!sequelize.dialect.supports.transactions) {
     return;
   }

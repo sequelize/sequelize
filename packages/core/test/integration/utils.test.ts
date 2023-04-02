@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { DataTypes, Op, fn, cast } from '@sequelize/core';
-import { beforeAll2, getTestDialectTeaser, sequelize } from './support';
+import { beforeAll2, sequelize } from './support';
 
 const dialectName = sequelize.dialect.name;
 
-describe(getTestDialectTeaser('fn()'), () => {
+describe('fn()', () => {
   const vars = beforeAll2(async () => {
     const Airplane = sequelize.define('Airplane', {
       wings: DataTypes.INTEGER,

@@ -41,6 +41,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   }
 
   describe('showAllTables', () => {
+    Support.setResetMode('drop');
+
     it('should not contain views', async function () {
       async function cleanup(sequelize) {
         if (dialectName === 'db2') {
@@ -589,6 +591,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     describe('unique', () => {
+      Support.setResetMode('drop');
+
       it('should add, read & remove unique constraint', async function () {
         await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['email'] });
         let constraints = await this.queryInterface.showConstraint('users');

@@ -13,7 +13,7 @@ import type {
   InferCreationAttributes,
 } from '@sequelize/core';
 import { DataTypes, GeoJsonType, Model, QueryTypes } from '@sequelize/core';
-import { beforeEach2, getTestDialectTeaser, sequelize } from '../support';
+import { beforeEach2, sequelize } from '../support';
 
 const dialect = sequelize.dialect;
 
@@ -37,7 +37,7 @@ async function createUserModelWithGeometry(type?: GeoJsonType) {
   return User;
 }
 
-describe(getTestDialectTeaser('DataTypes'), () => {
+describe('DataTypes', () => {
   if (!sequelize.dialect.supports.dataTypes.GEOMETRY) {
     return;
   }

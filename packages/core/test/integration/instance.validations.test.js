@@ -296,6 +296,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     describe('pass all paths when validating', () => {
+      Support.setResetMode('drop');
+
       beforeEach(async function () {
         const Project = this.sequelize.define('Project', {
           name: {

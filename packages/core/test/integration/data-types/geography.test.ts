@@ -9,7 +9,7 @@ import type {
   GeoJsonPolygon,
 } from '@sequelize/core';
 import { DataTypes, Model, GeoJsonType } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser, beforeEach2 } from '../support';
+import { sequelize, beforeEach2 } from '../support';
 
 async function createUserModelWithGeography(type?: GeoJsonType, srid?: number) {
   class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -31,7 +31,7 @@ async function createUserModelWithGeography(type?: GeoJsonType, srid?: number) {
   return User;
 }
 
-describe(getTestDialectTeaser('DataTypes'), () => {
+describe('DataTypes', () => {
   if (!sequelize.dialect.supports.dataTypes.GEOGRAPHY) {
     return;
   }

@@ -16,6 +16,8 @@ const sortById = function (a, b) {
 };
 
 describe(Support.getTestDialectTeaser('Include'), () => {
+  Support.setResetMode('drop');
+
   describe('find', () => {
     it('supports a model+alias includeable', async function () {
       const Company = this.sequelize.define('Company', {});

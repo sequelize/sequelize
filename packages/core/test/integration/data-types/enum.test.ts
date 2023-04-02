@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
-import { beforeEach2, sequelize } from '../support';
+import { beforeEach2, sequelize, setResetMode } from '../support';
 import { testSimpleInOut, testSimpleInOutRaw } from './data-types.test';
 
 enum TestEnum {
@@ -11,6 +11,8 @@ enum TestEnum {
 }
 
 describe('DataTypes.ENUM', () => {
+  setResetMode('drop');
+
   const vars = beforeEach2(async () => {
     class User extends Model<InferAttributes<User>> {
       declare attr: TestEnum;

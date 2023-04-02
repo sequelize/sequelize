@@ -7,13 +7,15 @@ import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-ris
 import {
   beforeAll2, createSequelizeInstance,
   prepareTransactionTest,
-  sequelize,
+  sequelize, setResetMode,
 } from './support';
 
 describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
   if (!sequelize.dialect.supports.transactions) {
     return;
   }
+
+  setResetMode('drop');
 
   const vars = beforeAll2(async () => {
     const clsSequelize = await prepareTransactionTest(createSequelizeInstance({

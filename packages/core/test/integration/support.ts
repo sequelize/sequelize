@@ -43,6 +43,9 @@ before(async () => {
   sequelize.hooks.addListener('afterQuery', (options, query) => {
     runningQueries.delete(query);
   });
+
+  // Reset the DB a single time for the whole suite
+  await clearDatabase();
 });
 
 type ResetMode = 'none' | 'truncate' | 'destroy' | 'drop';
@@ -63,9 +66,6 @@ export function setResetMode(mode: ResetMode) {
   before(async () => {
     previousMode = currentSuiteResetMode;
     currentSuiteResetMode = mode;
-
-    // Reset the DB a single time for the whole suite
-    await clearDatabase();
   });
 
   after(() => {

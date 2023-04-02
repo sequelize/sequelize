@@ -4,7 +4,7 @@ import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
 import type { Connection } from '@sequelize/core';
 import { Sequelize, ConnectionAcquireTimeoutError } from '@sequelize/core';
-import { createSequelizeInstance, getTestDialect, getTestDialectTeaser } from './support';
+import { createSequelizeInstance, getTestDialect } from './support';
 
 const dialect = getTestDialect();
 
@@ -90,7 +90,7 @@ afterEach(() => {
   sandbox.restore();
 });
 
-describe(getTestDialectTeaser('Pooling'), () => {
+describe('Pooling', () => {
   if (dialect === 'sqlite' || process.env.DIALECT === 'postgres-native') {
     return;
   }

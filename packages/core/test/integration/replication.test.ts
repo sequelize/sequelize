@@ -6,11 +6,11 @@ import {
   getConnectionOptionsWithoutPool,
   getSequelizeInstance,
   getTestDialect,
-  getTestDialectTeaser,
 } from './support';
 
 const dialect = getTestDialect();
-describe(getTestDialectTeaser('Replication'), () => {
+
+describe('Replication', () => {
   if (['sqlite', 'ibmi'].includes(dialect)) {
     return;
   }

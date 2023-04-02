@@ -44,6 +44,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('constructor', () => {
+    Support.setResetMode('drop');
+
     it('uses the passed dao name as tablename if freezeTableName', function () {
       const User = this.sequelize.define('FrozenUser', {}, { freezeTableName: true });
       expect(User.tableName).to.equal('FrozenUser');
@@ -863,6 +865,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('update', () => {
+    Support.setResetMode('drop');
+
     it('throws an error if no where clause is given', async function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
@@ -1281,6 +1285,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('destroy', () => {
+    Support.setResetMode('drop');
+
     it('`truncate` method should clear the table', async function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
       await this.sequelize.sync({ force: true });
@@ -2496,6 +2502,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('paranoid is true and where is an array', () => {
+    Support.setResetMode('drop');
 
     beforeEach(async function () {
       this.User = this.sequelize.define('User', { username: DataTypes.STRING }, { paranoid: true });
