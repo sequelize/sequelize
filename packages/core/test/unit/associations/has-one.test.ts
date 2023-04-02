@@ -4,9 +4,9 @@ import each from 'lodash/each';
 import sinon from 'sinon';
 import type { ModelStatic } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { sequelize } from '../../support';
 
-describe(getTestDialectTeaser('hasOne'), () => {
+describe('hasOne', () => {
   it('throws when invalid model is passed', () => {
     const User = sequelize.define('User');
 

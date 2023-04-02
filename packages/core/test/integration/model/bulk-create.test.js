@@ -49,6 +49,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('bulkCreate', () => {
+    Support.setResetMode('drop');
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const User = this.sequelize.define('User', {

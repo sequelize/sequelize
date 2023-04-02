@@ -2,11 +2,13 @@
 
 const { expect } = require('chai');
 const { DataTypes, Deferrable, Model } = require('@sequelize/core');
-const { sequelize, getTestDialect, getTestDialectTeaser } = require('../support');
+const { sequelize, getTestDialect, setResetMode } = require('../support');
 
 const dialect = getTestDialect();
 
-describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
+describe('Model.sync & Sequelize#sync', () => {
+  setResetMode('drop');
+
   it('removes a column if it exists in the databases schema but not the model', async () => {
     const User = sequelize.define('testSync', {
       name: DataTypes.STRING,

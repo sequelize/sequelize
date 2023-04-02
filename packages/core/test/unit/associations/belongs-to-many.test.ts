@@ -10,9 +10,9 @@ import type {
   BelongsToMany, ModelStatic,
 } from '@sequelize/core';
 import { AssociationError, BelongsTo, DataTypes, HasMany, HasOne, Model } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser, resetSequelizeInstance, createSequelizeInstance } from '../../support';
+import { sequelize, resetSequelizeInstance, createSequelizeInstance } from '../../support';
 
-describe(getTestDialectTeaser('belongsToMany'), () => {
+describe('belongsToMany', () => {
   beforeEach(() => {
     resetSequelizeInstance();
   });

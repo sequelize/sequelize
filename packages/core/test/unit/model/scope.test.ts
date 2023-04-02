@@ -3,11 +3,11 @@ import { expect } from 'chai';
 import type { FindOptions } from '@sequelize/core';
 import { DataTypes, Op, Sequelize, col, where, literal } from '@sequelize/core';
 // eslint-disable-next-line import/order -- sequelize cannot be imported right now since there will be too many typing errors
-import { resetSequelizeInstance, getTestDialectTeaser } from '../../support';
+import { resetSequelizeInstance } from '../../support';
 
 const sequelize = require('../../support').sequelize;
 
-describe(getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   beforeEach(() => {
     resetSequelizeInstance();
   });

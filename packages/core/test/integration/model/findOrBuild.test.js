@@ -7,6 +7,8 @@ const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  Support.setResetMode('drop');
+
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,

@@ -1,9 +1,9 @@
 import assert from 'node:assert';
 import { expect } from 'chai';
 import { literal } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { sequelize } from '../../support';
 
-describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
+describe('Model Schemas', () => {
   if (sequelize.dialect.supports.schemas) {
     const Project = sequelize.define('project');
     const Company = sequelize.define('company', {}, {

@@ -8,6 +8,8 @@ const { DataTypes } = require('@sequelize/core');
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  Support.setResetMode('drop');
+
   before(function () {
     this.clock = sinon.useFakeTimers();
   });

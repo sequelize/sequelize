@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
 import type { NormalizedAttributeOptions, DataType } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { sequelize } from '../../support';
 
 function assertDataType(property: NormalizedAttributeOptions, dataType: DataType) {
   expect(property.type).to.be.instanceof(dataType);
 }
 
-describe(getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('getAttributes', () => {
     it(`returns the model's attributes`, () => {
       const Model = sequelize.define(

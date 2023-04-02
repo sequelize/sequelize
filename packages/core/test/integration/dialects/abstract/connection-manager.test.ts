@@ -6,7 +6,7 @@ import type { Connection } from '@sequelize/core';
 import type { GetConnectionOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
 import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/replication-pool.js';
 import { Config } from '../../../config/config';
-import { getTestDialect, getTestDialectTeaser, createSequelizeInstance } from '../../support';
+import { getTestDialect, createSequelizeInstance } from '../../support';
 
 const expect = chai.expect;
 const baseConf = Config[getTestDialect()];
@@ -18,7 +18,7 @@ const poolEntry = {
 
 const dialect = getTestDialect();
 
-describe(getTestDialectTeaser('Connection Manager'), () => {
+describe('Connection Manager', () => {
   let sandbox: SinonSandbox;
 
   beforeEach(() => {

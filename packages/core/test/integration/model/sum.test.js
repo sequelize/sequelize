@@ -7,6 +7,8 @@ const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  Support.setResetMode('drop');
+
   beforeEach(async function () {
     this.Payment = this.sequelize.define('Payment', {
       amount: DataTypes.FLOAT,
@@ -26,7 +28,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('sum', () => {
-
     it('should sum without rows', async function () {
       await expect(this.Payment.sum('amount', { where: { mood: 'sad' } })).to.eventually.be.null;
     });

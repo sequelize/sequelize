@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import { getTestDialectTeaser, sequelize } from '../../support';
+import { sequelize } from '../../support';
 
-describe(getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('hasAlias', () => {
     const User = sequelize.define('user');
     const Task = sequelize.define('task');

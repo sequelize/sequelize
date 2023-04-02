@@ -13,6 +13,8 @@ const dialect = current.dialect;
 const dialectName = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  Support.setResetMode('drop');
+
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
@@ -360,6 +362,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('belongsTo', () => {
         describe('generic', () => {
+          Support.setResetMode('drop');
+
           it('throws an error about unexpected input if include contains a non-object', async function () {
             try {
               await this.Worker.findOne({ include: [1] });

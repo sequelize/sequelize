@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { Sequelize } from '@sequelize/core';
-import { getTestDialect, getTestDialectTeaser } from '../support';
+import { getTestDialect } from '../support';
 
 const dialect = getTestDialect();
 
-describe(getTestDialectTeaser('Sequelize'), () => {
+describe('Sequelize', () => {
   describe('dialectModule options', () => {
     it('options.dialectModule', () => {
       const dialectModule = {

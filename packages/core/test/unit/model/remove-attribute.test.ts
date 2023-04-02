@@ -1,9 +1,9 @@
 import { expect } from 'chai';
 import size from 'lodash/size';
 import { DataTypes } from '@sequelize/core';
-import { getTestDialectTeaser, sequelize } from '../../support';
+import { sequelize } from '../../support';
 
-describe(getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('removeAttribute', () => {
     it('should support removing the primary key', () => {
       const Model = sequelize.define('m', {

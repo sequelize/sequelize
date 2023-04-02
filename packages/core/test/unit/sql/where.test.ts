@@ -15,7 +15,7 @@ import type {
 } from '@sequelize/core';
 import { DataTypes, Op, and, or, Model, sql, json } from '@sequelize/core';
 import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
-import { createTester, sequelize, expectsql, getTestDialectTeaser } from '../../support';
+import { createTester, sequelize, expectsql } from '../../support';
 
 const { literal, col, where, fn, cast, attribute } = sql;
 
@@ -97,7 +97,7 @@ TestModel.init({
   uuidAttr: DataTypes.UUID,
 }, { sequelize });
 
-describe(getTestDialectTeaser('SQL'), () => {
+describe('SQL', () => {
   describe('whereQuery', () => {
     it('prefixes its output with WHERE when it is not empty', () => {
       expectsql(

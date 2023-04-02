@@ -8,6 +8,8 @@ const Support = require('../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
+    Support.setResetMode('drop');
+
     beforeEach(async function () {
       this.ScopeMe = this.sequelize.define('ScopeMe', {
         username: DataTypes.STRING,

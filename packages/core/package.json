@@ -168,7 +168,7 @@
     "----------------------------------------- tests ---------------------------------------------------": "",
     "mocha": "mocha -r ../../test/register-esbuild.js",
     "_test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",
-    "test-integration": "yarn mocha \"test/integration/*.test.[tj]s\" \"test/integration/associations/*.test.[tj]s\" \"test/integration/data-types/*.test.[tj]s\" \"test/integration/hooks/*.test.[tj]s\" \"test/integration/include/*.test.[tj]s\" \"test/integration/instance/*.test.[tj]s\" \"test/integration/query-interface/*.test.[tj]s\" \"test/integration/sequelize/*.test.[tj]s\"",
+    "test-integration": "yarn mocha \"test/integration/*.test.[tj]s\" \"test/integration/associations/*.test.[tj]s\" \"test/integration/data-types/*.test.[tj]s\" \"test/integration/hooks/*.test.[tj]s\" \"test/integration/include/*.test.[tj]s\" \"test/integration/instance/*.test.[tj]s\" \"test/integration/query-interface/*.test.[tj]s\" \"test/integration/sequelize/*.test.[tj]s\" \"test/integration/model/*.test.[tj]s\" \"test/integration/dialects/**/*.test.[tj]s\"",
     "test-smoke": "yarn mocha \"test/smoke/**/*.test.[tj]s\" --timeout 600000",
     "teaser": "ts-node test/teaser.ts",
     "test": "yarn build && yarn test-typings && yarn teaser && yarn _test-unit && yarn test-integration",

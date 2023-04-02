@@ -17,6 +17,8 @@ const dialect = current.dialect;
 const dialectName = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  Support.setResetMode('drop');
+
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
@@ -885,6 +887,8 @@ The following associations are defined on "Worker": "ToDos"`);
       });
 
       describe('include all', () => {
+        Support.setResetMode('drop');
+
         beforeEach(async function () {
           this.Continent = this.sequelize.define('continent', { name: DataTypes.STRING });
           this.Country = this.sequelize.define('country', { name: DataTypes.STRING });
@@ -1306,6 +1310,8 @@ The following associations are defined on "Worker": "ToDos"`);
     });
 
     describe('normal findAll', () => {
+      Support.setResetMode('drop');
+
       beforeEach(async function () {
         const user = await this.User.create({ username: 'user', data: 'foobar', theDate: dayjs().toDate() });
         const user2 = await this.User.create({ username: 'user2', data: 'bar', theDate: dayjs().toDate() });

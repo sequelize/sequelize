@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import { literal } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { sequelize } from '../../support';
 
-describe(getTestDialectTeaser('Model.getInitialModel'), () => {
+describe('Model.getInitialModel', () => {
   const User = sequelize.define('user', {}, {
     scopes: {
       scope1: {

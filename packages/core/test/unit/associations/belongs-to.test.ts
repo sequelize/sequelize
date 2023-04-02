@@ -4,9 +4,9 @@ import sinon from 'sinon';
 import type { CreationOptional, ModelStatic, NonAttribute } from '@sequelize/core';
 import { DataTypes, Deferrable, Model } from '@sequelize/core';
 import { BelongsTo } from '@sequelize/core/decorators-legacy';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { sequelize } from '../../support';
 
-describe(getTestDialectTeaser('belongsTo'), () => {
+describe('belongsTo', () => {
   it('throws when invalid model is passed', () => {
     const User = sequelize.define('User');
 

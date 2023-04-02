@@ -43,6 +43,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('findOrCreate', () => {
+    Support.setResetMode('drop');
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const t = await this.sequelize.startUnmanagedTransaction();
@@ -635,6 +637,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('create', () => {
+    Support.setResetMode('drop');
+
     it('works with multiple non-integer primary keys with a default value', async function () {
       const User = this.sequelize.define('User', {
         id1: {
