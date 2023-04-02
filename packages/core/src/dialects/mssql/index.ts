@@ -44,6 +44,10 @@ export class MssqlDialect extends AbstractDialect {
       GEOMETRY: false,
     },
     jsonOperations: true,
+    jsonExtraction: {
+      unquoted: true,
+      quoted: false,
+    },
   });
 
   readonly connectionManager: MsSqlConnectionManager;

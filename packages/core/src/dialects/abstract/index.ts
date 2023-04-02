@@ -193,6 +193,11 @@ export type DialectSupports = {
   IREGEXP: boolean,
   /** Whether this dialect supports SQL JSON functions */
   jsonOperations: boolean,
+  /** Whether this dialect supports returning quoted & unquoted JSON strings  */
+  jsonExtraction: {
+    unquoted: boolean,
+    quoted: boolean,
+  },
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
@@ -330,6 +335,10 @@ export abstract class AbstractDialect {
       },
     },
     jsonOperations: false,
+    jsonExtraction: {
+      unquoted: false,
+      quoted: false,
+    },
     REGEXP: false,
     IREGEXP: false,
     deferrableConstraints: false,
