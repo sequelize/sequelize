@@ -29,6 +29,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
   describe('get', () => {
     describe('multiple', () => {
+      Support.setResetMode('drop');
+
       it('should fetch associations for multiple instances', async function () {
         const User = this.sequelize.define('User', {});
         const Task = this.sequelize.define('Task', {});
@@ -64,6 +66,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('getAssociation', () => {
+    Support.setResetMode('drop');
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
@@ -169,6 +173,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('setAssociation', () => {
+    Support.setResetMode('drop');
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
@@ -373,6 +378,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('foreign key', () => {
+    Support.setResetMode('drop');
+
     it('should setup underscored field with foreign keys when using underscored', function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: true });
       const Account = this.sequelize.define('Account', { name: DataTypes.STRING }, { underscored: true });
@@ -873,6 +880,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   });
 
   describe('Eager loading', () => {
+    Support.setResetMode('drop');
+
     beforeEach(function () {
       this.Individual = this.sequelize.define('individual', {
         name: DataTypes.STRING,

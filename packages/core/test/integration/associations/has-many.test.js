@@ -29,6 +29,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   });
 
   describe('count', () => {
+    Support.setResetMode('drop');
+
     it('should not fail due to ambiguous field', async function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
@@ -71,6 +73,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('get', () => {
     if (current.dialect.supports.groupedLimit) {
       describe('multiple', () => {
+        Support.setResetMode('drop');
+
         it('should fetch associations for multiple instances', async function () {
           const User = this.sequelize.define('User', {});
           const Task = this.sequelize.define('Task', {});
@@ -466,6 +470,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   });
 
   describe('(1:N)', () => {
+    Support.setResetMode('drop');
+
     describe('hasAssociation', () => {
       beforeEach(function () {
         this.Article = this.sequelize.define('Article', {
@@ -1074,6 +1080,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
   describe('foreign key constraints', () => {
     describe('1:m', () => {
+      Support.setResetMode('drop');
+
       it('sets null by default', async function () {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
@@ -1247,6 +1255,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   });
 
   describe('Association options', () => {
+    Support.setResetMode('drop');
+
     it('should setup underscored field with foreign keys when using underscored', function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: true });
       const Account = this.sequelize.define('Account', { name: DataTypes.STRING }, { underscored: true });
@@ -1412,6 +1422,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   });
 
   describe('sourceKey', () => {
+    Support.setResetMode('drop');
+
     beforeEach(function () {
       const User = this.sequelize.define('UserXYZ',
         { username: DataTypes.STRING, email: { type: DataTypes.STRING, allowNull: false } },
