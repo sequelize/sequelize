@@ -5,7 +5,7 @@ import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-yo
 import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const { attribute, col, cast, where, fn, literal } = sqlTag;
-const notSupportedErrorWithUnquote = new Error(`JSON Paths are not supported in ${sequelize.dialect.name} without unquoting the JSON value.`);
+const notSupportedWithoutUnquoteError = new Error(`JSON Paths are not supported in ${sequelize.dialect.name} without unquoting the JSON value.`);
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;

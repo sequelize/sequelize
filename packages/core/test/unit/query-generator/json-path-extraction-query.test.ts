@@ -4,7 +4,7 @@ const dialect = sequelize.dialect;
 const dialectName = dialect.name;
 
 const notSupportedError = new Error(`JSON Paths are not supported in ${dialectName}.`);
-const notSupportedErrorWithUnquote = new Error(`JSON Paths are not supported in ${dialectName} without unquoting the JSON value.`);
+const notSupportedWithoutUnquoteError = new Error(`JSON Paths are not supported in ${dialectName} without unquoting the JSON value.`);
 
 describe('QueryGenerator#jsonPathExtractionQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;

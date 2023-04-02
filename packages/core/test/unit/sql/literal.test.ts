@@ -3,7 +3,7 @@ import { expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 const queryGenerator = sequelize.queryGenerator;
-const notSupportedErrorWithUnquote = new Error(`JSON Paths are not supported in ${dialect.name} without unquoting the JSON value.`);
+const notSupportedWithoutUnquoteError = new Error(`JSON Paths are not supported in ${dialect.name} without unquoting the JSON value.`);
 
 describe('json', () => {
   if (!dialect.supports.jsonOperations) {

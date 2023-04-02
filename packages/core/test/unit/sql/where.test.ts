@@ -24,7 +24,7 @@ const { literal, col, where, fn, cast, attribute } = sql;
 
 const queryGen = sequelize.dialect.queryGenerator;
 const invalidWhereError = new Error('Invalid value received for the "where" option.');
-const notSupportedErrorWithUnquote = new Error(`JSON Paths are not supported in ${sequelize.dialect.name} without unquoting the JSON value.`);
+const notSupportedWithoutUnquoteError = new Error(`JSON Paths are not supported in ${sequelize.dialect.name} without unquoting the JSON value.`);
 
 // Notice: [] will be replaced by dialect specific tick/quote character
 // when there is no dialect specific expectation but only a default expectation
