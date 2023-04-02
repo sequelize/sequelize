@@ -8,8 +8,7 @@ import type {
 import { Model, DataTypes } from '@sequelize/core';
 import { AllowNull, HasOne, Attribute, NotNull } from '@sequelize/core/decorators-legacy';
 import {
-  beforeAll2,
-  prepareTransactionTest,
+  beforeAll2, createMultiTransactionalTestSequelizeInstance,
   sequelize, setResetMode,
 } from '../support';
 
@@ -183,11 +182,15 @@ describe('hasMany Mixins + transaction', () => {
       declare articleId: number | null;
     }
 
-    const transactionSequelize = await prepareTransactionTest(sequelize);
+    const transactionSequelize = await createMultiTransactionalTestSequelizeInstance(sequelize);
     transactionSequelize.addModels([Article, Label]);
     await transactionSequelize.sync({ force: true });
 
     return { Article, Label, transactionSequelize };
+  });
+
+  after(async () => {
+    return vars.transactionSequelize.close();
   });
 
   describe('setAssociations', () => {

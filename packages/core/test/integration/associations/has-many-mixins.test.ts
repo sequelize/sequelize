@@ -9,8 +9,7 @@ import type {
 import { Model, DataTypes } from '@sequelize/core';
 import { AllowNull, HasMany, Attribute, NotNull } from '@sequelize/core/decorators-legacy';
 import {
-  beforeAll2,
-  prepareTransactionTest,
+  beforeAll2, createMultiTransactionalTestSequelizeInstance,
   sequelize, setResetMode,
 } from '../support';
 
@@ -227,11 +226,15 @@ describe('hasMany Mixins + transaction', () => {
       declare articleId: number | null;
     }
 
-    const transactionSequelize = await prepareTransactionTest(sequelize);
+    const transactionSequelize = await createMultiTransactionalTestSequelizeInstance(sequelize);
     transactionSequelize.addModels([Article, Label]);
     await transactionSequelize.sync({ force: true });
 
     return { Article, Label, transactionSequelize };
+  });
+
+  after(async () => {
+    return vars.transactionSequelize.close();
   });
 
   describe('setAssociations', () => {
@@ -261,13 +264,15 @@ describe('hasMany Mixins + transaction', () => {
         transactionSequelize.startUnmanagedTransaction(),
       ]);
 
-      await Label.create({ articleId: article.id });
+      try {
+        await Label.create({ articleId: article.id });
 
-      await article.setLabels(null, { destroyPrevious: true, transaction: t });
-      expect(await Label.count({ transaction: null })).to.equal(1);
-      expect(await Label.count({ transaction: t })).to.equal(0);
-
-      await t.rollback();
+        await article.setLabels(null, { destroyPrevious: true, transaction: t });
+        expect(await Label.count({ transaction: null })).to.equal(1);
+        expect(await Label.count({ transaction: t })).to.equal(0);
+      } finally {
+        await t.rollback();
+      }
     });
 
     it('uses the transaction when unsetting the previous associations', async () => {
@@ -278,13 +283,15 @@ describe('hasMany Mixins + transaction', () => {
         transactionSequelize.startUnmanagedTransaction(),
       ]);
 
-      await Label.create({ articleId: article.id });
+      try {
+        await Label.create({ articleId: article.id });
 
-      await article.setLabels(null, { transaction: t });
-      expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(article.id);
-      expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
-
-      await t.rollback();
+        await article.setLabels(null, { transaction: t });
+        expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(article.id);
+        expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
+      } finally {
+        await t.rollback();
+      }
     });
   });
 
@@ -297,13 +304,15 @@ describe('hasMany Mixins + transaction', () => {
         transactionSequelize.startUnmanagedTransaction(),
       ]);
 
-      const label = await Label.create({ articleId: article.id });
+      try {
+        const label = await Label.create({ articleId: article.id });
 
-      await article.removeLabels([label], { transaction: t });
-      expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(article.id);
-      expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
-
-      await t.rollback();
+        await article.removeLabels([label], { transaction: t });
+        expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(article.id);
+        expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
+      } finally {
+        await t.rollback();
+      }
     });
 
     it('uses the transaction when deleting the target models', async () => {
@@ -314,13 +323,15 @@ describe('hasMany Mixins + transaction', () => {
         transactionSequelize.startUnmanagedTransaction(),
       ]);
 
-      const label = await Label.create({ articleId: article.id });
+      try {
+        const label = await Label.create({ articleId: article.id });
 
-      await article.removeLabels([label], { destroy: true, transaction: t });
-      expect(await Label.count({ transaction: null })).to.equal(1);
-      expect(await Label.count({ transaction: t })).to.equal(0);
-
-      await t.rollback();
+        await article.removeLabels([label], { destroy: true, transaction: t });
+        expect(await Label.count({ transaction: null })).to.equal(1);
+        expect(await Label.count({ transaction: t })).to.equal(0);
+      } finally {
+        await t.rollback();
+      }
     });
   });
 });
