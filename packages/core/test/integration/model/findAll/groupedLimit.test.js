@@ -15,6 +15,8 @@ if (current.dialect.supports['UNION ALL']) {
   describe(Support.getTestDialectTeaser('Model'), () => {
     describe('findAll', () => {
       describe('groupedLimit', () => {
+        Support.setResetMode('drop');
+
         before(function () {
           this.clock = sinon.useFakeTimers();
         });

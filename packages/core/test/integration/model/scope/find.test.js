@@ -8,6 +8,8 @@ const Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scopes', () => {
+    Support.setResetMode('drop');
+
     beforeEach(async function () {
       this.ScopeMe = this.sequelize.define('ScopeMe', {
         username: DataTypes.STRING,
@@ -141,6 +143,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('scope in associations', () => {
+    Support.setResetMode('drop');
+
     it('should work when association with a virtual column queried with default scope', async function () {
       const Game = this.sequelize.define('Game', {
         name: DataTypes.TEXT,

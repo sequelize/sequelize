@@ -9,6 +9,8 @@ const Support = require('../../support');
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('associations', () => {
+      Support.setResetMode('drop');
+
       beforeEach(async function () {
         const sequelize = this.sequelize;
 

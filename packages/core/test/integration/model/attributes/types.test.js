@@ -12,6 +12,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('attributes', () => {
     describe('types', () => {
       describe('VIRTUAL', () => {
+        Support.setResetMode('drop');
+
         beforeEach(async function () {
           this.User = this.sequelize.define('user', {
             storage: DataTypes.STRING,

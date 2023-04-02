@@ -9,6 +9,8 @@ const Support = require('../../support');
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('simple merge', () => {
+      Support.setResetMode('drop');
+
       beforeEach(async function () {
         this.Foo = this.sequelize.define('foo', { name: DataTypes.STRING }, { timestamps: false });
         this.Bar = this.sequelize.define('bar', { name: DataTypes.STRING }, { timestamps: false });
@@ -45,7 +47,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
     });
+
     describe('complex merge', () => {
+      Support.setResetMode('drop');
+
       beforeEach(async function () {
         this.Foo = this.sequelize.define('foo', { name: DataTypes.STRING }, { timestamps: false });
         this.Bar = this.sequelize.define('bar', { name: DataTypes.STRING }, { timestamps: false });

@@ -9,6 +9,8 @@ const Support = require('../../support');
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('count', () => {
+      Support.setResetMode('drop');
+
       beforeEach(async function () {
         this.Child = this.sequelize.define('Child', {
           priority: DataTypes.INTEGER,
