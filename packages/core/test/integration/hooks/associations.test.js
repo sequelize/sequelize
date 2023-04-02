@@ -36,6 +36,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('associations', () => {
     describe('1:1', () => {
       describe('cascade onUpdate', () => {
+        Support.setResetMode('drop');
+
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING,
@@ -162,6 +164,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       // });
 
       describe('no cascade update', () => {
+        Support.setResetMode('drop');
+
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING,
@@ -207,6 +211,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       describe('no cascade delete', () => {
+        Support.setResetMode('drop');
+
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING,
@@ -437,6 +443,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('M:M', () => {
       describe('cascade', () => {
+        Support.setResetMode('drop');
+
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING,
@@ -515,6 +523,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       describe('no cascade', () => {
+        Support.setResetMode('drop');
+
         beforeEach(async function () {
           this.Projects = this.sequelize.define('Project', {
             title: DataTypes.STRING,
