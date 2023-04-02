@@ -128,32 +128,6 @@ export function captureUnhandledRejections(destArray = []) {
   return unhandledRejections;
 }
 
-let lastSqliteInstance: Sequelize | undefined;
-export async function prepareTransactionTest(sequelize: Sequelize) {
-  const dialect = getTestDialect();
-
-  if (dialect === 'sqlite') {
-    const p = path.join(__dirname, 'tmp', 'db.sqlite');
-    if (lastSqliteInstance) {
-      await lastSqliteInstance.close();
-    }
-
-    if (fs.existsSync(p)) {
-      fs.unlinkSync(p);
-    }
-
-    const options = { ...sequelize.options, storage: p };
-    const _sequelize = new Sequelize(sequelize.config.database, '', '', options);
-
-    await _sequelize.sync({ force: true });
-    lastSqliteInstance = _sequelize;
-
-    return _sequelize;
-  }
-
-  return sequelize;
-}
-
 export function createSequelizeInstance(options: Options = {}): Sequelize {
   options.dialect = getTestDialect();
 
@@ -488,26 +462,22 @@ export function minifySql(sql: string): string {
 
 export const sequelize = createSequelizeInstance();
 
-export function resetSequelizeInstance(): void {
-  for (const model of sequelize.modelManager.all) {
-    sequelize.modelManager.removeModel(model);
+export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize): void {
+  for (const model of sequelizeInstance.modelManager.all) {
+    sequelizeInstance.modelManager.removeModel(model);
   }
 }
 
 // 'support' is requested by dev/check-connection, which is not a mocha context
 if (typeof before !== 'undefined') {
   before(function onBefore() {
-    // legacy, remove once all tests have been migrated
+    // legacy, remove once all tests have been migrated to not use "this" anymore
     // eslint-disable-next-line @typescript-eslint/no-invalid-this
-    this.sequelize = sequelize;
-  });
-}
-
-if (typeof beforeEach !== 'undefined') {
-  beforeEach(function onBeforeEach() {
-    // legacy, remove once all tests have been migrated
-    // eslint-disable-next-line @typescript-eslint/no-invalid-this
-    this.sequelize = sequelize;
+    Object.defineProperty(this, 'sequelize', {
+      value: sequelize,
+      writable: false,
+      configurable: false,
+    });
   });
 }
 

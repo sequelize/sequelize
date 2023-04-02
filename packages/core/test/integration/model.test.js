@@ -727,7 +727,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findOne', () => {
     if (current.dialect.supports.transactions) {
       it('supports the transaction option in the first parameter', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', {
           username: DataTypes.STRING,
           foo: DataTypes.STRING,
@@ -769,7 +769,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING, foo: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -904,7 +904,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -1329,7 +1329,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -1701,7 +1701,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('count', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -1846,7 +1846,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (current.dialect.supports.transactions) {
         it('supports transactions', async function () {
-          const sequelize = await Support.prepareTransactionTest(this.sequelize);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
           const User = sequelize.define('User', { age: DataTypes.INTEGER });
 
           await User.sync({ force: true });
@@ -2595,7 +2595,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   if (dialectName !== 'sqlite' && current.dialect.supports.transactions) {
     it('supports multiple async transactions', async function () {
       this.timeout(90_000);
-      const sequelize = await Support.prepareTransactionTest(this.sequelize);
+      const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
       const User = sequelize.define('User', { username: DataTypes.STRING });
       const testAsync = async function () {
         const t0 = await sequelize.startUnmanagedTransaction();

@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -1461,7 +1461,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -1566,7 +1566,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });

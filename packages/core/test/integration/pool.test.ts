@@ -4,7 +4,11 @@ import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
 import type { Connection } from '@sequelize/core';
 import { Sequelize, ConnectionAcquireTimeoutError } from '@sequelize/core';
-import { createSequelizeInstance, getTestDialect, getTestDialectTeaser } from './support';
+import {
+  createSingleTestSequelizeInstance,
+  getTestDialect,
+  getTestDialectTeaser,
+} from './support';
 
 const dialect = getTestDialect();
 
@@ -113,7 +117,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
         }
       }
 
-      const sequelize = createSequelizeInstance({
+      const sequelize = createSingleTestSequelizeInstance({
         pool: { max: 1, idle: 5000 },
       });
       const cm = sequelize.connectionManager;
@@ -164,7 +168,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
         }
       }
 
-      const sequelize = createSequelizeInstance({
+      const sequelize = createSingleTestSequelizeInstance({
         pool: { max: 1, idle: 5000 },
       });
       const cm = sequelize.connectionManager;
@@ -185,7 +189,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
 
   describe('idle', () => {
     it('should maintain connection within idle range', async () => {
-      const sequelize = createSequelizeInstance({
+      const sequelize = createSingleTestSequelizeInstance({
         pool: { max: 1, idle: 100 },
       });
       const cm = sequelize.connectionManager;
@@ -210,7 +214,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
     });
 
     it('[Flaky] should get new connection beyond idle range', async () => {
-      const sequelize = createSequelizeInstance({
+      const sequelize = createSingleTestSequelizeInstance({
         pool: { max: 1, idle: 100, evict: 10 },
       });
       const cm = sequelize.connectionManager;
@@ -237,31 +241,29 @@ describe(getTestDialectTeaser('Pooling'), () => {
   });
 
   describe('acquire', () => {
-    let testInstance: Sequelize;
-
-    before(() => {
-      testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
+    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', async () => {
+      const testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
         databaseVersion: '1.2.3',
         pool: {
           acquire: 10,
         },
       });
-    });
-
-    it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', async () => {
 
       // @ts-expect-error -- internal method, no typings
       sandbox.stub(testInstance.connectionManager, '_connect')
         .returns(new Promise(() => {}));
+      sandbox.stub(testInstance.connectionManager, '_onProcessExit');
 
       await expect(
         testInstance.authenticate(),
       ).to.eventually.be.rejectedWith(ConnectionAcquireTimeoutError);
+
+      await testInstance.close();
     });
 
     it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', async () => {
-      testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
+      const testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
         dialect,
         databaseVersion: '1.2.3',
         pool: {
@@ -269,6 +271,8 @@ describe(getTestDialectTeaser('Pooling'), () => {
           max: 1,
         },
       });
+
+      sandbox.stub(testInstance.connectionManager, '_onProcessExit');
 
       // @ts-expect-error -- internal method, no typings
       sandbox.stub(testInstance.connectionManager, '_connect')
@@ -280,6 +284,8 @@ describe(getTestDialectTeaser('Pooling'), () => {
           await testInstance.transaction<void>(() => {});
         }),
       ).to.eventually.be.rejectedWith(ConnectionAcquireTimeoutError);
+
+      await testInstance.close();
     });
   });
 });

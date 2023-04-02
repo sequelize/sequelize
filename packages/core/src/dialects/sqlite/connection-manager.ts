@@ -81,11 +81,11 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
           }
 
           debug(`connection acquired ${connectionUuid}`);
+          this.connections.set(connectionCacheKey, connectionInstance);
+
           resolve(connectionInstance);
         },
       ) as SqliteConnection;
-
-      this.connections.set(connectionCacheKey, connectionInstance);
     });
 
     await this._initDatabaseVersion(connection);

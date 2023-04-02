@@ -7,15 +7,12 @@ const Support = require('../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 const assert = require('node:assert');
 const sinon = require('sinon');
-const { resetSequelizeInstance } = require('../../support');
 
 const current = Support.sequelize;
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
-  beforeEach(() => {
-    Support.resetSequelizeInstance();
-  });
+  Support.setResetMode('drop');
 
   describe('getAssociations', () => {
     beforeEach(async function () {
@@ -41,7 +38,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const Article = sequelize.define('Article', { title: DataTypes.STRING });
         const Label = sequelize.define('Label', { text: DataTypes.STRING });
 
@@ -56,14 +53,17 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           sequelize.startUnmanagedTransaction(),
         ]);
 
-        await article.setLabels([label], { transaction: t });
-        const articles0 = await Article.findAll({ transaction: t });
-        const labels0 = await articles0[0].getLabels();
-        expect(labels0).to.have.length(0);
-        const articles = await Article.findAll({ transaction: t });
-        const labels = await articles[0].getLabels({ transaction: t });
-        expect(labels).to.have.length(1);
-        await t.rollback();
+        try {
+          await article.setLabels([label], { transaction: t });
+          const articles0 = await Article.findAll({ transaction: t });
+          const labels0 = await articles0[0].getLabels();
+          expect(labels0).to.have.length(0);
+          const articles = await Article.findAll({ transaction: t });
+          const labels = await articles[0].getLabels({ transaction: t });
+          expect(labels).to.have.length(1);
+        } finally {
+          await t.rollback();
+        }
       });
     }
 
@@ -1269,7 +1269,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const Article = sequelize.define('Article', { title: DataTypes.STRING });
         const Label = sequelize.define('Label', { text: DataTypes.STRING });
 
@@ -1284,14 +1284,17 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           sequelize.startUnmanagedTransaction(),
         ]);
 
-        await article.setLabels([label], { transaction: t });
-        const articles0 = await Article.findAll({ transaction: t });
-        const labels0 = await articles0[0].getLabels();
-        expect(labels0).to.have.length(0);
-        const articles = await Article.findAll({ transaction: t });
-        const labels = await articles[0].getLabels({ transaction: t });
-        expect(labels).to.have.length(1);
-        await t.rollback();
+        try {
+          await article.setLabels([label], { transaction: t });
+          const articles0 = await Article.findAll({ transaction: t });
+          const labels0 = await articles0[0].getLabels();
+          expect(labels0).to.have.length(0);
+          const articles = await Article.findAll({ transaction: t });
+          const labels = await articles[0].getLabels({ transaction: t });
+          expect(labels).to.have.length(1);
+        } finally {
+          await t.rollback();
+        }
       });
     }
 
@@ -1531,7 +1534,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
   describe('countAssociations', () => {
     beforeEach(async function () {
-      resetSequelizeInstance();
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
       });
@@ -1873,7 +1875,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
@@ -1972,7 +1974,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
@@ -1996,7 +1998,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       it('supports transactions when updating a through model', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
@@ -2321,7 +2323,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('makes join table non-paranoid by default', () => {
-      const paranoidSequelize = Support.createSequelizeInstance({
+      const paranoidSequelize = Support.createSingleTestSequelizeInstance({
         define: {
           paranoid: true,
         },
@@ -2339,7 +2341,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('should allow creation of a paranoid join table', () => {
-      const paranoidSequelize = Support.createSequelizeInstance({
+      const paranoidSequelize = Support.createSingleTestSequelizeInstance({
         define: {
           paranoid: true,
         },

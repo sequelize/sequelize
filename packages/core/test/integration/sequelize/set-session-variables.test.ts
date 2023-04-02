@@ -1,9 +1,8 @@
 import { expect } from 'chai';
 import { QueryTypes } from '@sequelize/core';
 import {
-  createSequelizeInstance,
+  createSingleTransactionalTestSequelizeInstance,
   getTestDialect,
-  prepareTransactionTest,
   sequelize, setResetMode,
 } from '../support';
 
@@ -22,9 +21,9 @@ describe('sequelize.setSessionVariables', () => {
   });
 
   it('supports CLS transactions', async () => {
-    const clsSequelize = await prepareTransactionTest(createSequelizeInstance({
+    const clsSequelize = await createSingleTransactionalTestSequelizeInstance({
       disableClsTransactions: false,
-    }));
+    });
 
     await clsSequelize.transaction(async () => {
       await clsSequelize.setSessionVariables({ foo: 'bar' });

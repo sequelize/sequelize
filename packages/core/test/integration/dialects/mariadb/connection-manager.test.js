@@ -13,7 +13,7 @@ if (dialect === 'mariadb') {
   describe('[MARIADB Specific] Connection Manager', () => {
 
     it('has existing init SQL', async () => {
-      const sequelize = Support.createSequelizeInstance(
+      const sequelize = Support.createSingleTestSequelizeInstance(
         { dialectOptions: { initSql: 'SET @myUserVariable=\'myValue\'' } },
       );
       const res = await sequelize.query('SELECT @myUserVariable');
@@ -22,7 +22,7 @@ if (dialect === 'mariadb') {
     });
 
     it('has existing init SQL array', async () => {
-      const sequelize = Support.createSequelizeInstance(
+      const sequelize = Support.createSingleTestSequelizeInstance(
         {
           dialectOptions: {
             initSql: ['SET @myUserVariable1=\'myValue\'',
@@ -41,27 +41,27 @@ if (dialect === 'mariadb') {
       const testHost = env.MARIADB_PORT_3306_TCP_ADDR || env.SEQ_MARIADB_HOST || env.SEQ_HOST || '127.0.0.1';
 
       it('Connection timeout', async () => {
-        const sequelize = Support.createSequelizeInstance({ host: testHost, port: 65_535, dialectOptions: { connectTimeout: 500 } });
+        const sequelize = Support.createSingleTestSequelizeInstance({ host: testHost, port: 65_535, dialectOptions: { connectTimeout: 500 } });
         await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.SequelizeConnectionError);
       });
 
       it('ECONNREFUSED', async () => {
-        const sequelize = Support.createSequelizeInstance({ host: testHost, port: 65_535 });
+        const sequelize = Support.createSingleTestSequelizeInstance({ host: testHost, port: 65_535 });
         await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.ConnectionRefusedError);
       });
 
       it('ENOTFOUND', async () => {
-        const sequelize = Support.createSequelizeInstance({ host: 'http://wowow.example.com' });
+        const sequelize = Support.createSingleTestSequelizeInstance({ host: 'http://wowow.example.com' });
         await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.HostNotFoundError);
       });
 
       it('EHOSTUNREACH', async () => {
-        const sequelize = Support.createSequelizeInstance({ host: '255.255.255.255' });
+        const sequelize = Support.createSingleTestSequelizeInstance({ host: '255.255.255.255' });
         await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(Sequelize.HostNotReachableError);
       });
 
       it('ER_ACCESS_DENIED_ERROR | ELOGIN', async () => {
-        const sequelize = Support.createSequelizeInstance({
+        const sequelize = Support.createSingleTestSequelizeInstance({
           database: 'db',
           username: 'was',
           password: 'ddsd',

@@ -5,8 +5,7 @@ import { DataTypes, QueryTypes, Model } from '@sequelize/core';
 import type { ModelStatic, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import {
-  beforeAll2, createSequelizeInstance,
-  prepareTransactionTest,
+  beforeAll2, createMultiTransactionalTestSequelizeInstance,
   sequelize, setResetMode,
 } from './support';
 
@@ -18,9 +17,9 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
   setResetMode('none');
 
   const vars = beforeAll2(async () => {
-    const clsSequelize = await prepareTransactionTest(createSequelizeInstance({
+    const clsSequelize = await createMultiTransactionalTestSequelizeInstance({
       disableClsTransactions: false,
-    }));
+    });
 
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
       declare name: string | null;
@@ -32,6 +31,10 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
     await clsSequelize.sync({ force: true });
 
     return { clsSequelize, User };
+  });
+
+  after(async () => {
+    return vars.clsSequelize.close();
   });
 
   describe('context', () => {

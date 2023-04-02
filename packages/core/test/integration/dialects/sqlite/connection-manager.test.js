@@ -21,7 +21,7 @@ if (dialect === 'sqlite') {
     });
 
     it('close connection and remove journal and wal files', async function () {
-      const sequelize = Support.createSequelizeInstance({
+      const sequelize = Support.createSingleTestSequelizeInstance({
         storage: jetpack.path(fileName),
       });
       const User = sequelize.define('User', { username: DataTypes.STRING });
@@ -57,7 +57,7 @@ if (dialect === 'sqlite') {
     });
 
     it('automatic path provision for `options.storage`', async () => {
-      await Support.createSequelizeInstance({ storage: nestedFileName })
+      await Support.createSingleTestSequelizeInstance({ storage: nestedFileName })
         .define('User', { username: DataTypes.STRING })
         .sync({ force: true });
 

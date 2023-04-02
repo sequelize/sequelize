@@ -730,6 +730,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
   if (dialect === 'sqlite') {
     it('provides persistent transactions', async () => {
       const sequelize = new Sequelize('database', 'username', 'password', { dialect: 'sqlite' });
+      Support.destroySequelizeAfterTest(sequelize);
       const User = sequelize.define('user', {
         username: DataTypes.STRING,
         awesome: DataTypes.BOOLEAN,
@@ -774,7 +775,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
   if (dialect === 'sqlite') {
     it('automatically retries on SQLITE_BUSY failure', async function () {
-      const sequelize = await Support.prepareTransactionTest(this.sequelize);
+      const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
       const User = sequelize.define('User', { username: DataTypes.STRING });
       await User.sync({ force: true });
       const newTransactionFunc = async function () {
@@ -790,7 +791,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
     });
 
     it('fails with SQLITE_BUSY when retry.match is changed', async function () {
-      const sequelize = await Support.prepareTransactionTest(this.sequelize);
+      const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
       const User = sequelize.define('User', { id: { type: DataTypes.INTEGER, primaryKey: true }, username: DataTypes.STRING });
       await User.sync({ force: true });
       const newTransactionFunc = async function () {
