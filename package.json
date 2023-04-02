@@ -48,12 +48,12 @@
     "@ephys/eslint-config-typescript": "18.0.1",
     "@rushstack/eslint-patch": "1.2.0",
     "chai": "4.3.7",
-    "esbuild": "0.17.12",
+    "esbuild": "0.17.15",
     "eslint": "8.36.0",
-    "eslint-plugin-jsdoc": "40.1.0",
+    "eslint-plugin-jsdoc": "40.1.1",
     "eslint-plugin-mocha": "10.1.0",
     "fast-glob": "3.2.12",
-    "lerna": "6.6.0",
+    "lerna": "6.6.1",
     "lint-staged": "13.2.0",
     "markdownlint-cli": "0.32.2",
     "mocha": "10.2.0",
@@ -64,7 +64,7 @@
     "typedoc-plugin-carbon-ads": "1.1.6",
     "typedoc-plugin-mdn-links": "3.0.3",
     "typedoc-plugin-missing-exports": "1.0.0",
-    "typescript": "5.0.2"
+    "typescript": "5.0.3"
   },
   "packageManager": "yarn@1.22.19",
   "lint-staged": {

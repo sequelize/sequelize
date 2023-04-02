@@ -515,4 +515,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   escapeList(values: unknown[], options?: EscapeOptions): string {
     return `(${values.map(value => this.escape(value, options)).join(', ')})`;
   }
+
+  getToggleForeignKeyChecksQuery(_enable: boolean): string {
+    throw new Error(`${this.dialect.name} does not support toggling foreign key checks`);
+  }
 }
