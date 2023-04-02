@@ -11,6 +11,8 @@ const sinon = require('sinon');
 const isUUID = require('validator').isUUID;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
+  Support.setResetMode('drop');
+
   before(function () {
     this.clock = sinon.useFakeTimers();
   });

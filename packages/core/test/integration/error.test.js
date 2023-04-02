@@ -299,6 +299,8 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
   });
 
   describe('ConstraintError', () => {
+    Support.setResetMode('drop');
+
     for (const constraintTest of [
       {
         type: 'UniqueConstraintError',

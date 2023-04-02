@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import type { CreateSchemaQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
-import { sequelize } from '../support';
+import { sequelize, setResetMode } from '../support';
 
 const { dialect } = sequelize;
 const testSchema = 'testSchema';
@@ -11,6 +11,8 @@ const queryInterface = sequelize.getQueryInterface();
 const dialectsWithEqualDBsSchemas = ['mysql', 'mariadb'];
 
 describe('QueryInterface#{create,drop,showAll}Schema', () => {
+  setResetMode('drop');
+
   if (!dialect.supports.schemas) {
     it('should throw, indicating that the method is not supported', async () => {
       await expect(queryInterface.createSchema(testSchema)).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);

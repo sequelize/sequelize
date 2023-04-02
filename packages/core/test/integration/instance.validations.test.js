@@ -7,6 +7,8 @@ const { Sequelize, DataTypes } = require('@sequelize/core');
 const Support = require('./support');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
+  Support.setResetMode('drop');
+
   describe('#update', () => {
     it('should allow us to update specific columns without tripping the validations', async function () {
       const User = this.sequelize.define('model', {

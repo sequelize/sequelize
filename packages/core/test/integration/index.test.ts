@@ -2,12 +2,14 @@
 
 import { expect } from 'chai';
 import { DataTypes, DatabaseError } from '@sequelize/core';
-import { sequelize, getTestDialect } from './support';
+import { sequelize, getTestDialect, setResetMode } from './support';
 
 const dialect = getTestDialect();
 
 describe('Indexes', () => {
   describe('Indexes with include', () => {
+    setResetMode('drop');
+
     if (!sequelize.dialect.supports.index.include) {
       return;
     }

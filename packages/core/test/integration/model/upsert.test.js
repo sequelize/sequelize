@@ -11,6 +11,8 @@ const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  Support.setResetMode('drop');
+
   before(function () {
     this.clock = sinon.useFakeTimers();
   });

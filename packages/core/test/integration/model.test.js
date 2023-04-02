@@ -18,6 +18,8 @@ const pMap = require('p-map');
 const { expectsql } = require('../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
+  Support.setResetMode('drop');
+
   let isMySQL8;
 
   before(function () {
