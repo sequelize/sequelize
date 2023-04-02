@@ -95,6 +95,6 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
-    return this.escape(arg, options);
+    return `JSON_VALUE(${this.escape(arg, options)})`;
   }
 }
