@@ -10,6 +10,8 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
+  Support.setResetMode('drop');
+
   before(function () {
     this.clock = sinon.useFakeTimers();
   });

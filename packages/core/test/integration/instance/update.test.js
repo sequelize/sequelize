@@ -10,6 +10,8 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 const current = Support.sequelize;
 
 describe('Model#update', () => {
+  Support.setResetMode('drop');
+
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },

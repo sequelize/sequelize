@@ -11,6 +11,8 @@ const { DataTypes, Fn, Col } = require('@sequelize/core');
 describe(Support.getTestDialectTeaser('DAO'), () => {
   describe('Values', () => {
     describe('set', () => {
+      Support.setResetMode('drop');
+
       it('doesn\'t overwrite generated primary keys', function () {
         const User = this.sequelize.define('User', {
           name: { type: DataTypes.STRING },
@@ -298,6 +300,8 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
     });
 
     describe('changed', () => {
+      Support.setResetMode('drop');
+
       it('should return false if object was built from database', async function () {
         const User = this.sequelize.define('User', {
           name: { type: DataTypes.STRING },

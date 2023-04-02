@@ -58,6 +58,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   });
 
   describe('save', () => {
+    Support.setResetMode('drop');
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
@@ -411,7 +413,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('without timestamps option', () => {
-      it('doesn\'t update the updatedAt column', async function () {
+      Support.setResetMode('drop');
+
+      it(`doesn't update the updatedAt column`, async function () {
         const User2 = this.sequelize.define('User2', {
           username: DataTypes.STRING,
           updatedAt: DataTypes.DATE,
@@ -424,6 +428,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('with custom timestamp options', () => {
+      Support.setResetMode('drop');
+
       it('updates the createdAt column if updatedAt is disabled', async function () {
         const now = new Date();
         this.clock.tick(1000);
