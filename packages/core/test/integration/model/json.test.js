@@ -8,7 +8,6 @@ const { DataTypes, Op } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
-const invalidWhereError = new Error('Invalid value received for the "where" option.');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('JSON', () => {
@@ -86,225 +85,189 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('find', () => {
-      if (!dialect.supports.jsonOperations) {
+      if (!dialect.supports.jsonOperations || !dialect.supports.jsonExtraction.quoted) {
         return;
       }
 
       it('should be possible to query multiple nested values', async function () {
-        try {
-          await this.Event.create({
+        await this.Event.create({
+          data: {
+            name: {
+              first: 'Homer',
+              last: 'Simpson',
+            },
+            employment: 'Nuclear Safety Inspector',
+          },
+        });
+
+        await Promise.all([this.Event.create({
+          data: {
+            name: {
+              first: 'Marge',
+              last: 'Simpson',
+            },
+            employment: 'Housewife',
+          },
+        }), this.Event.create({
+          data: {
+            name: {
+              first: 'Bart',
+              last: 'Simpson',
+            },
+            employment: 'None',
+          },
+        })]);
+
+        const events = await this.Event.findAll({
+          where: {
             data: {
               name: {
-                first: 'Homer',
                 last: 'Simpson',
               },
-              employment: 'Nuclear Safety Inspector',
-            },
-          });
-
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson',
-              },
-              employment: 'Housewife',
-            },
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Bart',
-                last: 'Simpson',
-              },
-              employment: 'None',
-            },
-          })]);
-
-          const events = await this.Event.findAll({
-            where: {
-              data: {
-                name: {
-                  last: 'Simpson',
-                },
-                employment: {
-                  [Op.ne]: 'None',
-                },
+              employment: {
+                [Op.ne]: 'None',
               },
             },
-            order: [
-              ['id', 'ASC'],
-            ],
-          });
+          },
+          order: [
+            ['id', 'ASC'],
+          ],
+        });
 
-          if (dialect.name === 'mssql') {
-            expect.fail();
-          } else {
-            expect(events).to.have.length(2);
+        expect(events).to.have.length(2);
 
-            expect(events[0].get('data')).to.eql({
-              name: {
-                first: 'Homer',
-                last: 'Simpson',
-              },
-              employment: 'Nuclear Safety Inspector',
-            });
+        expect(events[0].get('data')).to.eql({
+          name: {
+            first: 'Homer',
+            last: 'Simpson',
+          },
+          employment: 'Nuclear Safety Inspector',
+        });
 
-            expect(events[1].get('data')).to.eql({
-              name: {
-                first: 'Marge',
-                last: 'Simpson',
-              },
-              employment: 'Housewife',
-            });
-          }
-        } catch (error) {
-          if (dialect.name === 'mssql') {
-            expect(Support.inlineErrorCause(error)).to.include(invalidWhereError.message);
-          } else {
-            throw error;
-          }
-        }
+        expect(events[1].get('data')).to.eql({
+          name: {
+            first: 'Marge',
+            last: 'Simpson',
+          },
+          employment: 'Housewife',
+        });
+
       });
 
       it('should be possible to query a nested value and order results', async function () {
-        try {
-          await this.Event.create({
+        await this.Event.create({
+          data: {
+            name: {
+              first: 'Homer',
+              last: 'Simpson',
+            },
+            employment: 'Nuclear Safety Inspector',
+          },
+        });
+
+        await Promise.all([this.Event.create({
+          data: {
+            name: {
+              first: 'Marge',
+              last: 'Simpson',
+            },
+            employment: 'Housewife',
+          },
+        }), this.Event.create({
+          data: {
+            name: {
+              first: 'Bart',
+              last: 'Simpson',
+            },
+            employment: 'None',
+          },
+        })]);
+
+        const events = await this.Event.findAll({
+          where: {
             data: {
               name: {
-                first: 'Homer',
                 last: 'Simpson',
-              },
-              employment: 'Nuclear Safety Inspector',
-            },
-          });
-
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson',
-              },
-              employment: 'Housewife',
-            },
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Bart',
-                last: 'Simpson',
-              },
-              employment: 'None',
-            },
-          })]);
-
-          const events = await this.Event.findAll({
-            where: {
-              data: {
-                name: {
-                  last: 'Simpson',
-                },
               },
             },
-            order: [
-              ['data.name.first'],
-            ],
-          });
+          },
+          order: [
+            ['data.name.first'],
+          ],
+        });
 
-          if (dialect.name === 'mssql') {
-            expect.fail();
-          } else {
-            expect(events.length).to.equal(3);
+        expect(events.length).to.equal(3);
 
-            expect(events[0].get('data')).to.eql({
-              name: {
-                first: 'Bart',
-                last: 'Simpson',
-              },
-              employment: 'None',
-            });
+        expect(events[0].get('data')).to.eql({
+          name: {
+            first: 'Bart',
+            last: 'Simpson',
+          },
+          employment: 'None',
+        });
 
-            expect(events[1].get('data')).to.eql({
-              name: {
-                first: 'Homer',
-                last: 'Simpson',
-              },
-              employment: 'Nuclear Safety Inspector',
-            });
+        expect(events[1].get('data')).to.eql({
+          name: {
+            first: 'Homer',
+            last: 'Simpson',
+          },
+          employment: 'Nuclear Safety Inspector',
+        });
 
-            expect(events[2].get('data')).to.eql({
-              name: {
-                first: 'Marge',
-                last: 'Simpson',
-              },
-              employment: 'Housewife',
-            });
-          }
-        } catch (error) {
-          if (dialect.name === 'mssql') {
-            expect(Support.inlineErrorCause(error)).to.include(invalidWhereError.message);
-          } else {
-            throw error;
-          }
-
-        }
+        expect(events[2].get('data')).to.eql({
+          name: {
+            first: 'Marge',
+            last: 'Simpson',
+          },
+          employment: 'Housewife',
+        });
       });
     });
 
     describe('destroy', () => {
-      if (!dialect.supports.jsonOperations) {
+      if (!dialect.supports.jsonOperations || !dialect.supports.jsonExtraction.quoted) {
         return;
       }
 
       it('should be possible to destroy with where', async function () {
-        try {
-          const conditionSearch = {
-            where: {
-              data: {
-                employment: 'Hacker',
-              },
-            },
-          };
-
-          await Promise.all([this.Event.create({
+        const conditionSearch = {
+          where: {
             data: {
-              name: {
-                first: 'Elliot',
-                last: 'Alderson',
-              },
               employment: 'Hacker',
             },
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Christian',
-                last: 'Slater',
-              },
-              employment: 'Hacker',
-            },
-          }), this.Event.create({
-            data: {
-              name: {
-                first: ' Tyrell',
-                last: 'Wellick',
-              },
-              employment: 'CTO',
-            },
-          })]);
+          },
+        };
 
-          await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
+        await Promise.all([this.Event.create({
+          data: {
+            name: {
+              first: 'Elliot',
+              last: 'Alderson',
+            },
+            employment: 'Hacker',
+          },
+        }), this.Event.create({
+          data: {
+            name: {
+              first: 'Christian',
+              last: 'Slater',
+            },
+            employment: 'Hacker',
+          },
+        }), this.Event.create({
+          data: {
+            name: {
+              first: ' Tyrell',
+              last: 'Wellick',
+            },
+            employment: 'CTO',
+          },
+        })]);
 
-          if (dialect.name === 'mssql') {
-            expect.fail();
-          } else {
-            await this.Event.destroy(conditionSearch);
-            await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
-          }
-        } catch (error) {
-          if (dialect.name === 'mssql') {
-            expect(Support.inlineErrorCause(error)).to.include(invalidWhereError.message);
-          } else {
-            throw error;
-          }
-        }
+        await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
+
+        await this.Event.destroy(conditionSearch);
+        await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
       });
     });
 
@@ -316,69 +279,57 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.sequelize.sync({ force: true });
       });
 
-      if (dialect.supports.jsonOperations) {
+      if (dialect.supports.jsonOperations && dialect.supports.jsonExtraction.quoted) {
         it('should query an instance with JSONB data and order while trying to inject', async function () {
-          try {
-            await this.Event.create({
+          await this.Event.create({
+            data: {
+              name: {
+                first: 'Homer',
+                last: 'Simpson',
+              },
+              employment: 'Nuclear Safety Inspector',
+            },
+          });
+
+          await Promise.all([this.Event.create({
+            data: {
+              name: {
+                first: 'Marge',
+                last: 'Simpson',
+              },
+              employment: 'Housewife',
+            },
+          }), this.Event.create({
+            data: {
+              name: {
+                first: 'Bart',
+                last: 'Simpson',
+              },
+              employment: 'None',
+            },
+          })]);
+
+          const events = await this.Event.findAll({
+            where: {
               data: {
                 name: {
-                  first: 'Homer',
                   last: 'Simpson',
                 },
-                employment: 'Nuclear Safety Inspector',
               },
-            });
+            },
+            order: [
+              ['data.name.first}\'); INSERT INJECTION HERE! SELECT (\''],
+            ],
+          });
 
-            await Promise.all([this.Event.create({
-              data: {
-                name: {
-                  first: 'Marge',
-                  last: 'Simpson',
-                },
-                employment: 'Housewife',
-              },
-            }), this.Event.create({
-              data: {
-                name: {
-                  first: 'Bart',
-                  last: 'Simpson',
-                },
-                employment: 'None',
-              },
-            })]);
-
-            const events = await this.Event.findAll({
-              where: {
-                data: {
-                  name: {
-                    last: 'Simpson',
-                  },
-                },
-              },
-              order: [
-                ['data.name.first}\'); INSERT INJECTION HERE! SELECT (\''],
-              ],
-            });
-
-            if (dialect.name === 'mssql') {
-              expect.fail();
-            } else {
-              expect(events).to.be.ok;
-              expect(events[0].get('data')).to.eql({
-                name: {
-                  first: 'Homer',
-                  last: 'Simpson',
-                },
-                employment: 'Nuclear Safety Inspector',
-              });
-            }
-          } catch (error) {
-            if (dialect.name === 'mssql') {
-              expect(Support.inlineErrorCause(error)).to.include(invalidWhereError.message);
-            } else {
-              throw error;
-            }
-          }
+          expect(events).to.be.ok;
+          expect(events[0].get('data')).to.eql({
+            name: {
+              first: 'Homer',
+              last: 'Simpson',
+            },
+            employment: 'Nuclear Safety Inspector',
+          });
         });
       }
     });

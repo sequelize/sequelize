@@ -7,15 +7,13 @@ import { beforeAll2, beforeEach2, inlineErrorCause, sequelize, setResetMode } fr
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
-const invalidWhereError = new Error('Invalid value received for the "where" option.');
-const notSupportedErrorWithUnquote = new Error(`JSON Paths are not supported in ${dialectName} without unquoting the JSON value.`);
 
 /**
  * Whether the current dialect supports comparing JSON to JSON directly.
  * In dialects like postgres, no "json = json" operator exists, we need to cast to text first.
  * It does however support "jsonb = jsonb".
  */
-const dialectSupportsJsonEquality = ['sqlite', 'mysql', 'mariadb'].includes(dialectName);
+const dialectSupportsJsonEquality = ['sqlite', 'mysql', 'mariadb', 'mssql'].includes(dialectName);
 
 describe('JSON Manipulation', () => {
   if (!dialect.supports.dataTypes.JSON) {
@@ -122,16 +120,6 @@ describe('JSON Querying', () => {
 
       expect(user).to.exist;
     });
-  } else if (dialectName === 'mssql') {
-    it('should not be able to compare JSON to JSON directly', async () => {
-      const user = await vars.User.findOne({
-        where: {
-          stringJsonAttr: JSON_STRING,
-        },
-      });
-
-      expect(user).to.not.exist;
-    });
   } else {
     it('should not be able to compare JSON to JSON directly', async () => {
       await expect(vars.User.findOne({
@@ -168,9 +156,9 @@ describe('JSON Querying', () => {
     expect(posts[0].metaOldJSONtype).to.equal(posts[0].metaNewJSONtype);
   });
 
-  if (dialect.supports.jsonOperations) {
-    it('should be able to retrieve element of array by index', async () => {
-      try {
+  describe('JSON quoted', () => {
+    if (dialect.supports.jsonExtraction.quoted) {
+      it('should be able to retrieve element of array by index', async () => {
         const user = await vars.User.findOne({
           attributes: [[sql.attribute('objectJsonAttr.phones[1]'), 'firstEmergencyNumber']],
           rejectOnEmpty: true,
@@ -179,79 +167,34 @@ describe('JSON Querying', () => {
         // @ts-expect-error -- typings are not currently designed to handle custom attributes
         const firstNumber: string = user.getDataValue('firstEmergencyNumber');
 
-        if (dialectName === 'mssql') {
-          expect.fail();
-        } else {
-          expect(Number.parseInt(firstNumber, 10)).to.equal(42);
-        }
-      } catch (error) {
-        if (dialectName === 'mssql') {
-          expect(inlineErrorCause(error)).to.equal(notSupportedErrorWithUnquote.message);
-        } else {
-          throw error;
-        }
-      }
-    });
+        expect(Number.parseInt(firstNumber, 10)).to.equal(42);
+      });
 
-    it('should be able to query using JSON path objects', async () => {
-      // JSON requires casting to text in postgres. There is no "json = json" operator
-      // No-cast version is tested higher up in this suite
-      const comparison = dialectName === 'postgres' ? { 'name::text': '"swen"' } : { name: 'swen' };
+      it('should be able to query using JSON path objects', async () => {
+        // JSON requires casting to text in postgres. There is no "json = json" operator
+        // No-cast version is tested higher up in this suite
+        const comparison = dialectName === 'postgres' ? { 'name::text': '"swen"' } : { name: 'swen' };
 
-      try {
         const user = await vars.User.findOne({
           where: { objectJsonAttr: comparison },
         });
 
-        if (dialectName === 'mssql') {
-          expect.fail();
-        } else {
-          expect(user).to.exist;
-        }
-      } catch (error) {
-        if (dialectName === 'mssql') {
-          expect(inlineErrorCause(error)).to.include(invalidWhereError.message);
-        } else {
-          throw error;
-        }
-      }
-    });
+        expect(user).to.exist;
+      });
 
-    it('should be able to query using JSON path dot notation', async () => {
-      // JSON requires casting to text in postgres. There is no "json = json" operator
-      // No-cast version is tested higher up in this suite
-      const comparison = dialectName === 'postgres' ? { 'objectJsonAttr.name::text': '"swen"' } : { 'objectJsonAttr.name': 'swen' };
+      it('should be able to query using JSON path dot notation', async () => {
+        // JSON requires casting to text in postgres. There is no "json = json" operator
+        // No-cast version is tested higher up in this suite
+        const comparison = dialectName === 'postgres' ? { 'objectJsonAttr.name::text': '"swen"' } : { 'objectJsonAttr.name': 'swen' };
 
-      try {
         const user = await vars.User.findOne({
           where: comparison,
         });
 
-        if (dialectName === 'mssql') {
-          expect.fail();
-        } else {
-          expect(user).to.exist;
-        }
-      } catch (error) {
-        if (dialectName === 'mssql') {
-          expect(inlineErrorCause(error)).to.include(invalidWhereError.message);
-        } else {
-          throw error;
-        }
-      }
-    });
-
-    it('should be able to query using the JSON unquote syntax', async () => {
-      const user = await vars.User.findOne({
-        // JSON unquote does not require casting to text, as it already returns text
-        where: { 'objectJsonAttr.name:unquote': 'swen' },
+        expect(user).to.exist;
       });
 
-      expect(user).to.exist;
-    });
-
-    it('should be able retrieve json value with nested include', async () => {
-      try {
+      it('should be able retrieve json value with nested include', async () => {
         const orders = await vars.Order.findAll({
           attributes: ['id'],
           include: [{
@@ -267,21 +210,56 @@ describe('JSON Querying', () => {
         // so for now the output is different in this specific case
         const expectedResult = dialectName === 'mariadb' && semver.lt(sequelize.getDatabaseVersion(), '10.4.3') ? '"swen"' : 'swen';
 
-        if (dialectName === 'mssql') {
-          expect.fail();
-        } else {
-          // @ts-expect-error -- getDataValue does not support custom attributes
-          expect(orders[0].user.getDataValue('name')).to.equal(expectedResult);
-        }
-      } catch (error) {
-        if (dialectName === 'mssql') {
-          expect(inlineErrorCause(error)).to.equal(notSupportedErrorWithUnquote.message);
-        } else {
-          throw error;
-        }
-      }
-    });
-  }
+        // @ts-expect-error -- getDataValue does not support custom attributes
+        expect(orders[0].user.getDataValue('name')).to.equal(expectedResult);
+      });
+    }
+  });
+
+  describe('JSON unquoted', () => {
+    if (dialect.supports.jsonExtraction.unquoted) {
+      it('should be able to retrieve element of array by index', async () => {
+        const user = await vars.User.findOne({
+          attributes: [[sql.attribute('objectJsonAttr.phones[1]:unquote'), 'firstEmergencyNumber']],
+          rejectOnEmpty: true,
+        });
+
+        // @ts-expect-error -- typings are not currently designed to handle custom attributes
+        const firstNumber: string = user.getDataValue('firstEmergencyNumber');
+
+        expect(Number.parseInt(firstNumber, 10)).to.equal(42);
+      });
+
+      it('should be able to query using JSON path dot notation', async () => {
+        const user = await vars.User.findOne({
+          // JSON unquote does not require casting to text, as it already returns text
+          where: { 'objectJsonAttr.name:unquote': 'swen' },
+        });
+
+        expect(user).to.exist;
+      });
+
+      it('should be able retrieve json value with nested include', async () => {
+        const orders = await vars.Order.findAll({
+          attributes: ['id'],
+          include: [{
+            model: vars.User,
+            attributes: [
+              [sql.attribute('objectJsonAttr.name:unquote'), 'name'],
+            ],
+          }],
+        });
+
+        // we can't automatically detect that the output is JSON type in mariadb < 10.4.3,
+        // and we don't yet support specifying (nor inferring) the type of custom attributes,
+        // so for now the output is different in this specific case
+        const expectedResult = dialectName === 'mariadb' && semver.lt(sequelize.getDatabaseVersion(), '10.4.3') ? '"swen"' : 'swen';
+
+        // @ts-expect-error -- getDataValue does not support custom attributes
+        expect(orders[0].user.getDataValue('name')).to.equal(expectedResult);
+      });
+    }
+  });
 });
 
 describe('JSON Casting', () => {

@@ -87,7 +87,7 @@ describe('Paranoid Model', () => {
     expect(count).to.equal(1);
   });
 
-  if (current.dialect.supports.jsonOperations) {
+  if (current.dialect.supports.jsonOperations && current.dialect.supports.jsonExtraction.quoted) {
     describe('JSON Operations', () => {
       before(function () {
         this.Model = this.sequelize.define('Model', {
@@ -114,47 +114,35 @@ describe('Paranoid Model', () => {
       });
 
       it('should soft delete with JSON condition', async function () {
-        try {
-          await this.Model.bulkCreate([{
-            name: 'One',
+        await this.Model.bulkCreate([{
+          name: 'One',
+          data: {
+            field: {
+              deep: true,
+            },
+          },
+        }, {
+          name: 'Two',
+          data: {
+            field: {
+              deep: false,
+            },
+          },
+        }]);
+
+        await this.Model.destroy({
+          where: {
             data: {
               field: {
                 deep: true,
               },
             },
-          }, {
-            name: 'Two',
-            data: {
-              field: {
-                deep: false,
-              },
-            },
-          }]);
+          },
+        });
 
-          await this.Model.destroy({
-            where: {
-              data: {
-                field: {
-                  deep: true,
-                },
-              },
-            },
-          });
-
-          if (dialectName === 'mssql') {
-            expect.fail();
-          } else {
-            const records = await this.Model.findAll();
-            expect(records.length).to.equal(1);
-            expect(records[0].get('name')).to.equal('Two');
-          }
-        } catch (error) {
-          if (dialectName === 'mssql') {
-            expect(Support.inlineErrorCause(error)).to.include(invalidWhereError.message);
-          } else {
-            throw error;
-          }
-        }
+        const records = await this.Model.findAll();
+        expect(records.length).to.equal(1);
+        expect(records[0].get('name')).to.equal('Two');
       });
     });
   }
