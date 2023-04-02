@@ -377,6 +377,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     if (nodeMajorVersion >= 12) {
       describe('stacktraces', () => {
+        Support.setResetMode('drop');
+
         beforeEach(async function () {
           this.UserVisit = this.sequelize.define('UserVisit', {
             userId: {
@@ -477,6 +479,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     }
 
     describe('rejections', () => {
+      Support.setResetMode('drop');
+
       it('reject if the query is not a string', async function () {
         // this is a legacy, removed signature
         await this.sequelize.query({ query: 'select ? as foo, ? as bar', values: [1, 2] }, { raw: true, replacements: [1, 2] })

@@ -20,6 +20,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('removeColumn', () => {
     describe('(without a schema)', () => {
+      Support.setResetMode('drop');
+
       beforeEach(async function () {
         await this.queryInterface.createTable('users', {
           id: {

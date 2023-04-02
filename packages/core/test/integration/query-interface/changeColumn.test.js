@@ -9,6 +9,8 @@ const { DataTypes } = require('@sequelize/core');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
+  Support.setResetMode('drop');
+
   beforeEach(async function () {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
