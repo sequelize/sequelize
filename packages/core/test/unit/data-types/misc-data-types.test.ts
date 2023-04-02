@@ -143,7 +143,7 @@ describe('DataTypes.JSON', () => {
       expectsql(queryGenerator.escape('string', { type: new DataTypes.JSON() }), {
         default: `'"string"'`,
         mysql: `CAST('"string"' AS JSON)`,
-        mssql: `N'string'`,
+        mssql: `N'"string"'`,
       });
     });
 

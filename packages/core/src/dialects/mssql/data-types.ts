@@ -2,7 +2,6 @@ import NodeUtil from 'node:util';
 import maxBy from 'lodash/maxBy';
 import { BaseError } from '../../errors/index.js';
 import type { Falsy } from '../../generic/falsy.js';
-import { isString } from '../../utils/check.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
@@ -200,14 +199,6 @@ export class DECIMAL extends BaseTypes.DECIMAL {
 export class JSON extends BaseTypes.JSON {
   // TODO: add constraint
   //  https://learn.microsoft.com/en-us/sql/t-sql/functions/isjson-transact-sql?view=sql-server-ver16
-
-  escape(value: any): string {
-    if (isString(value)) {
-      return this._getDialect().escapeString(value);
-    }
-
-    return super.escape(value);
-  }
 
   toBindableValue(value: any): string {
     return globalThis.JSON.stringify(value);
