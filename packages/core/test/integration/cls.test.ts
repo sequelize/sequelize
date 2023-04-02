@@ -7,15 +7,13 @@ import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-ris
 import {
   beforeAll2, createSequelizeInstance,
   prepareTransactionTest,
-  sequelize, setResetMode,
+  sequelize,
 } from './support';
 
 describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
   if (!sequelize.dialect.supports.transactions) {
     return;
   }
-
-  setResetMode('drop');
 
   const vars = beforeAll2(async () => {
     const clsSequelize = await prepareTransactionTest(createSequelizeInstance({
@@ -160,7 +158,6 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
 
   // reason for this test: https://github.com/sequelize/sequelize/issues/12973
   describe('Model Hook integration', () => {
-
     type Params<M extends Model> = {
       method: string,
       hooks: Array<keyof ModelHooks>,

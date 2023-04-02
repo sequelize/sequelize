@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 const _ = require('lodash');
 const promiseProps = require('p-props');
 
@@ -14,6 +14,8 @@ const sortById = function (a, b) {
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findAll', () => {
+    Support.setResetMode('drop');
+
     beforeEach(function () {
       this.fixtureA = async function () {
         const User = this.sequelize.define('User', {});

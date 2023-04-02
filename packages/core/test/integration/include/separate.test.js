@@ -13,6 +13,8 @@ const dialect = Support.getTestDialect();
 if (current.dialect.supports.groupedLimit) {
   describe(Support.getTestDialectTeaser('Include'), () => {
     describe('separate', () => {
+      Support.setResetMode('drop');
+
       it('should run a hasMany association in a separate query', async function () {
         const User = this.sequelize.define('User', {});
         const Task = this.sequelize.define('Task', {});

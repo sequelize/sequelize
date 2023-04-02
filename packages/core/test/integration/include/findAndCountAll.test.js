@@ -18,6 +18,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
   });
 
   describe('findAndCountAll', () => {
+    Support.setResetMode('drop');
+
     it('should be able to include two required models with a limit. Result rows should match limit.', async function () {
       const Project = this.sequelize.define('Project', { id: { type: DataTypes.INTEGER, primaryKey: true }, name: DataTypes.STRING(40) });
       const Task = this.sequelize.define('Task', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });

@@ -8,6 +8,7 @@ const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Paranoid'), () => {
+  Support.setResetMode('drop');
 
   beforeEach(async function () {
     const S = this.sequelize;

@@ -20,6 +20,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
   }
 
   describe('findAll', () => {
+    Support.setResetMode('drop');
+
     afterEach(async function () {
       await this.sequelize.dropSchema('account');
     });
@@ -1191,6 +1193,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
   });
 
   describe('findOne', () => {
+    Support.setResetMode('drop');
+
     it('should work with schemas', async function () {
       const UserModel = this.sequelize.define('User', {
         Id: {
