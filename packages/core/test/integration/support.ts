@@ -73,6 +73,14 @@ export function destroySequelizeAfterTest(sequelizeInstance: Sequelize): void {
   singleTestInstances.add(sequelizeInstance);
 }
 
+/**
+ * Creates a sequelize instance to use in transaction-related tests.
+ * You must dispose of this instance manually.
+ *
+ * If you're creating the instance within a test, consider using {@link createSingleTransactionalTestSequelizeInstance}.
+ *
+ * @param sequelizeOrOptions
+ */
 export async function createMultiTransactionalTestSequelizeInstance(
   sequelizeOrOptions: Sequelize | Options,
 ): Promise<Sequelize> {
@@ -100,6 +108,14 @@ export async function createMultiTransactionalTestSequelizeInstance(
   return createSequelizeInstance(sequelizeOptions);
 }
 
+/**
+ * Creates a sequelize instance to use in transaction-related tests.
+ * This instance will be disposed of after the current test.
+ *
+ * Can only be used within a test. For before/after hooks, use {@link createMultiTransactionalTestSequelizeInstance}.
+ *
+ * @param sequelizeOrOptions
+ */
 export async function createSingleTransactionalTestSequelizeInstance(
   sequelizeOrOptions: Sequelize | Options,
 ): Promise<Sequelize> {
@@ -194,7 +210,9 @@ Sequelize instances created inside of a test must be closed after the test.
 The following methods can be used to mark a sequelize instance for automatic disposal:
 - destroySequelizeAfterTest
 - createSingleTransactionalTestSequelizeInstance
-- createSingleTestSequelizeInstance`);
+- createSingleTestSequelizeInstance
+- sequelize.close()
+`);
   }
 });
 
