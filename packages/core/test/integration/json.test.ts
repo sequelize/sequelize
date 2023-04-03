@@ -7,7 +7,7 @@ import {
   beforeAll2,
   beforeEach2,
   inlineErrorCause,
-  sequelize, setResetMode,
+  sequelize,
 } from './support';
 
 const dialect = sequelize.dialect;
@@ -434,8 +434,6 @@ describe('JSONB Casting', () => {
   if (!dialect.supports.dataTypes.JSONB) {
     return;
   }
-
-  setResetMode('truncate');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {

@@ -146,6 +146,8 @@ describe('[POSTGRES Specific] DAO', () => {
   });
 
   describe('enums', () => {
+    Support.setResetMode('drop');
+
     it('should be able to create enums with escape values', async function () {
       const User = this.sequelize.define('UserEnums', {
         mood: DataTypes.ENUM('happy', 'sad', '1970\'s'),

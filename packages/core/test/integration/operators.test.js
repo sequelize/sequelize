@@ -10,6 +10,8 @@ const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Operators'), () => {
   describe('REGEXP', () => {
+    Support.setResetMode('drop');
+
     beforeEach(async function () {
       this.User = this.sequelize.define('user', {
         id: {
