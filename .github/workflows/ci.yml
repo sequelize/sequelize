@@ -128,7 +128,7 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-18.tar
       - name: Install TypeScript
-        run: yarn add typescript@~${{ matrix.ts-version }}
+        run: yarn add typescript@~${{ matrix.ts-version }} -W
       - name: Typing Tests
         run: yarn workspace @sequelize/core test-typings
   test-sqlite:
