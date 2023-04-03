@@ -164,13 +164,6 @@ class ConnectionManager extends AbstractConnectionManager {
         connection.connection.on('parameterStatus', parameterHandler);
       }
 
-      // Don't let a Postgres restart (or error) to take down the whole app
-      connection.on('error', error => {
-        debug(`connection error ${error.code || error.message}`);
-        connection._invalid = true;
-        this.pool.destroy(connection);
-      });
-
       connection.connect(err => {
         responded = true;
 
@@ -207,6 +200,13 @@ class ConnectionManager extends AbstractConnectionManager {
           resolve(connection);
         }
       });
+    });
+
+    // Don't let a Postgres restart (or error) to take down the whole app
+    connection.on('error', error => {
+      debug(`connection error ${error.code || error.message}`);
+      connection._invalid = true;
+      this.pool.destroy(connection);
     });
 
     let query = '';
