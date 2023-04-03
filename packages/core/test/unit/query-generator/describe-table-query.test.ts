@@ -81,10 +81,10 @@ describe('QueryGenerator#describeTableQuery', () => {
   });
 
   it('produces a query to describe a table from a model', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expectsql(() => queryGenerator.describeTableQuery(MyModel), {
-      default: 'SHOW FULL COLUMNS FROM [myModels];',
+      default: 'SHOW FULL COLUMNS FROM [MyModels];',
       postgres: `SELECT
         pk.constraint_type as "Constraint",
         c.column_name as "Field",
@@ -104,7 +104,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON pk.table_schema=c.table_schema
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
-        WHERE c.table_name = 'myModels' AND c.table_schema = 'public'`,
+        WHERE c.table_name = 'MyModels' AND c.table_schema = 'public'`,
       mssql: `SELECT
         c.COLUMN_NAME AS 'Name',
         c.DATA_TYPE AS 'Type',
@@ -133,14 +133,14 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
-        WHERE t.TABLE_NAME = N'myModels' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite: 'PRAGMA TABLE_INFO(`myModels`);',
+        WHERE t.TABLE_NAME = N'MyModels' AND t.TABLE_SCHEMA = N'dbo'`,
+      sqlite: 'PRAGMA TABLE_INFO(`MyModels`);',
       db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
         TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
         NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
         IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
         FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = 'myModels' AND TBCREATOR = USER;`,
+        WHERE TBNAME = 'MyModels' AND TBCREATOR = USER;`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -153,7 +153,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN QSYS2.SYSCST
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
-        AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myModels'`,
+        AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'MyModels'`,
     });
   });
 
@@ -382,7 +382,7 @@ describe('QueryGenerator#describeTableQuery', () => {
     });
   });
 
-  it('produces a query to describe a table with schema and custom schemaDelimiter argument', () => {
+  it('produces a query to describe a table with schema and custom delimiter argument', () => {
     // This test is only relevant for dialects that do not support schemas
     if (dialect.supports.schemas) {
       return;

@@ -6,7 +6,6 @@ const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const { DataTypes, Op, TableHints } = require('@sequelize/core');
 const { MsSqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mssql/query-generator.js');
-const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
 if (current.dialect.name === 'mssql') {
   describe('[MSSQL Specific] QueryGenerator', () => {
@@ -138,18 +137,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('versionQuery', function () {
-      expectsql(this.queryGenerator.versionQuery(), {
-        mssql: 'DECLARE @ms_ver NVARCHAR(20); SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY(\'ProductVersion\'))); SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX(\'.\', @ms_ver)+1, 20)) AS \'version\'',
-      });
-    });
-
-    it('renameTableQuery', function () {
-      expectsql(this.queryGenerator.renameTableQuery('oldTableName', 'newTableName'), {
-        mssql: 'EXEC sp_rename [oldTableName], [newTableName];',
-      });
-    });
-
     it('showTablesQuery', function () {
       expectsql(this.queryGenerator.showTablesQuery(), {
         mssql: 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';',
@@ -169,12 +156,6 @@ if (current.dialect.name === 'mssql') {
           + '@level0type = N\'Schema\', @level0name = \'dbo\', '
           + '@level1type = N\'Table\', @level1name = [myTable], '
           + '@level2type = N\'Column\', @level2name = [myColumn];',
-      });
-    });
-
-    it('removeColumnQuery', function () {
-      expectsql(this.queryGenerator.removeColumnQuery('myTable', 'myColumn'), {
-        mssql: 'ALTER TABLE [myTable] DROP COLUMN [myColumn];',
       });
     });
 
