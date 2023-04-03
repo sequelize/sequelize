@@ -151,13 +151,6 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
         connection.connection.on('parameterStatus', parameterHandler);
       }
 
-      // Don't let a Postgres restart (or error) to take down the whole app
-      connection.on('error', error => {
-        connection._invalid = true;
-        debug(`connection error ${(error as unknown as { code: string }).code || error.message}`);
-        void this.pool.destroy(connection);
-      });
-
       connection.connect(err => {
         responded = true;
 
@@ -197,6 +190,13 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
           resolve(connection);
         }
       });
+    });
+
+    // Don't let a Postgres restart (or error) to take down the whole app
+    connection.on('error', error => {
+      connection._invalid = true;
+      debug(`connection error ${(error as unknown as { code: string }).code || error.message}`);
+      void this.pool.destroy(connection);
     });
 
     let query = '';
