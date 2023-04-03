@@ -10,7 +10,6 @@ const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
-    this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
   });
 
@@ -100,6 +99,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     }
 
     describe('enums', () => {
+      Support.setResetMode('drop');
+
       it('should work with enums (1)', async function () {
         await this.queryInterface.createTable('SomeTable', {
           someEnum: DataTypes.ENUM('value1', 'value2', 'value3'),

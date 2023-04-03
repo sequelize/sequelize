@@ -12,7 +12,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   Support.setResetMode('drop');
 
   beforeEach(async function () {
-    this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
     await Support.dropTestSchemas(this.sequelize);
   });
