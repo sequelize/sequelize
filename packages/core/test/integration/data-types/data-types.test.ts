@@ -13,7 +13,7 @@ import type {
   ModelStatic,
 } from '@sequelize/core';
 import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
-import { beforeAll2, sequelize, setResetMode } from '../support';
+import { beforeAll2, sequelize } from '../support';
 import 'moment-timezone';
 
 dayjs.extend(DayjsTimezone);
@@ -337,8 +337,6 @@ describe('DataTypes', () => {
   });
 
   describe('CITEXT', () => {
-    setResetMode('drop');
-
     if (!dialect.supports.dataTypes.CITEXT) {
       it('throws, as it is not supported', async () => {
         expect(() => {
@@ -1420,8 +1418,6 @@ describe('DataTypes', () => {
   }
 
   describe('HSTORE', () => {
-    setResetMode('drop');
-
     if (!dialect.supports.dataTypes.HSTORE) {
       it('throws, as it is not supported', async () => {
         expect(() => {

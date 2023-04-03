@@ -85,6 +85,8 @@ if (dialect === 'mysql') {
       });
 
       describe('removeDAO', () => {
+        Support.setResetMode('drop');
+
         beforeEach(async function () {
           this.user = null;
           this.tasks = null;

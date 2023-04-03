@@ -10,6 +10,8 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'mariadb') {
   describe('[MariaDB Specific] DAO', () => {
+    Support.setResetMode('drop');
+
     beforeEach(async function () {
       this.sequelize.options.quoteIdentifiers = true;
       this.User = this.sequelize.define('User', {

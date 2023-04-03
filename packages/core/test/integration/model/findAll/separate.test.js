@@ -11,6 +11,8 @@ const current = Support.sequelize;
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
     describe('separate with limit', () => {
+      Support.setResetMode('drop');
+
       it('should not throw syntax error (union)', async () => {
         // #9813 testcase
         const Project = current.define('Project', { name: DataTypes.STRING });

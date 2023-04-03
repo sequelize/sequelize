@@ -10,6 +10,8 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connection Manager', () => {
+    Support.setResetMode('drop');
+
     it('-FOUND_ROWS can be suppressed to get back legacy behavior', async () => {
       const sequelize = Support.createSequelizeInstance({ dialectOptions: { flags: '' } });
       const User = sequelize.define('User', { username: DataTypes.STRING });
