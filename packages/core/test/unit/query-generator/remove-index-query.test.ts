@@ -86,10 +86,10 @@ describe('QueryGenerator#removeIndexQuery', () => {
   });
 
   it('produces a DROP INDEX query from a model', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expectsql(() => queryGenerator.removeIndexQuery(MyModel, 'user_foo_bar'), {
-      default: `DROP INDEX [user_foo_bar] ON [myModels]`,
+      default: `DROP INDEX [user_foo_bar] ON [MyModels]`,
       sqlite: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "user_foo_bar"`,

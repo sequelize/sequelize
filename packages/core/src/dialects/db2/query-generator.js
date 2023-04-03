@@ -105,7 +105,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
             const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
             commentStr += _.template(commentTemplate, this._templateSettings)({
               table: this.quoteTable(tableName),
-              comment: this.escape(commentText, { replacements: options.replacements }),
+              comment: this.escape(commentText),
               column: this.quoteIdentifier(attr),
             });
             // remove comment related substring from dataType
@@ -764,15 +764,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return _.template('ALTER TABLE <%= table %> DROP FOREIGN KEY <%= key %>;', this._templateSettings)({
       table: this.quoteTable(tableName),
       key: this.quoteIdentifier(foreignKey),
-    });
-  }
-
-  dropConstraintQuery(tableName, constraintName) {
-    const sql = 'ALTER TABLE <%= table %> DROP CONSTRAINT <%= constraint %>;';
-
-    return _.template(sql, this._templateSettings)({
-      table: this.quoteTable(tableName),
-      constraint: this.quoteIdentifier(constraintName),
     });
   }
 

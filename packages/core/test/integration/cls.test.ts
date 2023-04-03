@@ -6,9 +6,8 @@ import type { ModelStatic, InferAttributes, InferCreationAttributes } from '@seq
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import {
   beforeAll2, createSequelizeInstance,
-  disableDatabaseResetForSuite,
   prepareTransactionTest,
-  sequelize,
+  sequelize, setResetMode,
 } from './support';
 
 describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
@@ -16,7 +15,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
     return;
   }
 
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   const vars = beforeAll2(async () => {
     const clsSequelize = await prepareTransactionTest(createSequelizeInstance({
