@@ -124,7 +124,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
   });
 
   it('produces a query to get all foreign keys of a table from a model', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expectsql(() => queryGenerator.getForeignKeyQuery(MyModel), {
       default: notImplementedError,
@@ -139,7 +139,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         REFERENCED_TABLE_NAME as referencedTableName,
         REFERENCED_COLUMN_NAME as referencedColumnName
         FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
-        WHERE TABLE_NAME = 'myModels'
+        WHERE TABLE_NAME = 'MyModels'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
       postgres: `WITH unnested_pg_constraint AS (
@@ -172,7 +172,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         "referenced_column".attnum = "constraint".confkey AND
         "referenced_column".attrelid = "constraint".confrelid
         WHERE "constraint".contype = 'f'
-        AND "table".relname = 'myModels'
+        AND "table".relname = 'MyModels'
         AND table_schema.nspname = 'public'`,
       mssql: `SELECT OBJ.NAME AS 'constraintName',
         N'sequelize_test' AS 'constraintCatalog',
@@ -198,16 +198,16 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         INNER JOIN sys.columns RCOL
         ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID
         AND RCOL.OBJECT_ID = RTB.OBJECT_ID
-        WHERE TB.NAME = N'myModels'
+        WHERE TB.NAME = N'MyModels'
         AND SCHEMA_NAME(TB.SCHEMA_ID) = N'dbo'`,
       sqlite: `SELECT id as \`constraintName\`,
-        'myModels' as \`tableName\`,
+        'MyModels' as \`tableName\`,
         pragma.\`from\` AS \`columnName\`,
         pragma.\`table\` AS \`referencedTableName\`,
         pragma.\`to\` AS \`referencedColumnName\`,
         pragma.\`on_update\`,
         pragma.\`on_delete\`
-        FROM pragma_foreign_key_list('myModels') AS pragma;`,
+        FROM pragma_foreign_key_list('MyModels') AS pragma;`,
       db2: `SELECT R.CONSTNAME AS "constraintName",
         TRIM(R.TABSCHEMA) AS "constraintSchema",
         R.TABNAME AS "tableName",
@@ -219,7 +219,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
-        AND R.TABNAME = 'myModels'
+        AND R.TABNAME = 'MyModels'
         AND R.TABSCHEMA = CURRENT SCHEMA
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
@@ -236,7 +236,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         FKCOLUMN_NAME AS "columnName"
         FROM SYSIBM.SQLFOREIGNKEYS
         WHERE FKTABLE_SCHEM = CURRENT SCHEMA
-        AND FKTABLE_NAME = 'myModels'`,
+        AND FKTABLE_NAME = 'MyModels'`,
     });
   });
 

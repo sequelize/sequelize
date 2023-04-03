@@ -187,7 +187,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   }
 
   showTablesQuery() {
-    return `SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "schema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = 'T' ORDER BY TABSCHEMA, TABNAME`;
+    return 'SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = \'T\' ORDER BY TABSCHEMA, TABNAME';
   }
 
   tableExistsQuery(table) {
@@ -745,19 +745,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
   renameFunction() {
     throwMethodUndefined('renameFunction');
-  }
-
-  getPrimaryKeyConstraintQuery(table, attributeName) {
-    const tableName = wrapSingleQuote(table.tableName || table);
-
-    return [
-      'SELECT TABNAME AS "tableName",',
-      'COLNAME AS "columnName",',
-      'CONSTNAME AS "constraintName"',
-      'FROM SYSCAT.KEYCOLUSE WHERE CONSTNAME LIKE \'PK_%\'',
-      `AND COLNAME = ${wrapSingleQuote(attributeName)}`,
-      `AND TABNAME = ${tableName};`,
-    ].join(' ');
   }
 
   dropForeignKeyQuery(tableName, foreignKey) {

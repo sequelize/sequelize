@@ -363,17 +363,6 @@ if (dialect === 'sqlite') {
             + 'DROP TABLE `myTable_backup`;',
         },
       ],
-      removeColumnQuery: [
-        {
-          title: 'Properly quotes column names',
-          arguments: ['myTable', { commit: 'VARCHAR(255)', bar: 'VARCHAR(255)' }],
-          expectation:
-            'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;'
-            + 'DROP TABLE `myTable`;'
-            + 'ALTER TABLE `myTable_backup` RENAME TO `myTable`;',
-        },
-      ],
       foreignKeyCheckQuery: [
         {
           title: 'Properly quotes table names',

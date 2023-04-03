@@ -158,11 +158,5 @@ if (current.dialect.name === 'mssql') {
           + '@level2type = N\'Column\', @level2name = [myColumn];',
       });
     });
-
-    it('removeColumnQuery', function () {
-      expectsql(this.queryGenerator.removeColumnQuery('myTable', 'myColumn'), {
-        mssql: 'ALTER TABLE [myTable] DROP COLUMN [myColumn];',
-      });
-    });
   });
 }
