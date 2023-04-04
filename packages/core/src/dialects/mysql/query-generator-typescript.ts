@@ -64,10 +64,8 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return joinSQLFragments([
       'SELECT CONSTRAINT_NAME as constraintName,',
       'CONSTRAINT_SCHEMA as constraintSchema,',
-      'CONSTRAINT_CATALOG as constraintCatalog,',
       'TABLE_NAME as tableName,',
       'TABLE_SCHEMA as tableSchema,',
-      'TABLE_CATALOG as tableCatalog,',
       'COLUMN_NAME as columnName,',
       'REFERENCED_TABLE_SCHEMA as referencedTableSchema,',
       'REFERENCED_TABLE_NAME as referencedTableName,',
