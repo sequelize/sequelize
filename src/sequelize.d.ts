@@ -722,7 +722,7 @@ export class Sequelize extends Hooks {
 
 
   /**
-   * A hook that is run before a connection to the pool
+   * A hook that is run before attempting to acquire a connection from the pool
    *
    * @param name
    * @param fn   A callback function that is called with options
@@ -731,7 +731,7 @@ export class Sequelize extends Hooks {
   public static beforePoolAcquire(fn: (options: GetConnectionOptions) => void): void;
 
   /**
-   * A hook that is run after a connection to the pool
+   * A hook that is run after successfully acquiring a connection from the pool
    *
    * @param name
    * @param fn   A callback function that is called with options
