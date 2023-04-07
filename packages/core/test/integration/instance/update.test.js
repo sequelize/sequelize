@@ -476,4 +476,33 @@ describe('Model#update', () => {
     await user.update({ username: 'yolo' }, { logging: spy });
     expect(spy.called).to.be.ok;
   });
+
+  it('supports falsy primary keys', async () => {
+    const Book = current.define('Book', {
+      id: {
+        type: DataTypes.INTEGER,
+        // must have autoIncrement disabled, as mysql treats 0 as "generate next value"
+        autoIncrement: false,
+        primaryKey: true,
+      },
+      title: { type: DataTypes.STRING },
+    });
+
+    await Book.sync();
+
+    const title1 = 'title 1';
+    const title2 = 'title 2';
+
+    const book1 = await Book.create({ id: 0, title: title1 }, { logging: console.log });
+    expect(book1.id).to.equal(0);
+    expect(book1.title).to.equal(title1);
+
+    const book2 = await Book.findByPk(0, { rejectOnEmpty: true });
+    expect(book2.id).to.equal(0);
+    expect(book2.title).to.equal(title1);
+
+    await book2.update({ title: title2 });
+    expect(book2.id).to.equal(0);
+    expect(book2.title).to.equal(title2);
+  });
 });

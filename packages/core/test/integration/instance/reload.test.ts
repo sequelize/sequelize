@@ -272,16 +272,16 @@ describe('Model#reload', () => {
         const transactionSequelize = await createSingleTransactionalTestSequelizeInstance(sequelize);
 
         class User extends Model<InferAttributes<User>> {
-              @Attribute(DataTypes.STRING)
-              @NotNull
+          @Attribute(DataTypes.STRING)
+          @NotNull
           declare username: string;
         }
 
         transactionSequelize.addModels([User]);
 
-        await User.sync({ force: true });
+        await transactionSequelize.sync({ force: true });
         const user = await User.create({ username: 'foo' });
-        const t = await sequelize.startUnmanagedTransaction();
+        const t = await transactionSequelize.startUnmanagedTransaction();
         try {
           await User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t });
           const user1 = await user.reload();

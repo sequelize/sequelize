@@ -124,25 +124,6 @@ describe('Model#save', () => {
       expect(reloadedBook.publishedAt).not.to.equal(date);
     });
 
-    it('supports falsy primary keys', async () => {
-      const { Book } = vars;
-
-      const title1 = 'title 1';
-      const title2 = 'title 2';
-
-      const book1 = await Book.create({ id: 0, title: title1 });
-      expect(book1.id).to.equal(0);
-      expect(book1.title).to.equal(title1);
-
-      const book2 = await Book.findByPk(0, { rejectOnEmpty: true });
-      expect(book2.id).to.equal(0);
-      expect(book2.title).to.equal(title1);
-
-      await book2.update({ title: title2 });
-      expect(book2.id).to.equal(0);
-      expect(book2.title).to.equal(title2);
-    });
-
     it('sets the timestamps on insert', async () => {
       const { Book, clock } = vars;
 
