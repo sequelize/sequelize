@@ -476,24 +476,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: {
             type: DataTypes.STRING,
             unique: true,
-            field: 'user_name',
+            columnName: 'user_name',
           },
         });
 
         User.beforeCreate(instance => {
-          instance.set('username', instance.get('username').trim());
+          instance.username += ' h.';
         });
 
         const spy = sinon.spy();
 
         const names = [
-          'mick ',
-          'mick ',
-          'mick ',
-          'mick ',
-          'mick ',
-          'mick ',
-          'mick ',
+          'mick',
+          'mick',
+          'mick',
+          'mick',
+          'mick',
+          'mick',
+          'mick',
         ];
 
         await User.sync({ force: true });
@@ -504,7 +504,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return await User.findOrCreate({ where: { username } });
             } catch (error) {
               spy();
-              expect(error.message).to.equal('user#findOrCreate: value used for username was not equal for both the find and the create calls, \'mick \' vs \'mick\'');
+              expect(error.message).to.equal('user#findOrCreate: value used for username was not equal for both the find and the create calls, \'mick\' vs \'mick h.\'');
             }
           }),
         );
