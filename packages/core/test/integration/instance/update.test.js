@@ -53,7 +53,7 @@ describe('Model#update', () => {
     await this.User.sync({ force: true });
   });
 
-  describe('Fake Timers Suite', () => {
+  context('Fake Timers Suite', () => {
     before(function () {
       this.clock = sinon.useFakeTimers();
     });
@@ -298,6 +298,46 @@ describe('Model#update', () => {
       expect(user.get('name')).to.equal('B');
       expect(user.get('bio')).to.equal('B');
       expect(user.get('email')).to.equal('C');
+    });
+
+    it('should work on a model with an attribute named length', async function () {
+      const Box = this.sequelize.define('box', {
+        length: DataTypes.INTEGER,
+        width: DataTypes.INTEGER,
+        height: DataTypes.INTEGER,
+      });
+
+      await Box.sync({ force: true });
+
+      const box0 = await Box.create({
+        length: 1,
+        width: 2,
+        height: 3,
+      });
+
+      await box0.update({
+        length: 4,
+        width: 5,
+        height: 6,
+      });
+
+      const box = await Box.findOne({});
+      expect(box.get('length')).to.equal(4);
+      expect(box.get('width')).to.equal(5);
+      expect(box.get('height')).to.equal(6);
+    });
+
+    it('runs validation', async function () {
+      const user = await this.User.create({ aNumber: 0 });
+
+      const error = await expect(user.update({ validateTest: 'hello' })).to.be.rejectedWith(Sequelize.ValidationError);
+
+      expect(error).to.exist;
+      expect(error).to.be.instanceof(Object);
+      expect(error.get('validateTest')).to.exist;
+      expect(error.get('validateTest')).to.be.instanceof(Array);
+      expect(error.get('validateTest')[1]).to.exist;
+      expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
     });
 
     it('should validate attributes added in hooks when default fields are used', async function () {

@@ -46,6 +46,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     return this.customSequelize.close();
   });
 
+  // TODO: move to own suite
   describe('findOrCreate', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
@@ -589,6 +590,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
   });
 
+  // TODO: move to own suite
   describe('findCreateFind', () => {
     if (dialectName !== 'sqlite') {
       it('[Flaky] should work with multiple concurrent calls', async function () {
@@ -686,6 +688,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(error).to.be.ok;
         expect(error).to.be.an.instanceof(Error);
       }
+    });
+
+    it('runs validation', async function () {
+      const User = this.customSequelize.define('User', {
+        email: {
+          type: DataTypes.STRING,
+          validate: {
+            isEmail: true,
+          },
+        },
+      });
+
+      const error = await expect(User.create({ email: 'invalid' })).to.be.rejectedWith(Sequelize.ValidationError);
+      expect(error.get('email')).to.be.instanceof(Array);
+      expect(error.get('email')[0]).to.exist;
+      expect(error.get('email')[0].message).to.equal('Validation isEmail on email failed');
     });
 
     it('works without any primary key', async function () {

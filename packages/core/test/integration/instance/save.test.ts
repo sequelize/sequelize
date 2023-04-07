@@ -254,6 +254,83 @@ describe('Model#save', () => {
         expect(book1.pages).to.exist;
         expect(book1.pages!.length).to.equal(2);
     });
+
+    describe('hooks', () => {
+      it('should update attributes added in hooks when default fields are used', async () => {
+        const { Book } = vars;
+
+        const unhook = Book.hooks.addListener('beforeUpdate', instance => {
+          instance.set('title', 'B');
+        });
+
+        try {
+          const book0 = await Book.create({
+            title: 'A',
+            integer1: 1,
+          });
+
+          await book0.set({
+            integer1: 2,
+          }).save();
+
+          const book = await Book.findOne({ rejectOnEmpty: true });
+          expect(book.get('title')).to.equal('B');
+          expect(book.get('integer1')).to.equal(2);
+        } finally {
+          unhook();
+        }
+      });
+
+      it('should update attributes changed in hooks when default fields are used', async () => {
+        const { Book } = vars;
+
+        const unhook = Book.hooks.addListener('beforeUpdate', instance => {
+          instance.set('email', 'C');
+        });
+
+        try {
+          const book0 = await Book.create({
+            title: 'A',
+            integer1: 1,
+          });
+
+          await book0.set({
+            title: 'B',
+            integer1: 2,
+          }).save();
+
+          const book = await Book.findOne({ rejectOnEmpty: true });
+          expect(book.get('title')).to.equal('B');
+          expect(book.get('integer1')).to.equal(2);
+        } finally {
+          unhook();
+        }
+      });
+
+      it('validates attributes changed in hooks', async () => {
+        const { Book } = vars;
+
+        // validateTest
+        const unhook = Book.hooks.addListener('beforeUpdate', instance => {
+          instance.set('validateTest', 'B');
+        });
+
+        try {
+          const book0 = await Book.create({
+            validateTest: 1,
+          });
+
+          await expect(book0.set({
+            title: 'new title',
+          }).save()).to.be.rejectedWith(ValidationError);
+
+          const book = await Book.findOne({ rejectOnEmpty: true });
+          expect(book.get('validateTest')).to.equal(1);
+        } finally {
+          unhook();
+        }
+      });
+    });
   });
 
   context('test-specific models', () => {

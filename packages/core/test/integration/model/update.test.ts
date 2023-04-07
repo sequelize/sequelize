@@ -166,8 +166,32 @@ describe('Model.update', () => {
       expect(users[2].updatedAt).to.equalTime(updatedAt);
     });
 
+    it('does not update timestamps when passing silent=true in a bulk update', async () => {
+      const { User, clock } = vars;
+
+      await User.bulkCreate([
+        { username: 'Paul' },
+        { username: 'Peter' },
+      ]);
+
+      const users0 = await User.findAll();
+      const updatedAtPaul = users0[0].updatedAt;
+      const updatedAtPeter = users0[1].updatedAt;
+      clock.tick(150);
+
+      await User.update(
+        { username: 'John' },
+        { where: {}, silent: true },
+      );
+
+      const users = await User.findAll();
+      expect(users[0].updatedAt).to.equalTime(updatedAtPeter);
+      expect(users[1].updatedAt).to.equalTime(updatedAtPaul);
+    });
+
     it('returns the number of affected rows', async () => {
       const { User } = vars;
+
       await User.bulkCreate([
         { username: 'Peter' },
         { username: 'Paul' },
