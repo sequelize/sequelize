@@ -809,32 +809,10 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return this._getForeignKeysQuerySQL(sql);
   }
 
-  getPrimaryKeyConstraintQuery(table, attributeName) {
-    const tableName = wrapSingleQuote(table.tableName || table);
-
-    return [
-      'SELECT TABNAME AS "tableName",',
-      'COLNAME AS "columnName",',
-      'CONSTNAME AS "constraintName"',
-      'FROM SYSCAT.KEYCOLUSE WHERE CONSTNAME LIKE \'PK_%\'',
-      `AND COLNAME = ${wrapSingleQuote(attributeName)}`,
-      `AND TABNAME = ${tableName};`,
-    ].join(' ');
-  }
-
   dropForeignKeyQuery(tableName, foreignKey) {
     return _.template('ALTER TABLE <%= table %> DROP FOREIGN KEY <%= key %>;', this._templateSettings)({
       table: this.quoteTable(tableName),
       key: this.quoteIdentifier(foreignKey),
-    });
-  }
-
-  dropConstraintQuery(tableName, constraintName) {
-    const sql = 'ALTER TABLE <%= table %> DROP CONSTRAINT <%= constraint %>;';
-
-    return _.template(sql, this._templateSettings)({
-      table: this.quoteTable(tableName),
-      constraint: this.quoteIdentifier(constraintName),
     });
   }
 

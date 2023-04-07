@@ -4,13 +4,13 @@ import { sequelize } from '../../support';
 
 describe('isModelStatic', () => {
   it('returns true for model subclasses', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expect(isModelStatic(MyModel)).to.be.true;
   });
 
   it('returns false for model instances', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expect(isModelStatic(MyModel.build())).to.be.false;
   });
@@ -26,7 +26,7 @@ describe('isModelStatic', () => {
 
 describe('isSameInitialModel', () => {
   it('returns true if both models have the same initial model', () => {
-    const MyModel = sequelize.define('myModel', {}, {
+    const MyModel = sequelize.define('MyModel', {}, {
       scopes: {
         scope1: {
           where: { id: 1 },
@@ -40,9 +40,9 @@ describe('isSameInitialModel', () => {
   });
 
   it('returns false if the models are different', () => {
-    const MyModel1 = sequelize.define('myModel1', {});
+    const MyModel1 = sequelize.define('MyModel1', {});
 
-    const MyModel2 = sequelize.define('myModel2', {});
+    const MyModel2 = sequelize.define('MyModel2', {});
 
     expect(
       isSameInitialModel(MyModel1, MyModel2),
