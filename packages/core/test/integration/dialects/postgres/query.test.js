@@ -63,7 +63,7 @@ if (dialect.startsWith('postgres')) {
       const options = { ...this.sequelize.options, minifyAliases: true };
 
       await executeTest(options, async (db, predicate) => {
-        expect((await db.User.findOne(predicate))[taskAlias].title).to.be.equal('SuperTask');
+        expect((await db.User.findOne(predicate))[taskAlias].title).to.equal('SuperTask');
       });
     });
 
@@ -91,7 +91,7 @@ if (dialect.startsWith('postgres')) {
             as: sponsorAlias,
           },
         ];
-        expect((await db.User.findOne(predicate))[teamAlias][0][sponsorAlias][0].name).to.be.equal('Company');
+        expect((await db.User.findOne(predicate))[teamAlias][0][sponsorAlias][0].name).to.equal('Company');
       });
     });
 

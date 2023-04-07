@@ -308,8 +308,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const binaryRetrieved = await user.getBinary();
           expect(binaryRetrieved.id).to.have.length(16);
           expect(_binaryRetrieved.id).to.have.length(16);
-          expect(binaryRetrieved.id.toString()).to.be.equal(buf1.toString());
-          expect(_binaryRetrieved.id.toString()).to.be.equal(buf2.toString());
+          expect(binaryRetrieved.id.toString()).to.equal(buf1.toString());
+          expect(_binaryRetrieved.id.toString()).to.equal(buf2.toString());
         });
       }
 
@@ -543,7 +543,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(users).to.have.length(1);
-        expect(users[0].get('username')).to.be.equal('W.I.L.D C.A.R.D');
+        expect(users[0].get('username')).to.equal('W.I.L.D C.A.R.D');
       });
 
       describe('belongsTo', () => {

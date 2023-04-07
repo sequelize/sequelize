@@ -1183,7 +1183,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await User.sync({ force: true });
       const user = await User.create({ big: '9223372036854775807' });
-      expect(user.big).to.be.equal('9223372036854775807');
+      expect(user.big).to.equal('9223372036854775807');
     });
 
     it('sets auto increment fields', async function () {
@@ -1523,8 +1523,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       const user = await User.create({ name: 'FooBar' });
 
-      expect(user.name).to.be.equal('FooBar');
-      expect(user.code).to.be.equal(2020);
+      expect(user.name).to.equal('FooBar');
+      expect(user.code).to.equal(2020);
     });
   }
 });

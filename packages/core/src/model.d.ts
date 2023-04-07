@@ -2950,6 +2950,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * If changed is called without an argument and no keys have changed, it will return `false`.
    */
+  // TODO: split this method into:
+  //  - hasChanges(): boolean;
+  //  - getChanges(): string[];
+  //  - isDirty(key: string): boolean;
+  //  - setDirty(key: string, dirty: boolean = true): void;
   changed<K extends keyof this>(key: K): boolean;
   changed<K extends keyof this>(key: K, dirty: boolean): void;
   changed(): false | string[];
@@ -2981,7 +2986,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * return a new instance. With this method, all references to the Instance are updated with the new data
    * and no new objects are created.
    */
-  reload(options?: FindOptions<TModelAttributes>): Promise<this>;
+  reload(options?: Omit<FindOptions<TModelAttributes>, 'where'>): Promise<this>;
 
   /**
    * Runs all validators defined for this model, including non-null validators, DataTypes validators, custom attribute validators and model-level validators.

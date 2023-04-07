@@ -180,7 +180,7 @@ afterEach('database reset', async () => {
         break;
 
       case 'destroy':
-        await sequelizeInstance.destroyAll({ cascade: true });
+        await sequelizeInstance.destroyAll({ cascade: true, force: true });
         break;
 
       default:

@@ -16,13 +16,13 @@ function assertSameConnection(newConnection: Connection, oldConnection: Connecti
   switch (dialect) {
     case 'postgres':
       // @ts-expect-error -- processID not declared yet
-      expect(oldConnection.processID).to.be.equal(newConnection.processID).and.to.be.ok;
+      expect(oldConnection.processID).to.equal(newConnection.processID).and.to.be.ok;
       break;
 
     case 'mariadb':
     case 'mysql':
       // @ts-expect-error -- threadId not declared yet
-      expect(oldConnection.threadId).to.be.equal(newConnection.threadId).and.to.be.ok;
+      expect(oldConnection.threadId).to.equal(newConnection.threadId).and.to.be.ok;
       break;
 
     case 'db2':

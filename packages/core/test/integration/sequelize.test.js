@@ -548,7 +548,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               if (typeof optionValue === 'function' && optionValue() instanceof DataTypes.ABSTRACT) {
                 expect(Picture.getAttributes()[attribute][option] instanceof optionValue).to.be.ok;
               } else {
-                expect(Picture.getAttributes()[attribute][option]).to.be.equal(optionValue);
+                expect(Picture.getAttributes()[attribute][option]).to.equal(optionValue);
               }
             }
           }

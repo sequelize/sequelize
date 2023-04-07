@@ -82,7 +82,7 @@ describe('[ABSTRACT]', () => {
 
       const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
 
-      expect(result.length).to.be.equal(1);
+      expect(result.length).to.equal(1);
 
       expect(result[0]).to.have.property('id').and.be.equal('a');
       expect(result[0].agents).to.be.deep.equal([
@@ -162,7 +162,7 @@ describe('[ABSTRACT]', () => {
 
       const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
 
-      expect(result.length).to.be.equal(1);
+      expect(result.length).to.equal(1);
 
       expect(result[0]).to.have.property('id').and.be.equal('a');
       expect(result[0].agents).to.be.deep.equal([
@@ -237,7 +237,7 @@ describe('[ABSTRACT]', () => {
 
       const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
 
-      expect(result.length).to.be.equal(2);
+      expect(result.length).to.equal(2);
 
       expect(result[0]).to.have.property('uuid').and.be.equal(teamOneUuid);
       expect(result[0].players).to.be.deep.equal([
@@ -314,7 +314,7 @@ describe('[ABSTRACT]', () => {
 
       const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
 
-      expect(result.length).to.be.equal(2);
+      expect(result.length).to.equal(2);
 
       expect(result[0]).to.have.property('uuid').and.be.equal(teamOneUuid);
       expect(result[0].players).to.be.deep.equal([
@@ -385,7 +385,7 @@ describe('[ABSTRACT]', () => {
 
       const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
 
-      expect(result.length).to.be.equal(1);
+      expect(result.length).to.equal(1);
 
       expect(result[0]).to.have.property('id').and.be.equal('1');
       expect(result[0].players).to.be.deep.equal([
@@ -455,7 +455,7 @@ describe('[ABSTRACT]', () => {
 
       const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
 
-      expect(result.length).to.be.equal(1);
+      expect(result.length).to.equal(1);
 
       expect(result[0]).to.have.property('id').and.be.equal('1');
       expect(result[0].players).to.be.deep.equal([

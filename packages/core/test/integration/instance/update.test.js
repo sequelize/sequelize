@@ -88,6 +88,21 @@ describe('Model#update', () => {
       expect(user.get('createdAt')).to.equalTime(testDate);
     });
 
+    it('does not update timestamps when option "silent=true" is used', async function () {
+      const user = await this.User.create({ username: 'user' });
+      const updatedAt = user.updatedAt;
+
+      this.clock.tick(1000);
+
+      await user.update({
+        username: 'userman',
+      }, {
+        silent: true,
+      });
+
+      expect(user.updatedAt).to.equalTime(updatedAt);
+    });
+
     it(`doesn't update primary keys or timestamps`, async function () {
       const User = this.sequelize.define(`User${Support.rand()}`, {
         name: DataTypes.STRING,
@@ -199,7 +214,7 @@ describe('Model#update', () => {
     });
 
     expect(user.changed('validateTest')).to.be.ok;
-    expect(user.validateTest).to.be.equal(5);
+    expect(user.validateTest).to.equal(5);
     await user.reload();
     expect(user.validateTest).to.not.be.equal(5);
   });
@@ -207,9 +222,9 @@ describe('Model#update', () => {
   it('should save attributes affected by setters', async function () {
     const user = await this.User.create();
     await user.update({ validateSideEffect: 5 });
-    expect(user.validateSideEffect).to.be.equal(5);
+    expect(user.validateSideEffect).to.equal(5);
     await user.reload();
-    expect(user.validateSideAffected).to.be.equal(10);
+    expect(user.validateSideAffected).to.equal(10);
     expect(user.validateSideEffect).not.to.be.ok;
   });
 

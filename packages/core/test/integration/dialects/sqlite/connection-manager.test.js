@@ -35,9 +35,9 @@ if (dialect === 'sqlite') {
         return User.create({ username: 'user2' }, { transaction });
       });
 
-      expect(jetpack.exists(fileName)).to.be.equal('file');
-      expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.be.equal('file');
-      expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.be.equal('file');
+      expect(jetpack.exists(fileName)).to.equal('file');
+      expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.equal('file');
+      expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.equal('file');
 
       // move wal file content to main database
       // so those files can be removed on connection close
@@ -45,11 +45,11 @@ if (dialect === 'sqlite') {
       await sequelize.query('PRAGMA wal_checkpoint');
 
       // wal, shm files exist after checkpoint
-      expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.be.equal('file');
-      expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.be.equal('file');
+      expect(jetpack.exists(`${fileName}-shm`), 'shm file should exists').to.equal('file');
+      expect(jetpack.exists(`${fileName}-wal`), 'wal file should exists').to.equal('file');
 
       await sequelize.close();
-      expect(jetpack.exists(fileName)).to.be.equal('file');
+      expect(jetpack.exists(fileName)).to.equal('file');
       expect(jetpack.exists(`${fileName}-shm`), 'shm file exists').to.be.false;
       expect(jetpack.exists(`${fileName}-wal`), 'wal file exists').to.be.false;
 
@@ -61,7 +61,7 @@ if (dialect === 'sqlite') {
         .define('User', { username: DataTypes.STRING })
         .sync({ force: true });
 
-      expect(jetpack.exists(nestedFileName)).to.be.equal('file');
+      expect(jetpack.exists(nestedFileName)).to.equal('file');
     });
   });
 }

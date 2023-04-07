@@ -325,8 +325,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         const users = await sequelize.query('CALL foo()');
         expect(users.map(u => u.username)).to.include('john');
       });
-    } else {
-      console.log(': I want to be supported in this dialect as well :-(');
     }
 
     it('uses the passed model', async function () {
@@ -347,7 +345,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         mapToModel: true,
       });
 
-      expect(users[0].emailAddress).to.be.equal('john@gmail.com');
+      expect(users[0].emailAddress).to.equal('john@gmail.com');
     });
 
     it('arbitrarily map the field names', async function () {
@@ -358,8 +356,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         fieldMap: { username: 'userName', email_address: 'email' },
       });
 
-      expect(users[0].userName).to.be.equal('john');
-      expect(users[0].email).to.be.equal('john@gmail.com');
+      expect(users[0].userName).to.equal('john');
+      expect(users[0].email).to.equal('john@gmail.com');
     });
 
     it('keeps field names that are mapped to the same name', async function () {
@@ -370,8 +368,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         fieldMap: { username: 'username', email_address: 'email' },
       });
 
-      expect(users[0].username).to.be.equal('john');
-      expect(users[0].email).to.be.equal('john@gmail.com');
+      expect(users[0].username).to.equal('john');
+      expect(users[0].email).to.equal('john@gmail.com');
     });
 
     // Only run stacktrace tests on Node 12+, since only Node 12+ supports

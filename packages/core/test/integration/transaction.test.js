@@ -71,7 +71,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         throw new Error('Yolo');
       })).to.eventually.be.rejected;
 
-      expect(t.finished).to.be.equal('rollback');
+      expect(t.finished).to.equal('rollback');
     });
 
     it('supports automatically rolling back with a rejection', async function () {
@@ -82,7 +82,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         throw new Error('Swag');
       })).to.eventually.be.rejected;
 
-      expect(t.finished).to.be.equal('rollback');
+      expect(t.finished).to.equal('rollback');
     });
 
     it('runs afterCommit & afterTransaction hooks when a transaction is committed', async function () {
