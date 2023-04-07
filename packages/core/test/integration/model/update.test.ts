@@ -14,6 +14,8 @@ describe('Model.update', () => {
     setResetMode('destroy');
 
     const vars = beforeAll2(async () => {
+      const clock = sinon.useFakeTimers();
+
       class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
         declare id: CreationOptional<number>;
         declare updatedAt: CreationOptional<Date>;
@@ -43,7 +45,15 @@ describe('Model.update', () => {
 
       await sequelize.sync({ force: true });
 
-      return { User, ParanoidUser };
+      return { User, ParanoidUser, clock };
+    });
+
+    afterEach(() => {
+      vars.clock.reset();
+    });
+
+    after(() => {
+      vars.clock.restore();
     });
 
     it('throws an error if no where clause is given', async () => {
@@ -143,6 +153,7 @@ describe('Model.update', () => {
       expect(updatedAt).to.be.ok;
       expect(updatedAt).to.equalTime(users[2].updatedAt); // All users should have the same updatedAt
 
+      vars.clock.tick(1000);
       await User.update({ username: 'Bill' }, { where: { username: 'Bob' } });
 
       users = await User.findAll({ order: ['username'] });

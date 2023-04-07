@@ -57,11 +57,13 @@ if (dialect === 'sqlite') {
     });
 
     it('automatic path provision for `options.storage`', async () => {
-      await Support.createSingleTestSequelizeInstance({ storage: nestedFileName })
-        .define('User', { username: DataTypes.STRING })
+      const sequelize = await Support.createSingleTestSequelizeInstance({ storage: nestedFileName });
+      await sequelize.define('User', { username: DataTypes.STRING })
         .sync({ force: true });
 
       expect(jetpack.exists(nestedFileName)).to.equal('file');
+
+      await sequelize.close();
     });
   });
 }

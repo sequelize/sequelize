@@ -32,7 +32,7 @@ describe('destroy', () => {
     });
 
     context('deprecated `truncate` option', () => {
-      it('deprecated `truncate` option should clear the table', async () => {
+      it('should clear the table', async () => {
         const { User } = vars;
 
         await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
@@ -40,7 +40,7 @@ describe('destroy', () => {
         expect(await User.findAll()).to.have.lengthOf(0);
       });
 
-      it('deprecated `truncate` option returns a number', async () => {
+      it('returns a number', async () => {
         const { User } = vars;
 
         await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);

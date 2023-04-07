@@ -307,6 +307,8 @@ describe('Model#save', () => {
         timestamps: false,
       })
       class User extends Model<InferAttributes<User>> {
+        declare id: number;
+
         @Attribute(DataTypes.DATE)
         declare updatedAt: Date | null;
       }
@@ -314,7 +316,7 @@ describe('Model#save', () => {
       sequelize.addModels([User]);
 
       await User.sync();
-      const johnDoe = await User.create({});
+      const johnDoe = await User.create({ id: 1 });
 
       // TODO: nullable attributes should always be set to null - https://github.com/sequelize/sequelize/issues/14671
       expect(johnDoe.updatedAt).to.beNullish();

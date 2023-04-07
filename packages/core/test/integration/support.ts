@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import uniq from 'lodash/uniq';
+import { before } from 'mocha';
 import pTimeout from 'p-timeout';
 import type { Options } from '@sequelize/core';
 import { Sequelize, QueryTypes } from '@sequelize/core';
@@ -125,6 +126,11 @@ export async function createSingleTransactionalTestSequelizeInstance(
   return instance;
 }
 
+before('first database reset', async () => {
+  // Reset the DB a single time for the whole suite
+  await clearDatabase();
+});
+
 type ResetMode = 'none' | 'truncate' | 'destroy' | 'drop';
 let currentSuiteResetMode: ResetMode = 'drop';
 
@@ -141,16 +147,16 @@ let currentSuiteResetMode: ResetMode = 'drop';
  */
 export function setResetMode(mode: ResetMode) {
   let previousMode: ResetMode | undefined;
-  before(async () => {
+  before('setResetMode before', async () => {
     previousMode = currentSuiteResetMode;
     currentSuiteResetMode = mode;
+  });
+
+  after('setResetMode after', async () => {
+    currentSuiteResetMode = previousMode ?? 'drop';
 
     // Reset the DB a single time for the whole suite
     await clearDatabase();
-  });
-
-  after(() => {
-    currentSuiteResetMode = previousMode ?? 'drop';
   });
 }
 
