@@ -9667,9 +9667,9 @@ validator@^13.7.0:
   integrity sha512-B+dGG8U3fdtM0/aNK4/X8CXq/EcxU2WPrPEkJGslb47qyHsxmbggTWK0yEA4qnYVNF+nxNlN88o14hIcPmSIEA==
 
 vm2@^3.9.8:
-  version "3.9.14"
-  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.14.tgz#964042b474cf1e6e4f475a39144773cdb9deb734"
-  integrity sha512-HgvPHYHeQy8+QhzlFryvSteA4uQLBCOub02mgqdR+0bN/akRZ48TGB1v0aCv7ksyc0HXx16AZtMHKS38alc6TA==
+  version "3.9.15"
+  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.15.tgz#c544e6a9bc31e4e40d2e5f532342cf799ea56a6e"
+  integrity sha512-XqNqknHGw2avJo13gbIwLNZUumvrSHc9mLqoadFZTpo3KaNEJoe1I0lqTFhRXmXD7WkLyG01aaraXdXT0pa4ag==
   dependencies:
     acorn "^8.7.0"
     acorn-walk "^8.2.0"
