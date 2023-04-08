@@ -2123,6 +2123,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       if (options.updateOnDuplicate !== undefined) {
         if (Array.isArray(options.updateOnDuplicate) && options.updateOnDuplicate.length > 0) {
+
           const fields = options.updateOnDuplicate.map(item => (Array.isArray(item) && item.length >= 1 ? item[0] : item));
           const validAttributes = _.intersection(_.without(Object.keys(model.tableAttributes), createdAtAttr), fields);
 
@@ -2252,18 +2253,18 @@ ${associationOwner._getAssociationDebugList()}`);
         // Map updateOnDuplicate attributes to fields
         if (options.updateOnDuplicate) {
 
-          const validColumns = options.updateOnDuplicate.map(element => {
-            const attrName = Array.isArray(element) && element.length >= 1 ? element[0] : element;
+          options.updateOnDuplicate = options.updateOnDuplicate.map(item => {
+            const hasCustomValue = Array.isArray(item) && item.length >= 1;
 
-            return modelDefinition.getColumnName(attrName);
-          });
+            const attrName = hasCustomValue ? item[0] : item;
 
-          options.updateOnDuplicate = options.updateOnDuplicate.filter(item => {
-            if (Array.isArray(item) && item.length >= 1) {
-              return _.includes(validColumns, item[0]);
+            if (hasCustomValue) {
+              item[0] = modelDefinition.getColumnName(attrName);
+
+              return item;
             }
 
-            return _.includes(validColumns, item);
+            return modelDefinition.getColumnName(attrName);
           });
 
           if (options.conflictAttributes) {

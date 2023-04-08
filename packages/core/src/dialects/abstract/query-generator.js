@@ -410,9 +410,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         const valueKeys = options.updateOnDuplicate.map(attr => {
           if (Array.isArray(attr)) {
-            const [fieldName, fieldValue] = attr;
+            const [fieldName, _fieldValue] = attr;
 
-            return `${this.quoteIdentifier(fieldName)} = ${(fieldValue instanceof Literal ? fieldValue.val : this.escape(fieldValue))}`;
+            const fieldValue = _fieldValue instanceof Literal ? _fieldValue.val : this.escape(_fieldValue, fieldMappedAttributes[fieldName]);
+
+            return `${this.quoteIdentifier(fieldName)} = ${fieldValue}`;
           }
 
           return `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`;
