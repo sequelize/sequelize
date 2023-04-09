@@ -1,22 +1,23 @@
 'use strict';
 
-import NodeUtil from 'node:util';
-import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
-import { Col } from '../../expression-builders/col.js';
-import { Literal } from '../../expression-builders/literal.js';
-import { conformIndex } from '../../model-internals';
-import { and } from '../../sequelize';
-import { rejectInvalidOptions } from '../../utils/check';
 import {
   mapFinderOptions,
   removeNullishValuesFromHash,
 } from '../../utils/format';
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { isModelStatic } from '../../utils/model-utils';
 import { nameIndex, spliceStr } from '../../utils/string';
-import { attributeTypeToSql } from './data-types-utils';
+
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
+import { Col } from '../../expression-builders/col.js';
+import { Literal } from '../../expression-builders/literal.js';
+import NodeUtil from 'node:util';
+import { and } from '../../sequelize';
+import { attributeTypeToSql } from './data-types-utils';
+import { conformIndex } from '../../model-internals';
+import { isModelStatic } from '../../utils/model-utils';
+import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { joinWithLogicalOperator } from './where-sql-builder';
+import { rejectInvalidOptions } from '../../utils/check';
 
 const util = require('node:util');
 const _ = require('lodash');
@@ -381,7 +382,16 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       if (this.dialect.supports.inserts.updateOnDuplicate === ' ON CONFLICT DO UPDATE SET') { // postgres / sqlite
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
-        const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
+        const updateKeys = options.updateOnDuplicate.map(attr => {
+          if (Array.isArray(attr)) {
+            const [fieldName, _fieldValue] = attr;
+            const fieldValue = _fieldValue instanceof Literal ? _fieldValue.val : this.escape(_fieldValue, fieldMappedAttributes[fieldName]);
+
+            return `${this.quoteIdentifier(fieldName)}=${fieldValue}`;
+          }
+
+          return `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`;
+        });
 
         let whereClause = false;
         if (options.conflictWhere) {
@@ -407,7 +417,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
         }
 
-        const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
+        const valueKeys = options.updateOnDuplicate.map(attr => {
+          if (Array.isArray(attr)) {
+            const [fieldName, _fieldValue] = attr;
+
+            const fieldValue = _fieldValue instanceof Literal ? _fieldValue.val : this.escape(_fieldValue, fieldMappedAttributes[fieldName]);
+
+            return `${this.quoteIdentifier(fieldName)} = ${fieldValue}`;
+          }
+
+          return `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`;
+        });
+
         onDuplicateKeyUpdate = `${this.dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
       }
     }

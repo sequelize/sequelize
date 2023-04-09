@@ -1,9 +1,15 @@
 'use strict';
 
-import omit from 'lodash/omit';
-import { AbstractDataType } from './dialects/abstract/data-types';
-import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
-import { intersects } from './utils/array';
+import { Association, BelongsTo, BelongsToMany, HasMany, HasOne } from './associations';
+import { EMPTY_OBJECT, cloneDeep, defaults, flattenObjectDeep, getObjectFromMap, mergeDefaults } from './utils/object';
+import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
+import { every, find } from './utils/iterators';
+import { isModelStatic, isSameInitialModel } from './utils/model-utils';
+import {
+  mapFinderOptions,
+  mapOptionFieldNames,
+  mapValueFieldNames,
+} from './utils/format';
 import {
   noDoubleNestedGroup,
   noModelDropSchema,
@@ -11,23 +17,18 @@ import {
   schemaRenamedToWithSchema,
   scopeRenamedToWithScope,
 } from './utils/deprecations';
-import { toDefaultValue } from './utils/dialect';
-import {
-  mapFinderOptions,
-  mapOptionFieldNames,
-  mapValueFieldNames,
-} from './utils/format';
-import { every, find } from './utils/iterators';
-import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap, EMPTY_OBJECT } from './utils/object';
-import { isWhereEmpty } from './utils/query-builder-utils';
-import { ModelTypeScript } from './model-typescript';
-import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { Association, BelongsTo, BelongsToMany, HasMany, HasOne } from './associations';
+
+import { AbstractDataType } from './dialects/abstract/data-types';
 import { AssociationSecret } from './associations/helpers';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
+import { ModelTypeScript } from './model-typescript';
 import { Op } from './operators';
-import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
 import { QueryTypes } from './query-types';
 import { getComplexKeys } from './utils/where.js';
+import { intersects } from './utils/array';
+import { isWhereEmpty } from './utils/query-builder-utils';
+import omit from 'lodash/omit';
+import { toDefaultValue } from './utils/dialect';
 
 const assert = require('node:assert');
 const NodeUtil = require('node:util');
@@ -2122,10 +2123,18 @@ ${associationOwner._getAssociationDebugList()}`);
 
       if (options.updateOnDuplicate !== undefined) {
         if (Array.isArray(options.updateOnDuplicate) && options.updateOnDuplicate.length > 0) {
-          options.updateOnDuplicate = _.intersection(
-            _.without(Object.keys(model.tableAttributes), createdAtAttr),
-            options.updateOnDuplicate,
-          );
+
+          const fields = options.updateOnDuplicate.map(item => (Array.isArray(item) && item.length >= 1 ? item[0] : item));
+          const validAttributes = _.intersection(_.without(Object.keys(model.tableAttributes), createdAtAttr), fields);
+
+          options.updateOnDuplicate = options.updateOnDuplicate.filter(item => {
+            if (Array.isArray(item) && item.length >= 1) {
+              return _.includes(validAttributes, item[0]);
+            }
+
+            return _.includes(validAttributes, item);
+          });
+
         } else {
           throw new Error('updateOnDuplicate option only supports non-empty array.');
         }
@@ -2243,7 +2252,18 @@ ${associationOwner._getAssociationDebugList()}`);
 
         // Map updateOnDuplicate attributes to fields
         if (options.updateOnDuplicate) {
-          options.updateOnDuplicate = options.updateOnDuplicate.map(attrName => {
+
+          options.updateOnDuplicate = options.updateOnDuplicate.map(item => {
+            const hasCustomValue = Array.isArray(item) && item.length >= 1;
+
+            const attrName = hasCustomValue ? item[0] : item;
+
+            if (hasCustomValue) {
+              item[0] = modelDefinition.getColumnName(attrName);
+
+              return item;
+            }
+
             return modelDefinition.getColumnName(attrName);
           });
 

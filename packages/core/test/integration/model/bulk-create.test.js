@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op, col } = require('@sequelize/core');
+const { DataTypes, Op, col, literal } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -476,6 +476,63 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(users[1].secretValue).to.equal('24');
           expect(users[2].uniqueName).to.equal('Michael');
           expect(users[2].secretValue).to.equal('26');
+        });
+
+        describe('[#13033] should support the updateOnDuplicate option with custom values', () => {
+          it('when custom value is not literal', async function () {
+            const data = [
+              { uniqueName: 'Peter', secretValue: '42' },
+              { uniqueName: 'Paul', secretValue: '23' },
+            ];
+
+            await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] });
+            const new_data = [
+              { uniqueName: 'Peter' },
+              { uniqueName: 'Paul' },
+              { uniqueName: 'Michael', secretValue: '30' },
+            ];
+            await this.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: [['secretValue', '10']] });
+            const users = await this.User.findAll({ order: ['id'] });
+            expect(users.length).to.equal(3);
+            expect(users[0].uniqueName).to.equal('Peter');
+            expect(users[0].secretValue).to.equal('10');
+            expect(users[1].uniqueName).to.equal('Paul');
+            expect(users[1].secretValue).to.equal('10');
+            expect(users[2].uniqueName).to.equal('Michael');
+            expect(users[2].secretValue).to.equal('30');
+          });
+
+          it('when custom value is a sequelize literal', async function () {
+            const data = [
+              { uniqueName: 'Peter', secretValue: '10' },
+              { uniqueName: 'Paul', secretValue: '15' },
+            ];
+
+            await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] });
+            const new_data = [
+              { uniqueName: 'Peter' },
+              { uniqueName: 'Paul' },
+              { uniqueName: 'Michael', secretValue: '50' },
+            ];
+
+            if (dialectName === 'postgres') {
+              const column = `CAST(${this.User.getTableName()}.secret_value AS INTEGER) `;
+              await this.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: [['secretValue', literal(`${column} + 5`)]] });
+
+            } else {
+              await this.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: [['secretValue', literal('secret_value + 5')]] });
+            }
+
+            const users = await this.User.findAll({ order: ['id'] });
+            expect(users.length).to.equal(3);
+            expect(users[0].uniqueName).to.equal('Peter');
+            expect(users[0].secretValue).to.equal('15');
+            expect(users[1].uniqueName).to.equal('Paul');
+            expect(users[1].secretValue).to.equal('20');
+            expect(users[2].uniqueName).to.equal('Michael');
+            expect(users[2].secretValue).to.equal('50');
+          });
+
         });
 
         describe('should support the updateOnDuplicate option with primary keys', () => {
