@@ -39,7 +39,7 @@ type InsertOptions = ParameterOptions & SearchPathable & {
 type BulkInsertOptions = ParameterOptions & {
   hasTrigger?: boolean,
 
-  updateOnDuplicate?: string[],
+  updateOnDuplicate?: string[] | [string, string | Literal],
   ignoreDuplicates?: boolean,
   upsertKeys?: string[],
   returning?: boolean | Array<string | Literal | Col>,
