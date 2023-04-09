@@ -9,14 +9,14 @@ import type {
   NonAttribute,
 } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
-import { disableDatabaseResetForSuite, beforeAll2, beforeEach2, sequelize } from '../support';
+import { beforeAll2, beforeEach2, sequelize, setResetMode } from '../support';
 
 // This test suite ensures DataType methods are called at the appropriate time
 
 const dialect = sequelize.dialect;
 
 describe('DataType Methods', () => {
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   const customValueSymbol = Symbol('dummy');
 

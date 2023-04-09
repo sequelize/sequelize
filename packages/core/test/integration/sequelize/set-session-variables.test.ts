@@ -2,10 +2,9 @@ import { expect } from 'chai';
 import { QueryTypes } from '@sequelize/core';
 import {
   createSequelizeInstance,
-  disableDatabaseResetForSuite,
   getTestDialect,
   prepareTransactionTest,
-  sequelize,
+  sequelize, setResetMode,
 } from '../support';
 
 const dialectName = getTestDialect();
@@ -15,7 +14,7 @@ describe('sequelize.setSessionVariables', () => {
     return;
   }
 
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   it(`rejects if no connection or transaction is provided`, async () => {
     await expect(sequelize.setSessionVariables({ foo: 'bar' }))
