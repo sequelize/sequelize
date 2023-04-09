@@ -514,7 +514,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { uniqueName: 'Paul' },
               { uniqueName: 'Michael', secretValue: '50' },
             ];
-            await this.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: [['secretValue', literal('secret_value + 5')]] });
+
+            if (dialectName === 'postgres') {
+              const column = `CAST(${this.User.getTableName()}.secret_value AS INTEGER) `;
+              await this.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: [['secretValue', literal(`${column} + 5`)]] });
+
+            } else {
+              await this.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: [['secretValue', literal('secret_value + 5')]] });
+            }
+
             const users = await this.User.findAll({ order: ['id'] });
             expect(users.length).to.equal(3);
             expect(users[0].uniqueName).to.equal('Peter');
