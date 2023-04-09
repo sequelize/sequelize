@@ -30,7 +30,7 @@ import QueryTypes = require('./query-types');
 import { Transaction, TransactionOptions } from './transaction';
 import { Op } from './index';
 import { Cast, Col, DeepWriteable, Fn, Json, Literal, Where } from './utils';
-import { ConnectionManager } from './dialects/abstract/connection-manager';
+import { Connection, ConnectionManager, GetConnectionOptions } from './dialects/abstract/connection-manager';
 
 export type RetryOptions = RetryAsPromisedOptions;
 
@@ -719,6 +719,26 @@ export class Sequelize extends Hooks {
    */
   public static afterDisconnect(name: string, fn: (connection: unknown) => void): void;
   public static afterDisconnect(fn: (connection: unknown) => void): void;
+
+
+  /**
+   * A hook that is run before attempting to acquire a connection from the pool
+   *
+   * @param name
+   * @param fn   A callback function that is called with options
+   */
+  public static beforePoolAcquire(name: string, fn: (options: GetConnectionOptions) => void): void;
+  public static beforePoolAcquire(fn: (options: GetConnectionOptions) => void): void;
+
+  /**
+   * A hook that is run after successfully acquiring a connection from the pool
+   *
+   * @param name
+   * @param fn   A callback function that is called with options
+   */
+  public static afterPoolAcquire(name: string, fn: (connection: Connection, options: GetConnectionOptions) => void): void;
+  public static afterPoolAcquire(fn: (connection: Connection, options: GetConnectionOptions) => void): void;
+
 
   /**
    * A hook that is run before a find (select) query, after any { include: {all: ...} } options are expanded
