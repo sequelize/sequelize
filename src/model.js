@@ -2701,10 +2701,17 @@ class Model {
 
       if (options.updateOnDuplicate !== undefined) {
         if (Array.isArray(options.updateOnDuplicate) && options.updateOnDuplicate.length) {
-          options.updateOnDuplicate = _.intersection(
-            _.without(Object.keys(model.tableAttributes), createdAtAttr),
-            options.updateOnDuplicate
-          );
+
+          const fields = options.updateOnDuplicate.map(item => Array.isArray(item) && item.length >= 1 ? item[0] : item);
+          const validAttributes = _.intersection(_.without(Object.keys(model.tableAttributes), createdAtAttr), fields);
+
+          options.updateOnDuplicate = options.updateOnDuplicate.filter(item => {
+            if (Array.isArray(item) && item.length >= 1) {
+              return _.includes(validAttributes, item[0]);
+            }
+
+            return _.includes(validAttributes, item);
+          });
         } else {
           throw new Error('updateOnDuplicate option only supports non-empty array.');
         }
@@ -2815,7 +2822,23 @@ class Model {
 
         // Map updateOnDuplicate attributes to fields
         if (options.updateOnDuplicate) {
-          options.updateOnDuplicate = options.updateOnDuplicate.map(attr => model.rawAttributes[attr].field || attr);
+          // options.updateOnDuplicate = options.updateOnDuplicate.map(attr => model.rawAttributes[attr].field || attr);
+
+
+          options.updateOnDuplicate = options.updateOnDuplicate.map(item => {
+            const hasCustomValue = Array.isArray(item) && item.length >= 1;
+
+            const attrName = hasCustomValue ? item[0] : item;
+
+            const attr = model.rawAttributes[attrName].field || attrName;
+
+            if (hasCustomValue) {
+              item[0] = attr;
+              return item;
+            }
+            return attr;
+          });
+
 
           if (options.conflictAttributes) {
             options.upsertKeys = options.conflictAttributes.map(

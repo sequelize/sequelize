@@ -363,7 +363,17 @@ class QueryGenerator {
       if (this._dialect.supports.inserts.updateOnDuplicate == ' ON CONFLICT DO UPDATE SET') { // postgres / sqlite
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
-        const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
+        // const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
+        const updateKeys = options.updateOnDuplicate.map(attr => {
+          if (Array.isArray(attr)) {
+            const [fieldName, _fieldValue] = attr;
+            const fieldValue = _fieldValue instanceof Utils.Literal ? _fieldValue.val : this.escape(_fieldValue, fieldMappedAttributes[fieldName]);
+
+            return `${this.quoteIdentifier(fieldName)}=${fieldValue}`;
+          }
+
+          return `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`;
+        });
 
         let whereClause = false;
         if (options.conflictWhere) {
@@ -389,7 +399,18 @@ class QueryGenerator {
           throw new Error(`conflictWhere not supported for dialect ${this._dialect.name}`);
         }
 
-        const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
+        // const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
+        const valueKeys = options.updateOnDuplicate.map(attr => {
+          if (Array.isArray(attr)) {
+            const [fieldName, _fieldValue] = attr;
+
+            const fieldValue = _fieldValue instanceof Utils.Literal ? _fieldValue.val : this.escape(_fieldValue, fieldMappedAttributes[fieldName]);
+
+            return `${this.quoteIdentifier(fieldName)} = ${fieldValue}`;
+          }
+
+          return `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`;
+        });
         onDuplicateKeyUpdate = `${this._dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
       }
     }
