@@ -91,7 +91,7 @@
     "husky": "8.0.3",
     "ibm_db": "3.1.0",
     "lcov-result-merger": "4.1.0",
-    "mariadb": "2.5.6",
+    "mariadb": "3.1.1",
     "mocha": "10.2.0",
     "moment": "2.29.4",
     "mysql2": "2.3.3",
