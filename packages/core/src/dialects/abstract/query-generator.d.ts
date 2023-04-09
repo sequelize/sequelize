@@ -144,7 +144,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   ): string;
 
   removeColumnQuery(
-    table: TableName,
+    table: TableNameOrModel,
     attributeName: string,
     options?: RemoveColumnQueryOptions,
   ): string;
@@ -179,7 +179,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions
   ): string;
-  dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
+  dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string;
+  renameTableQuery(before: TableNameOrModel, after: TableNameOrModel): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
@@ -191,6 +192,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   listDatabasesQuery(): string;
 
   dropForeignKeyQuery(tableName: TableNameOrModel, foreignKey: string): string;
+
+  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string): string;
+
+  versionQuery(): string;
 
   /**
    * Creates a function that can be used to collect bind parameters.

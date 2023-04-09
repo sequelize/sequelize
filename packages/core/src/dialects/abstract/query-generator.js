@@ -6,7 +6,7 @@ import { Col } from '../../expression-builders/col.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
-import { rejectInvalidOptions, canTreatArrayAsAnd, isColString } from '../../utils/check';
+import { rejectInvalidOptions } from '../../utils/check';
 import {
   mapFinderOptions,
   removeNullishValuesFromHash,
@@ -873,7 +873,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP CONSTRAINT',
-      this.quoteIdentifiers(constraintName),
+      this.quoteIdentifier(constraintName),
     ]);
   }
 

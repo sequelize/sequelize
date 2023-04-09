@@ -112,7 +112,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ["4.6", "4.7", "4.8", "4.9"]
+        ts-version: ["4.7", "4.8", "4.9", "5.0"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     needs: lint
@@ -128,7 +128,7 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-18.tar
       - name: Install TypeScript
-        run: yarn workspace @sequelize/core add typescript@~${{ matrix.ts-version }}
+        run: yarn add typescript@~${{ matrix.ts-version }} -W
       - name: Typing Tests
         run: yarn workspace @sequelize/core test-typings
   test-sqlite:
