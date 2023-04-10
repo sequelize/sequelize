@@ -11,6 +11,7 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
+import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
 import type {
   IndexOptions,
@@ -65,11 +66,24 @@ export interface Poolable {
 export interface Transactionable {
   /**
    * The transaction in which this query must be run.
+   * Mutually exclusive with {@link Transactionable.connection}.
    *
    * If {@link Options.disableClsTransactions} has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
-   * that transaction will be used, unless null or a Transaction is manually specified here.
+   * that transaction will be used, unless null or another Transaction is manually specified here.
    */
   transaction?: Transaction | null | undefined;
+
+  /**
+   * The connection on which this query must be run.
+   * Mutually exclusive with {@link Transactionable.transaction}.
+   *
+   * Can be used to ensure that a query is run on the same connection as a previous query, which is useful when
+   * configuring session options.
+   *
+   * Specifying this option takes precedence over CLS Transactions. If a transaction is running in the current
+   * AsyncLocalStorage context, it will be ignored in favor of the specified connection.
+   */
+  connection?: Connection | null | undefined;
 }
 
 export interface SearchPathable {
@@ -1134,14 +1148,14 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
 }
 
 /**
- * The options passed to Model.destroy in addition to truncate
+ * The options accepted by {@link Model.truncate}.
  */
-export interface TruncateOptions<TAttributes = any> extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
+export interface TruncateOptions extends Logging, Transactionable, Hookable {
   /**
-   * Only used in conjuction with TRUNCATE. Truncates all tables that have foreign-key references to the
+   * Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the
    * named table, or to any tables added to the group due to CASCADE.
    *
-   * @default false;
+   * @default false
    */
   cascade?: boolean;
 
@@ -1175,14 +1189,16 @@ export interface TruncateOptions<TAttributes = any> extends Logging, Transaction
 }
 
 /**
- * Options used for Model.destroy
+ * Options accepted by {@link Model.destroy}.
  */
-export interface DestroyOptions<TAttributes = any> extends TruncateOptions<TAttributes> {
+export interface DestroyOptions<TAttributes = any> extends TruncateOptions, Filterable<TAttributes> {
   /**
    * If set to true, dialects that support it will use TRUNCATE instead of DELETE FROM. If a table is
    * truncated the where and limit options are ignored.
    *
    * __Danger__: This will completely empty your table!
+   *
+   * @deprecated use {@link Model.truncate}.
    */
   truncate?: boolean;
 }
@@ -2624,7 +2640,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static truncate<M extends Model>(
     this: ModelStatic<M>,
-    options?: TruncateOptions<Attributes<M>>
+    options?: TruncateOptions
   ): Promise<void>;
 
   /**

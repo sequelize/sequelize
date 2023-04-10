@@ -12,10 +12,8 @@ import {
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const util = require('node:util');
 const DataTypes = require('../../data-types');
 const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const semver = require('semver');
 const _ = require('lodash');
 
 /**
@@ -186,7 +184,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const dataType = attribute.type || attribute;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
-    const quotedTable = this.quoteTable(this.extractTableDetails(table));
+    const quotedTable = this.quoteTable(table);
     const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
 
     let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
@@ -203,7 +201,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   removeColumnQuery(tableName, attributeName, options) {
     options = options || {};
 
-    const quotedTableName = this.quoteTable(this.extractTableDetails(tableName));
+    const quotedTableName = this.quoteTable(tableName);
     const quotedAttributeName = this.quoteIdentifier(attributeName);
     const ifExists = options.ifExists ? ' IF EXISTS' : '';
 
@@ -853,12 +851,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
    */
   quoteIdentifier(identifier, force) {
     const optForceQuote = force || false;
-    // TODO: remove "quoteIdentifiers: false" option
+    // TODO [>7]: remove "quoteIdentifiers: false" option
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
 
     if (
       optForceQuote === true
-      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers based on these rules
+      // TODO [>7]: drop this.options.quoteIdentifiers. Always quote identifiers based on these rules
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')

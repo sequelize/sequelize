@@ -4,7 +4,6 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../../support');
-const { Op } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const _ = require('lodash');
@@ -301,17 +300,6 @@ if (dialect === 'sqlite') {
             + 'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
             + 'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;'
             + 'DROP TABLE `myTable_backup`;',
-        },
-      ],
-      removeColumnQuery: [
-        {
-          title: 'Properly quotes column names',
-          arguments: ['myTable', { commit: 'VARCHAR(255)', bar: 'VARCHAR(255)' }],
-          expectation:
-            'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;'
-            + 'DROP TABLE `myTable`;'
-            + 'ALTER TABLE `myTable_backup` RENAME TO `myTable`;',
         },
       ],
       getForeignKeysQuery: [
