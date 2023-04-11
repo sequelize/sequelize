@@ -1,4 +1,10 @@
 import NodeUtil from 'node:util';
+import type { NormalizedDataType } from './data-types.js';
+import * as DataTypes from './data-types.js';
+import { AbstractDataType } from './data-types.js';
+import type { FormatWhereOptions } from './query-generator-typescript.js';
+import type { AbstractQueryGenerator } from './query-generator.js';
+import type { WhereAttributeHashValue } from './where-sql-builder-types.js';
 import { BaseError } from '../../errors/base-error.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
@@ -9,11 +15,7 @@ import { JsonPath } from '../../expression-builders/json-path.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
-import type {
-  ModelStatic,
-  WhereOptions,
-  Expression,
-} from '../../index.js';
+import type { Expression, ModelStatic, WhereOptions } from '../../index.js';
 import { Op } from '../../operators';
 import type { ParsedJsonPropertyKey } from '../../utils/attribute-syntax.js';
 import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attribute-syntax.js';
@@ -22,12 +24,6 @@ import { noOpCol } from '../../utils/deprecations.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
 import type { Nullish } from '../../utils/types.js';
 import { getComplexKeys, getOperators } from '../../utils/where.js';
-import type { NormalizedDataType } from './data-types.js';
-import * as DataTypes from './data-types.js';
-import { AbstractDataType } from './data-types.js';
-import type { FormatWhereOptions } from './query-generator-typescript.js';
-import type { AbstractQueryGenerator } from './query-generator.js';
-import type { WhereAttributeHashValue } from './where-sql-builder-types.js';
 
 export class PojoWhere {
   declare leftOperand: Expression;

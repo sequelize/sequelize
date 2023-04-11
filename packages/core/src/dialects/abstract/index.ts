@@ -1,14 +1,14 @@
 import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 import type { Class } from 'type-fest';
-import type { Dialect, Sequelize } from '../../sequelize.js';
-import { logger } from '../../utils/logger.js';
-import type { DeepPartial } from '../../utils/types.js';
 import type { AbstractConnectionManager } from './connection-manager.js';
 import type { AbstractDataType } from './data-types.js';
 import * as BaseDataTypes from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { AbstractQuery } from './query.js';
+import type { Dialect, Sequelize } from '../../sequelize.js';
+import { logger } from '../../utils/logger.js';
+import type { DeepPartial } from '../../utils/types.js';
 
 export interface SupportableNumericOptions {
   zerofill: boolean;

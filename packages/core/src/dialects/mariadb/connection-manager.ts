@@ -1,20 +1,27 @@
 import dayjs from 'dayjs';
-import type { TypeCastResult, Connection as LibConnection, ConnectionConfig as MariaDbConnectionConfig, FieldInfo, TypeCastNextFunction } from 'mariadb';
+import type {
+  FieldInfo,
+  Connection as LibConnection,
+  ConnectionConfig as MariaDbConnectionConfig,
+  TypeCastNextFunction,
+  TypeCastResult,
+} from 'mariadb';
 import semver from 'semver';
+import type { MariaDbDialect } from './index.js';
 import {
-  AccessDeniedError, ConnectionError,
+  AccessDeniedError,
+  ConnectionError,
   ConnectionRefusedError,
   HostNotFoundError,
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors/index.js';
-import type { Sequelize, ConnectionOptions } from '../../sequelize.js';
+import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import { isErrorWithStringCode } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import { removeUndefined } from '../../utils/object.js';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { MariaDbDialect } from './index.js';
 
 const debug = logger.debugContext('connection:mariadb');
 

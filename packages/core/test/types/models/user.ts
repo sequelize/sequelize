@@ -1,22 +1,18 @@
 import type {
-  InferAttributes,
   BelongsTo,
   BelongsToCreateAssociationMixin,
   BelongsToGetAssociationMixin,
   BelongsToSetAssociationMixin,
-  InferCreationAttributes,
   CreationOptional,
   FindOptions,
+  InferAttributes,
+  InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import {
-  DataTypes,
-  Model,
-  Op,
-} from '@sequelize/core';
-import { sequelize } from '../connection';
+import { DataTypes, Model, Op } from '@sequelize/core';
 import { UserGroup } from './user-group';
 import { UserPost } from './user-post';
+import { sequelize } from '../connection';
 
 type NonUserAttributes = 'group';
 

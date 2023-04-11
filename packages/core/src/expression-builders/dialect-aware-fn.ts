@@ -1,9 +1,9 @@
 import type { Class } from 'type-fest';
+import { BaseSqlExpression } from './base-sql-expression.js';
+import { JsonPath } from './json-path.js';
 import type { AbstractDialect } from '../dialects/abstract/index.js';
 import type { EscapeOptions } from '../dialects/abstract/query-generator-typescript.js';
 import type { Expression } from '../sequelize.js';
-import { BaseSqlExpression } from './base-sql-expression.js';
-import { JsonPath } from './json-path.js';
 
 /**
  * Unlike {@link Fn}, this class does not accept a function name.

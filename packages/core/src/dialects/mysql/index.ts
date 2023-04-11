@@ -1,7 +1,3 @@
-import type { Sequelize } from '../../sequelize.js';
-import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
-import type { SupportableNumericOptions } from '../abstract';
-import { AbstractDialect } from '../abstract';
 import { MySqlConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { registerMySqlDbDataTypeParsers } from './data-types.db.js';
@@ -9,6 +5,10 @@ import { escapeMysqlString } from './mysql-utils';
 import { MySqlQuery } from './query';
 import { MySqlQueryGenerator } from './query-generator';
 import { MySqlQueryInterface } from './query-interface';
+import type { Sequelize } from '../../sequelize.js';
+import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+import { AbstractDialect } from '../abstract';
+import type { SupportableNumericOptions } from '../abstract';
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,

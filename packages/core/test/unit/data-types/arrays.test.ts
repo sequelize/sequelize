@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import { ValidationErrorItem, DataTypes } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { testDataTypeSql } from './_utils';
+import { expectsql, sequelize } from '../../support';
 
 const { dialect, queryGenerator } = sequelize;
 

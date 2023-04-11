@@ -1,6 +1,11 @@
-import type { Connection as SnowflakeSdkConnection, ConnectionOptions as SnowflakeSdkConnectionOptions } from 'snowflake-sdk';
+import type {
+  Connection as SnowflakeSdkConnection,
+  ConnectionOptions as SnowflakeSdkConnectionOptions,
+} from 'snowflake-sdk';
+import type { SnowflakeDialect } from './index.js';
 import {
-  AccessDeniedError, ConnectionError,
+  AccessDeniedError,
+  ConnectionError,
   ConnectionRefusedError,
   HostNotFoundError,
   HostNotReachableError,
@@ -11,7 +16,6 @@ import { isErrorWithStringCode } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { SnowflakeDialect } from './index.js';
 
 const debug = logger.debugContext('connection:snowflake');
 

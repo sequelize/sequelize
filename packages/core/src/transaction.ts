@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import type { Class } from 'type-fest';
+import type { Connection, Deferrable, Logging, Sequelize } from './index.js';
 import type { RequiredBy } from './utils/types.js';
-import type { Logging, Deferrable, Connection, Sequelize } from './index.js';
 
 type TransactionCallback = (transaction: Transaction) => void | Promise<void>;
 

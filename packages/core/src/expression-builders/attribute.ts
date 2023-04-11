@@ -1,9 +1,9 @@
-import { parseAttributeSyntax } from '../utils/attribute-syntax.js';
 import type { AssociationPath } from './association-path.js';
 import { BaseSqlExpression } from './base-sql-expression.js';
 import type { Cast } from './cast.js';
 import type { DialectAwareFn } from './dialect-aware-fn.js';
 import type { JsonPath } from './json-path.js';
+import { parseAttributeSyntax } from '../utils/attribute-syntax.js';
 
 /**
  * Use {@link @sequelize/core.attribute} instead.

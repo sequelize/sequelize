@@ -1,8 +1,8 @@
+import { BaseSqlExpression } from './base-sql-expression.js';
+import { where } from './where.js';
 import { Op } from '../operators.js';
 import type { Expression } from '../sequelize.js';
 import { isPlainObject } from '../utils/check.js';
-import { BaseSqlExpression } from './base-sql-expression.js';
-import { where } from './where.js';
 
 /**
  * Do not use me directly. Use {@link fn}

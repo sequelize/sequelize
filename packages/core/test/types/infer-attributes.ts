@@ -8,11 +8,7 @@ import type {
   InferCreationAttributes,
   NonAttribute,
 } from '@sequelize/core';
-import {
-  DataTypes,
-  Model,
-  Sequelize,
-} from '@sequelize/core';
+import { DataTypes, Model, Sequelize } from '@sequelize/core';
 
 class Project extends Model<InferAttributes<Project>> {
   declare id: number;

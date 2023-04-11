@@ -5,6 +5,8 @@ import isPlainObject from 'lodash/isPlainObject.js';
 import lowerFirst from 'lodash/lowerFirst';
 import omit from 'lodash/omit';
 import type { Class } from 'type-fest';
+import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAssociationOptions } from './base';
+import type { ThroughOptions } from './belongs-to-many.js';
 import { AssociationError } from '../errors/index.js';
 import type { Model, ModelStatic } from '../model';
 import type { Sequelize } from '../sequelize';
@@ -13,8 +15,6 @@ import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import { pluralize, singularize } from '../utils/string.js';
 import type { OmitConstructors } from '../utils/types.js';
-import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAssociationOptions } from './base';
-import type { ThroughOptions } from './belongs-to-many.js';
 
 export function checkNamingCollision(source: ModelStatic<any>, associationName: string): void {
   if (Object.prototype.hasOwnProperty.call(source.getAttributes(), associationName)) {

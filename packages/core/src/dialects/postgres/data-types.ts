@@ -1,19 +1,14 @@
 import assert from 'node:assert';
 import wkx from 'wkx';
-import type { Rangable } from '../../model.js';
-import { isBigInt, isNumber, isString } from '../../utils/check.js';
-import * as BaseTypes from '../abstract/data-types';
-import type {
-  AcceptableTypeOf,
-  BindParamOptions,
-  AcceptedDate,
-  AbstractDataType,
-} from '../abstract/data-types';
-import { attributeTypeToSql } from '../abstract/data-types-utils.js';
-import type { AbstractDialect } from '../abstract/index.js';
 import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
 import * as RangeParser from './range';
+import type { Rangable } from '../../model.js';
+import { isBigInt, isNumber, isString } from '../../utils/check.js';
+import * as BaseTypes from '../abstract/data-types';
+import type { AbstractDataType, AcceptableTypeOf, AcceptedDate, BindParamOptions } from '../abstract/data-types';
+import { attributeTypeToSql } from '../abstract/data-types-utils.js';
+import type { AbstractDialect } from '../abstract/index.js';
 
 function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
   if (dataType.options.length != null) {

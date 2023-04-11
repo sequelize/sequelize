@@ -2,7 +2,7 @@
 
 import { expect } from 'chai';
 import { DataTypes, DatabaseError } from '@sequelize/core';
-import { sequelize, getTestDialect, getTestDialectTeaser } from './support';
+import { getTestDialect, getTestDialectTeaser, sequelize } from './support';
 
 const dialect = getTestDialect();
 

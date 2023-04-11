@@ -2,6 +2,28 @@ import each from 'lodash/each';
 import isEqual from 'lodash/isEqual';
 import omit from 'lodash/omit';
 import upperFirst from 'lodash/upperFirst';
+import type {
+  Association,
+  AssociationOptions,
+  AssociationScope,
+  ForeignKeyOptions,
+  MultiAssociationAccessors,
+  MultiAssociationOptions,
+  NormalizedAssociationOptions,
+} from './base';
+import { MultiAssociation } from './base';
+import type { BelongsTo } from './belongs-to';
+import { HasMany } from './has-many';
+import { HasOne } from './has-one';
+import type { AssociationStatic, MaybeForwardedModelStatic } from './helpers';
+import {
+  AssociationSecret,
+  defineAssociation,
+  isThroughOptions,
+  mixinMethods,
+  normalizeBaseAssociationOptions,
+  normalizeForeignKeyOptions,
+} from './helpers';
 import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
 import { AssociationError } from '../errors';
 import { col } from '../expression-builders/col.js';
@@ -31,28 +53,6 @@ import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
 import type { AllowArray } from '../utils/types.js';
-import type {
-  Association,
-  AssociationOptions,
-  AssociationScope,
-  ForeignKeyOptions,
-  MultiAssociationAccessors,
-  MultiAssociationOptions,
-  NormalizedAssociationOptions,
-} from './base';
-import { MultiAssociation } from './base';
-import type { BelongsTo } from './belongs-to';
-import { HasMany } from './has-many';
-import { HasOne } from './has-one';
-import type { AssociationStatic, MaybeForwardedModelStatic } from './helpers';
-import {
-  AssociationSecret,
-  defineAssociation,
-  isThroughOptions,
-  mixinMethods,
-  normalizeBaseAssociationOptions,
-  normalizeForeignKeyOptions,
-} from './helpers';
 
 function addInclude(findOptions: FindOptions, include: Includeable) {
   if (Array.isArray(findOptions.include)) {

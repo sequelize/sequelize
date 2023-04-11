@@ -1,8 +1,8 @@
-import type { Model, ModelStatic, Hookable, AttributeNames, AttributeOptions } from '../model';
-import { cloneDeep } from '../utils/object.js';
-import type { AllowArray, PartialBy } from '../utils/types.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 import { AssociationSecret } from './helpers';
+import type { AttributeNames, AttributeOptions, Hookable, Model, ModelStatic } from '../model';
+import { cloneDeep } from '../utils/object.js';
+import type { AllowArray, PartialBy } from '../utils/types.js';
 
 /**
  * Creating associations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).

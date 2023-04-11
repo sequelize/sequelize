@@ -1,10 +1,10 @@
-import { setTransactionFromCls } from '../../model-internals.js';
-import { QueryTypes } from '../../query-types';
-import type { QueryRawOptions, Sequelize } from '../../sequelize';
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { QueryWithBindParams } from './query-generator.types';
 import type { CreateSchemaOptions, QueryInterfaceOptions, ShowAllSchemasOptions } from './query-interface.types';
+import { setTransactionFromCls } from '../../model-internals.js';
+import { QueryTypes } from '../../query-types';
+import type { QueryRawOptions, Sequelize } from '../../sequelize';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
 

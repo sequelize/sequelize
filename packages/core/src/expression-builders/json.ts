@@ -1,4 +1,3 @@
-import { noSqlJson } from '../utils/deprecations.js';
 import type { AssociationPath } from './association-path.js';
 import type { Attribute } from './attribute.js';
 import { attribute } from './attribute.js';
@@ -7,6 +6,7 @@ import type { DialectAwareFn } from './dialect-aware-fn.js';
 import type { JsonPath } from './json-path.js';
 import type { Where } from './where.js';
 import { where } from './where.js';
+import { noSqlJson } from '../utils/deprecations.js';
 
 /**
  * Creates an object representing nested where conditions for postgres/sqlite/mysql json data-type.

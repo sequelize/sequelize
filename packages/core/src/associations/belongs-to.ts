@@ -2,18 +2,24 @@ import assert from 'node:assert';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
+import type { AssociationOptions, SingleAssociationAccessors } from './base';
+import { Association } from './base';
+import { HasMany } from './has-many.js';
+import { HasOne } from './has-one.js';
+import type { NormalizeBaseAssociationOptions } from './helpers';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 import { cloneDataType } from '../dialects/abstract/data-types-utils.js';
 import { AssociationError } from '../errors/index.js';
 import type {
-  ModelStatic,
-  Model,
+  AttributeNames,
+  AttributeReferencesOptions,
+  Attributes,
   CreateOptions,
   CreationAttributes,
   FindOptions,
+  Model,
+  ModelStatic,
   SaveOptions,
-  AttributeNames,
-  Attributes,
-  AttributeReferencesOptions,
 } from '../model';
 import { normalizeReference } from '../model-definition.js';
 import { Op } from '../operators';
@@ -21,15 +27,6 @@ import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { camelize, singularize } from '../utils/string.js';
-import type { AssociationOptions, SingleAssociationAccessors } from './base';
-import { Association } from './base';
-import { HasMany } from './has-many.js';
-import { HasOne } from './has-one.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
-import {
-  defineAssociation,
-  mixinMethods, normalizeBaseAssociationOptions,
-} from './helpers';
 
 /**
  * One-to-one association

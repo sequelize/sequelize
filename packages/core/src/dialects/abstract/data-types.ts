@@ -5,6 +5,15 @@ import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
+import {
+  attributeTypeToSql,
+  dataTypeClassOrInstanceToInstance,
+  isDataType,
+  isDataTypeClass,
+  throwUnsupportedDataType,
+} from './data-types-utils.js';
+import type { AbstractDialect } from './index.js';
+import type { TableNameWithSchema } from './query-interface.js';
 import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
 import type { GeoJson, GeoJsonType } from '../../geo-json.js';
@@ -20,15 +29,6 @@ import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
 import { buildRangeParser } from '../postgres/range.js';
-import {
-  attributeTypeToSql,
-  dataTypeClassOrInstanceToInstance,
-  isDataType,
-  isDataTypeClass,
-  throwUnsupportedDataType,
-} from './data-types-utils.js';
-import type { TableNameWithSchema } from './query-interface.js';
-import type { AbstractDialect } from './index.js';
 
 // TODO: try merging "validate" & "sanitize" by making sanitize coerces the type, and if it cannot, throw a ValidationError.
 //       right now, they share a lot of the same logic.
@@ -1232,7 +1232,6 @@ export class DECIMAL extends BaseDecimalNumberDataType {
 
       // catch loss of precision issues
       if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
-        // eslint-disable-next-line unicorn/prefer-type-error
         throw new Error(`${this.getDataTypeId()} received an integer ${util.inspect(value)} that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`);
       }
     }
@@ -1860,7 +1859,6 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
     }
 
     if (!Array.isArray(value)) {
-      // eslint-disable-next-line unicorn/prefer-type-error
       throw new Error(`DataTypes.RANGE received a non-range value from the database: ${util.inspect(value)}`);
     }
 
@@ -2311,7 +2309,6 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
 
   parseDatabaseValue(value: unknown[]): unknown {
     if (!Array.isArray(value)) {
-      // eslint-disable-next-line unicorn/prefer-type-error
       throw new Error(`DataTypes.ARRAY Received a non-array value from database: ${util.inspect(value)}`);
     }
 

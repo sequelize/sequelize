@@ -1,11 +1,11 @@
-import type { Sequelize } from '../../sequelize.js';
-import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
-import { AbstractDialect } from '../abstract';
 import { IBMiConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types.js';
 import { IBMiQuery } from './query';
 import { IBMiQueryGenerator } from './query-generator';
 import { IBMiQueryInterface } from './query-interface';
+import type { Sequelize } from '../../sequelize.js';
+import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+import { AbstractDialect } from '../abstract';
 
 export class IBMiDialect extends AbstractDialect {
 

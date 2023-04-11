@@ -1,10 +1,12 @@
 import assert from 'node:assert';
 import pick from 'lodash/pick';
-import type { ClientConfig, Client } from 'pg';
+import type { Client, ClientConfig } from 'pg';
 import type { TypeFormat, TypeId } from 'pg-types';
 import semver from 'semver';
+import type { PostgresDialect } from './index.js';
 import {
-  ConnectionError, ConnectionRefusedError,
+  ConnectionError,
+  ConnectionRefusedError,
   ConnectionTimedOutError,
   HostNotFoundError,
   HostNotReachableError,
@@ -16,7 +18,6 @@ import { isValidTimeZone } from '../../utils/dayjs';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { PostgresDialect } from './index.js';
 
 const debug = logger.debugContext('connection:pg');
 

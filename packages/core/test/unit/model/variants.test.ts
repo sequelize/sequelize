@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { literal } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('Model.getInitialModel'), () => {
   const User = sequelize.define('user', {}, {

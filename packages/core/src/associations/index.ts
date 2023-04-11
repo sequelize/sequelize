@@ -1,7 +1,7 @@
 import type { Class } from 'type-fest';
+import type { Association } from './base';
 import type { Model, ModelStatic } from '../model';
 import type { Sequelize } from '../sequelize';
-import type { Association } from './base';
 
 export * from './base';
 export * from './belongs-to';

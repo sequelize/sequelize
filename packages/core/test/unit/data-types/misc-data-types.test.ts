@@ -2,8 +2,8 @@ import assert from 'node:assert';
 import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
+import { expectsql, sequelize } from '../../support';
 
 const { queryGenerator, dialect } = sequelize;
 const dialectName = dialect.name;

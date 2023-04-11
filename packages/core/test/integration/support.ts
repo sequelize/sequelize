@@ -3,7 +3,7 @@ import path from 'node:path';
 import uniq from 'lodash/uniq';
 import pTimeout from 'p-timeout';
 import type { Options } from '@sequelize/core';
-import { Sequelize, QueryTypes } from '@sequelize/core';
+import { QueryTypes, Sequelize } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import { createSequelizeInstance, getTestDialect, resetSequelizeInstance, sequelize } from '../support';
 

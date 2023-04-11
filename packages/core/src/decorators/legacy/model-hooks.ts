@@ -1,13 +1,14 @@
 import upperFirst from 'lodash/upperFirst.js';
+import {
+  createOptionallyParameterizedPropertyDecorator,
+  throwMustBeMethod,
+  throwMustBeModel,
+  throwMustBeStaticProperty,
+} from './decorator-utils.js';
 import type { ModelHooks } from '../../model-hooks.js';
 import { Model } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { registerModelOptions } from '../shared/model.js';
-import {
-  createOptionallyParameterizedPropertyDecorator, throwMustBeMethod,
-  throwMustBeModel,
-  throwMustBeStaticProperty,
-} from './decorator-utils.js';
 
 export interface HookOptions {
   name?: string;

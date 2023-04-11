@@ -1,6 +1,6 @@
-import { GeoJsonType, DataTypes } from '@sequelize/core';
-import { sequelize } from '../../support';
+import { DataTypes, GeoJsonType } from '@sequelize/core';
 import { testDataTypeSql } from './_utils';
+import { sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 

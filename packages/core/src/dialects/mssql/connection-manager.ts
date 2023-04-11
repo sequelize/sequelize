@@ -1,18 +1,19 @@
 import type { Connection as TediousConnection, ConnectionConfig as TediousConnectionConfig } from 'tedious';
+import { AsyncQueue } from './async-queue';
+import type { MssqlDialect } from './index.js';
 import {
   AccessDeniedError,
   ConnectionError,
   ConnectionRefusedError,
   HostNotFoundError,
-  HostNotReachableError, InvalidConnectionError,
+  HostNotReachableError,
+  InvalidConnectionError,
 } from '../../errors/index.js';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import { assertCaughtError, isErrorWithStringCode, isPlainObject } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
-import { AsyncQueue } from './async-queue';
-import type { MssqlDialect } from './index.js';
 
 const debug = logger.debugContext('connection:mssql');
 const debugTedious = logger.debugContext('connection:mssql:tedious');

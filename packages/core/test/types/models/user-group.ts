@@ -1,6 +1,4 @@
 import type {
-  InferAttributes,
-  InferCreationAttributes,
   CreationOptional,
   HasMany,
   HasManyAddAssociationMixin,
@@ -12,16 +10,13 @@ import type {
   HasManyRemoveAssociationMixin,
   HasManyRemoveAssociationsMixin,
   HasManySetAssociationsMixin,
+  InferAttributes,
+  InferCreationAttributes,
   NonAttribute,
 } from '@sequelize/core';
-import {
-  DataTypes,
-  Model,
-} from '@sequelize/core';
-import { sequelize } from '../connection';
-// associate
-// it is important to import _after_ the model above is already exported so the circular reference works.
+import { DataTypes, Model } from '@sequelize/core';
 import { User } from './user';
+import { sequelize } from '../connection';
 
 // This class doesn't extend the generic Model<TAttributes>, but should still
 // function just fine, with a bit less safe type-checking

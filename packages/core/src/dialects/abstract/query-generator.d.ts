@@ -1,21 +1,21 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
-import type { Col } from '../../expression-builders/col.js';
-import type { Literal } from '../../expression-builders/literal.js';
-import type {
-  NormalizedAttributeOptions,
-  FindOptions,
-  Model,
-  AttributeOptions,
-  ModelStatic,
-  SearchPathable,
-} from '../../model.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
+import type { Col } from '../../expression-builders/col.js';
+import type { Literal } from '../../expression-builders/literal.js';
+import type {
+  AttributeOptions,
+  FindOptions,
+  Model,
+  ModelStatic,
+  NormalizedAttributeOptions,
+  SearchPathable,
+} from '../../model.js';
 
 type ParameterOptions = {
   // only named replacements are allowed

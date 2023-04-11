@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import type { CreationOptional, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
 import { DataTypes, fn } from '@sequelize/core';
-import { sequelize, getTestDialect } from '../../../support';
+import { getTestDialect, sequelize } from '../../../support';
 
 if (getTestDialect() === 'postgres') {
   describe('[POSTGRES Specific] Data Types', () => {

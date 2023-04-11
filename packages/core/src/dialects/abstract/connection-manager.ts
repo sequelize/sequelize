@@ -1,13 +1,13 @@
 import cloneDeep from 'lodash/cloneDeep';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
+import type { AbstractDialect } from './index.js';
+import { ReplicationPool } from './replication-pool.js';
 import { ConnectionAcquireTimeoutError } from '../../errors';
-import type { Dialect, Sequelize, ConnectionOptions } from '../../sequelize.js';
+import type { ConnectionOptions, Dialect, Sequelize } from '../../sequelize.js';
 import { isNodeError } from '../../utils/check.js';
 import * as deprecations from '../../utils/deprecations';
 import { logger } from '../../utils/logger';
-import { ReplicationPool } from './replication-pool.js';
-import type { AbstractDialect } from './index.js';
 
 const debug = logger.debugContext('connection-manager');
 

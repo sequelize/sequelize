@@ -12,13 +12,9 @@ import {
   scopeRenamedToWithScope,
 } from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
-import {
-  mapFinderOptions,
-  mapOptionFieldNames,
-  mapValueFieldNames,
-} from './utils/format';
+import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './utils/format';
 import { every, find } from './utils/iterators';
-import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap, EMPTY_OBJECT } from './utils/object';
+import { EMPTY_OBJECT, cloneDeep, defaults, flattenObjectDeep, getObjectFromMap, mergeDefaults } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';

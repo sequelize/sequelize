@@ -1,3 +1,20 @@
+import type {
+  AbstractQueryGenerator,
+  AbstractQueryInterface,
+  Association,
+  AttributeOptions,
+  Attributes,
+  BrandedKeysOf,
+  BuiltModelOptions,
+  ForeignKeyBrand,
+  IndexOptions,
+  InitOptions,
+  ModelAttributes,
+  ModelStatic,
+  NormalizedAttributeOptions,
+  Sequelize,
+  TableNameWithSchema,
+} from '.';
 import { isDecoratedModel } from './decorators/shared/model.js';
 import {
   legacyBuildAddAnyHook,
@@ -6,23 +23,12 @@ import {
   legacyBuildRemoveHook,
   legacyBuildRunHook,
 } from './hooks-legacy.js';
-import { getModelDefinition, hasModelDefinition, ModelDefinition, registerModelDefinition } from './model-definition.js';
+import { ModelDefinition, getModelDefinition, hasModelDefinition, registerModelDefinition } from './model-definition.js';
 import { staticModelHooks } from './model-hooks.js';
 import type { Model } from './model.js';
 import { noModelTableName } from './utils/deprecations.js';
 import { getObjectFromMap } from './utils/object.js';
 import type { PartialBy } from './utils/types.js';
-import type {
-  ModelStatic,
-  Sequelize,
-  AbstractQueryGenerator,
-  AbstractQueryInterface,
-  IndexOptions, InitOptions,
-  Attributes, BrandedKeysOf, ForeignKeyBrand, ModelAttributes,
-  NormalizedAttributeOptions,
-  BuiltModelOptions, AttributeOptions,
-  Association, TableNameWithSchema,
-} from '.';
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**

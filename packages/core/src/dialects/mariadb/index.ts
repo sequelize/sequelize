@@ -1,4 +1,8 @@
 import type { FieldInfo } from 'mariadb';
+import { MariaDbConnectionManager } from './connection-manager';
+import * as DataTypes from './data-types';
+import { MariaDbQuery } from './query';
+import { MariaDbQueryGenerator } from './query-generator';
 import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import type { SupportableNumericOptions } from '../abstract';
@@ -6,10 +10,6 @@ import { AbstractDialect } from '../abstract';
 import { registerMySqlDbDataTypeParsers } from '../mysql/data-types.db.js';
 import { escapeMysqlString } from '../mysql/mysql-utils';
 import { MySqlQueryInterface } from '../mysql/query-interface';
-import { MariaDbConnectionManager } from './connection-manager';
-import * as DataTypes from './data-types';
-import { MariaDbQuery } from './query';
-import { MariaDbQueryGenerator } from './query-generator';
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,

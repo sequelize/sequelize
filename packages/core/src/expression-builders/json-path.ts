@@ -1,5 +1,5 @@
-import type { Expression } from '../sequelize.js';
 import { BaseSqlExpression } from './base-sql-expression.js';
+import type { Expression } from '../sequelize.js';
 
 /**
  * Do not use me directly. Use {@link @sequelize/core.jsonPath}.

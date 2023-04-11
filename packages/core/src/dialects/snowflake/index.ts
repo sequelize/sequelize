@@ -1,11 +1,11 @@
-import type { Sequelize } from '../../sequelize.js';
-import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
-import { AbstractDialect } from '../abstract';
 import { SnowflakeConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types.js';
 import { SnowflakeQuery } from './query';
 import { SnowflakeQueryGenerator } from './query-generator';
 import { SnowflakeQueryInterface } from './query-interface';
+import type { Sequelize } from '../../sequelize.js';
+import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+import { AbstractDialect } from '../abstract';
 
 export class SnowflakeDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({

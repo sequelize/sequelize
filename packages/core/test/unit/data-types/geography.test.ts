@@ -1,6 +1,6 @@
 import { DataTypes } from '@sequelize/core';
-import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
+import { sequelize } from '../../support';
 
 const dialectName = sequelize.dialect.name;
 

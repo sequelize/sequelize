@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import { ValidationErrorItem, DataTypes } from '@sequelize/core';
-import { sequelize } from '../../support';
+import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { testDataTypeSql } from './_utils';
+import { sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;

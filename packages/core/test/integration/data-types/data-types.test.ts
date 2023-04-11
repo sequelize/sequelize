@@ -12,7 +12,7 @@ import type {
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
+import { DataTypes, Model, QueryTypes, ValidationError, fn } from '@sequelize/core';
 import { beforeAll2, sequelize, setResetMode } from '../support';
 import 'moment-timezone';
 
