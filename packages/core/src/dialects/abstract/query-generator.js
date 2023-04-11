@@ -7,10 +7,7 @@ import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
 import { rejectInvalidOptions } from '../../utils/check';
-import {
-  mapFinderOptions,
-  removeNullishValuesFromHash,
-} from '../../utils/format';
+import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { nameIndex, spliceStr } from '../../utils/string';

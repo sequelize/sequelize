@@ -2,14 +2,16 @@ import { expect } from 'chai';
 import { describe } from 'mocha';
 import sinon from 'sinon';
 import type {
-  CreationOptional, HasManyCreateAssociationMixin,
+  CreationOptional,
+  HasManyCreateAssociationMixin,
   HasManySetAssociationsMixin,
   InferAttributes,
-  InferCreationAttributes, NonAttribute,
+  InferCreationAttributes,
+  NonAttribute,
 } from '@sequelize/core';
 import { DataTypes, InstanceError, Model } from '@sequelize/core';
 import { Attribute, BelongsTo, HasMany, NotNull, Table } from '@sequelize/core/decorators-legacy';
-import { createSingleTransactionalTestSequelizeInstance, setResetMode, beforeAll2, sequelize } from '../support';
+import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
 
 describe('Model#reload', () => {
   context('test-shared models', () => {

@@ -4,12 +4,7 @@ import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type { InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
 import { DataTypes, Transaction } from '@sequelize/core';
-import {
-  sequelize,
-  getTestDialectTeaser,
-  getTestDialect,
-  createSingleTransactionalTestSequelizeInstance,
-} from './support';
+import { createSingleTransactionalTestSequelizeInstance, getTestDialect, getTestDialectTeaser, sequelize } from './support';
 
 const dialectName = sequelize.dialect.name;
 

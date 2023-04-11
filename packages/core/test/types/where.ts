@@ -1,17 +1,6 @@
 import { expectTypeOf } from 'expect-type';
-import type {
-  WhereOptions,
-  Attributes,
-  InferAttributes,
-} from '@sequelize/core';
-import {
-  Model,
-  Op,
-  Sequelize,
-  and,
-  or,
-  Transaction,
-} from '@sequelize/core';
+import type { Attributes, InferAttributes, WhereOptions } from '@sequelize/core';
+import { Model, Op, Sequelize, Transaction, and, or } from '@sequelize/core';
 
 // NOTE: most typing tests for WhereOptions are located in test/unit/sql/where.test.ts
 

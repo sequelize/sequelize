@@ -1,10 +1,11 @@
 import assert from 'node:assert';
 import pick from 'lodash/pick';
-import type { ClientConfig, Client } from 'pg';
+import type { Client, ClientConfig } from 'pg';
 import type { TypeFormat, TypeId } from 'pg-types';
 import semver from 'semver';
 import {
-  ConnectionError, ConnectionRefusedError,
+  ConnectionError,
+  ConnectionRefusedError,
   ConnectionTimedOutError,
   HostNotFoundError,
   HostNotReachableError,

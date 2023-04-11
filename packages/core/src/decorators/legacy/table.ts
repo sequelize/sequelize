@@ -1,4 +1,4 @@
-import type { ModelOptions, Model, ModelStatic } from '../../model.js';
+import type { Model, ModelOptions, ModelStatic } from '../../model.js';
 import { registerModelOptions } from '../shared/model.js';
 
 /**

@@ -3,10 +3,7 @@ import { IsInt, Len } from '@sequelize/validator.js';
 import { expect } from 'chai';
 import { describe } from 'mocha';
 import sinon from 'sinon';
-import {
-  Model,
-  DataTypes, ValidationError, sql,
-} from '@sequelize/core';
+import { DataTypes, Model, ValidationError, sql } from '@sequelize/core';
 import type {
   CreationOptional,
   HasManySetAssociationsMixin,

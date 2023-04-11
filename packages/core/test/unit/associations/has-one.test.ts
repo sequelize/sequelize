@@ -4,7 +4,7 @@ import each from 'lodash/each';
 import sinon from 'sinon';
 import type { ModelStatic } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('hasOne'), () => {
   it('throws when invalid model is passed', () => {

@@ -1,4 +1,4 @@
-import { GeoJsonType, DataTypes } from '@sequelize/core';
+import { DataTypes, GeoJsonType } from '@sequelize/core';
 import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 

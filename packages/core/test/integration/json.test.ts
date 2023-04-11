@@ -1,14 +1,9 @@
 import { expect } from 'chai';
 import semver from 'semver';
-import type { InferAttributes, NonAttribute, CreationOptional, InferCreationAttributes } from '@sequelize/core';
-import { DataTypes, Op, Model, sql } from '@sequelize/core';
+import type { CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute } from '@sequelize/core';
+import { DataTypes, Model, Op, sql } from '@sequelize/core';
 import { Attribute, BelongsTo } from '@sequelize/core/decorators-legacy';
-import {
-  beforeAll2,
-  beforeEach2,
-  inlineErrorCause,
-  sequelize, setResetMode,
-} from './support';
+import { beforeAll2, beforeEach2, inlineErrorCause, sequelize, setResetMode } from './support';
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;

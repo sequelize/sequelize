@@ -2,11 +2,13 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
 import {
-  beforeEach2, destroySequelizeAfterTest,
+  beforeEach2,
+  destroySequelizeAfterTest,
   getConnectionOptionsWithoutPool,
   getSequelizeInstance,
   getTestDialect,
-  getTestDialectTeaser, setResetMode,
+  getTestDialectTeaser,
+  setResetMode,
 } from './support';
 
 const dialect = getTestDialect();

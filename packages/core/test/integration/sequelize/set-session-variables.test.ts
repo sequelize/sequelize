@@ -1,10 +1,6 @@
 import { expect } from 'chai';
 import { QueryTypes } from '@sequelize/core';
-import {
-  createSingleTransactionalTestSequelizeInstance,
-  getTestDialect,
-  sequelize, setResetMode,
-} from '../support';
+import { createSingleTransactionalTestSequelizeInstance, getTestDialect, sequelize, setResetMode } from '../support';
 
 const dialectName = getTestDialect();
 

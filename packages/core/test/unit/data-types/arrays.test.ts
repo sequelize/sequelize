@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ValidationErrorItem, DataTypes } from '@sequelize/core';
+import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 

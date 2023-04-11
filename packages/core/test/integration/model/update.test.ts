@@ -1,9 +1,9 @@
 import chai from 'chai';
 import sinon from 'sinon';
-import type { InferAttributes, InferCreationAttributes, CreationOptional } from '@sequelize/core';
+import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model, sql } from '@sequelize/core';
 import { Attribute, ColumnName, PrimaryKey, Table } from '@sequelize/core/decorators-legacy';
-import { createSingleTransactionalTestSequelizeInstance, setResetMode, beforeAll2, expectsql, sequelize } from '../support';
+import { beforeAll2, createSingleTransactionalTestSequelizeInstance, expectsql, sequelize, setResetMode } from '../support';
 
 const expect = chai.expect;
 const dialect = sequelize.dialect;

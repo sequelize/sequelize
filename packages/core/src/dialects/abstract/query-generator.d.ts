@@ -3,11 +3,11 @@
 import type { Col } from '../../expression-builders/col.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type {
-  NormalizedAttributeOptions,
+  AttributeOptions,
   FindOptions,
   Model,
-  AttributeOptions,
   ModelStatic,
+  NormalizedAttributeOptions,
   SearchPathable,
 } from '../../model.js';
 import type { DataType } from './data-types.js';

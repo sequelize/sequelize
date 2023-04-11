@@ -3,12 +3,8 @@ import delay from 'delay';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
 import type { Connection } from '@sequelize/core';
-import { Sequelize, ConnectionAcquireTimeoutError } from '@sequelize/core';
-import {
-  createSingleTestSequelizeInstance,
-  getTestDialect,
-  getTestDialectTeaser,
-} from './support';
+import { ConnectionAcquireTimeoutError, Sequelize } from '@sequelize/core';
+import { createSingleTestSequelizeInstance, getTestDialect, getTestDialectTeaser } from './support';
 
 const dialect = getTestDialect();
 
