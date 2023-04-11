@@ -4,26 +4,28 @@ import { AssociationError } from '../errors/index.js';
 import { col } from '../expression-builders/col.js';
 import { fn } from '../expression-builders/fn.js';
 import type {
-  Model,
+  AttributeNames,
+  Attributes,
   CreateOptions,
   CreationAttributes,
   Filterable,
   FindOptions,
   InstanceUpdateOptions,
-  Transactionable,
+  Model,
   ModelStatic,
-  AttributeNames, UpdateValues, Attributes,
+  Transactionable,
+  UpdateValues,
 } from '../model';
 import { Op } from '../operators';
 import { isPlainObject } from '../utils/check.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import type { AllowArray } from '../utils/types.js';
-import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';
+import type { Association, AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions } from './base';
 import { BelongsTo } from './belongs-to.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
 import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
+import type { NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-many association.
@@ -313,6 +315,7 @@ export class HasMany<
     const where = {
       [Op.or]: targetInstances.map(instance => {
         if (instance instanceof this.target) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
           return (instance as T).where();
         }
 
@@ -474,6 +477,7 @@ export class HasMany<
       [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => {
         if (targetInstance instanceof this.target) {
           // @ts-expect-error -- TODO: what if the target has no primary key?
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
           return (targetInstance as T).get(this.target.primaryKeyAttribute);
         }
 

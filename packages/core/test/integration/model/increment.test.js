@@ -61,13 +61,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User.findByPk(1);
         await this.User[method](['aNumber'], { by: 2, where: { id: 1 } });
         const user3 = await this.User.findByPk(2);
-        expect(user3.aNumber).to.be.equal(this.assert(0, 0));
+        expect(user3.aNumber).to.equal(this.assert(0, 0));
       });
 
       it('uses correct column names for where conditions', async function () {
         await this.User[method](['aNumber'], { by: 2, where: { cNumber: 0 } });
         const user4 = await this.User.findByPk(4);
-        expect(user4.aNumber).to.be.equal(this.assert(2, -2));
+        expect(user4.aNumber).to.equal(this.assert(2, -2));
       });
 
       it('should still work right with other concurrent increments', async function () {

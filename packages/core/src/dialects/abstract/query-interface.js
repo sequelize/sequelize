@@ -2,7 +2,7 @@
 
 import { map } from '../../utils/iterators';
 import { cloneDeep, getObjectFromMap } from '../../utils/object';
-import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
+import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';

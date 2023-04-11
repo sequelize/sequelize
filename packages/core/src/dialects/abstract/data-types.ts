@@ -1232,7 +1232,6 @@ export class DECIMAL extends BaseDecimalNumberDataType {
 
       // catch loss of precision issues
       if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
-        // eslint-disable-next-line unicorn/prefer-type-error
         throw new Error(`${this.getDataTypeId()} received an integer ${util.inspect(value)} that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`);
       }
     }
@@ -1323,7 +1322,7 @@ export interface TimeOptions {
   /**
    * The precision of the date.
    */
-  precision?: string | number | undefined;
+  precision?: number | undefined;
 }
 
 /**
@@ -1377,7 +1376,7 @@ export interface DateOptions {
   /**
    * The precision of the date.
    */
-  precision?: string | number | undefined;
+  precision?: number | undefined;
 }
 
 type RawDate = Date | string | number;
@@ -1418,6 +1417,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
   }
 
   toSql() {
+    // TODO [>=8]: Consider making precision default to 3 instead of being dialect-dependent.
     if (this.options.precision != null) {
       return `DATETIME(${this.options.precision})`;
     }
@@ -1859,7 +1859,6 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
     }
 
     if (!Array.isArray(value)) {
-      // eslint-disable-next-line unicorn/prefer-type-error
       throw new Error(`DataTypes.RANGE received a non-range value from the database: ${util.inspect(value)}`);
     }
 
@@ -2310,7 +2309,6 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
 
   parseDatabaseValue(value: unknown[]): unknown {
     if (!Array.isArray(value)) {
-      // eslint-disable-next-line unicorn/prefer-type-error
       throw new Error(`DataTypes.ARRAY Received a non-array value from database: ${util.inspect(value)}`);
     }
 

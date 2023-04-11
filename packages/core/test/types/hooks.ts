@@ -1,17 +1,15 @@
 import { expectTypeOf } from 'expect-type';
-import type {
-  FindOptions,
-  QueryOptions,
-  SaveOptions,
-  UpsertOptions,
-  ConnectionOptions,
-} from '@sequelize/core';
+import type { ConnectionOptions, FindOptions, QueryOptions, SaveOptions, UpsertOptions } from '@sequelize/core';
 import { Model, Sequelize } from '@sequelize/core';
 import type {
-  BeforeAssociateEventData,
   AfterAssociateEventData,
   AssociationOptions,
+  BeforeAssociateEventData,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/associations';
+import type {
+  Connection,
+  GetConnectionOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import type { ValidationOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
@@ -156,6 +154,32 @@ sequelize.beforeConnect((config: ConnectionOptions) => {
 
 sequelize.addHook('beforeConnect', (...args) => {
   expectTypeOf(args).toMatchTypeOf<[ConnectionOptions]>();
+});
+
+sequelize.beforePoolAcquire('name', (options?: GetConnectionOptions) => {
+  expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+});
+
+sequelize.beforePoolAcquire((options?: GetConnectionOptions) => {
+  expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+});
+
+sequelize.addHook('beforePoolAcquire', (...args: [GetConnectionOptions | undefined]) => {
+  expectTypeOf(args).toMatchTypeOf<[GetConnectionOptions | undefined]>();
+});
+
+sequelize.afterPoolAcquire('name', (connection: Connection, options?: GetConnectionOptions) => {
+  expectTypeOf(connection).toMatchTypeOf<Connection>();
+  expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+});
+
+sequelize.afterPoolAcquire((connection: Connection, options?: GetConnectionOptions) => {
+  expectTypeOf(connection).toMatchTypeOf<Connection>();
+  expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+});
+
+sequelize.addHook('afterPoolAcquire', (...args: [Connection | GetConnectionOptions | undefined]) => {
+  expectTypeOf(args).toMatchTypeOf<[Connection | GetConnectionOptions | undefined]>();
 });
 
 sequelize.beforeQuery((options, query) => {

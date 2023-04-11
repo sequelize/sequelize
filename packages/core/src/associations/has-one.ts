@@ -2,25 +2,22 @@ import upperFirst from 'lodash/upperFirst';
 import { AssociationError } from '../errors/index.js';
 import { Model } from '../model';
 import type {
+  AttributeNames,
+  Attributes,
   CreateOptions,
   CreationAttributes,
   FindOptions,
-  SaveOptions,
   ModelStatic,
-  AttributeNames,
-  Attributes,
+  SaveOptions,
 } from '../model';
 import { Op } from '../operators';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
-import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
+import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { BelongsTo } from './belongs-to.js';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 import type { NormalizeBaseAssociationOptions } from './helpers';
-import {
-  defineAssociation,
-  mixinMethods, normalizeBaseAssociationOptions,
-} from './helpers';
 
 /**
  * One-to-one association.

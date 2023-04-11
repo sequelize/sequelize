@@ -8,6 +8,7 @@ import {
   AfterBulkRestore,
   AfterBulkUpdate,
   AfterCreate,
+  AfterDefinitionRefresh,
   AfterDestroy,
   AfterFind,
   AfterRestore,
@@ -23,6 +24,7 @@ import {
   BeforeBulkUpdate,
   BeforeCount,
   BeforeCreate,
+  BeforeDefinitionRefresh,
   BeforeDestroy,
   BeforeFind,
   BeforeFindAfterExpandIncludeAll,
@@ -34,8 +36,6 @@ import {
   BeforeUpsert,
   BeforeValidate,
   ValidationFailed,
-  BeforeDefinitionRefresh,
-  AfterDefinitionRefresh,
 } from '@sequelize/core/decorators-legacy';
 import { sequelize } from '../../support';
 

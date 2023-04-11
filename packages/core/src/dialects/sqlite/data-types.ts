@@ -229,7 +229,6 @@ export class JSON extends BaseTypes.JSON {
     }
 
     if (typeof value !== 'string') {
-      // eslint-disable-next-line unicorn/prefer-type-error
       throw new Error(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`);
     }
 

@@ -31,6 +31,7 @@ import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
 import type { AllowArray } from '../utils/types.js';
+import { MultiAssociation } from './base';
 import type {
   Association,
   AssociationOptions,
@@ -40,11 +41,9 @@ import type {
   MultiAssociationOptions,
   NormalizedAssociationOptions,
 } from './base';
-import { MultiAssociation } from './base';
 import type { BelongsTo } from './belongs-to';
 import { HasMany } from './has-many';
 import { HasOne } from './has-one';
-import type { AssociationStatic, MaybeForwardedModelStatic } from './helpers';
 import {
   AssociationSecret,
   defineAssociation,
@@ -53,6 +52,7 @@ import {
   normalizeBaseAssociationOptions,
   normalizeForeignKeyOptions,
 } from './helpers';
+import type { AssociationStatic, MaybeForwardedModelStatic } from './helpers';
 
 function addInclude(findOptions: FindOptions, include: Includeable) {
   if (Array.isArray(findOptions.include)) {
@@ -537,6 +537,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targetInstancesOrPks.map(instance => {
       if (instance instanceof this.target) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
         return (instance as TargetModel).get(this.targetKey);
       }
 

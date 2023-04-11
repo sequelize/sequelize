@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { AssociationError } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('belongsTo'), () => {
   it('should throw an AssociationError when two associations have the same alias', () => {

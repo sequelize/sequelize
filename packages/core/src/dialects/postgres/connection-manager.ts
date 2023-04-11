@@ -1,9 +1,11 @@
+import assert from 'node:assert';
 import pick from 'lodash/pick';
-import type { ClientConfig, Client } from 'pg';
+import type { Client, ClientConfig } from 'pg';
 import type { TypeFormat, TypeId } from 'pg-types';
 import semver from 'semver';
 import {
-  ConnectionError, ConnectionRefusedError,
+  ConnectionError,
+  ConnectionRefusedError,
   ConnectionTimedOutError,
   HostNotFoundError,
   HostNotReachableError,
@@ -60,6 +62,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
 
     const pgLib = this._loadDialectModule('pg') as Lib;
     this.lib = this.sequelize.config.native ? pgLib.native! : pgLib;
+    assert(this.lib != null, 'pg-native module not found, please install it');
 
     this.#arrayParserLib = this._loadDialectModule('postgres-array') as ArrayParserLib;
   }
@@ -91,6 +94,8 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
         'statement_timeout',
         // Times out queries after a set time in milliseconds in client end, query would be still running in database end.
         'query_timeout',
+        // Number of milliseconds to wait for connection, default is no timeout.
+        'connectionTimeoutMillis',
         // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. Added in pg v7.17.0 only supported in postgres >= 10
         'idle_in_transaction_session_timeout',
         // Maximum wait time for lock requests in milliseconds. Added in pg v8.8.0.

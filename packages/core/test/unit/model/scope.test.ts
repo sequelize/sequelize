@@ -1,9 +1,9 @@
 import assert from 'node:assert';
 import { expect } from 'chai';
 import type { FindOptions } from '@sequelize/core';
-import { DataTypes, Op, Sequelize, col, where, literal } from '@sequelize/core';
+import { DataTypes, Op, Sequelize, col, literal, where } from '@sequelize/core';
 // eslint-disable-next-line import/order -- sequelize cannot be imported right now since there will be too many typing errors
-import { resetSequelizeInstance, getTestDialectTeaser } from '../../support';
+import { getTestDialectTeaser, resetSequelizeInstance } from '../../support';
 
 const sequelize = require('../../support').sequelize;
 

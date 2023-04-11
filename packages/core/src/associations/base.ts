@@ -1,8 +1,8 @@
-import type { Model, ModelStatic, Hookable, AttributeNames, AttributeOptions } from '../model';
+import type { AttributeNames, AttributeOptions, Hookable, Model, ModelStatic } from '../model';
 import { cloneDeep } from '../utils/object.js';
 import type { AllowArray, PartialBy } from '../utils/types.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
 import { AssociationSecret } from './helpers';
+import type { NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * Creating associations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).
@@ -216,6 +216,7 @@ export abstract class MultiAssociation<
 
     return input.map(element => {
       if (element instanceof this.target) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
         return element as T;
       }
 

@@ -17,9 +17,6 @@ const _ = require('lodash');
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { Op } = require('../../operators');
 
-const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
-const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[&|]?|\|{2}|#-)/i;
-const TOKEN_CAPTURE_REGEX = /^\s*((?:(["'`])(?:(?!\2).|\2{2})*\2)|[\s\w]+|[()+,.;-])/i;
 const FOREIGN_KEY_FIELDS = [
   'CONSTRAINT_NAME as constraint_name',
   'CONSTRAINT_NAME as constraintName',
@@ -189,7 +186,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       'CREATE TABLE IF NOT EXISTS',
       table,
       `(${attributesClause})`,
-      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment, options)}`,
+      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
@@ -197,10 +194,10 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  showTablesQuery(database, options) {
+  showTablesQuery(database) {
     return joinSQLFragments([
       'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
+      database ? `AND TABLE_SCHEMA = ${this.escape(database)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
       ';',
     ]);
   }
@@ -598,11 +595,12 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
    */
   quoteIdentifier(identifier, force) {
     const optForceQuote = force || false;
+    // TODO [>7]: remove "quoteIdentifiers: false" option
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
 
     if (
       optForceQuote === true
-      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers.
+      // TODO [>7]: drop this.options.quoteIdentifiers. Always quote identifiers.
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')

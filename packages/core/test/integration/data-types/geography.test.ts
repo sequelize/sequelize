@@ -2,14 +2,14 @@ import { expect } from 'chai';
 import type {
   CreationOptional,
   GeoJson,
+  GeoJsonLineString,
   GeoJsonPoint,
+  GeoJsonPolygon,
   InferAttributes,
   InferCreationAttributes,
-  GeoJsonLineString,
-  GeoJsonPolygon,
 } from '@sequelize/core';
-import { DataTypes, Model, GeoJsonType } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser, beforeEach2 } from '../support';
+import { DataTypes, GeoJsonType, Model } from '@sequelize/core';
+import { beforeEach2, getTestDialectTeaser, sequelize } from '../support';
 
 async function createUserModelWithGeography(type?: GeoJsonType, srid?: number) {
   class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {

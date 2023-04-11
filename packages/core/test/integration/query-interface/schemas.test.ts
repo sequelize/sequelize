@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import type { CreateSchemaQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
+import type {
+  CreateSchemaQueryOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { sequelize } from '../support';
 
 const { dialect } = sequelize;

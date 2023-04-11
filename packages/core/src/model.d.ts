@@ -11,16 +11,10 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
+import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
-import type {
-  IndexOptions,
-  TableName,
-  TableNameWithSchema,
-  IndexField,
-} from './dialects/abstract/query-interface';
-import type {
-  DynamicSqlExpression,
-} from './expression-builders/base-sql-expression.js';
+import type { IndexField, IndexOptions, TableName, TableNameWithSchema } from './dialects/abstract/query-interface';
+import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
@@ -30,16 +24,17 @@ import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
-import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
+import type { QueryOptions, Sequelize, SyncOptions } from './sequelize';
 import type {
   AllowArray,
   AllowReadonlyArray,
   AnyFunction,
   MakeNullishOptional,
   Nullish,
-  OmitConstructors, RequiredBy,
+  OmitConstructors,
+  RequiredBy,
 } from './utils/types.js';
-import type { LOCK, Op, Transaction, TableHints, WhereOptions } from './index';
+import type { LOCK, Op, TableHints, Transaction, WhereOptions } from './index';
 
 export interface Logging {
   /**
@@ -65,11 +60,24 @@ export interface Poolable {
 export interface Transactionable {
   /**
    * The transaction in which this query must be run.
+   * Mutually exclusive with {@link Transactionable.connection}.
    *
    * If {@link Options.disableClsTransactions} has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
-   * that transaction will be used, unless null or a Transaction is manually specified here.
+   * that transaction will be used, unless null or another Transaction is manually specified here.
    */
   transaction?: Transaction | null | undefined;
+
+  /**
+   * The connection on which this query must be run.
+   * Mutually exclusive with {@link Transactionable.transaction}.
+   *
+   * Can be used to ensure that a query is run on the same connection as a previous query, which is useful when
+   * configuring session options.
+   *
+   * Specifying this option takes precedence over CLS Transactions. If a transaction is running in the current
+   * AsyncLocalStorage context, it will be ignored in favor of the specified connection.
+   */
+  connection?: Connection | null | undefined;
 }
 
 export interface SearchPathable {
@@ -1134,14 +1142,14 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
 }
 
 /**
- * The options passed to Model.destroy in addition to truncate
+ * The options accepted by {@link Model.truncate}.
  */
-export interface TruncateOptions<TAttributes = any> extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
+export interface TruncateOptions extends Logging, Transactionable, Hookable {
   /**
-   * Only used in conjuction with TRUNCATE. Truncates all tables that have foreign-key references to the
+   * Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the
    * named table, or to any tables added to the group due to CASCADE.
    *
-   * @default false;
+   * @default false
    */
   cascade?: boolean;
 
@@ -1175,14 +1183,16 @@ export interface TruncateOptions<TAttributes = any> extends Logging, Transaction
 }
 
 /**
- * Options used for Model.destroy
+ * Options accepted by {@link Model.destroy}.
  */
-export interface DestroyOptions<TAttributes = any> extends TruncateOptions<TAttributes> {
+export interface DestroyOptions<TAttributes = any> extends TruncateOptions, Filterable<TAttributes> {
   /**
    * If set to true, dialects that support it will use TRUNCATE instead of DELETE FROM. If a table is
    * truncated the where and limit options are ignored.
    *
    * __Danger__: This will completely empty your table!
+   *
+   * @deprecated use {@link Model.truncate}.
    */
   truncate?: boolean;
 }
@@ -2624,7 +2634,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static truncate<M extends Model>(
     this: ModelStatic<M>,
-    options?: TruncateOptions<Attributes<M>>
+    options?: TruncateOptions
   ): Promise<void>;
 
   /**
@@ -2934,6 +2944,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * If changed is called without an argument and no keys have changed, it will return `false`.
    */
+  // TODO: split this method into:
+  //  - hasChanges(): boolean;
+  //  - getChanges(): string[];
+  //  - isDirty(key: string): boolean;
+  //  - setDirty(key: string, dirty: boolean = true): void;
   changed<K extends keyof this>(key: K): boolean;
   changed<K extends keyof this>(key: K, dirty: boolean): void;
   changed(): false | string[];
@@ -2965,7 +2980,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * return a new instance. With this method, all references to the Instance are updated with the new data
    * and no new objects are created.
    */
-  reload(options?: FindOptions<TModelAttributes>): Promise<this>;
+  reload(options?: Omit<FindOptions<TModelAttributes>, 'where'>): Promise<this>;
 
   /**
    * Runs all validators defined for this model, including non-null validators, DataTypes validators, custom attribute validators and model-level validators.

@@ -1,7 +1,7 @@
 import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
-import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
+import type { SupportableNumericOptions } from '../abstract';
 import { MySqlConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { registerMySqlDbDataTypeParsers } from './data-types.db.js';
@@ -38,6 +38,7 @@ export class MysqlDialect extends AbstractDialect {
       constraints: {
         dropConstraint: false,
         check: false,
+        foreignKeyChecksDisableable: true,
       },
       indexViaAlter: true,
       indexHints: true,

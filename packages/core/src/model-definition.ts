@@ -12,14 +12,14 @@ import type { ModelHooks } from './model-hooks.js';
 import { staticModelHooks } from './model-hooks.js';
 import { conformIndex } from './model-internals.js';
 import type {
+  AttributeOptions,
   BuiltModelOptions,
   InitOptions,
-  AttributeOptions,
   ModelAttributes,
+  ModelOptions,
   ModelStatic,
   NormalizedAttributeOptions,
   NormalizedAttributeReferencesOptions,
-  ModelOptions,
 } from './model.js';
 import type { Sequelize } from './sequelize.js';
 import { fieldToColumn } from './utils/deprecations.js';
@@ -174,6 +174,7 @@ export class ModelDefinition {
     return this.#sequelize;
   }
 
+  // TODO: add generic type to ModelHooks (model, attributes)
   get hooks(): HookHandler<ModelHooks> {
     return staticModelHooks.getFor(this);
   }
@@ -213,7 +214,7 @@ export class ModelDefinition {
         },
         globalOptions.define as ModelOptions,
       ),
-      modelOptions,
+      removeUndefined(modelOptions),
       true,
     ) as BuiltModelOptions;
 
@@ -226,13 +227,11 @@ If you need regular getters & setters, define your model as a class and add gett
 See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprecated-in-sequelize-v7-gettermethods-and-settermethods for more information.`);
     }
 
-    this.options.name.plural ??= pluralize(modelOptions.modelName);
+    this.options.name.plural ??= pluralize(this.options.modelName);
     // Model Names must be singular!
-    this.options.name.singular ??= modelOptions.modelName;
+    this.options.name.singular ??= this.options.modelName;
 
     this.#sequelize.hooks.runSync('beforeDefine', attributesOptions, this.options);
-
-    delete modelOptions.modelName;
 
     // if you call "define" multiple times for the same modelName, do not clutter the factory
     if (this.sequelize.isDefined(this.modelName)) {

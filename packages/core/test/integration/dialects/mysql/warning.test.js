@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support = require('../../../support');
+const Support = require('../../support');
 
 const { Sequelize } = require('@sequelize/core');
 
@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
     describe('logging', () => {
       it('logs warnings when there are warnings', async () => {
         const logger = sinon.spy(console, 'log');
-        const sequelize = Support.createSequelizeInstance({
+        const sequelize = Support.createSingleTestSequelizeInstance({
           logging: logger,
           benchmark: false,
           showWarnings: true,

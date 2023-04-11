@@ -46,6 +46,7 @@ export type DialectSupports = {
   'DEFAULT': boolean,
   'DEFAULT VALUES': boolean,
   'VALUES ()': boolean,
+  // TODO: rename to `update.limit`
   'LIMIT ON UPDATE': boolean,
   'ON DUPLICATE KEY': boolean,
   'ORDER NULLS': boolean,
@@ -113,6 +114,8 @@ export type DialectSupports = {
     default: boolean,
     check: boolean,
     foreignKey: boolean,
+    /** Whether this dialect supports disabling foreign key checks for the current session */
+    foreignKeyChecksDisableable: boolean,
     primaryKey: boolean,
     onUpdate: boolean,
   },
@@ -210,6 +213,9 @@ export type DialectSupports = {
   dropTable: {
     cascade: boolean,
   },
+  truncate: {
+    cascade: boolean,
+  },
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -269,6 +275,7 @@ export abstract class AbstractDialect {
       default: false,
       check: true,
       foreignKey: true,
+      foreignKeyChecksDisableable: false,
       primaryKey: true,
       onUpdate: true,
     },
@@ -329,6 +336,9 @@ export abstract class AbstractDialect {
     escapeStringConstants: false,
     globalTimeZoneConfig: false,
     dropTable: {
+      cascade: false,
+    },
+    truncate: {
       cascade: false,
     },
   };

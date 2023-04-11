@@ -4,7 +4,12 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel, QueryGeneratorOptions, EscapeOptions } from '../abstract/query-generator-typescript';
+import type {
+  EscapeOptions,
+  QueryGeneratorOptions,
+  RemoveIndexQueryOptions,
+  TableNameOrModel,
+} from '../abstract/query-generator-typescript';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -25,6 +30,10 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   showIndexesQuery(tableName: TableNameOrModel) {
     return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
+  }
+
+  getToggleForeignKeyChecksQuery(enable: boolean): string {
+    return `SET FOREIGN_KEY_CHECKS=${enable ? '1' : '0'}`;
   }
 
   removeIndexQuery(
