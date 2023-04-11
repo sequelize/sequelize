@@ -1,9 +1,4 @@
 import upperFirst from 'lodash/upperFirst';
-import type { Association, AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions } from './base';
-import { MultiAssociation } from './base';
-import { BelongsTo } from './belongs-to.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
-import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
 import { AssociationError } from '../errors/index.js';
 import { col } from '../expression-builders/col.js';
@@ -26,6 +21,11 @@ import { isPlainObject } from '../utils/check.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import type { AllowArray } from '../utils/types.js';
+import { MultiAssociation } from './base';
+import type { Association, AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions } from './base';
+import { BelongsTo } from './belongs-to.js';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
+import type { NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-many association.

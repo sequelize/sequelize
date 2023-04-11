@@ -2,13 +2,13 @@ import type { SyntaxNode } from 'bnf-parser';
 import { BNF, Compile, ParseError } from 'bnf-parser';
 import memoize from 'lodash/memoize.js';
 import type { Class } from 'type-fest';
-import { noPrototype } from './object.js';
 import { AssociationPath } from '../expression-builders/association-path.js';
 import { Attribute } from '../expression-builders/attribute.js';
 import { Cast } from '../expression-builders/cast.js';
 import type { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { Unquote } from '../expression-builders/dialect-aware-fn.js';
 import { JsonPath } from '../expression-builders/json-path.js';
+import { noPrototype } from './object.js';
 
 /**
  * Parses the attribute syntax (the syntax of keys in WHERE POJOs) into its "BaseExpression" representation.

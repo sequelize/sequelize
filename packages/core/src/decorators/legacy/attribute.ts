@@ -1,11 +1,11 @@
-import { createOptionalAttributeOptionsDecorator, createRequiredAttributeOptionsDecorator } from './attribute-utils.js';
-import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
 import { isDataType } from '../../dialects/abstract/data-types-utils.js';
 import type { DataType } from '../../dialects/abstract/data-types.js';
 import type { AttributeIndexOptions, AttributeOptions } from '../../model.js';
 import { columnToAttribute } from '../../utils/deprecations.js';
 import { underscore } from '../../utils/string.js';
 import type { NonUndefined } from '../../utils/types.js';
+import { createOptionalAttributeOptionsDecorator, createRequiredAttributeOptionsDecorator } from './attribute-utils.js';
+import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
 
 type AttributeDecoratorOption = DataType | Partial<AttributeOptions>;
 

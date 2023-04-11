@@ -1,14 +1,4 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import type {
-  AbstractQueryInterface,
-  DestroyOptions,
-  ModelAttributes,
-  ModelOptions,
-  ModelStatic,
-  QueryOptions,
-  SyncOptions,
-  TruncateOptions,
-} from '.';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
 import type { AbstractConnectionManager, Connection, GetConnectionOptions } from './dialects/abstract/connection-manager.js';
@@ -30,6 +20,16 @@ import type { ConnectionOptions, Options, Sequelize } from './sequelize.js';
 import type { TransactionOptions } from './transaction.js';
 import { Transaction } from './transaction.js';
 import type { PartialBy } from './utils/types.js';
+import type {
+  AbstractQueryInterface,
+  DestroyOptions,
+  ModelAttributes,
+  ModelOptions,
+  ModelStatic,
+  QueryOptions,
+  SyncOptions,
+  TruncateOptions,
+} from '.';
 
 export interface SequelizeHooks extends ModelHooks {
   /**

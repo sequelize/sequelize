@@ -2,12 +2,6 @@ import assert from 'node:assert';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
-import type { AssociationOptions, SingleAssociationAccessors } from './base';
-import { Association } from './base';
-import { HasMany } from './has-many.js';
-import { HasOne } from './has-one.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
-import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 import { cloneDataType } from '../dialects/abstract/data-types-utils.js';
 import { AssociationError } from '../errors/index.js';
 import type {
@@ -27,6 +21,12 @@ import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { camelize, singularize } from '../utils/string.js';
+import { Association } from './base';
+import type { AssociationOptions, SingleAssociationAccessors } from './base';
+import { HasMany } from './has-many.js';
+import { HasOne } from './has-one.js';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
+import type { NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-one association

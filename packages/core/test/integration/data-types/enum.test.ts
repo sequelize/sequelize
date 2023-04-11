@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
-import { testSimpleInOut, testSimpleInOutRaw } from './data-types.test';
 import { beforeEach2, sequelize, setResetMode } from '../support';
+import { testSimpleInOut, testSimpleInOutRaw } from './data-types.test';
 
 enum TestEnum {
   A = 'A',

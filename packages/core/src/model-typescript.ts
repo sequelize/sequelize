@@ -1,3 +1,17 @@
+import { isDecoratedModel } from './decorators/shared/model.js';
+import {
+  legacyBuildAddAnyHook,
+  legacyBuildAddHook,
+  legacyBuildHasHook,
+  legacyBuildRemoveHook,
+  legacyBuildRunHook,
+} from './hooks-legacy.js';
+import { ModelDefinition, getModelDefinition, hasModelDefinition, registerModelDefinition } from './model-definition.js';
+import { staticModelHooks } from './model-hooks.js';
+import type { Model } from './model.js';
+import { noModelTableName } from './utils/deprecations.js';
+import { getObjectFromMap } from './utils/object.js';
+import type { PartialBy } from './utils/types.js';
 import type {
   AbstractQueryGenerator,
   AbstractQueryInterface,
@@ -15,20 +29,6 @@ import type {
   Sequelize,
   TableNameWithSchema,
 } from '.';
-import { isDecoratedModel } from './decorators/shared/model.js';
-import {
-  legacyBuildAddAnyHook,
-  legacyBuildAddHook,
-  legacyBuildHasHook,
-  legacyBuildRemoveHook,
-  legacyBuildRunHook,
-} from './hooks-legacy.js';
-import { ModelDefinition, getModelDefinition, hasModelDefinition, registerModelDefinition } from './model-definition.js';
-import { staticModelHooks } from './model-hooks.js';
-import type { Model } from './model.js';
-import { noModelTableName } from './utils/deprecations.js';
-import { getObjectFromMap } from './utils/object.js';
-import type { PartialBy } from './utils/types.js';
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**

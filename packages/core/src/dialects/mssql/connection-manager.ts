@@ -1,6 +1,4 @@
 import type { Connection as TediousConnection, ConnectionConfig as TediousConnectionConfig } from 'tedious';
-import { AsyncQueue } from './async-queue';
-import type { MssqlDialect } from './index.js';
 import {
   AccessDeniedError,
   ConnectionError,
@@ -14,6 +12,8 @@ import { assertCaughtError, isErrorWithStringCode, isPlainObject } from '../../u
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
+import { AsyncQueue } from './async-queue';
+import type { MssqlDialect } from './index.js';
 
 const debug = logger.debugContext('connection:mssql');
 const debugTedious = logger.debugContext('connection:mssql:tedious');

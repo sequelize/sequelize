@@ -1,11 +1,11 @@
 import assert from 'node:assert';
 import NodeUtil from 'node:util';
 import type { ConnStr, Database as Db2LibDatabase } from 'ibm_db';
-import type { Db2Dialect } from './index.js';
 import { ConnectionError, ConnectionRefusedError } from '../../errors/index.js';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
+import type { Db2Dialect } from './index.js';
 
 // TODO: once the code has been split into packages, we won't need to lazy load this anymore
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports

@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
-import { testDataTypeSql } from './_utils';
 import { sequelize } from '../../support';
+import { testDataTypeSql } from './_utils';
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;

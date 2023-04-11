@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import type { CreationOptional, InferAttributes, InferCreationAttributes, Rangable } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
-import { testSimpleInOut } from './data-types.test';
 import { beforeEach2, sequelize, setResetMode } from '../support';
+import { testSimpleInOut } from './data-types.test';
 
 const dialect = sequelize.dialect;
 

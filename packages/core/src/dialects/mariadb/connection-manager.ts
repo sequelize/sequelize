@@ -7,7 +7,6 @@ import type {
   TypeCastResult,
 } from 'mariadb';
 import semver from 'semver';
-import type { MariaDbDialect } from './index.js';
 import {
   AccessDeniedError,
   ConnectionError,
@@ -22,6 +21,7 @@ import { logger } from '../../utils/logger';
 import { removeUndefined } from '../../utils/object.js';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
+import type { MariaDbDialect } from './index.js';
 
 const debug = logger.debugContext('connection:mariadb');
 

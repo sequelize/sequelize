@@ -1,12 +1,12 @@
+import type { Sequelize } from '../../sequelize.js';
+import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
+import { AbstractDialect } from '../abstract';
 import { PostgresConnectionManager } from './connection-manager';
 import { registerPostgresDbDataTypeParsers } from './data-types-db.js';
 import * as DataTypes from './data-types.js';
 import { PostgresQuery } from './query';
 import { PostgresQueryGenerator } from './query-generator';
 import { PostgresQueryInterface } from './query-interface';
-import type { Sequelize } from '../../sequelize.js';
-import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
-import { AbstractDialect } from '../abstract';
 
 export class PostgresDialect extends AbstractDialect {
   static readonly supports = AbstractDialect.extendSupport({

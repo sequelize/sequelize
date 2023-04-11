@@ -1,13 +1,5 @@
 import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
-import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
-import type { BindParamOptions, DataType } from './data-types.js';
-import { AbstractDataType } from './data-types.js';
-import type { AbstractDialect } from './index.js';
-import type { AbstractQueryGenerator } from './query-generator.js';
-import type { TableName, TableNameWithSchema } from './query-interface.js';
-import type { WhereOptions } from './where-sql-builder-types.js';
-import { PojoWhere, WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
@@ -31,6 +23,14 @@ import { quoteIdentifier } from '../../utils/dialect.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
+import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
+import { AbstractDataType } from './data-types.js';
+import type { BindParamOptions, DataType } from './data-types.js';
+import type { AbstractQueryGenerator } from './query-generator.js';
+import type { TableName, TableNameWithSchema } from './query-interface.js';
+import type { WhereOptions } from './where-sql-builder-types.js';
+import { PojoWhere, WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
+import type { AbstractDialect } from './index.js';
 
 export type TableNameOrModel = TableName | ModelStatic;
 

@@ -15,8 +15,8 @@ import type {
   NonAttribute,
 } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
-import { User } from './user';
 import { sequelize } from '../connection';
+import { User } from './user';
 
 // This class doesn't extend the generic Model<TAttributes>, but should still
 // function just fine, with a bit less safe type-checking

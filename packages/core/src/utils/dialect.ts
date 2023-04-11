@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
 import isPlainObject from 'lodash/isPlainObject';
 import { v1 as uuidv1 } from 'uuid';
-import { isString } from './check.js';
 import * as DataTypes from '../dialects/abstract/data-types.js';
+import { isString } from './check.js';
 
 export function toDefaultValue(value: unknown): unknown {
   if (typeof value === 'function') {

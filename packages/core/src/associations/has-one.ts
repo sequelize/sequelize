@@ -1,9 +1,4 @@
 import upperFirst from 'lodash/upperFirst';
-import type { AssociationOptions, SingleAssociationAccessors } from './base';
-import { Association } from './base';
-import { BelongsTo } from './belongs-to.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
-import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 import { AssociationError } from '../errors/index.js';
 import { Model } from '../model';
 import type {
@@ -18,6 +13,11 @@ import type {
 import { Op } from '../operators';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
+import { Association } from './base';
+import type { AssociationOptions, SingleAssociationAccessors } from './base';
+import { BelongsTo } from './belongs-to.js';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
+import type { NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-one association.

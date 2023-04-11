@@ -1,4 +1,3 @@
-import { throwMustBeInstanceProperty, throwMustBeModel } from './decorator-utils.js';
 import type { MaybeForwardedModelStatic } from '../../associations/helpers.js';
 import { AssociationSecret, getForwardedModel } from '../../associations/helpers.js';
 import type {
@@ -18,6 +17,7 @@ import type { AttributeNames, Model, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { isString } from '../../utils/check.js';
 import { isModelStatic } from '../../utils/model-utils.js';
+import { throwMustBeInstanceProperty, throwMustBeModel } from './decorator-utils.js';
 
 export type AssociationType = 'BelongsTo' | 'HasOne' | 'HasMany' | 'BelongsToMany';
 

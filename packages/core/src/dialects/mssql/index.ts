@@ -1,12 +1,12 @@
+import type { Sequelize } from '../../sequelize.js';
+import { createNamedParamBindCollector } from '../../utils/sql';
+import { AbstractDialect } from '../abstract';
 import { MsSqlConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { registerMsSqlDbDataTypeParsers } from './data-types.db.js';
 import { MsSqlQueryGenerator } from './query-generator';
 import { MsSqlQueryInterface } from './query-interface';
 import { MsSqlQuery } from './query.js';
-import type { Sequelize } from '../../sequelize.js';
-import { createNamedParamBindCollector } from '../../utils/sql';
-import { AbstractDialect } from '../abstract';
 
 export class MssqlDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({

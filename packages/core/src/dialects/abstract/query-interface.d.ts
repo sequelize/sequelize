@@ -1,9 +1,4 @@
 import type { SetRequired } from 'type-fest';
-import type { DataType } from './data-types.js';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
-import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
-import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
-import type { WhereOptions } from './where-sql-builder-types.js';
 import type { Deferrable } from '../../deferrable';
 import type { Col } from '../../expression-builders/col.js';
 import type { Fn } from '../../expression-builders/fn.js';
@@ -21,6 +16,11 @@ import type {
 import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
 import type { Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
+import type { DataType } from './data-types.js';
+import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
+import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
+import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
+import type { WhereOptions } from './where-sql-builder-types.js';
 
 interface Replaceable {
   /**

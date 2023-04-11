@@ -1,5 +1,5 @@
-import { PostgresQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { TableName } from '../abstract/query-interface.js';
+import { PostgresQueryGeneratorTypeScript } from './query-generator-typescript.js';
 
 type PgEnumNameOptions = {
   schema?: boolean,

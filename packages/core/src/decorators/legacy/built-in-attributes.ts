@@ -1,13 +1,13 @@
-import type { OptionalParameterizedPropertyDecorator } from './decorator-utils.js';
+import type { ModelStatic } from '../../model.js';
+import { isModelStatic } from '../../utils/model-utils.js';
+import { registerModelOptions } from '../shared/model.js';
 import {
   createOptionallyParameterizedPropertyDecorator,
   throwMustBeAttribute,
   throwMustBeInstanceProperty,
   throwMustBeModel,
 } from './decorator-utils.js';
-import type { ModelStatic } from '../../model.js';
-import { isModelStatic } from '../../utils/model-utils.js';
-import { registerModelOptions } from '../shared/model.js';
+import type { OptionalParameterizedPropertyDecorator } from './decorator-utils.js';
 
 function createBuiltInAttributeDecorator(
   decoratorName: string,

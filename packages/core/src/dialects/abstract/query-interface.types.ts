@@ -1,5 +1,5 @@
-import type { AbstractQueryGenerator, CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
 import type { QueryRawOptions, Sequelize } from '../../sequelize';
+import type { AbstractQueryGenerator, CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
 
 export interface QueryInterfaceOptions {
   sequelize: Sequelize;
