@@ -31,7 +31,9 @@ describe('parseAttributeSyntax', () => {
 foo$
    ^`);
 
-    expect(() => parseAttributeSyntax('$foo')).to.throwWithCause(`Failed to parse syntax of attribute. Parse error at index 0:`);
+    expect(() => parseAttributeSyntax('$foo')).to.throwWithCause(`Failed to parse syntax of attribute. Parse error at index 4:
+$foo
+    ^`);
   });
 
   it('parses cast syntax', () => {
