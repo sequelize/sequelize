@@ -2431,6 +2431,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async truncate(options) {
+    // TODO: this method currently uses DELETE FROM if the table is paranoid. Truncate should always ignore paranoid.
     // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
     options = cloneDeep(options) || {};
     options.truncate = true;
@@ -2497,6 +2498,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     let result;
+    // TODO: rename force -> paranoid: false, as that's how it's called in the instance version
     // Run delete query (or update if paranoid)
     if (modelDefinition.timestampAttributeNames.deletedAt && !options.force) {
       // Set query type appropriately when running soft delete
@@ -2505,6 +2507,8 @@ ${associationOwner._getAssociationDebugList()}`);
       const attrValueHash = {};
       const deletedAtAttribute = attributes.get(modelDefinition.timestampAttributeNames.deletedAt);
       const deletedAtColumnName = deletedAtAttribute.columnName;
+
+      // FIXME: where must be joined with AND instead of using Object.assign. This won't work with literals!
       const where = {
         [deletedAtColumnName]: Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue') ? deletedAtAttribute.defaultValue : null,
       };

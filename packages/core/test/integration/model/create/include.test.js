@@ -48,8 +48,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedProduct.isIncludeCreatedOnAfterCreate).to.be.true;
-        expect(savedProduct.User.createOptions.myOption).to.be.equal('option');
-        expect(savedProduct.User.createOptions.parentRecord).to.be.equal(savedProduct);
+        expect(savedProduct.User.createOptions.myOption).to.equal('option');
+        expect(savedProduct.User.createOptions.parentRecord).to.equal(savedProduct);
 
         const persistedProduct = await Product.findOne({
           where: { id: savedProduct.id },
@@ -57,8 +57,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(persistedProduct.User).to.be.ok;
-        expect(persistedProduct.User.first_name).to.be.equal('Mick');
-        expect(persistedProduct.User.last_name).to.be.equal('Broadstone');
+        expect(persistedProduct.User.first_name).to.equal('Mick');
+        expect(persistedProduct.User.last_name).to.equal('Broadstone');
       });
 
       it('should create data for BelongsTo relations with no nullable FK', async function () {
@@ -89,9 +89,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedProduct).to.exist;
-        expect(savedProduct.title).to.be.equal('Chair');
+        expect(savedProduct.title).to.equal('Chair');
         expect(savedProduct.User).to.exist;
-        expect(savedProduct.User.first_name).to.be.equal('Mick');
+        expect(savedProduct.User.first_name).to.equal('Mick');
       });
 
       it('should create data for BelongsTo relations with alias', async function () {
@@ -123,8 +123,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(persistedProduct.creator).to.be.ok;
-        expect(persistedProduct.creator.first_name).to.be.equal('Matt');
-        expect(persistedProduct.creator.last_name).to.be.equal('Hansen');
+        expect(persistedProduct.creator.first_name).to.equal('Matt');
+        expect(persistedProduct.creator.last_name).to.equal('Hansen');
       });
 
       it('should create data for HasMany relations', async function () {
@@ -169,10 +169,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedProduct.areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedProduct.Tags[0].createOptions.myOption).to.be.equal('option');
-        expect(savedProduct.Tags[0].createOptions.parentRecord).to.be.equal(savedProduct);
-        expect(savedProduct.Tags[1].createOptions.myOption).to.be.equal('option');
-        expect(savedProduct.Tags[1].createOptions.parentRecord).to.be.equal(savedProduct);
+        expect(savedProduct.Tags[0].createOptions.myOption).to.equal('option');
+        expect(savedProduct.Tags[0].createOptions.parentRecord).to.equal(savedProduct);
+        expect(savedProduct.Tags[1].createOptions.myOption).to.equal('option');
+        expect(savedProduct.Tags[1].createOptions.parentRecord).to.equal(savedProduct);
 
         const persistedProduct = await Product.findOne({
           where: { id: savedProduct.id },
@@ -319,10 +319,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedUser.areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedUser.Tasks[0].createOptions.myOption).to.be.equal('option');
-        expect(savedUser.Tasks[0].createOptions.parentRecord).to.be.equal(savedUser);
-        expect(savedUser.Tasks[1].createOptions.myOption).to.be.equal('option');
-        expect(savedUser.Tasks[1].createOptions.parentRecord).to.be.equal(savedUser);
+        expect(savedUser.Tasks[0].createOptions.myOption).to.equal('option');
+        expect(savedUser.Tasks[0].createOptions.parentRecord).to.equal(savedUser);
+        expect(savedUser.Tasks[1].createOptions.myOption).to.equal('option');
+        expect(savedUser.Tasks[1].createOptions.parentRecord).to.equal(savedUser);
 
         const persistedUser = await User.findOne({
           where: { id: savedUser.id },

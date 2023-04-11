@@ -66,9 +66,11 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
       return this.connections.get(connectionCacheKey)!;
     }
 
-    if (!inMemory && (readWriteMode & this.lib.OPEN_CREATE) !== 0) {
+    const storageDir = path.dirname(storage);
+
+    if (!inMemory && (readWriteMode & this.lib.OPEN_CREATE) !== 0 && !fs.existsSync(storageDir)) {
       // automatic path provision for `options.storage`
-      fs.mkdirSync(path.dirname(storage), { recursive: true });
+      fs.mkdirSync(storageDir, { recursive: true });
     }
 
     const connection = await new Promise<SqliteConnection>((resolve, reject) => {
@@ -81,11 +83,11 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
           }
 
           debug(`connection acquired ${connectionUuid}`);
+          this.connections.set(connectionCacheKey, connectionInstance);
+
           resolve(connectionInstance);
         },
       ) as SqliteConnection;
-
-      this.connections.set(connectionCacheKey, connectionInstance);
     });
 
     await this._initDatabaseVersion(connection);

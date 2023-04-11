@@ -32,7 +32,7 @@ if (dialect.startsWith('postgres')) {
           `, { type: this.sequelize.QueryTypes.SELECT });
 
         expect(res, 'query results').to.not.be.empty;
-        expect(res[0].schema_name).to.be.equal('testschema');
+        expect(res[0].schema_name).to.equal('testschema');
       });
 
       it('works even when schema exists', async function () {
@@ -46,7 +46,7 @@ if (dialect.startsWith('postgres')) {
           `, { type: this.sequelize.QueryTypes.SELECT });
 
         expect(res, 'query results').to.not.be.empty;
-        expect(res[0].schema_name).to.be.equal('testschema');
+        expect(res[0].schema_name).to.equal('testschema');
       });
     });
 

@@ -51,6 +51,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
   readonly pool: ReplicationPool<TConnection>;
 
   #versionPromise: Promise<void> | null = null;
+  #closed: boolean = false;
 
   constructor(dialect: AbstractDialect, sequelize: Sequelize) {
     const config: Sequelize['config'] = cloneDeep(sequelize.config);
@@ -88,6 +89,10 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     } else {
       debug(`pool created with max/min: ${config.pool.max}/${config.pool.min}, with replication`);
     }
+  }
+
+  get isClosed() {
+    return this.#closed;
   }
 
   /**
@@ -157,6 +162,8 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
    * Drain the pool and close it permanently
    */
   async close() {
+    this.#closed = true;
+
     // Mark close of pool
     this.getConnection = async function getConnection() {
       throw new Error('ConnectionManager.getConnection was called after the connection manager was closed!');

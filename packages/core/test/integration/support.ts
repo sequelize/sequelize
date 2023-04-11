@@ -1,8 +1,11 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import uniq from 'lodash/uniq';
 import pTimeout from 'p-timeout';
-import type { Sequelize } from '@sequelize/core';
-import { QueryTypes } from '@sequelize/core';
+import type { Options } from '@sequelize/core';
+import { Sequelize, QueryTypes } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
-import { getTestDialect, sequelize } from '../support';
+import { createSequelizeInstance, getTestDialect, resetSequelizeInstance, sequelize } from '../support';
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
@@ -45,6 +48,88 @@ before(async () => {
   });
 });
 
+/** used to run reset on all used sequelize instances for a given suite */
+const allSequelizeInstances = new Set<Sequelize>();
+Sequelize.hooks.addListener('afterInit', sequelizeInstance => {
+  allSequelizeInstances.add(sequelizeInstance);
+});
+
+const singleTestInstances = new Set<Sequelize>();
+
+/**
+ * Creates a sequelize instance that will be disposed of after the current test.
+ * Can only be used within a test. For before/after hooks, use {@link createSequelizeInstance}.
+ *
+ * @param options
+ */
+export function createSingleTestSequelizeInstance(options: Options = {}): Sequelize {
+  const instance = createSequelizeInstance(options);
+  destroySequelizeAfterTest(instance);
+
+  return instance;
+}
+
+export function destroySequelizeAfterTest(sequelizeInstance: Sequelize): void {
+  singleTestInstances.add(sequelizeInstance);
+}
+
+/**
+ * Creates a sequelize instance to use in transaction-related tests.
+ * You must dispose of this instance manually.
+ *
+ * If you're creating the instance within a test, consider using {@link createSingleTransactionalTestSequelizeInstance}.
+ *
+ * @param sequelizeOrOptions
+ */
+export async function createMultiTransactionalTestSequelizeInstance(
+  sequelizeOrOptions: Sequelize | Options,
+): Promise<Sequelize> {
+  const sequelizeOptions = sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.options : sequelizeOrOptions;
+  const dialect = getTestDialect();
+
+  if (dialect === 'sqlite') {
+    const p = path.join(__dirname, 'tmp', 'db.sqlite');
+    if (fs.existsSync(p)) {
+      fs.unlinkSync(p);
+    }
+
+    const options = { ...sequelizeOptions, storage: p };
+    if (sequelizeOrOptions instanceof Sequelize) {
+      options.database = sequelizeOrOptions.config.database;
+    }
+
+    const _sequelize = createSequelizeInstance(options);
+
+    await _sequelize.sync({ force: true });
+
+    return _sequelize;
+  }
+
+  return createSequelizeInstance(sequelizeOptions);
+}
+
+/**
+ * Creates a sequelize instance to use in transaction-related tests.
+ * This instance will be disposed of after the current test.
+ *
+ * Can only be used within a test. For before/after hooks, use {@link createMultiTransactionalTestSequelizeInstance}.
+ *
+ * @param sequelizeOrOptions
+ */
+export async function createSingleTransactionalTestSequelizeInstance(
+  sequelizeOrOptions: Sequelize | Options,
+): Promise<Sequelize> {
+  const instance = await createMultiTransactionalTestSequelizeInstance(sequelizeOrOptions);
+  destroySequelizeAfterTest(instance);
+
+  return instance;
+}
+
+before('first database reset', async () => {
+  // Reset the DB a single time for the whole suite
+  await clearDatabase();
+});
+
 type ResetMode = 'none' | 'truncate' | 'destroy' | 'drop';
 let currentSuiteResetMode: ResetMode = 'drop';
 
@@ -61,36 +146,78 @@ let currentSuiteResetMode: ResetMode = 'drop';
  */
 export function setResetMode(mode: ResetMode) {
   let previousMode: ResetMode | undefined;
-  before(async () => {
+  before('setResetMode before', async () => {
     previousMode = currentSuiteResetMode;
     currentSuiteResetMode = mode;
+  });
+
+  after('setResetMode after', async () => {
+    currentSuiteResetMode = previousMode ?? 'drop';
 
     // Reset the DB a single time for the whole suite
     await clearDatabase();
   });
-
-  after(() => {
-    currentSuiteResetMode = previousMode ?? 'drop';
-  });
 }
 
-beforeEach(async () => {
-  switch (currentSuiteResetMode) {
-    case 'drop':
-      await clearDatabase();
-      break;
+afterEach('database reset', async () => {
+  const sequelizeInstances = uniq([sequelize, ...allSequelizeInstances]);
 
-    case 'truncate':
-      await sequelize.truncate({ restartIdentity: true });
-      break;
+  for (const sequelizeInstance of sequelizeInstances) {
+    if (sequelizeInstance.connectionManager.isClosed) {
+      allSequelizeInstances.delete(sequelizeInstance);
+      continue;
+    }
 
-    case 'destroy':
-      await sequelize.destroyAll({ cascade: true });
-      break;
+    if (currentSuiteResetMode === 'none') {
+      continue;
+    }
 
-    case 'none':
-    default:
-      break;
+    /* eslint-disable no-await-in-loop */
+    switch (currentSuiteResetMode) {
+      case 'drop':
+        await clearDatabase(sequelizeInstance);
+        // unregister all models
+        resetSequelizeInstance(sequelizeInstance);
+        break;
+
+      case 'truncate':
+        await sequelizeInstance.truncate({ restartIdentity: true });
+        break;
+
+      case 'destroy':
+        await sequelizeInstance.destroyAll({ cascade: true, force: true });
+        break;
+
+      default:
+        break;
+      /* eslint-enable no-await-in-loop */
+    }
+  }
+
+  if (sequelize.connectionManager.isClosed) {
+    throw new Error('The main sequelize instance was closed. This is not allowed.');
+  }
+
+  await Promise.all([...singleTestInstances].map(async instance => {
+    allSequelizeInstances.delete(instance);
+    if (!instance.connectionManager.isClosed) {
+      await instance.close();
+    }
+  }));
+
+  singleTestInstances.clear();
+
+  if (allSequelizeInstances.size > 2) {
+    throw new Error(`There are more than two test-specific sequelize instance. This indicates that some sequelize instances were not closed.
+Sequelize instances created in beforeEach/before must be closed in a corresponding afterEach/after block.
+Sequelize instances created inside of a test must be closed after the test.
+
+The following methods can be used to mark a sequelize instance for automatic disposal:
+- destroySequelizeAfterTest
+- createSingleTransactionalTestSequelizeInstance
+- createSingleTestSequelizeInstance
+- sequelize.close()
+`);
   }
 });
 
@@ -116,7 +243,7 @@ export async function clearDatabase(customSequelize: Sequelize = sequelize) {
   );
 }
 
-afterEach(() => {
+afterEach('no running queries checker', () => {
   if (runningQueries.size > 0) {
     throw new Error(`Expected 0 queries running after this test, but there are still ${
       runningQueries.size

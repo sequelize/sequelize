@@ -17,7 +17,7 @@ if (dialect === 'sqlite') {
         const sequelize = new Sequelize('', '', '', { dialect: 'sqlite', storage: '' });
 
         const connection = await sequelize.dialect.connectionManager.getConnection({});
-        expect(connection.filename).to.be.equal('');
+        expect(connection.filename).to.equal('');
       });
     });
   });

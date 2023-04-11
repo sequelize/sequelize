@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
   describe('getAssociation', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
@@ -138,7 +138,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Group = sequelize.define('Group', { name: DataTypes.STRING });
 

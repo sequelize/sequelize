@@ -143,7 +143,7 @@ describe('JSON Querying', () => {
       return;
     }
 
-    await sequelize.query(`CREATE TABLE Posts (id INTEGER AUTO_INCREMENT PRIMARY KEY, 
+    await sequelize.query(`CREATE TABLE Posts (id INTEGER AUTO_INCREMENT PRIMARY KEY,
       metaOldJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
       metaNewJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK(json_valid(metaNewJSONtype)))`);
 
