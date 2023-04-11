@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import uniq from 'lodash/uniq';
-import { before } from 'mocha';
 import pTimeout from 'p-timeout';
 import type { Options } from '@sequelize/core';
 import { Sequelize, QueryTypes } from '@sequelize/core';

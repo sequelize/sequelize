@@ -505,7 +505,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return await User.findOrCreate({ where: { username } });
             } catch (error) {
               spy();
-              expect(error.message).to.equal('user#findOrCreate: value used for username was not equal for both the find and the create calls, \'mick\' vs \'mick h.\'');
+              expect(error.message).to.equal(`user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick' vs 'mick h.'`);
             }
           }),
         );

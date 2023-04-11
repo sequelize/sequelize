@@ -5,7 +5,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
-const { describe } = require('mocha');
 
 describe('Model#findOrBuild', () => {
   context('test-shared models', () => {

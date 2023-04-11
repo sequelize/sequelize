@@ -16,7 +16,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
 
   it('has existing init SQL', async () => {
     const sequelize = Support.createSingleTestSequelizeInstance(
-      { dialectOptions: { initSql: 'SET @myUserVariable=\'myValue\'' } },
+      { dialectOptions: { initSql: `SET @myUserVariable='myValue'` } },
     );
     const res = await sequelize.query('SELECT @myUserVariable');
     expect(res[0]).to.deep.equal([{ '@myUserVariable': 'myValue' }]);
@@ -27,8 +27,8 @@ describe('[MARIADB Specific] Connection Manager', () => {
     const sequelize = Support.createSingleTestSequelizeInstance(
       {
         dialectOptions: {
-          initSql: ['SET @myUserVariable1=\'myValue\'',
-            'SET @myUserVariable2=\'myValue\''],
+          initSql: [`SET @myUserVariable1='myValue'`,
+            `SET @myUserVariable2='myValue'`],
         },
       },
     );
