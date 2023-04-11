@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
-import { getTestDialect, createSingleTestSequelizeInstance } from '../support';
+import { createSingleTestSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();
 

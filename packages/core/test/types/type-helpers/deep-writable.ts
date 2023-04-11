@@ -6,11 +6,7 @@
  * Thank you!
  */
 
-import type {
-  Model,
-  Sequelize,
-  ModelStatic,
-} from '@sequelize/core';
+import type { Model, ModelStatic, Sequelize } from '@sequelize/core';
 
 type Builtin =
   | string

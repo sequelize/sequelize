@@ -4,7 +4,7 @@ import sinon from 'sinon';
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { Attribute, NotNull } from '@sequelize/core/decorators-legacy';
-import { createSingleTransactionalTestSequelizeInstance, setResetMode, beforeAll2, sequelize } from '../support';
+import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
 
 describe('Model#decrement', () => {
   setResetMode('destroy');

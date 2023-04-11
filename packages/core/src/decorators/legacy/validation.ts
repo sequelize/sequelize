@@ -2,11 +2,7 @@ import type { ColumnValidateOptions, ModelOptions } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { registerModelOptions } from '../shared/model.js';
 import { createRequiredAttributeOptionsDecorator } from './attribute-utils.js';
-import {
-  createOptionallyParameterizedPropertyDecorator,
-  throwMustBeMethod,
-  throwMustBeModel,
-} from './decorator-utils.js';
+import { createOptionallyParameterizedPropertyDecorator, throwMustBeMethod, throwMustBeModel } from './decorator-utils.js';
 
 /**
  * Used to register a function that will be called when an attribute is being validated.

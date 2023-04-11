@@ -1,16 +1,8 @@
 import { expect } from 'chai';
-import type {
-  CreationOptional,
-  HasOneSetAssociationMixin,
-  InferAttributes,
-  InferCreationAttributes,
-} from '@sequelize/core';
-import { Model, DataTypes } from '@sequelize/core';
-import { AllowNull, HasOne, Attribute, NotNull } from '@sequelize/core/decorators-legacy';
-import {
-  beforeAll2, createMultiTransactionalTestSequelizeInstance,
-  sequelize, setResetMode,
-} from '../support';
+import type { CreationOptional, HasOneSetAssociationMixin, InferAttributes, InferCreationAttributes } from '@sequelize/core';
+import { DataTypes, Model } from '@sequelize/core';
+import { AllowNull, Attribute, HasOne, NotNull } from '@sequelize/core/decorators-legacy';
+import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
 
 const dialect = sequelize.dialect;
 

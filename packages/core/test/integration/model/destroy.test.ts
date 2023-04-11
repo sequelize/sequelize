@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
-import { Op, DataTypes, Model } from '@sequelize/core';
+import { DataTypes, Model, Op } from '@sequelize/core';
 import { Attribute, Table } from '@sequelize/core/decorators-legacy';
 import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
 

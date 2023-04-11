@@ -3,13 +3,17 @@ import { Pool } from 'sequelize-pool';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
 import type { Connection } from '@sequelize/core';
-import type { GetConnectionOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
+import type {
+  GetConnectionOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
 import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/replication-pool.js';
 import { Config } from '../../../config/config';
 import {
+  createSequelizeInstance,
+  createSingleTestSequelizeInstance,
   getTestDialect,
   getTestDialectTeaser,
-  createSingleTestSequelizeInstance, setResetMode, createSequelizeInstance,
+  setResetMode,
 } from '../../support';
 
 const expect = chai.expect;

@@ -6,12 +6,9 @@ import type {
   InferAttributes,
   InferCreationAttributes,
 } from '@sequelize/core';
-import { Model, DataTypes } from '@sequelize/core';
-import { AllowNull, HasMany, Attribute, NotNull } from '@sequelize/core/decorators-legacy';
-import {
-  beforeAll2, createMultiTransactionalTestSequelizeInstance,
-  sequelize, setResetMode,
-} from '../support';
+import { DataTypes, Model } from '@sequelize/core';
+import { AllowNull, Attribute, HasMany, NotNull } from '@sequelize/core/decorators-legacy';
+import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
 
 const dialect = sequelize.dialect;
 

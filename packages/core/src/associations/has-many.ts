@@ -5,29 +5,29 @@ import { AssociationError } from '../errors/index.js';
 import { col } from '../expression-builders/col.js';
 import { fn } from '../expression-builders/fn.js';
 import type {
-  Model,
+  AttributeNames,
+  Attributes,
   CreateOptions,
   CreationAttributes,
+  DestroyOptions,
   Filterable,
   FindOptions,
   InstanceUpdateOptions,
-  Transactionable,
+  Model,
   ModelStatic,
-  AttributeNames,
+  Transactionable,
   UpdateValues,
-  Attributes,
-  DestroyOptions,
 } from '../model';
 import { Op } from '../operators';
 import { isPlainObject } from '../utils/check.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import type { AllowArray } from '../utils/types.js';
-import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';
+import type { Association, AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions } from './base';
 import { BelongsTo } from './belongs-to.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
 import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
+import type { NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-many association.

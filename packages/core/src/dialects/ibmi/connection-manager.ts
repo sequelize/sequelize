@@ -1,4 +1,4 @@
-import type { Connection as OdbcConnection, NodeOdbcError } from 'odbc';
+import type { NodeOdbcError, Connection as OdbcConnection } from 'odbc';
 import { ConnectionRefusedError } from '../../errors/index.js';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import { logger } from '../../utils/logger';
