@@ -3,11 +3,14 @@
 const chai = require('chai');
 
 const expect = chai.expect;
+const { DataTypes, Op } = require('@sequelize/core');
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const sinon = require('sinon');
 
-describe(Support.getTestDialectTeaser('Model'), () => {
-  describe('count', () => {
+const dialectName = Support.sequelize.dialect.name;
+
+describe('Model.count', () => {
+  context('test-shared models', () => {
     beforeEach(async function () {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
@@ -21,6 +24,123 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Project.belongsTo(this.User);
 
       await this.sequelize.sync({ force: true });
+    });
+
+    it('counts all created objects', async function () {
+      await this.User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
+      expect(await this.User.count()).to.equal(2);
+    });
+
+    it('returns multiple rows when using group', async function () {
+      await this.User.bulkCreate([
+        { username: 'user1' },
+        { username: 'user1' },
+        { username: 'user2' },
+      ]);
+
+      const count = await this.User.count({
+        attributes: ['username'],
+        group: ['username'],
+      });
+      expect(count).to.have.lengthOf(2);
+
+      // The order of count varies across dialects; Hence find element by identified first.
+      expect(count.find(i => i.username === 'user1')).to.deep.equal({ username: 'user1', count: 2 });
+      expect(count.find(i => i.username === 'user2')).to.deep.equal({ username: 'user2', count: 1 });
+    });
+
+    if (dialectName !== 'mssql' && dialectName !== 'db2' && dialectName !== 'ibmi') {
+      describe('aggregate', () => {
+        it('allows grouping by aliased attribute', async function () {
+          await this.User.aggregate('id', 'count', {
+            attributes: [['id', 'id2']],
+            group: ['id2'],
+          });
+        });
+      });
+    }
+
+    describe('options sent to aggregate', () => {
+      let options;
+      let aggregateSpy;
+
+      beforeEach(function () {
+        options = { where: { username: 'user1' } };
+
+        aggregateSpy = sinon.spy(this.User, 'aggregate');
+      });
+
+      afterEach(() => {
+        expect(aggregateSpy).to.have.been.calledWith(
+          sinon.match.any, sinon.match.any,
+          sinon.match.object.and(sinon.match.has('where', { username: 'user1' })),
+        );
+
+        aggregateSpy.restore();
+      });
+
+      it('modifies option "limit" by setting it to null', async function () {
+        options.limit = 5;
+
+        await this.User.count(options);
+        expect(aggregateSpy).to.have.been.calledWith(
+          sinon.match.any, sinon.match.any,
+          sinon.match.object.and(sinon.match.has('limit', null)),
+        );
+      });
+
+      it('modifies option "offset" by setting it to null', async function () {
+        options.offset = 10;
+
+        await this.User.count(options);
+        expect(aggregateSpy).to.have.been.calledWith(
+          sinon.match.any, sinon.match.any,
+          sinon.match.object.and(sinon.match.has('offset', null)),
+        );
+      });
+
+      it('modifies option "order" by setting it to null', async function () {
+        options.order = 'username';
+
+        await this.User.count(options);
+        expect(aggregateSpy).to.have.been.calledWith(
+          sinon.match.any, sinon.match.any,
+          sinon.match.object.and(sinon.match.has('order', null)),
+        );
+      });
+    });
+
+    it('allows sql logging', async function () {
+      let test = false;
+      await this.User.count({
+        logging(sql) {
+          test = true;
+          expect(sql).to.exist;
+          expect(sql.toUpperCase()).to.include('SELECT');
+        },
+      });
+      expect(test).to.be.true;
+    });
+
+    it('filters object', async function () {
+      await this.User.create({ username: 'user1' });
+      await this.User.create({ username: 'foo' });
+      const count = await this.User.count({ where: { username: { [Op.like]: '%us%' } } });
+      expect(count).to.equal(1);
+    });
+
+    it('supports distinct option', async function () {
+      const Post = this.sequelize.define('Post', {});
+      const PostComment = this.sequelize.define('PostComment', {});
+      Post.hasMany(PostComment);
+      await Post.sync({ force: true });
+      await PostComment.sync({ force: true });
+      const post = await Post.create({});
+      await PostComment.bulkCreate([{ PostId: post.id }, { PostId: post.id }]);
+      const count1 = await Post.count({ distinct: false, include: { model: PostComment, required: false } });
+      const count2 = await Post.count({ distinct: true, include: { model: PostComment, required: false } });
+      expect(count1).to.equal(2);
+      expect(count2).to.equal(1);
     });
 
     it('should count rows', async function () {
@@ -198,6 +318,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(counts).to.deep.equal([1, 1, 1, 1, 1, 1, 1, 1]);
     });
+  });
 
+  context('test-specific models', () => {
+    if (Support.sequelize.dialect.supports.transactions) {
+      it('supports transactions', async function () {
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+        const User = sequelize.define('User', { username: DataTypes.STRING });
+
+        await User.sync({ force: true });
+        const t = await sequelize.startUnmanagedTransaction();
+        await User.create({ username: 'foo' }, { transaction: t });
+        const count1 = await User.count();
+        const count2 = await User.count({ transaction: t });
+        expect(count1).to.equal(0);
+        expect(count2).to.equal(1);
+        await t.rollback();
+      });
+    }
   });
 });

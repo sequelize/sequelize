@@ -1,9 +1,8 @@
 import { expect } from 'chai';
 import { QueryTypes } from '@sequelize/core';
 import {
-  createSequelizeInstance,
+  createSingleTransactionalTestSequelizeInstance,
   getTestDialect,
-  prepareTransactionTest,
   sequelize, setResetMode,
 } from '../support';
 
@@ -22,15 +21,15 @@ describe('sequelize.setSessionVariables', () => {
   });
 
   it('supports CLS transactions', async () => {
-    const clsSequelize = await prepareTransactionTest(createSequelizeInstance({
+    const clsSequelize = await createSingleTransactionalTestSequelizeInstance({
       disableClsTransactions: false,
-    }));
+    });
 
     await clsSequelize.transaction(async () => {
       await clsSequelize.setSessionVariables({ foo: 'bar' });
       const [data] = await clsSequelize.query<{ foo: string }>('SELECT @foo as `foo`', { type: QueryTypes.SELECT });
       expect(data).to.be.ok;
-      expect(data.foo).to.be.equal('bar');
+      expect(data.foo).to.equal('bar');
     });
   });
 
@@ -41,7 +40,7 @@ describe('sequelize.setSessionVariables', () => {
       await sequelize.setSessionVariables({ foo: 'bar' }, { transaction });
       const [data] = await sequelize.query<{ foo: string }>('SELECT @foo as `foo`', { type: QueryTypes.SELECT, transaction });
       expect(data).to.be.ok;
-      expect(data.foo).to.be.equal('bar');
+      expect(data.foo).to.equal('bar');
       await transaction.commit();
     } catch (error) {
       await transaction.rollback();
@@ -54,7 +53,7 @@ describe('sequelize.setSessionVariables', () => {
       await sequelize.setSessionVariables({ foo: 'bar' }, { connection });
       const [data] = await sequelize.query<{ foo: string }>('SELECT @foo as `foo`', { type: QueryTypes.SELECT, connection });
       expect(data).to.be.ok;
-      expect(data.foo).to.be.equal('bar');
+      expect(data.foo).to.equal('bar');
     });
   });
 
@@ -63,8 +62,8 @@ describe('sequelize.setSessionVariables', () => {
       await sequelize.setSessionVariables({ foo: 'bar', foos: 'bars' }, { connection });
       const [data] = await sequelize.query<{ foo: string, foos: string }>('SELECT @foo as `foo`, @foos as `foos`', { type: QueryTypes.SELECT, connection });
       expect(data).to.be.ok;
-      expect(data.foo).to.be.equal('bar');
-      expect(data.foos).to.be.equal('bars');
+      expect(data.foo).to.equal('bar');
+      expect(data.foos).to.equal('bars');
     });
   });
 });

@@ -174,6 +174,7 @@ export class ModelDefinition {
     return this.#sequelize;
   }
 
+  // TODO: add generic type to ModelHooks (model, attributes)
   get hooks(): HookHandler<ModelHooks> {
     return staticModelHooks.getFor(this);
   }

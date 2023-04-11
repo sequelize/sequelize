@@ -58,10 +58,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedProducts[0].isIncludeCreatedOnAfterCreate).to.be.true;
-        expect(savedProducts[0].User.createOptions.myOption).to.be.equal('option');
+        expect(savedProducts[0].User.createOptions.myOption).to.equal('option');
 
         expect(savedProducts[1].isIncludeCreatedOnAfterCreate).to.be.true;
-        expect(savedProducts[1].User.createOptions.myOption).to.be.equal('option');
+        expect(savedProducts[1].User.createOptions.myOption).to.equal('option');
 
         const persistedProducts = await Promise.all([
           Product.findOne({
@@ -75,12 +75,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         expect(persistedProducts[0].User).to.be.ok;
-        expect(persistedProducts[0].User.first_name).to.be.equal('Mick');
-        expect(persistedProducts[0].User.last_name).to.be.equal('Broadstone');
+        expect(persistedProducts[0].User.first_name).to.equal('Mick');
+        expect(persistedProducts[0].User.last_name).to.equal('Broadstone');
 
         expect(persistedProducts[1].User).to.be.ok;
-        expect(persistedProducts[1].User.first_name).to.be.equal('John');
-        expect(persistedProducts[1].User.last_name).to.be.equal('Johnson');
+        expect(persistedProducts[1].User.first_name).to.equal('John');
+        expect(persistedProducts[1].User.last_name).to.equal('Johnson');
       });
 
       it('should bulkCreate data for BelongsTo relations with no nullable FK', async function () {
@@ -116,14 +116,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedProducts[0]).to.exist;
-        expect(savedProducts[0].title).to.be.equal('Chair');
+        expect(savedProducts[0].title).to.equal('Chair');
         expect(savedProducts[0].User).to.exist;
-        expect(savedProducts[0].User.first_name).to.be.equal('Mick');
+        expect(savedProducts[0].User.first_name).to.equal('Mick');
 
         expect(savedProducts[1]).to.exist;
-        expect(savedProducts[1].title).to.be.equal('Table');
+        expect(savedProducts[1].title).to.equal('Table');
         expect(savedProducts[1].User).to.exist;
-        expect(savedProducts[1].User.first_name).to.be.equal('John');
+        expect(savedProducts[1].User.first_name).to.equal('John');
       });
 
       it('should bulkCreate data for BelongsTo relations with alias', async function () {
@@ -167,12 +167,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         expect(persistedProducts[0].creator).to.be.ok;
-        expect(persistedProducts[0].creator.first_name).to.be.equal('Matt');
-        expect(persistedProducts[0].creator.last_name).to.be.equal('Hansen');
+        expect(persistedProducts[0].creator.first_name).to.equal('Matt');
+        expect(persistedProducts[0].creator.last_name).to.equal('Hansen');
 
         expect(persistedProducts[1].creator).to.be.ok;
-        expect(persistedProducts[1].creator.first_name).to.be.equal('John');
-        expect(persistedProducts[1].creator.last_name).to.be.equal('Johnson');
+        expect(persistedProducts[1].creator.first_name).to.equal('John');
+        expect(persistedProducts[1].creator.last_name).to.equal('Johnson');
       });
 
       it('should bulkCreate data for HasMany relations', async function () {
@@ -228,12 +228,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedProducts[0].areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedProducts[0].Tags[0].createOptions.myOption).to.be.equal('option');
-        expect(savedProducts[0].Tags[1].createOptions.myOption).to.be.equal('option');
+        expect(savedProducts[0].Tags[0].createOptions.myOption).to.equal('option');
+        expect(savedProducts[0].Tags[1].createOptions.myOption).to.equal('option');
 
         expect(savedProducts[1].areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedProducts[1].Tags[0].createOptions.myOption).to.be.equal('option');
-        expect(savedProducts[1].Tags[1].createOptions.myOption).to.be.equal('option');
+        expect(savedProducts[1].Tags[0].createOptions.myOption).to.equal('option');
+        expect(savedProducts[1].Tags[1].createOptions.myOption).to.equal('option');
 
         const persistedProducts = await Promise.all([
           Product.findOne({
@@ -439,12 +439,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedUsers[0].areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedUsers[0].Tasks[0].createOptions.myOption).to.be.equal('option');
-        expect(savedUsers[0].Tasks[1].createOptions.myOption).to.be.equal('option');
+        expect(savedUsers[0].Tasks[0].createOptions.myOption).to.equal('option');
+        expect(savedUsers[0].Tasks[1].createOptions.myOption).to.equal('option');
 
         expect(savedUsers[1].areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedUsers[1].Tasks[0].createOptions.myOption).to.be.equal('option');
-        expect(savedUsers[1].Tasks[1].createOptions.myOption).to.be.equal('option');
+        expect(savedUsers[1].Tasks[0].createOptions.myOption).to.equal('option');
+        expect(savedUsers[1].Tasks[1].createOptions.myOption).to.equal('option');
 
         const persistedUsers = await Promise.all([
           User.findOne({

@@ -16,7 +16,7 @@ if (dialect.startsWith('postgres')) {
     const sponsorAlias = 'AnotherVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
 
     const executeTest = async (options, test) => {
-      const sequelize = Support.createSequelizeInstance(options);
+      const sequelize = Support.createSingleTestSequelizeInstance(options);
 
       const User = sequelize.define('User', { name: DataTypes.STRING }, { underscored: true });
       const Team = sequelize.define('Team', { name: DataTypes.STRING });
@@ -63,7 +63,7 @@ if (dialect.startsWith('postgres')) {
       const options = { ...this.sequelize.options, minifyAliases: true };
 
       await executeTest(options, async (db, predicate) => {
-        expect((await db.User.findOne(predicate))[taskAlias].title).to.be.equal('SuperTask');
+        expect((await db.User.findOne(predicate))[taskAlias].title).to.equal('SuperTask');
       });
     });
 
@@ -91,12 +91,12 @@ if (dialect.startsWith('postgres')) {
             as: sponsorAlias,
           },
         ];
-        expect((await db.User.findOne(predicate))[teamAlias][0][sponsorAlias][0].name).to.be.equal('Company');
+        expect((await db.User.findOne(predicate))[teamAlias][0][sponsorAlias][0].name).to.equal('Company');
       });
     });
 
     it('should throw due to table name being truncated', async () => {
-      const sequelize = Support.createSequelizeInstance({ minifyAliases: true });
+      const sequelize = Support.createSingleTestSequelizeInstance({ minifyAliases: true });
 
       const User = sequelize.define('user_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
         {
@@ -137,7 +137,7 @@ if (dialect.startsWith('postgres')) {
     });
 
     it('orders by a literal when subquery and minifyAliases are enabled', async () => {
-      const sequelizeMinifyAliases = Support.createSequelizeInstance({
+      const sequelizeMinifyAliases = Support.createSingleTestSequelizeInstance({
         logQueryParameters: true,
         benchmark: true,
         minifyAliases: true,
@@ -189,7 +189,7 @@ if (dialect.startsWith('postgres')) {
     });
 
     it('returns the minified aliased attributes', async () => {
-      const sequelizeMinifyAliases = Support.createSequelizeInstance({
+      const sequelizeMinifyAliases = Support.createSingleTestSequelizeInstance({
         logQueryParameters: true,
         benchmark: true,
         minifyAliases: true,
@@ -229,7 +229,7 @@ if (dialect.startsWith('postgres')) {
       }
 
       async function setUp(clientQueryTimeoutMs) {
-        const sequelize = Support.createSequelizeInstance({
+        const sequelize = Support.createSingleTestSequelizeInstance({
           dialectOptions: {
             statement_timeout: 500, // ms
             query_timeout: clientQueryTimeoutMs,

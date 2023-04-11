@@ -46,6 +46,7 @@ export type DialectSupports = {
   'DEFAULT': boolean,
   'DEFAULT VALUES': boolean,
   'VALUES ()': boolean,
+  // TODO: rename to `update.limit`
   'LIMIT ON UPDATE': boolean,
   'ON DUPLICATE KEY': boolean,
   'ORDER NULLS': boolean,
