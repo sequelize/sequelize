@@ -45,7 +45,7 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@ephys/eslint-config-typescript": "18.0.1",
+    "@ephys/eslint-config-typescript": "19.0.1",
     "@rushstack/eslint-patch": "1.2.0",
     "chai": "4.3.7",
     "esbuild": "0.17.16",
