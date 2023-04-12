@@ -689,7 +689,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * ```ts
    * queryInterface.addConstraint('Users', {
    *   fields: ['email'],
-   *   type: 'unique',
+   *   type: 'UNIQUE',
    *   name: 'custom_unique_constraint_name'
    * });
    * ```
@@ -698,7 +698,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * ```ts
    * queryInterface.addConstraint('Users', {
    *   fields: ['roles'],
-   *   type: 'check',
+   *   type: 'CHECK',
    *   where: {
    *      roles: ['user', 'admin', 'moderator', 'guest']
    *   }
@@ -709,7 +709,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * ```ts
    * queryInterface.addConstraint('Users', {
    *    fields: ['roles'],
-   *    type: 'default',
+   *    type: 'DEFAULT',
    *    defaultValue: 'guest'
    * });
    * ```
@@ -718,7 +718,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * ```ts
    * queryInterface.addConstraint('Users', {
    *    fields: ['username'],
-   *    type: 'primary key',
+   *    type: 'PRIMARY KEY',
    *    name: 'custom_primary_constraint_name'
    * });
    * ```
@@ -727,7 +727,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * ```ts
    * queryInterface.addConstraint('Posts', {
    *   fields: ['username'],
-   *   type: 'foreign key',
+   *   type: 'FOREIGN KEY',
    *   name: 'custom_fkey_constraint_name',
    *   references: { //Required field
    *     table: 'target_table_name',
@@ -742,7 +742,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * ```ts
    * queryInterface.addConstraint('TableName', {
    *   fields: ['source_column_name', 'other_source_column_name'],
-   *   type: 'foreign key',
+   *   type: 'FOREIGN KEY',
    *   name: 'custom_fkey_constraint_name',
    *   references: { //Required field
    *     table: 'target_table_name',

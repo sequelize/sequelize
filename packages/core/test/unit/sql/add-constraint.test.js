@@ -82,7 +82,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
     describe('default', () => {
       it('naming', () => {
         expectsql(sql.addConstraintQuery('myTable', {
-          type: 'default',
+          type: 'DEFAULT',
           fields: ['myColumn'],
           defaultValue: 0,
         }), {
@@ -92,7 +92,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
 
       it('string', () => {
         expectsql(sql.addConstraintQuery('myTable', {
-          type: 'default',
+          type: 'DEFAULT',
           fields: ['myColumn'],
           defaultValue: 'some default value',
           name: 'default_mytable_null',
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
           tableName: 'myTable',
           schema: 'mySchema',
         }, {
-          type: 'default',
+          type: 'DEFAULT',
           fields: [{
             attribute: 'myColumn',
           }],
@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
     it('naming', () => {
       expectsql(sql.addConstraintQuery('myTable', {
         name: 'primary_mytable_mycolumn',
-        type: 'primary key',
+        type: 'PRIMARY KEY',
         fields: ['myColumn'],
       }), {
         default: 'ALTER TABLE [myTable] ADD CONSTRAINT [primary_mytable_mycolumn] PRIMARY KEY ([myColumn]);',
@@ -150,7 +150,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
     it('naming', () => {
       expectsql(sql.addConstraintQuery('myTable', {
         name: 'foreignkey_mytable_mycolumn',
-        type: 'foreign key',
+        type: 'FOREIGN KEY',
         fields: ['myColumn'],
         references: {
           table: 'myOtherTable',
@@ -164,7 +164,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
     it('supports composite keys', () => {
       expectsql(
         sql.addConstraintQuery('myTable', {
-          type: 'foreign key',
+          type: 'FOREIGN KEY',
           fields: ['myColumn', 'anotherColumn'],
           references: {
             table: 'myOtherTable',
@@ -184,7 +184,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
     if (current.dialect.name !== 'ibmi') {
       it('uses onDelete, onUpdate', () => {
         expectsql(sql.addConstraintQuery('myTable', {
-          type: 'foreign key',
+          type: 'FOREIGN KEY',
           fields: ['myColumn'],
           references: {
             table: 'myOtherTable',
@@ -201,7 +201,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
 
     it('errors if references object is not passed', () => {
       expect(sql.addConstraintQuery.bind(sql, 'myTable', {
-        type: 'foreign key',
+        type: 'FOREIGN KEY',
         fields: ['myColumn'],
       })).to.throw('references object with table and field must be specified');
     });
@@ -214,7 +214,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
     });
 
     it('calls getConstraintSnippet function', () => {
-      const options = { type: 'unique', fields: ['myColumn'] };
+      const options = { type: 'UNIQUE', fields: ['myColumn'] };
       const addConstraintQuerySpy = sinon.stub(sql, 'addConstraintQuery');
       sql.addConstraintQuery('myTable', options);
       expect(sql.addConstraintQuery).to.have.been.calledWith('myTable', options);
@@ -223,7 +223,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
 
     if (!current.dialect.supports.constraints.default) {
       it('should throw error if default constraints are used in other dialects', () => {
-        expect(sql.addConstraintQuery.bind(sql, 'myTable', { type: 'default', defaultValue: 0, fields: [] })).to.throw('Default constraints are supported only for MSSQL dialect.');
+        expect(sql.addConstraintQuery.bind(sql, 'myTable', { type: 'DEFAULT', defaultValue: 0, fields: [] })).to.throw('Default constraints are supported only for MSSQL dialect.');
       });
     }
   });

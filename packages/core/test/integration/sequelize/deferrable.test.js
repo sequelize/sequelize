@@ -130,7 +130,7 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
 
         await sequelize.getQueryInterface().addConstraint(taskTableName, {
           fields: ['user_id'],
-          type: 'foreign key',
+          type: 'FOREIGN KEY',
           name: `${taskTableName}_user_id_fkey`,
           deferrable,
           references: {

@@ -1,5 +1,6 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
+import type { Deferrable } from '../../deferrable';
 import type { Col } from '../../expression-builders/col.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type {
@@ -8,13 +9,14 @@ import type {
   Model,
   ModelStatic,
   NormalizedAttributeOptions,
+  ReferentialAction,
   SearchPathable,
 } from '../../model.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types.js';
-import type { TableName } from './query-interface.js';
+import type { BaseConstraintOptions, TableName } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 type ParameterOptions = {
@@ -105,6 +107,21 @@ export interface AddColumnQueryOptions {
 // keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveColumnQueryOptions {
   ifExists?: boolean;
+}
+
+export interface GetConstraintSnippetOptions extends BaseConstraintOptions {
+  where?: WhereOptions<any>;
+  defaultValue?: unknown;
+  references?: {
+    table: TableName,
+    field: string,
+  } | {
+    table: TableName,
+    fields: string[],
+  };
+  onDelete?: ReferentialAction;
+  onUpdate?: ReferentialAction;
+  deferrable?: Deferrable;
 }
 
 /**
@@ -203,4 +220,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    * @param bind A mutable object to which bind parameters will be added.
    */
   bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
+
+  getConstraintSnippet(tableName: TableName, options: GetConstraintSnippetOptions): string;
 }

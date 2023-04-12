@@ -1,5 +1,6 @@
 import type { SetRequired } from 'type-fest';
 import type { Deferrable } from '../../deferrable';
+import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import type { Col } from '../../expression-builders/col.js';
 import type { Fn } from '../../expression-builders/fn.js';
 import type { Literal } from '../../expression-builders/literal.js';
@@ -12,6 +13,7 @@ import type {
   Model,
   ModelStatic,
   NormalizedAttributeOptions,
+  ReferentialAction,
 } from '../../model';
 import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
 import type { Transaction } from '../../transaction';
@@ -192,37 +194,39 @@ export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOpt
 
 export interface BaseConstraintOptions {
   name?: string;
-  fields: string[];
+  type: 'CHECK' | 'DEFAULT' | 'FOREIGN KEY' | 'PRIMARY KEY' | 'UNIQUE';
+  fields: Array<string | BaseSqlExpression | { attribute: string, name: string }>;
 }
 
 export interface AddUniqueConstraintOptions extends BaseConstraintOptions {
-  type: 'unique';
+  type: 'UNIQUE';
   deferrable?: Deferrable;
 }
 
 export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
-  type: 'default';
+  type: 'DEFAULT';
   defaultValue?: unknown;
 }
 
 export interface AddCheckConstraintOptions extends BaseConstraintOptions {
-  type: 'check';
+  type: 'CHECK';
   where?: WhereOptions<any>;
 }
 
 export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
-  type: 'primary key';
+  type: 'PRIMARY KEY';
   deferrable?: Deferrable;
 }
 
 export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
-  type: 'foreign key';
+  type: 'FOREIGN KEY';
   references?: {
     table: TableName,
-    field: string,
+    field?: string,
+    fields: string[],
   };
-  onDelete: string;
-  onUpdate: string;
+  onDelete: ReferentialAction;
+  onUpdate: ReferentialAction;
   deferrable?: Deferrable;
 }
 

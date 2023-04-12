@@ -67,7 +67,7 @@ describe('QueryInterface#showConstraint', () => {
       it('should show CHECK constraint', async () => {
         await queryInterface.addConstraint('actors', {
           name: 'custom_constraint_name',
-          type: 'check',
+          type: 'CHECK',
           fields: ['age'],
           where: {
             age: {
@@ -102,7 +102,7 @@ describe('QueryInterface#showConstraint', () => {
       it('should show DEFAULT constraints', async () => {
         await queryInterface.addConstraint('actors', {
           name: 'custom_constraint_name',
-          type: 'default',
+          type: 'DEFAULT',
           fields: ['status'],
           defaultValue: 'active',
         });
@@ -129,7 +129,7 @@ describe('QueryInterface#showConstraint', () => {
 
         await queryInterface.addConstraint('actors', {
           name: 'custom_constraint_name',
-          type: 'unique',
+          type: 'UNIQUE',
           fields: ['name', 'age'],
         });
 
@@ -228,7 +228,7 @@ describe('QueryInterface#showConstraint', () => {
             schema: 'archive',
           }, {
             name: 'custom_constraint_name',
-            type: 'check',
+            type: 'CHECK',
             fields: ['age'],
             where: {
               age: {
@@ -269,7 +269,7 @@ describe('QueryInterface#showConstraint', () => {
             schema: 'archive',
           }, {
             name: 'custom_constraint_name',
-            type: 'default',
+            type: 'DEFAULT',
             fields: ['status'],
             defaultValue: 'active',
           });
@@ -302,7 +302,7 @@ describe('QueryInterface#showConstraint', () => {
             schema: 'archive',
           }, {
             name: 'custom_constraint_name',
-            type: 'unique',
+            type: 'UNIQUE',
             fields: ['name', 'age'],
           });
 

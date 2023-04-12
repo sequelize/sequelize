@@ -591,7 +591,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     describe('unique', () => {
       it('should add, read & remove unique constraint', async function () {
-        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['email'] });
+        await this.queryInterface.addConstraint('users', { type: 'UNIQUE', fields: ['email'] });
         let constraints = await this.queryInterface.showConstraint('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('users_email_uk');
@@ -602,8 +602,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('should add a constraint after another', async function () {
-        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['username'] });
-        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['email'] });
+        await this.queryInterface.addConstraint('users', { type: 'UNIQUE', fields: ['username'] });
+        await this.queryInterface.addConstraint('users', { type: 'UNIQUE', fields: ['email'] });
         let constraints = await this.queryInterface.showConstraint('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('users_email_uk');
@@ -625,7 +625,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       describe('check', () => {
         it('should add, read & remove check constraint', async function () {
           await this.queryInterface.addConstraint('users', {
-            type: 'check',
+            type: 'CHECK',
             fields: ['roles'],
             where: {
               roles: ['user', 'admin', 'guest', 'moderator'],
@@ -662,7 +662,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         it('should add, read & remove default constraint', async function () {
           await this.queryInterface.addConstraint('users', {
             fields: ['roles'],
-            type: 'default',
+            type: 'DEFAULT',
             defaultValue: 'guest',
           });
           let constraints = await this.queryInterface.showConstraint('users');
@@ -756,7 +756,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           },
           onDelete: 'cascade',
           onUpdate: 'cascade',
-          type: 'foreign key',
+          type: 'FOREIGN KEY',
         });
         let constraints = await this.queryInterface.showConstraint('posts');
         constraints = constraints.map(constraint => constraint.constraintName);
@@ -772,7 +772,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should throw non existent constraints as UnknownConstraintError', async function () {
         try {
           await this.queryInterface.removeConstraint('users', 'unknown__constraint__name', {
-            type: 'unique',
+            type: 'UNIQUE',
           });
           throw new Error('Error not thrown...');
         } catch (error) {

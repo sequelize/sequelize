@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('naming', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           name: 'primary_mytable_mycolumn',
-          type: 'primary key',
+          type: 'PRIMARY KEY',
           fields: ['myColumn'],
         }), {
           default: 'CONSTRAINT [primary_mytable_mycolumn] PRIMARY KEY ([myColumn])',
@@ -110,7 +110,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('naming', () => {
         expectsql(sql.getConstraintSnippet('myTable', {
           name: 'foreignkey_mytable_mycolumn',
-          type: 'foreign key',
+          type: 'FOREIGN KEY',
           fields: ['myColumn'],
           references: {
             table: 'myOtherTable',
@@ -124,7 +124,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       if (current.dialect.name !== 'ibmi') {
         it('uses onDelete, onUpdate', () => {
           expectsql(sql.getConstraintSnippet('myTable', {
-            type: 'foreign key',
+            type: 'FOREIGN KEY',
             fields: ['myColumn'],
             references: {
               table: 'myOtherTable',
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('errors if references object is not passed', () => {
         expect(sql.getConstraintSnippet.bind(sql, 'myTable', {
-          type: 'foreign key',
+          type: 'FOREIGN KEY',
           fields: ['myColumn'],
         })).to.throw('references object with table and field must be specified');
       });
