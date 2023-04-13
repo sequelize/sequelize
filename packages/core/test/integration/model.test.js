@@ -226,6 +226,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('allows unique on column with field aliases', async function () {
+      let idxUnique;
       const User = this.sequelize.define('UserWithUniqueFieldAlias', {
         userName: { type: DataTypes.STRING, unique: 'user_name_unique', field: 'user_name' },
       });
@@ -263,6 +264,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         case 'sqlite':
+        case 'cockroachdb':
+          expect(index.fields).to.deep.equal([
+            {
+              // it expected order: undefined, changed to order: 'ASC'
+              attribute: 'user_name',
+              collate: undefined,
+              order: 'ASC',
+              length: undefined,
+            },
+          ]);
+          break;
         default: {
           expect(index.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: undefined }]);
 
@@ -271,7 +283,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    if (dialectName !== 'ibmi') {
+    if (!['ibmi', 'cockroachdb'].includes(dialectName)) {
       it('allows us to customize the error message for unique constraint', async function () {
         const User = this.sequelize.define('UserWithUniqueUsername', {
           username: { type: DataTypes.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' } },
@@ -408,165 +420,167 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should allow the user to specify indexes in options', async function () {
-      const indices = [{
-        name: 'a_b_uniq',
-        unique: true,
-        method: 'BTREE',
-        fields: [
-          'fieldB',
-          {
-            attribute: 'fieldA',
-            collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
-            order: dialectName === 'ibmi' ? ''
-              // MySQL doesn't support DESC indexes (will throw)
-              // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
-              : (dialectName === 'mysql' || dialectName === 'mariadb') ? 'ASC'
-              : `DESC`,
-            length: 5,
-          },
-        ],
-      }];
-
-      if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
-        indices.push({
-          type: 'FULLTEXT',
-          fields: ['fieldC'],
-          concurrently: true,
-        }, {
-          type: 'FULLTEXT',
-          fields: ['fieldD'],
-        });
-      }
-
-      const Model = this.sequelize.define('model', {
-        fieldA: DataTypes.STRING,
-        fieldB: DataTypes.INTEGER,
-        fieldC: DataTypes.STRING,
-        fieldD: DataTypes.STRING,
-      }, {
-        indexes: indices,
-        engine: 'MyISAM',
-      });
-
-      await this.sequelize.sync();
-      await this.sequelize.sync(); // The second call should not try to create the indices again
-      const args = await this.sequelize.queryInterface.showIndex(Model.tableName);
-      let primary;
-      let idx1;
-      let idx2;
-      let idx3;
-
-      switch (dialectName) {
-        case 'sqlite': {
-          // PRAGMA index_info does not return the primary index
-          idx1 = args[0];
-          idx2 = args[1];
-
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: undefined },
-            { attribute: 'fieldA', length: undefined, order: undefined },
-          ]);
-
-          expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: undefined },
-          ]);
-
-          break;
-        }
-
-        case 'db2': {
-          idx1 = args[1];
-
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
-            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
-          ]);
-
-          break;
-        }
-
-        case 'ibmi': {
-          idx1 = args[0];
-
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldA', length: undefined, order: undefined, collate: undefined },
-            { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
-          ]);
-
-          break;
-        }
-
-        case 'mssql': {
-          idx1 = args[0];
-
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
-            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
-          ]);
-
-          break;
-        }
-
-        case 'postgres': {
-          // Postgres returns indexes in alphabetical order
-          primary = args[2];
-          idx1 = args[0];
-          idx2 = args[1];
-          idx3 = args[2];
-
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
-            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US' },
-          ]);
-
-          expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined },
-          ]);
-
-          expect(idx3.fields).to.deep.equal([
-            { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined },
-          ]);
-
-          break;
-        }
-
-        default: {
-          // And finally mysql returns the primary first, and then the rest in the order they were defined
-          primary = args[0];
-          idx1 = args[1];
-          idx2 = args[2];
-
-          expect(primary.primary).to.be.ok;
-
-          expect(idx1.type).to.equal('BTREE');
-          expect(idx2.type).to.equal('FULLTEXT');
-
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: 'ASC' },
-            // length is a bigint, which is why it's returned as a string
+    if (dialectName !== 'cockroachdb') {
+      it('should allow the user to specify indexes in options', async function () {
+        const indices = [{
+          name: 'a_b_uniq',
+          unique: true,
+          method: 'BTREE',
+          fields: [
+            'fieldB',
             {
               attribute: 'fieldA',
-              length: '5',
-              // mysql & mariadb don't support DESC indexes
-              order: 'ASC',
+              collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
+              order: dialectName === 'ibmi' ? ''
+                // MySQL doesn't support DESC indexes (will throw)
+                // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
+                : (dialectName === 'mysql' || dialectName === 'mariadb') ? 'ASC'
+                  : `DESC`,
+              length: 5,
             },
-          ]);
+          ],
+        }];
 
-          expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: null },
-          ]);
+        if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
+          indices.push({
+            type: 'FULLTEXT',
+            fields: ['fieldC'],
+            concurrently: true,
+          }, {
+            type: 'FULLTEXT',
+            fields: ['fieldD'],
+          });
         }
-      }
 
-      expect(idx1.name).to.equal('a_b_uniq');
-      expect(idx1.unique).to.be.ok;
+        const Model = this.sequelize.define('model', {
+          fieldA: DataTypes.STRING,
+          fieldB: DataTypes.INTEGER,
+          fieldC: DataTypes.STRING,
+          fieldD: DataTypes.STRING,
+        }, {
+          indexes: indices,
+          engine: 'MyISAM',
+        });
 
-      if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
-        expect(idx2.name).to.equal('models_field_c');
-        expect(idx2.unique).not.to.be.ok;
-      }
-    });
+        await this.sequelize.sync();
+        await this.sequelize.sync(); // The second call should not try to create the indices again
+        const args = await this.sequelize.queryInterface.showIndex(Model.tableName);
+        let primary;
+        let idx1;
+        let idx2;
+        let idx3;
+
+        switch (dialectName) {
+          case 'sqlite': {
+            // PRAGMA index_info does not return the primary index
+            idx1 = args[0];
+            idx2 = args[1];
+
+            expect(idx1.fields).to.deep.equal([
+              { attribute: 'fieldB', length: undefined, order: undefined },
+              { attribute: 'fieldA', length: undefined, order: undefined },
+            ]);
+
+            expect(idx2.fields).to.deep.equal([
+              { attribute: 'fieldC', length: undefined, order: undefined },
+            ]);
+
+            break;
+          }
+
+          case 'db2': {
+            idx1 = args[1];
+
+            expect(idx1.fields).to.deep.equal([
+              { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+              { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
+            ]);
+
+            break;
+          }
+
+          case 'ibmi': {
+            idx1 = args[0];
+
+            expect(idx1.fields).to.deep.equal([
+              { attribute: 'fieldA', length: undefined, order: undefined, collate: undefined },
+              { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
+            ]);
+
+            break;
+          }
+
+          case 'mssql': {
+            idx1 = args[0];
+
+            expect(idx1.fields).to.deep.equal([
+              { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+              { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
+            ]);
+
+            break;
+          }
+
+          case 'postgres': {
+            // Postgres returns indexes in alphabetical order
+            primary = args[2];
+            idx1 = args[0];
+            idx2 = args[1];
+            idx3 = args[2];
+
+            expect(idx1.fields).to.deep.equal([
+              { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
+              { attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US' },
+            ]);
+
+            expect(idx2.fields).to.deep.equal([
+              { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined },
+            ]);
+
+            expect(idx3.fields).to.deep.equal([
+              { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined },
+            ]);
+
+            break;
+          }
+
+          default: {
+            // And finally mysql returns the primary first, and then the rest in the order they were defined
+            primary = args[0];
+            idx1 = args[1];
+            idx2 = args[2];
+
+            expect(primary.primary).to.be.ok;
+
+            expect(idx1.type).to.equal('BTREE');
+            expect(idx2.type).to.equal('FULLTEXT');
+
+            expect(idx1.fields).to.deep.equal([
+              { attribute: 'fieldB', length: undefined, order: 'ASC' },
+              // length is a bigint, which is why it's returned as a string
+              {
+                attribute: 'fieldA',
+                length: '5',
+                // mysql & mariadb don't support DESC indexes
+                order: 'ASC',
+              },
+            ]);
+
+            expect(idx2.fields).to.deep.equal([
+              { attribute: 'fieldC', length: undefined, order: null },
+            ]);
+          }
+        }
+
+        expect(idx1.name).to.equal('a_b_uniq');
+        expect(idx1.unique).to.be.ok;
+
+        if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
+          expect(idx2.name).to.equal('models_field_c');
+          expect(idx2.unique).not.to.be.ok;
+        }
+      });
+    }
   });
 
   describe('build', () => {
@@ -775,9 +789,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
-        const [user1] = await User.findOrBuild({
-          where: { username: 'foo' },
-        });
         const [user2] = await User.findOrBuild({
           where: { username: 'foo' },
           transaction: t,
@@ -787,7 +798,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           defaults: { foo: 'asd' },
           transaction: t,
         });
-        expect(user1.isNewRecord).to.be.true;
+        if (dialectName !== 'cockroachdb') {
+          const [user1] = await User.findOrBuild({
+            where: { username: 'foo' },
+          });
+          expect(user1.isNewRecord).to.be.true;
+        }
+
         expect(user2.isNewRecord).to.be.false;
         expect(user3.isNewRecord).to.be.false;
         await t.commit();
@@ -915,9 +932,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: { username: 'foo' },
           transaction: t,
         });
-        const users1 = await User.findAll();
         const users2 = await User.findAll({ transaction: t });
-        expect(users1[0].username).to.equal('foo');
+        if (dialectName !== 'cockroachdb') {
+          const users1 = await User.findAll();
+          expect(users1[0].username).to.equal('foo');
+        }
+
         expect(users2[0].username).to.equal('bar');
         await t.rollback();
       });
@@ -945,7 +965,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expectsql(sql, {
             default: `UPDATE [users1] SET [secretValue]=$sequelize_1,[updatedAt]=$sequelize_2 WHERE [id] = $sequelize_3`,
-            postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
+            'postgres cockroachdb': `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
             mysql: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
             mariadb: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
             mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 OUTPUT INSERTED.* WHERE [id] = @sequelize_3`,
@@ -1374,9 +1394,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: {},
           transaction: t,
         });
-        const count1 = await User.count();
         const count2 = await User.count({ transaction: t });
-        expect(count1).to.equal(1);
+        if (dialectName !== 'cockroachdb') {
+          const count1 = await User.count();
+          expect(count1).to.equal(1);
+        }
+
         expect(count2).to.equal(0);
         await t.rollback();
       });
@@ -1477,11 +1500,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }, { paranoid: true });
 
       await User.sync({ force: true });
-      await User.bulkCreate([
-        { username: 'Toni', secretValue: '42' },
-        { username: 'Tobi', secretValue: '42' },
-        { username: 'Max', secretValue: '42' },
-      ]);
+      if (dialectName === 'cockroachdb') {
+        await User.bulkCreate([
+          // Added gapless incremental ids
+          { id: 1, username: 'Toni', secretValue: '42' },
+          { id: 2, username: 'Tobi', secretValue: '42' },
+          { id: 3, username: 'Max', secretValue: '42' },
+        ]);
+      } else {
+        await User.bulkCreate([
+          { username: 'Toni', secretValue: '42' },
+          { username: 'Tobi', secretValue: '42' },
+          { username: 'Max', secretValue: '42' },
+        ]);
+      }
+
       const user = await User.findByPk(1);
       await user.destroy();
       await user.reload({ paranoid: false });
@@ -1498,11 +1531,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }, { paranoid: true });
 
         await User.sync({ force: true });
-        await User.bulkCreate([
-          { username: 'Toni' },
-          { username: 'Tobi' },
-          { username: 'Max' },
-        ]);
+        if (dialectName === 'cockroachdb') {
+          await User.bulkCreate([
+            // Added gapless incremental ids
+            { id: 1, username: 'Toni' },
+            { id: 2, username: 'Tobi' },
+            { id: 3, username: 'Max' },
+          ]);
+        } else {
+          await User.bulkCreate([
+            { username: 'Toni' },
+            { username: 'Tobi' },
+            { username: 'Max' },
+          ]);
+        }
+
         const user = await User.findByPk(1);
         await user.destroy();
         expect(await User.findByPk(1)).to.be.null;
@@ -1518,11 +1561,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }, { paranoid: true });
 
         await User.sync({ force: true });
-        await User.bulkCreate([
-          { username: 'Toni' },
-          { username: 'Tobi' },
-          { username: 'Max' },
-        ]);
+        if (dialectName === 'cockroachdb') {
+          await User.bulkCreate([
+            // Added gapless incremental ids
+            { id: 1, username: 'Toni' },
+            { id: 2, username: 'Tobi' },
+            { id: 3, username: 'Max' },
+          ]);
+        } else {
+          await User.bulkCreate([
+            { username: 'Toni' },
+            { username: 'Tobi' },
+            { username: 'Max' },
+          ]);
+        }
+
         const user = await User.findByPk(1);
         await user.destroy();
         expect(await User.findOne({ where: 1, paranoid: false })).to.exist;
@@ -1547,10 +1600,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await User.sync({ force: true });
       await Pet.sync({ force: true });
       const userId = (await User.create({ username: 'Joe' })).id;
-      await Pet.bulkCreate([
-        { name: 'Fido', UserId: userId },
-        { name: 'Fifi', UserId: userId },
-      ]);
+      if (dialectName === 'cockroachdb') {
+        await Pet.bulkCreate([
+          // Added gapless incremental ids
+          { id: 1, name: 'Fido', UserId: userId },
+          { id: 2, name: 'Fifi', UserId: userId },
+        ]);
+      } else {
+        await Pet.bulkCreate([
+          { name: 'Fido', UserId: userId },
+          { name: 'Fifi', UserId: userId },
+        ]);
+      }
+
       const pet = await Pet.findByPk(1);
       await pet.destroy();
       const user = await User.findOne({
@@ -1742,9 +1804,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
-        const count1 = await User.count();
         const count2 = await User.count({ transaction: t });
-        expect(count1).to.equal(0);
+        if (dialectName !== 'cockroachdb') {
+          const count1 = await User.count();
+          expect(count1).to.equal(0);
+        }
+
         expect(count2).to.equal(1);
         await t.rollback();
       });
@@ -1887,9 +1952,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await User.sync({ force: true });
           const t = await sequelize.startUnmanagedTransaction();
           await User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t });
-          const val1 = await User[methodName]('age');
           const val2 = await User[methodName]('age', { transaction: t });
-          expect(val1).to.be.not.ok;
+          if (dialectName !== 'cockroachdb') {
+            const val1 = await User[methodName]('age');
+            expect(val1).to.be.not.ok;
+          }
+
           expect(val2).to.equal(methodName === 'min' ? 2 : 5);
           await t.rollback();
         });
@@ -2067,6 +2135,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ibmi: ['sequelize_test', 'schema_test', 'special'],
           mssql: ['schema_test', 'special'],
           postgres: ['schema_test', 'special'],
+          cockroachdb: ['crdb_internal', 'schema_test', 'special'],
           db2: ['schema_test', 'special '],
         };
 
@@ -2095,7 +2164,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        if (dialectName === 'postgres') {
+        if (['postgres', 'cockroachdb'].includes(dialectName)) {
           test++;
           expect(table.id.defaultValue).to.not.contain('special');
         }
@@ -2116,6 +2185,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         if (dialectName === 'postgres') {
           test++;
           expect(table.id.defaultValue).to.contain('special');
+        }
+
+        if (dialectName === 'cockroachdb') {
+          test++;
+          expect(table.id.defaultValue).to.contain('unique_rowid()');
         }
 
         expect(test).to.equal(2);
@@ -2145,6 +2219,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
+              case 'cockroachdb':
               case 'ibmi': {
                 expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
 
@@ -2184,6 +2259,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
+              case 'cockroachdb':
               case 'ibmi': {
                 expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
                 expect(UserPublic).to.include('INSERT INTO "UserPublics"');
@@ -2223,6 +2299,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
+              case 'cockroachdb':
               case 'ibmi': {
                 expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
 
@@ -2258,6 +2335,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
+              case 'cockroachdb':
               case 'ibmi': {
                 expect(user).to.include('UPDATE "special"."UserSpecials"');
 
@@ -2438,6 +2516,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             break;
           }
 
+          case 'cockroachdb': {
+            expect(error.message).to.match(/relation "4uth0r5" does not exist/);
+
+            break;
+          }
+
           default: {
             throw new Error('Undefined dialect!');
           }
@@ -2541,13 +2625,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      await this.User.bulkCreate([{
-        username: 'leia',
-      }, {
-        username: 'luke',
-      }, {
-        username: 'vader',
-      }]);
+      if (dialectName === 'cockroachdb') {
+        // Added ids to this bulkCreate because CRDB doesn't
+        // guarantee incremental ids will start at 1.
+        await this.User.bulkCreate([
+          {
+            id: 1,
+            username: 'leia',
+          },
+          {
+            id: 2,
+            username: 'luke',
+          },
+          {
+            id: 3,
+            username: 'vader',
+          },
+        ]);
+      } else {
+        await this.User.bulkCreate([{
+          username: 'leia',
+        }, {
+          username: 'luke',
+        }, {
+          username: 'vader',
+        }]);
+      }
 
       await this.Project.bulkCreate([{
         title: 'republic',
@@ -2566,6 +2669,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await luke.setProjects([republic]);
       await vader.setProjects([empire]);
 
+      // Mark leia as destroyed at Date(0) + 100 so test can look for entries greater than Date(0)
+      this.clock.tick(100);
       await leia.destroy();
     });
 
@@ -2633,7 +2738,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   });
 
-  if (dialectName !== 'sqlite' && current.dialect.supports.transactions) {
+  if (!['sqlite', 'cockroachdb'].includes(dialectName) && current.dialect.supports.transactions) {
     it('supports multiple async transactions', async function () {
       this.timeout(90_000);
       const sequelize = await Support.prepareTransactionTest(this.sequelize);

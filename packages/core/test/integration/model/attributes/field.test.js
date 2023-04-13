@@ -211,10 +211,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('field and attribute name is the same', () => {
         beforeEach(async function () {
-          await this.Comment.bulkCreate([
-            { notes: 'Number one' },
-            { notes: 'Number two' },
-          ]);
+          if (dialect === 'cockroachdb') {
+            await this.Comment.bulkCreate([
+              // Added ids to Comment
+              { id: 1, notes: 'Number one' },
+              { id: 2, notes: 'Number two' },
+            ]);
+          } else {
+            await this.Comment.bulkCreate([
+              { notes: 'Number one' },
+              { notes: 'Number two' },
+            ]);
+          }
         });
 
         it('bulkCreate should work', async function () {

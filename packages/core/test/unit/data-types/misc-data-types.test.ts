@@ -50,8 +50,8 @@ describe('DataTypes.ENUM', () => {
     assert(typeof enumType !== 'string');
 
     expectsql(enumType.toSql({ dialect }), {
-      postgres: '"public"."enum_Users_anEnum"',
-      'mysql mariadb cockroachdb': `ENUM('value 1', 'value 2')`,
+      'postgres cockroachdb': '"public"."enum_Users_anEnum"',
+      'mysql mariadb': `ENUM('value 1', 'value 2')`,
       // SQL Server does not support enums, we use text + a check constraint instead
       mssql: `NVARCHAR(255)`,
       sqlite: 'TEXT',

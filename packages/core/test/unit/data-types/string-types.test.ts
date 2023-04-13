@@ -179,7 +179,7 @@ describe('DataTypes.TSVECTOR', () => {
     testDataTypeSql('TSVECTOR', DataTypes.TSVECTOR, {
       default: new Error(`${dialectName} does not support the TSVECTOR data type.
 See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
-      'postgres cockroachdb': 'TSVECTOR',
+      postgres: 'TSVECTOR',
     });
   });
 

@@ -32,8 +32,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (['mssql', 'mysql', 'mariadb'].includes(dialect)) {
         expect(result.table_id.autoIncrement).to.be.true;
-      } else if (['cockroachdb', 'postgres'].includes(dialect)) {
+      } else if (['postgres'].includes(dialect)) {
         expect(result.table_id.defaultValue).to.equal('nextval("TableWithPK_table_id_seq"::regclass)');
+      } else if (['cockroachdb'].includes(dialect)) {
+        expect(result.table_id.defaultValue).to.equal('unique_rowid()');
       }
     });
 
@@ -106,7 +108,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres')) {
+        if (['postgres', 'cockroachdb'].includes(dialect)) {
           expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -119,7 +121,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres')) {
+        if (['postgres', 'cockroachdb'].includes(dialect)) {
           expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -133,7 +135,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres')) {
+        if (['postgres', 'cockroachdb'].includes(dialect)) {
           expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
         }
       });
@@ -150,7 +152,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           }, { schema: 'archive' });
 
           const table = await this.queryInterface.describeTable('SomeTable', { schema: 'archive' });
-          if (dialect.includes('postgres')) {
+          if (['postgres', 'cockroachdb'].includes(dialect)) {
             expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
           }
         });
@@ -165,7 +167,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres')) {
+        if (['postgres', 'cockroachdb'].includes(dialect)) {
           expect(table.someEnum.special).to.deep.equal(['COMMENT']);
           expect(table.someEnum.comment).to.equal('special enum col');
         }

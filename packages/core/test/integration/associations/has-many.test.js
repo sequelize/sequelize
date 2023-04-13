@@ -280,64 +280,68 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
         });
 
-        it('should fetch associations for multiple instances with limit and order and a belongsTo relation', async function () {
-          const User = this.sequelize.define('User', {});
-          const Task = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
-            categoryId: {
-              type: DataTypes.INTEGER,
-              field: 'category_id',
-            },
-          });
-          const Category = this.sequelize.define('Category', {});
+        // Query result are non-deterministic in CockroachDB
+        // Reason: https://github.com/sequelize/sequelize/issues/13088
+        if (dialect !== 'cockroachdb') {
+          it('should fetch associations for multiple instances with limit and order and a belongsTo relation', async function () {
+            const User = this.sequelize.define('User', {});
+            const Task = this.sequelize.define('Task', {
+              title: DataTypes.STRING,
+              categoryId: {
+                type: DataTypes.INTEGER,
+                field: 'category_id',
+              },
+            });
+            const Category = this.sequelize.define('Category', {});
 
-          User.Tasks = User.hasMany(Task, { as: 'tasks' });
-          Task.Category = Task.belongsTo(Category, { as: 'category', foreignKey: 'categoryId' });
+            User.Tasks = User.hasMany(Task, { as: 'tasks' });
+            Task.Category = Task.belongsTo(Category, { as: 'category', foreignKey: 'categoryId' });
 
-          await this.sequelize.sync({ force: true });
+            await this.sequelize.sync({ force: true });
 
-          const users = await Promise.all([
-            User.create({
-              tasks: [
-                { title: 'b', category: {} },
-                { title: 'd', category: {} },
-                { title: 'c', category: {} },
-                { title: 'a', category: {} },
+            const users = await Promise.all([
+              User.create({
+                tasks: [
+                  { title: 'b', category: {} },
+                  { title: 'd', category: {} },
+                  { title: 'c', category: {} },
+                  { title: 'a', category: {} },
+                ],
+              }, {
+                include: [{ association: User.Tasks, include: [Task.Category] }],
+              }),
+              User.create({
+                tasks: [
+                  { title: 'a', category: {} },
+                  { title: 'c', category: {} },
+                  { title: 'b', category: {} },
+                ],
+              }, {
+                include: [{ association: User.Tasks, include: [Task.Category] }],
+              }),
+            ]);
+
+            const result = await User.Tasks.get(users, {
+              limit: 2,
+              order: [
+                ['title', 'ASC'],
               ],
-            }, {
-              include: [{ association: User.Tasks, include: [Task.Category] }],
-            }),
-            User.create({
-              tasks: [
-                { title: 'a', category: {} },
-                { title: 'c', category: {} },
-                { title: 'b', category: {} },
-              ],
-            }, {
-              include: [{ association: User.Tasks, include: [Task.Category] }],
-            }),
-          ]);
+              include: [Task.Category],
+            });
 
-          const result = await User.Tasks.get(users, {
-            limit: 2,
-            order: [
-              ['title', 'ASC'],
-            ],
-            include: [Task.Category],
+            expect(result.get(users[0].id).length).to.equal(2);
+            expect(result.get(users[0].id)[0].title).to.equal('a');
+            expect(result.get(users[0].id)[0].category).to.be.ok;
+            expect(result.get(users[0].id)[1].title).to.equal('b');
+            expect(result.get(users[0].id)[1].category).to.be.ok;
+
+            expect(result.get(users[1].id).length).to.equal(2);
+            expect(result.get(users[1].id)[0].title).to.equal('a');
+            expect(result.get(users[1].id)[0].category).to.be.ok;
+            expect(result.get(users[1].id)[1].title).to.equal('b');
+            expect(result.get(users[1].id)[1].category).to.be.ok;
           });
-
-          expect(result.get(users[0].id).length).to.equal(2);
-          expect(result.get(users[0].id)[0].title).to.equal('a');
-          expect(result.get(users[0].id)[0].category).to.be.ok;
-          expect(result.get(users[0].id)[1].title).to.equal('b');
-          expect(result.get(users[0].id)[1].category).to.be.ok;
-
-          expect(result.get(users[1].id).length).to.equal(2);
-          expect(result.get(users[1].id)[0].title).to.equal('a');
-          expect(result.get(users[1].id)[0].category).to.be.ok;
-          expect(result.get(users[1].id)[1].title).to.equal('b');
-          expect(result.get(users[1].id)[1].category).to.be.ok;
-        });
+        }
 
         it('supports schemas', async function () {
           const User = this.sequelize.define('User', {}).schema('work');
@@ -457,7 +461,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
           await this.sequelize.dropSchema('work');
           const schemas = await this.sequelize.showAllSchemas();
-          if (['postgres', 'mssql', 'cockroachdb'].includes(dialect) || schemas === 'mariadb') {
+          if (['postgres', 'mssql'].includes(dialect) || schemas === 'mariadb') {
             expect(schemas).to.be.empty;
           }
         });
@@ -520,8 +524,11 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const t = await sequelize.startUnmanagedTransaction();
           await article.setLabels([label], { transaction: t });
           const articles0 = await Article.findAll({ transaction: t });
-          const hasLabel0 = await articles0[0].hasLabel(label);
-          expect(hasLabel0).to.be.false;
+          if (current.dialect.name !== 'cockroachdb') {
+            const hasLabel0 = await articles0[0].hasLabel(label);
+            expect(hasLabel0).to.be.false;
+          }
+
           const articles = await Article.findAll({ transaction: t });
           const hasLabel = await articles[0].hasLabel(label, { transaction: t });
           expect(hasLabel).to.be.true;
@@ -626,13 +633,17 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           await article.setLabels([label], { transaction: t });
           const articles = await Article.findAll({ transaction: t });
 
-          const [hasLabel1, hasLabel2] = await Promise.all([
-            articles[0].hasLabels([label]),
-            articles[0].hasLabels([label], { transaction: t }),
-          ]);
-
-          expect(hasLabel1).to.be.false;
-          expect(hasLabel2).to.be.true;
+          if (current.dialect.name !== 'cockroachdb') {
+            const [hasLabel1, hasLabel2] = await Promise.all([
+              articles[0].hasLabels([label]),
+              articles[0].hasLabels([label], { transaction: t }),
+            ]);
+            expect(hasLabel1).to.be.false;
+            expect(hasLabel2).to.be.true;
+          } else {
+            const hasLabel1 = await articles[0].hasLabels([label], { transaction: t });
+            expect(hasLabel1).to.be.true;
+          }
 
           await t.rollback();
         });
@@ -708,15 +719,17 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           await sequelize.sync({ force: true });
 
-          const [article, label, t] = await Promise.all([
+          const [article, label] = await Promise.all([
             Article.create({ title: 'foo' }),
             Label.create({ text: 'bar' }),
-            sequelize.startUnmanagedTransaction(),
           ]);
 
+          const t = await sequelize.startUnmanagedTransaction();
           await article.setLabels([label], { transaction: t });
-          const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
-          expect(labels0.length).to.equal(0);
+          if (current.dialect.name !== 'cockroachdb') {
+            const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
+            expect(labels0.length).to.equal(0);
+          }
 
           const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
           expect(labels.length).to.equal(1);
@@ -785,8 +798,11 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           const t = await sequelize.startUnmanagedTransaction();
           await article.addLabel(label, { transaction: t });
-          const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
-          expect(labels0.length).to.equal(0);
+
+          if (current.dialect.name !== 'cockroachdb') {
+            const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
+            expect(labels0.length).to.equal(0);
+          }
 
           const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
           expect(labels.length).to.equal(1);
@@ -919,10 +935,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const article = await Article.create({ title: 'foo' });
           const t = await sequelize.startUnmanagedTransaction();
           await article.createLabel({ text: 'bar' }, { transaction: t });
-          const labels1 = await Label.findAll();
-          expect(labels1.length).to.equal(0);
-          const labels0 = await Label.findAll({ where: { ArticleId: article.id } });
-          expect(labels0.length).to.equal(0);
+          if (current.dialect.name !== 'cockroachdb') {
+            const labels1 = await Label.findAll();
+            expect(labels1.length).to.equal(0);
+            const labels0 = await Label.findAll({ where: { ArticleId: article.id } });
+            expect(labels0.length).to.equal(0);
+          }
+
           const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
           expect(labels.length).to.equal(1);
           await t.rollback();
@@ -1389,7 +1408,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      await User.create({
+      const createdUser = await User.create({
         username: 'John Doe',
         tasks: [
           { title: 'Task #1', jobs: [{ title: 'Job #1' }, { title: 'Job #2' }] },
@@ -1406,7 +1425,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       expect(count.length).to.equal(1);
-      expect(count).to.deep.equal([{ userId: 1, count: 1 }]);
+      // CockroachDB does not guarantee the ID to be 1, it's a BigInt by default.
+      if (dialect === 'cockroachdb') {
+        expect(count).to.deep.equal([{ userId: createdUser.dataValues.userId, count: 1 }]);
+      } else {
+        expect(count).to.deep.equal([{ userId: 1, count: 1 }]);
+      }
+
       expect(rows[0].tasks[0].jobs.length).to.equal(2);
     });
   });

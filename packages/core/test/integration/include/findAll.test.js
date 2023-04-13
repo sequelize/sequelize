@@ -12,6 +12,8 @@ const sortById = function (a, b) {
   return a.id < b.id ? -1 : 1;
 };
 
+const current = Support.sequelize;
+
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findAll', () => {
     beforeEach(function () {
@@ -112,15 +114,29 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         const tags = await Tag.findAll();
         for (const i of [0, 1, 2, 3, 4]) {
           const user = await User.create();
-          await Product.bulkCreate([
-            { title: 'Chair' },
-            { title: 'Desk' },
-            { title: 'Bed' },
-            { title: 'Pen' },
-            { title: 'Monitor' },
-          ]);
+
+          if (current.dialect.name === 'cockroachdb') {
+            // Edited this part because a test expect id to be 3.
+            // This maintains the test procedure, giving Product predictable ids.
+            await Product.bulkCreate([
+              { id: i * 5 + 1, title: 'Chair' },
+              { id: i * 5 + 2, title: 'Desk' },
+              { id: i * 5 + 3, title: 'Bed' },
+              { id: i * 5 + 4, title: 'Pen' },
+              { id: i * 5 + 5, title: 'Monitor' },
+            ]);
+          } else {
+            await Product.bulkCreate([
+              { title: 'Chair' },
+              { title: 'Desk' },
+              { title: 'Bed' },
+              { title: 'Pen' },
+              { title: 'Monitor' },
+            ]);
+          }
+
           const products = await Product.findAll();
-          const groupMembers  = [
+          const groupMembers = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
             { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id },
           ];

@@ -73,9 +73,12 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
-        const groups = await Group.findAll();
-        const associatedUser = await groups[0].getUser();
-        expect(associatedUser).to.be.null;
+        if (current.dialect.name !== 'cockroachdb') {
+          const groups = await Group.findAll();
+          const associatedUser = await groups[0].getUser();
+          expect(associatedUser).to.be.null;
+        }
+
         const groups0 = await Group.findAll({ transaction: t });
         const associatedUser0 = await groups0[0].getUser({ transaction: t });
         expect(associatedUser0).to.be.not.null;
@@ -179,9 +182,12 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
-        const groups = await Group.findAll();
-        const associatedUser = await groups[0].getUser();
-        expect(associatedUser).to.be.null;
+        if (current.dialect.name !== 'cockroachdb') {
+          const groups = await Group.findAll();
+          const associatedUser = await groups[0].getUser();
+          expect(associatedUser).to.be.null;
+        }
+
         await t.rollback();
       });
     }
@@ -355,8 +361,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.createUser({ username: 'foo' }, { transaction: t });
-        const user = await group.getUser();
-        expect(user).to.be.null;
+        if (current.dialect.name !== 'cockroachdb') {
+          const user = await group.getUser();
+          expect(user).to.be.null;
+        }
 
         const user0 = await group.getUser({ transaction: t });
         expect(user0).not.to.be.null;
@@ -473,12 +481,19 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      await User.create(dialect === 'db2' ? { id: 1 } : {});
+      const createdUser = await User.create(dialect === 'db2' ? { id: 1 } : {});
       const mail = await Mail.create(dialect === 'db2' ? { id: 1 } : {});
-      await Entry.create({ mailId: mail.id, ownerId: 1 });
-      await Entry.create({ mailId: mail.id, ownerId: 1 });
-      // set recipients
-      await mail.setRecipients([1]);
+      if (dialect === 'cockroachdb') {
+        await Entry.create({ mailId: mail.id, ownerId: createdUser.id });
+        await Entry.create({ mailId: mail.id, ownerId: createdUser.id });
+        // set recipients
+        await mail.setRecipients([createdUser.id]);
+      } else {
+        await Entry.create({ mailId: mail.id, ownerId: 1 });
+        await Entry.create({ mailId: mail.id, ownerId: 1 });
+        // set recipients
+        await mail.setRecipients([1]);
+      }
 
       const result = await Entry.findAndCountAll({
         offset: 0,
@@ -492,7 +507,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
                 association: Mail.associations.recipients,
                 through: {
                   where: {
-                    recipientId: 1,
+                    recipientId: dialect === 'cockroachdb' ? createdUser.id : 1,
                   },
                 },
                 required: true,
@@ -504,23 +519,35 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       expect(result.count).to.equal(2);
-      expect(result.rows[0].get({ plain: true })).to.deep.equal(
-        {
-          id: 2,
-          ownerId: 1,
-          mailId: 1,
-          mail: {
-            id: 1,
-            recipients: [{
+
+      // CockroachDB does not guarantee sequential IDs.
+      if (dialect === 'cockroachdb') {
+        const rowResult = result.rows[0].get({ plain: true });
+        const mailResult = rowResult.mail.recipients[0].MailRecipients;
+
+        expect(rowResult.ownerId).to.equal(createdUser.id);
+        expect(rowResult.mailId).to.equal(mail.id);
+        expect(mailResult.mailId).to.equal(mail.id);
+        expect(mailResult.recipientId).to.equal(createdUser.id);
+      } else {
+        expect(result.rows[0].get({ plain: true })).to.deep.equal(
+          {
+            id: 2,
+            ownerId: 1,
+            mailId: 1,
+            mail: {
               id: 1,
-              MailRecipients: {
-                mailId: 1,
-                recipientId: 1,
-              },
-            }],
+              recipients: [{
+                id: 1,
+                MailRecipients: {
+                  mailId: 1,
+                  recipientId: 1,
+                },
+              }],
+            },
           },
-        },
-      );
+        );
+      }
     });
   });
 

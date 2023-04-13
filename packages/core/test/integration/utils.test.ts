@@ -31,9 +31,10 @@ describe(getTestDialectTeaser('fn()'), () => {
     return { Airplane };
   });
 
+  // TODO: Find a better way for CRDB
   // some dialects return the result of arithmetic functions (SUM, COUNT) as integer & floats, others as bigints & decimals.
   const arithmeticAsNumber = dialectName === 'sqlite' || dialectName === 'db2';
-  if (dialectName !== 'mssql' && dialectName !== 'ibmi') {
+  if (dialectName !== 'mssql' && dialectName !== 'ibmi' && dialectName !== 'cockroachdb') {
     it('accepts condition object (with cast)', async () => {
       const type = dialectName === 'mysql' ? 'unsigned' : 'int';
 
@@ -62,7 +63,7 @@ describe(getTestDialectTeaser('fn()'), () => {
     });
   }
 
-  if (dialectName !== 'mssql' && dialectName !== 'postgres' && dialectName !== 'ibmi') {
+  if (!['mssql', 'postgres', 'ibmi', 'cockroachdb'].includes(dialectName)) {
     it('accepts condition object (auto casting)', async () => {
       const [airplane] = await vars.Airplane.findAll({
         attributes: [

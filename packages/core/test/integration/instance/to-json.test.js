@@ -6,6 +6,7 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
+const dialectName = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {
     beforeEach(async function () {
@@ -129,7 +130,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           level: null,
         });
 
-        expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`);
+        if (dialectName === 'cockroachdb') {
+          expect(JSON.stringify(user)).to.deep.equal(`{"id":"${user.get('id')}","username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`);
+        } else {
+          expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`);
+        }
       });
 
       it('returns a response that can be stringified and then parsed', async function () {
@@ -181,7 +186,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
 
         const user = await this.User.findByPk(user0.get('id'));
-        expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
+        if (dialectName === 'cockroachdb') {
+          expect(JSON.stringify(user)).to.deep.equal(`{"id":"${user.get('id')}","username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
+        } else {
+          expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
+        }
       });
 
       it('returns a response that can be stringified and then parsed', async function () {

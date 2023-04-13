@@ -10,6 +10,7 @@ const dialect = getTestDialect();
 
 function assertSameConnection(newConnection: Connection, oldConnection: Connection) {
   switch (dialect) {
+    case 'cockroachdb':
     case 'postgres':
       // @ts-expect-error -- processID not declared yet
       expect(oldConnection.processID).to.be.equal(newConnection.processID).and.to.be.ok;
@@ -39,6 +40,7 @@ function assertSameConnection(newConnection: Connection, oldConnection: Connecti
 
 function assertNewConnection(newConnection: Connection, oldConnection: Connection) {
   switch (dialect) {
+    case 'cockroachdb':
     case 'postgres':
       // @ts-expect-error -- processID not declared yet
       expect(oldConnection.processID).to.not.be.equal(newConnection.processID);
@@ -91,7 +93,10 @@ afterEach(() => {
 });
 
 describe(getTestDialectTeaser('Pooling'), () => {
-  if (dialect === 'sqlite' || process.env.DIALECT === 'postgres-native') {
+  // PG emits events to communicate with the pg client.
+  // CRDB apparently does not emit events like these, needed to compare processID:
+  // https://github.com/brianc/node-postgres/blob/master/packages/pg/lib/client.js#L185
+  if (['sqlite', 'cockroachdb'].includes(dialect) || process.env.DIALECT === 'postgres-native') {
     return;
   }
 
@@ -105,6 +110,9 @@ describe(getTestDialectTeaser('Pooling'), () => {
 
         if (dialect === 'db2') {
           await sequelize.connectionManager.pool.destroy(connection);
+        } else if (dialect === 'cockroachdb') {
+          // @ts-expect-error -- emit not declared yet
+          connection.emit('error', { code: 'ECONNRESET' });
         } else {
           const error: NodeJS.ErrnoException = new Error('Test ECONNRESET Error');
           error.code = 'ECONNRESET';
@@ -143,6 +151,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
             break;
           }
 
+          case 'cockroachdb':
           case 'postgres': {
             // @ts-expect-error -- end not declared yet
             connection.end();

@@ -29,7 +29,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
         AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
-        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'defaultdb'
+        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
     });
   });
@@ -60,7 +60,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
         AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
-        t.relkind = 'r' and t.relname = 'myModels' AND s.oid = t.relnamespace AND s.nspname = 'defaultdb'
+        t.relkind = 'r' and t.relname = 'myModels' AND s.oid = t.relnamespace AND s.nspname = 'public'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
     });
   });
@@ -112,7 +112,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)
         AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
         WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
-        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'defaultdb'
+        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public'
         GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;`,
     });
   });

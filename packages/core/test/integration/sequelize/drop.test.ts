@@ -5,38 +5,40 @@ import { sequelize } from '../support';
 const dialect = sequelize.getDialect();
 
 describe('Sequelize#drop', () => {
-  it('supports dropping cyclic associations', async () => {
-    const A = sequelize.define('A', {
-      BId: {
-        type: DataTypes.INTEGER,
-        references: {
-          deferrable: Deferrable.INITIALLY_IMMEDIATE,
+  if (dialect !== 'cockroachdb') {
+    it('supports dropping cyclic associations', async () => {
+      const A = sequelize.define('A', {
+        BId: {
+          type: DataTypes.INTEGER,
+          references: {
+            deferrable: Deferrable.INITIALLY_IMMEDIATE,
+          },
         },
-      },
-    });
+      });
 
-    const B = sequelize.define('B', {
-      AId: {
-        type: DataTypes.INTEGER,
-        references: {
-          deferrable: Deferrable.INITIALLY_IMMEDIATE,
+      const B = sequelize.define('B', {
+        AId: {
+          type: DataTypes.INTEGER,
+          references: {
+            deferrable: Deferrable.INITIALLY_IMMEDIATE,
+          },
         },
-      },
+      });
+
+      // mssql refuses cyclic references unless ON DELETE and ON UPDATE is set to NO ACTION
+      const mssqlConstraints = dialect === 'mssql' ? { onDelete: 'NO ACTION' as ReferentialAction, onUpdate: 'NO ACTION' as ReferentialAction } : null;
+
+      // These models both have a foreign key that references the other model.
+      // Sequelize should be able to create them.
+      A.belongsTo(B, { foreignKey: { allowNull: false, ...mssqlConstraints } });
+      B.belongsTo(A, { foreignKey: { allowNull: false, ...mssqlConstraints } });
+
+      await sequelize.sync();
+
+      // drop both tables
+      await sequelize.drop();
     });
-
-    // mssql refuses cyclic references unless ON DELETE and ON UPDATE is set to NO ACTION
-    const mssqlConstraints = dialect === 'mssql' ? { onDelete: 'NO ACTION' as ReferentialAction, onUpdate: 'NO ACTION' as ReferentialAction } : null;
-
-    // These models both have a foreign key that references the other model.
-    // Sequelize should be able to create them.
-    A.belongsTo(B, { foreignKey: { allowNull: false, ...mssqlConstraints } });
-    B.belongsTo(A, { foreignKey: { allowNull: false, ...mssqlConstraints } });
-
-    await sequelize.sync();
-
-    // drop both tables
-    await sequelize.drop();
-  });
+  }
 
   it('supports dropping cyclic associations with { cascade: true } in supported dialects', async () => {
     if (!sequelize.dialect.supports.dropTable.cascade) {

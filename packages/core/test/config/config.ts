@@ -98,7 +98,7 @@ export const Config: Record<Dialect, Options> = {
     },
   },
   cockroachdb: {
-    database: env.SEQ_COCKROACHDB_DB || env.seq_DB || 'defaultdb',
+    database: env.SEQ_COCKROACHDB_DB || env.seq_DB || 'sequelize_test',
     port: env.SEQ_COCKROACHDB_PORT || 26_257,
     username: env.SEQ_COCKROACHDB_USER || 'root',
     host: env.SEQ_COCKROACHDB_HOST || '127.0.0.1',

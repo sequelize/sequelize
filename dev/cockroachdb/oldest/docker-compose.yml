@@ -1,13 +1,13 @@
 services:
   cockroachdb-oldest:
     container_name: sequelize-cockroachdb-oldest
-    image: cockroachdb/cockroach:v22.1.11
+    image: cockroachdb/cockroach:v22.2.7
     ports:
       - 26257:26257
       - 8080:8080
     command: start-single-node --cluster-name=cockroach-sequilize-example --advertise-addr='localhost' --insecure
     environment:
-      COCKROACH_DATABASE: defaultdb
+      COCKROACH_DATABASE: public
     volumes:
       - cockroach-single:/cockroach/cockroach-data
       - ~/init-scripts:/docker-entrypoint-initdb.d
@@ -21,3 +21,32 @@ networks:
     name: sequelize-cockroachdb-oldest-network
 volumes:
   cockroach-single:
+#services:
+#  cockroachdb-oldest:
+#    container_name: sequelize-cockroachdb-oldest
+#    image: cockroachdb/cockroach:v22.1.11
+#    ports:
+#      - 26257:26257
+#      - 8080:8080
+#    command: start-single-node --certs-dir=/cockroach/cockroach-certs # start node with certs directory
+#    volumes:
+#      - cockroach-data:/cockroach/cockroach-data
+#      - cockroach-certs:/cockroach/cockroach-certs
+#    environment:
+#      - COCKROACH_USER=root # set username
+#      - COCKROACH_PASSWORD=cockroachdb # set password
+#      - COCKROACH_CERTS_DIR=/cockroach/cockroach-certs
+#      - COCKROACH_INSECURE=false # disable insecure mode
+#    healthcheck:
+#      test: curl --fail http://localhost:8080 || exit 1
+#      interval: 3s
+#      timeout: 1s
+#      retries: 10
+
+#networks:
+#  default:
+#    name: cockroachdb-network
+
+#volumes:
+#  cockroach-data:
+#  cockroach-certs:

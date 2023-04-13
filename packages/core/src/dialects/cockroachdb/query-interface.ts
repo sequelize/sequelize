@@ -1,4 +1,4 @@
-import type { QueryRawOptions } from 'src';
+import type { QueryRawOptions } from '../../index';
 import { PostgresQueryInterface } from '../postgres/query-interface';
 
 export class CockroachDbQueryInterface extends PostgresQueryInterface {

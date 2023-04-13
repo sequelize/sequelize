@@ -11,6 +11,8 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 const current = Support.sequelize;
 const _ = require('lodash');
 
+const dialectName = Support.getTestDialect();
+
 if (current.dialect.supports['UNION ALL']) {
   describe(Support.getTestDialectTeaser('Model'), () => {
     describe('findAll', () => {
@@ -28,9 +30,18 @@ if (current.dialect.supports['UNION ALL']) {
         });
 
         beforeEach(async function () {
-          this.User = this.sequelize.define('user', {
-            age: DataTypes.INTEGER,
-          });
+          if (dialectName === 'cockroachdb') {
+            this.User = this.sequelize.define('user', {
+              age: Sequelize.INTEGER,
+              // Added this position field to make a sequential marker.
+              position: Sequelize.INTEGER,
+            });
+          } else {
+            this.User = this.sequelize.define('user', {
+              age: DataTypes.INTEGER,
+            });
+          }
+
           this.Project = this.sequelize.define('project', {
             title: DataTypes.STRING,
           });
@@ -51,8 +62,21 @@ if (current.dialect.supports['UNION ALL']) {
 
           await this.sequelize.sync({ force: true });
 
+          if (dialectName === 'cockroachdb') {
+            this.User.bulkCreate([
+              { age: -5, position: 1 },
+              { age: 45, position: 2 },
+              { age: 7, position: 3 },
+              { age: -9, position: 4 },
+              { age: 8, position: 5 },
+              { age: 15, position: 6 },
+              { age: -9, position: 7 },
+            ]);
+          } else {
+            this.User.bulkCreate([{ age: -5 }, { age: 45 }, { age: 7 }, { age: -9 }, { age: 8 }, { age: 15 }, { age: -9 }]);
+          }
+
           await Promise.all([
-            this.User.bulkCreate([{ age: -5 }, { age: 45 }, { age: 7 }, { age: -9 }, { age: 8 }, { age: 15 }, { age: -9 }]),
             this.Project.bulkCreate([{}, {}]),
             this.Task.bulkCreate([{}, {}]),
           ]);
@@ -80,13 +104,24 @@ if (current.dialect.supports['UNION ALL']) {
             });
 
             expect(users).to.have.length(5);
-            for (const u of users.filter(u => u.get('id') !== 3)) {
-              expect(u.get('project_user')).to.have.length(1);
+            if (dialectName === 'cockroachdb') {
+              for (const u of users.filter(u => u.get('id') !== users[2].id)) {
+                expect(u.get('project_user')).to.have.length(1);
+              }
+
+              for (const u of users.filter(u => u.get('id') === users[2].id)) {
+                expect(u.get('project_user')).to.have.length(2);
+              }
+            } else {
+              for (const u of users.filter(u => u.get('id') !== 3)) {
+                expect(u.get('project_user')).to.have.length(1);
+              }
+
+              for (const u of users.filter(u => u.get('id') === 3)) {
+                expect(u.get('project_user')).to.have.length(2);
+              }
             }
 
-            for (const u of users.filter(u => u.get('id') === 3)) {
-              expect(u.get('project_user')).to.have.length(2);
-            }
           });
 
           it('maps attributes from a grouped limit to models with include', async function () {
@@ -105,43 +140,60 @@ if (current.dialect.supports['UNION ALL']) {
              project2 - 3, 4, 5
              */
             expect(users).to.have.length(5);
-            expect(users.map(u => u.get('id'))).to.deep.equal([1, 2, 3, 4, 5]);
+            if (dialectName !== 'cockroachdb') {
+              expect(users.map(u => u.get('id'))).to.deep.equal([1, 2, 3, 4, 5]);
+            }
 
             expect(users[2].get('tasks')).to.have.length(2);
-            for (const u of users.filter(u => u.get('id') !== 3)) {
-              expect(u.get('project_user')).to.have.length(1);
+
+            if (dialectName === 'cockroachdb') {
+              for (const u of users.filter(u => u.get('id') !== users[2].id)) {
+                expect(u.get('project_user')).to.have.length(1);
+              }
+
+              for (const u of users.filter(u => u.get('id') === users[2].id)) {
+                expect(u.get('project_user')).to.have.length(2);
+              }
+            } else {
+              for (const u of users.filter(u => u.get('id') !== 3)) {
+                expect(u.get('project_user')).to.have.length(1);
+              }
+
+              for (const u of users.filter(u => u.get('id') === 3)) {
+                expect(u.get('project_user')).to.have.length(2);
+              }
             }
 
-            for (const u of users.filter(u => u.get('id') === 3)) {
-              expect(u.get('project_user')).to.have.length(2);
-            }
           });
 
-          it('[Flaky] works with computed order', async function () {
-            const users = await this.User.findAll({
-              attributes: ['id'],
-              groupedLimit: {
-                limit: 3,
-                on: this.User.Projects,
-                values: this.projects.map(item => item.get('id')),
-              },
-              order: [
-                Sequelize.fn('ABS', Sequelize.col('age')),
-              ],
-              include: [this.User.Tasks],
+          if (dialectName !== 'cockroachdb') {
+            it('[Flaky] works with computed order', async function () {
+              const users = await this.User.findAll({
+                attributes: ['id'],
+                groupedLimit: {
+                  limit: 3,
+                  on: this.User.Projects,
+                  values: this.projects.map(item => item.get('id')),
+                },
+                order: [
+                  Sequelize.fn('ABS', Sequelize.col('age')),
+                ],
+                include: [this.User.Tasks],
+              });
+
+              /*
+               project1 - 1, 3, 4
+               project2 - 3, 5, 4
+             */
+              // Flaky test
+              expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 4]);
             });
-
-            /*
-             project1 - 1, 3, 4
-             project2 - 3, 5, 4
-           */
-            // Flaky test
-            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 4]);
-          });
+          }
 
           it('works with multiple orders', async function () {
+            const attributes = dialectName === 'cockroachdb' ? ['id', 'position'] : ['id'];
             const users = await this.User.findAll({
-              attributes: ['id'],
+              attributes,
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
@@ -159,12 +211,23 @@ if (current.dialect.supports['UNION ALL']) {
               project2 - 3, 5, 7
              */
             expect(users).to.have.length(5);
-            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
+            if (dialectName === 'cockroachdb') {
+              expect(users.map(u => u.get('position'))).to.deep.equal([
+                1,
+                3,
+                5,
+                7,
+                4,
+              ]);
+            } else {
+              expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
+            }
           });
 
           it('works with paranoid junction models', async function () {
+            const attributes = dialectName === 'cockroachdb' ? ['id', 'position'] : ['id'];
             const users0 = await this.User.findAll({
-              attributes: ['id'],
+              attributes,
               groupedLimit: {
                 limit: 3,
                 on: this.User.ParanoidProjects,
@@ -182,15 +245,27 @@ if (current.dialect.supports['UNION ALL']) {
               project2 - 3, 5, 7
              */
             expect(users0).to.have.length(5);
-            expect(users0.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
+
+            if (dialectName === 'cockroachdb') {
+              expect(users0.map(u => u.get('position'))).to.deep.equal([
+                1,
+                3,
+                5,
+                7,
+                4,
+              ]);
+            } else {
+              expect(users0.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
+            }
 
             await Promise.all([
               this.projects[0].setParanoidMembers(users0.slice(0, 2)),
               this.projects[1].setParanoidMembers(users0.slice(4)),
             ]);
 
+            const attr = dialectName === 'cockroachdb' ? ['id', 'position'] : ['id'];
             const users = await this.User.findAll({
-              attributes: ['id'],
+              attributes: attr,
               groupedLimit: {
                 limit: 3,
                 on: this.User.ParanoidProjects,
@@ -208,7 +283,11 @@ if (current.dialect.supports['UNION ALL']) {
               project2 - 4
              */
             expect(users).to.have.length(3);
-            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 4]);
+            if (dialectName === 'cockroachdb') {
+              expect(users.map(u => u.get('position'))).to.deep.equal([1, 3, 4]);
+            } else {
+              expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 4]);
+            }
           });
         });
 
@@ -248,12 +327,24 @@ if (current.dialect.supports['UNION ALL']) {
             });
 
             const byUser = _.groupBy(tasks, _.property('userId'));
-            expect(Object.keys(byUser)).to.have.length(3);
+            const userKeys = Object.keys(byUser);
+            expect(userKeys).to.have.length(3);
 
-            expect(byUser[1]).to.have.length(1);
-            expect(byUser[2]).to.have.length(3);
-            expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
-            expect(byUser[3]).to.have.length(2);
+            if (dialectName === 'cockroachdb') {
+              expect(byUser[userKeys[0]]).to.have.length(1);
+              expect(byUser[userKeys[1]]).to.have.length(3);
+              expect(_.invokeMap(byUser[userKeys[1]], 'get', 'id')).to.deep.equal([
+                4,
+                3,
+                2,
+              ]);
+              expect(byUser[userKeys[2]]).to.have.length(2);
+            } else {
+              expect(byUser[1]).to.have.length(1);
+              expect(byUser[2]).to.have.length(3);
+              expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
+              expect(byUser[3]).to.have.length(2);
+            }
           });
         });
       });

@@ -4,6 +4,7 @@ import { AbstractDialect } from '../abstract';
 import type { BindCollector } from '../abstract';
 import { CockroachdbConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
+import { registerCockroachDbDataTypeParsers } from './data-types-db.js';
 import { CockroachDbQueryGenerator } from './query-generator';
 import { CockroachDbQueryInterface } from './query-interface';
 import { CockroachDbQuery } from './query.js';
@@ -40,7 +41,7 @@ export class CockroachDbDialect extends AbstractDialect {
       GEOGRAPHY: true,
       JSON: true,
       JSONB: true,
-      TSVECTOR: true,
+      TSVECTOR: false,
       CITEXT: false,
       DATETIME: { infinity: false },
       DATEONLY: { infinity: false },
@@ -48,14 +49,14 @@ export class CockroachDbDialect extends AbstractDialect {
       REAL: { NaN: true, infinity: true },
       DOUBLE: { NaN: true, infinity: true },
       DECIMAL: { unconstrained: true, NaN: true, infinity: true },
-      CIDR: true,
-      MACADDR: true,
+      CIDR: false,
+      MACADDR: false,
       INET: true,
     },
     jsonOperations: true,
     REGEXP: true,
     IREGEXP: true,
-    deferrableConstraints: true,
+    deferrableConstraints: false,
     searchPath: true,
     escapeStringConstants: true,
     globalTimeZoneConfig: true,
@@ -63,6 +64,9 @@ export class CockroachDbDialect extends AbstractDialect {
       cascade: true,
     },
     EXCEPTION: false,
+    lockOuterJoinFailure: false,
+    skipLocked: false,
+    lockKey: false,
   });
 
   readonly connectionManager: CockroachdbConnectionManager;
@@ -82,6 +86,8 @@ export class CockroachDbDialect extends AbstractDialect {
     this.connectionManager = new CockroachdbConnectionManager(this, sequelize);
     this.queryGenerator = new CockroachDbQueryGenerator({ dialect: this, sequelize });
     this.queryInterface = new CockroachDbQueryInterface(sequelize, this.queryGenerator);
+
+    registerCockroachDbDataTypeParsers(this);
   }
 
   createBindCollector(): BindCollector {
@@ -106,7 +112,7 @@ export class CockroachDbDialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    return 'defaultdb';
+    return 'public';
   }
 
   static getDefaultPort(): number {

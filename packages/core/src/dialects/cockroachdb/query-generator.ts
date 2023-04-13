@@ -2,6 +2,7 @@ import type { TruncateOptions } from 'src/model';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import { PostgresQueryGenerator } from '../postgres/query-generator';
+import { ENUM } from './data-types';
 
 export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
   setSearchPath(searchPath: string) {
@@ -77,5 +78,44 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
       `TRUNCATE ${this.quoteTable(tableName)}`,
       options.cascade ? ' CASCADE' : '',
     ].join('');
+  }
+
+  pgEnum<Members extends string>(tableName: string, attr: string, dataType: ENUM<Members>, options: any) {
+    const enumName = this.pgEnumName(tableName, attr, options);
+    let values;
+
+    if (dataType instanceof ENUM && dataType.options.values) {
+      values = `ENUM(${dataType.options.values.map(value => this.escape(value)).join(', ')})`;
+    } else {
+      values = dataType.toString().match(/^ENUM\(.+\)/)?.[0];
+    }
+
+    let sql = `CREATE TYPE ${enumName} AS ${values};`;
+    if (Boolean(options) && options.force === true) {
+      sql = this.pgEnumDrop(tableName, attr) + sql;
+    }
+
+    return sql;
+  }
+
+  pgEnumAdd(tableName: string, attr: string, value: string, options: any) {
+    const enumName = this.pgEnumName(tableName, attr);
+    let sql = `ALTER TYPE ${enumName} ADD VALUE IF NOT EXISTS `;
+
+    sql += this.escape(value);
+
+    if (options.before) {
+      sql += ` BEFORE ${this.escape(options.before)}`;
+    } else if (options.after) {
+      sql += ` AFTER ${this.escape(options.after)}`;
+    }
+
+    return sql;
+  }
+
+  pgEnumDrop(tableName: string, attr: string, enumName?: string) {
+    enumName = enumName || this.pgEnumName(tableName, attr);
+
+    return `DROP TYPE IF EXISTS ${enumName}; `;
   }
 }

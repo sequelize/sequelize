@@ -47,7 +47,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON pk.table_schema=c.table_schema
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
-        WHERE c.table_name = 'myTable' AND c.table_schema = 'defaultdb'`,
+        WHERE c.table_name = 'myTable' AND c.table_schema = 'public'`,
       mssql: `SELECT
         c.COLUMN_NAME AS 'Name',
         c.DATA_TYPE AS 'Type',
@@ -144,7 +144,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON pk.table_schema=c.table_schema
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
-        WHERE c.table_name = 'myModels' AND c.table_schema = 'defaultdb'`,
+        WHERE c.table_name = 'myModels' AND c.table_schema = 'public'`,
       mssql: `SELECT
         c.COLUMN_NAME AS 'Name',
         c.DATA_TYPE AS 'Type',
@@ -332,7 +332,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON pk.table_schema=c.table_schema
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
-        WHERE c.table_name = 'myTable' AND c.table_schema = 'defaultdb'`,
+        WHERE c.table_name = 'myTable' AND c.table_schema = 'public'`,
       mssql: `SELECT
         c.COLUMN_NAME AS 'Name',
         c.DATA_TYPE AS 'Type',

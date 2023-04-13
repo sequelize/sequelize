@@ -235,6 +235,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(a).to.not.exist;
     });
 
+    // TODO: Solve this for CRDB
     it('should support a belongsTo with the targetKey option', async function () {
       const User = this.sequelize.define('User', { username: { type: DataTypes.STRING, unique: true } });
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
@@ -362,7 +363,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         private: { type: DataTypes.BOOLEAN, defaultValue: false },
       }, { underscored: true });
 
-      User.hasMany(Post, { foreignKey: 'owner_id', scope: { owner_type: 'user'  }, as: 'UserPosts', foreignKeyConstraints: false });
+      User.hasMany(Post, { foreignKey: 'owner_id', scope: { owner_type: 'user' }, as: 'UserPosts', foreignKeyConstraints: false });
       Post.belongsTo(User, { foreignKey: 'owner_id', as: 'Owner', foreignKeyConstraints: false });
 
       await this.sequelize.sync({ force: true });

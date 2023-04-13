@@ -198,15 +198,28 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         it('add parameters in log sql', async function () {
           let createSql;
           let updateSql;
+          let user;
 
-          const user = await this.User.create({
-            username: 'john',
-            emailAddress: 'john@gmail.com',
-          }, {
-            logging: s => {
-              createSql = s;
-            },
-          });
+          if (dialectName === 'cockroachdb') {
+            user = await this.User.create({
+              username: 'john',
+              emailAddress: 'john@gmail.com',
+              id: 1,
+            }, {
+              logging: s => {
+                createSql = s;
+              },
+            });
+          } else {
+            user = await this.User.create({
+              username: 'john',
+              emailAddress: 'john@gmail.com',
+            }, {
+              logging: s => {
+                createSql = s;
+              },
+            });
+          }
 
           user.username = 'li';
 
@@ -216,10 +229,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             },
           });
 
-          if (dialectName === 'db2' || dialectName === 'postgres' || dialectName === 'mariadb' || dialectName === 'mysql' || dialectName === 'cockroachdb') {
+          if (dialectName === 'db2' || dialectName === 'postgres' || dialectName === 'mariadb' || dialectName === 'mysql') {
             // these dialects use positional bind parameters
             expect(createSql.endsWith(` with parameters [ 'john', 'john@gmail.com' ]`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
             expect(updateSql.endsWith(` with parameters [ 'li', 1 ]`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
+          } else if (dialectName === 'cockroachdb') {
+            expect(createSql.endsWith(`with parameters [ 1, 'john', 'john@gmail.com' ]`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
+            expect(updateSql.endsWith(`with parameters [ 'li', 1 ]`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
           } else {
             // these dialects use named bind parameters
             expect(createSql.endsWith(` with parameters { sequelize_1: 'john', sequelize_2: 'john@gmail.com' }`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');

@@ -784,26 +784,30 @@ if (current.dialect.supports.transactions) {
     }
 
     describe('isolation levels', () => {
-      it('should read the most recent committed rows when using the READ COMMITTED isolation level', async function () {
-        const User = this.sequelize.define('user', {
-          username: DataTypes.STRING,
-        });
+      // CRDB does not use READ COMMITED. Instead, all isolation levels are upgraded to SERIALIZABLE
+      // https://www.cockroachlabs.com/docs/v20.2/transactions.html#isolation-levels
+      if (dialect !== 'cockroachdb') {
+        it('should read the most recent committed rows when using the READ COMMITTED isolation level', async function () {
+          const User = this.sequelize.define('user', {
+            username: DataTypes.STRING,
+          });
 
-        await expect(
-          this.sequelize.sync({ force: true }).then(() => {
-            return this.sequelize.transaction(
-              { isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED },
-              async transaction => {
-                const users0 = await User.findAll({ transaction });
-                expect(users0).to.have.lengthOf(0);
-                await User.create({ username: 'jan' }); // Create a User outside of the transaction
-                const users = await User.findAll({ transaction });
-                expect(users).to.have.lengthOf(1); // We SHOULD see the created user inside the transaction
-              },
-            );
-          }),
-        ).to.eventually.be.fulfilled;
-      });
+          await expect(
+            this.sequelize.sync({ force: true }).then(() => {
+              return this.sequelize.transaction(
+                { isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED },
+                async transaction => {
+                  const users0 = await User.findAll({ transaction });
+                  expect(users0).to.have.lengthOf(0);
+                  await User.create({ username: 'jan' }); // Create a User outside of the transaction
+                  const users = await User.findAll({ transaction });
+                  expect(users).to.have.lengthOf(1); // We SHOULD see the created user inside the transaction
+                },
+              );
+            }),
+          ).to.eventually.be.fulfilled;
+        });
+      }
 
       // mssql is excluded because it implements REPREATABLE READ using locks rather than a snapshot, and will see the new row
       if (!['sqlite', 'mssql', 'db2'].includes(dialect)) {
@@ -828,7 +832,7 @@ if (current.dialect.supports.transactions) {
       }
 
       // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-      if (!['sqlite', 'postgres', 'postgres-native', 'db2'].includes(dialect)) {
+      if (!['sqlite', 'postgres', 'postgres-native', 'db2', 'cockroachdb'].includes(dialect)) {
         it('should block updates after reading a row using SERIALIZABLE', async function () {
           const User = this.sequelize.define('user', {
             username: DataTypes.STRING,
@@ -1099,124 +1103,127 @@ if (current.dialect.supports.transactions) {
           });
         }
 
-        it('supports for share (i.e. `SELECT ... LOCK IN SHARE MODE`)', async function () {
-          const verifySelectLockInShareMode = async () => {
-            const User = this.sequelize.define('user', {
-              username: DataTypes.STRING,
-              awesome: DataTypes.BOOLEAN,
-            }, { timestamps: false });
+        // Cockroachdb does not support it
+        if (dialect !== 'cockroachdb') {
+          it('supports for share (i.e. `SELECT ... LOCK IN SHARE MODE`)', async function () {
+            const verifySelectLockInShareMode = async () => {
+              const User = this.sequelize.define('user', {
+                username: DataTypes.STRING,
+                awesome: DataTypes.BOOLEAN,
+              }, { timestamps: false });
 
-            await this.sequelize.sync({ force: true });
-            const { id } = await User.create({ username: 'jan' });
+              await this.sequelize.sync({ force: true });
+              const { id } = await User.create({ username: 'jan' });
 
-            // First, we start a transaction T1 and perform a SELECT with it using the `LOCK.SHARE` mode (setting a shared mode lock on the row).
-            // This will cause other sessions to be able to read the row but not modify it.
-            // So, if another transaction tries to update those same rows, it will wait until T1 commits (or rolls back).
-            // https://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
-            const t1 = await this.sequelize.startUnmanagedTransaction();
-            await User.findByPk(id, { lock: t1.LOCK.SHARE, transaction: t1 });
+              // First, we start a transaction T1 and perform a SELECT with it using the `LOCK.SHARE` mode (setting a shared mode lock on the row).
+              // This will cause other sessions to be able to read the row but not modify it.
+              // So, if another transaction tries to update those same rows, it will wait until T1 commits (or rolls back).
+              // https://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
+              const t1 = await this.sequelize.startUnmanagedTransaction();
+              await User.findByPk(id, { lock: t1.LOCK.SHARE, transaction: t1 });
 
-            // Then we start another transaction T2 and see that it can indeed read the same row.
-            const t2 = await this.sequelize.startUnmanagedTransaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED });
-            const t2Jan = await User.findByPk(id, { transaction: t2 });
+              // Then we start another transaction T2 and see that it can indeed read the same row.
+              const t2 = await this.sequelize.startUnmanagedTransaction({ isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED });
+              const t2Jan = await User.findByPk(id, { transaction: t2 });
 
-            // Then, we want to see that an attempt to update that row from T2 will be queued until T1 commits.
-            const executionOrder = [];
-            const [t2AttemptData, t1AttemptData] = await pSettle([
-              (async () => {
-                try {
-                  executionOrder.push('Begin attempt to update via T2');
-                  await t2Jan.update({ awesome: false }, { transaction: t2 });
-                  executionOrder.push('Done updating via T2');
-                } catch (error) {
-                  executionOrder.push('Failed to update via T2'); // Shouldn't happen
-                  throw error;
-                }
+              // Then, we want to see that an attempt to update that row from T2 will be queued until T1 commits.
+              const executionOrder = [];
+              const [t2AttemptData, t1AttemptData] = await pSettle([
+                (async () => {
+                  try {
+                    executionOrder.push('Begin attempt to update via T2');
+                    await t2Jan.update({ awesome: false }, { transaction: t2 });
+                    executionOrder.push('Done updating via T2');
+                  } catch (error) {
+                    executionOrder.push('Failed to update via T2'); // Shouldn't happen
+                    throw error;
+                  }
 
-                await delay(30);
+                  await delay(30);
 
-                try {
-                  executionOrder.push('Attempting to commit T2');
-                  await t2.commit();
-                  executionOrder.push('Done committing T2');
-                } catch {
-                  executionOrder.push('Failed to commit T2'); // Shouldn't happen
-                }
-              })(),
-              (async () => {
-                await delay(100);
+                  try {
+                    executionOrder.push('Attempting to commit T2');
+                    await t2.commit();
+                    executionOrder.push('Done committing T2');
+                  } catch {
+                    executionOrder.push('Failed to commit T2'); // Shouldn't happen
+                  }
+                })(),
+                (async () => {
+                  await delay(100);
 
-                try {
-                  executionOrder.push('Begin attempt to read via T1');
-                  await User.findAll({ transaction: t1 });
-                  executionOrder.push('Done reading via T1');
-                } catch (error) {
-                  executionOrder.push('Failed to read via T1'); // Shouldn't happen
-                  throw error;
-                }
+                  try {
+                    executionOrder.push('Begin attempt to read via T1');
+                    await User.findAll({ transaction: t1 });
+                    executionOrder.push('Done reading via T1');
+                  } catch (error) {
+                    executionOrder.push('Failed to read via T1'); // Shouldn't happen
+                    throw error;
+                  }
 
-                await delay(150);
+                  await delay(150);
 
-                try {
-                  executionOrder.push('Attempting to commit T1');
-                  await t1.commit();
-                  executionOrder.push('Done committing T1');
-                } catch {
-                  executionOrder.push('Failed to commit T1'); // Shouldn't happen
-                }
-              })(),
-            ]);
+                  try {
+                    executionOrder.push('Attempting to commit T1');
+                    await t1.commit();
+                    executionOrder.push('Done committing T1');
+                  } catch {
+                    executionOrder.push('Failed to commit T1'); // Shouldn't happen
+                  }
+                })(),
+              ]);
 
-            expect(t1AttemptData.isFulfilled).to.be.true;
-            expect(t2AttemptData.isFulfilled).to.be.true;
-            expect(t1.finished).to.equal('commit');
-            expect(t2.finished).to.equal('commit');
+              expect(t1AttemptData.isFulfilled).to.be.true;
+              expect(t2AttemptData.isFulfilled).to.be.true;
+              expect(t1.finished).to.equal('commit');
+              expect(t2.finished).to.equal('commit');
 
-            const expectedExecutionOrder = [
-              'Begin attempt to update via T2',
-              'Begin attempt to read via T1', // 100ms after
-              'Done reading via T1', // right after
-              'Attempting to commit T1', // 150ms after
-              'Done committing T1', // right after
-              'Done updating via T2', // right after
-              'Attempting to commit T2', // 30ms after
-              'Done committing T2', // right after
-            ];
+              const expectedExecutionOrder = [
+                'Begin attempt to update via T2',
+                'Begin attempt to read via T1', // 100ms after
+                'Done reading via T1', // right after
+                'Attempting to commit T1', // 150ms after
+                'Done committing T1', // right after
+                'Done updating via T2', // right after
+                'Attempting to commit T2', // 30ms after
+                'Done committing T2', // right after
+              ];
 
-            // The order things happen in the database must be the one shown above. However, sometimes it can happen that
-            // the calls in the JavaScript event loop that are communicating with the database do not match exactly this order.
-            // In particular, it is possible that the JS event loop logs `'Done updating via T2'` before logging `'Done committing T1'`,
-            // even though the database committed T1 first (and then rushed to complete the pending update query from T2).
+              // The order things happen in the database must be the one shown above. However, sometimes it can happen that
+              // the calls in the JavaScript event loop that are communicating with the database do not match exactly this order.
+              // In particular, it is possible that the JS event loop logs `'Done updating via T2'` before logging `'Done committing T1'`,
+              // even though the database committed T1 first (and then rushed to complete the pending update query from T2).
 
-            const anotherAcceptableExecutionOrderFromJSPerspective = [
-              'Begin attempt to update via T2',
-              'Begin attempt to read via T1', // 100ms after
-              'Done reading via T1', // right after
-              'Attempting to commit T1', // 150ms after
-              'Done updating via T2', // right after
-              'Done committing T1', // right after
-              'Attempting to commit T2', // 30ms after
-              'Done committing T2', // right after
-            ];
+              const anotherAcceptableExecutionOrderFromJSPerspective = [
+                'Begin attempt to update via T2',
+                'Begin attempt to read via T1', // 100ms after
+                'Done reading via T1', // right after
+                'Attempting to commit T1', // 150ms after
+                'Done updating via T2', // right after
+                'Done committing T1', // right after
+                'Attempting to commit T2', // 30ms after
+                'Done committing T2', // right after
+              ];
 
-            const executionOrderOk = Support.isDeepEqualToOneOf(
-              executionOrder,
-              [
-                expectedExecutionOrder,
-                anotherAcceptableExecutionOrderFromJSPerspective,
-              ],
-            );
+              const executionOrderOk = Support.isDeepEqualToOneOf(
+                executionOrder,
+                [
+                  expectedExecutionOrder,
+                  anotherAcceptableExecutionOrderFromJSPerspective,
+                ],
+              );
 
-            if (!executionOrderOk) {
-              throw new Error(`Unexpected execution order: ${executionOrder.join(' > ')}`);
+              if (!executionOrderOk) {
+                throw new Error(`Unexpected execution order: ${executionOrder.join(' > ')}`);
+              }
+            };
+
+            for (let i = 0; i < 3 * Support.getPoolMax(); i++) {
+              await verifySelectLockInShareMode();
+              await delay(10);
             }
-          };
-
-          for (let i = 0; i < 3 * Support.getPoolMax(); i++) {
-            await verifySelectLockInShareMode();
-            await delay(10);
-          }
-        });
+          });
+        }
       });
     }
   });

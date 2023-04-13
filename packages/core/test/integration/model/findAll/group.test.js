@@ -8,6 +8,7 @@ const Support = require('../../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
+const dialectName = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
@@ -28,10 +29,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await current.sync({ force: true });
 
         // Create an enviroment
-        await Post.bulkCreate([
-          { name: 'post-1' },
-          { name: 'post-2' },
-        ]);
+        if (dialectName === 'cockroachdb') {
+          await Post.bulkCreate([
+            { id: 1, name: 'post-1' },
+            { id: 2, name: 'post-2' },
+          ]);
+        } else {
+          await Post.bulkCreate([
+            { name: 'post-1' },
+            { name: 'post-2' },
+          ]);
+        }
 
         await Comment.bulkCreate([
           { text: 'Market', PostId: 1 },
@@ -72,10 +80,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await current.sync({ force: true });
 
-        await Post.bulkCreate([
-          { name: 'post-1' },
-          { name: 'post-2' },
-        ]);
+        if (dialectName === 'cockroachdb') {
+          // CRDB does not give human readable ids, it's usually a Big Number.
+          // Also, autoIncrement does not guarantee sequentially incremented numbers.
+          // Had to ensure ids are 1 and 2 for this test.
+          await Post.bulkCreate([
+            { id: 1, name: 'post-1' },
+            { id: 2, name: 'post-2' },
+          ]);
+        } else {
+          await Post.bulkCreate([
+            { name: 'post-1' },
+            { name: 'post-2' },
+          ]);
+        }
 
         await Comment.bulkCreate([
           { text: 'Market', PostId: 1 },

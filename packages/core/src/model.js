@@ -838,7 +838,7 @@ ${associationOwner._getAssociationDebugList()}`);
     const missingIndexes = this.getIndexes()
       .filter(item1 => !existingIndexes.some(item2 => item1.name === item2.name))
       .sort((index1, index2) => {
-        if (this.sequelize.options.dialect === 'postgres' || this.sequelize.options.dialect === 'cockroachdb') {
+        if (['postgres', 'cockroachdb'].includes(this.sequelize.options.dialect)) {
           // move concurrent indexes to the bottom to avoid weird deadlocks
           if (index1.concurrently === true) {
             return 1;
@@ -1913,7 +1913,7 @@ ${associationOwner._getAssociationDebugList()}`);
       const createOptions = { ...options };
 
       // To avoid breaking a postgres transaction, run the create with `ignoreDuplicates`.
-      if (this.sequelize.options.dialect === 'postgres' && options.transaction) {
+      if ((this.sequelize.options.dialect === 'postgres' || this.sequelize.options.dialect === 'cockroachdb') && options.transaction) {
         createOptions.ignoreDuplicates = true;
       }
 

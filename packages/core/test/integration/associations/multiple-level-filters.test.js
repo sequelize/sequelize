@@ -6,11 +6,15 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
+const current = Support.sequelize;
+
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
+  // TODO: Find a better way for CRDB
   it('can filter through belongsTo', async function () {
     const User = this.sequelize.define('User', { username: DataTypes.STRING });
     const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
     const Project = this.sequelize.define('Project', { title: DataTypes.STRING });
+    let user0; let user1; let project0; let project1;
 
     Project.belongsTo(User);
     User.hasMany(Project);
@@ -26,25 +30,39 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
       username: 'vader',
     }]);
 
+    if (current.dialect.name === 'cockroachdb') {
+      [user0, user1] = await User.findAll();
+    }
+
+    const userId1 = current.dialect.name === 'cockroachdb' ? user0.id : 1;
+    const userId2 = current.dialect.name === 'cockroachdb' ? user1.id : 2;
+
     await Project.bulkCreate([{
-      UserId: 1,
+      UserId: userId1,
       title: 'republic',
     }, {
-      UserId: 2,
+      UserId: userId2,
       title: 'empire',
     }]);
 
+    if (current.dialect.name === 'cockroachdb') {
+      [project0, project1] = await Project.findAll();
+    }
+
+    const projectId1 = current.dialect.name === 'cockroachdb' ? project0.id : 1;
+    const projectId2 = current.dialect.name === 'cockroachdb' ? project1.id : 2;
+
     await Task.bulkCreate([{
-      ProjectId: 1,
+      ProjectId: projectId1,
       title: 'fight empire',
     }, {
-      ProjectId: 1,
+      ProjectId: projectId1,
       title: 'stablish republic',
     }, {
-      ProjectId: 2,
+      ProjectId: projectId2,
       title: 'destroy rebel alliance',
     }, {
-      ProjectId: 2,
+      ProjectId: projectId2,
       title: 'rule everything',
     }]);
 
@@ -65,10 +83,12 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     expect(tasks[1].title).to.be.equal('stablish republic');
   });
 
+  // TODO: Find a better way for CRDB
   it('avoids duplicated tables in query', async function () {
     const User = this.sequelize.define('User', { username: DataTypes.STRING });
     const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
     const Project = this.sequelize.define('Project', { title: DataTypes.STRING });
+    let user0; let user1; let project0; let project1;
 
     Project.belongsTo(User);
     User.hasMany(Project);
@@ -83,29 +103,43 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     }, {
       username: 'vader',
     }]);
+    if (current.dialect.name === 'cockroachdb') {
+      [user0, user1] = await User.findAll();
+    }
+
+    const userId1 = current.dialect.name === 'cockroachdb' ? user0.id : 1;
+    const userId2 = current.dialect.name === 'cockroachdb' ? user1.id : 2;
 
     await Project.bulkCreate([{
-      UserId: 1,
+      UserId: userId1,
       title: 'republic',
     }, {
-      UserId: 2,
+      UserId: userId2,
       title: 'empire',
     }]);
 
+    if (current.dialect.name === 'cockroachdb') {
+      [project0, project1] = await Project.findAll();
+    }
+
+    const projectId1 = current.dialect.name === 'cockroachdb' ? project0.id : 1;
+    const projectId2 = current.dialect.name === 'cockroachdb' ? project1.id : 2;
+
     await Task.bulkCreate([{
-      ProjectId: 1,
+      ProjectId: projectId1,
       title: 'fight empire',
     }, {
-      ProjectId: 1,
+      ProjectId: projectId1,
       title: 'stablish republic',
     }, {
-      ProjectId: 2,
+      ProjectId: projectId2,
       title: 'destroy rebel alliance',
     }, {
-      ProjectId: 2,
+      ProjectId: projectId2,
       title: 'rule everything',
     }]);
 
+    const userId3 = current.dialect.name === 'cockroachdb' ? user0.id : 1;
     const tasks = await Task.findAll({
       include: [
         {
@@ -114,7 +148,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
             {
               model: User, where: {
                 username: 'leia',
-                id: 1,
+                id: userId3,
               },
             },
           ],
@@ -128,10 +162,12 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     expect(tasks[1].title).to.be.equal('stablish republic');
   });
 
+  // TODO: Find a better way for CRDB
   it('can filter through hasMany', async function () {
     const User = this.sequelize.define('User', { username: DataTypes.STRING });
     const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
     const Project = this.sequelize.define('Project', { title: DataTypes.STRING });
+    let user0; let user1; let project0; let project1;
 
     Project.belongsTo(User);
     User.hasMany(Project);
@@ -147,25 +183,39 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
       username: 'vader',
     }]);
 
+    if (current.dialect.name === 'cockroachdb') {
+      [user0, user1] = await User.findAll();
+    }
+
+    const userId1 = current.dialect.name === 'cockroachdb' ? user0.id : 1;
+    const userId2 = current.dialect.name === 'cockroachdb' ? user1.id : 2;
+
     await Project.bulkCreate([{
-      UserId: 1,
+      UserId: userId1,
       title: 'republic',
     }, {
-      UserId: 2,
+      UserId: userId2,
       title: 'empire',
     }]);
 
+    if (current.dialect.name === 'cockroachdb') {
+      [project0, project1] = await Project.findAll();
+    }
+
+    const projectId1 = current.dialect.name === 'cockroachdb' ? project0.id : 1;
+    const projectId2 = current.dialect.name === 'cockroachdb' ? project1.id : 2;
+
     await Task.bulkCreate([{
-      ProjectId: 1,
+      ProjectId: projectId1,
       title: 'fight empire',
     }, {
-      ProjectId: 1,
+      ProjectId: projectId1,
       title: 'stablish republic',
     }, {
-      ProjectId: 2,
+      ProjectId: projectId2,
       title: 'destroy rebel alliance',
     }, {
-      ProjectId: 2,
+      ProjectId: projectId2,
       title: 'rule everything',
     }]);
 
@@ -185,9 +235,11 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     expect(users[0].username).to.be.equal('leia');
   });
 
+  // TODO: Find a better way for CRDB
   it('can filter through hasMany connector', async function () {
     const User = this.sequelize.define('User', { username: DataTypes.STRING });
     const Project = this.sequelize.define('Project', { title: DataTypes.STRING });
+    let user; let user0; let project; let project0;
 
     Project.belongsToMany(User, { through: 'user_project' });
     User.belongsToMany(Project, { through: 'user_project' });
@@ -206,11 +258,24 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
       title: 'empire',
     }]);
 
-    const user = await User.findByPk(1);
-    const project = await Project.findByPk(1);
-    await user.setProjects([project]);
-    const user0 = await User.findByPk(2);
-    const project0 = await Project.findByPk(2);
+    if (current.dialect.name === 'cockroachdb') {
+      [user] = await User.findAll();
+      [project] = await Project.findAll();
+    } else {
+      user = await User.findByPk(1);
+      project = await Project.findByPk(1);
+    }
+
+    user.setProjects([project]);
+
+    if (current.dialect.name === 'cockroachdb') {
+      [, user0] = await User.findAll();
+      [, project0] = await Project.findAll();
+    } else {
+      user0 = await User.findByPk(2);
+      project0 = await Project.findByPk(2);
+    }
+
     await user0.setProjects([project0]);
 
     const users = await User.findAll({

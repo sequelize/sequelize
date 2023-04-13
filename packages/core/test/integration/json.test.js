@@ -33,6 +33,9 @@ describe('model', () => {
       const table = await this.sequelize.queryInterface.describeTable('Users');
       switch (dialectName) {
         // mssql & sqlite use text columns with CHECK constraints
+        case 'cockroachdb':
+          expect(table.emergency_contact.type).to.equal('JSONB');
+          break;
         case 'mssql':
           expect(table.emergency_contact.type).to.equal('NVARCHAR(MAX)');
           break;

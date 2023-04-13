@@ -7,9 +7,6 @@ const { dialect } = sequelize;
 const testSchema = 'testSchema';
 const queryInterface = sequelize.getQueryInterface();
 
-// MySQL and MariaDB view databases and schemas as identical. Other databases consider them separate entities.
-const dialectsWithEqualDBsSchemas = ['mysql', 'mariadb'];
-
 describe('QueryInterface#{create,drop,showAll}Schema', () => {
   if (!dialect.supports.schemas) {
     it('should throw, indicating that the method is not supported', async () => {
@@ -59,10 +56,21 @@ describe('QueryInterface#{create,drop,showAll}Schema', () => {
   it('shows all schemas', async () => {
     await queryInterface.createSchema(testSchema);
     const allSchemas = await queryInterface.showAllSchemas();
+    let expected;
 
-    const expected = dialectsWithEqualDBsSchemas.includes(dialect.name)
-      ? [sequelize.config.database, testSchema]
-      : [testSchema];
+    // MySQL and MariaDB view databases and schemas as identical. Other databases consider them separate entities.
+    switch (dialect.name) {
+      case 'mysql':
+      case 'mariadb':
+        expected = [sequelize.config.database, testSchema];
+        break;
+      case 'cockroachdb':
+        expected = ['crdb_internal', testSchema];
+        break;
+      default:
+        expected = [testSchema];
+    }
+
     expect(allSchemas.sort()).to.deep.eq(expected.sort());
   });
 });

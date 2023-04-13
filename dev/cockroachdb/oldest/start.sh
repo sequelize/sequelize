@@ -18,4 +18,6 @@ SET CLUSTER SETTING jobs.retention_time = '15s';
 SET CLUSTER SETTING sql.stats.automatic_collection.enabled = false;
 SET CLUSTER SETTING kv.range_split.by_load_merge_delay = '5s';
 ALTER RANGE default CONFIGURE ZONE USING "gc.ttlseconds" = 600;
-ALTER DATABASE system CONFIGURE ZONE USING "gc.ttlseconds" = 600;"
+ALTER DATABASE system CONFIGURE ZONE USING "gc.ttlseconds" = 600;
+DROP DATABASE IF EXISTS sequelize_test;
+CREATE DATABASE IF NOT EXISTS sequelize_test;"

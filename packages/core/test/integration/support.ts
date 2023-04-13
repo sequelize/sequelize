@@ -78,10 +78,8 @@ afterEach(async function checkRunningQueries() {
   let runningQueriesProblem;
 
   if (runningQueries.size > 0) {
-    runningQueriesProblem = `Expected 0 queries running after this test, but there are still ${
-      runningQueries.size
-    } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${
-      [...runningQueries].map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`).join('\n')
+    runningQueriesProblem = `Expected 0 queries running after this test, but there are still ${runningQueries.size
+    } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${[...runningQueries].map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`).join('\n')
     }`;
   }
 

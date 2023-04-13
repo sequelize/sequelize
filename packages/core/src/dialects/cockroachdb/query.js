@@ -1,6 +1,6 @@
 import { AbstractQuery } from '../abstract/query';
 import { QueryTypes } from '../../query-types';
-import sequelizeErrors from '../../errors';
+import * as sequelizeErrors from '../../errors';
 import _ from 'lodash';
 import { logger } from '../../utils/logger';
 

@@ -129,11 +129,9 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
           indexName = generateIndexName(tableName, index);
         }
 
-        attributesClause += `, CONSTRAINT ${
-          this.quoteIdentifier(indexName)
-        } UNIQUE (${
-          index.fields.map(field => this.quoteIdentifier(field))
-            .join(', ')
+        attributesClause += `, CONSTRAINT ${this.quoteIdentifier(indexName)
+        } UNIQUE (${index.fields.map(field => this.quoteIdentifier(field))
+          .join(', ')
         })`;
       });
     }
@@ -595,8 +593,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const expandedOptions = this.expandOptions(optionsArray);
     const paramList = this._expandFunctionParamList(functionParams);
 
-    return `CREATE ${this.triggerEventTypeIsConstraint(eventType)}TRIGGER ${this.quoteIdentifier(triggerName)} ${decodedEventType} ${
-      eventSpec} ON ${this.quoteTable(tableName)}${expandedOptions ? ` ${expandedOptions}` : ''} EXECUTE PROCEDURE ${functionName}(${paramList});`;
+    return `CREATE ${this.triggerEventTypeIsConstraint(eventType)}TRIGGER ${this.quoteIdentifier(triggerName)} ${decodedEventType} ${eventSpec} ON ${this.quoteTable(tableName)}${expandedOptions ? ` ${expandedOptions}` : ''} EXECUTE PROCEDURE ${functionName}(${paramList});`;
   }
 
   dropTrigger(tableName, triggerName) {
@@ -913,8 +910,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
    */
   getForeignKeyReferencesQuery(tableName, catalogName, schemaName) {
     return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name = '${tableName}'${
-      catalogName ? ` AND tc.table_catalog = '${catalogName}'` : ''
+    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name = '${tableName}'${catalogName ? ` AND tc.table_catalog = '${catalogName}'` : ''
     }${schemaName ? ` AND tc.table_schema = '${schemaName}'` : ''}`;
   }
 
@@ -923,8 +919,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const schema = table.schema;
 
     return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='${tableName}' AND  kcu.column_name = '${columnName}'${
-      schema ? ` AND tc.table_schema = '${schema}'` : ''}`;
+    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='${tableName}' AND  kcu.column_name = '${columnName}'${schema ? ` AND tc.table_schema = '${schema}'` : ''}`;
   }
 
   /**

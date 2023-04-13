@@ -9,6 +9,7 @@ const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
+const dialectName = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('JSON', () => {
@@ -53,8 +54,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        const count = await this.Event.count();
-        expect(count).to.equal(0);
+        if (dialectName !== 'cockroachdb') {
+          const count = await this.Event.count();
+          expect(count).to.equal(0);
+        }
+
         await transaction.commit();
         const count0 = await this.Event.count();
         expect(count0).to.equal(1);

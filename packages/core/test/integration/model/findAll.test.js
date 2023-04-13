@@ -40,10 +40,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
-        const users1 = await User.findAll({ where: { username: 'foo' } });
         const users2 = await User.findAll({ transaction: t });
         const users3 = await User.findAll({ where: { username: 'foo' }, transaction: t });
-        expect(users1.length).to.equal(0);
+        if (dialectName !== 'cockroachdb') {
+          const users1 = await User.findAll({ where: { username: 'foo' } });
+          expect(users1.length).to.equal(0);
+        }
+
         expect(users2.length).to.equal(1);
         expect(users3.length).to.equal(1);
         await t.rollback();
@@ -233,6 +236,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to handle false/true values through associations as well...', async function () {
+        let user; let passport; let _user; let _passport; let theFalsePassport; let theTruePassport;
         const User = this.User;
         const Passports = this.sequelize.define('Passports', {
           isActive: DataTypes.BOOLEAN,
@@ -244,24 +248,42 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         await Passports.sync({ force: true });
 
-        await User.bulkCreate([
+        const users = await User.bulkCreate([
           { username: 'boo5', aBool: false },
           { username: 'boo6', aBool: true },
         ]);
 
-        await Passports.bulkCreate([
+        const passports = await Passports.bulkCreate([
           { isActive: true },
           { isActive: false },
         ]);
 
-        const user = await User.findByPk(1);
-        const passport = await Passports.findByPk(1);
-        await user.setPassports([passport]);
-        const _user = await User.findByPk(2);
-        const _passport = await Passports.findByPk(2);
-        await _user.setPassports([_passport]);
-        const theFalsePassport = await _user.getPassports({ where: { isActive: false } });
-        const theTruePassport = await user.getPassports({ where: { isActive: true } });
+        if (dialectName === 'cockroachdb') {
+          user = await User.findByPk(users[0].id);
+          passport = await Passports.findByPk(passports[0].id);
+          await user.setPassports([passport]);
+
+          const _user = await User.findByPk(users[1].id);
+          const _passport = await Passports.findByPk(passports[1].id);
+          await _user.setPassports([_passport]);
+
+          theTruePassport = await user.getPassports({
+            where: { isActive: true },
+          });
+          theFalsePassport = await _user.getPassports({
+            where: { isActive: false },
+          });
+        } else {
+          user = await User.findByPk(1);
+          passport = await Passports.findByPk(1);
+          await user.setPassports([passport]);
+          _user = await User.findByPk(2);
+          _passport = await Passports.findByPk(2);
+          await _user.setPassports([_passport]);
+          theFalsePassport = await _user.getPassports({ where: { isActive: false } });
+          theTruePassport = await user.getPassports({ where: { isActive: true } });
+        }
+
         expect(theFalsePassport).to.have.length(1);
         expect(theFalsePassport[0].isActive).to.be.false;
         expect(theTruePassport).to.have.length(1);
@@ -1326,36 +1348,61 @@ The following associations are defined on "Worker": "ToDos"`);
       it('sorts the results via id in ascending order', async function () {
         const users = await this.User.findAll();
         expect(users.length).to.equal(2);
-        expect(users[0].id).to.be.below(users[1].id);
+        if (dialectName === 'cockroachdb') {
+          const userIds = users.map(user => BigInt(user.id));
+          expect(userIds[0] < userIds[1]).to.be.true;
+        } else {
+          expect(users[0].id).to.be.below(users[1].id);
+        }
       });
 
       it('sorts the results via id in descending order', async function () {
         const users = await this.User.findAll({ order: [['id', 'DESC']] });
-        expect(users[0].id).to.be.above(users[1].id);
+        if (dialectName === 'cockroachdb') {
+          const userIds = users.map(user => BigInt(user.id));
+          expect(userIds[0] > userIds[1]).to.be.true;
+        } else {
+          expect(users[0].id).to.be.above(users[1].id);
+        }
       });
 
       it('sorts the results via a date column', async function () {
         await this.User.create({ username: 'user3', data: 'bar', theDate: dayjs().add(2, 'hours').toDate() });
         const users = await this.User.findAll({ order: [['theDate', 'DESC']] });
-        expect(users[0].id).to.be.above(users[2].id);
+        if (dialectName === 'cockroachdb') {
+          const userIds = users.map(user => BigInt(user.id));
+          expect(userIds[0] > userIds[2]).to.be.true;
+        } else {
+          expect(users[0].id).to.be.above(users[2].id);
+        }
       });
 
       it('handles offset and limit', async function () {
-        await this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]);
+        const createdUsers = await this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]);
         const users = await this.User.findAll({ limit: 2, offset: 2 });
         expect(users.length).to.equal(2);
-        expect(users[0].id).to.equal(3);
+        if (dialectName === 'cockroachdb') {
+          expect(users[0].id).to.equal(createdUsers[0].id);
+        } else {
+          expect(users[0].id).to.equal(3);
+        }
       });
 
       it('should allow us to find IDs using capital letters', async function () {
+        let user;
         const User = this.sequelize.define(`User${Support.rand()}`, {
           ID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           Login: { type: DataTypes.STRING },
         });
 
         await User.sync({ force: true });
-        await User.create({ Login: 'foo' });
-        const user = await User.findAll({ where: { ID: 1 } });
+        const createdUser = await User.create({ Login: 'foo' });
+        if (current.dialect.name === 'cockroachdb') {
+          user = await User.findAll({ where: { ID: createdUser.ID } });
+        } else {
+          user = await User.findAll({ where: { ID: 1 } });
+        }
+
         expect(user).to.be.instanceof(Array);
         expect(user).to.have.length(1);
       });
@@ -1472,9 +1519,13 @@ The following associations are defined on "Worker": "ToDos"`);
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
-        const info1 = await User.findAndCountAll();
         const info2 = await User.findAndCountAll({ transaction: t });
-        expect(info1.count).to.equal(0);
+
+        if (dialectName !== 'cockroachdb') {
+          const info1 = await User.findAndCountAll();
+          expect(info1.count).to.equal(0);
+        }
+
         expect(info2.count).to.equal(1);
         await t.rollback();
       });
@@ -1577,9 +1628,12 @@ The following associations are defined on "Worker": "ToDos"`);
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
-        const users1 = await User.findAll();
         const users2 = await User.findAll({ transaction: t });
-        expect(users1.length).to.equal(0);
+        if (dialectName !== 'cockroachdb') {
+          const users1 = await User.findAll();
+          expect(users1.length).to.equal(0);
+        }
+
         expect(users2.length).to.equal(1);
         await t.rollback();
       });

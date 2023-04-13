@@ -1,9 +1,11 @@
+import assert from 'node:assert';
 import { format } from 'node:util';
 import { ValidationErrorItem } from '../../errors';
 import type { GeoJson } from '../../geo-json';
 import type { AbstractDialect } from '../abstract';
 import * as BaseTypes from '../abstract/data-types';
 import { GEOGRAPHY as PostgresGeography, ARRAY as PostgresArray } from '../postgres/data-types';
+import { CockroachDbQueryGenerator } from './query-generator';
 
 function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
   if (dataType.options.length != null) {
@@ -206,8 +208,49 @@ export class DECIMAL extends BaseTypes.DECIMAL {
   // TODO: add check constraint >= 0 if unsigned is true
 }
 
-export class ENUMS<Members extends string> extends BaseTypes.ENUM<Members> {
-  toSql(options: BaseTypes.ToSqlOptions): string {
-    return `ENUM(${this.options.values.map(value => options.dialect.escapeString(value)).join(', ')})`;
+export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
+  // toSql(options: BaseTypes.ToSqlOptions): string {
+  //  return `ENUM(${this.options.values.map(value => options.dialect.escapeString(value)).join(', ')})`;
+  // }
+  override toSql(): string {
+    const context = this.usageContext;
+    if (context == null) {
+      throw new Error('Could not determine the name of this enum because it is not attached to an attribute or a column.');
+    }
+
+    let tableName;
+    let columnName;
+    if ('model' in context) {
+      tableName = context.model.getTableName();
+
+      const attribute = context.model.getAttributes()[context.attributeName];
+      columnName = attribute.field ?? context.attributeName;
+    } else {
+      tableName = context.tableName;
+      columnName = context.columnName;
+    }
+
+    const queryGenerator = context.sequelize.dialect.queryGenerator;
+
+    assert(queryGenerator instanceof CockroachDbQueryGenerator, 'expected queryGenerator to be PostgresQueryGenerator');
+
+    return queryGenerator.pgEnumName(tableName, columnName);
+  }
+}
+
+export class BLOB extends BaseTypes.BLOB {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+
+    if (this.options.length) {
+      dialect.warnDataTypeIssue(
+        `${dialect.name} does not support BLOB (BYTES) with options. Plain BYTES will be used instead.`,
+      );
+      this.options.length = undefined;
+    }
+  }
+
+  toSql() {
+    return 'BYTES';
   }
 }

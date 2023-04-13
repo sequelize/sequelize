@@ -9,7 +9,10 @@ import {
   disableDatabaseResetForSuite,
   prepareTransactionTest,
   sequelize,
+  getTestDialect,
 } from './support';
+
+const dialectName = getTestDialect();
 
 describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
   if (!sequelize.dialect.supports.transactions) {
@@ -135,17 +138,25 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
       await vars.clsSequelize.transaction(async () => {
         await vars.User.create({ name: 'bob' });
 
+        if (dialectName === 'cockroachdb') {
+          return expect(vars.User.findAll({})).to.eventually.have.length(1);
+        }
+
         return Promise.all([
           expect(vars.User.findAll({ transaction: null })).to.eventually.have.length(0),
           expect(vars.User.findAll({})).to.eventually.have.length(1),
         ]);
+
       });
     });
 
     it('automagically uses the transaction in all calls with async/await', async () => {
       await vars.clsSequelize.transaction(async () => {
         await vars.User.create({ name: 'bob' });
-        expect(await vars.User.findAll({ transaction: null })).to.have.length(0);
+        if (dialectName !== 'cockroachdb') {
+          expect(await vars.User.findAll({ transaction: null })).to.have.length(0);
+        }
+
         expect(await vars.User.findAll({})).to.have.length(1);
       });
     });

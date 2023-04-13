@@ -109,8 +109,8 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     expect(data).not.to.have.ownProperty('badgeNumber');
   });
 
-  // IBM i can't alter INTEGER -> STRING
-  if (dialect !== 'ibmi') {
+  // IBM i and cockroachdb can't alter INTEGER -> STRING
+  if (!['ibmi', 'cockroachdb'].includes(dialect)) {
     it('changes a column if it exists in the model but is different in the database', async () => {
       const testSync = sequelize.define('testSync', {
         name: DataTypes.STRING,
@@ -557,7 +557,9 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column
   //  so sync({ alter: true }) cannot know whether the column must be updated.
   //  so for now, deferrableConstraints is disabled for sqlite (as it's only used in tests)
-  if (sequelize.dialect.supports.deferrableConstraints) {
+  // Cockroachdb Does not support DEFERRABLE INITIALLY IMMEDIATE in a CREATE TABLE statement,
+  // reference: https://github.com/cockroachdb/cockroach/issues/31632
+  if (sequelize.dialect.supports.deferrableConstraints && dialect !== 'cockroachdb') {
     it('updates the deferrable property of a foreign key', async () => {
       const A = sequelize.define('A', {
         BId: {
@@ -599,7 +601,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       await sequelize.createSchema(schema);
 
       const User = sequelize.define('User', {}, { schema });
-      const BelongsToUser = sequelize.define('BelongsToUser', {}, { schema  });
+      const BelongsToUser = sequelize.define('BelongsToUser', {}, { schema });
       BelongsToUser.belongsTo(User, { foreignKey: { targetKey: 'id', allowNull: false } });
       await sequelize.sync({ alter: true });
       await sequelize.sync({ alter: true });

@@ -8,6 +8,8 @@ const Support = require('../support');
 
 const { DataTypes, Op } = require('@sequelize/core');
 
+const current = Support.sequelize;
+
 describe(Support.getTestDialectTeaser('Include'), () => {
   before(function () {
     this.clock = sinon.useFakeTimers();
@@ -23,11 +25,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const Task = this.sequelize.define('Task', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
       const Employee = this.sequelize.define('Employee', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
 
-      Project.hasMany(Task, { foreignKey: 'fk', foreignKeyConstraints: false  });
-      Project.hasMany(Employee, { foreignKey: 'fk', foreignKeyConstraints: false  });
+      Project.hasMany(Task, { foreignKey: 'fk', foreignKeyConstraints: false });
+      Project.hasMany(Employee, { foreignKey: 'fk', foreignKeyConstraints: false });
 
-      Task.belongsTo(Project, { foreignKey: 'fk', foreignKeyConstraints: false  });
-      Employee.belongsTo(Project, { foreignKey: 'fk', foreignKeyConstraints: false  });
+      Task.belongsTo(Project, { foreignKey: 'fk', foreignKeyConstraints: false });
+      Employee.belongsTo(Project, { foreignKey: 'fk', foreignKeyConstraints: false });
 
       // Sync them
       await this.sequelize.sync({ force: true });
@@ -98,49 +100,99 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       // Create an enviroment
 
-      await Promise.all([User.bulkCreate([
-        { name: 'Youtube' },
-        { name: 'Facebook' },
-        { name: 'Google' },
-        { name: 'Yahoo' },
-        { name: '404' },
-      ]), SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
-        { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
-        { u: 2, m: 'A', fk: 1 },
-        { u: 3, m: 'A', fk: 1 },
-        { u: 4, m: 'A', fk: 1 },
-        { u: 5, m: 'A', fk: 1 },
-        { u: 1, m: 'B', fk: 1 },
-        { u: 2, m: 'B', fk: 1 },
-        { u: 3, m: 'B', fk: 1 },
-        { u: 4, m: 'B', fk: 1 },
-        { u: 5, m: 'B', fk: 1 },
-        { u: 1, m: 'C', fk: 1 },
-        { u: 2, m: 'C', fk: 1 },
-        { u: 3, m: 'C', fk: 1 },
-        { u: 4, m: 'C', fk: 1 },
-        { u: 5, m: 'C', fk: 1 },
-        { u: 1, m: 'A', fk: 2 }, // 2 // Will be deleted
-        { u: 4, m: 'A', fk: 2 },
-        { u: 2, m: 'A', fk: 2 },
-        { u: 1, m: 'A', fk: 3 }, // 3
-        { u: 2, m: 'A', fk: 3 },
-        { u: 3, m: 'A', fk: 3 },
-        { u: 2, m: 'B', fk: 2 },
-        { u: 1, m: 'A', fk: 4 }, // 4
-        { u: 4, m: 'A', fk: 2 },
-      ]), A.bulkCreate([
-        { name: 'Just' },
-        { name: 'for' },
-        { name: 'testing' },
-        { name: 'proposes' },
-        { name: 'only' },
-      ]), B.bulkCreate([
-        { name: 'this should not' },
-        { name: 'be loaded' },
-      ]), C.bulkCreate([
-        { name: 'because we only want A' },
-      ])]);
+      if (current.dialect.name === 'cockroachdb') {
+        await Promise.all([User.bulkCreate([
+          // This part differs from original Sequelize test.
+          // Added sequential ids to creation because of Association expectation.
+          { id: 1, name: 'Youtube' },
+          { id: 2, name: 'Facebook' },
+          { id: 3, name: 'Google' },
+          { id: 4, name: 'Yahoo' },
+          { id: 5, name: '404' },
+        ]), SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
+          { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
+          { u: 2, m: 'A', fk: 1 },
+          { u: 3, m: 'A', fk: 1 },
+          { u: 4, m: 'A', fk: 1 },
+          { u: 5, m: 'A', fk: 1 },
+          { u: 1, m: 'B', fk: 1 },
+          { u: 2, m: 'B', fk: 1 },
+          { u: 3, m: 'B', fk: 1 },
+          { u: 4, m: 'B', fk: 1 },
+          { u: 5, m: 'B', fk: 1 },
+          { u: 1, m: 'C', fk: 1 },
+          { u: 2, m: 'C', fk: 1 },
+          { u: 3, m: 'C', fk: 1 },
+          { u: 4, m: 'C', fk: 1 },
+          { u: 5, m: 'C', fk: 1 },
+          { u: 1, m: 'A', fk: 2 }, // 2 // Will be deleted
+          { u: 4, m: 'A', fk: 2 },
+          { u: 2, m: 'A', fk: 2 },
+          { u: 1, m: 'A', fk: 3 }, // 3
+          { u: 2, m: 'A', fk: 3 },
+          { u: 3, m: 'A', fk: 3 },
+          { u: 2, m: 'B', fk: 2 },
+          { u: 1, m: 'A', fk: 4 }, // 4
+          { u: 4, m: 'A', fk: 2 },
+        ]), A.bulkCreate([
+          // This part differs from original Sequelize test.
+          // Added sequential ids to creation because of Association expectation.
+          { id: 1, name: 'Just' },
+          { id: 2, name: 'for' },
+          { id: 3, name: 'testing' },
+          { id: 4, name: 'proposes' },
+          { id: 5, name: 'only' },
+        ]), B.bulkCreate([
+          { name: 'this should not' },
+          { name: 'be loaded' },
+        ]), C.bulkCreate([
+          { name: 'because we only want A' },
+        ])]);
+      } else {
+        await Promise.all([User.bulkCreate([
+          { name: 'Youtube' },
+          { name: 'Facebook' },
+          { name: 'Google' },
+          { name: 'Yahoo' },
+          { name: '404' },
+        ]), SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
+          { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
+          { u: 2, m: 'A', fk: 1 },
+          { u: 3, m: 'A', fk: 1 },
+          { u: 4, m: 'A', fk: 1 },
+          { u: 5, m: 'A', fk: 1 },
+          { u: 1, m: 'B', fk: 1 },
+          { u: 2, m: 'B', fk: 1 },
+          { u: 3, m: 'B', fk: 1 },
+          { u: 4, m: 'B', fk: 1 },
+          { u: 5, m: 'B', fk: 1 },
+          { u: 1, m: 'C', fk: 1 },
+          { u: 2, m: 'C', fk: 1 },
+          { u: 3, m: 'C', fk: 1 },
+          { u: 4, m: 'C', fk: 1 },
+          { u: 5, m: 'C', fk: 1 },
+          { u: 1, m: 'A', fk: 2 }, // 2 // Will be deleted
+          { u: 4, m: 'A', fk: 2 },
+          { u: 2, m: 'A', fk: 2 },
+          { u: 1, m: 'A', fk: 3 }, // 3
+          { u: 2, m: 'A', fk: 3 },
+          { u: 3, m: 'A', fk: 3 },
+          { u: 2, m: 'B', fk: 2 },
+          { u: 1, m: 'A', fk: 4 }, // 4
+          { u: 4, m: 'A', fk: 2 },
+        ]), A.bulkCreate([
+          { name: 'Just' },
+          { name: 'for' },
+          { name: 'testing' },
+          { name: 'proposes' },
+          { name: 'only' },
+        ]), B.bulkCreate([
+          { name: 'this should not' },
+          { name: 'be loaded' },
+        ]), C.bulkCreate([
+          { name: 'because we only want A' },
+        ])]);
+      }
 
       // Delete some of conns to prove the concept
       await SomeConnection.destroy({
@@ -296,15 +348,30 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       // Create an enviroment
-      await User.bulkCreate([
-        { name: 'user-name-1' },
-        { name: 'user-name-2' },
-      ]);
+      if (current.dialect.name === 'cockroachdb') {
+        await User.bulkCreate([
+          // This part differs from original Sequelize test.
+          // Added sequential ids to creation because of Association expectation.
+          { id: 1, name: 'user-name-1' },
+          { id: 2, name: 'user-name-2' },
+        ]);
+        await Project.bulkCreate([
+          // This part differs from original Sequelize test.
+          // Added sequential ids to creation because of Association expectation.
+          { id: 1, m: 'A', UserId: 1 },
+          { id: 2, m: 'A', UserId: 2 },
+        ]);
+      } else {
+        await User.bulkCreate([
+          { name: 'user-name-1' },
+          { name: 'user-name-2' },
+        ]);
 
-      await Project.bulkCreate([
-        { m: 'A', UserId: 1 },
-        { m: 'A', UserId: 2 },
-      ]);
+        await Project.bulkCreate([
+          { m: 'A', UserId: 1 },
+          { m: 'A', UserId: 2 },
+        ]);
+      }
 
       await Task.bulkCreate([
         { ProjectId: 1, name: 'Just' },
@@ -353,11 +420,21 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      await User.bulkCreate([
-        { first_name: 'user-fname-1', last_name: 'user-lname-1' },
-        { first_name: 'user-fname-2', last_name: 'user-lname-2' },
-        { first_name: 'user-xfname-1', last_name: 'user-xlname-1' },
-      ]);
+      if (current.dialect.name === 'cockroachdb') {
+        await User.bulkCreate([
+          // This part differs from original Sequelize test.
+          // Added sequential ids to creation because of Association expectation.
+          { id: 1, first_name: 'user-fname-1', last_name: 'user-lname-1' },
+          { id: 2, first_name: 'user-fname-2', last_name: 'user-lname-2' },
+          { id: 3, first_name: 'user-xfname-1', last_name: 'user-xlname-1' },
+        ]);
+      } else {
+        await User.bulkCreate([
+          { first_name: 'user-fname-1', last_name: 'user-lname-1' },
+          { first_name: 'user-fname-2', last_name: 'user-lname-2' },
+          { first_name: 'user-xfname-1', last_name: 'user-xlname-1' },
+        ]);
+      }
 
       await Project.bulkCreate([
         { name: 'naam-satya', UserId: 1 },

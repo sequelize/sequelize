@@ -75,6 +75,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       let assertVal = 'VARCHAR(255)';
       switch (dialect) {
+        case 'cockroachdb':
         case 'postgres':
           assertVal = 'CHARACTER VARYING(255)';
           break;
@@ -110,6 +111,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       assertVal = 'TINYINT(1)';
       switch (dialect) {
         case 'postgres':
+        case 'cockroachdb':
         case 'db2':
           assertVal = 'BOOLEAN';
           break;
@@ -134,14 +136,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(isAdmin.defaultValue).to.be.null;
       }
 
-      if (dialect.startsWith('postgres')) {
+      if (['postgres', 'cockroachdb'].includes(dialect)) {
         expect(enumVals.special).to.be.instanceof(Array);
         expect(enumVals.special).to.have.length(2);
       } else if (dialect === 'mysql') {
         expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
       }
 
-      if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
+      if (['postgres', 'mysql', 'mssql', 'cockroachdb'].includes(dialect)) {
         expect(city.comment).to.equal('Users City');
         expect(username.comment).to.equal(null);
       }

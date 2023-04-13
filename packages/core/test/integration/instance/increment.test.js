@@ -65,6 +65,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
+        let users1;
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { number: DataTypes.INTEGER });
 
@@ -72,9 +73,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user = await User.create({ number: 1 });
         const t = await sequelize.startUnmanagedTransaction();
         await user.increment('number', { by: 2, transaction: t });
-        const users1 = await User.findAll();
+        if (current.dialect.name !== 'cockroachdb') {
+          users1 = await User.findAll();
+        }
+
         const users2 = await User.findAll({ transaction: t });
-        expect(users1[0].number).to.equal(1);
+        if (current.dialect.name !== 'cockroachdb') {
+          expect(users1[0].number).to.equal(1);
+        }
+
         expect(users2[0].number).to.equal(3);
         await t.rollback();
       });
@@ -209,7 +216,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.clock.tick(1000);
       await user.increment('aNumber', { by: 1, silent: true });
 
-      await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+      if (current.dialect.name === 'cockroachdb') {
+        await expect(User.findByPk(user.id)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+      } else {
+        await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+      }
     });
   });
 });

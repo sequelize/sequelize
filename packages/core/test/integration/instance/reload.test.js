@@ -60,6 +60,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('reload', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
+        let user0;
         const sequelize = await Support.prepareTransactionTest(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
@@ -67,9 +68,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user = await User.create({ username: 'foo' });
         const t = await sequelize.startUnmanagedTransaction();
         await User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t });
-        const user1 = await user.reload();
-        expect(user1.username).to.equal('foo');
-        const user0 = await user1.reload({ transaction: t });
+        if (current.dialect.name !== 'cockroachdb') {
+          const user1 = await user.reload();
+          expect(user1.username).to.equal('foo');
+          user0 = await user1.reload({ transaction: t });
+        } else {
+          user0 = await user.reload({ transaction: t });
+        }
+
         expect(user0.username).to.equal('bar');
         await t.rollback();
       });

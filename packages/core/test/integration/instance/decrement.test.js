@@ -71,9 +71,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user = await User.create({ number: 3 });
         const t = await sequelize.startUnmanagedTransaction();
         await user.decrement('number', { by: 2, transaction: t });
-        const users1 = await User.findAll();
+
+        // CockroachDB transaction isolation does not allow read queries in between a transaction unless the transaction commits.
+        if (current.dialect.name !== 'cockroachdb') {
+          const users1 = await User.findAll();
+          expect(users1[0].number).to.equal(3);
+        }
+
         const users2 = await User.findAll({ transaction: t });
-        expect(users1[0].number).to.equal(3);
+
         expect(users2[0].number).to.equal(1);
         await t.rollback();
       });
@@ -167,11 +173,20 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await User.sync({ force: true });
       const user = await User.create({ aNumber: 1 });
       const oldDate = user.updatedAt;
-      expect(oldDate).to.be.instanceOf(Date);
+      if (current.dialect.name !== 'cockroachdb') {
+        expect(oldDate).to.be.instanceOf(Date);
+      }
+
       this.clock.tick(1000);
       await user.decrement('aNumber', { by: 1 });
+      let reloadedUser;
+      if (current.dialect.name === 'cockroachdb') {
+        reloadedUser = await User.findByPk(user.id);
 
-      const reloadedUser = await User.findByPk(1);
+      } else {
+        reloadedUser = await User.findByPk(1);
+      }
+
       expect(reloadedUser.updatedAt).to.be.instanceOf(Date);
       expect(reloadedUser.updatedAt).to.be.afterTime(oldDate);
     });
@@ -187,7 +202,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       this.clock.tick(1000);
       await user.decrement('aNumber', { by: 1, silent: true });
 
-      await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+      if (current.dialect.name === 'cockroachdb') {
+        await expect(User.findByPk(user.id)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+      } else {
+        await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').equalTime(oldDate);
+      }
     });
 
     it('is disallowed if no primary key is present', async function () {

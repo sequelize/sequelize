@@ -16,7 +16,7 @@ interface IB extends Model<InferAttributes<IB>, InferCreationAttributes<IB>> {
 describe('Sequelize#truncate', () => {
   // These dialects do not support the CASCADE option on TRUNCATE, so it's impossible to clear
   //  tables that reference each-other.
-  if (!['mysql', 'mariadb', 'mssql', 'db2'].includes(sequelize.dialect.name)) {
+  if (!['mysql', 'mariadb', 'mssql', 'db2', 'cockroachdb'].includes(sequelize.dialect.name)) {
     it('supports truncating cyclic associations with { cascade: true }', async () => {
       const A = sequelize.define<IA>('A', {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

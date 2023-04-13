@@ -655,7 +655,7 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ bigintAttr: '123.4' })).to.be.rejected;
     });
 
-    if (dialect.name === 'sqlite') {
+    if (['sqlite', 'cockroachdb'].includes(dialect.name)) {
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
       it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
@@ -1031,8 +1031,8 @@ describe('DataTypes', () => {
         dialect.name === 'mssql' ? '2022-01-01 00:00:00.000+00'
           // sqlite decided to have a weird format that is not ISO 8601 compliant
           : dialect.name === 'sqlite' ? '2022-01-01 00:00:00.000 +00:00'
-          : dialect.name === 'db2' ? '2022-01-01 00:00:00.000000+00'
-          : '2022-01-01 00:00:00+00',
+            : dialect.name === 'db2' ? '2022-01-01 00:00:00.000000+00'
+              : '2022-01-01 00:00:00+00',
       );
     });
   });
@@ -1180,13 +1180,13 @@ describe('DataTypes', () => {
         dialect.name === 'mssql' ? '04:05:06.000'
           // sqlite3 does not support restricting the precision of TIME
           : dialect.name === 'sqlite' ? '04:05:06.123456'
-          : '04:05:06');
+            : '04:05:06');
 
       await testSimpleInOut(vars.User, 'timeTwoPrecisionAttr', '04:05:06.123456',
         dialect.name === 'mssql' ? '04:05:06.120'
           // sqlite3 does not support restricting the precision of TIME
           : dialect.name === 'sqlite' ? '04:05:06.123456'
-          : '04:05:06.12');
+            : '04:05:06.12');
 
       // FIXME: Tedious loses precision because it pre-parses TIME as a JS Date object
       //  https://github.com/tediousjs/tedious/issues/678
@@ -1303,6 +1303,7 @@ describe('DataTypes', () => {
           declare jsonArray: any[];
           declare jsonObject: object;
           declare jsonNull: any;
+          declare id?: any;
         }
 
         User.init({
@@ -1346,15 +1347,29 @@ describe('DataTypes', () => {
       it('properly serializes default values', async () => {
         const createdUser = await vars.User.create();
         await createdUser.reload();
-        expect(createdUser.get()).to.deep.eq({
-          jsonStr: 'abc',
-          jsonBoolean: true,
-          jsonNumber: 1,
-          jsonNull: null,
-          jsonArray: ['a', 'b'],
-          jsonObject: { key: 'abc' },
-          id: 1,
-        });
+        if (dialect.name === 'cockroachdb') {
+          const user = createdUser.get();
+          expect(user).to.deep.eq({
+            jsonStr: 'abc',
+            jsonBoolean: true,
+            jsonNumber: 1,
+            jsonNull: null,
+            jsonArray: ['a', 'b'],
+            jsonObject: { key: 'abc' },
+            id: user.id,
+          });
+        } else {
+          expect(createdUser.get()).to.deep.eq({
+            jsonStr: 'abc',
+            jsonBoolean: true,
+            jsonNumber: 1,
+            jsonNull: null,
+            jsonArray: ['a', 'b'],
+            jsonObject: { key: 'abc' },
+            id: 1,
+          });
+        }
+
       });
 
       it('properly serializes values', async () => {
