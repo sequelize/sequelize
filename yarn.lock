@@ -9415,12 +9415,12 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==
 
-typedoc-plugin-carbon-ads@1.1.6:
-  version "1.1.6"
-  resolved "https://registry.yarnpkg.com/typedoc-plugin-carbon-ads/-/typedoc-plugin-carbon-ads-1.1.6.tgz#3b161cbf02f661d53b41677abcbe3b4dd28e911e"
-  integrity sha512-yIh6SVDKD1NJZyQL6gKJC0nh6PtQeHfgRJtjhxM0E5We+I1RN1fAiXqWDljbdauHxco6kqMMjmkuTEku7KeEMA==
+typedoc-plugin-carbon-ads@1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/typedoc-plugin-carbon-ads/-/typedoc-plugin-carbon-ads-1.2.0.tgz#1ff901a37d190458bc0933b50a2e91dfa3659899"
+  integrity sha512-+SfgCRjPYF0gUh65zkwAJkUFcK9g/M0HGOHSZToMOLlPOKU6S47TWy45Wb+g8TW5QqMDgEIoGR45K2uQLQAGJg==
   dependencies:
-    typescript "^4.7.4"
+    typescript "^5.0.4"
 
 typedoc-plugin-mdn-links@3.0.3:
   version "3.0.3"
@@ -9442,12 +9442,12 @@ typedoc@0.23.28:
     minimatch "^7.1.3"
     shiki "^0.14.1"
 
-typescript@5.0.4:
+typescript@5.0.4, typescript@^5.0.4:
   version "5.0.4"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.0.4.tgz#b217fd20119bd61a94d4011274e0ab369058da3b"
   integrity sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==
 
-"typescript@^3 || ^4", typescript@^4.7.4:
+"typescript@^3 || ^4":
   version "4.9.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.9.5.tgz#095979f9bcc0d09da324d58d03ce8f8374cbe65a"
   integrity sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==
