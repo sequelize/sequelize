@@ -71,7 +71,7 @@
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
     "@types/ibm_db": "2.0.12",
-    "@types/lodash": "4.14.192",
+    "@types/lodash": "4.14.194",
     "@types/mocha": "10.0.1",
     "@types/node": "18.15.11",
     "@types/pg": "8.6.6",
