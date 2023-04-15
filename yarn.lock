@@ -9086,10 +9086,10 @@ targz@^1.0.1:
   dependencies:
     tar-fs "^1.8.1"
 
-tedious@15.1.3:
-  version "15.1.3"
-  resolved "https://registry.yarnpkg.com/tedious/-/tedious-15.1.3.tgz#bbc44da3d284126cbf4cf141088ec743431d9a57"
-  integrity sha512-166EpRm5qknwhEisjZqz/mF7k14fXKJYHRg6XiAXVovd/YkyHJ3SG4Ppy89caPaNFfRr7PVYe+s4dAvKaCMFvw==
+tedious@16.0.0:
+  version "16.0.0"
+  resolved "https://registry.yarnpkg.com/tedious/-/tedious-16.0.0.tgz#f08ba03e13938d40c3ad86e98145f60f26995c9f"
+  integrity sha512-8Obq4NoAgjr4iTihRU8tGFX6FbUQc5fbn5vsTbScQQhLsi7nrY7h2rPBE+JS8wjLLKYMmZBt9KfpTFqDdLf93w==
   dependencies:
     "@azure/identity" "^2.0.4"
     "@azure/keyvault-keys" "^4.4.0"
