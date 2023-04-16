@@ -48,7 +48,7 @@
   "dependencies": {
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
-    "bnf-parser": "3.1.1",
+    "bnf-parser": "3.1.4",
     "dayjs": "^1.11.5",
     "debug": "^4.3.4",
     "dottie": "^2.0.2",
@@ -56,6 +56,7 @@
     "inflection": "^2.0.0",
     "lodash": "^4.17.21",
     "pg-connection-string": "^2.5.0",
+    "pg-hstore": "^2.3.4",
     "retry-as-promised": "^7.0.3",
     "semver": "^7.3.7",
     "sequelize-pool": "^8.0.0",
@@ -70,7 +71,7 @@
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
     "@types/ibm_db": "2.0.12",
-    "@types/lodash": "4.14.192",
+    "@types/lodash": "4.14.194",
     "@types/mocha": "10.0.1",
     "@types/node": "18.15.11",
     "@types/pg": "8.6.6",
@@ -102,8 +103,7 @@
     "p-settle": "4.1.1",
     "p-timeout": "4.1.0",
     "pg": "8.10.0",
-    "pg-hstore": "2.3.4",
-    "rimraf": "4.4.1",
+    "rimraf": "5.0.0",
     "sinon": "15.0.3",
     "sinon-chai": "3.7.0",
     "snowflake-sdk": "1.6.20",
@@ -112,9 +112,6 @@
   },
   "peerDependenciesMeta": {
     "pg": {
-      "optional": true
-    },
-    "pg-hstore": {
       "optional": true
     },
     "mysql2": {

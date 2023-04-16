@@ -7,8 +7,13 @@ import type {
   HasManyOptions,
   HasOneOptions,
 } from '../../associations/index.js';
-import { BelongsTo as BelongsToAssociation, HasMany as HasManyAssociation, HasOne as HasOneAssociation, BelongsToMany as BelongsToManyAssociation } from '../../associations/index.js';
-import type { ModelStatic, Model, AttributeNames } from '../../model.js';
+import {
+  BelongsTo as BelongsToAssociation,
+  BelongsToMany as BelongsToManyAssociation,
+  HasMany as HasManyAssociation,
+  HasOne as HasOneAssociation,
+} from '../../associations/index.js';
+import type { AttributeNames, Model, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { isString } from '../../utils/check.js';
 import { isModelStatic } from '../../utils/model-utils.js';

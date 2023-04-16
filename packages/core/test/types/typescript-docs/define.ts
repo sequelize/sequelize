@@ -1,5 +1,5 @@
-import type { Model, CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
-import { Sequelize, DataTypes } from '@sequelize/core';
+import type { CreationOptional, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
+import { DataTypes, Sequelize } from '@sequelize/core';
 
 const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
 

@@ -12,14 +12,14 @@ import type { ModelHooks } from './model-hooks.js';
 import { staticModelHooks } from './model-hooks.js';
 import { conformIndex } from './model-internals.js';
 import type {
+  AttributeOptions,
   BuiltModelOptions,
   InitOptions,
-  AttributeOptions,
   ModelAttributes,
+  ModelOptions,
   ModelStatic,
   NormalizedAttributeOptions,
   NormalizedAttributeReferencesOptions,
-  ModelOptions,
 } from './model.js';
 import type { Sequelize } from './sequelize.js';
 import { fieldToColumn } from './utils/deprecations.js';
@@ -174,6 +174,7 @@ export class ModelDefinition {
     return this.#sequelize;
   }
 
+  // TODO: add generic type to ModelHooks (model, attributes)
   get hooks(): HookHandler<ModelHooks> {
     return staticModelHooks.getFor(this);
   }

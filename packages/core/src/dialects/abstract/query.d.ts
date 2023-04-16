@@ -1,4 +1,4 @@
-import type { Model, ModelStatic, IncludeOptions } from '../../model';
+import type { IncludeOptions, Model, ModelStatic } from '../../model';
 import type { QueryTypes } from '../../query-types';
 import type { Sequelize } from '../../sequelize';
 import type { Connection } from './connection-manager';

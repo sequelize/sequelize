@@ -88,7 +88,6 @@ const attributeParser = (() => {
 
   const parsedAttributeBnf = BNF.parse(advancedAttributeBnf);
   if (parsedAttributeBnf instanceof ParseError) {
-    // eslint-disable-next-line -- false positive
     throw new Error(`Failed to initialize attribute syntax parser. This is a Sequelize bug: ${parsedAttributeBnf.toString()}`);
   }
 

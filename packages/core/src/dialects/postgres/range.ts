@@ -1,6 +1,6 @@
 import NodeUtil from 'node:util';
 import isPlainObject from 'lodash/isPlainObject';
-import type { Rangable, RangePart, Range, InputRangePart } from '../../model.js';
+import type { InputRangePart, Rangable, Range, RangePart } from '../../model.js';
 
 function stringifyRangeBound<T extends {}>(bound: T | number | null, stringifyBoundary: (val: T) => string): string {
   if (bound === null) {

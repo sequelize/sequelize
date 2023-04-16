@@ -3,10 +3,18 @@ import { Pool } from 'sequelize-pool';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
 import type { Connection } from '@sequelize/core';
-import type { GetConnectionOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
+import type {
+  GetConnectionOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
 import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/replication-pool.js';
 import { Config } from '../../../config/config';
-import { getTestDialect, getTestDialectTeaser, createSequelizeInstance } from '../../support';
+import {
+  createSequelizeInstance,
+  createSingleTestSequelizeInstance,
+  getTestDialect,
+  getTestDialectTeaser,
+  setResetMode,
+} from '../../support';
 
 const expect = chai.expect;
 const baseConf = Config[getTestDialect()];
@@ -19,6 +27,8 @@ const poolEntry = {
 const dialect = getTestDialect();
 
 describe(getTestDialectTeaser('Connection Manager'), () => {
+  setResetMode('none');
+
   let sandbox: SinonSandbox;
 
   beforeEach(() => {
@@ -34,7 +44,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       replication: null,
     };
 
-    const sequelize = createSequelizeInstance(options);
+    const sequelize = createSingleTestSequelizeInstance(options);
     expect(sequelize.connectionManager.pool).to.be.instanceOf(ReplicationPool);
     expect(sequelize.connectionManager.pool.read).to.be.null;
     expect(sequelize.connectionManager.pool.write).to.be.instanceOf(Pool);
@@ -48,7 +58,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       },
     };
 
-    const sequelize = createSequelizeInstance(options);
+    const sequelize = createSingleTestSequelizeInstance(options);
     expect(sequelize.connectionManager.pool).to.be.instanceOf(ReplicationPool);
     expect(sequelize.connectionManager.pool.read).to.be.instanceOf(Pool);
     expect(sequelize.connectionManager.pool.write).to.be.instanceOf(Pool);
@@ -59,19 +69,17 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       return;
     }
 
-    const slave1 = { ...poolEntry };
-    const slave2 = { ...poolEntry };
-    slave1.host = 'slave1';
-    slave2.host = 'slave2';
+    const replica1 = { ...poolEntry, host: 'replica1' };
+    const replica2 = { ...poolEntry, host: 'replica2' };
 
     const options = {
       replication: {
         write: { ...poolEntry },
-        read: [slave1, slave2],
+        read: [replica1, replica2],
       },
     };
 
-    const sequelize = createSequelizeInstance(options);
+    const sequelize = createSingleTestSequelizeInstance(options);
     const connectionManager = sequelize.connectionManager;
 
     const res: Connection = {};
@@ -80,6 +88,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
     const connectStub = sandbox.stub(connectionManager, '_connect').resolves(res);
     // @ts-expect-error -- internal method, no typings
     sandbox.stub(connectionManager, '_disconnect').resolves();
+    sandbox.stub(connectionManager, '_onProcessExit');
     sandbox.stub(sequelize, 'fetchDatabaseVersion').resolves(sequelize.dialect.defaultVersion);
 
     const queryOptions: GetConnectionOptions = {
@@ -99,9 +108,11 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
 
     // First call is the get connection for DB versions - ignore
     const calls = connectStub.getCalls();
-    chai.expect(calls[1].args[0].host).to.eql('slave1');
-    chai.expect(calls[2].args[0].host).to.eql('slave2');
-    chai.expect(calls[3].args[0].host).to.eql('slave1');
+    chai.expect(calls[1].args[0].host).to.eql('replica1');
+    chai.expect(calls[2].args[0].host).to.eql('replica2');
+    chai.expect(calls[3].args[0].host).to.eql('replica1');
+
+    await sequelize.close();
   });
 
   // sqlite does not have different database versions since it's bundled
@@ -119,6 +130,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       sandbox.stub(connectionManager, '_connect').resolves(res);
       // @ts-expect-error -- internal method, no typings
       sandbox.stub(connectionManager, '_disconnect').resolves();
+      sandbox.stub(connectionManager, '_onProcessExit');
 
       const queryOptions: GetConnectionOptions = {
         type: 'read',
@@ -133,6 +145,8 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
           'This database engine version is not supported, please update your database server.',
         );
       stub.restore();
+
+      await sequelize.close();
     });
   }
 
@@ -160,6 +174,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
 
       // @ts-expect-error -- internal method, no typings
       sandbox.stub(connectionManager, '_disconnect').resolves();
+      sandbox.stub(connectionManager, '_onProcessExit');
 
       sandbox
         .stub(sequelize, 'fetchDatabaseVersion')
@@ -174,6 +189,8 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       chai.expect(connectStub).to.have.been.calledTwice; // Once to get DB version, and once to actually get the connection.
       const calls = connectStub.getCalls();
       chai.expect(calls[1].args[0].host).to.eql('the-boss');
+
+      await sequelize.close();
     });
   }
 
@@ -181,7 +198,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
     const options = {
       replication: null,
     };
-    const sequelize = createSequelizeInstance(options);
+    const sequelize = createSingleTestSequelizeInstance(options);
     const connectionManager = sequelize.connectionManager;
 
     const poolDrainSpy = sandbox.spy(connectionManager.pool, 'drain');

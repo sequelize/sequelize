@@ -1,8 +1,8 @@
 import assert from 'node:assert';
 import NodeUtil from 'node:util';
-import type { Database as Db2LibDatabase, ConnStr } from 'ibm_db';
+import type { ConnStr, Database as Db2LibDatabase } from 'ibm_db';
 import { ConnectionError, ConnectionRefusedError } from '../../errors/index.js';
-import type { Sequelize, ConnectionOptions } from '../../sequelize.js';
+import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
 import type { Db2Dialect } from './index.js';

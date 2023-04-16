@@ -3,14 +3,15 @@ import each from 'lodash/each';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type {
+  BelongsToMany,
   BelongsToManySetAssociationsMixin,
   CreationOptional,
   InferAttributes,
   InferCreationAttributes,
-  BelongsToMany, ModelStatic,
+  ModelStatic,
 } from '@sequelize/core';
 import { AssociationError, BelongsTo, DataTypes, HasMany, HasOne, Model } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser, resetSequelizeInstance, createSequelizeInstance } from '../../support';
+import { createSequelizeInstance, getTestDialectTeaser, resetSequelizeInstance, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('belongsToMany'), () => {
   beforeEach(() => {

@@ -1,10 +1,22 @@
 import type { SetOptional } from 'type-fest';
 import type {
-  Association, HasManyAddAssociationMixin, HasManyCountAssociationsMixin,
-  HasManyCreateAssociationMixin, HasManyGetAssociationsMixin, HasManyHasAssociationMixin,
-  HasManySetAssociationsMixin, HasManyAddAssociationsMixin, HasManyHasAssociationsMixin,
-  HasManyRemoveAssociationMixin, HasManyRemoveAssociationsMixin, ModelDefined, InferAttributes,
-  InferCreationAttributes, CreationOptional, NonAttribute, ForeignKey,
+  Association,
+  CreationOptional,
+  ForeignKey,
+  HasManyAddAssociationMixin,
+  HasManyAddAssociationsMixin,
+  HasManyCountAssociationsMixin,
+  HasManyCreateAssociationMixin,
+  HasManyGetAssociationsMixin,
+  HasManyHasAssociationMixin,
+  HasManyHasAssociationsMixin,
+  HasManyRemoveAssociationMixin,
+  HasManyRemoveAssociationsMixin,
+  HasManySetAssociationsMixin,
+  InferAttributes,
+  InferCreationAttributes,
+  ModelDefined,
+  NonAttribute,
 } from '@sequelize/core';
 import { DataTypes, Model, Sequelize } from '@sequelize/core';
 

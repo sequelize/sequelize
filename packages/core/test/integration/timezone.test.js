@@ -14,13 +14,18 @@ describe(Support.getTestDialectTeaser('Timezone'), () => {
     return;
   }
 
-  beforeEach(function () {
+  before(function () {
     this.sequelizeWithTimezone = Support.createSequelizeInstance({
       timezone: '+07:00',
     });
     this.sequelizeWithNamedTimezone = Support.createSequelizeInstance({
       timezone: 'America/New_York',
     });
+  });
+
+  after(function () {
+    this.sequelizeWithTimezone.close();
+    this.sequelizeWithNamedTimezone.close();
   });
 
   it('returns the same value for current timestamp', async function () {

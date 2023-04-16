@@ -248,7 +248,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const comment1 = await this.Comment.create({ note: 'oh boy, here I go again', likes: 23 });
         const comment0 = await comment1.increment('likes');
         const comment = await comment0.reload();
-        expect(comment.likes).to.be.equal(24);
+        expect(comment.likes).to.equal(24);
       });
 
       it('decrement should work', async function () {
@@ -256,14 +256,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const comment1 = await this.Comment.create({ note: 'oh boy, here I go again', likes: 23 });
         const comment0 = await comment1.decrement('likes');
         const comment = await comment0.reload();
-        expect(comment.likes).to.be.equal(22);
+        expect(comment.likes).to.equal(22);
       });
 
       it('sum should work', async function () {
         await this.Comment.destroy({ truncate: true });
         await this.Comment.create({ note: 'oh boy, here I go again', likes: 23 });
         const likes = await this.Comment.sum('likes');
-        expect(likes).to.be.equal(23);
+        expect(likes).to.equal(23);
       });
 
       it('should create, fetch and update with alternative field names from a simple model', async function () {
