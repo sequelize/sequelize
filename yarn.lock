@@ -9427,10 +9427,10 @@ typedoc-plugin-mdn-links@3.0.3:
   resolved "https://registry.yarnpkg.com/typedoc-plugin-mdn-links/-/typedoc-plugin-mdn-links-3.0.3.tgz#da8d1a9750d57333e6c21717b38bfc13d4058de2"
   integrity sha512-NXhIpwQnsg7BcyMCHVqj3tUK+DL4g3Bt96JbFl4APzTGFkA+iM6GfZ/fn3TAqJ8O0CXG5R9BfWxolw1m1omNuQ==
 
-typedoc-plugin-missing-exports@1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/typedoc-plugin-missing-exports/-/typedoc-plugin-missing-exports-1.0.0.tgz#7212a2cfaba7b48264df4b4110f3a5684b5c49a1"
-  integrity sha512-7s6znXnuAj1eD9KYPyzVzR1lBF5nwAY8IKccP5sdoO9crG4lpd16RoFpLsh2PccJM+I2NASpr0+/NMka6ThwVA==
+typedoc-plugin-missing-exports@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/typedoc-plugin-missing-exports/-/typedoc-plugin-missing-exports-2.0.0.tgz#9bdc4e30b0c7f24e9f1cb8890db4d01f608717c5"
+  integrity sha512-t0QlKCm27/8DaheJkLo/gInSNjzBXgSciGhoLpL6sLyXZibm7SuwJtHvg4qXI2IjJfFBgW9mJvvszpoxMyB0TA==
 
 typedoc@0.23.28:
   version "0.23.28"
