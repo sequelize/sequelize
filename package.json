@@ -48,7 +48,7 @@
     "@ephys/eslint-config-typescript": "19.0.2",
     "@rushstack/eslint-patch": "1.2.0",
     "chai": "4.3.7",
-    "esbuild": "0.17.16",
+    "esbuild": "0.17.17",
     "eslint": "8.38.0",
     "eslint-plugin-jsdoc": "41.1.2",
     "eslint-plugin-mocha": "10.1.0",
