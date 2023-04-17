@@ -17,10 +17,16 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
 
   showConstraintsQuery(tableName: TableNameOrModel, _constraintName?: string) {
     const table = this.extractTableDetails(tableName);
+    let tableAndSchema;
+    if (!table.schema || table.schema === this.dialect.getDefaultSchema()) {
+      tableAndSchema = table.tableName;
+    } else {
+      tableAndSchema = `${table.schema}${table.delimiter || '.'}${table.tableName}`;
+    }
 
     return joinSQLFragments([
       'SELECT sql FROM sqlite_master',
-      `WHERE tbl_name = ${this.escape(table.tableName)}`,
+      `WHERE tbl_name = ${this.escape(tableAndSchema)}`,
     ]);
   }
 
