@@ -638,6 +638,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             // MySQL 8.0.16+ has a new INFORMATION_SCHEMA.CHECK_CONSTRAINTS table
             expect(constraints).to.not.include('check_user_roles');
           } else {
+            expect(constraints).to.include('check_user_roles');
             await this.queryInterface.removeConstraint('users', 'check_user_roles');
             constraints = await this.queryInterface.showConstraint('users');
             constraints = constraints.map(constraint => constraint.constraintName);
