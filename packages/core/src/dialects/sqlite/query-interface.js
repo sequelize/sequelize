@@ -218,11 +218,10 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     }
 
     const sql = this.queryGenerator.describeTableQuery(table);
-    options = { ...options, type: QueryTypes.DESCRIBE };
     const sqlIndexes = this.queryGenerator.showIndexesQuery(table);
 
     try {
-      const data = await this.sequelize.queryRaw(sql, options);
+      const data = await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.DESCRIBE });
       /*
        * If no data is returned from the query, then the table name may be wrong.
        * Query generators that use information_schema for retrieving table info will just return an empty result set,
@@ -232,7 +231,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
         throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
-      const indexes = await this.sequelize.queryRaw(sqlIndexes, options);
+      const indexes = await this.sequelize.queryRaw(sqlIndexes, { ...options, type: QueryTypes.SHOWINDEXES });
       for (const prop in data) {
         data[prop].unique = false;
       }
@@ -261,7 +260,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
 
       return data;
     } catch (error) {
-      if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
+      if (error.cause && error.cause.code === 'ER_NO_SUCH_TABLE') {
         throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 

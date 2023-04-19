@@ -19,3 +19,15 @@ export interface DropAllSchemasOptions extends QueryRawOptions {
    */
   skip?: string[];
 }
+
+/** Options accepted by {@link AbstractQueryInterfaceTypeScript#describeTable} */
+export interface DescribeTableOptions extends QueryRawOptions {
+  /**
+   * @deprecated Use a TableNameWithSchema object to specify the schema or set the schema globally in the options.
+   */
+  schema?: string;
+  /**
+   * @deprecated Use a TableNameWithSchema object to specify the schemaDelimiter.
+   */
+  schemaDelimiter?: string;
+}

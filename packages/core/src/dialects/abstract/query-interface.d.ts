@@ -8,7 +8,6 @@ import type {
   Attributes,
   CreationAttributes,
   Filterable,
-  Logging,
   Model,
   ModelStatic,
   NormalizedAttributeOptions,
@@ -385,14 +384,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param options Options passed to {@link Sequelize#query}
    */
   tableExists(tableName: TableName, options?: QueryRawOptions): Promise<boolean>;
-
-  /**
-   * Describe a table
-   */
-  describeTable(
-    tableName: TableName,
-    options?: string | { schema?: string, schemaDelimiter?: string } & Logging
-  ): Promise<ColumnsDescription>;
 
   /**
    * Adds a new column to a table

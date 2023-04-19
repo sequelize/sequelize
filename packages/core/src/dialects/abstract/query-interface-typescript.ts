@@ -1,10 +1,19 @@
+import isEmpty from 'lodash/isEmpty';
+import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
-import type { QueryRawOptions, Sequelize } from '../../sequelize';
+import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
+import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
+import type { TableNameOrModel } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types';
-import type { CreateSchemaOptions, QueryInterfaceOptions, ShowAllSchemasOptions } from './query-interface.types';
+import type {
+  CreateSchemaOptions,
+  DescribeTableOptions,
+  QueryInterfaceOptions,
+  ShowAllSchemasOptions,
+} from './query-interface.types';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
 
@@ -82,6 +91,82 @@ export class AbstractQueryInterfaceTypeScript {
     const schemaNames = await this.sequelize.queryRaw(showSchemasSql, queryRawOptions);
 
     return schemaNames.flatMap((value: any) => (value.schema_name ? value.schema_name : value));
+  }
+
+  /**
+   * Describe a table structure
+   *
+   * This method returns an array of hashes containing information about all attributes in the table.
+   *
+   * ```js
+   * {
+   *    name: {
+   *      type:         'VARCHAR(255)', // this will be 'CHARACTER VARYING' for pg!
+   *      allowNull:    true,
+   *      defaultValue: null
+   *    },
+   *    isBetaMember: {
+   *      type:         'TINYINT(1)', // this will be 'BOOLEAN' for pg!
+   *      allowNull:    false,
+   *      defaultValue: false
+   *    }
+   * }
+   * ```
+   *
+   * @param tableName
+   * @param options Query options
+   *
+   */
+  async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions) {
+    let table: TableNameOrModel = { tableName: '' };
+
+    if (typeof tableName === 'string') {
+      table = { tableName };
+    }
+
+    if (typeof tableName === 'object' && tableName !== null) {
+      table = tableName;
+    }
+
+    if (typeof options === 'string') {
+      noSchemaParameter();
+      table = { ...table, schema: options };
+    }
+
+    if (typeof options === 'object' && options !== null) {
+      if (options.schema) {
+        noSchemaParameter();
+        table.schema = options.schema;
+      }
+
+      if (options.schemaDelimiter) {
+        noSchemaDelimiterParameter();
+        table.delimiter = options.schemaDelimiter;
+      }
+    }
+
+    const sql = this.queryGenerator.describeTableQuery(table);
+    const queryOptions: QueryRawOptionsWithType<QueryTypes.DESCRIBE> = { ...options, type: QueryTypes.DESCRIBE };
+
+    try {
+      const data = await this.sequelize.queryRaw(sql, queryOptions);
+      /*
+       * If no data is returned from the query, then the table name may be wrong.
+       * Query generators that use information_schema for retrieving table info will just return an empty result set,
+       * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
+       */
+      if (isEmpty(data)) {
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
+      }
+
+      return data;
+    } catch (error: BaseError | any) {
+      if (error instanceof BaseError && error.cause?.code === 'ER_NO_SUCH_TABLE') {
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
+      }
+
+      throw error;
+    }
   }
 
   /**
