@@ -307,6 +307,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             schema: 'archive',
             tableName: 'Users',
           });
+          expect(table).to.have.property('pseudo');
+          expect(table).to.not.have.property('username');
         });
       }
 

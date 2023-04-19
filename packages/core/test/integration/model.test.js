@@ -956,8 +956,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(table.id.defaultValue).to.not.contain('special');
         }
 
-        table = await this.sequelize.queryInterface.describeTable('Publics', {
-          schema: 'special',
+        table = await this.sequelize.queryInterface.describeTable({ tableName: 'Publics', schema: 'special' }, {
           logging(sql) {
             if (dialectName === 'sqlite' && sql.includes('TABLE_INFO')) {
               test++;
