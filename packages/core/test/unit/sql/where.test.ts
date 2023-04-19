@@ -1178,6 +1178,7 @@ Caused by: "undefined" cannot be escaped`),
             testSql({
               intRangeAttr: { [operator]: [10, null] },
             }, {
+              postgres: `"intRangeAttr" ${sqlOperator} '[10,)'::int4range`,
               cockroachdb: `"intRangeAttr" ${sqlOperator} '[10,)'::int4range`,
             });
           }
