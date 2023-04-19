@@ -9,7 +9,8 @@ export class ModelManager {
   constructor(sequelize: Sequelize);
   addModel<T extends ModelStatic>(model: T): T;
   removeModel(model: ModelStatic): void;
-  getModel(against: unknown, options?: { attribute?: string }): ModelStatic | undefined;
+  getModel(modelName: string): ModelStatic | undefined;
+  findModel(callback: (model: ModelStatic) => boolean): ModelStatic | undefined;
   hasModel(model: ModelStatic): boolean;
 
   /**

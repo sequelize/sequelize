@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           },
           like_t: {
-            where: Sequelize.where(Sequelize.fn('LOWER', Sequelize.col('username')), 'LIKE', '%t%'),
+            where: Sequelize.where(Sequelize.fn('LOWER', Sequelize.col('username')), Op.like, '%t%'),
           },
         },
       });

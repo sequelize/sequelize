@@ -1,16 +1,14 @@
 import type { AttributeOptions, ModelStatic } from '../../model.js';
 import { Model } from '../../model.js';
 import { registerModelAttributeOptions } from '../shared/model.js';
-import type {
-  OptionalParameterizedPropertyDecorator,
-  RequiredParameterizedPropertyDecorator,
-} from './decorator-utils.js';
 import {
-  createOptionallyParameterizedPropertyDecorator,
   DECORATOR_NO_DEFAULT,
+  createOptionallyParameterizedPropertyDecorator,
+  throwMustBeAttribute,
   throwMustBeInstanceProperty,
   throwMustBeMethod,
 } from './decorator-utils.js';
+import type { OptionalParameterizedPropertyDecorator, RequiredParameterizedPropertyDecorator } from './decorator-utils.js';
 
 /**
  * Creates a decorator that registers Attribute Options. Parameters are mandatory.
@@ -52,7 +50,7 @@ export function createOptionalAttributeOptionsDecorator<T>(
     defaultValue,
     (decoratorOption, target, propertyName, propertyDescriptor) => {
       if (typeof propertyName === 'symbol') {
-        throw new TypeError('Symbol Model Attributes are not currently supported. We welcome a PR that implements this feature.');
+        throwMustBeAttribute(decoratorName, target, propertyName);
       }
 
       const attributeOptions = callback(decoratorOption, target, propertyName, propertyDescriptor);

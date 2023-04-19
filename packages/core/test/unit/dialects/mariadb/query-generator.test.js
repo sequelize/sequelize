@@ -100,57 +100,6 @@ if (dialect === 'mariadb') {
         },
       ],
 
-      createTableQuery: [
-        {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB;',
-        },
-        {
-          arguments: ['myTable', { data: 'BLOB' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`data` BLOB) ENGINE=InnoDB;',
-        },
-        {
-          arguments: ['myTable', { data: 'LONGBLOB' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`data` LONGBLOB) ENGINE=InnoDB;',
-        },
-        {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { engine: 'MyISAM' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=MyISAM;',
-        },
-        {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'utf8', collate: 'utf8_unicode_ci' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE utf8_unicode_ci;',
-        },
-        {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { charset: 'latin1' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;',
-        },
-        {
-          arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }, { charset: 'latin1' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255)) ENGINE=InnoDB DEFAULT CHARSET=latin1;',
-        },
-        {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { rowFormat: 'default' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255)) ENGINE=InnoDB ROW_FORMAT=default;',
-        },
-        {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `id` INTEGER , PRIMARY KEY (`id`)) ENGINE=InnoDB;',
-        },
-        {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', otherId: 'INTEGER REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), `otherId` INTEGER, FOREIGN KEY (`otherId`) REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION) ENGINE=InnoDB;',
-        },
-        {
-          arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }, { uniqueKeys: [{ fields: ['title', 'name'] }] }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` VARCHAR(255), `name` VARCHAR(255), UNIQUE `uniq_myTable_title_name` (`title`, `name`)) ENGINE=InnoDB;',
-        },
-        {
-          arguments: ['myTable', { id: 'INTEGER auto_increment PRIMARY KEY' }, { initialAutoIncrement: 1_000_001 }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`id` INTEGER auto_increment , PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1000001;',
-        },
-      ],
-
       selectQuery: [
         {
           arguments: ['myTable'],
@@ -167,14 +116,6 @@ if (dialect === 'mariadb') {
         }, {
           arguments: ['myTable', { where: { name: 'foo' } }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`name` = \'foo\';',
-          context: QueryGenerator,
-        }, {
-          arguments: ['myTable', { where: { name: 'foo\';DROP TABLE myTable;' } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`name` = \'foo\\\';DROP TABLE myTable;\';',
-          context: QueryGenerator,
-        }, {
-          arguments: ['myTable', { where: 2 }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
           context: QueryGenerator,
         }, {
           arguments: ['myTable', { order: ['id'] }],
@@ -204,55 +145,6 @@ if (dialect === 'mariadb') {
             return sequelize.define('myTable', {});
           }],
           expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
-          context: QueryGenerator,
-          needsSequelize: true,
-        }, {
-          title: 'functions can take functions as arguments',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              order: [[sequelize.fn('f1', sequelize.fn('f2', sequelize.col('id'))), 'DESC']],
-            };
-          }],
-          expectation: 'SELECT * FROM `myTable` ORDER BY f1(f2(`id`)) DESC;',
-          context: QueryGenerator,
-          needsSequelize: true,
-        }, {
-          title: 'functions can take all types as arguments',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              order: [
-                [sequelize.fn('f1', sequelize.col('myTable.id')), 'DESC'],
-                [sequelize.fn('f2', 12, 'lalala', new Date(Date.UTC(2011, 2, 27, 10, 1, 55))), 'ASC'],
-              ],
-            };
-          }],
-          expectation: 'SELECT * FROM `myTable` ORDER BY f1(`myTable`.`id`) DESC, f2(12, \'lalala\', \'2011-03-27 10:01:55.000\') ASC;',
-          context: QueryGenerator,
-          needsSequelize: true,
-        }, {
-          title: 'sequelize.where with .fn as attribute and default comparator',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              where: sequelize.and(
-                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'jan'),
-                { type: 1 },
-              ),
-            };
-          }],
-          expectation: 'SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) = \'jan\' AND `myTable`.`type` = 1);',
-          context: QueryGenerator,
-          needsSequelize: true,
-        }, {
-          title: 'sequelize.where with .fn as attribute and LIKE comparator',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              where: sequelize.and(
-                sequelize.where(sequelize.fn('LOWER', sequelize.col('user.name')), 'LIKE', '%t%'),
-                { type: 1 },
-              ),
-            };
-          }],
-          expectation: 'SELECT * FROM `myTable` WHERE (LOWER(`user`.`name`) LIKE \'%t%\' AND `myTable`.`type` = 1);',
           context: QueryGenerator,
           needsSequelize: true,
         }, {
@@ -289,19 +181,6 @@ if (dialect === 'mariadb') {
           expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator,
         }, {
-          title: 'Combination of sequelize.fn, sequelize.col and { in: ... }',
-          arguments: ['myTable', function (sequelize) {
-            return {
-              where: sequelize.and(
-                { archived: null },
-                sequelize.where(sequelize.fn('COALESCE', sequelize.col('place_type_codename'), sequelize.col('announcement_type_codename')), { [Op.in]: ['Lost', 'Found'] }),
-              ),
-            };
-          }],
-          expectation: 'SELECT * FROM `myTable` WHERE (`myTable`.`archived` IS NULL AND COALESCE(`place_type_codename`, `announcement_type_codename`) IN (\'Lost\', \'Found\'));',
-          context: QueryGenerator,
-          needsSequelize: true,
-        }, {
           arguments: ['myTable', { limit: 10 }],
           expectation: 'SELECT * FROM `myTable` LIMIT 10;',
           context: QueryGenerator,
@@ -325,61 +204,6 @@ if (dialect === 'mariadb') {
           expectation: 'SELECT * FROM `myTable`;',
           context: QueryGenerator,
         }, {
-          title: 'multiple where arguments',
-          arguments: ['myTable', { where: { boat: 'canoe', weather: 'cold' } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`boat` = \'canoe\' AND `myTable`.`weather` = \'cold\';',
-          context: QueryGenerator,
-        }, {
-          title: 'no where arguments (object)',
-          arguments: ['myTable', { where: {} }],
-          expectation: 'SELECT * FROM `myTable`;',
-          context: QueryGenerator,
-        }, {
-          title: 'no where arguments (string)',
-          arguments: ['myTable', { where: [''] }],
-          expectation: 'SELECT * FROM `myTable` WHERE 1=1;',
-          context: QueryGenerator,
-        }, {
-          title: 'no where arguments (null)',
-          arguments: ['myTable', { where: null }],
-          expectation: 'SELECT * FROM `myTable`;',
-          context: QueryGenerator,
-        }, {
-          title: 'buffer as where argument',
-          arguments: ['myTable', { where: { field: Buffer.from('Sequelize') } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` = X\'53657175656c697a65\';',
-          context: QueryGenerator,
-        }, {
-          title: 'use != if ne !== null',
-          arguments: ['myTable', { where: { field: { [Op.ne]: 0 } } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 0;',
-          context: QueryGenerator,
-        }, {
-          title: 'use IS NOT if ne === null',
-          arguments: ['myTable', { where: { field: { [Op.ne]: null } } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT NULL;',
-          context: QueryGenerator,
-        }, {
-          title: 'use IS NOT if not === BOOLEAN',
-          arguments: ['myTable', { where: { field: { [Op.not]: true } } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` IS NOT true;',
-          context: QueryGenerator,
-        }, {
-          title: 'use != if not !== BOOLEAN',
-          arguments: ['myTable', { where: { field: { [Op.not]: 3 } } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` != 3;',
-          context: QueryGenerator,
-        }, {
-          title: 'Regular Expression in where clause',
-          arguments: ['myTable', { where: { field: { [Op.regexp]: '^[h|a|t]' } } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` REGEXP \'^[h|a|t]\';',
-          context: QueryGenerator,
-        }, {
-          title: 'Regular Expression negation in where clause',
-          arguments: ['myTable', { where: { field: { [Op.notRegexp]: '^[h|a|t]' } } }],
-          expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`field` NOT REGEXP \'^[h|a|t]\';',
-          context: QueryGenerator,
-        }, {
           title: 'Empty having',
           arguments: ['myTable', function () {
             return {
@@ -398,7 +222,7 @@ if (dialect === 'mariadb') {
               having: { creationYear: { [Op.gt]: 2002 } },
             };
           }],
-          expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `creationYear` > 2002) AS `test`;',
+          expectation: 'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `test`.`creationYear` > 2002) AS `test`;',
           context: QueryGenerator,
           needsSequelize: true,
         },
@@ -416,18 +240,6 @@ if (dialect === 'mariadb') {
           expectation: {
             query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1);',
             bind: { sequelize_1: 'foo\';DROP TABLE myTable;' },
-          },
-        }, {
-          arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) },
-          },
-        }, {
-          arguments: ['myTable', { name: 'foo', foo: 1 }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
         }, {
           arguments: ['myTable', { data: Buffer.from('Sequelize') }],
@@ -469,18 +281,6 @@ if (dialect === 'mariadb') {
             bind: { sequelize_1: 'foo', sequelize_2: 1 },
           },
           context: { options: { omitNull: true } },
-        }, {
-          arguments: ['myTable', { foo: false }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`foo`) VALUES ($sequelize_1);',
-            bind: { sequelize_1: false },
-          },
-        }, {
-          arguments: ['myTable', { foo: true }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`foo`) VALUES ($sequelize_1);',
-            bind: { sequelize_1: true },
-          },
         }, {
           arguments: ['myTable', function (sequelize) {
             return {
@@ -537,19 +337,6 @@ if (dialect === 'mariadb') {
 
       updateQuery: [
         {
-          arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`birthday`=$sequelize_2 WHERE `id` = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), sequelize_3: 2 },
-          },
-
-        }, {
-          arguments: ['myTable', { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) }, { id: 2 }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `name`=$sequelize_1,`birthday`=$sequelize_2 WHERE `id` = $sequelize_3',
-            bind: { sequelize_1: 'foo', sequelize_2: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), sequelize_3: 2 },
-          },
-        }, {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
           expectation: {
             query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
@@ -581,18 +368,6 @@ if (dialect === 'mariadb') {
             bind: { sequelize_1: 2, sequelize_2: 'foo' },
           },
           context: { options: { omitNull: true } },
-        }, {
-          arguments: ['myTable', { bar: false }, { name: 'foo' }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
-            bind: { sequelize_1: false, sequelize_2: 'foo' },
-          },
-        }, {
-          arguments: ['myTable', { bar: true }, { name: 'foo' }],
-          expectation: {
-            query: 'UPDATE `myTable` SET `bar`=$sequelize_1 WHERE `name` = $sequelize_2',
-            bind: { sequelize_1: true, sequelize_2: 'foo' },
-          },
         }, {
           arguments: ['myTable', function (sequelize) {
             return {

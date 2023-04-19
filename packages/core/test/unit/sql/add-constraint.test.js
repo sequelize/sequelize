@@ -72,7 +72,7 @@ describe(Support.getTestDialectTeaser('QueryGenerator#addConstraint'), () => {
           },
         },
       }), {
-        default: 'ALTER TABLE [myTable] ADD CONSTRAINT [check_mycolumn_where] CHECK (([myColumn] > 50 AND [myColumn] < 100));',
+        default: 'ALTER TABLE [myTable] ADD CONSTRAINT [check_mycolumn_where] CHECK ([myColumn] > 50 AND [myColumn] < 100);',
       });
     });
 

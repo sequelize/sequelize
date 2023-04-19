@@ -183,14 +183,19 @@ export class MariaDbQuery extends AbstractQuery {
       return;
     }
 
-    for (const _field of Object.keys(this.model.fieldRawAttributesMap)) {
+    const meta = rows.meta;
+    for (const [i, _field] of Object.keys(this.model.fieldRawAttributesMap).entries()) {
       const modelField = this.model.fieldRawAttributesMap[_field];
       if (modelField.type instanceof DataTypes.JSON) {
         // Value is returned as String, not JSON
         rows = rows.map(row => {
-          // JSON fields for MariaDB server 10.5.2+ already results in JSON format, skip JSON.parse
-          // this is due to this https://jira.mariadb.org/browse/MDEV-17832 and how mysql2 connector interacts with MariaDB and JSON fields
-          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string' && !this.connection.info.hasMinVersion(10, 5, 2)) {
+          // JSON fields for MariaDB server 10.5.2+ already results in JSON format so we can skip JSON.parse
+          // In this case the column type field will be MYSQL_TYPE_STRING, but the extended type will indicate 'json'
+          if (
+            row[modelField.fieldName]
+            && typeof row[modelField.fieldName] === 'string'
+            && (!meta[i] || meta[i].dataTypeFormat !== 'json')
+          ) {
             row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
           }
 

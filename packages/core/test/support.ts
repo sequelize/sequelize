@@ -29,8 +29,18 @@ chai.use(sinonChai);
  * that is also checks whether the message is present in the error cause.
  */
 chai.Assertion.addMethod('throwWithCause', function throwWithCause(errorConstructor, errorMessage) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(withInlineCause(this._obj)).to.throw(errorConstructor, errorMessage);
+});
+
+chai.Assertion.addMethod('beNullish', function nullish() {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
+  expect(this._obj).to.not.exist;
+});
+
+chai.Assertion.addMethod('notBeNullish', function nullish() {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
+  expect(this._obj).to.exist;
 });
 
 function withInlineCause(cb: (() => any)): () => void {
@@ -47,7 +57,11 @@ function withInlineCause(cb: (() => any)): () => void {
   };
 }
 
-function inlineErrorCause(error: Error) {
+export function inlineErrorCause(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return String(error);
+  }
+
   let message = error.message;
 
   // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
@@ -124,32 +138,6 @@ export function captureUnhandledRejections(destArray = []) {
   return unhandledRejections;
 }
 
-let lastSqliteInstance: Sequelize | undefined;
-export async function prepareTransactionTest(sequelize: Sequelize) {
-  const dialect = getTestDialect();
-
-  if (dialect === 'sqlite') {
-    const p = path.join(__dirname, 'tmp', 'db.sqlite');
-    if (lastSqliteInstance) {
-      await lastSqliteInstance.close();
-    }
-
-    if (fs.existsSync(p)) {
-      fs.unlinkSync(p);
-    }
-
-    const options = { ...sequelize.options, storage: p };
-    const _sequelize = new Sequelize(sequelize.config.database, '', '', options);
-
-    await _sequelize.sync({ force: true });
-    lastSqliteInstance = _sequelize;
-
-    return _sequelize;
-  }
-
-  return sequelize;
-}
-
 export function createSequelizeInstance(options: Options = {}): Sequelize {
   options.dialect = getTestDialect();
 
@@ -191,48 +179,6 @@ export function getSequelizeInstance(db: string, user: string, pass: string, opt
   options.dialect = options.dialect || getTestDialect();
 
   return new Sequelize(db, user, pass, options);
-}
-
-export async function clearDatabase(sequelize: Sequelize) {
-  const qi = sequelize.getQueryInterface();
-  await qi.dropAllTables();
-  sequelize.modelManager.models = [];
-  sequelize.models = {};
-
-  if (qi.dropAllEnums) {
-    await qi.dropAllEnums();
-  }
-
-  await dropTestSchemas(sequelize);
-}
-
-export async function dropTestSchemas(sequelize: Sequelize) {
-  if (!sequelize.dialect.supports.schemas) {
-    await sequelize.drop({});
-
-    return;
-  }
-
-  const schemas = await sequelize.showAllSchemas();
-  const schemasPromise = [];
-  for (const schema of schemas) {
-    // @ts-expect-error -- TODO: type return value of "showAllSchemas"
-    const schemaName = schema.name ? schema.name : schema;
-    if (schemaName !== sequelize.config.database) {
-      const promise = sequelize.dropSchema(schemaName);
-
-      if (getTestDialect() === 'db2') {
-        // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
-        // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
-        // eslint-disable-next-line no-await-in-loop
-        await promise;
-      } else {
-        schemasPromise.push(promise);
-      }
-    }
-  }
-
-  await Promise.all(schemasPromise);
 }
 
 export function getSupportedDialects() {
@@ -332,9 +278,9 @@ export function expectPerDialect<Out>(
   if (expectation instanceof Error) {
     assert(result instanceof Error, `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`);
 
-    expect(result.message).to.equal(expectation.message);
+    expect(inlineErrorCause(result)).to.include(expectation.message);
   } else {
-    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${result instanceof Error ? result.message : ''}`);
+    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`);
 
     assertMatchesExpectation(result, expectation);
   }
@@ -403,7 +349,7 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(properties
 type MaybeLazy<T> = T | (() => T);
 
 export function expectsql(
-  query: MaybeLazy<{ query: string, bind: unknown } | Error>,
+  query: MaybeLazy<{ query: string, bind?: unknown } | Error>,
   assertions: {
     query: PartialRecord<ExpectationKey, string | Error>,
     bind: PartialRecord<ExpectationKey, unknown>,
@@ -414,7 +360,7 @@ export function expectsql(
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: MaybeLazy<string | Error | { query: string, bind: unknown }>,
+  query: MaybeLazy<string | Error | { query: string, bind?: unknown }>,
   assertions:
     | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
     | PartialRecord<ExpectationKey, string | Error>,
@@ -483,9 +429,9 @@ export function expectsql(
   if (expectation instanceof Error) {
     assert(query instanceof Error, `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`);
 
-    expect(query.message).to.equal(expectation.message);
+    expect(inlineErrorCause(query)).to.include(expectation.message);
   } else {
-    assert(!(query instanceof Error), `Expected query to equal ${minifySql(expectation)}, but it errored with ${query instanceof Error ? query.message : ''}`);
+    assert(!(query instanceof Error), `Expected query to equal:\n${minifySql(expectation)}\n\nBut it errored with:\n${inlineErrorCause(query)}`);
 
     expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
   }
@@ -526,26 +472,22 @@ export function minifySql(sql: string): string {
 
 export const sequelize = createSequelizeInstance();
 
-export function resetSequelizeInstance(): void {
-  for (const model of sequelize.modelManager.all) {
-    sequelize.modelManager.removeModel(model);
+export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize): void {
+  for (const model of sequelizeInstance.modelManager.all) {
+    sequelizeInstance.modelManager.removeModel(model);
   }
 }
 
 // 'support' is requested by dev/check-connection, which is not a mocha context
 if (typeof before !== 'undefined') {
   before(function onBefore() {
-    // legacy, remove once all tests have been migrated
+    // legacy, remove once all tests have been migrated to not use "this" anymore
     // eslint-disable-next-line @typescript-eslint/no-invalid-this
-    this.sequelize = sequelize;
-  });
-}
-
-if (typeof beforeEach !== 'undefined') {
-  beforeEach(function onBeforeEach() {
-    // legacy, remove once all tests have been migrated
-    // eslint-disable-next-line @typescript-eslint/no-invalid-this
-    this.sequelize = sequelize;
+    Object.defineProperty(this, 'sequelize', {
+      value: sequelize,
+      writable: false,
+      configurable: false,
+    });
   });
 }
 

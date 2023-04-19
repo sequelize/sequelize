@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('Schema'), () => {
     const result = await user0.increment('aNumber', { by: 3 });
     const user = await result.reload();
     expect(user).to.be.ok;
-    expect(user.aNumber).to.be.equal(4);
+    expect(user.aNumber).to.equal(4);
   });
 
   it('supports decrement', async function () {
@@ -44,6 +44,6 @@ describe(Support.getTestDialectTeaser('Schema'), () => {
     const result = await user0.decrement('aNumber', { by: 3 });
     const user = await result.reload();
     expect(user).to.be.ok;
-    expect(user.aNumber).to.be.equal(7);
+    expect(user.aNumber).to.equal(7);
   });
 });

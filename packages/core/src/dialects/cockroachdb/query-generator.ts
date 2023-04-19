@@ -1,9 +1,14 @@
 import type { TruncateOptions } from 'src/model';
+import type { Expression } from '../../sequelize.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import type { TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { EscapeOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import { PostgresQueryGenerator } from '../postgres/query-generator';
 import { ENUM } from './data-types';
 
+export interface ListSchemasQueryOptions {
+  /** List of schemas to exclude from output */
+  skip?: string[];
+}
 export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
   setSearchPath(searchPath: string) {
     return `SET search_path to ${searchPath};`;
@@ -117,5 +122,41 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
     enumName = enumName || this.pgEnumName(tableName, attr);
 
     return `DROP TYPE IF EXISTS ${enumName}; `;
+  }
+
+  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
+    const operator = path.length === 1
+      ? (unquote ? '->>' : '->')
+      : (unquote ? '#>>' : '#>');
+
+    const pathSql = path.length === 1
+      // when accessing an array index with ->, the index must be a number
+      // when accessing an object key with ->, the key must be a string
+      ? this.escape(path[0])
+      // when accessing with #>, the path is always an array of strings
+      : this.escape(path.map(value => String(value)));
+
+    return sqlExpression + operator + pathSql;
+  }
+
+  formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
+    return `${this.escape(arg, options)}#>>ARRAY[]::TEXT[]`;
+  }
+
+  dropSchemaQuery(schema: string) {
+    if (schema === 'crdb_internal') {
+      throw new Error('Cannot remove crdb_internal schema in Cockroachdb');
+    }
+
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
+  }
+
+  listSchemasQuery(options: ListSchemasQueryOptions) {
+    const schemasToSkip = ['information_schema', 'public', 'crdb_internal'];
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 }

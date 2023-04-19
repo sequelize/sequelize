@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import type { CreationOptional, InferAttributes, InferCreationAttributes, Rangable } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
-import { beforeEach2, sequelize } from '../support';
+import { beforeEach2, sequelize, setResetMode } from '../support';
 import { testSimpleInOut } from './data-types.test';
 
 const dialect = sequelize.dialect;
@@ -10,6 +10,8 @@ describe('DataTypes.RANGE', () => {
   if (!dialect.supports.dataTypes.RANGE) {
     return;
   }
+
+  setResetMode('none');
 
   const vars = beforeEach2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -156,9 +158,12 @@ describe('DataTypes.RANGE', () => {
 });
 
 describe('DataTypes.ARRAY(DataTypes.RANGE)', () => {
-  if (!dialect.supports.dataTypes.ARRAY) {
+  // Cockroachdb does not support ranges.
+  if (!dialect.supports.dataTypes.ARRAY || dialect.name === 'cockroachdb') {
     return;
   }
+
+  setResetMode('none');
 
   const vars = beforeEach2(async () => {
     class User extends Model<InferAttributes<User>> {

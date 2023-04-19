@@ -9,14 +9,14 @@ const { logger } = require('../../utils/logger');
 const debug = logger.debugContext('sql:pg');
 
 export class PostgresQuery extends AbstractQuery {
-  async run(sql, parameters) {
+  async run(sql, parameters, options) {
     const { connection } = this;
 
     if (!_.isEmpty(this.options.searchPath)) {
       sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
     }
 
-    if (this.sequelize.options.minifyAliases && this.options.includeAliases) {
+    if (options?.minifyAliases && this.options.includeAliases) {
       for (const [alias, original] of _.toPairs(this.options.includeAliases)
         // Sorting to replace the longest aliases first to prevent alias collision
         .sort((a, b) => b[1].length - a[1].length)) {
@@ -73,7 +73,7 @@ export class PostgresQuery extends AbstractQuery {
       )
       : queryResult.rowCount || 0;
 
-    if (this.sequelize.options.minifyAliases && this.options.aliasesMapping) {
+    if (options?.minifyAliases && this.options.aliasesMapping) {
       rows = rows
         .map(row => _.toPairs(row)
           .reduce((acc, [key, value]) => {
@@ -186,6 +186,7 @@ export class PostgresQuery extends AbstractQuery {
       let result = rows;
       // Postgres will treat tables as case-insensitive, so fix the case
       // of the returned values to match attributes
+      // TODO [>7]: remove this.sequelize.options.quoteIdentifiers === false
       if (this.options.raw === false && this.sequelize.options.quoteIdentifiers === false) {
         const attrsMap = Object.create(null);
 

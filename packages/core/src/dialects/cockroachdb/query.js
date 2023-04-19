@@ -7,7 +7,7 @@ import { logger } from '../../utils/logger';
 const debug = logger.debugContext('crdb');
 
 export class CockroachDbQuery extends AbstractQuery {
-  async run(sql, parameters) {
+  async run(sql, parameters, options) {
     const { connection } = this;
 
     if (!_.isEmpty(this.options.searchPath)) {
@@ -60,7 +60,7 @@ export class CockroachDbQuery extends AbstractQuery {
       )
       : queryResult.rowCount || 0;
 
-    if (this.sequelize.options.minifyAliases && this.options.aliasesMapping) {
+    if (options?.minifyAliases && this.options.includeAliases) {
       rows = rows
         .map(row => _.toPairs(row)
           .reduce((acc, [key, value]) => {

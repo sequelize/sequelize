@@ -2,19 +2,28 @@ import assert from 'node:assert';
 import { format } from 'node:util';
 import { ValidationErrorItem } from '../../errors';
 import type { GeoJson } from '../../geo-json';
+import { isString } from '../../utils/check';
 import type { AbstractDialect } from '../abstract';
+import type { AbstractDataType, AcceptableTypeOf, BindParamOptions } from '../abstract/data-types';
 import * as BaseTypes from '../abstract/data-types';
-import { GEOGRAPHY as PostgresGeography, ARRAY as PostgresArray } from '../postgres/data-types';
+import { attributeTypeToSql } from '../abstract/data-types-utils';
+import { GEOGRAPHY as PostgresGeography } from '../postgres/data-types';
 import { CockroachDbQueryGenerator } from './query-generator';
 
-function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
+const removeUnsupportedIntegerOptions = (dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) => {
   if (dataType.options.length != null) {
     // this option only makes sense for zerofill
     dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`);
 
     delete dataType.options.length;
   }
-}
+};
+
+const getArrayDepth = (value: any[]): number => {
+  return Array.isArray(value)
+    ? 1 + Math.max(0, ...value.map(getArrayDepth))
+    : 0;
+};
 
 export class TINYINT extends BaseTypes.TINYINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -119,8 +128,8 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
     return result;
   }
 
-  toBindableValue(value: BaseTypes.AcceptableTypeOf<BaseTypes.GEOMETRY>, options: BaseTypes.StringifyOptions): string {
-    return `ST_GeomFromGeoJSON(${options.dialect.escapeString(JSON.stringify(value))})`;
+  toBindableValue(value: BaseTypes.AcceptableTypeOf<BaseTypes.GEOMETRY>): string {
+    return `ST_GeomFromGeoJSON(${this._getDialect().escapeString(JSON.stringify(value))})`;
   }
 
   getBindParamSql(value: BaseTypes.AcceptableTypeOf<BaseTypes.GEOMETRY>, options: BaseTypes.BindParamOptions) {
@@ -165,7 +174,6 @@ export class DATE extends BaseTypes.DATE {
 
   toBindableValue(
     value: BaseTypes.AcceptedDate,
-    options: BaseTypes.StringifyOptions,
   ): string {
     if (value === Number.POSITIVE_INFINITY) {
       return '294276-12-31 23:59:59.999999+00:00';
@@ -175,7 +183,7 @@ export class DATE extends BaseTypes.DATE {
       return '-4713-11-24 00:00:00+00:00';
     }
 
-    return super.toBindableValue(value, options);
+    return super.toBindableValue(value);
   }
 
   sanitize(value: unknown) {
@@ -187,22 +195,56 @@ export class DATE extends BaseTypes.DATE {
       return value;
     }
 
-    // if (typeof value === 'string') {
-    //   const lower = value.toLowerCase();
-    //   if (lower === 'infinity') {
-    //     return '294276-12-31 23:59:59.999999+00:00';
-    //   }
-
-    //   if (lower === '-infinity') {
-    //     return '-4713-11-24 00:00:00+00:00';
-    //   }
-    // }
-
     return super.sanitize(value);
   }
 }
 
-export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends PostgresArray<T> {}
+export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.ARRAY<T> {
+  escape(values: Array<AcceptableTypeOf<T>>) {
+    const type = this.options.type;
+
+    const mappedValues = isString(type) ? values : values.map(value => type.escape(value));
+
+    // Types that don't need to specify their cast
+    const unambiguousType = type instanceof BaseTypes.STRING
+      || type instanceof BaseTypes.TEXT
+      || type instanceof BaseTypes.INTEGER;
+
+    const cast = mappedValues.length === 0 || !unambiguousType ? `::${attributeTypeToSql(type)}[]` : '';
+
+    return `ARRAY[${mappedValues.join(',')}]${cast}`;
+  }
+
+  getBindParamSql(
+    values: Array<AcceptableTypeOf<T>>,
+    options: BindParamOptions,
+  ) {
+    if (isString(this.options.type)) {
+      return options.bindParam(values);
+    }
+
+    const subType: AbstractDataType<any> = this.options.type;
+
+    return options.bindParam(values.map((value: any) => {
+      return subType.toBindableValue(value);
+    }));
+  }
+
+  validate(value: any) {
+    if (Array.isArray(value)) {
+      const depth = getArrayDepth(value);
+      if (depth > 1) {
+        ValidationErrorItem.throwDataTypeValidationError('CockroachDB does not support nested arrays.');
+      } else {
+        super.validate(value);
+
+        return;
+      }
+    }
+
+    super.validate(value);
+  }
+}
 
 export class DECIMAL extends BaseTypes.DECIMAL {
   // TODO: add check constraint >= 0 if unsigned is true

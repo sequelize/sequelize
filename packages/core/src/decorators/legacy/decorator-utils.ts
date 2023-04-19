@@ -107,6 +107,12 @@ export function throwMustBeMethod(decoratorName: string, target: Object, propert
   );
 }
 
+export function throwMustBeAttribute(decoratorName: string, target: Object, propertyName: string | symbol): never {
+  throw new TypeError(
+    `Decorator @${decoratorName} has been used on ${getPropertyName(target, propertyName)}, which is a symbol field. Symbol Model Attributes are not currently supported. We welcome a PR that implements this feature.`,
+  );
+}
+
 export function getPropertyName(obj: object, property: string | symbol): string {
   if (typeof obj === 'function') {
     return `${obj.name}.${String(property)}`;

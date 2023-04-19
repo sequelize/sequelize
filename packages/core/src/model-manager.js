@@ -22,12 +22,12 @@ export class ModelManager {
     delete this.sequelize.models[modelToRemove.name];
   }
 
-  getModel(against, options) {
-    options = _.defaults(options || {}, {
-      attribute: 'name',
-    });
+  getModel(modelName) {
+    return this.models.find(model => model.name === modelName);
+  }
 
-    return this.models.find(model => model[options.attribute] === against);
+  findModel(callback) {
+    return this.models.find(callback);
   }
 
   hasModel(targetModel) {

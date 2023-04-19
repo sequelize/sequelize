@@ -16,7 +16,7 @@ jobs:
     name: PR has semantic title
     runs-on: ubuntu-latest
     steps:
-      - uses: amannn/action-semantic-pull-request@b6bca70dcd3e56e896605356ce09b76f7e1e0d39 # v5.1.0
+      - uses: amannn/action-semantic-pull-request@c3cd5d1ea3580753008872425915e343e351ab54 # v5.2.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

@@ -12,8 +12,8 @@ import type {
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
-import { beforeAll2, disableDatabaseResetForSuite, sequelize } from '../support';
+import { DataTypes, Model, QueryTypes, ValidationError, fn } from '@sequelize/core';
+import { beforeAll2, sequelize, setResetMode } from '../support';
 import 'moment-timezone';
 
 dayjs.extend(DayjsTimezone);
@@ -29,7 +29,7 @@ enum TestEnum {
 }
 
 describe('DataTypes', () => {
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   // TODO: merge STRING & TEXT: remove default length limit on STRING instead of using 255.
   describe('STRING(<length>)', () => {
@@ -1344,6 +1344,28 @@ describe('DataTypes', () => {
         return { User };
       });
 
+      it('produces the right DataType in the database', async () => {
+        const table = await sequelize.queryInterface.describeTable(vars.User.table);
+        switch (dialect.name) {
+          // mssql & sqlite use text columns with CHECK constraints
+          case 'mssql':
+            expect(table.jsonStr.type).to.equal('NVARCHAR(MAX)');
+            break;
+          case 'sqlite':
+            expect(table.jsonStr.type).to.equal('TEXT');
+            break;
+          case 'mariadb':
+            // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
+            expect(table.jsonStr.type).to.equal('LONGTEXT');
+            break;
+          case 'cockroachdb':
+            expect(table.jsonStr.type).to.equal('JSONB');
+            break;
+          default:
+            expect(table.jsonStr.type).to.equal(jsonTypeName);
+        }
+      });
+
       it('properly serializes default values', async () => {
         const createdUser = await vars.User.create();
         await createdUser.reload();
@@ -1398,8 +1420,7 @@ describe('DataTypes', () => {
             await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, '123.4');
             await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], '[1,2]');
             await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, '{"a":1}');
-            // this isn't the JSON null value, but a SQL null value
-            await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
+            await testSimpleInOutRaw(vars.User, 'jsonNull', null, 'null');
           });
         } else {
           it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {
@@ -1485,7 +1506,7 @@ describe('DataTypes', () => {
         declare booleanArray: Array<string | number | bigint | boolean> | null;
         declare dateArray: Array<string | Date> | null;
         declare stringArray: string[];
-        declare arrayOfArrayOfStrings: string[][];
+        declare arrayOfArrayOfStrings?: string[][];
       }
 
       User.init({
@@ -1495,7 +1516,7 @@ describe('DataTypes', () => {
         booleanArray: DataTypes.ARRAY(DataTypes.BOOLEAN),
         dateArray: DataTypes.ARRAY(DataTypes.DATE),
         stringArray: DataTypes.ARRAY(DataTypes.TEXT),
-        arrayOfArrayOfStrings: DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.TEXT)),
+        ...(dialect.name !== 'cockroachdb' && { arrayOfArrayOfStrings: DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.TEXT)) }),
       }, { sequelize });
 
       await User.sync({ force: true });
@@ -1503,6 +1524,8 @@ describe('DataTypes', () => {
       return { User };
     });
 
+    // CockroachDB does not support nested arrays.
+    // TODO: Throw a graceful error when a nested array is passed for CRDB.
     it('serialize/deserializes arrays', async () => {
       await testSimpleInOut(vars.User, 'enumArray', [TestEnum.A, TestEnum.B, TestEnum['D,E']], [TestEnum.A, TestEnum.B, TestEnum['D,E']]);
       await testSimpleInOut(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);
@@ -1510,17 +1533,27 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'booleanArray', [true, false], [true, false]);
       await testSimpleInOut(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], [new Date('2022-01-01T00:00:00Z'), new Date('2022-01-01T00:00:00Z')]);
       await testSimpleInOut(vars.User, 'stringArray', ['a,b,c', 'd,e,f'], ['a,b,c', 'd,e,f']);
-      await testSimpleInOut(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+      if (dialect.name !== 'cockroachdb') {
+        await testSimpleInOut(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+      }
     });
 
     it(`is deserialized as a parsed array when DataType is not specified`, async () => {
       await testSimpleInOutRaw(vars.User, 'enumArray', [TestEnum.A, TestEnum.B, TestEnum['D,E']], [TestEnum.A, TestEnum.B, TestEnum['D,E']]);
       await testSimpleInOutRaw(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);
-      await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], ['1', '2', '3']);
+      if (dialect.name === 'cockroachdb') {
+        await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], [1, 2, 3]);
+        await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00:00', '2022-01-01 00:00:00+00:00']);
+      } else {
+        await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], ['1', '2', '3']);
+        await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00']);
+      }
+
       await testSimpleInOutRaw(vars.User, 'booleanArray', [true, false], [true, false]);
-      await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00']);
       await testSimpleInOutRaw(vars.User, 'stringArray', ['a,b,c', 'd,e,f'], ['a,b,c', 'd,e,f']);
-      await testSimpleInOutRaw(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+      if (dialect.name !== 'cockroachdb') {
+        await testSimpleInOutRaw(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+      }
     });
 
     it('rejects non-array values', async () => {

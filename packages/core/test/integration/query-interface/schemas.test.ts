@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
-import type { CreateSchemaQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
+import type {
+  CreateSchemaQueryOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator';
 import { sequelize } from '../support';
 
 const { dialect } = sequelize;
@@ -63,9 +65,6 @@ describe('QueryInterface#{create,drop,showAll}Schema', () => {
       case 'mysql':
       case 'mariadb':
         expected = [sequelize.config.database, testSchema];
-        break;
-      case 'cockroachdb':
-        expected = ['crdb_internal', testSchema];
         break;
       default:
         expected = [testSchema];

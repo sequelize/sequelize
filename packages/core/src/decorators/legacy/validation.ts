@@ -2,11 +2,7 @@ import type { ColumnValidateOptions, ModelOptions } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { registerModelOptions } from '../shared/model.js';
 import { createRequiredAttributeOptionsDecorator } from './attribute-utils.js';
-import {
-  createOptionallyParameterizedPropertyDecorator,
-  throwMustBeMethod,
-  throwMustBeModel,
-} from './decorator-utils.js';
+import { createOptionallyParameterizedPropertyDecorator, throwMustBeMethod, throwMustBeModel } from './decorator-utils.js';
 
 /**
  * Used to register a function that will be called when an attribute is being validated.
@@ -66,13 +62,13 @@ export const ModelValidator = createOptionallyParameterizedPropertyDecorator<und
     const targetClass = isStatic ? target : target.constructor;
 
     if (!isModelStatic(targetClass)) {
-      throwMustBeModel('ValidateModel', target, propertyName);
+      throwMustBeModel('ModelValidator', target, propertyName);
     }
 
     // @ts-expect-error -- it's normal to get any here
     const property = target[propertyName];
     if (typeof property !== 'function') {
-      throwMustBeMethod('ValidateModel', target, propertyName);
+      throwMustBeMethod('ModelValidator', target, propertyName);
     }
 
     const validator = isStatic ? function validate() {

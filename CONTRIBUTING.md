@@ -9,7 +9,7 @@ We are happy to see that you might be interested in contributing to Sequelize! T
 - Reviewing (i.e. commenting on) open Pull Requests, to help their creators improve it if needed and allow maintainers to take less time looking into them
 - Helping to clarify issues opened by others, commenting and asking for clarification
 - Answering [questions tagged with `sequelize.js` on StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js)
-- Helping people in our [public Slack channel](https://sequelize.slack.com/) (note: if you don't have access, get yourself an invite automatically via [this link](https://join.slack.com/t/sequelize/shared_invite/zt-1igt9hx8h-tGWU4AI1bRPvkRdEK5wnuQ))
+- Helping people in our [public Slack channel](https://sequelize.slack.com/) (note: if you don't have access, get yourself an invite automatically via [this link](https://sequelize.org/slack))
 
 Sequelize is strongly moved by contributions from people like you. All maintainers also work on their free time here.
 

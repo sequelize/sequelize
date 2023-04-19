@@ -1,19 +1,14 @@
-'use strict';
+import { expect } from 'chai';
+import sinon from 'sinon';
+import { DataTypes } from '@sequelize/core';
+import { createSequelizeInstance, getTestDialect, sequelize } from '../../support';
 
-const chai = require('chai');
+const dialectName = getTestDialect();
 
-const expect = chai.expect;
-const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-const sinon = require('sinon');
-
-const current = Support.sequelize;
-const dialect = Support.getTestDialect();
-
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   describe('define', () => {
     it('should allow custom timestamps with underscored: true', () => {
-      const User = current.define('User', {}, {
+      const User = sequelize.define('User', {}, {
         createdAt: 'createdAt',
         updatedAt: 'updatedAt',
         timestamps: true,
@@ -32,14 +27,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should throw only when id is added but primaryKey is not set', () => {
       expect(() => {
-        current.define('foo', {
+        sequelize.define('foo', {
           id: DataTypes.INTEGER,
         });
       }).to.throw('An attribute called \'id\' was defined in model \'foos\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
     });
 
     it('allows creating an "id" field as the primary key', () => {
-      const Bar = current.define('bar', {
+      const Bar = sequelize.define('bar', {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -51,7 +46,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('allows creating an "id" field explicitly marked as non primary key', () => {
-      const Baz = current.define('baz', {
+      const Baz = sequelize.define('baz', {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: false,
@@ -64,7 +59,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not add the default PK when noPrimaryKey is set to true', () => {
-      const User = current.define('User', {}, {
+      const User = sequelize.define('User', {}, {
         noPrimaryKey: true,
       });
 
@@ -72,13 +67,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should add the default `id` field PK if noPrimary is not set and no PK has been defined manually', () => {
-      const User = current.define('User', {});
+      const User = sequelize.define('User', {});
 
       expect(User.getAttributes()).to.have.property('id');
     });
 
     it('should not add the default `id` field PK if PK has been defined manually', () => {
-      const User = current.define('User', {
+      const User = sequelize.define('User', {
         customId: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -89,19 +84,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should support noPrimaryKey on Sequelize define option', () => {
-      const sequelize = Support.createSequelizeInstance({
+      const sequelizeNoPk = createSequelizeInstance({
         define: {
           noPrimaryKey: true,
         },
       });
 
-      const User = sequelize.define('User', {});
+      const User = sequelizeNoPk.define('User', {});
 
       expect(User.options.noPrimaryKey).to.equal(true);
     });
 
     it('supports marking an attribute as unique', () => {
-      const User = current.define('User', {
+      const User = sequelize.define('User', {
         firstName: {
           type: DataTypes.STRING,
           unique: true,
@@ -117,7 +112,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('supports marking multiple attributes as composite unique', () => {
-      const User = current.define('User', {
+      const User = sequelize.define('User', {
         firstName: {
           type: DataTypes.STRING,
           unique: 'firstName-lastName',
@@ -137,7 +132,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('supports using the same attribute in multiple uniques', () => {
-      const User = current.define('User', {
+      const User = sequelize.define('User', {
         firstName: {
           type: DataTypes.STRING,
           unique: [true, 'firstName-lastName', 'firstName-country'],
@@ -174,13 +169,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should throw when the attribute name is ambiguous with $nested.attribute$ syntax', () => {
       expect(() => {
-        current.define('foo', {
+        sequelize.define('foo', {
           $id: DataTypes.INTEGER,
         });
       }).to.throw('Name of attribute "$id" in model "foo" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.');
 
       expect(() => {
-        current.define('foo', {
+        sequelize.define('foo', {
           id$: DataTypes.INTEGER,
         });
       }).to.throw('Name of attribute "id$" in model "foo" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.');
@@ -188,7 +183,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should throw when the attribute name is ambiguous with json.path syntax', () => {
       expect(() => {
-        current.define('foo', {
+        sequelize.define('foo', {
           'my.attribute': DataTypes.INTEGER,
         });
       }).to.throw('Name of attribute "my.attribute" in model "foo" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.');
@@ -196,7 +191,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should throw when the attribute name is ambiguous with casting syntax', () => {
       expect(() => {
-        current.define('foo', {
+        sequelize.define('foo', {
           'id::int': DataTypes.INTEGER,
         });
       }).to.throw('Name of attribute "id::int" in model "foo" cannot include the character sequence "::" as it is reserved syntax used to cast attributes in queries.');
@@ -204,7 +199,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should throw when the attribute name is ambiguous with nested-association syntax', () => {
       expect(() => {
-        current.define('foo', {
+        sequelize.define('foo', {
           'my->attribute': DataTypes.INTEGER,
         });
       }).to.throw('Name of attribute "my->attribute" in model "foo" cannot include the character sequence "->" as it is reserved syntax used in SQL generated by Sequelize to target nested associations.');
@@ -212,9 +207,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should defend against null or undefined "unique" attributes', () => {
       expect(() => {
-        current.define('baz', {
+        sequelize.define('baz', {
           foo: {
             type: DataTypes.STRING,
+            // @ts-expect-error -- we're testing that it defends against this
             unique: null,
           },
           bar: {
@@ -230,8 +226,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should throw for unknown data type', () => {
       expect(() => {
-        current.define('bar', {
+        sequelize.define('bar', {
           name: {
+            // @ts-expect-error -- we're testing that this throws
             type: DataTypes.MY_UNKNOWN_TYPE,
           },
         });
@@ -240,7 +237,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should throw for notNull validator without allowNull', () => {
       expect(() => {
-        current.define('user', {
+        sequelize.define('user', {
           name: {
             type: DataTypes.STRING,
             allowNull: true,
@@ -254,7 +251,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throwWithCause(`"notNull" validator is only allowed with "allowNull:false"`);
 
       expect(() => {
-        current.define('part', {
+        sequelize.define('part', {
           name: {
             type: DataTypes.STRING,
             validate: {
@@ -267,13 +264,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }).to.throwWithCause(`"notNull" validator is only allowed with "allowNull:false"`);
     });
 
-    it('throws an error if 2 autoIncrements are passed', function () {
+    it('throws an error if 2 autoIncrements are passed', () => {
       expect(() => {
-        this.sequelize.define('UserWithTwoAutoIncrements', {
+        sequelize.define('UserWithTwoAutoIncrements', {
           userid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           userscore: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         });
       }).to.throwWithCause(`Only one autoIncrement attribute is allowed per model, but both 'userscore' and 'userid' are marked as autoIncrement.`);
+    });
+
+    it('should set the schema to the global value unless another value is provided', () => {
+      const sequelizeSchema = createSequelizeInstance({
+        define: {
+          schema: 'mySchema',
+        },
+      });
+
+      const Model1 = sequelizeSchema.define('Model1');
+      expect(Model1.modelDefinition.table.schema).to.equal('mySchema');
+
+      const Model2 = sequelizeSchema.define('Model2', {}, { schema: undefined });
+      expect(Model2.modelDefinition.table.schema).to.equal('mySchema');
+
+      const Model3 = sequelizeSchema.define('Model3', {}, { schema: 'other_schema' });
+      expect(Model3.modelDefinition.table.schema).to.equal('other_schema');
     });
 
     describe('datatype warnings', () => {
@@ -282,12 +296,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       afterEach(() => {
+        // @ts-expect-error -- only used in testing
         console.warn.restore();
       });
 
       it('warns for unsupported FLOAT options', () => {
         // must use a new sequelize instance because warnings are only logged once per instance.
-        const newSequelize = Support.createSequelizeInstance();
+        const newSequelize = createSequelizeInstance();
 
         newSequelize.define('A', {
           age: {
@@ -295,10 +310,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        if (!['mysql', 'mariadb'].includes(dialect)) {
+        if (!['mysql', 'mariadb'].includes(dialectName)) {
+          // @ts-expect-error -- only used in testing
           expect(console.warn.called).to.eq(true, 'console.warn was not called');
+          // @ts-expect-error -- only used in testing
           expect(console.warn.args[0][0]).to.contain(`does not support FLOAT with scale or precision specified. These options are ignored.`);
         } else {
+          // @ts-expect-error -- only used in testing
           expect(console.warn.called).to.equal(false, 'console.warn was called but it should not have been');
         }
       });

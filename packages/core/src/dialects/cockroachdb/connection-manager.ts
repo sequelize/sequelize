@@ -1,13 +1,20 @@
 import pick from 'lodash/pick';
 import type { Client, ClientConfig } from 'pg';
 import type { TypeFormat, TypeId } from 'pg-types';
-import { ConnectionError, ConnectionRefusedError, ConnectionTimedOutError, HostNotFoundError, HostNotReachableError, InvalidConnectionError } from '../../errors';
-import type { CockroachDbDialect } from './index';
+import {
+  ConnectionError,
+  ConnectionRefusedError,
+  ConnectionTimedOutError,
+  HostNotFoundError,
+  HostNotReachableError,
+  InvalidConnectionError,
+} from '../../errors';
 import type { ConnectionOptions } from '../../sequelize.js';
 import { Sequelize } from '../../sequelize.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
+import type { CockroachDbDialect } from './index';
 
 export interface CockroachdbConnection extends Connection, Client {
   options?: string;
@@ -24,12 +31,14 @@ export interface CockroachdbConnection extends Connection, Client {
 // TODO: once the code has been split into packages, we won't need to lazy load pg anymore
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 type Lib = typeof import('pg');
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+type ArrayParserLib = typeof import('postgres-array');
 type TypeParser = (source: string) => unknown;
 
 interface TypeOids {
   oid: number;
   typeName: string;
-  type: 'base';
+  type: 'base' | 'array';
   /** oid of the base type. Available on array, range & range-array */
   baseOid?: number;
   /** oid of the range. Available on range-array */
@@ -40,12 +49,15 @@ const debug = logger.debugContext('connection:crdb');
 
 export class CockroachdbConnectionManager extends AbstractConnectionManager<CockroachdbConnection> {
   private readonly lib: Lib;
+  readonly #arrayParserLib: ArrayParserLib;
+
   #oidMap = new Map<number, TypeOids>();
   #oidParserCache = new Map<number, TypeParser>();
 
   constructor(dialect: CockroachDbDialect, sequelize: Sequelize) {
     super(dialect, sequelize);
     this.lib = this._loadDialectModule('pg') as Lib;
+    this.#arrayParserLib = this._loadDialectModule('postgres-array') as ArrayParserLib;
   }
 
   async connect(config: ConnectionOptions): Promise<CockroachdbConnection> {
@@ -136,6 +148,12 @@ export class CockroachdbConnectionManager extends AbstractConnectionManager<Cock
     await connection.end();
   }
 
+  #buildArrayParser(subTypeParser: (value: string) => unknown): (source: string) => unknown[] {
+    return (source: string) => {
+      return this.#arrayParserLib.parse(source, subTypeParser);
+    };
+  }
+
   getTypeParser(oid: TypeId, format?: TypeFormat): TypeParser {
     const cachedParser = this.#oidParserCache.get(oid);
 
@@ -153,11 +171,15 @@ export class CockroachdbConnectionManager extends AbstractConnectionManager<Cock
     return this.lib.types.getTypeParser(oid, format);
   }
 
-  #getCustomTypeParser(oid: TypeId, _format?: TypeFormat): TypeParser | null {
+  #getCustomTypeParser(oid: TypeId, format?: TypeFormat): TypeParser | null {
     const typeData = this.#oidMap.get(oid);
 
     if (!typeData) {
       return null;
+    }
+
+    if (typeData.type === 'array') {
+      return this.#buildArrayParser(this.getTypeParser(typeData.baseOid!, format));
     }
 
     const parser = this.dialect.getParserForDatabaseDataType(typeData.typeName);
@@ -209,6 +231,15 @@ export class CockroachdbConnectionManager extends AbstractConnectionManager<Cock
           oid: row.oid,
           typeName: row.typname,
           type: 'base',
+        });
+      }
+
+      if (row.typarray) {
+        newNameOidMap.set(row.typarray, {
+          oid: row.typarray,
+          typeName: row.typname,
+          type: 'array',
+          baseOid: row.oid,
         });
       }
     }

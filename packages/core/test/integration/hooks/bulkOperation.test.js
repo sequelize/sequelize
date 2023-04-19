@@ -295,7 +295,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
         } catch (error) {
           expect(error).to.be.instanceOf(Error);
-          expect(error.message).to.be.equal('You shall not pass!');
+          expect(error.message).to.equal('You shall not pass!');
           expect(beforeBulk).to.have.been.calledOnce;
           expect(afterBulk).not.to.have.been.called;
         }

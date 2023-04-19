@@ -7,8 +7,13 @@ import type {
   HasManyOptions,
   HasOneOptions,
 } from '../../associations/index.js';
-import { BelongsTo as BelongsToAssociation, HasMany as HasManyAssociation, HasOne as HasOneAssociation, BelongsToMany as BelongsToManyAssociation } from '../../associations/index.js';
-import type { ModelStatic, Model, AttributeNames } from '../../model.js';
+import {
+  BelongsTo as BelongsToAssociation,
+  BelongsToMany as BelongsToManyAssociation,
+  HasMany as HasManyAssociation,
+  HasOne as HasOneAssociation,
+} from '../../associations/index.js';
+import type { AttributeNames, Model, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { isString } from '../../utils/check.js';
 import { isModelStatic } from '../../utils/model-utils.js';
@@ -81,7 +86,7 @@ export function BelongsTo<SourceKey extends string, Target extends Model>(
   return (
     // This type is a hack to make sure the source model declares a property named [SourceKey].
     // The error message is going to be horrendous, but at least it's enforced.
-    source: Model<{ [key in SourceKey]: unknown }>,
+    source: Model<{ [key in SourceKey]: any }>,
     associationName: string,
   ) => {
     const options = isString(optionsOrForeignKey) ? { foreignKey: optionsOrForeignKey } : optionsOrForeignKey;

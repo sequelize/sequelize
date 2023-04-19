@@ -11,35 +11,30 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
-import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
-import type {
-  IndexOptions,
-  TableName,
-  TableNameWithSchema,
-  IndexField,
-} from './dialects/abstract/query-interface';
+import type { Connection } from './dialects/abstract/connection-manager.js';
+import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
+import type { IndexField, IndexOptions, TableName, TableNameWithSchema } from './dialects/abstract/query-interface';
+import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
+import type { Cast } from './expression-builders/cast.js';
+import type { Col } from './expression-builders/col.js';
+import type { Fn } from './expression-builders/fn.js';
+import type { Literal } from './expression-builders/literal.js';
+import type { Where } from './expression-builders/where.js';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
-import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
-import type {
-  Cast,
-  Col,
-  Fn,
-  Json,
-  Literal,
-  Where,
-} from './utils/sequelize-method.js';
+import type { QueryOptions, Sequelize, SyncOptions } from './sequelize';
 import type {
   AllowArray,
   AllowReadonlyArray,
   AnyFunction,
   MakeNullishOptional,
   Nullish,
-  OmitConstructors, RequiredBy,
+  OmitConstructors,
+  RequiredBy,
 } from './utils/types.js';
-import type { LOCK, Op, Transaction, TableHints } from './index';
+import type { LOCK, Op, TableHints, Transaction, WhereOptions } from './index';
 
 export interface Logging {
   /**
@@ -65,11 +60,24 @@ export interface Poolable {
 export interface Transactionable {
   /**
    * The transaction in which this query must be run.
+   * Mutually exclusive with {@link Transactionable.connection}.
    *
    * If {@link Options.disableClsTransactions} has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
-   * that transaction will be used, unless null or a Transaction is manually specified here.
+   * that transaction will be used, unless null or another Transaction is manually specified here.
    */
   transaction?: Transaction | null | undefined;
+
+  /**
+   * The connection on which this query must be run.
+   * Mutually exclusive with {@link Transactionable.transaction}.
+   *
+   * Can be used to ensure that a query is run on the same connection as a previous query, which is useful when
+   * configuring session options.
+   *
+   * Specifying this option takes precedence over CLS Transactions. If a transaction is running in the current
+   * AsyncLocalStorage context, it will be ignored in favor of the specified connection.
+   */
+  connection?: Connection | null | undefined;
 }
 
 export interface SearchPathable {
@@ -168,59 +176,12 @@ export interface ScopeOptions {
 
 type InvalidInSqlArray = ColumnReference | Fn | Cast | null | Literal;
 
-/**
- * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
- * It also supports using a plain Array as an alias for `Op.and`. (unlike {@link AllowNotOrAndRecursive}).
- *
- * Example of plain-array treated as `Op.and`:
- * ```ts
- * User.findAll({ where: [{ id: 1 }, { id: 2 }] });
- * ```
- *
- * Meant to be used by {@link WhereOptions}.
- */
-type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
-  // this is the equivalent of Op.and
-  | T
-  | { [Op.or]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
-  | { [Op.and]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
-  | { [Op.not]: AllowNotOrAndWithImplicitAndArrayRecursive<T> }
-  >;
-
-/**
- * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
- * Unlike {@link AllowNotOrAndWithImplicitAndArrayRecursive}, it does not allow the 'implicit AND Array'.
- *
- * Example of plain-array NOT treated as Op.and:
- * ```ts
- * User.findAll({ where: { id: [1, 2] } });
- * ```
- *
- * Meant to be used by {@link WhereAttributeHashValue}.
- */
-type AllowNotOrAndRecursive<T> =
-  | T
-  | { [Op.or]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.and]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.not]: AllowNotOrAndRecursive<T> };
-
 type AllowAnyAll<T> =
   | T
   // Op.all: [x, z] results in ALL (ARRAY[x, z])
   // Some things cannot go in ARRAY. Op.values must be used to support them.
   | { [Op.all]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } }
   | { [Op.any]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } };
-
-/**
- * The type accepted by every `where` option
- */
-export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayRecursive<
-  | WhereAttributeHash<TAttributes>
-  | Literal
-  | Fn
-  | Where
-  | Json
->;
 
 // number is always allowed because -Infinity & +Infinity are valid
 /**
@@ -330,11 +291,8 @@ export interface WhereOperators<AttributeType = any> {
    */
   [Op.is]?: Extract<AttributeType, null | boolean> | Literal;
 
-  /**
-   * @example `[Op.not]: true` becomes `IS NOT TRUE`
-   * @example `{ col: { [Op.not]: { [Op.gt]: 5 } } }` becomes `NOT (col > 5)`
-   */
-  [Op.not]?: WhereOperators<AttributeType>[typeof Op.eq]; // accepts the same types as Op.eq ('Op.not' is not strictly the opposite of 'Op.is' due to legacy reasons)
+  /** Example: `[Op.isNot]: null,` becomes `IS NOT NULL` */
+  [Op.isNot]?: WhereOperators<AttributeType>[typeof Op.is]; // accepts the same types as Op.is
 
   /** @example `[Op.gte]: 6` becomes `>= 6` */
   [Op.gte]?: AllowAnyAll<OperatorValues<NonNullable<AttributeType>>>;
@@ -628,52 +586,6 @@ export interface WhereGeometryOptions {
 }
 
 /**
- * A hash of attributes to describe your search.
- *
- * Possible key values:
- *
- * - An attribute name: `{ id: 1 }`
- * - A nested attribute: `{ '$projects.id$': 1 }`
- * - A JSON key: `{ 'object.key': 1 }`
- * - A cast: `{ 'id::integer': 1 }`
- *
- * - A combination of the above: `{ '$join.attribute$.json.path::integer': 1 }`
- */
-export type WhereAttributeHash<TAttributes = any> = {
-  // support 'attribute' & '$attribute$'
-  [AttributeName in keyof TAttributes as AttributeName extends string ? AttributeName | `$${AttributeName}$` : never]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
-} & {
-  [AttributeName in keyof TAttributes as AttributeName extends string ?
-    // support 'json.path', '$json$.path'
-    | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`
-    // support 'attribute::cast', '$attribute$::cast', 'json.path::cast' & '$json$.path::cast'
-    | `${AttributeName | `$${AttributeName}$` | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`}::${string}`
-  : never]?: WhereAttributeHashValue<any>;
-} & {
-  // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast'
-  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>,
-};
-
-/**
- * Types that can be compared to an attribute in a WHERE context.
- */
-export type WhereAttributeHashValue<AttributeType> =
-  | AllowNotOrAndRecursive<
-    // if the right-hand side is an array, it will be equal to Op.in
-    // otherwise it will be equal to Op.eq
-    // Exception: array attribtues always use Op.eq, never Op.in.
-    | AttributeType extends any[]
-      ? WhereOperators<AttributeType>[typeof Op.eq] | WhereOperators<AttributeType>
-      : (
-        | WhereOperators<AttributeType>[typeof Op.in]
-        | WhereOperators<AttributeType>[typeof Op.eq]
-        | WhereOperators<AttributeType>
-      )
-    >
-  // TODO: this needs a simplified version just for JSON columns
-  | WhereAttributeHash<any>; // for JSON columns
-
-/**
  * Through options for Include Options
  */
 export interface IncludeThroughOptions extends Filterable<any>, Projectable {
@@ -836,7 +748,10 @@ export type Order = Fn | Col | Literal | OrderItem[];
  * Please note if this is used the aliased property will not be available on the model instance
  * as a property but only via `instance.get('alias')`.
  */
-export type ProjectionAlias = readonly [string | Literal | Fn | Col | Cast, string];
+export type ProjectionAlias = readonly [
+  expressionOrAttributeName: string | DynamicSqlExpression,
+  alias: string,
+];
 
 export type FindAttributeOptions =
   | Array<string | ProjectionAlias | Literal>
@@ -955,6 +870,12 @@ export interface FindOptions<TAttributes = any>
    * Return raw result. See {@link Sequelize#query} for more information.
    */
   raw?: boolean;
+
+  /**
+   * Controls whether aliases are minified in this query.
+   * This overrides the global option
+   */
+  minifyAliases?: boolean;
 
   /**
    * Select group rows after groups and aggregates are computed.
@@ -1208,6 +1129,12 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
   returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 
   /**
+   * An optional parameter to specify a where clause for partial unique indexes
+   * (note: `ON CONFLICT WHERE` not `ON CONFLICT DO UPDATE WHERE`).
+   * Only supported in Postgres >= 9.5 and sqlite >= 9.5
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
+  /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
@@ -1215,14 +1142,14 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
 }
 
 /**
- * The options passed to Model.destroy in addition to truncate
+ * The options accepted by {@link Model.truncate}.
  */
-export interface TruncateOptions<TAttributes = any> extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
+export interface TruncateOptions extends Logging, Transactionable, Hookable {
   /**
-   * Only used in conjuction with TRUNCATE. Truncates all tables that have foreign-key references to the
+   * Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the
    * named table, or to any tables added to the group due to CASCADE.
    *
-   * @default false;
+   * @default false
    */
   cascade?: boolean;
 
@@ -1256,14 +1183,16 @@ export interface TruncateOptions<TAttributes = any> extends Logging, Transaction
 }
 
 /**
- * Options used for Model.destroy
+ * Options accepted by {@link Model.destroy}.
  */
-export interface DestroyOptions<TAttributes = any> extends TruncateOptions<TAttributes> {
+export interface DestroyOptions<TAttributes = any> extends TruncateOptions, Filterable<TAttributes> {
   /**
    * If set to true, dialects that support it will use TRUNCATE instead of DELETE FROM. If a table is
    * truncated the where and limit options are ignored.
    *
    * __Danger__: This will completely empty your table!
+   *
+   * @deprecated use {@link Model.truncate}.
    */
   truncate?: boolean;
 }
@@ -1866,7 +1795,7 @@ export interface NormalizedAttributeOptions<M extends Model = Model> extends Rea
   /**
    * Like {@link AttributeOptions.type}, but normalized.
    */
-  readonly type: string | AbstractDataType<any>;
+  readonly type: NormalizedDataType;
   readonly references?: NormalizedAttributeReferencesOptions;
 }
 
@@ -1879,11 +1808,6 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
    */
   [name in keyof TAttributes]: DataType | AttributeOptions<M>;
 };
-
-/**
- * Possible types for primary keys
- */
-export type Identifier = number | bigint | string | Buffer;
 
 /**
  * Options for model definition.
@@ -2314,7 +2238,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withScope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
   ): ModelStatic<M>;
 
   /**
@@ -2323,7 +2247,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
   ): ModelStatic<M>;
 
   /**
@@ -2411,22 +2335,22 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: FindByPkOptions<M> & { raw: true, rejectOnEmpty?: false }
   ): Promise<R | null>;
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M> & { raw: true }
   ): Promise<R>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M>
   ): Promise<M>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier?: Identifier,
+    identifier: unknown,
     options?: FindByPkOptions<M>
   ): Promise<M | null>;
 
@@ -2710,7 +2634,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static truncate<M extends Model>(
     this: ModelStatic<M>,
-    options?: TruncateOptions<Attributes<M>>
+    options?: TruncateOptions
   ): Promise<void>;
 
   /**
@@ -3020,6 +2944,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * If changed is called without an argument and no keys have changed, it will return `false`.
    */
+  // TODO: split this method into:
+  //  - hasChanges(): boolean;
+  //  - getChanges(): string[];
+  //  - isDirty(key: string): boolean;
+  //  - setDirty(key: string, dirty: boolean = true): void;
   changed<K extends keyof this>(key: K): boolean;
   changed<K extends keyof this>(key: K, dirty: boolean): void;
   changed(): false | string[];
@@ -3051,7 +2980,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * return a new instance. With this method, all references to the Instance are updated with the new data
    * and no new objects are created.
    */
-  reload(options?: FindOptions<TModelAttributes>): Promise<this>;
+  reload(options?: Omit<FindOptions<TModelAttributes>, 'where'>): Promise<this>;
 
   /**
    * Runs all validators defined for this model, including non-null validators, DataTypes validators, custom attribute validators and model-level validators.

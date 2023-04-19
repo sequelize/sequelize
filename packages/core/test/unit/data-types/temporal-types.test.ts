@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ValidationErrorItem, DataTypes } from '@sequelize/core';
+import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -80,8 +80,8 @@ describe('DataTypes.DATE', () => {
   describe('toBindableValue', () => {
     if (dialect.supports.dataTypes.DATETIME.infinity) {
       it('stringifies numeric Infinity/-Infinity', () => {
-        expect(type.toBindableValue(Number.POSITIVE_INFINITY, { dialect })).to.equal('infinity');
-        expect(type.toBindableValue(Number.NEGATIVE_INFINITY, { dialect })).to.equal('-infinity');
+        expect(type.toBindableValue(Number.POSITIVE_INFINITY)).to.equal('infinity');
+        expect(type.toBindableValue(Number.NEGATIVE_INFINITY)).to.equal('-infinity');
       });
     }
   });
@@ -99,8 +99,8 @@ describe('DataTypes.DATEONLY', () => {
   describe('validate', () => {
     if (dialect.supports.dataTypes.DATEONLY.infinity) {
       it('DATEONLY should stringify Infinity/-Infinity to infinity/-infinity', () => {
-        expect(type.toBindableValue(Number.POSITIVE_INFINITY, { dialect })).to.equal('infinity');
-        expect(type.toBindableValue(Number.NEGATIVE_INFINITY, { dialect })).to.equal('-infinity');
+        expect(type.toBindableValue(Number.POSITIVE_INFINITY)).to.equal('infinity');
+        expect(type.toBindableValue(Number.NEGATIVE_INFINITY)).to.equal('-infinity');
       });
     }
   });

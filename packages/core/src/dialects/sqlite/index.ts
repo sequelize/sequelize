@@ -30,6 +30,7 @@ export class SqliteDialect extends AbstractDialect {
     constraints: {
       addConstraint: false,
       dropConstraint: false,
+      foreignKeyChecksDisableable: true,
     },
     groupedLimit: false,
     dataTypes: {
@@ -40,6 +41,7 @@ export class SqliteDialect extends AbstractDialect {
       JSON: true,
     },
     // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)
+    //  be careful: json_extract, ->, and ->> don't have the exact same meanings as mysql & mariadb
     jsonOperations: false,
   });
 

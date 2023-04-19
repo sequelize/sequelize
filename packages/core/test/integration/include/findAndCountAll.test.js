@@ -68,8 +68,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         limit,
       });
 
-      expect(result.count).to.be.equal(availableProjects);
-      expect(result.rows.length).to.be.equal(limit, 'Complete set of available rows were not returned.');
+      expect(result.count).to.equal(availableProjects);
+      expect(result.rows.length).to.equal(limit, 'Complete set of available rows were not returned.');
     });
 
     it('should be able to include a required model. Result rows should match count', async function () {
@@ -217,8 +217,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         limit: 5,
       });
 
-      expect(result.count).to.be.equal(2);
-      expect(result.rows.length).to.be.equal(2);
+      expect(result.count).to.equal(2);
+      expect(result.rows.length).to.equal(2);
     });
 
     it('should count on a where and not use an uneeded include', async function () {

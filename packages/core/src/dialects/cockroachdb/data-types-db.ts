@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import wkx from 'wkx';
 import * as BaseTypes from '../abstract/data-types';
 import { getDataTypeParser } from '../abstract/data-types-utils';
+import { buildRangeParser } from '../postgres/range';
 import type { CockroachDbDialect } from './index';
 
 export function registerCockroachDbDataTypeParsers(dialect: CockroachDbDialect) {
@@ -62,4 +63,13 @@ export function registerCockroachDbDataTypeParsers(dialect: CockroachDbDialect) 
 
     return wkx.Geometry.parse(b).toGeoJSON({ shortCrs: true });
   });
+
+  const parseInteger = getDataTypeParser(dialect, BaseTypes.INTEGER);
+  dialect.registerDataTypeParser(['int4range'], buildRangeParser(parseInteger));
+
+  const parseBigInt = getDataTypeParser(dialect, BaseTypes.BIGINT);
+  dialect.registerDataTypeParser(['int8range'], buildRangeParser(parseBigInt));
+
+  const parseDecimal = getDataTypeParser(dialect, BaseTypes.DECIMAL);
+  dialect.registerDataTypeParser(['numrange'], buildRangeParser(parseDecimal));
 }

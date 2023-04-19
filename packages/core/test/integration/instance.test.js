@@ -167,7 +167,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         this.clock.tick(5000);
         const user = this.User.build({ username: 'a user' });
         this.clock.restore();
-        expect(Number(user.touchedAt)).to.be.equal(5000);
+        expect(Number(user.touchedAt)).to.equal(5000);
       });
     });
 

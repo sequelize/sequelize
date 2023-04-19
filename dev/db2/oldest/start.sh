@@ -15,7 +15,7 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
     sudo docker rm -f db2server
 		sudo rm -rf /Docker
 	fi
-	sudo docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env "DBNAME=$SEQ_DB" --env-file .env_list -v /Docker:/database ibmcom/db2-amd64:11.5.7.0
+	sudo docker run -h db2server --name db2server --restart=always --detach --privileged=true -p 50000:50000 --env "DBNAME=$SEQ_DB" --env-file ../.env_list -v /Docker:/database ibmcom/db2-amd64:11.5.6.0a
 	count=1
 	while true
 	do
@@ -34,5 +34,3 @@ if [ ! "$(sudo docker ps -q -f name=db2server)" ]; then
 fi
 
 DIALECT=db2 ts-node ../../check-connection.ts
-
-echo "Local DB2-11.5 instance is ready for Sequelize tests."

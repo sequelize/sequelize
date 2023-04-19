@@ -1,4 +1,4 @@
-import type { Connection as OdbcConnection, NodeOdbcError } from 'odbc';
+import type { NodeOdbcError, Connection as OdbcConnection } from 'odbc';
 import { ConnectionRefusedError } from '../../errors/index.js';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import { logger } from '../../utils/logger';
@@ -10,7 +10,7 @@ const debug = logger.debugContext('connection:ibmi');
 
 export interface IBMiConnection extends Connection, OdbcConnection {
   // properties of ObdcConnection, but not declared in their typings
-  isConnected: boolean;
+  connected: boolean;
 }
 
 // TODO: once the code has been split into packages, we won't need to lazy load this anymore
@@ -97,6 +97,6 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiConnect
   }
 
   validate(connection: IBMiConnection): boolean {
-    return connection.isConnected;
+    return connection.connected;
   }
 }

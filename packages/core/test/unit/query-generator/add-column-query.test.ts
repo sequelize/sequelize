@@ -12,7 +12,7 @@ describe('QueryGenerator#addColumnQuery', () => {
   }, { timestamps: false });
 
   it('generates a ADD COLUMN query in supported dialects', () => {
-    expectsql(() => queryGenerator.addColumnQuery(User.tableName, 'age', {
+    expectsql(() => queryGenerator.addColumnQuery(User.table, 'age', {
       type: DataTypes.INTEGER,
     }), {
       default: `ALTER TABLE [Users] ADD [age] INTEGER;`,
@@ -22,7 +22,7 @@ describe('QueryGenerator#addColumnQuery', () => {
   });
 
   it('generates a ADD COLUMN IF NOT EXISTS query in supported dialects', () => {
-    expectsql(() => queryGenerator.addColumnQuery(User.tableName, 'age', {
+    expectsql(() => queryGenerator.addColumnQuery(User.table, 'age', {
       type: DataTypes.INTEGER,
     }, { ifNotExists: true }), {
       default: buildInvalidOptionReceivedError('addColumnQuery', dialectName, ['ifNotExists']),
