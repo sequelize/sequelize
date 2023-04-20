@@ -186,8 +186,8 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     });
   }
 
-  showTablesQuery() {
-    return 'SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = \'T\' ORDER BY TABSCHEMA, TABNAME';
+  showTablesQuery(schema) {
+    return `SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = ${schema || 'USER'} AND TYPE = 'T' ORDER BY TABSCHEMA, TABNAME`;
   }
 
   tableExistsQuery(table) {

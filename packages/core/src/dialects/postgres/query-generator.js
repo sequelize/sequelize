@@ -167,10 +167,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}${options?.cascade ? ' CASCADE' : ''};`;
   }
 
-  showTablesQuery(showTableSchema) {
-    const schema = showTableSchema || this.options.schema || 'public';
-
-    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`;
+  showTablesQuery(schema) {
+    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema || 'public')} AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`;
   }
 
   tableExistsQuery(tableName) {
