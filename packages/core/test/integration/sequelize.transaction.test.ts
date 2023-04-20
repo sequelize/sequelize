@@ -4,7 +4,7 @@ import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type { InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
 import { DataTypes, Transaction } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser, getTestDialect, prepareTransactionTest } from './support';
+import { createSingleTransactionalTestSequelizeInstance, getTestDialect, getTestDialectTeaser, sequelize } from './support';
 
 const dialectName = sequelize.dialect.name;
 
@@ -75,7 +75,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
   if (getTestDialect() !== 'sqlite' && getTestDialect() !== 'db2') {
     it('works for long running transactions', async () => {
-      const sequelize2 = await prepareTransactionTest(sequelize);
+      const sequelize2 = await createSingleTransactionalTestSequelizeInstance(sequelize);
 
       interface IUser extends Model<InferAttributes<IUser>, InferCreationAttributes<IUser>> {
         name: string | null;
@@ -116,7 +116,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
   describe('complex long running example', () => {
     it('works with promise syntax', async () => {
-      const sequelize2 = await prepareTransactionTest(sequelize);
+      const sequelize2 = await createSingleTransactionalTestSequelizeInstance(sequelize);
       const Test = sequelize2.define('Test', {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         name: { type: DataTypes.STRING },
@@ -139,7 +139,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
   describe('concurrency: having tables with uniqueness constraints', () => {
     it('triggers the error event for the second transactions', async () => {
-      const sequelize2 = await prepareTransactionTest(sequelize);
+      const sequelize2 = await createSingleTransactionalTestSequelizeInstance(sequelize);
 
       const Model = sequelize2.define('Model', {
         name: { type: DataTypes.STRING, unique: true },

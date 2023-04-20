@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import { Model, DataTypes } from '@sequelize/core';
-import { ValidateAttribute, Attribute } from '@sequelize/core/decorators-legacy';
+import { DataTypes, Model } from '@sequelize/core';
+import { Attribute, ValidateAttribute } from '@sequelize/core/decorators-legacy';
 import { sequelize } from '../../support';
 
 describe('@ValidateAttribute legacy decorator', () => {

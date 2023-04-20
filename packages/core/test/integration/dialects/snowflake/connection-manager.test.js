@@ -11,7 +11,7 @@ const { DataTypes } = require('@sequelize/core');
 if (dialect === 'snowflake') {
   describe('[SNOWFLAKE Specific] Connection Manager', () => {
     it('-FOUND_ROWS can be suppressed to get back legacy behavior', async () => {
-      const sequelize = Support.createSequelizeInstance();
+      const sequelize = Support.createSingleTestSequelizeInstance();
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
       await User.sync({ force: true });
@@ -28,7 +28,7 @@ if (dialect === 'snowflake') {
     });
 
     it('should acquire a valid connection when keepDefaultTimezone is true', async () => {
-      const sequelize = Support.createSequelizeInstance({ keepDefaultTimezone: true, pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 } });
+      const sequelize = Support.createSingleTestSequelizeInstance({ keepDefaultTimezone: true, pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 } });
       const cm = sequelize.connectionManager;
 
       await sequelize.sync();

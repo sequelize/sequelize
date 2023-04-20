@@ -8,9 +8,9 @@ import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
@@ -89,7 +89,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     let attributesClause = attrStr.join(', ');
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
-    if (options.uniqueKeys) {
+    if (options?.uniqueKeys) {
       // only need to sort primary keys once, don't do it in place
       const sortedPrimaryKeys = [...primaryKeys];
       sortedPrimaryKeys.sort();
@@ -127,17 +127,12 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       }
     }
 
-    let tableObject;
-    if (typeof tableName === 'string') {
-      tableObject = { table: tableName };
-    } else {
-      tableObject = tableName;
-    }
+    const quotedTable = this.quoteTable(tableName);
 
     return `BEGIN
     DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710'
       BEGIN END;
-      CREATE TABLE ${tableName.schema ? `"${tableObject.schema}".` : ''}"${tableObject.table ? tableObject.table : tableObject.tableName}" (${attributesClause});
+      CREATE TABLE ${quotedTable} (${attributesClause});
       END`;
   }
 
@@ -680,7 +675,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
    */
   dropForeignKeyQuery(tableName, foreignKey) {
     return `ALTER TABLE ${this.quoteTable(tableName)}
-      DROP FOREIGN KEY ${this.quoteIdentifier(foreignKey)};`;
+      DROP FOREIGN KEY ${this.quoteIdentifier(foreignKey)}`;
   }
 }
 

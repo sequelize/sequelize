@@ -12,10 +12,10 @@ const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
-    const sequelize = await Support.prepareTransactionTest(this.sequelize);
-    this.sequelize = sequelize;
+    const sequelize = await Support.createMultiTransactionalTestSequelizeInstance(this.sequelize);
+    this.customSequelize = sequelize;
 
-    this.User = this.sequelize.define('User', {
+    this.User = this.customSequelize.define('User', {
       username: DataTypes.STRING,
       secretValue: {
         type: DataTypes.STRING,
@@ -27,14 +27,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       aBool: DataTypes.BOOLEAN,
       uniqueName: { type: DataTypes.STRING, unique: true },
     });
-    this.Account = this.sequelize.define('Account', {
+    this.Account = this.customSequelize.define('Account', {
       accountName: DataTypes.STRING,
     });
-    this.Student = this.sequelize.define('Student', {
+    this.Student = this.customSequelize.define('Student', {
       no: { type: DataTypes.INTEGER, primaryKey: true },
       name: { type: DataTypes.STRING, allowNull: false },
     });
-    this.Car = this.sequelize.define('Car', {
+    this.Car = this.customSequelize.define('Car', {
       plateNumber: {
         type: DataTypes.STRING,
         primaryKey: true,
@@ -45,17 +45,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       },
     });
 
-    await this.sequelize.sync({ force: true });
+    await this.customSequelize.sync({ force: true });
+  });
+
+  afterEach(function () {
+    return this.customSequelize.close();
   });
 
   describe('bulkCreate', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const User = this.sequelize.define('User', {
+        const User = this.customSequelize.define('User', {
           username: DataTypes.STRING,
         });
         await User.sync({ force: true });
-        const transaction = await this.sequelize.startUnmanagedTransaction();
+        const transaction = await this.customSequelize.startUnmanagedTransaction();
         await User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction });
         const count1 = await User.count();
         const count2 = await User.count({ transaction });
@@ -66,7 +70,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('should not alter options', async function () {
-      const User = this.sequelize.define('User');
+      const User = this.customSequelize.define('User');
       await User.sync({ force: true });
       const options = { anOption: 1 };
       await User.bulkCreate([{}], options);
@@ -74,7 +78,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to set createdAt and updatedAt if using silent: true', async function () {
-      const User = this.sequelize.define('user', {
+      const User = this.customSequelize.define('user', {
         name: DataTypes.STRING,
       }, {
         timestamps: true,
@@ -108,7 +112,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not fail on validate: true and individualHooks: true', async function () {
-      const User = this.sequelize.define('user', {
+      const User = this.customSequelize.define('user', {
         name: DataTypes.STRING,
       });
 
@@ -120,7 +124,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not map instance dataValues to fields with individualHooks: true', async function () {
-      const User = this.sequelize.define('user', {
+      const User = this.customSequelize.define('user', {
         name: DataTypes.STRING,
         type: {
           type: DataTypes.STRING,
@@ -144,7 +148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not insert NULL for unused fields', async function () {
-      const Beer = this.sequelize.define('Beer', {
+      const Beer = this.customSequelize.define('Beer', {
         style: DataTypes.STRING,
         size: DataTypes.INTEGER,
       });
@@ -276,7 +280,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('properly handles a model with a length column', async function () {
-      const UserWithLength = this.sequelize.define('UserWithLength', {
+      const UserWithLength = this.customSequelize.define('UserWithLength', {
         length: DataTypes.INTEGER,
       });
 
@@ -299,7 +303,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('emits an error when validate is set to true', async function () {
-      const Tasks = this.sequelize.define('Task', {
+      const Tasks = this.customSequelize.define('Task', {
         name: {
           type: DataTypes.STRING,
           allowNull: false,
@@ -341,7 +345,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('doesn\'t emit an error when validate is set to true but our selectedValues are fine', async function () {
-      const Tasks = this.sequelize.define('Task', {
+      const Tasks = this.customSequelize.define('Task', {
         name: {
           type: DataTypes.STRING,
           validate: {
@@ -365,7 +369,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow blank arrays (return immediately)', async function () {
-      const Worker = this.sequelize.define('Worker', {});
+      const Worker = this.customSequelize.define('Worker', {});
       await Worker.sync();
       const workers = await Worker.bulkCreate([]);
       expect(workers).to.be.ok;
@@ -373,14 +377,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow blank creates (with timestamps: false)', async function () {
-      const Worker = this.sequelize.define('Worker', {}, { timestamps: false });
+      const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
       await Worker.sync();
       const workers = await Worker.bulkCreate([{}, {}]);
       expect(workers).to.be.ok;
     });
 
     it('should allow autoincremented attributes to be set', async function () {
-      const Worker = this.sequelize.define('Worker', {}, { timestamps: false });
+      const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
       await Worker.sync();
 
       await Worker.bulkCreate([
@@ -395,7 +399,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (dialect.supports.schemas) {
       it('should support schemas', async function () {
-        const Dummy = this.sequelize.define('Dummy', {
+        const Dummy = this.customSequelize.define('Dummy', {
           foo: DataTypes.STRING,
           bar: DataTypes.STRING,
         }, {
@@ -403,8 +407,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           tableName: 'Dummy',
         });
 
-        await Support.dropTestSchemas(this.sequelize);
-        await this.sequelize.createSchema('space1');
+        await Support.dropTestSchemas(this.customSequelize);
+        await this.customSequelize.createSchema('space1');
         await Dummy.sync({ force: true });
 
         await Dummy.bulkCreate([
@@ -526,7 +530,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('when the primary key column names and model field names are different and have unique constraints', async function () {
-            const Person = this.sequelize.define('Person', {
+            const Person = this.customSequelize.define('Person', {
               emailAddress: {
                 type: DataTypes.STRING,
                 allowNull: false,
@@ -564,7 +568,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('when the composite primary key column names and model field names are different', async function () {
-            const Person = this.sequelize.define('Person', {
+            const Person = this.customSequelize.define('Person', {
               systemId: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
@@ -610,7 +614,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('when the primary key column names and model field names are different and have composite unique constraints', async function () {
-            const Person = this.sequelize.define('Person', {
+            const Person = this.customSequelize.define('Person', {
               id: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
@@ -662,7 +666,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('[#12516] when the primary key column names and model field names are different and have composite unique index constraints', async function () {
-            const Person = this.sequelize.define(
+            const Person = this.customSequelize.define(
               'Person',
               {
                 id: {
@@ -748,7 +752,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         if (current.dialect.supports.inserts.conflictFields) {
           it('should respect the conflictAttributes option', async function () {
-            const Permissions = this.sequelize.define(
+            const Permissions = this.customSequelize.define(
               'permissions',
               {
                 userId: {
@@ -771,7 +775,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
             // We don't want to create this index with the table, since we don't want our sequelize instance
             // to know it exists.  This prevents it from being inferred.
-            await this.sequelize.queryInterface.addIndex(
+            await this.customSequelize.queryInterface.addIndex(
               'permissions',
               ['user_id'],
               {
@@ -1109,7 +1113,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.returnValues) {
       describe('return values', () => {
         it('should make the auto incremented values available on the returned instances', async function () {
-          const User = this.sequelize.define('user', {});
+          const User = this.customSequelize.define('user', {});
 
           await User
             .sync({ force: true });
@@ -1133,7 +1137,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should make the auto incremented values available on the returned instances with custom fields', async function () {
-          const User = this.sequelize.define('user', {
+          const User = this.customSequelize.define('user', {
             maId: {
               type: DataTypes.INTEGER,
               primaryKey: true,
@@ -1164,12 +1168,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should only return fields that are not defined in the model (with returning: true)', async function () {
-          const User = this.sequelize.define('user');
+          const User = this.customSequelize.define('user');
 
           await User
             .sync({ force: true });
 
-          await this.sequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
+          await this.customSequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
 
           const users0 = await User.bulkCreate([
             {},
@@ -1188,12 +1192,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should return fields that are not defined in the model (with returning: ["*"])', async function () {
-          const User = this.sequelize.define('user');
+          const User = this.customSequelize.define('user');
 
           await User
             .sync({ force: true });
 
-          await this.sequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
+          await this.customSequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
 
           const users0 = await User.bulkCreate([
             {},
@@ -1215,7 +1219,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('enums', () => {
       it('correctly restores enum values', async function () {
-        const Item = this.sequelize.define('Item', {
+        const Item = this.customSequelize.define('Item', {
           state: { type: DataTypes.ENUM(['available', 'in_cart', 'shipped']) },
           name: DataTypes.STRING,
         });
@@ -1228,7 +1232,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should properly map field names to attribute names', async function () {
-      const Maya = this.sequelize.define('Maya', {
+      const Maya = this.customSequelize.define('Maya', {
         name: DataTypes.STRING,
         secret: {
           field: 'secret_given',
@@ -1269,7 +1273,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('handles auto increment values', () => {
       it('should return auto increment primary key values', async function () {
-        const Maya = this.sequelize.define('Maya', {});
+        const Maya = this.customSequelize.define('Maya', {});
 
         const M1 = {};
         const M2 = {};
@@ -1281,7 +1285,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should return supplied values on primary keys', async function () {
-        const User = this.sequelize.define('user', {});
+        const User = this.customSequelize.define('user', {});
 
         await User
           .sync({ force: true });
@@ -1302,7 +1306,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should return supplied values on primary keys when some instances already exists', async function () {
-        const User = this.sequelize.define('user', {});
+        const User = this.customSequelize.define('user', {});
 
         await User
           .sync({ force: true });
@@ -1328,7 +1332,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('virtual attribute', () => {
       beforeEach(function () {
-        this.User = this.sequelize.define('user', {
+        this.User = this.customSequelize.define('user', {
           password: {
             type: DataTypes.VIRTUAL,
             validate: {

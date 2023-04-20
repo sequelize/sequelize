@@ -30,6 +30,7 @@ export class SqliteDialect extends AbstractDialect {
     constraints: {
       addConstraint: false,
       dropConstraint: false,
+      foreignKeyChecksDisableable: true,
     },
     groupedLimit: false,
     dataTypes: {

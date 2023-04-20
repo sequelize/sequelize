@@ -291,6 +291,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
   }
 
+  // TODO: this should not implement `removeColumnQuery` but a new sqlite specific function possibly called `replaceTableQuery`
   removeColumnQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -304,15 +305,14 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     attributes = this.attributesToSQL(attributes);
 
-    let backupTableName;
-    if (typeof tableName === 'object') {
-      backupTableName = {
-        tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
-      };
-    } else {
-      backupTableName = `${tableName}_backup`;
-    }
+    const table = this.extractTableDetails(tableName);
+
+    // TODO: this is unsafe, this table could already exist
+    const backupTableName = {
+      tableName: `${table.tableName}_backup`,
+      schema: table.schema,
+      delimiter: table.delimiter,
+    };
 
     const quotedTableName = this.quoteTable(tableName);
     const quotedBackupTableName = this.quoteTable(backupTableName);

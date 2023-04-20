@@ -112,6 +112,7 @@ export class SnowflakeQuery extends AbstractQuery {
     if (this.isSelectQuery()) {
       // Snowflake will treat tables as case-insensitive, so fix the case
       // of the returned values to match attributes
+      // TODO [>7]: remove this.sequelize.options.quoteIdentifiers === false
       if (this.options.raw === false && this.sequelize.options.quoteIdentifiers === false) {
         const attrsMap = Object.create(null);
 

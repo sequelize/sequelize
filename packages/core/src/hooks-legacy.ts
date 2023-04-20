@@ -1,4 +1,4 @@
-import type { HookHandlerBuilder, HookHandler } from './hooks.js';
+import type { HookHandler, HookHandlerBuilder } from './hooks.js';
 import { hooksReworked } from './utils/deprecations.js';
 
 // TODO: delete this in Sequelize v8

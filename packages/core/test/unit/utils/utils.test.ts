@@ -1,10 +1,20 @@
 import { expect } from 'chai';
-import { col, DataTypes, Where } from '@sequelize/core';
+import { DataTypes, Where, col } from '@sequelize/core';
 import { canTreatArrayAsAnd } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { toDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { mapFinderOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
-import { defaults, merge, cloneDeep, flattenObjectDeep } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { underscoredIf, camelizeIf, pluralize, singularize } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import {
+  cloneDeep,
+  defaults,
+  flattenObjectDeep,
+  merge,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import {
+  camelizeIf,
+  pluralize,
+  singularize,
+  underscoredIf,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
 import { sequelize } from '../../support';
 
@@ -162,13 +172,13 @@ describe('Utils', () => {
 
   describe('toDefaultValue', () => {
     it('return uuid v1', () => {
-      expect(/^[\da-z-]{36}$/.test(toDefaultValue(new DataTypes.UUIDV1().toDialectDataType(dialect)) as string)).to.be.equal(true);
+      expect(/^[\da-z-]{36}$/.test(toDefaultValue(new DataTypes.UUIDV1().toDialectDataType(dialect)) as string)).to.equal(true);
     });
     it('return uuid v4', () => {
-      expect(/^[\da-z-]{36}/.test(toDefaultValue(new DataTypes.UUIDV4().toDialectDataType(dialect)) as string)).to.be.equal(true);
+      expect(/^[\da-z-]{36}/.test(toDefaultValue(new DataTypes.UUIDV4().toDialectDataType(dialect)) as string)).to.equal(true);
     });
     it('return now', () => {
-      expect(Object.prototype.toString.call(toDefaultValue(new DataTypes.NOW().toDialectDataType(dialect)))).to.be.equal('[object Date]');
+      expect(Object.prototype.toString.call(toDefaultValue(new DataTypes.NOW().toDialectDataType(dialect)))).to.equal('[object Date]');
     });
     it('return plain string', () => {
       expect(toDefaultValue('Test')).to.equal('Test');

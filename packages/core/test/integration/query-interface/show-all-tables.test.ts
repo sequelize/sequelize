@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import type { Sequelize } from '@sequelize/core';
 import { DataTypes, QueryTypes } from '@sequelize/core';
-import { sequelize, getTestDialect, createSequelizeInstance } from '../support';
+import { createSequelizeInstance, getTestDialect, sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;
 const dialect = sequelize.dialect;

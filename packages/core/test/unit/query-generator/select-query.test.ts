@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import type { InferAttributes, Model } from '@sequelize/core';
-import { Op, DataTypes, or, sql as sqlTag } from '@sequelize/core';
+import { DataTypes, Op, or, sql as sqlTag } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expectsql, sequelize } from '../../support';
 

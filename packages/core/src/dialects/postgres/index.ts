@@ -68,6 +68,9 @@ export class PostgresDialect extends AbstractDialect {
     dropTable: {
       cascade: true,
     },
+    truncate: {
+      cascade: true,
+    },
   });
 
   readonly connectionManager: PostgresConnectionManager;

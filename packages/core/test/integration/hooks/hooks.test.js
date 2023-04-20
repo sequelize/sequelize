@@ -8,7 +8,6 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
-const { createSequelizeInstance } = require('../../support');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(async function () {
@@ -71,34 +70,45 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
   });
 
-  describe('#init', () => {
-    before(function () {
-      Sequelize.addHook('beforeInit', options => {
+  describe('init', () => {
+    Support.setResetMode('none');
+
+    const vars = Support.beforeAll2(() => {
+      const unhookBeforeInit = Sequelize.hooks.addListener('beforeInit', options => {
         options.database = 'db2';
         options.host = 'server9';
       });
 
-      Sequelize.addHook('afterInit', sequelize => {
+      const unhookAfterInit = Sequelize.hooks.addListener('afterInit', sequelize => {
         sequelize.options.protocol = 'udp';
       });
 
-      this.seq = new Sequelize('db', 'user', 'pass', { dialect });
+      const seq = new Sequelize('db', 'user', 'pass', { dialect });
+
+      return {
+        seq,
+        unhook() {
+          unhookBeforeInit();
+          unhookAfterInit();
+        },
+      };
     });
 
-    it('beforeInit hook can alter config', function () {
-      expect(this.seq.config.database).to.equal('db2');
+    after(async () => {
+      await vars.seq.close();
+      vars.unhook();
     });
 
-    it('beforeInit hook can alter options', function () {
-      expect(this.seq.options.host).to.equal('server9');
+    it('beforeInit hook can alter config', () => {
+      expect(vars.seq.config.database).to.equal('db2');
     });
 
-    it('afterInit hook can alter options', function () {
-      expect(this.seq.options.protocol).to.equal('udp');
+    it('beforeInit hook can alter options', () => {
+      expect(vars.seq.options.host).to.equal('server9');
     });
 
-    after(() => {
-      Sequelize.hooks.removeAllListeners();
+    it('afterInit hook can alter options', () => {
+      expect(vars.seq.options.protocol).to.equal('udp');
     });
   });
 
@@ -320,7 +330,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should return an error from before', async () => {
         const beforeHook = sinon.spy();
         const afterHook = sinon.spy();
-        const tmpSequelize = createSequelizeInstance();
+        const tmpSequelize = Support.createSingleTestSequelizeInstance();
 
         tmpSequelize.beforeBulkSync(() => {
           beforeHook();
@@ -337,7 +347,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should return an error from after', async () => {
         const beforeHook = sinon.spy();
         const afterHook = sinon.spy();
-        const tmpSequelize = createSequelizeInstance();
+        const tmpSequelize = Support.createSingleTestSequelizeInstance();
 
         tmpSequelize.beforeBulkSync(beforeHook);
         tmpSequelize.afterBulkSync(() => {
@@ -355,4 +365,25 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
   });
+
+  describe('Sequelize hooks', () => {
+    it('should run before/afterPoolAcquire hooks', async function () {
+      if (dialect === 'sqlite') {
+        return this.skip();
+      }
+
+      const beforeHook = sinon.spy();
+      const afterHook = sinon.spy();
+
+      this.sequelize.addHook('beforePoolAcquire', beforeHook);
+      this.sequelize.addHook('afterPoolAcquire', afterHook);
+
+      await this.sequelize.authenticate();
+
+      expect(beforeHook).to.have.been.calledOnce;
+      expect(afterHook).to.have.been.calledOnce;
+
+    });
+  });
+
 });

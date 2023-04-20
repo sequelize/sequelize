@@ -1,6 +1,10 @@
-import type { Connection as SnowflakeSdkConnection, ConnectionOptions as SnowflakeSdkConnectionOptions } from 'snowflake-sdk';
+import type {
+  Connection as SnowflakeSdkConnection,
+  ConnectionOptions as SnowflakeSdkConnectionOptions,
+} from 'snowflake-sdk';
 import {
-  AccessDeniedError, ConnectionError,
+  AccessDeniedError,
+  ConnectionError,
   ConnectionRefusedError,
   HostNotFoundError,
   HostNotReachableError,

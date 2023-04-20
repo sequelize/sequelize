@@ -1,16 +1,9 @@
 import { expect } from 'chai';
 import semver from 'semver';
-import type { InferAttributes, NonAttribute, CreationOptional, InferCreationAttributes } from '@sequelize/core';
-import { DataTypes, Op, Model, sql } from '@sequelize/core';
+import type { CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute } from '@sequelize/core';
+import { DataTypes, Model, Op, sql } from '@sequelize/core';
 import { Attribute, BelongsTo } from '@sequelize/core/decorators-legacy';
-import {
-  beforeAll2,
-  beforeEach2,
-  disableDatabaseResetForSuite,
-  enableTruncateDatabaseForSuite,
-  inlineErrorCause,
-  sequelize,
-} from './support';
+import { beforeAll2, beforeEach2, inlineErrorCause, sequelize, setResetMode } from './support';
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
@@ -76,7 +69,7 @@ describe('JSON Querying', () => {
     return;
   }
 
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -136,6 +129,32 @@ describe('JSON Querying', () => {
       })).to.be.rejected;
     });
   }
+
+  it('should be able to retrieve json value as object for json fields created in every mariadb release', async () => {
+    // MariaDB does not support native JSON type, it uses longtext instead
+    // MariaDB >=10.5.2 adds a CHECK(json_valid(field)) validator that uses to return a different dataFormat to clients
+    // mariadb connector use this to decide to parse or not a JSON field before sequelize
+    if (dialectName !== 'mariadb') {
+      return;
+    }
+
+    await sequelize.query(`CREATE TABLE Posts (id INTEGER AUTO_INCREMENT PRIMARY KEY,
+      metaOldJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
+      metaNewJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK(json_valid(metaNewJSONtype)))`);
+
+    const Posts = sequelize.define('Posts', {
+      metaOldJSONtype: DataTypes.JSON,
+      metaNewJSONtype: DataTypes.JSON,
+    }, {
+      freezeTableName: true,
+      timestamps: false,
+    });
+
+    await Posts.create({ metaOldJSONtype: 'some text', metaNewJSONtype: 'some text' });
+
+    const posts = await Posts.findAll({ raw: true });
+    expect(posts[0].metaOldJSONtype).to.equal(posts[0].metaNewJSONtype);
+  });
 
   if (dialect.supports.jsonOperations) {
     it('should be able to retrieve element of array by index', async () => {
@@ -210,7 +229,7 @@ describe('JSON Casting', () => {
     return;
   }
 
-  enableTruncateDatabaseForSuite();
+  setResetMode('truncate');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -297,7 +316,7 @@ describe('JSONB Querying', () => {
     return;
   }
 
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
@@ -417,7 +436,7 @@ describe('JSONB Casting', () => {
     return;
   }
 
-  enableTruncateDatabaseForSuite();
+  setResetMode('truncate');
 
   const vars = beforeAll2(async () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {

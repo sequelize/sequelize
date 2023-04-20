@@ -12,8 +12,8 @@ import type {
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
-import { beforeAll2, disableDatabaseResetForSuite, sequelize } from '../support';
+import { DataTypes, Model, QueryTypes, ValidationError, fn } from '@sequelize/core';
+import { beforeAll2, sequelize, setResetMode } from '../support';
 import 'moment-timezone';
 
 dayjs.extend(DayjsTimezone);
@@ -29,7 +29,7 @@ enum TestEnum {
 }
 
 describe('DataTypes', () => {
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   // TODO: merge STRING & TEXT: remove default length limit on STRING instead of using 255.
   describe('STRING(<length>)', () => {

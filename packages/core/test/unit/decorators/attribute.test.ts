@@ -1,7 +1,20 @@
 import { expect } from 'chai';
 import type { InferAttributes } from '@sequelize/core';
-import { Model, DataTypes } from '@sequelize/core';
-import { Table, Attribute, Unique, AutoIncrement, PrimaryKey, NotNull, AllowNull, Comment, Default, ColumnName, Index, createIndexDecorator } from '@sequelize/core/decorators-legacy';
+import { DataTypes, Model } from '@sequelize/core';
+import {
+  AllowNull,
+  Attribute,
+  AutoIncrement,
+  ColumnName,
+  Comment,
+  Default,
+  Index,
+  NotNull,
+  PrimaryKey,
+  Table,
+  Unique,
+  createIndexDecorator,
+} from '@sequelize/core/decorators-legacy';
 import { sequelize } from '../../support';
 
 describe(`@Attribute legacy decorator`, () => {

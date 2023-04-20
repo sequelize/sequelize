@@ -12,13 +12,9 @@ import {
   scopeRenamedToWithScope,
 } from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
-import {
-  mapFinderOptions,
-  mapOptionFieldNames,
-  mapValueFieldNames,
-} from './utils/format';
+import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './utils/format';
 import { every, find } from './utils/iterators';
-import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap, EMPTY_OBJECT } from './utils/object';
+import { EMPTY_OBJECT, cloneDeep, defaults, flattenObjectDeep, getObjectFromMap, mergeDefaults } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
@@ -1789,6 +1785,10 @@ ${associationOwner._getAssociationDebugList()}`);
       );
     }
 
+    if (options.connection) {
+      throw new Error('findOrCreate does not support specifying which connection must be used, because findOrCreate must run in a transaction.');
+    }
+
     options = { ...options };
 
     const modelDefinition = this.modelDefinition;
@@ -2186,6 +2186,7 @@ ${associationOwner._getAssociationDebugList()}`);
             const includeOptions = _(cloneDeep(include))
               .omit(['association'])
               .defaults({
+                connection: options.connection,
                 transaction: options.transaction,
                 logging: options.logging,
               })
@@ -2328,6 +2329,7 @@ ${associationOwner._getAssociationDebugList()}`);
           const includeOptions = _(cloneDeep(include))
             .omit(['association'])
             .defaults({
+              connection: options.connection,
               transaction: options.transaction,
               logging: options.logging,
             })
@@ -2370,6 +2372,7 @@ ${associationOwner._getAssociationDebugList()}`);
             const throughOptions = _(cloneDeep(include))
               .omit(['association', 'attributes'])
               .defaults({
+                connection: options.connection,
                 transaction: options.transaction,
                 logging: options.logging,
               })
@@ -2424,6 +2427,8 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async truncate(options) {
+    // TODO: this method currently uses DELETE FROM if the table is paranoid. Truncate should always ignore paranoid.
+    // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
     options = cloneDeep(options) || {};
     options.truncate = true;
 
@@ -2475,7 +2480,13 @@ ${associationOwner._getAssociationDebugList()}`);
     let instances;
     // Get daos and run beforeDestroy hook on each record individually
     if (options.individualHooks) {
-      instances = await this.findAll({ where: options.where, transaction: options.transaction, logging: options.logging, benchmark: options.benchmark });
+      instances = await this.findAll({
+        where: options.where,
+        connection: options.connection,
+        transaction: options.transaction,
+        logging: options.logging,
+        benchmark: options.benchmark,
+      });
 
       await Promise.all(instances.map(instance => {
         return this.hooks.runAsync('beforeDestroy', instance, options);
@@ -2483,6 +2494,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     let result;
+    // TODO: rename force -> paranoid: false, as that's how it's called in the instance version
     // Run delete query (or update if paranoid)
     if (modelDefinition.timestampAttributeNames.deletedAt && !options.force) {
       // Set query type appropriately when running soft delete
@@ -2491,6 +2503,8 @@ ${associationOwner._getAssociationDebugList()}`);
       const attrValueHash = {};
       const deletedAtAttribute = attributes.get(modelDefinition.timestampAttributeNames.deletedAt);
       const deletedAtColumnName = deletedAtAttribute.columnName;
+
+      // FIXME: where must be joined with AND instead of using Object.assign. This won't work with literals!
       const where = {
         [deletedAtColumnName]: Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue') ? deletedAtAttribute.defaultValue : null,
       };
@@ -2553,7 +2567,14 @@ ${associationOwner._getAssociationDebugList()}`);
     let instances;
     // Get daos and run beforeRestore hook on each record individually
     if (options.individualHooks) {
-      instances = await this.findAll({ where: options.where, transaction: options.transaction, logging: options.logging, benchmark: options.benchmark, paranoid: false });
+      instances = await this.findAll({
+        where: options.where,
+        connection: options.connection,
+        transaction: options.transaction,
+        logging: options.logging,
+        benchmark: options.benchmark,
+        paranoid: false,
+      });
 
       await Promise.all(instances.map(instance => {
         return this.hooks.runAsync('beforeRestore', instance, options);
@@ -2681,6 +2702,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (options.individualHooks) {
       instances = await this.findAll({
         where: options.where,
+        connection: options.connection,
         transaction: options.transaction,
         logging: options.logging,
         benchmark: options.benchmark,
@@ -3670,6 +3692,7 @@ Instead of specifying a Model, either:
         const includeOptions = _(cloneDeep(include))
           .omit(['association'])
           .defaults({
+            connection: options.connection,
             transaction: options.transaction,
             logging: options.logging,
             parentRecord: this,
@@ -3759,6 +3782,7 @@ Instead of specifying a Model, either:
           const includeOptions = _(cloneDeep(include))
             .omit(['association'])
             .defaults({
+              connection: options.connection,
               transaction: options.transaction,
               logging: options.logging,
               parentRecord: this,

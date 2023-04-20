@@ -4,6 +4,7 @@
 npm-debug.log*
 *~
 test.sqlite
+test.sqlite2
 *.sublime*
 package-lock.json
 pnpm-lock.yaml

@@ -20,7 +20,6 @@ describe('QueryGenerator#dropDatabaseQuery', () => {
     expectsql(() => noQuoteQueryGenerator.dropDatabaseQuery('myDatabase'), {
       default: notSupportedError,
       'postgres snowflake': 'DROP DATABASE IF EXISTS myDatabase;',
-      // TODO: mssql does not respect quoteIdentifiers in this method
       mssql: `IF EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN DROP DATABASE [myDatabase] ; END;`,
     });
   });

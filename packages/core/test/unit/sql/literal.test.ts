@@ -1,4 +1,4 @@
-import { cast, fn, Op, json, where } from '@sequelize/core';
+import { Op, cast, fn, json, where } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;

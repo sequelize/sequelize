@@ -234,7 +234,7 @@ export class PostgresQueryInterface extends AbstractQueryInterface {
     await super.dropTable(tableName, options);
     const promises = [];
     // TODO: we support receiving the model class instead of getting it from modelManager. More than one model can use the same table.
-    const model = this.sequelize.modelManager.getModel(tableName, { attribute: 'tableName' });
+    const model = this.sequelize.modelManager.findModel(model => this.queryGenerator.isSameTable(model.table, tableName));
 
     if (!model) {
       // Do nothing when model is not available

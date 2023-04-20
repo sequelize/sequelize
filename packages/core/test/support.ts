@@ -29,8 +29,18 @@ chai.use(sinonChai);
  * that is also checks whether the message is present in the error cause.
  */
 chai.Assertion.addMethod('throwWithCause', function throwWithCause(errorConstructor, errorMessage) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai functions
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(withInlineCause(this._obj)).to.throw(errorConstructor, errorMessage);
+});
+
+chai.Assertion.addMethod('beNullish', function nullish() {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
+  expect(this._obj).to.not.exist;
+});
+
+chai.Assertion.addMethod('notBeNullish', function nullish() {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
+  expect(this._obj).to.exist;
 });
 
 function withInlineCause(cb: (() => any)): () => void {
@@ -128,32 +138,6 @@ export function captureUnhandledRejections(destArray = []) {
   return unhandledRejections;
 }
 
-let lastSqliteInstance: Sequelize | undefined;
-export async function prepareTransactionTest(sequelize: Sequelize) {
-  const dialect = getTestDialect();
-
-  if (dialect === 'sqlite') {
-    const p = path.join(__dirname, 'tmp', 'db.sqlite');
-    if (lastSqliteInstance) {
-      await lastSqliteInstance.close();
-    }
-
-    if (fs.existsSync(p)) {
-      fs.unlinkSync(p);
-    }
-
-    const options = { ...sequelize.options, storage: p };
-    const _sequelize = new Sequelize(sequelize.config.database, '', '', options);
-
-    await _sequelize.sync({ force: true });
-    lastSqliteInstance = _sequelize;
-
-    return _sequelize;
-  }
-
-  return sequelize;
-}
-
 export function createSequelizeInstance(options: Options = {}): Sequelize {
   options.dialect = getTestDialect();
 
@@ -195,48 +179,6 @@ export function getSequelizeInstance(db: string, user: string, pass: string, opt
   options.dialect = options.dialect || getTestDialect();
 
   return new Sequelize(db, user, pass, options);
-}
-
-export async function clearDatabase(sequelize: Sequelize) {
-  const qi = sequelize.getQueryInterface();
-  await qi.dropAllTables();
-  sequelize.modelManager.models = [];
-  sequelize.models = {};
-
-  if (qi.dropAllEnums) {
-    await qi.dropAllEnums();
-  }
-
-  await dropTestSchemas(sequelize);
-}
-
-export async function dropTestSchemas(sequelize: Sequelize) {
-  if (!sequelize.dialect.supports.schemas) {
-    await sequelize.drop({});
-
-    return;
-  }
-
-  const schemas = await sequelize.showAllSchemas();
-  const schemasPromise = [];
-  for (const schema of schemas) {
-    // @ts-expect-error -- TODO: type return value of "showAllSchemas"
-    const schemaName = schema.name ? schema.name : schema;
-    if (schemaName !== sequelize.config.database) {
-      const promise = sequelize.dropSchema(schemaName);
-
-      if (getTestDialect() === 'db2') {
-        // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
-        // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
-        // eslint-disable-next-line no-await-in-loop
-        await promise;
-      } else {
-        schemasPromise.push(promise);
-      }
-    }
-  }
-
-  await Promise.all(schemasPromise);
 }
 
 export function getSupportedDialects() {
@@ -530,26 +472,22 @@ export function minifySql(sql: string): string {
 
 export const sequelize = createSequelizeInstance();
 
-export function resetSequelizeInstance(): void {
-  for (const model of sequelize.modelManager.all) {
-    sequelize.modelManager.removeModel(model);
+export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize): void {
+  for (const model of sequelizeInstance.modelManager.all) {
+    sequelizeInstance.modelManager.removeModel(model);
   }
 }
 
 // 'support' is requested by dev/check-connection, which is not a mocha context
 if (typeof before !== 'undefined') {
   before(function onBefore() {
-    // legacy, remove once all tests have been migrated
+    // legacy, remove once all tests have been migrated to not use "this" anymore
     // eslint-disable-next-line @typescript-eslint/no-invalid-this
-    this.sequelize = sequelize;
-  });
-}
-
-if (typeof beforeEach !== 'undefined') {
-  beforeEach(function onBeforeEach() {
-    // legacy, remove once all tests have been migrated
-    // eslint-disable-next-line @typescript-eslint/no-invalid-this
-    this.sequelize = sequelize;
+    Object.defineProperty(this, 'sequelize', {
+      value: sequelize,
+      writable: false,
+      configurable: false,
+    });
   });
 }
 

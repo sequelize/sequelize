@@ -102,7 +102,6 @@ ${NodeUtil.inspect(index)}`);
     }
 
     if (field instanceof BaseSqlExpression) {
-      // eslint-disable-next-line unicorn/prefer-type-error -- not a type error.
       throw new Error(`Index on table ${tableName} uses Sequelize's ${field.constructor.name} as one of its fields. You need to name this index manually.`);
     }
 

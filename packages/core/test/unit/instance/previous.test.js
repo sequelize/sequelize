@@ -31,8 +31,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       instance.set('text', 'b');
       instance.set('textCustom', 'def');
 
-      expect(instance.previous('text')).to.be.equal('a');
-      expect(instance.previous('textCustom')).to.be.equal('abc');
+      expect(instance.previous('text')).to.equal('a');
+      expect(instance.previous('textCustom')).to.equal('abc');
     });
   });
 });
