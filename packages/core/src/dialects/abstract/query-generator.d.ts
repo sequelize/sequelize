@@ -83,7 +83,7 @@ export interface CreateTableQueryOptions {
    * Used for compound unique keys.
    */
   uniqueKeys?: Array<{ fields: string[] }>
-  | { [indexName: string]: { fields: string[] } };
+   | { [indexName: string]: { fields: string[] } };
 }
 
 // keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this

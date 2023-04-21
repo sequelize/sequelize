@@ -210,7 +210,6 @@ but you will need to follow the [Conventional Commits Conventions](https://www.c
 We will then use the title of your PR as the message of the Squash Commit. It will then be used to automatically generate a changelog and calculate the next [semver](https://semver.org/) version number.
 
 We use a simple conventional commits convention:
-
 - The allowed commit types are: `docs`, `feat`, `fix`, `meta`.
 - We allow the following commit scopes (they're the list of dialects we support, plus `types` for TypeScript-only changes):
   - `postgres`

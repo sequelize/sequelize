@@ -776,7 +776,8 @@ Use Sequelize#query if you wish to use replacements.`);
 
     // Generate SQL Query
     const query
-      = `SET ${_.map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
+      = `SET ${
+        _.map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
 
     return await this.query(query, options);
   }
