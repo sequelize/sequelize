@@ -1,6 +1,6 @@
 {
-  "name": "@sequelize/monorepo",
-  "private": true,
+  "name": "@clairejs/sequelize",
+  "version": "1.0.0",
   "scripts": {
     "prepare": "husky install",
     "publish-all": "lerna publish --conventional-commits --no-private --yes --create-release github",
