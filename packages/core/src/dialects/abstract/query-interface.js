@@ -686,12 +686,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return await this.sequelize.queryRaw(sql, options);
   }
 
-  async showConstraint(tableName, constraintName, options) {
-    const sql = this.queryGenerator.showConstraintsQuery(tableName, constraintName);
-
-    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWCONSTRAINTS });
-  }
-
   /**
    * Remove a constraint from a table
    *

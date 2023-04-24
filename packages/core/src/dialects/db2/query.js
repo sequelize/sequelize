@@ -307,13 +307,6 @@ export class Db2Query extends AbstractQuery {
     });
   }
 
-  handleShowConstraintsQuery(data) {
-    // Remove SQL Contraints from constraints list.
-    return _.remove(data, constraint => {
-      return !constraint.constraintName.startsWith('SQL');
-    });
-  }
-
   formatError(err, conn, parameters) {
     let match;
 

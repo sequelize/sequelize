@@ -325,23 +325,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `DELETE FROM ${table}${whereClause}`;
   }
 
-  showConstraintsQuery(tableName) {
-    // Postgres converts camelCased alias to lowercase unless quoted
-    return [
-      'SELECT constraint_catalog AS "constraintCatalog",',
-      'constraint_schema AS "constraintSchema",',
-      'constraint_name AS "constraintName",',
-      'table_catalog AS "tableCatalog",',
-      'table_schema AS "tableSchema",',
-      'table_name AS "tableName",',
-      'constraint_type AS "constraintType",',
-      'is_deferrable AS "isDeferrable",',
-      'initially_deferred AS "initiallyDeferred"',
-      'from INFORMATION_SCHEMA.table_constraints',
-      `WHERE table_name=${this.escape(tableName)};`,
-    ].join(' ');
-  }
-
   addLimitAndOffset(options) {
     let fragment = '';
     if (options.limit != null) {

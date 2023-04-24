@@ -184,7 +184,7 @@ export class SnowflakeQuery extends AbstractQuery {
     }
 
     if (this.isShowConstraintsQuery()) {
-      return data;
+      return this.handleShowConstraintsQuery(data);
     }
 
     if (this.isRawQuery()) {

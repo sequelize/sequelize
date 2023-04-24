@@ -610,10 +610,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ]);
   }
 
-  showConstraintsQuery(tableName) {
-    return `EXEC sp_helpconstraint @objname = ${this.escape(this.quoteTable(tableName))};`;
-  }
-
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {

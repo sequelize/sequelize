@@ -276,20 +276,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
-  showConstraintsQuery(tableName, constraintName) {
-    let sql = `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}'`;
-
-    if (constraintName) {
-      sql += ` AND sql LIKE '%${constraintName}%'`;
-    }
-
-    return `${sql};`;
-  }
-
-  describeCreateTableQuery(tableName) {
-    return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
-  }
-
   // TODO: this should not implement `removeColumnQuery` but a new sqlite specific function possibly called `replaceTableQuery`
   removeColumnQuery(tableName, attributes, options) {
     if (options) {

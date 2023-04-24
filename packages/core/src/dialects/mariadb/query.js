@@ -143,8 +143,12 @@ export class MariaDbQuery extends AbstractQuery {
       return this.handleShowIndexesQuery(data);
     }
 
-    if (this.isForeignKeysQuery() || this.isShowConstraintsQuery()) {
+    if (this.isForeignKeysQuery()) {
       return data;
+    }
+
+    if (this.isShowConstraintsQuery()) {
+      return this.handleShowConstraintsQuery(data);
     }
 
     if (this.isShowTablesQuery()) {

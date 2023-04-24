@@ -1,3 +1,4 @@
+import type { ReferentialAction } from '../../model';
 import type { QueryRawOptions } from '../../sequelize';
 import type { CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
 
@@ -11,6 +12,25 @@ export interface ColumnDescription {
 }
 
 export type ColumnsDescription = Record<string, ColumnDescription>;
+
+export interface ConstraintDescription {
+  constrainCatalog?: string;
+  constraintSchema: string;
+  constraintName: string;
+  constraintType: 'CHECK' | 'DEFAULT' | 'FOREIGN KEY' | 'PRIMARY KEY' | 'UNIQUE';
+  tableCatalog?: string;
+  tableSchema: string;
+  tableName: string;
+  columnNames?: string[];
+  referencedTableSchema?: string;
+  referencedTableName?: string;
+  referencedColumnNames?: string[];
+  deleteAction?: ReferentialAction;
+  updateAction?: ReferentialAction;
+  definition?: string;
+  isDeferrable?: string;
+  initiallyDeferred?: string;
+}
 
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
@@ -39,3 +59,6 @@ export interface DescribeTableOptions extends QueryRawOptions {
 }
 
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}
+
+/** Options accepted by {@link AbstractQueryInterfaceTypeScript#showConstraint} */
+export interface ShowConstraintOptions extends QueryRawOptions { }

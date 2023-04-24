@@ -28,6 +28,35 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
+  showConstraintsQuery(tableName: TableNameOrModel, constraintName?: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT c.TABSCHEMA AS "constraintSchema",',
+      'c.CONSTNAME AS "constraintName",',
+      `CASE c.TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'F' THEN 'FOREIGN KEY' WHEN 'K' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END AS "constraintType",`,
+      'c.TABSCHEMA AS "tableSchema",',
+      'c.TABNAME AS "tableName",',
+      'k.COLNAME AS "columnNames",',
+      'r.REFTABSCHEMA AS "referencedTableSchema",',
+      'r.REFTABNAME AS "referencedTableName",',
+      'fk.COLNAME AS "referencedColumnNames",',
+      `CASE r.DELETERULE WHEN 'A' THEN 'NO ACTION' WHEN 'C' THEN 'CASCADE' WHEN 'N' THEN 'SET NULL' WHEN 'R' THEN 'RESTRICT' ELSE NULL END AS "deleteRule",`,
+      `CASE r.UPDATERULE WHEN 'A' THEN 'NO ACTION' WHEN 'R' THEN 'RESTRICT' ELSE NULL END AS "updateRule",`,
+      'ck.TEXT AS "definition"',
+      'FROM SYSCAT.TABCONST c',
+      'LEFT JOIN SYSCAT.REFERENCES r ON c.CONSTNAME = r.CONSTNAME AND c.TABNAME = r.TABNAME AND c.TABSCHEMA = r.TABSCHEMA',
+      'LEFT JOIN SYSCAT.KEYCOLUSE k ON r.CONSTNAME = k.CONSTNAME AND r.TABNAME = k.TABNAME AND r.TABSCHEMA = k.TABSCHEMA',
+      'LEFT JOIN SYSCAT.KEYCOLUSE fk ON r.REFKEYNAME = fk.CONSTNAME',
+      'LEFT JOIN SYSCAT.CHECKS ck ON c.CONSTNAME = ck.CONSTNAME AND c.TABNAME = ck.TABNAME AND c.TABSCHEMA = ck.TABSCHEMA',
+      `WHERE c.TABNAME = ${this.escape(table.tableName)}`,
+      'AND c.TABSCHEMA =',
+      table.schema ? this.escape(table.schema) : 'USER',
+      constraintName ? `AND c.CONSTNAME = ${this.escape(constraintName)}` : '',
+      'ORDER BY c.CONSTNAME',
+    ]);
+  }
+
   showIndexesQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 

@@ -143,7 +143,7 @@ export class IBMiQuery extends AbstractQuery {
     }
 
     if (this.isShowConstraintsQuery()) {
-      return data;
+      return this.handleShowConstraintsQuery(data);
     }
 
     if (this.isRawQuery()) {

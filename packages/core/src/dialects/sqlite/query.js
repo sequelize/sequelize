@@ -1,7 +1,6 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
-import { removeTicks } from '../../utils/dialect';
 
 const _ = require('lodash');
 const { AbstractQuery } = require('../abstract/query');
@@ -289,53 +288,141 @@ export class SqliteQuery extends AbstractQuery {
 
   // TODO [>7]: remove usages of replaceAll('`', '') in favor of something that does not mishandle backticks
   parseConstraintsFromSql(sql) {
-    let constraints = sql.split('CONSTRAINT ');
-    let referenceTableName; let referenceTableKeys; let updateAction; let deleteAction;
-    constraints.splice(0, 1);
-    constraints = constraints.map(constraintSql => {
-      // Parse foreign key snippets
-      if (constraintSql.includes('REFERENCES')) {
-        // Parse out the constraint condition form sql string
-        updateAction = constraintSql.match(/ON UPDATE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT)/);
-        deleteAction = constraintSql.match(/ON DELETE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT)/);
-
-        if (updateAction) {
-          updateAction = updateAction[1];
+    const data = [];
+    if (/CREATE TABLE (?:`|'|")(\S+)(?:`|'|") \((.+)\)/.test(sql)) {
+      const [, tableName, attributeSQL] = sql.match(/CREATE TABLE (?:`|'|")(\S+)(?:`|'|") \((.+)\)/);
+      const { attributes, constraints, keys } = attributeSQL.split(/,(?![^(]*\))/).map(attr => attr.trim()).reduce((acc, attr) => {
+        if (attr.startsWith('CONSTRAINT')) {
+          acc.constraints.push(attr);
+        } else if (attr.startsWith('PRIMARY KEY') || attr.startsWith('FOREIGN KEY')) {
+          acc.keys.push(attr);
+        } else {
+          acc.attributes.push(attr);
         }
 
-        if (deleteAction) {
-          deleteAction = deleteAction[1];
+        return acc;
+      }, { attributes: [], constraints: [], keys: [] });
+
+      for (const attribute of attributes) {
+        if (/\bPRIMARY KEY\b/.test(attribute)) {
+          data.push({
+            constraintSchema: '',
+            constraintName: 'PRIMARY',
+            constraintType: 'PRIMARY KEY',
+            tableSchema: '',
+            tableName,
+            columnNames: /`(\S+)`/.exec(attribute)[1].split(','),
+          });
+        } else if (/\bREFERENCES\b/.test(attribute)) {
+          const deleteAction = attribute.match(/ON DELETE (\w+)/);
+          const updateAction = attribute.match(/ON UPDATE (\w+)/);
+
+          data.push({
+            constraintSchema: '',
+            constraintName: 'FOREIGN',
+            constraintType: 'FOREIGN KEY',
+            tableSchema: '',
+            tableName,
+            columnNames: /`(\S+)`/.exec(attribute)[1].split(','),
+            referencedTableName: /REFERENCES `(\S+)`/.exec(attribute)[1],
+            referencedColumnNames: /REFERENCES \S+ \(`(\S+)`\)/.exec(attribute)[1].split(','),
+            deleteAction: deleteAction ? deleteAction[1] : null,
+            updateAction: updateAction ? updateAction[1] : null,
+          });
+        } else if (/\bUNIQUE\b/.test(attribute)) {
+          data.push({
+            constraintSchema: '',
+            constraintName: 'UNIQUE',
+            constraintType: 'UNIQUE',
+            tableSchema: '',
+            tableName,
+            columnNames: /`(\S+)`/.exec(attribute)[1].split(','),
+          });
+        } else if (/\bCHECK\b/.test(attribute)) {
+          data.push({
+            constraintSchema: '',
+            constraintName: 'CHECK',
+            constraintType: 'CHECK',
+            tableSchema: '',
+            tableName,
+            columnNames: /`(\S+)`/.exec(attribute)[1].split(','),
+            definition: /CHECK (.+)/.exec(attribute)[1],
+          });
         }
-
-        const referencesRegex = /REFERENCES.+\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/;
-        const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
-        referenceTableName = referenceConditions[1].replaceAll('`', '');
-        let columnNames = referenceConditions[2];
-        columnNames = columnNames.replaceAll(/\(|\)/g, '').split(', ');
-        referenceTableKeys = columnNames.map(column => column.replaceAll('`', ''));
       }
 
-      const constraintCondition = constraintSql.match(/\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/)[0];
-      constraintSql = constraintSql.replace(/\(.+\)/, '');
-      const constraint = constraintSql.split(' ');
+      for (const constraint of constraints) {
+        const [, constraintName, constraintType, definition] = constraint.match(/CONSTRAINT (?:`|'|")(\S+)(?:`|'|") (\w+) (.+)/);
+        if (/\bPRIMARY KEY\b/.test(constraint)) {
+          data.push({
+            constraintSchema: '',
+            constraintName,
+            constraintType: 'PRIMARY KEY',
+            tableSchema: '',
+            tableName,
+            columnNames: /`(\S+)`/.exec(definition)[1].split(','),
+          });
+        } else if (/\bREFERENCES\b/.test(constraint)) {
+          const deleteAction = constraint.match(/ON DELETE (\w+)/);
+          const updateAction = constraint.match(/ON UPDATE (\w+)/);
 
-      if (['PRIMARY', 'FOREIGN'].includes(constraint[1])) {
-        constraint[1] += ' KEY';
+          data.push({
+            constraintSchema: '',
+            constraintName,
+            constraintType: 'FOREIGN KEY',
+            tableSchema: '',
+            tableName,
+            columnNames: /`(\S+)`/.exec(definition)[1].split(','),
+            referencedTableName: /REFERENCES `(\S+)`/.exec(definition)[1],
+            referencedColumnNames: /REFERENCES \S+ \(`(\S+)`\)/.exec(definition)[1].split(','),
+            deleteAction: deleteAction ? deleteAction[1] : null,
+            updateAction: updateAction ? updateAction[1] : null,
+          });
+        } else {
+          data.push({
+            constraintSchema: '',
+            constraintName,
+            constraintType,
+            tableSchema: '',
+            tableName,
+            definition,
+          });
+        }
       }
 
-      return {
-        constraintName: constraint[0].replaceAll('`', ''),
-        constraintType: constraint[1],
-        updateAction,
-        deleteAction,
-        sql: sql.replaceAll('"', '`'), // Sqlite returns double quotes for table name
-        constraintCondition,
-        referenceTableName,
-        referenceTableKeys,
-      };
-    });
+      for (const key of keys) {
+        if (key.startsWith('PRIMARY KEY')) {
+          data.push({
+            constraintSchema: '',
+            constraintName: 'PRIMARY',
+            constraintType: 'PRIMARY KEY',
+            tableSchema: '',
+            tableName,
+            columnNames: /PRIMARY KEY(?:\b|\s+)\(`(\S+)`\)/.exec(key)[1].split(','),
+          });
+        } else if (key.startsWith('FOREIGN KEY')) {
+          const deleteAction = key.match(/ON DELETE (\w+)/);
+          const updateAction = key.match(/ON UPDATE (\w+)/);
 
-    return constraints;
+          data.push({
+            constraintSchema: '',
+            constraintName: 'FOREIGN',
+            constraintType: 'FOREIGN KEY',
+            tableSchema: '',
+            tableName,
+            columnNames: /FOREIGN KEY(?:\b|\s+)\(`(\S+)`\)/.exec(key)[1].split(','),
+            referencedTableName: /REFERENCES `(\S+)`/.exec(key)[1],
+            referencedColumnNames: /REFERENCES \S+ \(`(\S+)`\)/.exec(key)[1].split(','),
+            deleteAction: deleteAction ? deleteAction[1] : null,
+            updateAction: updateAction ? updateAction[1] : null,
+          });
+        }
+      }
+    } else {
+      throw new Error(`Could not parse constraints from SQL: ${sql}`);
+    }
+
+    return data;
   }
 
   formatError(err) {

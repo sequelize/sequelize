@@ -457,33 +457,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return fragment;
   }
 
-  // Indexes and constraints
-
-  showConstraintsQuery(table, constraintName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-
-    let sql = [
-      'SELECT CONSTRAINT_NAME AS "constraintName",',
-      'CONSTRAINT_SCHEMA AS "constraintSchema",',
-      'CONSTRAINT_TYPE AS "constraintType",',
-      'TABLE_NAME AS "tableName",',
-      'TABLE_SCHEMA AS "tableSchema"',
-      'from QSYS2.SYSCST',
-      `WHERE table_name='${tableName}'`,
-    ].join(' ');
-
-    if (constraintName) {
-      sql += ` AND CONSTRAINT_NAME = '${constraintName}'`;
-    }
-
-    if (schemaName) {
-      sql += ` AND TABLE_SCHEMA = '${schemaName}'`;
-    }
-
-    return sql;
-  }
-
   // bindParam(bind) {
   //   return value => {
   //     bind.push(value);

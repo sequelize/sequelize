@@ -78,10 +78,25 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
   /**
    * @override
    */
-  async removeConstraint(tableName, constraintName, options) {
-    let createTableSql;
+  async showConstraint(tableName, constraintName, options) {
+    const constraints = await super.showConstraint(tableName, constraintName, options);
 
-    const constraints = await this.showConstraint(tableName, constraintName);
+    if (constraintName) {
+      return constraints.filter(constraint => constraint.constraintName === constraintName);
+    }
+
+    return constraints;
+  }
+
+  /**
+   * @override
+   */
+  async removeConstraint(tableName, constraintName, options) {
+    const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
+    const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, { ...options, type: QueryTypes.SELECT, raw: true });
+    let createTableSql = describeCreateTable[0].sql;
+
+    const constraints = await this.showConstraint(tableName, constraintName, options);
     // sqlite can't show only one constraint, so we find here the one to remove
     const constraint = constraints.find(constaint => constaint.constraintName === constraintName);
 
@@ -93,17 +108,22 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
       });
     }
 
-    createTableSql = constraint.sql;
     constraint.constraintName = this.queryGenerator.quoteIdentifier(constraint.constraintName);
-    let constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType} ${constraint.constraintCondition}`;
+    let constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType} ${constraint.definition}`;
 
     if (constraint.constraintType === 'FOREIGN KEY') {
-      const referenceTableName = this.queryGenerator.quoteTable(constraint.referenceTableName);
-      constraint.referenceTableKeys = constraint.referenceTableKeys.map(columnName => this.queryGenerator.quoteIdentifier(columnName));
-      const referenceTableKeys = constraint.referenceTableKeys.join(', ');
-      constraintSnippet += ` REFERENCES ${referenceTableName} (${referenceTableKeys})`;
+      constraintSnippet = `, CONSTRAINT ${constraint.constraintName} FOREIGN KEY`;
+      const columns = constraint.columnNames.map(columnName => this.queryGenerator.quoteIdentifier(columnName)).join(', ');
+      const referenceTableName = this.queryGenerator.quoteTable(constraint.referencedTableName);
+      const referenceTableColumns = constraint.referencedColumnNames.map(columnName => this.queryGenerator.quoteIdentifier(columnName)).join(', ');
+      constraintSnippet += ` (${columns})`;
+      constraintSnippet += ` REFERENCES ${referenceTableName} (${referenceTableColumns})`;
       constraintSnippet += ` ON UPDATE ${constraint.updateAction}`;
       constraintSnippet += ` ON DELETE ${constraint.deleteAction}`;
+    } else if (constraint.constraintType === 'PRIMARY KEY') {
+      constraintSnippet = `, CONSTRAINT ${constraint.constraintName} PRIMARY KEY`;
+      const columns = constraint.columnNames.map(columnName => this.queryGenerator.quoteIdentifier(columnName)).join(', ');
+      constraintSnippet += ` (${columns})`;
     }
 
     createTableSql = createTableSql.replace(constraintSnippet, '');
