@@ -897,6 +897,8 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   addLimitAndOffset(options, model) {
+    const hasLimit = options.limit !== null && options.limit !== undefined;
+    const hasOffset = options.offset !== null && options.offset !== undefined;
     const offset = options.offset || 0;
     const isSubQuery = options.subQuery === undefined
       ? options.hasIncludeWhere || options.hasIncludeRequired || options.hasMultiAssociation
@@ -909,7 +911,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       orders = this.getQueryOrders(options, model, isSubQuery);
     }
 
-    if (options.limit || options.offset) {
+    if (hasLimit || hasOffset) {
       // TODO: document why this is adding the primary key of the model in ORDER BY if options.include is set
       if (!options.order || options.order.length === 0 || options.include && orders.subQueryOrder.length === 0) {
         let primaryKey = model.primaryKeyField;
@@ -950,11 +952,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         }
       }
 
-      if (options.offset || options.limit) {
+      if (hasOffset || hasLimit) {
         fragment += ` OFFSET ${this.escape(offset, options)} ROWS`;
       }
 
-      if (options.limit) {
+      if (hasLimit) {
         fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
       }
     }
