@@ -382,6 +382,23 @@ if (dialect === 'sqlite') {
           expectation: 'PRAGMA foreign_key_check(`schema.myTable`);',
         },
       ],
+      describeCreateTableQuery: [
+        {
+          title: 'Properly handles schemas in addConstraint',
+          arguments: [{ schema: 'schema', tableName: 'myTable' }],
+          expectation: 'SELECT sql FROM sqlite_master WHERE tbl_name=\'schema.myTable\';',
+        },
+        {
+          title: 'Properly handles tables specified as objects in the default schema in addConstraint',
+          arguments: [{ tableName: 'myTable' }],
+          expectation: 'SELECT sql FROM sqlite_master WHERE tbl_name=\'myTable\';',
+        },
+        {
+          title: 'Properly handles tables in the default schema in addConstraint',
+          arguments: ['myTable'],
+          expectation: 'SELECT sql FROM sqlite_master WHERE tbl_name=\'myTable\';',
+        },
+      ],
     };
 
     _.each(suites, (tests, suiteTitle) => {

@@ -288,6 +288,16 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   describeCreateTableQuery(tableName) {
+    if (typeof tableName === 'object') {
+      if (tableName.schema) {
+        tableName = `${tableName.schema}.${tableName.tableName}`;
+      } else if (tableName.tableName) {
+        tableName = `${tableName.tableName}`;
+      } else {
+        throw new Error('Table must be a string or an object containing tableName and optional schema');
+      }
+    }
+
     return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
   }
 
