@@ -1498,6 +1498,7 @@ describe('DataTypes', () => {
       return;
     }
 
+    // Cockroachdb does not support nested arrays.
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare enumArray: TestEnum[] | null;

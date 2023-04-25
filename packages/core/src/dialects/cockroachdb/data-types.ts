@@ -4,7 +4,7 @@ import { isString } from '../../utils/check';
 import type { AbstractDialect } from '../abstract';
 import type { AbstractDataType, AcceptableTypeOf, ArrayOptions, BindParamOptions, DataType } from '../abstract/data-types';
 import * as BaseTypes from '../abstract/data-types';
-import { attributeTypeToSql } from '../abstract/data-types-utils.js';
+import { attributeTypeToSql } from '../abstract/data-types-utils';
 import { ARRAY as PostgresArray, GEOGRAPHY as PostgresGeography, INTEGER as PostgresInteger } from '../postgres/data-types';
 
 export class INTEGER extends PostgresInteger {
@@ -28,14 +28,12 @@ export class FLOAT extends BaseTypes.FLOAT {
     return 'FLOAT';
   }
 }
-
-export class JSONB extends BaseTypes.JSONB {}
 export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends PostgresArray<T> {
   constructor(typeOrOptions: DataType | ArrayOptions) {
     super(typeOrOptions);
 
-    if (Array.isArray(typeOrOptions)) {
-      ValidationErrorItem.throwDataTypeValidationError('Cockroachdb does not support nested arrays.');
+    if (this.options.type instanceof ARRAY) {
+      ValidationErrorItem.throwDataTypeValidationError('Cockroachdb does not support nested arrays');
     }
   }
 
@@ -99,3 +97,4 @@ export {
   ENUM,
 } from '../postgres/data-types';
 
+export { JSONB } from '../abstract/data-types';

@@ -1,18 +1,12 @@
 import type { TruncateOptions } from 'src/model';
-import type { Expression } from '../../sequelize.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import type { EscapeOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { ListSchemasQueryOptions } from '../abstract/query-generator';
+import type { TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { QueryWithBindParams } from '../abstract/query-generator.types';
+import { ENUM } from '../postgres/data-types';
 import { PostgresQueryGenerator } from '../postgres/query-generator';
-import { ENUM } from './data-types';
 
-export interface ListSchemasQueryOptions {
-  /** List of schemas to exclude from output */
-  skip?: string[];
-}
 export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
-  setSearchPath(searchPath: string) {
-    return `SET search_path to ${searchPath};`;
-  }
 
   describeTableQuery(tableName: TableNameOrModel): string {
     const table = this.extractTableDetails(tableName);
@@ -42,42 +36,6 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel): string {
-    const table = this.extractTableDetails(tableName);
-
-    // TODO [>=6]: refactor the query to use pg_indexes
-    return joinSQLFragments([
-      'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey,',
-      'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)',
-      'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a , pg_namespace s',
-      'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND',
-      `t.relkind = 'r' and t.relname = ${this.escape(table.tableName)}`,
-      `AND s.oid = t.relnamespace AND s.nspname = ${this.escape(table.schema)}`,
-      'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;',
-    ]);
-  }
-
-  fromArray(text: string | string[]): string | string[] {
-    let patchedText = typeof text === 'string' ? text : `{${text.join(',')}}`;
-    if (Array.isArray(patchedText)) {
-      return text;
-    }
-
-    patchedText = patchedText.replace(/^{/, '').replace(/}$/, '');
-    let matches: string[] = patchedText.match(/("(?:\\.|[^"\\])*"|[^,]*)(?:\s*,\s*|\s*$)/gi) || [];
-
-    if (matches.length === 0) {
-      return [];
-    }
-
-    matches = matches.map(m => m
-      .replace(/",$/, '')
-      .replace(/,$/, '')
-      .replace(/(^"|"$)/g, ''));
-
-    return matches.slice(0, -1);
-  }
-
   truncateTableQuery(tableName: string, options: TruncateOptions = {}): string {
     return [
       `TRUNCATE ${this.quoteTable(tableName)}`,
@@ -85,6 +43,7 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
     ].join('');
   }
 
+  // Overriding postgres implementation since Postgres uses DO BEGIN which is not supported by cockroachdb
   pgEnum<Members extends string>(tableName: string, attr: string, dataType: ENUM<Members>, options: any) {
     const enumName = this.pgEnumName(tableName, attr, options);
     let values;
@@ -95,7 +54,7 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
       values = dataType.toString().match(/^ENUM\(.+\)/)?.[0];
     }
 
-    let sql = `CREATE TYPE ${enumName} AS ${values};`;
+    let sql: string = `CREATE TYPE ${enumName} AS ${values};`;
     if (Boolean(options) && options.force === true) {
       sql = this.pgEnumDrop(tableName, attr) + sql;
     }
@@ -103,60 +62,23 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
     return sql;
   }
 
-  pgEnumAdd(tableName: string, attr: string, value: string, options: any) {
-    const enumName = this.pgEnumName(tableName, attr);
-    let sql = `ALTER TYPE ${enumName} ADD VALUE IF NOT EXISTS `;
-
-    sql += this.escape(value);
-
-    if (options.before) {
-      sql += ` BEFORE ${this.escape(options.before)}`;
-    } else if (options.after) {
-      sql += ` AFTER ${this.escape(options.after)}`;
-    }
-
-    return sql;
+  _getTechnicalSchemaNames(): string[] {
+    return ['crdb_internal'];
   }
 
-  pgEnumDrop(tableName: string, attr: string, enumName?: string) {
-    enumName = enumName || this.pgEnumName(tableName, attr);
-
-    return `DROP TYPE IF EXISTS ${enumName}; `;
-  }
-
-  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
-    const operator = path.length === 1
-      ? (unquote ? '->>' : '->')
-      : (unquote ? '#>>' : '#>');
-
-    const pathSql = path.length === 1
-      // when accessing an array index with ->, the index must be a number
-      // when accessing an object key with ->, the key must be a string
-      ? this.escape(path[0])
-      // when accessing with #>, the path is always an array of strings
-      : this.escape(path.map(value => String(value)));
-
-    return sqlExpression + operator + pathSql;
-  }
-
-  formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
-    return `${this.escape(arg, options)}#>>ARRAY[]::TEXT[]`;
-  }
-
-  dropSchemaQuery(schema: string) {
+  dropSchemaQuery(schema: string): string | QueryWithBindParams {
     if (schema === 'crdb_internal') {
       throw new Error('Cannot remove crdb_internal schema in Cockroachdb');
     }
 
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
+    return super.dropSchemaQuery(schema);
   }
 
-  listSchemasQuery(options: ListSchemasQueryOptions) {
-    const schemasToSkip = ['information_schema', 'public', 'crdb_internal'];
-    if (options?.skip) {
-      schemasToSkip.push(...options.skip);
-    }
+  listSchemasQuery(options: ListSchemasQueryOptions): string {
+    const schemasToSkip = this._getTechnicalSchemaNames();
+    const listSchemasQueryOptions = options?.skip ? [...schemasToSkip, ...options.skip] : schemasToSkip;
 
-    return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
+    return super.listSchemasQuery({ skip: listSchemasQueryOptions });
   }
+
 }
