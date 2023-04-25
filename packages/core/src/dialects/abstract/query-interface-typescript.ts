@@ -12,6 +12,7 @@ import type { TableNameOrModel } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type {
+  AddConstraintOptions,
   ColumnsDescription,
   CreateSchemaOptions,
   DeferConstraintsOptions,
@@ -191,6 +192,112 @@ export class AbstractQueryInterfaceTypeScript {
 
       throw error;
     }
+  }
+
+  /**
+   * Add a constraint to a table
+   *
+   * Available constraints:
+   * - UNIQUE
+   * - DEFAULT (MSSQL only)
+   * - CHECK (Not supported by MySQL)
+   * - FOREIGN KEY
+   * - PRIMARY KEY
+   *
+   * @example UNIQUE
+   * ```ts
+   * queryInterface.addConstraint('Users', {
+   *   fields: ['email'],
+   *   type: 'UNIQUE',
+   *   name: 'custom_unique_constraint_name'
+   * });
+   * ```
+   *
+   * @example CHECK
+   * ```ts
+   * queryInterface.addConstraint('Users', {
+   *   fields: ['roles'],
+   *   type: 'CHECK',
+   *   where: {
+   *      roles: ['user', 'admin', 'moderator', 'guest']
+   *   }
+   * });
+   * ```
+   *
+   * @example Default - MSSQL only
+   * ```ts
+   * queryInterface.addConstraint('Users', {
+   *    fields: ['roles'],
+   *    type: 'DEFAULT',
+   *    defaultValue: 'guest'
+   * });
+   * ```
+   *
+   * @example Primary Key
+   * ```ts
+   * queryInterface.addConstraint('Users', {
+   *    fields: ['username'],
+   *    type: 'PRIMARY KEY',
+   *    name: 'custom_primary_constraint_name'
+   * });
+   * ```
+   *
+   * @example Composite Primary Key
+   * ```ts
+   * queryInterface.addConstraint('Users', {
+   *    fields: ['first_name', 'last_name'],
+   *    type: 'PRIMARY KEY',
+   *    name: 'custom_primary_constraint_name'
+   * });
+   * ```
+   *
+   * @example Foreign Key
+   * ```ts
+   * queryInterface.addConstraint('Posts', {
+   *   fields: ['username'],
+   *   type: 'FOREIGN KEY',
+   *   name: 'custom_fkey_constraint_name',
+   *   references: { //Required field
+   *     table: 'target_table_name',
+   *     field: 'target_column_name'
+   *   },
+   *   onDelete: 'cascade',
+   *   onUpdate: 'cascade'
+   * });
+   * ```
+   *
+   * @example Composite Foreign Key
+   * ```ts
+   * queryInterface.addConstraint('TableName', {
+   *   fields: ['source_column_name', 'other_source_column_name'],
+   *   type: 'FOREIGN KEY',
+   *   name: 'custom_fkey_constraint_name',
+   *   references: { //Required field
+   *     table: 'target_table_name',
+   *     fields: ['target_column_name', 'other_target_column_name']
+   *   },
+   *   onDelete: 'cascade',
+   *   onUpdate: 'cascade'
+   * });
+   * ```
+   *
+   * @param tableName - Table name where you want to add a constraint
+   * @param options - An object to define the constraint name, type etc
+   *
+   */
+  async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions) {
+    if (!options.fields) {
+      throw new Error('Fields must be specified through options.fields');
+    }
+
+    if (!options.type) {
+      throw new Error('Constraint type must be specified through options.type');
+    }
+
+    const queryOptions = { ...options, raw: true };
+    const sql = this.queryGenerator.addConstraintQuery(tableName, options);
+
+    return this.sequelize.queryRaw(sql, queryOptions);
   }
 
   async deferConstraints(transaction: Transaction, options: DeferConstraintsOptions) {

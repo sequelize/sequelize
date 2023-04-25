@@ -747,16 +747,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return _.compact(ind).join(' ');
   }
 
-  addConstraintQuery(tableName, options) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'ADD',
-      this.getConstraintSnippet(tableName, options || {}),
-      ';',
-    ]);
-  }
-
   removeConstraintQuery(tableName, constraintName) {
     return joinSQLFragments([
       'ALTER TABLE',

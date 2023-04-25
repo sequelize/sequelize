@@ -27,7 +27,11 @@ import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
 import { AbstractDataType } from './data-types.js';
 import type { BindParamOptions, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
-import type { DeferConstraintsQueryOptions, GetConstraintSnippetQueryOptions } from './query-generator.types.js';
+import type {
+  AddConstraintQueryOptions,
+  DeferConstraintsQueryOptions,
+  GetConstraintSnippetQueryOptions,
+} from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import { PojoWhere, WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
@@ -125,6 +129,10 @@ export class AbstractQueryGeneratorTypeScript {
 
   describeTableQuery(tableName: TableNameOrModel) {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
+  }
+
+  addConstraintQuery(_tableName: TableNameOrModel, _options: AddConstraintQueryOptions): string {
+    throw new Error(`addConstraintQuery has not been implemented in ${this.dialect.name}`);
   }
 
   deferConstraintsQuery(options: DeferConstraintsQueryOptions) {

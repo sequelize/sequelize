@@ -3,6 +3,7 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { AddConstraintQueryOptions } from '../abstract/query-generator.types.js';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -33,6 +34,15 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.column_name=c.column_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
       `AND c.table_schema = ${this.escape(table.schema!)}`,
+    ]);
+  }
+
+  addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions) {
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'ADD',
+      this.getConstraintSnippet(tableName, options),
     ]);
   }
 

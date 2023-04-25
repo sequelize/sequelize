@@ -1,6 +1,7 @@
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { AddConstraintQueryOptions } from '../abstract/query-generator.types';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -8,6 +9,15 @@ import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   describeTableQuery(tableName: TableNameOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
+  }
+
+  addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions) {
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'ADD',
+      this.getConstraintSnippet(tableName, options),
+    ]);
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, constraintName?: string) {

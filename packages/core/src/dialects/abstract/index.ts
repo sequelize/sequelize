@@ -114,7 +114,6 @@ export type DialectSupports = {
      * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
      */
     deferrable: boolean,
-    addConstraint: boolean,
     dropConstraint: boolean,
     unique: boolean,
     default: boolean,
@@ -278,7 +277,6 @@ export abstract class AbstractDialect {
     constraints: {
       restrict: true,
       deferrable: false,
-      addConstraint: true,
       dropConstraint: true,
       unique: true,
       default: false,

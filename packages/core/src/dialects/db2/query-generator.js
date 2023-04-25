@@ -320,24 +320,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     });
   }
 
-  addConstraintQuery(tableName, options) {
-    options = options || {};
-    if (options.onUpdate && options.onUpdate.toUpperCase() === 'CASCADE') {
-      // Db2 does not support ON UPDATE CASCADE, remove it.
-      delete options.onUpdate;
-    }
-
-    const constraintSnippet = this.getConstraintSnippet(tableName, options);
-
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
-
-    return `ALTER TABLE ${tableName} ADD ${constraintSnippet};`;
-  }
-
   bulkInsertQuery(tableName, attrValueHashes, options, attributes) {
     options = options || {};
     attributes = attributes || {};

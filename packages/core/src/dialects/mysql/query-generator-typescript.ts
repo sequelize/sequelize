@@ -12,6 +12,7 @@ import type {
   RemoveIndexQueryOptions,
   TableNameOrModel,
 } from '../abstract/query-generator-typescript';
+import type { AddConstraintQueryOptions } from '../abstract/query-generator.types.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -28,6 +29,15 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   describeTableQuery(tableName: TableNameOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
+  }
+
+  addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions) {
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'ADD',
+      this.getConstraintSnippet(tableName, options),
+    ]);
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, constraintName?: string) {

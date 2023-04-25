@@ -6,6 +6,7 @@ import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { AddConstraintQueryOptions } from '../abstract/query-generator.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -47,6 +48,15 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `AND prop.name = 'MS_Description'`,
       `WHERE t.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND t.TABLE_SCHEMA = ${this.escape(table.schema!)}`,
+    ]);
+  }
+
+  addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions) {
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'ADD',
+      this.getConstraintSnippet(tableName, options),
     ]);
   }
 
