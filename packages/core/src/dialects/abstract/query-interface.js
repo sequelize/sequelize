@@ -577,17 +577,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return await this.sequelize.queryRaw(sql, options);
   }
 
-  /**
-   * Remove a constraint from a table
-   *
-   * @param {string} tableName       Table name to drop constraint from
-   * @param {string} constraintName  Constraint name
-   * @param {object} options         Query options
-   */
-  async removeConstraint(tableName, constraintName, options) {
-    return this.sequelize.queryRaw(this.queryGenerator.removeConstraintQuery(tableName, constraintName), options);
-  }
-
   async insert(instance, tableName, values, options) {
     if (options?.bind) {
       assertNoReservedBind(options.bind);

@@ -191,8 +191,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   dropForeignKeyQuery(tableName: TableNameOrModel, foreignKey: string): string;
 
-  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string): string;
-
   /**
    * Creates a function that can be used to collect bind parameters.
    *

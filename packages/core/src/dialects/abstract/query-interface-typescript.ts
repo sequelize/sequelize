@@ -18,6 +18,7 @@ import type {
   DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
+  RemoveConstraintOptions,
   ShowAllSchemasOptions,
   ShowConstraintOptions,
 } from './query-interface.types';
@@ -303,6 +304,20 @@ export class AbstractQueryInterfaceTypeScript {
   async deferConstraints(transaction: Transaction, options: DeferConstraintsOptions) {
     const queryOptions = { ...options, transaction: transaction.parent || transaction, raw: true };
     const sql = this.queryGenerator.deferConstraintsQuery(options);
+
+    return this.sequelize.queryRaw(sql, queryOptions);
+  }
+
+  /**
+   * Remove a constraint from a table
+   *
+   * @param tableName -Table name to drop constraint from
+   * @param constraintName -Constraint name
+   * @param options -Query options
+   */
+  async removeConstraint(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintOptions) {
+    const queryOptions = { raw: true, ...options };
+    const sql = this.queryGenerator.removeConstraintQuery(tableName, constraintName, options);
 
     return this.sequelize.queryRaw(sql, queryOptions);
   }

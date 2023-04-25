@@ -747,15 +747,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return _.compact(ind).join(' ');
   }
 
-  removeConstraintQuery(tableName, constraintName) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP CONSTRAINT',
-      this.quoteIdentifier(constraintName),
-    ]);
-  }
-
   /*
     Quote an object based on its type. This is a more general version of quoteIdentifiers
     Strings: should proxy to quoteIdentifiers

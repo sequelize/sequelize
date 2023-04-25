@@ -39,6 +39,12 @@ import type { AbstractDialect } from './index.js';
 
 export type TableNameOrModel = TableName | ModelStatic;
 
+// keep REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface RemoveConstraintQueryOptions {
+  ifExists?: boolean;
+  cascade?: boolean;
+}
+
 // keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveIndexQueryOptions {
   concurrently?: boolean;
@@ -46,6 +52,7 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
+export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 
 export interface QueryGeneratorOptions {
@@ -278,6 +285,14 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     return constraintSnippet;
+  }
+
+  removeConstraintQuery(
+    _tableName: TableNameOrModel,
+    _constraintName: string,
+    _options?: RemoveConstraintQueryOptions,
+  ): string {
+    throw new Error(`removeConstraintQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   setConstraintQuery(columns: readonly string[], type: 'DEFERRED' | 'IMMEDIATE') {

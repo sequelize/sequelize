@@ -785,16 +785,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ]);
   }
 
-  dropConstraintQuery(tableName, constraintName) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP CONSTRAINT',
-      this.quoteIdentifier(constraintName),
-      ';',
-    ]);
-  }
-
   setIsolationLevelQuery() {}
 
   generateTransactionId() {

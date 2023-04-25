@@ -2,8 +2,13 @@ import type { Expression } from '../../sequelize.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { AddConstraintQueryOptions } from '../abstract/query-generator.types.js';
+import type {
+  EscapeOptions,
+  RemoveConstraintQueryOptions,
+  RemoveIndexQueryOptions,
+  TableNameOrModel,
+} from '../abstract/query-generator-typescript';
+import type { AddConstraintQueryOptions } from '../abstract/query-generator.types';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -43,6 +48,17 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       this.quoteTable(tableName),
       'ADD',
       this.getConstraintSnippet(tableName, options),
+    ]);
+  }
+
+  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'DROP CONSTRAINT',
+      options?.ifExists ? 'IF EXISTS' : '',
+      this.quoteIdentifier(constraintName),
+      options?.cascade ? 'CASCADE' : '',
     ]);
   }
 

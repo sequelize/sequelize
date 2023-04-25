@@ -72,12 +72,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('dropConstraintQuery', function () {
-      expectsql(this.queryGenerator.dropConstraintQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myConstraint'), {
-        mssql: 'ALTER TABLE [mySchema].[myTable] DROP CONSTRAINT [myConstraint];',
-      });
-    });
-
     it('bulkInsertQuery', function () {
       // normal cases
       expectsql(this.queryGenerator.bulkInsertQuery('myTable', [{ name: 'foo' }, { name: 'bar' }]), {

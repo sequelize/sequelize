@@ -5,11 +5,11 @@ import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
 import { registerMySqlDbDataTypeParsers } from '../mysql/data-types.db.js';
 import { escapeMysqlString } from '../mysql/mysql-utils';
-import { MySqlQueryInterface } from '../mysql/query-interface';
 import { MariaDbConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { MariaDbQuery } from './query';
 import { MariaDbQueryGenerator } from './query-generator';
+import { MariaDbQueryInterface } from './query-interface';
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,
@@ -37,8 +37,6 @@ export class MariaDbDialect extends AbstractDialect {
         using: 1,
       },
       constraints: {
-        dropConstraint: false,
-        check: false,
         foreignKeyChecksDisableable: true,
       },
       indexViaAlter: true,
@@ -70,7 +68,7 @@ export class MariaDbDialect extends AbstractDialect {
 
   readonly queryGenerator: MariaDbQueryGenerator;
   readonly connectionManager: MariaDbConnectionManager;
-  readonly queryInterface: MySqlQueryInterface;
+  readonly queryInterface: MariaDbQueryInterface;
 
   readonly Query = MariaDbQuery;
 
@@ -81,7 +79,7 @@ export class MariaDbDialect extends AbstractDialect {
       dialect: this,
       sequelize,
     });
-    this.queryInterface = new MySqlQueryInterface(
+    this.queryInterface = new MariaDbQueryInterface(
       sequelize,
       this.queryGenerator,
     );

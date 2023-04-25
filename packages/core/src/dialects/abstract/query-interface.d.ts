@@ -391,11 +391,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   ): Promise<void>;
 
   /**
-   * Removes constraints from a table
-   */
-  removeConstraint(tableName: TableName, constraintName: string, options?: QueryRawOptions): Promise<void>;
-
-  /**
    * Shows the index of a table
    */
   showIndex(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<IndexDescription[]>;

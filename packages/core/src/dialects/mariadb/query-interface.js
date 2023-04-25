@@ -3,16 +3,15 @@
 import { getObjectFromMap } from '../../utils/object';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
-const sequelizeErrors = require('../../errors');
 const { AbstractQueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
 
 /**
- * The interface that Sequelize uses to talk with MySQL/MariaDB database
+ * The interface that Sequelize uses to talk with MariaDB database
  */
-export class MySqlQueryInterface extends AbstractQueryInterface {
+export class MariaDbQueryInterface extends AbstractQueryInterface {
   /**
-   * A wrapper that fixes MySQL's inability to cleanly remove columns from existing tables if they have a foreign key constraint.
+   * A wrapper that fixes MariaDb's inability to cleanly remove columns from existing tables if they have a foreign key constraint.
    *
    * @override
    */
@@ -20,19 +19,22 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
     options = options || {};
 
     const [results] = await this.sequelize.queryRaw(
-      this.queryGenerator.getForeignKeyQuery(tableName, columnName),
+      this.queryGenerator.getForeignKeyQuery(tableName.tableName ? tableName : {
+        tableName,
+        schema: this.sequelize.config.database,
+      }, columnName),
       { raw: true, ...options },
     );
 
     // Exclude primary key constraint
-    if (results.length > 0 && results[0].constraintName !== 'PRIMARY') {
+    if (results.length > 0 && results[0].constraint_name !== 'PRIMARY') {
       await Promise.all(results.map(constraint => this.sequelize.queryRaw(
-        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraintName),
+        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraint_name),
         { raw: true, ...options },
       )));
     }
 
-    return await this.sequelize.queryRaw(
+    return this.sequelize.queryRaw(
       this.queryGenerator.removeColumnQuery(tableName, columnName),
       { raw: true, ...options },
     );
@@ -60,34 +62,6 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
     delete options.replacements;
     options.bind = combineBinds(options.bind, bind);
 
-    return await this.sequelize.queryRaw(query, options);
-  }
-
-  /**
-   * @override
-   */
-  async removeConstraint(tableName, constraintName, options) {
-    const queryOptions = { ...options, raw: true };
-    const constraints = await this.showConstraint(tableName, constraintName, queryOptions);
-
-    const constraint = constraints[0];
-    if (!constraint || !constraint.constraintType) {
-      throw new sequelizeErrors.UnknownConstraintError(
-        {
-          message: `Constraint ${constraintName} on table ${tableName} does not exist`,
-          constraint: constraintName,
-          table: tableName,
-        },
-      );
-    }
-
-    let query;
-    if (constraint.constraintType === 'FOREIGN KEY') {
-      query = this.queryGenerator.dropForeignKeyQuery(tableName, constraintName);
-    } else {
-      query = this.queryGenerator.removeIndexQuery(tableName, constraint.constraintName);
-    }
-
-    return this.sequelize.queryRaw(query, queryOptions);
+    return this.sequelize.queryRaw(query, options);
   }
 }
