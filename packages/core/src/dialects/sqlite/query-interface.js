@@ -118,8 +118,8 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
       const referenceTableColumns = constraint.referencedColumnNames.map(columnName => this.queryGenerator.quoteIdentifier(columnName)).join(', ');
       constraintSnippet += ` (${columns})`;
       constraintSnippet += ` REFERENCES ${referenceTableName} (${referenceTableColumns})`;
-      constraintSnippet += ` ON UPDATE ${constraint.updateAction}`;
-      constraintSnippet += ` ON DELETE ${constraint.deleteAction}`;
+      constraintSnippet += constraint.updateAction ? ` ON UPDATE ${constraint.updateAction}` : '';
+      constraintSnippet += constraint.deleteAction ? ` ON DELETE ${constraint.deleteAction}` : '';
     } else if (constraint.constraintType === 'PRIMARY KEY') {
       constraintSnippet = `, CONSTRAINT ${constraint.constraintName} PRIMARY KEY`;
       const columns = constraint.columnNames.map(columnName => this.queryGenerator.quoteIdentifier(columnName)).join(', ');
