@@ -31,6 +31,7 @@ import type {
   AddConstraintQueryOptions,
   DeferConstraintsQueryOptions,
   GetConstraintSnippetQueryOptions,
+  RemoveConstraintQueryOptions,
 } from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -38,12 +39,6 @@ import { PojoWhere, WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-buil
 import type { AbstractDialect } from './index.js';
 
 export type TableNameOrModel = TableName | ModelStatic;
-
-// keep REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface RemoveConstraintQueryOptions {
-  ifExists?: boolean;
-  cascade?: boolean;
-}
 
 // keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveIndexQueryOptions {

@@ -2,8 +2,8 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import type { RemoveConstraintQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { AddConstraintQueryOptions } from '../abstract/query-generator.types';
+import type { TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { AddConstraintQueryOptions, RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
 
 const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['cascade']);
 

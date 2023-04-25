@@ -82,3 +82,9 @@ export interface GetConstraintSnippetQueryOptions {
   onUpdate?: ReferentialAction;
   deferrable?: Deferrable;
 }
+
+// keep REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface RemoveConstraintQueryOptions {
+  ifExists?: boolean;
+  cascade?: boolean;
+}

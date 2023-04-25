@@ -5,11 +5,8 @@ import {
   REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type {
-  RemoveConstraintQueryOptions,
-  RemoveIndexQueryOptions,
-  TableNameOrModel,
-} from '../abstract/query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
 import { MySqlQueryGenerator } from '../mysql/query-generator.js';
 
 const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists']);

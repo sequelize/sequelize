@@ -6,12 +6,8 @@ import {
   REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type {
-  RemoveConstraintQueryOptions,
-  RemoveIndexQueryOptions,
-  TableNameOrModel,
-} from '../abstract/query-generator-typescript';
-import type { AddConstraintQueryOptions } from '../abstract/query-generator.types';
+import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { AddConstraintQueryOptions, RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
 
 const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
