@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../support');
 const { Sequelize, DataTypes } = require('@sequelize/core');
 
-if (Support.sequelize.dialect.supports.deferrableConstraints) {
+if (Support.sequelize.dialect.supports.constraints.deferrable) {
   describe(Support.getTestDialectTeaser('Sequelize'), () => {
     describe('Deferrable', () => {
       const describeDeferrableTest = (title, defineModels) => {

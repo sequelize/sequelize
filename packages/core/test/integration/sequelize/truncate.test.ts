@@ -41,7 +41,7 @@ describe('Sequelize#truncate', () => {
     it('supports truncating cyclic associations with { cascade: true }', async () => {
       const { A, B } = vars;
 
-      await sequelize.transaction({ deferrable: Deferrable.SET_DEFERRED }, async transaction => {
+      await sequelize.transaction(async transaction => {
         const a = await A.create({
           BId: null,
         }, { transaction });
@@ -66,7 +66,7 @@ describe('Sequelize#truncate', () => {
     it('supports truncating cyclic associations with { withoutForeignKeyChecks: true }', async () => {
       const { A, B } = vars;
 
-      await sequelize.transaction({ deferrable: Deferrable.SET_DEFERRED }, async transaction => {
+      await sequelize.transaction(async transaction => {
         const a = await A.create({
           BId: null,
         }, { transaction });
@@ -84,6 +84,60 @@ describe('Sequelize#truncate', () => {
 
       expect(await A.count()).to.eq(0);
       expect(await B.count()).to.eq(0);
+    });
+  }
+
+  if (sequelize.dialect.supports.constraints.deferrable) {
+    describe('Supports deferrable constraints', () => {
+      if (sequelize.dialect.supports.truncate.cascade) {
+        it('supports truncating cyclic associations with { cascade: true }', async () => {
+          const { A, B } = vars;
+
+          await sequelize.transaction({ deferrable: Deferrable.SET_DEFERRED }, async transaction => {
+            const a = await A.create({
+              BId: null,
+            }, { transaction });
+
+            const b = await B.create({
+              AId: a.id,
+            }, { transaction });
+
+            a.BId = b.id;
+            await a.save({ transaction });
+          });
+
+          // drop both tables
+          await sequelize.truncate({ cascade: true });
+
+          expect(await A.count()).to.eq(0);
+          expect(await B.count()).to.eq(0);
+        });
+      }
+
+      if (sequelize.dialect.supports.constraints.foreignKeyChecksDisableable) {
+        it('supports truncating cyclic associations with { withoutForeignKeyChecks: true }', async () => {
+          const { A, B } = vars;
+
+          await sequelize.transaction({ deferrable: Deferrable.SET_DEFERRED }, async transaction => {
+            const a = await A.create({
+              BId: null,
+            }, { transaction });
+
+            const b = await B.create({
+              AId: a.id,
+            }, { transaction });
+
+            a.BId = b.id;
+            await a.save({ transaction });
+          });
+
+          // drop both tables
+          await sequelize.truncate({ withoutForeignKeyChecks: true });
+
+          expect(await A.count()).to.eq(0);
+          expect(await B.count()).to.eq(0);
+        });
+      }
     });
   }
 });

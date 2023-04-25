@@ -109,6 +109,11 @@ export type DialectSupports = {
   },
   constraints: {
     restrict: boolean,
+    /**
+     * This dialect supports marking a column's constraints as deferrable.
+     * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
+     */
+    deferrable: boolean,
     addConstraint: boolean,
     dropConstraint: boolean,
     unique: boolean,
@@ -203,12 +208,6 @@ export type DialectSupports = {
   indexHints: boolean,
   searchPath: boolean,
   /**
-   * This dialect supports marking a column's constraints as deferrable.
-   * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
-   */
-  deferrableConstraints: boolean,
-
-  /**
    * This dialect supports E-prefixed strings, e.g. "E'foo'", which
    * enables the ability to use backslash escapes inside of the string.
    */
@@ -278,6 +277,7 @@ export abstract class AbstractDialect {
     },
     constraints: {
       restrict: true,
+      deferrable: false,
       addConstraint: true,
       dropConstraint: true,
       unique: true,
@@ -342,7 +342,6 @@ export abstract class AbstractDialect {
     },
     REGEXP: false,
     IREGEXP: false,
-    deferrableConstraints: false,
     tmpTableTrigger: false,
     indexHints: false,
     searchPath: false,

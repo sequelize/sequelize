@@ -27,6 +27,7 @@ import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
 import { AbstractDataType } from './data-types.js';
 import type { BindParamOptions, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
+import type { DeferConstraintsQueryOptions } from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import { PojoWhere, WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
@@ -124,6 +125,33 @@ export class AbstractQueryGeneratorTypeScript {
 
   describeTableQuery(tableName: TableNameOrModel) {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
+  }
+
+  deferConstraintsQuery(options: DeferConstraintsQueryOptions) {
+    if (!this.dialect.supports.constraints.deferrable) {
+      throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
+    }
+
+    // @ts-expect-error -- remove once this class has been merged back with the AbstractQueryGenerator class
+    return options.deferrable.toSql(this);
+  }
+
+  setConstraintQuery(columns: readonly string[], type: 'DEFERRED' | 'IMMEDIATE') {
+    let columnFragment = 'ALL';
+
+    if (columns?.length) {
+      columnFragment = columns.map(column => this.quoteIdentifier(column)).join(', ');
+    }
+
+    return `SET CONSTRAINTS ${columnFragment} ${type}`;
+  }
+
+  setDeferredQuery(columns: readonly string[]) {
+    return this.setConstraintQuery(columns, 'DEFERRED');
+  }
+
+  setImmediateQuery(columns: readonly string[]) {
+    return this.setConstraintQuery(columns, 'IMMEDIATE');
   }
 
   showConstraintsQuery(_tableName: TableNameOrModel, _constraintName?: string): string {

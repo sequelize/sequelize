@@ -1250,16 +1250,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return await this.sequelize.queryRaw(sql, options);
   }
 
-  async deferConstraints(transaction, options) {
-    options = { ...options, transaction: transaction.parent || transaction };
-
-    const sql = this.queryGenerator.deferConstraintsQuery(options);
-
-    if (sql) {
-      return await this.sequelize.queryRaw(sql, options);
-    }
-  }
-
   async commitTransaction(transaction, options) {
     if (!transaction || !(transaction instanceof Transaction)) {
       throw new Error('Unable to commit a transaction without transaction object!');

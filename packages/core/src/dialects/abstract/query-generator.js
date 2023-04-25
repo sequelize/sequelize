@@ -2282,12 +2282,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return 'START TRANSACTION;';
   }
 
-  deferConstraintsQuery() {}
-
-  setConstraintQuery() {}
-  setDeferredQuery() {}
-  setImmediateQuery() {}
-
   /**
    * Returns a query that commits a transaction.
    *

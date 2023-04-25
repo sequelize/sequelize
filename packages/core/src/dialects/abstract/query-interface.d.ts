@@ -661,11 +661,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   startTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
-   * Defer constraints
-   */
-  deferConstraints(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
-
-  /**
    * Commit an already started transaction
    */
   commitTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;

@@ -28,6 +28,7 @@ export class SnowflakeDialect extends AbstractDialect {
       using: 1,
     },
     constraints: {
+      deferrable: true,
       dropConstraint: false,
       check: false,
     },

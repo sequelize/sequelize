@@ -450,28 +450,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return sql;
   }
 
-  deferConstraintsQuery(options) {
-    return options.deferrable.toSql(this);
-  }
-
-  setConstraintQuery(columns, type) {
-    let columnFragment = 'ALL';
-
-    if (columns?.length) {
-      columnFragment = columns.map(column => this.quoteIdentifier(column)).join(', ');
-    }
-
-    return `SET CONSTRAINTS ${columnFragment} ${type}`;
-  }
-
-  setDeferredQuery(columns) {
-    return this.setConstraintQuery(columns, 'DEFERRED');
-  }
-
-  setImmediateQuery(columns) {
-    return this.setConstraintQuery(columns, 'IMMEDIATE');
-  }
-
   attributesToSQL(attributes, options) {
     const result = {};
 

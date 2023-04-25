@@ -4,6 +4,7 @@ import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
+import type { Transaction } from '../../transaction.js';
 import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
@@ -13,6 +14,7 @@ import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type {
   ColumnsDescription,
   CreateSchemaOptions,
+  DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
   ShowAllSchemasOptions,
@@ -189,6 +191,13 @@ export class AbstractQueryInterfaceTypeScript {
 
       throw error;
     }
+  }
+
+  async deferConstraints(transaction: Transaction, options: DeferConstraintsOptions) {
+    const queryOptions = { ...options, transaction: transaction.parent || transaction, raw: true };
+    const sql = this.queryGenerator.deferConstraintsQuery(options);
+
+    return this.sequelize.queryRaw(sql, queryOptions);
   }
 
   async showConstraint(tableName: TableNameOrModel, constraintName?: string, options?: ShowConstraintOptions) {

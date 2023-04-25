@@ -556,8 +556,8 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 
   // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column
   //  so sync({ alter: true }) cannot know whether the column must be updated.
-  //  so for now, deferrableConstraints is disabled for sqlite (as it's only used in tests)
-  if (sequelize.dialect.supports.deferrableConstraints) {
+  //  so for now, deferrable constraints is disabled for sqlite (as it's only used in tests)
+  if (sequelize.dialect.supports.constraints.deferrable) {
     it('updates the deferrable property of a foreign key', async () => {
       const A = sequelize.define('A', {
         BId: {

@@ -1,5 +1,5 @@
 import isEqual from 'lodash/isEqual';
-import type { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
+import type { AbstractQueryGeneratorTypeScript } from './dialects/abstract/query-generator-typescript.js';
 import { classToInvokable } from './utils/class-to-invokable.js';
 import { EMPTY_ARRAY } from './utils/object.js';
 
@@ -40,7 +40,7 @@ export class Deferrable {
     return this.constructor.name;
   }
 
-  toSql(_queryGenerator: AbstractQueryGenerator) {
+  toSql(_queryGenerator: AbstractQueryGeneratorTypeScript): string {
     throw new Error('toSql implementation missing');
   }
 
@@ -112,7 +112,7 @@ export class Deferrable {
       this.#constraints = Object.freeze([...constraints]);
     }
 
-    toSql(queryGenerator: AbstractQueryGenerator): string {
+    toSql(queryGenerator: AbstractQueryGeneratorTypeScript): string {
       return queryGenerator.setDeferredQuery(this.#constraints);
     }
 
@@ -120,7 +120,7 @@ export class Deferrable {
       return other instanceof SET_DEFERRED && isEqual(this.#constraints, other.#constraints);
     }
 
-    static toSql(queryGenerator: AbstractQueryGenerator): string {
+    static toSql(queryGenerator: AbstractQueryGeneratorTypeScript): string {
       return queryGenerator.setDeferredQuery(EMPTY_ARRAY);
     }
   });
@@ -140,7 +140,7 @@ export class Deferrable {
       this.#constraints = Object.freeze([...constraints]);
     }
 
-    toSql(queryGenerator: AbstractQueryGenerator): string {
+    toSql(queryGenerator: AbstractQueryGeneratorTypeScript): string {
       return queryGenerator.setImmediateQuery(this.#constraints);
     }
 
@@ -148,7 +148,7 @@ export class Deferrable {
       return other instanceof SET_IMMEDIATE && isEqual(this.#constraints, other.#constraints);
     }
 
-    static toSql(queryGenerator: AbstractQueryGenerator): string {
+    static toSql(queryGenerator: AbstractQueryGeneratorTypeScript): string {
       return queryGenerator.setImmediateQuery(EMPTY_ARRAY);
     }
   });
