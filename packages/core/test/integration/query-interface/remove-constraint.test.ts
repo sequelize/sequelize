@@ -120,7 +120,6 @@ describe('QueryInterface#removeConstraint', () => {
             field: 'id',
           },
           onDelete: 'CASCADE',
-          onUpdate: 'CASCADE',
         });
 
         const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
@@ -288,7 +287,6 @@ describe('QueryInterface#removeConstraint', () => {
               field: 'id',
             },
             onDelete: 'CASCADE',
-            onUpdate: 'CASCADE',
           });
 
           const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');

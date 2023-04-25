@@ -112,7 +112,6 @@ describe('QueryInterface#addConstraint', () => {
             field: 'id',
           },
           onDelete: 'CASCADE',
-          onUpdate: 'CASCADE',
         });
 
         const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
@@ -120,6 +119,27 @@ describe('QueryInterface#addConstraint', () => {
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('FOREIGN KEY');
       });
+
+      if (sequelize.dialect.supports.constraints.onUpdate) {
+        it('should add FOREIGN KEY constraints with onUpdate', async () => {
+          await queryInterface.addConstraint('actors', {
+            name: 'custom_constraint_name',
+            type: 'FOREIGN KEY',
+            fields: ['level_id'],
+            references: {
+              table: 'levels',
+              field: 'id',
+            },
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
+          });
+
+          const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+          expect(constraints).to.have.length(1);
+          expect(constraints[0].constraintName).to.equal('custom_constraint_name');
+          expect(constraints[0].constraintType).to.equal('FOREIGN KEY');
+        });
+      }
     }
 
     if (sequelize.dialect.supports.constraints.primaryKey) {
@@ -256,7 +276,6 @@ describe('QueryInterface#addConstraint', () => {
               field: 'id',
             },
             onDelete: 'CASCADE',
-            onUpdate: 'CASCADE',
           });
 
           const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
@@ -264,6 +283,27 @@ describe('QueryInterface#addConstraint', () => {
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('FOREIGN KEY');
         });
+
+        if (sequelize.dialect.supports.constraints.onUpdate) {
+          it('should add FOREIGN KEY constraints with onUpdate', async () => {
+            await queryInterface.addConstraint({ tableName: 'actors', schema: 'archive' }, {
+              name: 'custom_constraint_name',
+              type: 'FOREIGN KEY',
+              fields: ['level_id'],
+              references: {
+                table: { tableName: 'levels', schema: 'archive' },
+                field: 'id',
+              },
+              onDelete: 'CASCADE',
+              onUpdate: 'CASCADE',
+            });
+
+            const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+            expect(constraints).to.have.length(1);
+            expect(constraints[0].constraintName).to.equal('custom_constraint_name');
+            expect(constraints[0].constraintType).to.equal('FOREIGN KEY');
+          });
+        }
       }
 
       if (sequelize.dialect.supports.constraints.primaryKey) {

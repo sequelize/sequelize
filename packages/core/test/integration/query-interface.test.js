@@ -741,9 +741,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             table: 'users',
             field: 'username',
           },
-          onDelete: 'cascade',
-          onUpdate: 'cascade',
           type: 'FOREIGN KEY',
+          onDelete: 'CASCADE',
         });
         let constraints = await this.queryInterface.showConstraint('posts');
         constraints = constraints.map(constraint => constraint.constraintName);
@@ -753,6 +752,39 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('posts_username_users_fk');
       });
+
+      if (current.dialect.supports.constraints.onUpdate) {
+        it('should add, read & remove foreign key constraint', async function () {
+          await this.queryInterface.removeColumn('users', 'id');
+          await this.queryInterface.changeColumn('users', 'username', {
+            type: DataTypes.STRING,
+            allowNull: false,
+          });
+
+          await this.queryInterface.addConstraint('users', {
+            type: 'PRIMARY KEY',
+            fields: ['username'],
+          });
+
+          await this.queryInterface.addConstraint('posts', {
+            fields: ['username'],
+            references: {
+              table: 'users',
+              field: 'username',
+            },
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
+            type: 'FOREIGN KEY',
+          });
+          let constraints = await this.queryInterface.showConstraint('posts');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.include('posts_username_users_fk');
+          await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
+          constraints = await this.queryInterface.showConstraint('posts');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.not.include('posts_username_users_fk');
+        });
+      }
     });
 
     describe('unknown constraint', () => {
