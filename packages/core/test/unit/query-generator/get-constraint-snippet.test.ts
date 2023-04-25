@@ -241,7 +241,7 @@ describe('QueryGenerator#getConstraintSnippet', () => {
     it('generates a constraint snippet for a foreign key constraint with on update', () => {
       expectsql(() => queryGenerator.getConstraintSnippet('myTable', { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: 'otherTable', field: 'id' }, onUpdate: 'CASCADE' }), {
         default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) ON UPDATE CASCADE`,
-        ibmi: onUpdateNotSupportedError,
+        'db2 ibmi': onUpdateNotSupportedError,
       });
     });
 
