@@ -53,7 +53,9 @@ export type { Connection } from './dialects/abstract/connection-manager';
 export * from './associations/index';
 export * from './errors';
 export * from './model';
+export * from './dialects/abstract/query-generator.types';
 export * from './dialects/abstract/query-interface';
+export * from './dialects/abstract/query-interface.types';
 export * from './sequelize';
 
 // TODO [>=8]: remove this alias
