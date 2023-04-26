@@ -1152,7 +1152,6 @@ Caused by: "undefined" cannot be escaped`),
             testSql({ intRangeAttr: { [operator]: [1, { value: 2, inclusive: true }] } }, {
               // used 'postgres' because otherwise range is transformed to "1,2"
               postgres: `"intRangeAttr" ${sqlOperator} '[1,2]'::int4range`,
-              cockroachdb: `"intRangeAttr" ${sqlOperator} '[1,2]'`,
             });
           }
 
@@ -1179,7 +1178,6 @@ Caused by: "undefined" cannot be escaped`),
               intRangeAttr: { [operator]: [10, null] },
             }, {
               postgres: `"intRangeAttr" ${sqlOperator} '[10,)'::int4range`,
-              cockroachdb: `"intRangeAttr" ${sqlOperator} '[10,)'::int4range`,
             });
           }
 
@@ -2430,9 +2428,7 @@ Caused by: "undefined" cannot be escaped`),
         // aliases correctly
 
         testSql({ aliasedJsonbAttr: { key: 'value' } }, {
-          postgres: `"aliased_jsonb"->'key' = '"value"'`,
-          cockroachdb: `"aliased_jsonb"->'key' = '"value"'`,
-
+          'postgres cockroachdb': `"aliased_jsonb"->'key' = '"value"'`,
         });
       });
     }

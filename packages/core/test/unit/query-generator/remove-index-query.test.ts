@@ -12,8 +12,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       sqlite: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "user_foo_bar"`,
-      postgres: `DROP INDEX "public"."user_foo_bar"`,
-      cockroachdb: `DROP INDEX "public"."user_foo_bar"`,
+      'postgres cockroachdb': `DROP INDEX "public"."user_foo_bar"`,
       snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
     });
   });

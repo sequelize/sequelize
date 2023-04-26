@@ -186,39 +186,13 @@ jobs:
       - run: yarn start-postgres-${{ matrix.postgres-version }}
       - name: Integration Tests
         run: yarn workspace @sequelize/core test-integration
-  test-cockroachdb:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [18]
-        cockroachdb-version: [oldest]
-        native: [true, false]
-    name: Cockroachdb ${{ matrix.cockroachdb-version }} (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [ unit-test, test-typings ]
-    env:
-      DIALECT: cockroachdb
-    steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
-        with:
-          name: install-build-artifact-node-${{ matrix.node-version }}
-      - name: Extract artifact
-        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - run: yarn start-cockroachdb-${{ matrix.cockroachdb-version }}
-      - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
   test-oldest-latest:
     strategy:
       fail-fast: false
       matrix:
         node-version: [14, 18]
         database-version: [oldest, latest]
-        dialect: [mysql, mariadb, mssql, db2]
+        dialect: [mysql, mariadb, mssql, db2, cockroachdb]
     name: ${{ matrix.dialect }} ${{ matrix.database-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]

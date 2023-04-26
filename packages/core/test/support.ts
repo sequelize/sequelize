@@ -233,8 +233,8 @@ type DecrementedDepth = [never, 0, 1, 2, 3];
 type Permutations<T extends string, Depth extends number, U extends string = T> = Depth extends 0
   ? never
   : T extends any
-  ? T | `${T} ${Permutations<Exclude<U, T>, DecrementedDepth[Depth]>}`
-  : never;
+    ? T | `${T} ${Permutations<Exclude<U, T>, DecrementedDepth[Depth]>}`
+    : never;
 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 

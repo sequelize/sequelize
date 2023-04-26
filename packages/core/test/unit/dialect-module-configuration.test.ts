@@ -25,6 +25,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     it('options.dialectModulePath', () => {
       let dialectPath: string;
       switch (dialect) {
+        case 'cockroachdb':
         case 'postgres':
           dialectPath = require.resolve('pg');
           break;
@@ -48,9 +49,6 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           break;
         case 'snowflake':
           dialectPath = require.resolve('snowflake-sdk');
-          break;
-        case 'cockroachdb':
-          dialectPath = require.resolve('pg');
           break;
         default:
           throw new Error('Unsupported dialect');

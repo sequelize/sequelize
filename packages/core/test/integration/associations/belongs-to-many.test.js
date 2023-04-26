@@ -1743,21 +1743,21 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     if (dialect !== 'cockroachdb') {
       it('using scope to set associations', async function () {
         const ItemTag = this.sequelize.define('ItemTag', {
-          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-          tag_id: { type: DataTypes.INTEGER, unique: false },
+          id: { type: DataTypes.UUID, primaryKey: true, autoIncrement: true, defaultValue: DataTypes.UUIDV4 },
+          tag_id: { type: DataTypes.UUID, unique: true },
           taggable: { type: DataTypes.STRING },
-          taggable_id: { type: DataTypes.INTEGER, unique: false },
+          taggable_id: { type: DataTypes.UUID, unique: true },
         });
         const Tag = this.sequelize.define('Tag', {
-          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.UUID, primaryKey: true, autoIncrement: true, defaultValue: DataTypes.UUIDV4 },
           name: DataTypes.STRING,
         });
         const Comment = this.sequelize.define('Comment', {
-          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.UUID, primaryKey: true, autoIncrement: true, defaultValue: DataTypes.UUIDV4 },
           name: DataTypes.STRING,
         });
         const Post = this.sequelize.define('Post', {
-          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          id: { type: DataTypes.UUID, primaryKey: true, autoIncrement: true, defaultValue: DataTypes.UUIDV4 },
           name: DataTypes.STRING,
         });
 
@@ -1797,7 +1797,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
     }
 
-    // Scope association fails when we use UUID ref: https://github.com/sequelize/sequelize/issues/13072
+    // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
+    // TODO: Change the primary key data type of the ItemTag, Tag, Comment, and Post models should be changed to UUID instead of INTEGER.
     if (dialect !== 'cockroachdb') {
       it('updating association via set associations with scope', async function () {
         const ItemTag = this.sequelize.define('ItemTag', {

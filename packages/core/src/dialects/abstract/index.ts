@@ -105,6 +105,10 @@ export type DialectSupports = {
     onConflictDoNothing: string, /* dialect specific words for ON CONFLICT DO NOTHING */
     onConflictWhere: boolean, /* whether dialect supports ON CONFLICT WHERE */
     conflictFields: boolean, /* whether the dialect supports specifying conflict fields or not */
+    bulkInsert: {
+      ignoreDuplicates: boolean,
+      updateOnDuplicate: boolean,
+    },
   },
   constraints: {
     restrict: boolean,
@@ -266,6 +270,10 @@ export abstract class AbstractDialect {
       onConflictDoNothing: '',
       onConflictWhere: false,
       conflictFields: false,
+      bulkInsert: {
+        ignoreDuplicates: true,
+        updateOnDuplicate: true,
+      },
     },
     constraints: {
       restrict: true,

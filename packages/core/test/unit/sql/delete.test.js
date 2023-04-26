@@ -29,7 +29,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       };
 
       it(util.inspect(options, { depth: 2 }), () => {
-        console.log('res vs exp', current.dialect.name, sql.truncateTableQuery);
 
         return expectsql(
           sql.truncateTableQuery(
