@@ -1,3 +1,4 @@
+import isObject from 'lodash/isObject';
 import upperFirst from 'lodash/upperFirst';
 import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
 import { AssociationError } from '../errors/index.js';
@@ -8,6 +9,7 @@ import type {
   Attributes,
   CreateOptions,
   CreationAttributes,
+  DestroyOptions,
   Filterable,
   FindOptions,
   InstanceUpdateOptions,
@@ -237,14 +239,14 @@ export class HasMany<
     let Model = this.target;
     if (options.scope != null) {
       if (!options.scope) {
-        Model = Model.unscoped();
+        Model = Model.withoutScope();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
-        Model = Model.scope(options.scope);
+        Model = Model.withScope(options.scope);
       }
     }
 
     if (options.schema != null) {
-      Model = Model.schema(options.schema, options.schemaDelimiter);
+      Model = Model.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
     }
 
     const results = await Model.findAll(findOptions);
@@ -315,6 +317,7 @@ export class HasMany<
     const where = {
       [Op.or]: targetInstances.map(instance => {
         if (instance instanceof this.target) {
+
           // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
           return (instance as T).where();
         }
@@ -377,8 +380,10 @@ export class HasMany<
     });
 
     if (obsoleteAssociations.length > 0) {
-      // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
-      promises.push(this.remove(sourceInstance, obsoleteAssociations, options));
+      promises.push(this.remove(sourceInstance, obsoleteAssociations, {
+        ...options,
+        destroy: options?.destroyPrevious,
+      }));
     }
 
     if (unassociatedObjects.length > 0) {
@@ -395,7 +400,7 @@ export class HasMany<
         }),
       };
 
-      promises.push(this.target.unscoped().update(
+      promises.push(this.target.withoutScope().update(
         update,
         {
           ...options,
@@ -439,7 +444,7 @@ export class HasMany<
       }),
     };
 
-    await this.target.unscoped().update(update, { ...options, where });
+    await this.target.withoutScope().update(update, { ...options, where });
   }
 
   /**
@@ -466,11 +471,6 @@ export class HasMany<
       return;
     }
 
-    // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
-    const update = {
-      [this.foreignKey]: null,
-    } as UpdateValues<T>;
-
     const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       // @ts-expect-error -- TODO: what if the target has no primary key?
@@ -493,7 +493,23 @@ export class HasMany<
       }),
     };
 
-    await this.target.unscoped().update(update, { ...options, where });
+    const foreignKeyIsNullable = this.target.modelDefinition.attributes.get(this.foreignKey)?.allowNull ?? true;
+
+    if (options.destroy || !foreignKeyIsNullable) {
+      await this.target.withoutScope().destroy({
+        ...(isObject(options.destroy) ? options.destroy : undefined),
+        logging: options.logging,
+        benchmark: options.benchmark,
+        transaction: options.transaction,
+        where,
+      });
+    } else {
+      const update = {
+        [this.foreignKey]: null,
+      } as UpdateValues<T>;
+
+      await this.target.withoutScope().update(update, { ...options, where });
+    }
   }
 
   /**
@@ -606,7 +622,16 @@ export type HasManyGetAssociationsMixin<T extends Model> = (options?: HasManyGet
  * @see HasManySetAssociationsMixin
  */
 export interface HasManySetAssociationsMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>>, InstanceUpdateOptions<Attributes<T>> {}
+  extends FindOptions<Attributes<T>>, InstanceUpdateOptions<Attributes<T>> {
+
+  /**
+   * Delete the previous associated model. Default to false.
+   *
+   * Only applies if the foreign key is nullable. If the foreign key is not nullable,
+   * the previous associated model is always deleted.
+   */
+  destroyPrevious?: boolean | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'> | undefined;
+}
 
 /**
  * The setAssociations mixin applied to models with hasMany.
@@ -623,7 +648,7 @@ export interface HasManySetAssociationsMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManySetAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Array<T | TModelPrimaryKey>,
+  newAssociations?: Array<T | TModelPrimaryKey> | null,
   options?: HasManySetAssociationsMixinOptions<T>,
 ) => Promise<void>;
 
@@ -744,7 +769,16 @@ export type HasManyRemoveAssociationMixin<T extends Model, TModelPrimaryKey> = (
  * @see HasManyRemoveAssociationsMixin
  */
 export interface HasManyRemoveAssociationsMixinOptions<T extends Model>
-  extends InstanceUpdateOptions<Attributes<T>> {}
+  extends Omit<InstanceUpdateOptions<Attributes<T>>, 'where'> {
+
+  /**
+   * Delete the associated model. Default to false.
+   *
+   * Only applies if the foreign key is nullable. If the foreign key is not nullable,
+   * the associated model is always deleted.
+   */
+  destroy?: boolean | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'> | undefined;
+}
 
 /**
  * The removeAssociations mixin applied to models with hasMany.
