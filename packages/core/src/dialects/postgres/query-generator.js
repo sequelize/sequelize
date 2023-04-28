@@ -542,7 +542,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   pgEscapeAndQuote(val) {
-    return this.quoteIdentifier(this.escape(val));
+    return this.quoteIdentifier(this.escape(val).replace(/'/g, ''));
   }
 
   _expandFunctionParamList(params) {
