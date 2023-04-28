@@ -3,7 +3,7 @@
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { addTicks, quoteIdentifier } from '../../utils/dialect.js';
+import { quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -530,9 +530,9 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
    * @private
    */
   getForeignKeyQuery(table, columnName) {
-    const quotedSchemaName = table.schema ? wrapSingleQuote(table.schema) : '';
-    const quotedTableName = wrapSingleQuote(table.tableName || table);
-    const quotedColumnName = wrapSingleQuote(columnName);
+    const quotedSchemaName = table.schema ? this.escape(table.schema) : '';
+    const quotedTableName = this.escape(table.tableName || table);
+    const quotedColumnName = this.escape(columnName);
 
     return joinSQLFragments([
       'SELECT',
@@ -616,12 +616,4 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
     return identifier;
   }
-}
-
-/**
- * @param {string} identifier
- * @deprecated use "escape" or "escapeString" on QueryGenerator
- */
-function wrapSingleQuote(identifier) {
-  return addTicks(identifier, '\'');
 }

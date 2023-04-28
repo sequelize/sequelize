@@ -1,7 +1,6 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils/check';
-import { addTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
@@ -10,11 +9,7 @@ import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_O
 
 const _ = require('lodash');
 const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const { Op } = require('../../operators');
 
-const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
-const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[&|]?|\|{2}|#-)/i;
-const TOKEN_CAPTURE_REGEX = /^\s*((?:(["'`])(?:(?!\2).|\2{2})*\2)|[\s\w]+|[()+,.;-])/i;
 const FOREIGN_KEY_FIELDS = [
   'CONSTRAINT_NAME as constraint_name',
   'CONSTRAINT_NAME as constraintName',
@@ -417,9 +412,9 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
    * @private
    */
   getForeignKeyQuery(table, columnName) {
-    const quotedSchemaName = table.schema ? wrapSingleQuote(table.schema) : '';
-    const quotedTableName = wrapSingleQuote(table.tableName || table);
-    const quotedColumnName = wrapSingleQuote(columnName);
+    const quotedSchemaName = table.schema ? this.escape(table.schema) : '';
+    const quotedTableName = this.escape(table.tableName || table);
+    const quotedColumnName = this.escape(columnName);
 
     return joinSQLFragments([
       'SELECT',
@@ -459,12 +454,4 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       ';',
     ]);
   }
-}
-
-/**
- * @param {string} identifier
- * @deprecated use "escape" or "escapeString" on QueryGenerator
- */
-function wrapSingleQuote(identifier) {
-  return addTicks(identifier, '\'');
 }

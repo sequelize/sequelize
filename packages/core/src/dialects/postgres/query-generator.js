@@ -4,7 +4,7 @@ import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
-import { quoteIdentifier, removeTicks } from '../../utils/dialect';
+import { quoteIdentifier } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
@@ -542,7 +542,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   pgEscapeAndQuote(val) {
-    return this.quoteIdentifier(removeTicks(this.escape(val), '\''));
+    return this.quoteIdentifier(this.escape(val));
   }
 
   _expandFunctionParamList(params) {

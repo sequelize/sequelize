@@ -56,7 +56,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     // DROP SCHEMA Can't drop schema if it is not empty.
     // DROP SCHEMA Can't drop objects belonging to the schema
     // So, call the admin procedure to drop schema.
-    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${wrapSingleQuote(schema.trim())}, NULL, $sequelize_errorSchema, $sequelize_errorTable)`;
+    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${this.escape(schema.trim())}, NULL, $sequelize_errorSchema, $sequelize_errorTable)`;
 
     if (this._errorTableCount >= Number.MAX_SAFE_INTEGER) {
       this._errorTableCount = 0;
@@ -197,7 +197,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const schemaName = table.schema || this.sequelize.config.username.toUpperCase();
 
     // https://www.ibm.com/docs/en/db2-for-zos/11?topic=tables-systables
-    return `SELECT name FROM sysibm.systables WHERE NAME = ${wrapSingleQuote(tableName)} AND CREATOR = ${wrapSingleQuote(schemaName)}`;
+    return `SELECT name FROM sysibm.systables WHERE NAME = ${this.escape(tableName)} AND CREATOR = ${this.escape(schemaName)}`;
   }
 
   addColumnQuery(table, key, dataType, options) {
@@ -780,11 +780,11 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     schemaName = table.schema || schemaName;
     let sql = '';
     if (tableName) {
-      sql = ` AND R.TABNAME = ${wrapSingleQuote(tableName)}`;
+      sql = ` AND R.TABNAME = ${this.escape(tableName)}`;
     }
 
     if (schemaName) {
-      sql += ` AND R.TABSCHEMA = ${wrapSingleQuote(schemaName)}`;
+      sql += ` AND R.TABSCHEMA = ${this.escape(schemaName)}`;
     }
 
     return this._getForeignKeysQuerySQL(sql);
@@ -795,15 +795,15 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const schemaName = table.schema;
     let sql = '';
     if (tableName) {
-      sql = ` AND R.TABNAME = ${wrapSingleQuote(tableName)}`;
+      sql = ` AND R.TABNAME = ${this.escape(tableName)}`;
     }
 
     if (schemaName) {
-      sql += ` AND R.TABSCHEMA = ${wrapSingleQuote(schemaName)}`;
+      sql += ` AND R.TABSCHEMA = ${this.escape(schemaName)}`;
     }
 
     if (columnName) {
-      sql += ` AND C.COLNAME = ${wrapSingleQuote(columnName)}`;
+      sql += ` AND C.COLNAME = ${this.escape(columnName)}`;
     }
 
     return this._getForeignKeysQuerySQL(sql);
@@ -892,7 +892,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 function wrapSingleQuote(identifier) {
   if (identifier) {
     return `'${identifier}'`;
-    // return addTicks("'"); // It removes quote from center too.
   }
 
   return '';
