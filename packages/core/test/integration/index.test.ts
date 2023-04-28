@@ -47,33 +47,30 @@ describe(getTestDialectTeaser('Indexes'), () => {
       }
     });
 
-    // TODO: Find a better way for CRDB
-    if (dialect !== 'cockroachdb') {
-      it('creates unique index with include columns', async () => {
-        const User = sequelize.define('user', {
-          username: DataTypes.STRING,
-          first_name: DataTypes.STRING,
-          last_name: DataTypes.STRING,
-        }, {
-          indexes: [{ name: 'user_username', fields: ['username'], include: ['first_name', 'last_name'], unique: true }],
-        });
-
-        await sequelize.sync({ force: true });
-        const indexes = await sequelize.queryInterface.showIndex(User.getTableName());
-        const indexCheck = indexes.filter(index => index.name === 'user_username');
-
-        expect(indexCheck).to.have.length(1);
-        expect(indexCheck[0].name).to.equal('user_username');
-        // DB2 lists the included columns in the fields array
-        if (dialect !== 'db2') {
-          expect(indexCheck[0].fields).to.have.length(1);
-        } else {
-          expect(indexCheck[0].fields).to.have.length(3);
-        }
-
-        expect(indexCheck[0].fields[0].attribute).to.equal('username');
+    it('creates unique index with include columns', async () => {
+      const User = sequelize.define('user', {
+        username: DataTypes.STRING,
+        first_name: DataTypes.STRING,
+        last_name: DataTypes.STRING,
+      }, {
+        indexes: [{ name: 'user_username', fields: ['username'], include: ['first_name', 'last_name'], unique: true }],
       });
-    }
+
+      await sequelize.sync({ force: true });
+      const indexes = await sequelize.queryInterface.showIndex(User.getTableName());
+      const indexCheck = indexes.filter(index => index.name === 'user_username');
+
+      expect(indexCheck).to.have.length(1);
+      expect(indexCheck[0].name).to.equal('user_username');
+      // DB2 lists the included columns in the fields array
+      if (dialect !== 'db2') {
+        expect(indexCheck[0].fields).to.have.length(1);
+      } else {
+        expect(indexCheck[0].fields).to.have.length(3);
+      }
+
+      expect(indexCheck[0].fields[0].attribute).to.equal('username');
+    });
 
     it('throws an error with duplicate column names', async () => {
       sequelize.define('user', {

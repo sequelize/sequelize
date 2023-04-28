@@ -5,9 +5,9 @@ import type { BindCollector } from '../abstract';
 import { CockroachdbConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { registerCockroachDbDataTypeParsers } from './data-types-db';
+import { CockroachDbQuery } from './query';
 import { CockroachDbQueryGenerator } from './query-generator';
 import { CockroachDbQueryInterface } from './query-interface';
-import { CockroachDbQuery } from './query.js';
 
 export class CockroachDbDialect extends AbstractDialect {
   static readonly supports = AbstractDialect.extendSupport({
@@ -28,6 +28,7 @@ export class CockroachDbDialect extends AbstractDialect {
       functionBased: true,
       operator: true,
       include: true,
+      collate: false,
     },
     inserts: {
       onConflictDoNothing: ' ON CONFLICT DO NOTHING',

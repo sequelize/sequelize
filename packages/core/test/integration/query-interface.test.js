@@ -231,19 +231,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
-    // Reason: CockroachDB always have a primary index on the table which makes this test fail
-    if (dialectName !== 'cockroachdb') {
-      it('adds, reads and removes an index to the table', async function () {
-        await this.queryInterface.addIndex('Group', ['username', 'isAdmin']);
-        let indexes = await this.queryInterface.showIndex('Group');
-        let indexColumns = _.uniq(indexes.map(index => index.name));
-        expect(indexColumns).to.include('group_username_is_admin');
-        await this.queryInterface.removeIndex('Group', ['username', 'isAdmin']);
-        indexes = await this.queryInterface.showIndex('Group');
-        indexColumns = _.uniq(indexes.map(index => index.name));
+    it('adds, reads and removes an index to the table', async function () {
+      await this.queryInterface.addIndex('Group', ['username', 'isAdmin']);
+      let indexes = await this.queryInterface.showIndex('Group');
+      let indexColumns = _.uniq(indexes.map(index => index.name));
+      expect(indexColumns).to.include('group_username_is_admin');
+      await this.queryInterface.removeIndex('Group', ['username', 'isAdmin']);
+      indexes = await this.queryInterface.showIndex('Group');
+      indexColumns = _.uniq(indexes.map(index => index.name));
+      // Reason: CockroachDB always has a primary index on the table.
+      if (dialectName === 'cockroachdb') {
+        expect(indexColumns).to.not.include('group_username_is_admin');
+      } else {
         expect(indexColumns).to.be.empty;
-      });
-    }
+      }
+    });
 
     if (dialect.supports.schemas) {
       it('works with schemas', async function () {

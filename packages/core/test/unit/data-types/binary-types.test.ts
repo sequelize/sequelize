@@ -7,8 +7,7 @@ describe('DataTypes.BLOB', () => {
     default: 'BLOB',
     'ibmi db2': 'BLOB(1M)',
     mssql: 'VARBINARY(MAX)',
-    postgres: 'BYTEA',
-    cockroachdb: 'BYTES',
+    'postgres cockroachdb': 'BYTEA',
   });
 
   testDataTypeSql('BLOB("tiny")', DataTypes.BLOB('tiny'), {
@@ -16,9 +15,8 @@ describe('DataTypes.BLOB', () => {
     ibmi: 'BLOB(255)',
     mssql: 'VARBINARY(256)',
     db2: 'BLOB(255)',
-    postgres: 'BYTEA',
+    'postgres cockroachdb': 'BYTEA',
     sqlite: 'BLOB',
-    cockroachdb: 'BYTES',
   });
 
   testDataTypeSql('BLOB("medium")', DataTypes.BLOB('medium'), {
@@ -26,9 +24,8 @@ describe('DataTypes.BLOB', () => {
     ibmi: 'BLOB(16M)',
     mssql: 'VARBINARY(MAX)',
     db2: 'BLOB(16M)',
-    postgres: 'BYTEA',
+    'postgres cockroachdb': 'BYTEA',
     sqlite: 'BLOB',
-    cockroachdb: 'BYTES',
   });
 
   testDataTypeSql('BLOB({ length: "medium" })', DataTypes.BLOB({ length: 'medium' }), {
@@ -36,9 +33,8 @@ describe('DataTypes.BLOB', () => {
     ibmi: 'BLOB(16M)',
     mssql: 'VARBINARY(MAX)',
     db2: 'BLOB(16M)',
-    postgres: 'BYTEA',
+    'postgres cockroachdb': 'BYTEA',
     sqlite: 'BLOB',
-    cockroachdb: 'BYTES',
   });
 
   testDataTypeSql('BLOB("long")', DataTypes.BLOB('long'), {
@@ -46,9 +42,8 @@ describe('DataTypes.BLOB', () => {
     ibmi: 'BLOB(2G)',
     mssql: 'VARBINARY(MAX)',
     db2: 'BLOB(2G)',
-    postgres: 'BYTEA',
+    'postgres cockroachdb': 'BYTEA',
     sqlite: 'BLOB',
-    cockroachdb: 'BYTES',
   });
 
   describe('validate', () => {

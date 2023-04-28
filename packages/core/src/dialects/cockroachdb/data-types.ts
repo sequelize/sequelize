@@ -1,7 +1,6 @@
 import { ValidationErrorItem } from '../../errors';
 import type { GeoJson } from '../../geo-json';
 import { isString } from '../../utils/check';
-import type { AbstractDialect } from '../abstract';
 import type { AbstractDataType, AcceptableTypeOf, ArrayOptions, BindParamOptions, DataType } from '../abstract/data-types';
 import * as BaseTypes from '../abstract/data-types';
 import { attributeTypeToSql } from '../abstract/data-types-utils';
@@ -68,23 +67,6 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends PostgresAr
   }
 }
 
-export class BLOB extends BaseTypes.BLOB {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-
-    if (this.options.length) {
-      dialect.warnDataTypeIssue(
-        `${dialect.name} does not support BLOB (BYTES) with options. Plain BYTES will be used instead.`,
-      );
-      this.options.length = undefined;
-    }
-  }
-
-  toSql() {
-    return 'BYTES';
-  }
-}
-
 export {
   BIGINT,
   DECIMAL,
@@ -95,6 +77,7 @@ export {
   TEXT,
   DATE,
   ENUM,
+  BLOB,
 } from '../postgres/data-types';
 
 export { JSONB } from '../abstract/data-types';

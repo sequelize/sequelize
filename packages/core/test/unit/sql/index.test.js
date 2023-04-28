@@ -86,9 +86,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         BEGIN END;
         ALTER TABLE "User" ADD CONSTRAINT "a_b_uniq" UNIQUE ("fieldB", "fieldA" DESC);
       END`,
-        'postgres cockroachdb': 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
+        postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
         mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
         mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
+        cockroachdb: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" DESC)',
       });
     });
 
@@ -100,6 +101,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
         mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
         mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
+        cockroachdb: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
       });
     });
 

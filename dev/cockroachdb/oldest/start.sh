@@ -9,7 +9,7 @@ docker compose -p sequelize-cockroachdb-oldest up -d
 
 # Making a few changes to make the local single node cluster a bit more faster
 # Read more here https://cockroachlabs.com/docs/stable/local-testing.html#use-a-local-single-node-cluster-with-in-memory-storage
-docker exec sequelize-cockroachdb-latest ./cockroach sql --insecure --execute="
+docker exec sequelize-cockroachdb-oldest ./cockroach sql --insecure --execute="
 SET CLUSTER SETTING kv.raft_log.disable_synchronization_unsafe = true;
 SET CLUSTER SETTING kv.range_merge.queue_interval = '50ms';
 SET CLUSTER SETTING jobs.registry.interval.gc = '30s';
@@ -20,4 +20,6 @@ SET CLUSTER SETTING kv.range_split.by_load_merge_delay = '5s';
 ALTER RANGE default CONFIGURE ZONE USING "gc.ttlseconds" = 600;
 ALTER DATABASE system CONFIGURE ZONE USING "gc.ttlseconds" = 600;
 DROP DATABASE IF EXISTS sequelize_test;
-CREATE DATABASE IF NOT EXISTS sequelize_test;"
+CREATE DATABASE IF NOT EXISTS sequelize_test;
+CREATE USER IF NOT EXISTS sequelize_test;
+GRANT admin TO sequelize_test;"

@@ -106,8 +106,8 @@ export type DialectSupports = {
     onConflictWhere: boolean, /* whether dialect supports ON CONFLICT WHERE */
     conflictFields: boolean, /* whether the dialect supports specifying conflict fields or not */
     bulkInsert: {
-      ignoreDuplicates: boolean,
-      updateOnDuplicate: boolean,
+      ignoreDuplicates: string,
+      updateOnDuplicate: boolean | string,
     },
   },
   constraints: {
@@ -271,7 +271,7 @@ export abstract class AbstractDialect {
       onConflictWhere: false,
       conflictFields: false,
       bulkInsert: {
-        ignoreDuplicates: true,
+        ignoreDuplicates: '',
         updateOnDuplicate: true,
       },
     },

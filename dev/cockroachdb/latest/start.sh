@@ -21,4 +21,5 @@ ALTER RANGE default CONFIGURE ZONE USING "gc.ttlseconds" = 600;
 ALTER DATABASE system CONFIGURE ZONE USING "gc.ttlseconds" = 600;
 DROP DATABASE IF EXISTS sequelize_test;
 CREATE DATABASE IF NOT EXISTS sequelize_test;
+CREATE USER IF NOT EXISTS sequelize_test;
 GRANT admin TO sequelize_test;"

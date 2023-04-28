@@ -1739,121 +1739,135 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(tasks[0].title).to.equal('wat');
     });
 
-    // Scope association fails when we use UUID ref: https://github.com/sequelize/sequelize/issues/13072
-    if (dialect !== 'cockroachdb') {
-      it('using scope to set associations', async function () {
-        const ItemTag = this.sequelize.define('ItemTag', {
-          id: { type: DataTypes.UUID, primaryKey: true, autoIncrement: true, defaultValue: DataTypes.UUIDV4 },
-          tag_id: { type: DataTypes.UUID, unique: true },
-          taggable: { type: DataTypes.STRING },
-          taggable_id: { type: DataTypes.UUID, unique: true },
-        });
-        const Tag = this.sequelize.define('Tag', {
-          id: { type: DataTypes.UUID, primaryKey: true, autoIncrement: true, defaultValue: DataTypes.UUIDV4 },
-          name: DataTypes.STRING,
-        });
-        const Comment = this.sequelize.define('Comment', {
-          id: { type: DataTypes.UUID, primaryKey: true, autoIncrement: true, defaultValue: DataTypes.UUIDV4 },
-          name: DataTypes.STRING,
-        });
-        const Post = this.sequelize.define('Post', {
-          id: { type: DataTypes.UUID, primaryKey: true, autoIncrement: true, defaultValue: DataTypes.UUIDV4 },
-          name: DataTypes.STRING,
-        });
+    it('using scope to set associations', async function () {
+      const ItemTag = this.sequelize.define('ItemTag', {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        tag_id: { type: DataTypes.INTEGER, unique: false },
+        taggable: { type: DataTypes.STRING },
+        taggable_id: { type: DataTypes.INTEGER, unique: false },
+      });
+      const Tag = this.sequelize.define('Tag', {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING,
+      });
+      const Comment = this.sequelize.define('Comment', {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING,
+      });
+      const Post = this.sequelize.define('Post', {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING,
+      });
 
-        Post.belongsToMany(Tag, {
-          through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
-          foreignKey: 'taggable_id',
-        });
+      Post.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
+        foreignKey: 'taggable_id',
+      });
 
-        Comment.belongsToMany(Tag, {
-          through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
-          foreignKey: 'taggable_id',
-          // taggable_id already references Post, we can't make it reference Comment
-          foreignKeyConstraints: false,
-        });
+      Comment.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
+        foreignKey: 'taggable_id',
+        // taggable_id already references Post, we can't make it reference Comment
+        foreignKeyConstraints: false,
+      });
 
-        await this.sequelize.sync({ force: true });
+      await this.sequelize.sync({ force: true });
 
-        const [post, comment, tag] = await Promise.all([
+      let post; let comment; let tag;
+      // CockroachDB does not assign integer based ids as other dialects do.
+      if (dialect === 'cockroachdb') {
+        [post, comment, tag] = await Promise.all([
+          Post.create({ name: 'post1', id: 1 }),
+          Comment.create({ name: 'comment1', id: 1 }),
+          Tag.create({ name: 'tag1', id: 1 }),
+        ]);
+      } else {
+        [post, comment, tag] = await Promise.all([
           Post.create({ name: 'post1' }),
           Comment.create({ name: 'comment1' }),
           Tag.create({ name: 'tag1' }),
         ]);
+      }
 
-        this.post = post;
-        this.comment = comment;
-        this.tag = tag;
-        await this.post.setTags([this.tag]);
-        await this.comment.setTags([this.tag]);
+      this.post = post;
+      this.comment = comment;
+      this.tag = tag;
+      await this.post.setTags([this.tag]);
+      await this.comment.setTags([this.tag]);
 
-        const [postTags, commentTags] = await Promise.all([
-          this.post.getTags(),
-          this.comment.getTags(),
-        ]);
+      const [postTags, commentTags] = await Promise.all([
+        this.post.getTags(),
+        this.comment.getTags(),
+      ]);
 
-        expect(postTags).to.have.length(1);
-        expect(commentTags).to.have.length(1);
+      expect(postTags).to.have.length(1);
+      expect(commentTags).to.have.length(1);
+    });
+
+    it('updating association via set associations with scope', async function () {
+      const ItemTag = this.sequelize.define('ItemTag', {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        tag_id: { type: DataTypes.INTEGER, unique: false },
+        taggable: { type: DataTypes.STRING },
+        taggable_id: { type: DataTypes.INTEGER, unique: false },
       });
-    }
+      const Tag = this.sequelize.define('Tag', {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING,
+      });
+      const Comment = this.sequelize.define('Comment', {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING,
+      });
+      const Post = this.sequelize.define('Post', {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: DataTypes.STRING,
+      });
 
-    // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
-    // TODO: Change the primary key data type of the ItemTag, Tag, Comment, and Post models should be changed to UUID instead of INTEGER.
-    if (dialect !== 'cockroachdb') {
-      it('updating association via set associations with scope', async function () {
-        const ItemTag = this.sequelize.define('ItemTag', {
-          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-          tag_id: { type: DataTypes.INTEGER, unique: false },
-          taggable: { type: DataTypes.STRING },
-          taggable_id: { type: DataTypes.INTEGER, unique: false },
-        });
-        const Tag = this.sequelize.define('Tag', {
-          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-          name: DataTypes.STRING,
-        });
-        const Comment = this.sequelize.define('Comment', {
-          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-          name: DataTypes.STRING,
-        });
-        const Post = this.sequelize.define('Post', {
-          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-          name: DataTypes.STRING,
-        });
+      Post.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
+        foreignKey: 'taggable_id',
+      });
 
-        Post.belongsToMany(Tag, {
-          through: { model: ItemTag, unique: false, scope: { taggable: 'post' } },
-          foreignKey: 'taggable_id',
-        });
+      Comment.belongsToMany(Tag, {
+        through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
+        foreignKey: 'taggable_id',
+        // taggable_id already references Post, we can't make it reference Comment
+        foreignKeyConstraints: false,
+      });
 
-        Comment.belongsToMany(Tag, {
-          through: { model: ItemTag, unique: false, scope: { taggable: 'comment' } },
-          foreignKey: 'taggable_id',
-          // taggable_id already references Post, we can't make it reference Comment
-          foreignKeyConstraints: false,
-        });
+      await this.sequelize.sync({ force: true });
 
-        await this.sequelize.sync({ force: true });
-
-        const [post, comment, tag, secondTag] = await Promise.all([
+      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
+      let post; let comment; let tag; let secondTag;
+      if (dialect === 'cockroachdb') {
+        [post, comment, tag, secondTag] = await Promise.all([
+          Post.create({ name: 'post1', id: 1 }),
+          Comment.create({ name: 'comment1', id: 1 }),
+          Tag.create({ name: 'tag1', id: 1 }),
+          Tag.create({ name: 'tag2', id: 2 }),
+        ]);
+      } else {
+        [post, comment, tag, secondTag] = await Promise.all([
           Post.create({ name: 'post1' }),
           Comment.create({ name: 'comment1' }),
           Tag.create({ name: 'tag1' }),
           Tag.create({ name: 'tag2' }),
         ]);
+      }
 
-        await post.setTags([tag, secondTag]);
-        await comment.setTags([tag, secondTag]);
-        await post.setTags([tag]);
+      await post.setTags([tag, secondTag]);
+      await comment.setTags([tag, secondTag]);
+      await post.setTags([tag]);
 
-        const [postTags, commentTags] = await Promise.all([
-          post.getTags(),
-          comment.getTags(),
-        ]);
+      const [postTags, commentTags] = await Promise.all([
+        post.getTags(),
+        comment.getTags(),
+      ]);
 
-        expect(postTags).to.have.length(1);
-        expect(commentTags).to.have.length(2);
-      });
-    }
+      expect(postTags).to.have.length(1);
+      expect(commentTags).to.have.length(2);
+    });
 
     it('should catch EmptyResultError when rejectOnEmpty is set', async function () {
       const User = this.sequelize.define(
