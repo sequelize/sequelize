@@ -152,7 +152,7 @@ export class AbstractQueryInterfaceTypeScript {
       }
 
       return data;
-    } catch (error: BaseError | any) {
+    } catch (error: unknown) {
       if (error instanceof BaseError && error.cause?.code === 'ER_NO_SUCH_TABLE') {
         throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
