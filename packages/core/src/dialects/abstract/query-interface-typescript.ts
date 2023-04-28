@@ -118,19 +118,11 @@ export class AbstractQueryInterfaceTypeScript {
    *
    */
   async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions) {
-    let table: TableNameOrModel = { tableName: '' };
-
-    if (typeof tableName === 'string') {
-      table = { tableName };
-    }
-
-    if (typeof tableName === 'object' && tableName !== null) {
-      table = tableName;
-    }
+    const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
       noSchemaParameter();
-      table = { ...table, schema: options };
+      table.schema = options;
     }
 
     if (typeof options === 'object' && options !== null) {
