@@ -541,6 +541,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `ALTER FUNCTION ${oldFunctionName}(${paramList}) RENAME TO ${newFunctionName};`;
   }
 
+  // TODO: replace this function with something more robust. Currently it mishandles values with single quotes in them
   pgEscapeAndQuote(val) {
     return this.quoteIdentifier(this.escape(val).replace(/'/g, ''));
   }
