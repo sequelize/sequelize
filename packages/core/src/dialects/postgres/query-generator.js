@@ -4,7 +4,7 @@ import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
-import { quoteIdentifier } from '../../utils/dialect';
+import { quoteIdentifier, removeTicks } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
@@ -541,9 +541,9 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `ALTER FUNCTION ${oldFunctionName}(${paramList}) RENAME TO ${newFunctionName};`;
   }
 
-  // TODO: replace this function with something more robust. Currently it mishandles values with single quotes in them
+  // TODO [>7]: remove usage of removeTicks in favor of something that does not mishandle single quotes
   pgEscapeAndQuote(val) {
-    return this.quoteIdentifier(this.escape(val).replace(/'/g, ''));
+    return this.quoteIdentifier(removeTicks(this.escape(val), `'`));
   }
 
   _expandFunctionParamList(params) {

@@ -1,7 +1,7 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
-import { quoteIdentifier } from '../../utils/dialect';
+import { removeTicks } from '../../utils/dialect';
 
 const _ = require('lodash');
 const { AbstractQuery } = require('../abstract/query');
@@ -291,6 +291,7 @@ export class SqliteQuery extends AbstractQuery {
     });
   }
 
+  // TODO [>7]: remove usage of removeTicks in favor of something that does not mishandle backticks
   parseConstraintsFromSql(sql) {
     let constraints = sql.split('CONSTRAINT ');
     let referenceTableName; let referenceTableKeys; let updateAction; let deleteAction;
@@ -312,10 +313,10 @@ export class SqliteQuery extends AbstractQuery {
 
         const referencesRegex = /REFERENCES.+\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/;
         const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
-        referenceTableName = quoteIdentifier(referenceConditions[1]);
+        referenceTableName = removeTicks(referenceConditions[1]);
         let columnNames = referenceConditions[2];
         columnNames = columnNames.replace(/\(|\)/g, '').split(', ');
-        referenceTableKeys = columnNames.map(column => quoteIdentifier(column));
+        referenceTableKeys = columnNames.map(column => removeTicks(column));
       }
 
       const constraintCondition = constraintSql.match(/\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/)[0];
@@ -327,7 +328,7 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       return {
-        constraintName: quoteIdentifier(constraint[0]),
+        constraintName: removeTicks(constraint[0]),
         constraintType: constraint[1],
         updateAction,
         deleteAction,
