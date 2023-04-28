@@ -149,7 +149,7 @@ describe('hasOne Mixins', () => {
   });
 });
 
-describe('hasMany Mixins + transaction', () => {
+describe('hasOne Mixins + transaction', () => {
   if (!dialect.supports.transactions) {
     return;
   }
