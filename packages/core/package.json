@@ -21,9 +21,9 @@
   "type": "commonjs",
   "exports": {
     ".": {
+      "types": "./types/index.d.ts",
       "import": "./lib/index.mjs",
-      "require": "./lib/index.js",
-      "types": "./types/index.d.ts"
+      "require": "./lib/index.js"
     },
     "./decorators-legacy": {
       "types": "./types/decorators/legacy/index.d.ts",
