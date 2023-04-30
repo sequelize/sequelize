@@ -15,6 +15,7 @@ import { AbstractQuery } from './dialects/abstract/query';
 import { QueryOptions } from './dialects/abstract/query-interface';
 import { Config, Options, Sequelize, SyncOptions } from './sequelize';
 import { DeepWriteable } from './utils';
+import { Connection, GetConnectionOptions } from './dialects/abstract/connection-manager';
 
 export type HookReturn = Promise<void> | void;
 
@@ -76,6 +77,8 @@ export interface SequelizeHooks<
   afterInit(sequelize: Sequelize): void;
   beforeConnect(config: DeepWriteable<Config>): HookReturn;
   afterConnect(connection: unknown, config: Config): HookReturn;
+  beforePoolAcquire(config: GetConnectionOptions): HookReturn;
+  afterPoolAcquire(connection: Connection, config: GetConnectionOptions): HookReturn;
   beforeDisconnect(connection: unknown): HookReturn;
   afterDisconnect(connection: unknown): HookReturn;
 }

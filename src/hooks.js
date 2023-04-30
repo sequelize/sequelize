@@ -43,6 +43,8 @@ const hookTypes = {
   afterConnect: { params: 2, noModel: true },
   beforeDisconnect: { params: 1, noModel: true },
   afterDisconnect: { params: 1, noModel: true },
+  beforePoolAcquire: { params: 1, noModel: true },
+  afterPoolAcquire: { params: 2, noModel: true },
   beforeSync: { params: 1 },
   afterSync: { params: 1 },
   beforeBulkSync: { params: 1 },
@@ -538,6 +540,24 @@ exports.applyTo = applyTo;
  * @param {string}   name
  * @param {Function} fn   A callback function that is called with the connection object and the config passed to connection
  * @name afterConnect
+ * @memberof Sequelize
+ */
+
+/**
+ *  A hook that is run before a connection to the pool
+ *
+ * @param {string}   name
+ * @param {Function} fn   A callback function that is called with config passed to connection
+ * @name beforePoolAcquire
+ * @memberof Sequelize
+ */
+
+/**
+ * A hook that is run after a connection to the pool
+ *
+ * @param {string}   name
+ * @param {Function} fn   A callback function that is called with the connection object and the config passed to connection
+ * @name afterPoolAcquire
  * @memberof Sequelize
  */
 
