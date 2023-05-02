@@ -21,9 +21,9 @@
   "type": "commonjs",
   "exports": {
     ".": {
+      "types": "./types/index.d.ts",
       "import": "./lib/index.mjs",
-      "require": "./lib/index.js",
-      "types": "./types/index.d.ts"
+      "require": "./lib/index.js"
     },
     "./decorators-legacy": {
       "types": "./types/decorators/legacy/index.d.ts",
@@ -67,13 +67,13 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.4",
+    "@types/chai": "4.3.5",
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
     "@types/ibm_db": "2.0.12",
     "@types/lodash": "4.14.194",
     "@types/mocha": "10.0.1",
-    "@types/node": "18.15.12",
+    "@types/node": "18.16.3",
     "@types/pg": "8.6.6",
     "@types/semver": "7.3.13",
     "@types/sinon": "10.0.14",
@@ -104,7 +104,7 @@
     "p-timeout": "4.1.0",
     "pg": "8.10.0",
     "rimraf": "5.0.0",
-    "sinon": "15.0.3",
+    "sinon": "15.0.4",
     "sinon-chai": "3.7.0",
     "snowflake-sdk": "1.6.21",
     "sqlite3": "5.1.6",
