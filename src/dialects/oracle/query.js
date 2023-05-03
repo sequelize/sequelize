@@ -254,7 +254,6 @@ export class OracleQuery extends AbstractQuery {
  * @param {string} dialect
  */
   static formatBindParameters(sql, values, dialect) {
-
     const replacementFunc = (match, key, values) => {
       if (values[key] !== undefined) {
         return `:${key}`;
@@ -371,7 +370,6 @@ export class OracleQuery extends AbstractQuery {
         });
       });
     }
-
     return result;
   }
 
