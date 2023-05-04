@@ -461,38 +461,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     ]);
   }
 
-  /**
-   * Generates an SQL query that extract JSON property of given path.
-   *
-   * @param   {string}               column  The JSON column
-   * @param   {string|Array<string>} [path]  The path to extract (optional)
-   * @returns {string}                       The generated sql query
-   * @private
-   */
-  jsonPathExtractionQuery(column, path) {
-    let paths = _.toPath(path);
-    const quotedColumn = this.isIdentifierQuoted(column)
-      ? column
-      : this.quoteIdentifier(column);
-
-    /**
-     * Non digit sub paths need to be quoted as ECMAScript identifiers
-     * https://bugs.mysql.com/bug.php?id=81896
-     */
-    paths = paths.map(subPath => {
-      return /\D/.test(subPath)
-        ? addTicks(subPath, '"')
-        : subPath;
-    });
-
-    const pathStr = this.escape(['$']
-      .concat(paths)
-      .join('.')
-      .replace(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
-
-    return `json_unquote(json_extract(${quotedColumn},${pathStr}))`;
-  }
-
   _getBeforeSelectAttributesFragment(options) {
     let fragment = '';
 
