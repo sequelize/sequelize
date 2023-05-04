@@ -213,6 +213,9 @@ export type DialectSupports = {
   dropTable: {
     cascade: boolean,
   },
+  maxExecutionTimeHint: {
+    select: boolean,
+  },
   truncate: {
     cascade: boolean,
   },
@@ -337,6 +340,9 @@ export abstract class AbstractDialect {
     globalTimeZoneConfig: false,
     dropTable: {
       cascade: false,
+    },
+    maxExecutionTimeHint: {
+      select: false,
     },
     truncate: {
       cascade: false,
