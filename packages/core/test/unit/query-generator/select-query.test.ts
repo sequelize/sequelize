@@ -1,7 +1,6 @@
-import type { InferAttributes, Model } from '@sequelize/core';
-import { DataTypes, Op, or, sql as sqlTag } from '@sequelize/core';
-import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expect } from 'chai';
+import { DataTypes, Op, or, sql as sqlTag, InferAttributes, Model } from '@sequelize/core';
+import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const { attribute, col, cast, where, fn, literal } = sqlTag;
