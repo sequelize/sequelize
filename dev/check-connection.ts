@@ -1,4 +1,4 @@
-import { createSequelizeInstance } from '../test/support';
+import { createSequelizeInstance } from '../packages/core/test/support';
 
 const sequelize = createSequelizeInstance();
 

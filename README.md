@@ -1,7 +1,5 @@
-<p align="center">
-  <img src="logo.svg" width="100" alt="Sequelize logo" />
-  <h1 align="center"><a href="https://sequelize.org">Sequelize</a></h1>
-</p>
+<p align="center"><img src="logo.svg" width="100" alt="Sequelize logo" /></p>
+<h1 align="center" style="margin-top: 0;"><a href="https://sequelize.org">Sequelize</a></h1>
 
 [![npm version](https://badgen.net/npm/v/@sequelize/core)](https://www.npmjs.com/package/@sequelize/core)
 [![npm downloads](https://badgen.net/npm/dm/@sequelize/core)](https://www.npmjs.com/package/@sequelize/core)
@@ -42,7 +40,7 @@ Please find upgrade information to major versions here:
 - [Databases Compatibility Table](https://sequelize.org/releases/)
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Discussions](https://github.com/sequelize/sequelize/discussions)
-- [Slack](https://join.slack.com/t/sequelize/shared_invite/zt-1igt9hx8h-tGWU4AI1bRPvkRdEK5wnuQ)
+- [Slack](https://sequelize.org/slack)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
 
 ### :wrench: Tools

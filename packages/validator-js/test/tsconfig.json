@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "mocha", "sinon", "chai", "sinon-chai", "chai-as-promised"],
+    "noEmit": true,
+    "experimentalDecorators": true
+  },
+  "include": ["./types/**/*", "./**/**/*.ts"]
+}
