@@ -1,5 +1,6 @@
 'use strict';
 
+import { inspect } from 'node:util';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
@@ -458,6 +459,25 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       this.quoteIdentifier(foreignKey),
       ';',
     ]);
+  }
+
+  _getBeforeSelectAttributesFragment(options) {
+    let fragment = '';
+
+    const MINIMUM_EXECUTION_TIME_VALUE = 0;
+    const MAXIMUM_EXECUTION_TIME_VALUE = 4_294_967_295;
+
+    if (options.maxExecutionTimeHintMs != null) {
+      if (Number.isSafeInteger(options.maxExecutionTimeHintMs)
+        && options.maxExecutionTimeHintMs >= MINIMUM_EXECUTION_TIME_VALUE
+        && options.maxExecutionTimeHintMs <= MAXIMUM_EXECUTION_TIME_VALUE) {
+        fragment += ` /*+ MAX_EXECUTION_TIME(${options.maxExecutionTimeHintMs}) */`;
+      } else {
+        throw new Error(`maxExecutionTimeMs must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}, but it is ${inspect(options.maxExecutionTimeHintMs)}`);
+      }
+    }
+
+    return fragment;
   }
 }
 
