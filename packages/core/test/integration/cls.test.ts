@@ -152,6 +152,9 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
     it('automagically uses the transaction in all calls with async/await', async () => {
       await vars.clsSequelize.transaction(async () => {
         await vars.User.create({ name: 'bob' });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialectName !== 'cockroachdb') {
           expect(await vars.User.findAll({ transaction: null })).to.have.length(0);
         }

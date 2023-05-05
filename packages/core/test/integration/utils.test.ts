@@ -34,7 +34,7 @@ describe(getTestDialectTeaser('fn()'), () => {
   // TODO: Find a better way for CRDB
   // some dialects return the result of arithmetic functions (SUM, COUNT) as integer & floats, others as bigints & decimals.
   const arithmeticAsNumber = dialectName === 'sqlite' || dialectName === 'db2';
-  if (dialectName !== 'mssql' && dialectName !== 'ibmi' && dialectName !== 'cockroachdb') {
+  if (dialectName !== 'mssql' && dialectName !== 'ibmi') {
     it('accepts condition object (with cast)', async () => {
       const type = dialectName === 'mysql' ? 'unsigned' : 'int';
 
@@ -57,7 +57,14 @@ describe(getTestDialectTeaser('fn()'), () => {
 
       // These values are returned as strings
       // See https://github.com/sequelize/sequelize/issues/10533#issuecomment-1254141892 for more details
-      expect(airplane.get('count')).to.equal(arithmeticAsNumber ? 3 : '3');
+      if (dialectName === 'cockroachdb') {
+        // By default ints are stored as int8 but after casting they are returned as numberic
+        // int8 will be returned as a number if valid where as numeric is returned as string.
+        expect(airplane.get('count')).to.equal(3);
+      } else {
+        expect(airplane.get('count')).to.equal(arithmeticAsNumber ? 3 : '3');
+      }
+
       expect(airplane.get('count-engines')).to.equal(arithmeticAsNumber ? 1 : '1');
       expect(airplane.get('count-engines-wings')).to.equal(arithmeticAsNumber ? 2 : '2');
     });

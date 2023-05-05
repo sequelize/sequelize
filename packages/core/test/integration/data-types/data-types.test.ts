@@ -1498,7 +1498,6 @@ describe('DataTypes', () => {
       return;
     }
 
-    // Cockroachdb does not support nested arrays.
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
         declare enumArray: TestEnum[] | null;
@@ -1510,6 +1509,7 @@ describe('DataTypes', () => {
         declare arrayOfArrayOfStrings?: string[][];
       }
 
+      // Cockroachdb does not support nested arrays.
       User.init({
         enumArray: DataTypes.ARRAY(DataTypes.ENUM(Object.values(TestEnum))),
         intArray: DataTypes.ARRAY(DataTypes.INTEGER),
@@ -1526,7 +1526,6 @@ describe('DataTypes', () => {
     });
 
     // CockroachDB does not support nested arrays.
-    // TODO: Throw a graceful error when a nested array is passed for CRDB.
     it('serialize/deserializes arrays', async () => {
       await testSimpleInOut(vars.User, 'enumArray', [TestEnum.A, TestEnum.B, TestEnum['D,E']], [TestEnum.A, TestEnum.B, TestEnum['D,E']]);
       await testSimpleInOut(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);

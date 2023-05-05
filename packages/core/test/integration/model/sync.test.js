@@ -557,9 +557,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column
   //  so sync({ alter: true }) cannot know whether the column must be updated.
   //  so for now, deferrableConstraints is disabled for sqlite (as it's only used in tests)
-  // Cockroachdb Does not support DEFERRABLE INITIALLY IMMEDIATE in a CREATE TABLE statement,
-  // reference: https://github.com/cockroachdb/cockroach/issues/31632
-  if (sequelize.dialect.supports.deferrableConstraints && dialect !== 'cockroachdb') {
+  if (sequelize.dialect.supports.deferrableConstraints) {
     it('updates the deferrable property of a foreign key', async () => {
       const A = sequelize.define('A', {
         BId: {

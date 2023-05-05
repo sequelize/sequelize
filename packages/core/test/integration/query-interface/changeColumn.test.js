@@ -16,7 +16,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   describe('changeColumn', () => {
-    // In CockroachDB ALTER COLUMN TYPE from int to float is prohibited until v21.1
+    // In CockroachDB ALTER COLUMN TYPE is prohibited in cockroachdb and only supported experimentally
+    // https://github.com/cockroachdb/cockroach/issues/49329
     if (Support.sequelize.dialect.supports.schemas && dialect !== 'cockroachdb') {
       it('should support schemas', async function () {
         await this.sequelize.createSchema('archive');
@@ -53,7 +54,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    // Reason: ALTER COLUMN TYPE from int to float is prohibited until v21.1 in Cockroachdb
+    // ALTER COLUMN TYPE is prohibited in Cockroachdb and only supported experimentally
+    // https://github.com/cockroachdb/cockroach/issues/49329
     if (dialect !== 'cockroachdb') {
       it('should change columns', async function () {
         await this.queryInterface.createTable({
@@ -91,7 +93,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     // MSSQL doesn't support using a modified column in a check constraint.
     // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
-    // ALTER COLUMN TYPE from varchar to enum_users_firstName is prohibited until v21.1 in cockroachdb
+    // ALTER COLUMN TYPE is prohibited until v21.1 in cockroachdb and only supported experimentally
+    // https://github.com/cockroachdb/cockroach/issues/49329
     if (dialect !== 'mssql' && dialect !== 'db2' && dialect !== 'cockroachdb') {
       it('should work with enums (case 1)', async function () {
         await this.queryInterface.createTable({

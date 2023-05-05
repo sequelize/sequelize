@@ -42,6 +42,8 @@ describe('Model.findOne', () => {
           transaction: t,
         });
 
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialectName !== 'cockroachdb') {
           const user1 = await User.findOne({
             where: { username: 'foo' },
@@ -175,6 +177,8 @@ describe('Model.findOne', () => {
         const user = await this.User.findByPk(this.user.id);
         expect(Array.isArray(user)).to.not.be.ok;
         expect(user.id).to.equal(this.user.id);
+
+        // Cockroachdb does not support sequential ID generation.
         if (dialectName !== 'cockroachdb') {
           expect(user.id).to.equal(1);
         }
@@ -184,6 +188,8 @@ describe('Model.findOne', () => {
         const user = await this.User.findByPk(this.user.id.toString());
         expect(Array.isArray(user)).to.not.be.ok;
         expect(user.id).to.equal(this.user.id);
+
+        // Cockroachdb does not support sequential ID generation.
         if (dialectName !== 'cockroachdb') {
           expect(user.id).to.equal(1);
         }

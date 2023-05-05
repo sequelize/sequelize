@@ -5,7 +5,7 @@ import { sequelize } from '../support';
 const dialect = sequelize.getDialect();
 
 describe('Sequelize#drop', () => {
-  if (dialect !== 'cockroachdb') {
+  if (sequelize.dialect.supports.deferrableConstraints) {
     it('supports dropping cyclic associations', async () => {
       const A = sequelize.define('A', {
         BId: {

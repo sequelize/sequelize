@@ -42,6 +42,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.create({ username: 'foo' }, { transaction: t });
         const users2 = await User.findAll({ transaction: t });
         const users3 = await User.findAll({ where: { username: 'foo' }, transaction: t });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialectName !== 'cockroachdb') {
           const users1 = await User.findAll({ where: { username: 'foo' } });
           expect(users1.length).to.equal(0);
@@ -1516,6 +1519,8 @@ The following associations are defined on "Worker": "ToDos"`);
         await User.create({ username: 'foo' }, { transaction: t });
         const info2 = await User.findAndCountAll({ transaction: t });
 
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialectName !== 'cockroachdb') {
           const info1 = await User.findAndCountAll();
           expect(info1.count).to.equal(0);
@@ -1624,6 +1629,9 @@ The following associations are defined on "Worker": "ToDos"`);
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
         const users2 = await User.findAll({ transaction: t });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialectName !== 'cockroachdb') {
           const users1 = await User.findAll();
           expect(users1.length).to.equal(0);

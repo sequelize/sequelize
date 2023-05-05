@@ -1,4 +1,6 @@
 import { PostgresQuery } from '../postgres/query';
+import _ from 'lodash';
+import * as sequelizeErrors from '../../errors';
 
 export class CockroachDbQuery extends PostgresQuery {
   async run(sql, parameters, options) {
@@ -35,6 +37,43 @@ export class CockroachDbQuery extends PostgresQuery {
     }
 
     return rows;
+
+  }
+
+  formatError(err) {
+    const code = err.code || err.sqlState;
+    const errDetail = err.detail || err.messageDetail;
+    let match;
+
+    if (code === '23505' && errDetail && (match = errDetail.replace(/["']/g, '').match(/Key \((.*?)\)=\((.*?)\)/))) {
+      const fields = _.zipObject(match[1].split(', '), match[2].split(', '));
+      const errors = [];
+      let message = 'Validation error';
+
+      _.forOwn(fields, (value, field) => {
+        errors.push(new sequelizeErrors.ValidationErrorItem(
+          this.getUniqueConstraintErrorMessage(field),
+          'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+          field,
+          value,
+          this.instance,
+          'not_unique',
+        ));
+      });
+
+      if (this.model) {
+        for (const index of this.model.getIndexes()) {
+          if (index.unique && _.isEqual(index.fields, Object.keys(fields)) && index.msg) {
+            message = index.msg;
+            break;
+          }
+        }
+      }
+
+      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
+    }
+
+    return super.formatError(err);
 
   }
 }

@@ -52,6 +52,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialectName !== 'cockroachdb') {
           const count = await this.Event.count();
           expect(count).to.equal(0);

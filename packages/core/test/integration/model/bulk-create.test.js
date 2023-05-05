@@ -62,15 +62,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         const transaction = await this.customSequelize.startUnmanagedTransaction();
         await User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialectName !== 'cockroachdb') {
           count1 = await User.count();
-        }
-
-        const count2 = await User.count({ transaction });
-        if (dialectName !== 'cockroachdb') {
           expect(count1).to.equal(0);
         }
 
+        const count2 = await User.count({ transaction });
         expect(count2).to.equal(2);
         await transaction.rollback();
       });
@@ -971,9 +971,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 options,
               );
 
+              const sortedResults = results.sort((a, b) => a.dataValues.user_id - b.dataValues.user_id);
+
               for (let i = 0; i < 10; i++) {
                 // CockroachDB does not guarantee sequential generation.
-                if (dialectName !== 'cockroachdb') {
+                if (dialectName === 'cockroachdb') {
+                  expect(sortedResults[i].user_id).to.eq(memberships[i].user_id);
+                } else {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
                 }
 
@@ -1094,10 +1098,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   }
                 }
 
-                for (const membership of memberships) {
-                  membership.time_deleted;
-                }
-
                 results = await Memberships.bulkCreate(
                   memberships.map(membership => ({
                     ...membership,
@@ -1106,9 +1106,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   options,
                 );
 
+                const sortedResults = results.sort((a, b) => a.dataValues.user_id - b.dataValues.user_id);
+
                 for (let i = 0; i < 10; i++) {
-                  // CockroachDB does not guarantee sequential generation.
-                  if (dialectName !== 'cockroachdb') {
+                  // CockroachDB appends new records are appended at the bottom, so the retrieved list order may differ
+                  if (dialectName === 'cockroachdb') {
+                    expect(sortedResults[i].user_id).to.eq(memberships[i].user_id);
+                  } else {
                     expect(results[i].user_id).to.eq(memberships[i].user_id);
                   }
 

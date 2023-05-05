@@ -107,6 +107,9 @@ describe('Model#findOrBuild', () => {
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialectName !== 'cockroachdb') {
           const [user1] = await User.findOrBuild({
             where: { username: 'foo' },

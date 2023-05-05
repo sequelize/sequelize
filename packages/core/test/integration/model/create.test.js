@@ -62,6 +62,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           transaction: t,
         });
 
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialectName !== 'cockroachdb') {
           const count = await this.User.count();
           expect(count).to.equal(0);
@@ -255,32 +257,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }));
       });
 
-      // Results of concurrent transactions are not deterministic in CockroachDB.
-      if (dialectName !== 'cockroachdb') {
-        it('should not deadlock with concurrency duplicate entries and no outer transaction', async function () {
-          const User = this.customSequelize.define('User', {
-            email: {
-              type: DataTypes.STRING,
-              unique: 'company_user_email',
-            },
-            companyId: {
-              type: DataTypes.INTEGER,
-              unique: 'company_user_email',
+      it('should not deadlock with concurrency duplicate entries and no outer transaction', async function () {
+        const User = this.customSequelize.define('User', {
+          email: {
+            type: DataTypes.STRING,
+            unique: 'company_user_email',
+          },
+          companyId: {
+            type: DataTypes.INTEGER,
+            unique: 'company_user_email',
+          },
+        });
+
+        await User.sync({ force: true });
+
+        await Promise.all(_.range(50).map(() => {
+          return User.findOrCreate({
+            where: {
+              email: 'unique.email.1@sequelizejs.com',
+              companyId: 2,
             },
           });
-
-          await User.sync({ force: true });
-
-          await Promise.all(_.range(50).map(() => {
-            return User.findOrCreate({
-              where: {
-                email: 'unique.email.1@sequelizejs.com',
-                companyId: 2,
-              },
-            });
-          }));
-        });
-      }
+        }));
+      });
     }
 
     it('should support special characters in defaults', async function () {
@@ -447,137 +446,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    // TODO: Find a better way for CRDB
-    if (dialectName !== 'cockroachdb') {
-      describe('several concurrent calls', () => {
-        if (current.dialect.supports.transactions) {
-          it('works with a transaction', async function () {
-            const transaction = await this.customSequelize.startUnmanagedTransaction();
-
-            const [first, second] = await Promise.all([
-              this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-              this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-            ]);
-
-            const firstInstance = first[0];
-            const firstCreated = first[1];
-            const secondInstance = second[0];
-            const secondCreated = second[1];
-
-            // Depending on execution order and MAGIC either the first OR the second call should return true
-            expect(firstCreated ? !secondCreated : secondCreated).to.be.ok; // XOR
-
-            expect(firstInstance).to.be.ok;
-            expect(secondInstance).to.be.ok;
-
-            expect(firstInstance.id).to.equal(secondInstance.id);
-          });
-        }
-
-        it('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
-          if (['sqlite', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
-            return;
-          }
-
-          const User = this.customSequelize.define('user', {
-            username: {
-              type: DataTypes.STRING,
-              unique: true,
-              columnName: 'user_name',
-            },
-          });
-
-          User.beforeCreate(instance => {
-            instance.username += ' h.';
-          });
-
-          const spy = sinon.spy();
-
-          const names = [
-            'mick',
-            'mick',
-            'mick',
-            'mick',
-            'mick',
-            'mick',
-            'mick',
-          ];
-
-          await User.sync({ force: true });
-
-          await Promise.all(
-            names.map(async username => {
-              try {
-                return await User.findOrCreate({ where: { username } });
-              } catch (error) {
-                spy();
-                expect(error.message).to.equal(`user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick' vs 'mick h.'`);
-              }
-            }),
-          );
-
-          expect(spy).to.have.been.called;
-        });
-
-        it('should error correctly when defaults contain a unique key without a transaction', async function () {
-          if (dialectName === 'sqlite') {
-            return;
-          }
-
-          const User = this.customSequelize.define('user', {
-            objectId: {
-              type: DataTypes.STRING,
-              unique: true,
-            },
-            username: {
-              type: DataTypes.STRING,
-              unique: true,
-            },
-          });
-
-          await User.sync({ force: true });
-
-          await User.create({
-            username: 'gottlieb',
-          });
-
-          return Promise.all([
-            (async () => {
-              const error = await expect(User.findOrCreate({
-                where: {
-                  objectId: 'asdasdasd',
-                },
-                defaults: {
-                  username: 'gottlieb',
-                },
-              })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
-
-              expect(error.fields).to.be.ok;
-            })(),
-            (async () => {
-              const error = await expect(User.findOrCreate({
-                where: {
-                  objectId: 'asdasdasd',
-                },
-                defaults: {
-                  username: 'gottlieb',
-                },
-              })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
-
-              expect(error.fields).to.be.ok;
-            })(),
-          ]);
-        });
-
-        it('works without a transaction', async function () {
-          // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
-          if (dialectName === 'sqlite') {
-            return;
-          }
+    describe('several concurrent calls', () => {
+      // CockroachDB would throw a write conflict when multiple transaction try to modify the same data.
+      if (current.dialect.supports.transactions && dialectName !== 'cockroachdb') {
+        it('works with a transaction', async function () {
+          const transaction = await this.customSequelize.startUnmanagedTransaction();
 
           const [first, second] = await Promise.all([
-            this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-            this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
+            this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
+            this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
           ]);
 
           const firstInstance = first[0];
@@ -593,8 +470,129 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(firstInstance.id).to.equal(secondInstance.id);
         });
+      }
+
+      it('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
+        if (['sqlite', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
+          return;
+        }
+
+        const User = this.customSequelize.define('user', {
+          username: {
+            type: DataTypes.STRING,
+            unique: true,
+            columnName: 'user_name',
+          },
+        });
+
+        User.beforeCreate(instance => {
+          instance.username += ' h.';
+        });
+
+        const spy = sinon.spy();
+
+        const names = [
+          'mick',
+          'mick',
+          'mick',
+          'mick',
+          'mick',
+          'mick',
+          'mick',
+        ];
+
+        await User.sync({ force: true });
+
+        await Promise.all(
+          names.map(async username => {
+            try {
+              return await User.findOrCreate({ where: { username } });
+            } catch (error) {
+              spy();
+              expect(error.message).to.equal(`user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick' vs 'mick h.'`);
+            }
+          }),
+        );
+
+        expect(spy).to.have.been.called;
       });
-    }
+
+      it('should error correctly when defaults contain a unique key without a transaction', async function () {
+        if (dialectName === 'sqlite') {
+          return;
+        }
+
+        const User = this.customSequelize.define('user', {
+          objectId: {
+            type: DataTypes.STRING,
+            unique: true,
+          },
+          username: {
+            type: DataTypes.STRING,
+            unique: true,
+          },
+        });
+
+        await User.sync({ force: true });
+
+        await User.create({
+          username: 'gottlieb',
+        });
+
+        return Promise.all([
+          (async () => {
+            const error = await expect(User.findOrCreate({
+              where: {
+                objectId: 'asdasdasd',
+              },
+              defaults: {
+                username: 'gottlieb',
+              },
+            })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+
+            expect(error.fields).to.be.ok;
+          })(),
+          (async () => {
+            const error = await expect(User.findOrCreate({
+              where: {
+                objectId: 'asdasdasd',
+              },
+              defaults: {
+                username: 'gottlieb',
+              },
+            })).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+
+            expect(error.fields).to.be.ok;
+          })(),
+        ]);
+      });
+
+      it('works without a transaction', async function () {
+        // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
+        if (dialectName === 'sqlite') {
+          return;
+        }
+
+        const [first, second] = await Promise.all([
+          this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
+          this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
+        ]);
+
+        const firstInstance = first[0];
+        const firstCreated = first[1];
+        const secondInstance = second[0];
+        const secondCreated = second[1];
+
+        // Depending on execution order and MAGIC either the first OR the second call should return true
+        expect(firstCreated ? !secondCreated : secondCreated).to.be.ok; // XOR
+
+        expect(firstInstance).to.be.ok;
+        expect(secondInstance).to.be.ok;
+
+        expect(firstInstance.id).to.equal(secondInstance.id);
+      });
+    });
+    // }
   });
 
   // TODO: move to own suite
@@ -845,6 +843,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('supports transactions', async function () {
         const t = await this.customSequelize.startUnmanagedTransaction();
         await this.User.create({ username: 'user' }, { transaction: t });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (current.dialect.name !== 'cockroachdb') {
           const count = await this.User.count();
           expect(count).to.equal(0);
@@ -865,6 +866,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const user = await User.create({}, { returning: true });
 
           expect(user.get('id')).to.be.ok;
+
+          // This test expects the ID to be 1 but in CockroachDB uses UUIDv4 to generate IDs.
           if (dialectName !== 'cockroachdb') {
             expect(user.get('id')).to.equal(1);
           }
@@ -883,6 +886,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await User.sync({ force: true });
           const user = await User.create({}, { returning: true });
           expect(user.get('maId')).to.be.ok;
+
+          // This test expects the ID to be 1 but in CockroachDB uses UUIDv4 to generate IDs.
           if (dialectName !== 'cockroachdb') {
             expect(user.get('maId')).to.equal(1);
           }
@@ -1554,7 +1559,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
   });
 
-  // This test expects the ID to be 1 but in CockroachDB the ID is a BigInt by default.
+  // This test expects the ID to be 1 but in CockroachDB uses UUIDv4 to generate IDs.
   if (dialectName !== 'cockroachdb') {
     it('should return autoIncrement primary key (create)', async function () {
       const Maya = this.customSequelize.define('Maya', {});

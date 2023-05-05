@@ -77,6 +77,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (current.dialect.name !== 'cockroachdb') {
           const groups = await Group.findAll();
           const associatedUser = await groups[0].getUser();
@@ -186,6 +189,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (current.dialect.name !== 'cockroachdb') {
           const groups = await Group.findAll();
           const associatedUser = await groups[0].getUser();
@@ -365,6 +371,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.createUser({ username: 'foo' }, { transaction: t });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (current.dialect.name !== 'cockroachdb') {
           const user = await group.getUser();
           expect(user).to.be.null;

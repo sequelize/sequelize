@@ -18,13 +18,11 @@ import { DataTypes, Model, Op, and, json, or, sql } from '@sequelize/core';
 import type {
   FormatWhereOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
-import { createTester, expectsql, getTestDialect, getTestDialectTeaser, sequelize } from '../../support';
+import { createTester, expectsql, getTestDialectTeaser, sequelize } from '../../support';
 
 const { literal, col, where, fn, cast, attribute } = sql;
 
 const queryGen = sequelize.dialect.queryGenerator;
-
-const dialectName = getTestDialect();
 
 // Notice: [] will be replaced by dialect specific tick/quote character
 // when there is no dialect specific expectation but only a default expectation
@@ -488,12 +486,10 @@ Caused by: "undefined" cannot be escaped`),
           default: `[intArrayAttr] = ARRAY[]::INTEGER[]`,
         });
 
-        // TODO: Find a better way for CRDB since cockroachdb does not support nested arrays.
-        if (dialectName !== 'cockroachdb') {
-          // when using arrays, Op.in is never included
-          // @ts-expect-error -- Omitting the operator with an array attribute is always Op.eq, never Op.in
-          testSql({ intArrayAttr: [[1, 2]] }, { default: new Error('[ 1, 2 ] is not a valid integer') });
-        }
+        // when using arrays, Op.in is never included
+        // @ts-expect-error -- Omitting the operator with an array attribute is always Op.eq, never Op.in
+        testSql({ intArrayAttr: [[1, 2]] }, { default: new Error('[ 1, 2 ] is not a valid integer') });
+        // }
 
         testSql({ intAttr1: { [Op.any]: [2, 3, 4] } }, {
           default: '[intAttr1] = ANY (ARRAY[2,3,4])',

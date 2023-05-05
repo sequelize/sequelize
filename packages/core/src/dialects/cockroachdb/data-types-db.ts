@@ -22,13 +22,11 @@ export function registerCockroachDbDataTypeParsers(dialect: CockroachDbDialect) 
       return null;
     }
 
-    if (Number.isNaN(Number(value))) {
+    if (value === 'NaN') {
       return Number.NaN;
     }
 
-    const decimalParser = getDataTypeParser(dialect, BaseTypes.DECIMAL);
-
-    return decimalParser(value);
+    return value;
   });
 
   dialect.registerDataTypeParser(['int8'], (value: string) => {

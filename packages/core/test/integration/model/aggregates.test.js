@@ -64,6 +64,8 @@ describe('Model', () => {
           const t = await sequelize.startUnmanagedTransaction();
           await User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t });
 
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
           if (dialectName !== 'cockroachdb') {
             const val1 = await User[methodName]('age');
             expect(val1).to.be.not.ok;

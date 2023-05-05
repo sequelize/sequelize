@@ -140,55 +140,55 @@ if (current.dialect.supports['UNION ALL']) {
              project2 - 3, 4, 5
              */
             expect(users).to.have.length(5);
-            if (dialectName !== 'cockroachdb') {
+
+            // Sequential ID generation is not supported in Cockroachdb
+            if (dialectName === 'cockroachdb') {
+              expect(users.map(u => u.get('position'))).to.deep.equal([1, 2, 3, 4, 5]);
+            } else {
               expect(users.map(u => u.get('id'))).to.deep.equal([1, 2, 3, 4, 5]);
             }
 
             expect(users[2].get('tasks')).to.have.length(2);
 
-            if (dialectName === 'cockroachdb') {
-              for (const u of users.filter(u => u.get('id') !== users[2].id)) {
-                expect(u.get('project_user')).to.have.length(1);
-              }
+            const id1 = dialectName === 'cockroachdb' ? users[2].id : 3;
 
-              for (const u of users.filter(u => u.get('id') === users[2].id)) {
-                expect(u.get('project_user')).to.have.length(2);
-              }
-            } else {
-              for (const u of users.filter(u => u.get('id') !== 3)) {
-                expect(u.get('project_user')).to.have.length(1);
-              }
+            for (const u of users.filter(u => u.get('id') !== id1)) {
+              expect(u.get('project_user')).to.have.length(1);
+            }
 
-              for (const u of users.filter(u => u.get('id') === 3)) {
-                expect(u.get('project_user')).to.have.length(2);
-              }
+            for (const u of users.filter(u => u.get('id') === id1)) {
+              expect(u.get('project_user')).to.have.length(2);
             }
 
           });
 
-          if (dialectName !== 'cockroachdb') {
-            it('[Flaky] works with computed order', async function () {
-              const users = await this.User.findAll({
-                attributes: ['id'],
-                groupedLimit: {
-                  limit: 3,
-                  on: this.User.Projects,
-                  values: this.projects.map(item => item.get('id')),
-                },
-                order: [
-                  Sequelize.fn('ABS', Sequelize.col('age')),
-                ],
-                include: [this.User.Tasks],
-              });
+          it('[Flaky] works with computed order', async function () {
+            // Sequential ID generation is not supported in Cockroachdb
+            const attributes = dialectName === 'cockroachdb' ? ['id', 'position'] : ['id'];
+            const users = await this.User.findAll({
+              attributes,
+              groupedLimit: {
+                limit: 3,
+                on: this.User.Projects,
+                values: this.projects.map(item => item.get('id')),
+              },
+              order: [
+                Sequelize.fn('ABS', Sequelize.col('age')),
+              ],
+              include: [this.User.Tasks],
+            });
 
-              /*
+            /*
                project1 - 1, 3, 4
                project2 - 3, 5, 4
              */
-              // Flaky test
+            // Flaky test
+            if (dialectName === 'cockroachdb') {
+              expect(users.map(u => u.get('position'))).to.deep.equal([1, 3, 5, 4]);
+            } else {
               expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 4]);
-            });
-          }
+            }
+          });
 
           it('works with multiple orders', async function () {
             const attributes = dialectName === 'cockroachdb' ? ['id', 'position'] : ['id'];

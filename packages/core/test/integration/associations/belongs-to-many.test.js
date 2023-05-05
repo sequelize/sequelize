@@ -63,6 +63,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }
 
         await article.setLabels([label], { transaction: t });
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialect !== 'cockroachdb') {
           const articles0 = await Article.findAll({ transaction: t });
           const labels0 = await articles0[0].getLabels();
@@ -1305,6 +1307,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         try {
           await article.setLabels([label], { transaction: t });
+
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
           if (dialect !== 'cockroachdb') {
             const articles0 = await Article.findAll({ transaction: t });
             const labels0 = await articles0[0].getLabels();
@@ -1933,6 +1938,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         const t = await sequelize.startUnmanagedTransaction();
         await task.createUser({ username: 'foo' }, { transaction: t });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialect !== 'cockroachdb') {
           const users0 = await task.getUsers();
           expect(users0).to.have.length(0);
@@ -2045,6 +2053,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }
 
         await task.addUser(user, { transaction: t });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialect !== 'cockroachdb') {
           const hasUser0 = await task.hasUser(user);
           expect(hasUser0).to.be.false;
@@ -2084,6 +2095,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ]);
         }
 
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialect !== 'cockroachdb') {
           await task.addUser(user, { through: { status: 'pending' } }); // Create without transaction, so the old value is
         }

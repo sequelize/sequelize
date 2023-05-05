@@ -198,6 +198,8 @@ describe('hasOne Mixins + transaction', () => {
       await transactionSequelize.transaction(async transaction => {
         await article.setLabel(label, { transaction });
 
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (dialectName !== 'cockroachdb') {
           const labels0 = await Label.findAll({ where: { articleId: article.id }, transaction: null });
           expect(labels0.length).to.equal(0);

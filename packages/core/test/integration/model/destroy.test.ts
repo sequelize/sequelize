@@ -187,6 +187,9 @@ describe('destroy', () => {
             where: {},
             transaction,
           });
+
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
           if (dialectName !== 'cockroachdb') {
             const count1 = await User.count();
             expect(count1).to.equal(1);

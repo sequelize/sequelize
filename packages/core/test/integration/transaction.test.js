@@ -1128,7 +1128,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         });
       }
 
-      // Cockroachdb does not support it
+      // Cockroachdb does not support other isolation levels in transactions except SERIALIZABLE.
       if (dialect !== 'cockroachdb') {
         it('supports for share (i.e. `SELECT ... LOCK IN SHARE MODE`)', async function () {
           const verifySelectLockInShareMode = async () => {

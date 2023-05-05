@@ -23,15 +23,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user = await User.create({ username: 'foo' });
         const t = await sequelize.startUnmanagedTransaction();
         await user.destroy({ transaction: t });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
         if (current.dialect.name !== 'cockroachdb') {
           count1 = await User.count();
-        }
-
-        const count2 = await User.count({ transaction: t });
-        if (current.dialect.name !== 'cockroachdb') {
           expect(count1).to.equal(1);
         }
 
+        const count2 = await User.count({ transaction: t });
         expect(count2).to.equal(0);
         await t.rollback();
       });
