@@ -280,63 +280,66 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
         });
 
-        it('should fetch associations for multiple instances with limit and order and a belongsTo relation', async function () {
-          const User = this.sequelize.define('User', {});
-          const Task = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
-            categoryId: {
-              type: DataTypes.INTEGER,
-              field: 'category_id',
-            },
+        // Cockroachdb does only preserves orderby for top level statements, Need to add support or ORDINALITY for this test.
+        // Reference: https://www.cockroachlabs.com/docs/stable/order-by.html#order-preservation
+        if (dialect !== 'cockroachdb') {
+          it('should fetch associations for multiple instances with limit and order and a belongsTo relation', async function () {
+            const User = this.sequelize.define('User', {});
+            const Task = this.sequelize.define('Task', {
+              title: DataTypes.STRING,
+              categoryId: {
+                type: DataTypes.INTEGER,
+                field: 'category_id',
+              },
+            });
+            const Category = this.sequelize.define('Category', {});
+
+            User.Tasks = User.hasMany(Task, { as: 'tasks' });
+            Task.Category = Task.belongsTo(Category, { as: 'category', foreignKey: 'categoryId' });
+
+            await this.sequelize.sync({ force: true });
+
+            const users = await Promise.all([
+              User.create({
+                tasks: [
+                  { title: 'b', category: {} },
+                  { title: 'd', category: {} },
+                  { title: 'c', category: {} },
+                  { title: 'a', category: {} },
+                ],
+              }, {
+                include: [{ association: User.Tasks, include: [Task.Category] }],
+              }),
+              User.create({
+                tasks: [
+                  { title: 'a', category: {} },
+                  { title: 'c', category: {} },
+                  { title: 'b', category: {} },
+                ],
+              }, {
+                include: [{ association: User.Tasks, include: [Task.Category] }],
+              }),
+            ]);
+
+            const result = await User.Tasks.get(users, {
+              limit: 2,
+              order: [['title', 'ASC']],
+              include: [Task.Category],
+            });
+
+            expect(result.get(users[0].id).length).to.equal(2);
+            expect(result.get(users[0].id)[0].title).to.equal('a');
+            expect(result.get(users[0].id)[0].category).to.be.ok;
+            expect(result.get(users[0].id)[1].title).to.equal('b');
+            expect(result.get(users[0].id)[1].category).to.be.ok;
+
+            expect(result.get(users[1].id).length).to.equal(2);
+            expect(result.get(users[1].id)[0].title).to.equal('a');
+            expect(result.get(users[1].id)[0].category).to.be.ok;
+            expect(result.get(users[1].id)[1].title).to.equal('b');
+            expect(result.get(users[1].id)[1].category).to.be.ok;
           });
-          const Category = this.sequelize.define('Category', {});
-
-          User.Tasks = User.hasMany(Task, { as: 'tasks' });
-          Task.Category = Task.belongsTo(Category, { as: 'category', foreignKey: 'categoryId' });
-
-          await this.sequelize.sync({ force: true });
-
-          const users = await Promise.all([
-            User.create({
-              tasks: [
-                { title: 'b', category: {} },
-                { title: 'd', category: {} },
-                { title: 'c', category: {} },
-                { title: 'a', category: {} },
-              ],
-            }, {
-              include: [{ association: User.Tasks, include: [Task.Category] }],
-            }),
-            User.create({
-              tasks: [
-                { title: 'a', category: {} },
-                { title: 'c', category: {} },
-                { title: 'b', category: {} },
-              ],
-            }, {
-              include: [{ association: User.Tasks, include: [Task.Category] }],
-            }),
-          ]);
-
-          const order = dialect === 'cockroachdb' ? [['title', 'ASC'], ['id', 'ASC']] : [['title', 'ASC']];
-          const result = await User.Tasks.get(users, {
-            limit: 2,
-            order,
-            include: [Task.Category],
-          });
-
-          expect(result.get(users[0].id).length).to.equal(2);
-          expect(result.get(users[0].id)[0].title).to.equal('a');
-          expect(result.get(users[0].id)[0].category).to.be.ok;
-          expect(result.get(users[0].id)[1].title).to.equal('b');
-          expect(result.get(users[0].id)[1].category).to.be.ok;
-
-          expect(result.get(users[1].id).length).to.equal(2);
-          expect(result.get(users[1].id)[0].title).to.equal('a');
-          expect(result.get(users[1].id)[0].category).to.be.ok;
-          expect(result.get(users[1].id)[1].title).to.equal('b');
-          expect(result.get(users[1].id)[1].category).to.be.ok;
-        });
+        }
 
         it('supports schemas', async function () {
           const User = this.sequelize.define('User', {}).schema('work');
