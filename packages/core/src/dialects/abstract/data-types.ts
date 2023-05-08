@@ -2367,6 +2367,12 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
   ): obj is ARRAY<T> {
     return obj instanceof ARRAY && (obj).options.type instanceof type;
   }
+
+  clone(): this {
+    // there is a convention that all DataTypes must accept a single "options" parameter as one of their signatures, but it's impossible to enforce in typing
+    // @ts-expect-error -- see ^
+    return this._construct(this.options.type.clone());
+  }
 }
 
 export interface GeometryOptions {
