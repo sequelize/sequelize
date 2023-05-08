@@ -146,4 +146,24 @@ describe('DataTypes.ARRAY', () => {
       });
     }
   });
+
+  describe('clone', () => {
+    if (!dialect.supports.dataTypes.ARRAY) {
+      return;
+    }
+
+    it('should not throw if cloning within a scope', () => {
+      const Foo = sequelize.define('foo', {
+        bar: DataTypes.ARRAY(DataTypes.STRING(128)),
+      }, {
+        scopes: {
+          everything: {},
+        },
+      });
+
+      expect(() => {
+        Foo.withScope('everything');
+      }).not.to.throw();
+    });
+  });
 });
