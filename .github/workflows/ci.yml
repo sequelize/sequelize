@@ -45,7 +45,7 @@ jobs:
         with:
           node-version: 18.x
       - run: yarn install --frozen-lockfile --ignore-engines
-      - run: yarn add --dev typescript@~${{ matrix.ts-version }}
+      - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
       - run: yarn test-typings
   test-oracle:
     strategy:
