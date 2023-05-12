@@ -53,6 +53,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConne
       port: typeof config.port === 'string' ? Number.parseInt(config.port, 10) : config.port,
       database: config.database,
       trustServerCertificate: true,
+      ...config.dialectOptions,
     };
 
     const authentication: TediousConnectionConfig['authentication'] = {
