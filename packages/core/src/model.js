@@ -2334,7 +2334,7 @@ ${associationOwner._getAssociationDebugList()}`);
               logging: options.logging,
             })
             .value();
-          includeOptions.ignoreDuplicates=options.ignoreDuplicates
+          includeOptions.ignoreDuplicates = options.ignoreDuplicates;s
           const createdAssociationInstances = await recursiveBulkCreate(associationInstances, includeOptions);
           if (include.association instanceof BelongsToMany) {
             const valueSets = [];
