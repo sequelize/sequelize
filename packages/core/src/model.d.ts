@@ -2957,8 +2957,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   //  - getChanges(): string[];
   //  - isDirty(key: string): boolean;
   //  - setDirty(key: string, dirty: boolean = true): void;
-  changed<K extends keyof this>(key: K): boolean;
-  changed<K extends keyof this>(key: K, dirty: boolean): void;
+  changed<K extends keyof TModelAttributes>(key: K): boolean;
+  changed<K extends keyof TModelAttributes>(key: K, dirty: boolean): void;
   changed(): false | string[];
 
   /**
