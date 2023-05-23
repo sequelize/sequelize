@@ -90,7 +90,7 @@
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
     "husky": "8.0.3",
-    "ibm_db": "3.2.0",
+    "ibm_db": "3.2.1",
     "lcov-result-merger": "4.1.0",
     "mariadb": "2.5.6",
     "mocha": "10.2.0",
