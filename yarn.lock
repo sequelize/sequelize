@@ -5001,10 +5001,10 @@ husky@8.0.3:
   resolved "https://registry.yarnpkg.com/husky/-/husky-8.0.3.tgz#4936d7212e46d1dea28fef29bb3a108872cd9184"
   integrity sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==
 
-ibm_db@3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/ibm_db/-/ibm_db-3.2.0.tgz#9484894bc26933bf9e59100365e00dc8ea37e2e6"
-  integrity sha512-Pw5A1AF8HIwA+WqdU0pMraCHhvAifPp89qkeEckdHbCxKhgUzAdfHGNjEsMlj8f/pRvaa3o+8naY43NfKx2UWA==
+ibm_db@3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/ibm_db/-/ibm_db-3.2.1.tgz#0453317cad6328da35a93a9b44248308df6576f0"
+  integrity sha512-8FxBcp653jnzefO/QsVR+85/ei/zUsqESG0EBXphzlkWQXnCmkiWug+PMjowByKR+5J0coClroJM5rjc1f7otA==
   dependencies:
     adm-zip "^0.5.10"
     axios "^0.26.1"
