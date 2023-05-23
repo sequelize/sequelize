@@ -1314,10 +1314,10 @@
     tiny-glob "^0.2.9"
     tslib "^2.4.0"
 
-"@rushstack/eslint-patch@1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@rushstack/eslint-patch/-/eslint-patch-1.2.0.tgz#8be36a1f66f3265389e90b5f9c9962146758f728"
-  integrity sha512-sXo/qW2/pAcmT43VoRKOJbDOfV3cYpq3szSVfIThQXNt+E4DfKj361vaAt3c88U5tPUxzEswam7GW48PJqtKAg==
+"@rushstack/eslint-patch@1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@rushstack/eslint-patch/-/eslint-patch-1.3.0.tgz#f5635b36fc0dad96ef1e542a302cd914230188c0"
+  integrity sha512-IthPJsJR85GhOkp3Hvp8zFOPK5ynKn6STyHa/WZpioK7E1aYDiBzpqQPrngc14DszIUkIrdd3k9Iu0XSzlP/1w==
 
 "@sigstore/protobuf-specs@^0.1.0":
   version "0.1.0"
@@ -1349,6 +1349,13 @@
   integrity sha512-SwUDyjWnah1AaNl7kxsa7cfLhlTYoiyhDAIgyh+El30YvXs/o7OLXpYH88Zdhyx9JExKrmHDJ+10bwIcY80Jmw==
   dependencies:
     "@sinonjs/commons" "^2.0.0"
+
+"@sinonjs/fake-timers@^10.2.0":
+  version "10.2.0"
+  resolved "https://registry.yarnpkg.com/@sinonjs/fake-timers/-/fake-timers-10.2.0.tgz#b3e322a34c5f26e3184e7f6115695f299c1b1194"
+  integrity sha512-OPwQlEdg40HAj5KNF8WW6q2KG4Z+cBCZb3m4ninfTZKaBmbIJodviQsDBoYMPHkOyJJMHnOJo5j2+LKDOhOACg==
+  dependencies:
+    "@sinonjs/commons" "^3.0.0"
 
 "@sinonjs/samsam@^8.0.0":
   version "8.0.0"
@@ -1451,9 +1458,9 @@
   integrity sha512-mEo1sAde+UCE6b2hxn332f1g1E8WfYRu6p5SvTKr2ZKC1f7gFJXk4h5PyGP9Dt6gCaG8y8XhwnXWC6Iy2cmBng==
 
 "@types/debug@^4.1.7":
-  version "4.1.7"
-  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.7.tgz#7cc0ea761509124709b8b2d1090d8f6c17aadb82"
-  integrity sha512-9AonUzyTjXXhEOa0DnqpzZi6VHlqKMswga9EXjpXnnqxwLtdvPPtlO8evrI5D9S6asFRCQ6v+wpiUKbw+vKqyg==
+  version "4.1.8"
+  resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.8.tgz#cef723a5d0a90990313faec2d1e22aee5eecb317"
+  integrity sha512-/vPO1EPOs306Cvhwv7KfVfYvOJqA/S/AXjaHQiJboCZzcNDb+TIJFN9/2C9DZ//ijSKWioNyUxD792QmDJ+HKQ==
   dependencies:
     "@types/ms" "*"
 
@@ -1515,10 +1522,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-18.15.11.tgz#b3b790f09cb1696cffcec605de025b088fa4225f"
   integrity sha512-E5Kwq2n4SbMzQOn6wnmBjuK9ouqlURrcZDVfbo9ftDDTFt3nk7ZKK4GMOzoYgnpQJKcxwQw+lGaBvvlMo0qN/Q==
 
-"@types/node@18.16.12":
-  version "18.16.12"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.16.12.tgz#f11e19055c5b3daeb79dc6eb7ccdd3d036313034"
-  integrity sha512-tIRrjbY9C277MOfP8M3zjMIhtMlUJ6YVqkGgLjz+74jVsdf4/UjC6Hku4+1N0BS0qyC0JAS6tJLUk9H6JUKviQ==
+"@types/node@18.16.14":
+  version "18.16.14"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.16.14.tgz#ab67bb907f1146afc6fedb9ce60ae8a99c989631"
+  integrity sha512-+ImzUB3mw2c5ISJUq0punjDilUQ5GnUim0ZRvchHIWJmOC0G+p0kzhXBqj6cDjK0QdPFwzrHWgrJp3RPvCG5qg==
 
 "@types/node@^17.0.10":
   version "17.0.45"
@@ -4685,15 +4692,16 @@ glob@7.2.0:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-glob@^10.0.0:
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/glob/-/glob-10.0.0.tgz#034ab2e93644ba702e769c3e0558143d3fbd1612"
-  integrity sha512-zmp9ZDC6NpDNLujV2W2n+3lH+BafIVZ4/ct+Yj3BMZTH/+bgm/eVjHzeFLwxJrrIGgjjS2eiQLlpurHsNlEAtQ==
+glob@^10.2.5:
+  version "10.2.5"
+  resolved "https://registry.yarnpkg.com/glob/-/glob-10.2.5.tgz#73c1850ac8f077810d8370ba414b382ad1a86083"
+  integrity sha512-Gj+dFYPZ5hc5dazjXzB0iHg2jKWJZYMjITXYPBRQ/xc2Buw7H0BINknRTwURJ6IC6MEFpYbLvtgVb3qD+DwyuA==
   dependencies:
-    fs.realpath "^1.0.0"
+    foreground-child "^3.1.0"
+    jackspeak "^2.0.3"
     minimatch "^9.0.0"
-    minipass "^5.0.0"
-    path-scurry "^1.6.4"
+    minipass "^5.0.0 || ^6.0.2"
+    path-scurry "^1.7.0"
 
 glob@^7.1.3, glob@^7.1.4, glob@^7.1.6:
   version "7.2.3"
@@ -5041,10 +5049,10 @@ husky@8.0.3:
   resolved "https://registry.yarnpkg.com/husky/-/husky-8.0.3.tgz#4936d7212e46d1dea28fef29bb3a108872cd9184"
   integrity sha512-+dQSyqPh4x1hlO1swXBiNb2HzTDN1I2IGLQx1GrBuiqFJfoMrnZWwVmatvSiO+Iz8fBUnf+lekwNo4c2LlXItg==
 
-ibm_db@3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/ibm_db/-/ibm_db-3.2.0.tgz#9484894bc26933bf9e59100365e00dc8ea37e2e6"
-  integrity sha512-Pw5A1AF8HIwA+WqdU0pMraCHhvAifPp89qkeEckdHbCxKhgUzAdfHGNjEsMlj8f/pRvaa3o+8naY43NfKx2UWA==
+ibm_db@3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/ibm_db/-/ibm_db-3.2.1.tgz#0453317cad6328da35a93a9b44248308df6576f0"
+  integrity sha512-8FxBcp653jnzefO/QsVR+85/ei/zUsqESG0EBXphzlkWQXnCmkiWug+PMjowByKR+5J0coClroJM5rjc1f7otA==
   dependencies:
     adm-zip "^0.5.10"
     axios "^0.26.1"
@@ -6652,6 +6660,11 @@ minipass@^5.0.0:
   resolved "https://registry.yarnpkg.com/minipass/-/minipass-5.0.0.tgz#3e9788ffb90b694a5d0ec94479a45b5d8738133d"
   integrity sha512-3FnjYuehv9k6ovOEbyOswadCDPX1piCfhV8ncmYtHOjuPwylVWsghTLo7rabjC3Rx5xD4HDx8Wm1xnMF7S5qFQ==
 
+"minipass@^5.0.0 || ^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/minipass/-/minipass-6.0.2.tgz#542844b6c4ce95b202c0995b0a471f1229de4c81"
+  integrity sha512-MzWSV5nYVT7mVyWCwn2o7JH13w2TBRmmSqSRCKzTw+lmft9X4z+3wjvs06Tzijo5z4W/kahUCDpRXTF+ZrmF/w==
+
 minizlib@^2.0.0, minizlib@^2.1.1, minizlib@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/minizlib/-/minizlib-2.1.2.tgz#e90d3466ba209b932451508a11ce3d3632145931"
@@ -7325,10 +7338,10 @@ object.values@^1.1.6:
     define-properties "^1.1.4"
     es-abstract "^1.20.4"
 
-odbc@2.4.7:
-  version "2.4.7"
-  resolved "https://registry.yarnpkg.com/odbc/-/odbc-2.4.7.tgz#63bb722ffc1f776e296a4584e27db18eb02de1e8"
-  integrity sha512-S/aviaPk/Ku85qkExFUA4m9QLSyq+tpDVYlhvDIeasBaWpdyNSXMBnJ97VU1ak/plBKT4cxaM0z849eRROCOjQ==
+odbc@2.4.8:
+  version "2.4.8"
+  resolved "https://registry.yarnpkg.com/odbc/-/odbc-2.4.8.tgz#56e34a1cafbaf1c2c53eec229b3a7604f890e3bf"
+  integrity sha512-W4VkBcr8iSe8hqpp2GoFPybCAJefC7eK837XThJkYCW4tBzyQisqkciwt1UYidU1OpKy1589y9dMN0tStiVB1Q==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0.5"
     async "^3.0.1"
@@ -7722,7 +7735,7 @@ path-parse@^1.0.7:
   resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.7.tgz#fbc114b60ca42b30d9daf5858e4bd68bbedb6735"
   integrity sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==
 
-path-scurry@^1.6.1, path-scurry@^1.6.4:
+path-scurry@^1.6.1:
   version "1.6.4"
   resolved "https://registry.yarnpkg.com/path-scurry/-/path-scurry-1.6.4.tgz#020a9449e5382a4acb684f9c7e1283bc5695de66"
   integrity sha512-Qp/9IHkdNiXJ3/Kon++At2nVpnhRiPq/aSvQN+H3U1WZbvNRK0RIQK/o4HMqPoXjpuGJUEWpHSs6Mnjxqh3TQg==
@@ -8421,12 +8434,12 @@ rimraf@2.6.3:
   dependencies:
     glob "^7.1.3"
 
-rimraf@5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-5.0.0.tgz#5bda14e410d7e4dd522154891395802ce032c2cb"
-  integrity sha512-Jf9llaP+RvaEVS5nPShYFhtXIrb3LRKP281ib3So0KkeZKo2wIKyq0Re7TOSwanasA423PSr6CCIL4bP6T040g==
+rimraf@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-5.0.1.tgz#0881323ab94ad45fec7c0221f27ea1a142f3f0d0"
+  integrity sha512-OfFZdwtd3lZ+XZzYP/6gTACubwFcHdLRqS9UX3UwpU2dnGQYkPFISRwvM3w9IiB2w7bW5qGo/uAwE4SmXXSKvg==
   dependencies:
-    glob "^10.0.0"
+    glob "^10.2.5"
 
 rimraf@^3.0.0, rimraf@^3.0.2:
   version "3.0.2"
@@ -8687,13 +8700,13 @@ sinon-chai@3.7.0:
   resolved "https://registry.yarnpkg.com/sinon-chai/-/sinon-chai-3.7.0.tgz#cfb7dec1c50990ed18c153f1840721cf13139783"
   integrity sha512-mf5NURdUaSdnatJx3uhoBOrY9dtL19fiOtAdT1Azxg3+lNJFiuN0uzaU3xX1LeAfL17kHQhTAJgpsfhbMJMY2g==
 
-sinon@15.0.4:
-  version "15.0.4"
-  resolved "https://registry.yarnpkg.com/sinon/-/sinon-15.0.4.tgz#bcca6fef19b14feccc96473f0d7adc81e0bc5268"
-  integrity sha512-uzmfN6zx3GQaria1kwgWGeKiXSSbShBbue6Dcj0SI8fiCNFbiUDqKl57WFlY5lyhxZVUKmXvzgG2pilRQCBwWg==
+sinon@15.1.0:
+  version "15.1.0"
+  resolved "https://registry.yarnpkg.com/sinon/-/sinon-15.1.0.tgz#87656841545f7c63bd1e291df409fafd0e9aec09"
+  integrity sha512-cS5FgpDdE9/zx7no8bxROHymSlPLZzq0ChbbLk1DrxBfc+eTeBK3y8nIL+nu/0QeYydhhbLIr7ecHJpywjQaoQ==
   dependencies:
     "@sinonjs/commons" "^3.0.0"
-    "@sinonjs/fake-timers" "^10.0.2"
+    "@sinonjs/fake-timers" "^10.2.0"
     "@sinonjs/samsam" "^8.0.0"
     diff "^5.1.0"
     nise "^5.1.4"
@@ -9898,9 +9911,9 @@ validator@^13.7.0:
   integrity sha512-B+dGG8U3fdtM0/aNK4/X8CXq/EcxU2WPrPEkJGslb47qyHsxmbggTWK0yEA4qnYVNF+nxNlN88o14hIcPmSIEA==
 
 vm2@^3.9.11:
-  version "3.9.17"
-  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.17.tgz#251b165ff8a0e034942b5181057305e39570aeab"
-  integrity sha512-AqwtCnZ/ERcX+AVj9vUsphY56YANXxRuqMb7GsDtAr0m0PcQX3u0Aj3KWiXM0YAHy7i6JEeHrwOnwXbGYgRpAw==
+  version "3.9.19"
+  resolved "https://registry.yarnpkg.com/vm2/-/vm2-3.9.19.tgz#be1e1d7a106122c6c492b4d51c2e8b93d3ed6a4a"
+  integrity sha512-J637XF0DHDMV57R6JyVsTak7nIL8gy5KH4r1HiwWLf/4GBbb5MKL5y7LpmF4A8E2nR6XmzpmMFQ7V7ppPTmUQg==
   dependencies:
     acorn "^8.7.0"
     acorn-walk "^8.2.0"
