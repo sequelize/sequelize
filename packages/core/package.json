@@ -86,7 +86,7 @@
     "chai-datetime": "1.8.0",
     "concurrently": "8.0.1",
     "cross-env": "7.0.3",
-    "delay": "5.0.0",
+    "delay": "6.0.0",
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
     "husky": "8.0.3",
