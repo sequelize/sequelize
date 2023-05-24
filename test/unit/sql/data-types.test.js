@@ -376,7 +376,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'INTEGER',
         db2: 'INTEGER',
         mssql: 'INTEGER',
-        sqlite: 'INTEGER'
+        sqlite: 'INTEGER',
+        oracle: 'INTEGER'
       });
 
       testsql('INTEGER.UNSIGNED.ZEROFILL', DataTypes.INTEGER.UNSIGNED.ZEROFILL, {
@@ -384,21 +385,24 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'INTEGER',
         db2: 'INTEGER',
         mssql: 'INTEGER',
-        sqlite: 'INTEGER'
+        sqlite: 'INTEGER',
+        oracle: 'INTEGER'
       });
 
       testsql('INTEGER(11)', DataTypes.INTEGER(11), {
         default: 'INTEGER(11)',
         postgres: 'INTEGER',
         db2: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       testsql('INTEGER({ length: 11 })', DataTypes.INTEGER({ length: 11 }), {
         default: 'INTEGER(11)',
         postgres: 'INTEGER',
         db2: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       testsql('INTEGER(11).UNSIGNED', DataTypes.INTEGER(11).UNSIGNED, {
@@ -406,7 +410,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
         db2: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       testsql('INTEGER(11).UNSIGNED.ZEROFILL', DataTypes.INTEGER(11).UNSIGNED.ZEROFILL, {
@@ -414,7 +419,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
         db2: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       testsql('INTEGER(11).ZEROFILL', DataTypes.INTEGER(11).ZEROFILL, {
@@ -422,7 +428,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
         db2: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       testsql('INTEGER(11).ZEROFILL.UNSIGNED', DataTypes.INTEGER(11).ZEROFILL.UNSIGNED, {
@@ -430,7 +437,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'INTEGER(11)',
         postgres: 'INTEGER',
         db2: 'INTEGER',
-        mssql: 'INTEGER'
+        mssql: 'INTEGER',
+        oracle: 'NUMBER(11,0)'
       });
 
       describe('validate', () => {
@@ -620,7 +628,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'SMALLINT',
           dataType: DataTypes.SMALLINT,
           expect: {
-            oracle: 'NUMBER(5)',
             default: 'SMALLINT'
           }
         },
@@ -629,7 +636,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4),
           expect: {
             default: 'SMALLINT(4)',
-            oracle: 'NUMBER(5)',
+            oracle: 'NUMBER(4,0)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT'
@@ -640,7 +647,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT({ length: 4 }),
           expect: {
             default: 'SMALLINT(4)',
-            oracle: 'NUMBER(5)',
+            oracle: 'NUMBER(4,0)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT'
@@ -651,7 +658,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.UNSIGNED,
           expect: {
             default: 'SMALLINT UNSIGNED',
-            oracle: 'NUMBER(5)',
+            oracle: 'SMALLINT',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
@@ -663,7 +670,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).UNSIGNED,
           expect: {
             default: 'SMALLINT(4) UNSIGNED',
-            oracle: 'NUMBER(5)',
+            oracle: 'NUMBER(4,0)',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
@@ -675,7 +682,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.UNSIGNED.ZEROFILL,
           expect: {
             default: 'SMALLINT UNSIGNED ZEROFILL',
-            oracle: 'NUMBER(5)',
+            oracle: 'SMALLINT',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
@@ -687,7 +694,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).UNSIGNED.ZEROFILL,
           expect: {
             default: 'SMALLINT(4) UNSIGNED ZEROFILL',
-            oracle: 'NUMBER(5)',
+            oracle: 'NUMBER(4,0)',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
@@ -699,7 +706,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.ZEROFILL,
           expect: {
             default: 'SMALLINT ZEROFILL',
-            oracle: 'NUMBER(5)',
+            oracle: 'SMALLINT',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
@@ -711,7 +718,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).ZEROFILL,
           expect: {
             default: 'SMALLINT(4) ZEROFILL',
-            oracle: 'NUMBER(5)',
+            oracle: 'NUMBER(4,0)',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
@@ -723,7 +730,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.ZEROFILL.UNSIGNED,
           expect: {
             default: 'SMALLINT UNSIGNED ZEROFILL',
-            oracle: 'NUMBER(5)',
+            oracle: 'SMALLINT',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
             mssql: 'SMALLINT',
@@ -735,7 +742,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).ZEROFILL.UNSIGNED,
           expect: {
             default: 'SMALLINT(4) UNSIGNED ZEROFILL',
-            oracle: 'NUMBER(5)',
+            oracle: 'NUMBER(4,0)',
             sqlite: 'SMALLINT(4)',
             postgres: 'SMALLINT',
             db2: 'SMALLINT',
@@ -1362,7 +1369,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('NUMERIC(15,5)', DataTypes.NUMERIC(15, 5), {
         default: 'DECIMAL(15,5)',
-        oracle: 'NUMBER'
+        oracle: 'NUMBER(15,5)'
       });
     }
 
@@ -1374,22 +1381,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {
         default: 'DECIMAL(10,2)',
-        oracle: 'NUMBER'
+        oracle: 'NUMBER(10,2)'
       });
 
       testsql('DECIMAL({ precision: 10, scale: 2 })', DataTypes.DECIMAL({ precision: 10, scale: 2 }), {
         default: 'DECIMAL(10,2)',
-        oracle: 'NUMBER'
+        oracle: 'NUMBER(10,2)'
       });
 
       testsql('DECIMAL(10)', DataTypes.DECIMAL(10), {
         default: 'DECIMAL(10)',
-        oracle: 'NUMBER'
+        oracle: 'NUMBER(10)'
       });
 
       testsql('DECIMAL({ precision: 10 })', DataTypes.DECIMAL({ precision: 10 }), {
         default: 'DECIMAL(10)',
-        oracle: 'NUMBER'
+        oracle: 'NUMBER(10)'
       });
 
       testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
@@ -1410,7 +1417,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         mariadb: 'DECIMAL(10,2) UNSIGNED',
         mysql: 'DECIMAL(10,2) UNSIGNED',
         default: 'DECIMAL(10,2)',
-        oracle: 'NUMBER'
+        oracle: 'NUMBER(10,2)'
       });
 
       describe('validate', () => {
