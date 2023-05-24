@@ -3,7 +3,7 @@
  *
  * @param identifier - The identifier to quote.
  */
-export function quoteJsonPathIdentifier(identifier: string): string {
+function quoteJsonPathIdentifier(identifier: string): string {
   if (/^[a-z_][a-z0-9_]*$/i.test(identifier)) {
     return identifier;
   }
