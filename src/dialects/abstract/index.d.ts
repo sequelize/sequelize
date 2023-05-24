@@ -41,6 +41,7 @@ export declare type DialectSupports = {
     ignoreDuplicates: string;
     updateOnDuplicate: boolean | string;
     onConflictDoNothing: string;
+    onConflictWhere: boolean,
     conflictFields: boolean;
   };
   constraints: {

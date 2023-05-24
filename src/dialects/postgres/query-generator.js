@@ -46,14 +46,14 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     const databaseVersion = _.get(this, 'sequelize.options.databaseVersion', 0);
 
     if (databaseVersion && semver.gte(databaseVersion, '9.2.0')) {
-      return `CREATE SCHEMA IF NOT EXISTS ${schema};`;
+      return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
     }
 
-    return `CREATE SCHEMA ${schema};`;
+    return `CREATE SCHEMA ${this.quoteIdentifier(schema)};`;
   }
 
   dropSchema(schema) {
-    return `DROP SCHEMA IF EXISTS ${schema} CASCADE;`;
+    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
   showSchemasQuery() {
@@ -783,7 +783,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       values = dataType.toString().match(/^ENUM\(.+\)/)[0];
     }
 
-    let sql = `CREATE TYPE ${enumName} AS ${values};`;
+    let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${enumName} AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
     if (!!options && options.force === true) {
       sql = this.pgEnumDrop(tableName, attr) + sql;
     }

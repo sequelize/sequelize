@@ -91,6 +91,8 @@ describe('ESM module', () => {
       'afterAssociate',
       'beforeConnect',
       'afterConnect',
+      'beforePoolAcquire',
+      'afterPoolAcquire',
       'beforeDisconnect',
       'afterDisconnect',
       'beforeSync',

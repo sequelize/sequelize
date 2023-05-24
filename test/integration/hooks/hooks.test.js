@@ -403,4 +403,24 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       expect(narutoHook).to.have.been.calledTwice;
     });
   });
+
+  describe('Sequelize hooks', () => {
+    it('should run before/afterPoolAcquire hooks', async function() {
+      if (dialect === 'sqlite') {
+        return this.skip();
+      }
+
+      const beforeHook = sinon.spy();
+      const afterHook = sinon.spy();
+
+      this.sequelize.addHook('beforePoolAcquire', beforeHook);
+      this.sequelize.addHook('afterPoolAcquire', afterHook);
+
+      await this.sequelize.authenticate();
+
+      expect(beforeHook).to.have.been.calledOnce;
+      expect(afterHook).to.have.been.calledOnce;
+
+    });
+  });
 });
