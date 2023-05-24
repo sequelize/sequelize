@@ -10,7 +10,6 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 const { dialect } = current;
 const dialectName = dialect.name;
-const invalidWhereError = new Error('Invalid value received for the "where" option.');
 
 describe('Paranoid Model', () => {
   before(function () {
