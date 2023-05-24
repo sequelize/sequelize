@@ -103,6 +103,9 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
         // Postgres allows additional session variables to be configured in the connection string in the `options` param.
         // see [https://www.postgresql.org/docs/14/libpq-connect.html#LIBPQ-CONNECT-OPTIONS]
         'options',
+        // The stream acts as a user-defined socket factory for postgres. In particular, it enables IAM autentication
+        // with Google Cloud SQL. see: https://github.com/sequelize/sequelize/issues/16001#issuecomment-1561136388
+        'stream'
       ])),
       port,
       ...pick(config, ['password', 'host', 'database']),
