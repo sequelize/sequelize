@@ -408,7 +408,7 @@ export function expectsql(
   if (combinedExpectations.has(usedExpectationName) && typeof expectation === 'string') {
     // replace [...] with the proper quote character for the dialect
     // except for ARRAY[...]
-    expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
+    expectation = expectation.replaceAll(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
     if (dialect.name === 'ibmi') {
       expectation = expectation.trim().replace(/;$/, '');
     }
@@ -459,13 +459,13 @@ export function isDeepEqualToOneOf(actual: unknown, expectedOptions: unknown[]):
  */
 export function minifySql(sql: string): string {
   // replace all consecutive whitespaces with a single plain space character
-  return sql.replace(/\s+/g, ' ')
+  return sql.replaceAll(/\s+/g, ' ')
     // remove space before comma
-    .replace(/ ,/g, ',')
+    .replaceAll(' ,', ',')
     // remove space before )
-    .replace(/ \)/g, ')')
+    .replaceAll(' )', ')')
     // replace space after (
-    .replace(/\( /g, '(')
+    .replaceAll('( ', '(')
     // remove whitespace at start & end
     .trim();
 }

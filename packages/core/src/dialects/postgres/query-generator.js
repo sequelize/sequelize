@@ -735,7 +735,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       return [];
     }
 
-    matches = matches.map(m => m.replace(/",$/, '').replace(/,$/, '').replace(/(^"|"$)/g, ''));
+    matches = matches.map(m => m.replace(/",$/, '').replace(/,$/, '').replaceAll(/(^"|"$)/g, ''));
 
     return matches.slice(0, -1);
   }

@@ -151,7 +151,7 @@ export class Model extends ModelTypeScript {
       // do after default values since it might have UUID as a default value
       if (modelDefinition.primaryKeysAttributeNames.size > 0) {
         for (const primaryKeyAttribute of modelDefinition.primaryKeysAttributeNames) {
-          if (!Object.prototype.hasOwnProperty.call(defaults, primaryKeyAttribute)) {
+          if (!Object.hasOwn(defaults, primaryKeyAttribute)) {
             defaults[primaryKeyAttribute] = null;
           }
         }
@@ -258,7 +258,7 @@ export class Model extends ModelTypeScript {
   }
 
   static getAssociation(associationName) {
-    if (!Object.prototype.hasOwnProperty.call(this.associations, associationName)) {
+    if (!Object.hasOwn(this.associations, associationName)) {
       throw new Error(`Association with alias "${associationName}" does not exist on ${this.name}.
 ${this._getAssociationDebugList()}`);
     }
@@ -601,7 +601,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     // Validate child includes
-    if (Object.prototype.hasOwnProperty.call(include, 'include')) {
+    if (Object.hasOwn(include, 'include')) {
       _validateIncludedElements(include, tableNames);
     }
 
@@ -766,7 +766,7 @@ ${associationOwner._getAssociationDebugList()}`);
       const removedConstraints = {};
 
       for (const columnName in physicalAttributes) {
-        if (!Object.prototype.hasOwnProperty.call(physicalAttributes, columnName)) {
+        if (!Object.hasOwn(physicalAttributes, columnName)) {
           continue;
         }
 
@@ -777,7 +777,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       if (options.alter === true || typeof options.alter === 'object' && options.alter.drop !== false) {
         for (const columnName in columns) {
-          if (!Object.prototype.hasOwnProperty.call(columns, columnName)) {
+          if (!Object.hasOwn(columns, columnName)) {
             continue;
           }
 
@@ -1204,7 +1204,7 @@ ${associationOwner._getAssociationDebugList()}`);
     _.defaults(options, { hooks: true, model: this });
 
     // set rejectOnEmpty option, defaults to model options
-    options.rejectOnEmpty = Object.prototype.hasOwnProperty.call(options, 'rejectOnEmpty')
+    options.rejectOnEmpty = Object.hasOwn(options, 'rejectOnEmpty')
       ? options.rejectOnEmpty
       : this.options.rejectOnEmpty;
 
@@ -1840,7 +1840,7 @@ ${associationOwner._getAssociationDebugList()}`);
         }
 
         const flattenedWhere = flattenObjectDeep(options.where);
-        const flattenedWhereKeys = Object.keys(flattenedWhere).map(name => _.last(name.split('.')));
+        const flattenedWhereKeys = Object.keys(flattenedWhere).map(name => name.split('.').at(-1));
         const whereFields = flattenedWhereKeys.map(name => modelDefinition.attributes.get(name)?.columnName ?? name);
         const defaultFields = options.defaults && Object.keys(options.defaults)
           .filter(name => modelDefinition.attributes.get(name))
@@ -2282,7 +2282,7 @@ ${associationOwner._getAssociationDebugList()}`);
                 continue;
               }
 
-              if (Object.prototype.hasOwnProperty.call(result, key)) {
+              if (Object.hasOwn(result, key)) {
                 const record = result[key];
 
                 const attr = find(
@@ -2506,7 +2506,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       // FIXME: where must be joined with AND instead of using Object.assign. This won't work with literals!
       const where = {
-        [deletedAtColumnName]: Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue') ? deletedAtAttribute.defaultValue : null,
+        [deletedAtColumnName]: Object.hasOwn(deletedAtAttribute, 'defaultValue') ? deletedAtAttribute.defaultValue : null,
       };
 
       attrValueHash[deletedAtColumnName] = new Date();
@@ -2863,7 +2863,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   static hasAlias(alias) {
-    return Object.prototype.hasOwnProperty.call(this.associations, alias);
+    return Object.hasOwn(this.associations, alias);
   }
 
   static getAssociations(target) {
@@ -3222,8 +3222,8 @@ Instead of specifying a Model, either:
 
       for (const attributeName2 in this.dataValues) {
         if (
-          !Object.prototype.hasOwnProperty.call(values, attributeName2)
-          && Object.prototype.hasOwnProperty.call(this.dataValues, attributeName2)
+          !Object.hasOwn(values, attributeName2)
+          && Object.hasOwn(this.dataValues, attributeName2)
         ) {
           values[attributeName2] = this.get(attributeName2, options);
         }

@@ -132,7 +132,7 @@ export class SqliteQuery extends AbstractQuery {
         }
 
         if (typeof result[_result.name].defaultValue === 'string') {
-          result[_result.name].defaultValue = result[_result.name].defaultValue.replace(/'/g, '');
+          result[_result.name].defaultValue = result[_result.name].defaultValue.replaceAll('\'', '');
         }
       }
 
@@ -244,7 +244,7 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       await Promise.all(tableNames.map(async tableName => {
-        tableName = tableName.replace(/`/g, '');
+        tableName = tableName.replaceAll('`', '');
         columnTypes[tableName] = {};
 
         const { results } = await this.#allSeries(conn, `PRAGMA table_info(\`${tableName}\`)`);
@@ -314,7 +314,7 @@ export class SqliteQuery extends AbstractQuery {
         const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
         referenceTableName = removeTicks(referenceConditions[1]);
         let columnNames = referenceConditions[2];
-        columnNames = columnNames.replace(/\(|\)/g, '').split(', ');
+        columnNames = columnNames.replaceAll(/\(|\)/g, '').split(', ');
         referenceTableKeys = columnNames.map(column => removeTicks(column));
       }
 
@@ -331,7 +331,7 @@ export class SqliteQuery extends AbstractQuery {
         constraintType: constraint[1],
         updateAction,
         deleteAction,
-        sql: sql.replace(/"/g, '`'), // Sqlite returns double quotes for table name
+        sql: sql.replaceAll('"', '`'), // Sqlite returns double quotes for table name
         constraintCondition,
         referenceTableName,
         referenceTableKeys,

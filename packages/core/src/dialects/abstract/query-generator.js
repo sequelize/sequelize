@@ -180,7 +180,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
     for (const key in valueHash) {
-      if (Object.prototype.hasOwnProperty.call(valueHash, key)) {
+      if (Object.hasOwn(valueHash, key)) {
         // if value is undefined, we replace it with null
         const value = valueHash[key] ?? null;
         fields.push(this.quoteIdentifier(key));
@@ -288,7 +288,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         returningModelAttributes.push('*');
       }
 
-      const delimiter = `$func_${crypto.randomUUID().replace(/-/g, '')}$`;
+      const delimiter = `$func_${crypto.randomUUID().replaceAll('-', '')}$`;
       const selectQuery = `SELECT (testfunc.response).${returningModelAttributes.join(', (testfunc.response).')}, testfunc.sequelize_caught_exception FROM pg_temp.testfunc();`;
 
       options.exception = 'WHEN unique_violation THEN GET STACKED DIAGNOSTICS sequelize_caught_exception = PG_EXCEPTION_DETAIL;';
@@ -624,7 +624,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     options.prefix = options.prefix || rawTablename || tableName;
     if (options.prefix && typeof options.prefix === 'string') {
-      options.prefix = options.prefix.replace(/\./g, '_');
+      options.prefix = options.prefix.replaceAll('.', '_');
     }
 
     const fieldsSql = options.fields.map(field => {
@@ -1078,7 +1078,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       identifiers = identifiers.split('.');
 
       const head = identifiers.slice(0, -1).join('->');
-      const tail = identifiers[identifiers.length - 1];
+      const tail = identifiers.at(-1);
 
       return `${this.quoteIdentifier(head)}.${tail === '*' ? '*' : this.quoteIdentifier(tail)}`;
     }
@@ -1332,7 +1332,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Add WHERE to sub or main query
-    if (Object.prototype.hasOwnProperty.call(options, 'where') && !options.groupedLimit) {
+    if (Object.hasOwn(options, 'where') && !options.groupedLimit) {
       options.where = this.whereItemsQuery(options.where, {
         ...options,
         model,
@@ -1368,7 +1368,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Add HAVING to sub or main query
-    if (Object.prototype.hasOwnProperty.call(options, 'having')) {
+    if (Object.hasOwn(options, 'having')) {
       options.having = this.whereItemsQuery(options.having, {
         ...options,
         model,
@@ -1547,7 +1547,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         if (verbatim === true) {
           prefix = attr;
         } else if (/#>>|->>/.test(attr)) {
-          prefix = `(${this.quoteIdentifier(includeAs.internalAs)}.${attr.replace(/\(|\)/g, '')})`;
+          prefix = `(${this.quoteIdentifier(includeAs.internalAs)}.${attr.replaceAll(/\(|\)/g, '')})`;
         } else if (/json_extract\(/.test(attr)) {
           prefix = attr.replace(/json_extract\(/i, `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`);
         } else {
@@ -1747,7 +1747,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           subqueryAttributes.push(dbIdentifier !== joinOn ? `${dbIdentifier} AS ${this.quoteIdentifier(attrNameLeft)}` : dbIdentifier);
         }
       } else {
-        const joinSource = `${asLeft.replace(/->/g, '.')}.${attrNameLeft}`;
+        const joinSource = `${asLeft.replaceAll('->', '.')}.${attrNameLeft}`;
 
         // Check for potential aliased JOIN condition
         joinOn = this._getAliasForField(asLeft, joinSource, topLevelInfo.options) || this.quoteIdentifier(joinSource);
@@ -2169,7 +2169,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const asPart = extraInfo.as && `as ${extraInfo.as}` || '';
     const namePart = extraInfo.modelName && `for model '${extraInfo.modelName}'` || '';
     const message = `Attempted a SELECT query ${namePart} ${asPart} without selecting any columns`;
-    throw new sequelizeError.QueryError(message.replace(/ +/g, ' '));
+    throw new sequelizeError.QueryError(message.replaceAll(/ +/g, ' '));
   }
 
   _validateSelectOptions(options) {

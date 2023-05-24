@@ -90,7 +90,7 @@ export class Db2Query extends AbstractQuery {
     // TODO: move this to Db2QueryGenerator
     if ((this.isSelectQuery() || SQL.startsWith('SELECT '))
             && !SQL.includes(' FROM ', 8)) {
-      if (this.sql.charAt(this.sql.length - 1) === ';') {
+      if (this.sql.at(-1) === ';') {
         newSql = this.sql.slice(0, -1);
       }
 
@@ -252,7 +252,7 @@ export class Db2Query extends AbstractQuery {
       result = {};
       for (const _result of data) {
         if (_result.Default) {
-          _result.Default = _result.Default.replace('(\'', '').replace('\')', '').replace(/'/g, '');
+          _result.Default = _result.Default.replace('(\'', '').replace('\')', '').replaceAll('\'', '');
         }
 
         result[_result.Name] = {
@@ -447,7 +447,7 @@ export class Db2Query extends AbstractQuery {
           type: item.type,
         };
 
-        _.forEach(item.COLNAMES.replace(/\+|-/g, x => {
+        _.forEach(item.COLNAMES.replaceAll(/\+|-/g, x => {
           return ` ${x}`;
         }).split(' '), column => {
           let columnName = column.trim();

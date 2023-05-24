@@ -39,7 +39,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const attrArray = [];
 
     for (const attr in attributes) {
-      if (Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (Object.hasOwn(attributes, attr)) {
         const dataType = attributes[attr];
         const containsAutoIncrement = dataType.includes('AUTOINCREMENT');
 
@@ -344,7 +344,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     return `${createTableSql
       .replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)
-      .replace(`CREATE TABLE ${quotedTableName.replace(/`/g, '"')}`, `CREATE TABLE ${quotedBackupTableName}`)
+      .replace(`CREATE TABLE ${quotedTableName.replaceAll('`', '"')}`, `CREATE TABLE ${quotedBackupTableName}`)
     }INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
       + `DROP TABLE ${quotedTableName};`
       + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
@@ -403,7 +403,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   replaceBooleanDefaults(sql) {
-    return sql.replace(/DEFAULT '?false'?/g, 'DEFAULT 0').replace(/DEFAULT '?true'?/g, 'DEFAULT 1');
+    return sql.replaceAll(/DEFAULT '?false'?/g, 'DEFAULT 0').replaceAll(/DEFAULT '?true'?/g, 'DEFAULT 1');
   }
 
   /**

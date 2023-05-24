@@ -90,6 +90,6 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     // Escape backslashes and double quotes
-    return `"${identifier.replace(/["\\]/g, s => `\\${s}`)}"`;
+    return `"${identifier.replaceAll(/["\\]/g, s => `\\${s}`)}"`;
   }
 }

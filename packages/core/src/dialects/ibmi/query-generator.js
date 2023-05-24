@@ -72,7 +72,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     const attrStr = [];
 
     for (const attr in attributes) {
-      if (!Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (!Object.hasOwn(attributes, attr)) {
         continue;
       }
 
@@ -122,7 +122,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
+      if (Object.hasOwn(foreignKeys, fkey)) {
         attributesClause += `, FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
       }
     }
@@ -270,7 +270,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
     options.prefix = options.prefix || rawTablename || tableName;
     if (options.prefix && typeof options.prefix === 'string') {
-      options.prefix = options.prefix.replace(/\./g, '_');
+      options.prefix = options.prefix.replaceAll('.', '_');
     }
 
     const fieldsSql = options.fields.map(field => {
@@ -385,7 +385,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   insertQuery(table, valueHash, modelAttributes, options) {
     // remove the final semi-colon
     const query = super.insertQuery(table, valueHash, modelAttributes, options);
-    if (query.query[query.query.length - 1] === ';') {
+    if (query.query.at(-1) === ';') {
       query.query = query.query.slice(0, -1);
       query.query = `SELECT * FROM FINAL TABLE (${query.query})`;
     }
@@ -396,7 +396,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   selectQuery(tableName, options, model) {
     // remove the final semi-colon
     let query = super.selectQuery(tableName, options, model);
-    if (query[query.length - 1] === ';') {
+    if (query.at(-1) === ';') {
       query = query.slice(0, -1);
     }
 
@@ -406,7 +406,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
     // remove the final semi-colon
     let query = super.bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes);
-    if (query[query.length - 1] === ';') {
+    if (query.at(-1) === ';') {
       query = query.slice(0, -1);
       query = `SELECT * FROM FINAL TABLE (${query})`;
     }

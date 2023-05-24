@@ -231,7 +231,7 @@ export class PostgresQuery extends AbstractQuery {
         }
 
         if (typeof result[row.Field].defaultValue === 'string') {
-          result[row.Field].defaultValue = result[row.Field].defaultValue.replace(/'/g, '');
+          result[row.Field].defaultValue = result[row.Field].defaultValue.replaceAll('\'', '');
 
           if (result[row.Field].defaultValue.includes('::')) {
             const split = result[row.Field].defaultValue.split('::');
@@ -339,7 +339,7 @@ export class PostgresQuery extends AbstractQuery {
       case '23505':
         // there are multiple different formats of error messages for this error code
         // this regex should check at least two
-        if (errDetail && (match = errDetail.replace(/"/g, '').match(/Key \((.*?)\)=\((.*?)\)/))) {
+        if (errDetail && (match = errDetail.replaceAll('"', '').match(/Key \((.*?)\)=\((.*?)\)/))) {
           fields = _.zipObject(match[1].split(', '), match[2].split(', '));
           errors = [];
           message = 'Validation error';

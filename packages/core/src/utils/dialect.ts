@@ -66,7 +66,7 @@ export function addTicks(s: string, tickChar: string = TICK_CHAR): string {
  * @returns
  */
 export function removeTicks(s: string, tickChar: string = TICK_CHAR): string {
-  return s.replace(new RegExp(tickChar, 'g'), '');
+  return s.replaceAll(new RegExp(tickChar, 'g'), '');
 }
 
 export function quoteIdentifier(identifier: string, leftTick: string, rightTick: string): string {

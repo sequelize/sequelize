@@ -192,7 +192,7 @@ export function defaults(
       if (
         value === undefined
         || isEqual(value, objectPrototype[key])
-        && !Object.prototype.hasOwnProperty.call(objectIn, key)
+        && !Object.hasOwn(objectIn, key)
       ) {
         objectIn[key] = source[key];
       }
