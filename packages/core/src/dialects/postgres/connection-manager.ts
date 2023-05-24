@@ -105,7 +105,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
         'options',
         // The stream acts as a user-defined socket factory for postgres. In particular, it enables IAM autentication
         // with Google Cloud SQL. see: https://github.com/sequelize/sequelize/issues/16001#issuecomment-1561136388
-        'stream'
+        'stream',
       ])),
       port,
       ...pick(config, ['password', 'host', 'database']),
