@@ -1376,10 +1376,7 @@ The following associations are defined on "Worker": "ToDos"`);
         await this.User.create();
 
         const users = await this.User.findAll({
-          attributes: [[
-            literal('(SELECT 7)'),
-            'runtimeAttribute',
-          ]],
+          attributes: [[dialectName === 'db2' ? literal('(SELECT 7 AS X FROM SYSIBM.SYSDUMMY1)') : literal('(SELECT 7)'), 'runtimeAttribute']],
           enableRuntimeAttributes: true,
         });
 
@@ -1393,10 +1390,7 @@ The following associations are defined on "Worker": "ToDos"`);
         await this.User.create();
 
         const users = await this.User.findAll({
-          attributes: [[
-            literal('(SELECT 7)'),
-            'runtimeAttribute',
-          ]],
+          attributes: [[dialectName === 'db2' ? literal('(SELECT 7 AS X FROM SYSIBM.SYSDUMMY1)') : literal('(SELECT 7)'), 'runtimeAttribute']],
         });
 
         users.forEach(user => {
