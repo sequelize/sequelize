@@ -15,22 +15,22 @@ jobs:
     name: Lint code and docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.x
-      - run: yarn install --frozen-lockfile
+          node-version: 18.x
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn lint
       - run: yarn lint-docs
   docs:
     name: Generate docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.x
-      - run: yarn install --frozen-lockfile
+          node-version: 18.x
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn docs
   test-typings:
     strategy:
@@ -40,12 +40,12 @@ jobs:
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.x
-      - run: yarn install --frozen-lockfile
-      - run: yarn add --dev typescript@~${{ matrix.ts-version }}
+          node-version: 18.x
+      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
       - run: yarn test-typings
   test-oracle:
     strategy:
@@ -84,7 +84,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 16]
+        node-version: [10, 18]
     name: DB2 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
@@ -95,8 +95,8 @@ jobs:
       SEQ_TEST_CLEANUP_TIMEOUT: 1200000
       SEQ_PORT: 50000
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
@@ -112,14 +112,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 16]
+        node-version: [10, 18]
     name: SQLite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
       DIALECT: sqlite
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
@@ -131,7 +131,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 16]
+        node-version: [10, 18]
         postgres-version: [9.5, 10] # Does not work with 12
         minify-aliases: [true, false]
         native: [true, false]
@@ -153,8 +153,8 @@ jobs:
       SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
     steps:
       - run: PGPASSWORD=sequelize_test psql -h localhost -p 5432 -U sequelize_test sequelize_test -c '\l'
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
@@ -177,7 +177,7 @@ jobs:
           - name: MySQL 5.7
             image: mysql:5.7
             dialect: mysql
-            node-version: 16
+            node-version: 18
           - name: MySQL 8.0
             image: mysql:8.0
             dialect: mysql
@@ -185,7 +185,7 @@ jobs:
           - name: MySQL 8.0
             image: mysql:8.0
             dialect: mysql
-            node-version: 16
+            node-version: 18
           - name: MariaDB 10.3
             image: mariadb:10.3
             dialect: mariadb
@@ -193,7 +193,7 @@ jobs:
           - name: MariaDB 10.3
             image: mariadb:10.3
             dialect: mariadb
-            node-version: 16
+            node-version: 18
           - name: MariaDB 10.5
             image: mariadb:10.5
             dialect: mariadb
@@ -201,7 +201,7 @@ jobs:
           - name: MariaDB 10.5
             image: mariadb:10.5
             dialect: mariadb
-            node-version: 16
+            node-version: 18
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     services:
@@ -220,8 +220,8 @@ jobs:
       DIALECT: ${{ matrix.dialect }}
     steps:
       - run: mysql --host 127.0.0.1 --port 3306 -uroot -psequelize_test -e "GRANT ALL ON *.* TO 'sequelize_test'@'%' with grant option; FLUSH PRIVILEGES;"
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
@@ -233,7 +233,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 16]
+        node-version: [10, 18]
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
@@ -258,8 +258,8 @@ jobs:
       SEQ_PORT: 1433
     steps:
       - run: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
@@ -271,14 +271,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 16]
+        node-version: [10, 18]
     name: SNOWFLAKE (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     env:
       DIALECT: snowflake
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3 
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - run: yarn install --frozen-lockfile --ignore-engines
@@ -305,10 +305,10 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
-          node-version: 16.x
-      - run: yarn install --frozen-lockfile
+          node-version: 18.x
+      - run: yarn install --frozen-lockfile --ignore-engines
       - run: npx semantic-release
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
