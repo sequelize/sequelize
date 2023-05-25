@@ -12,13 +12,9 @@ import {
   scopeRenamedToWithScope,
 } from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
-import {
-  mapFinderOptions,
-  mapOptionFieldNames,
-  mapValueFieldNames,
-} from './utils/format';
+import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './utils/format';
 import { every, find } from './utils/iterators';
-import { cloneDeep, mergeDefaults, defaults, flattenObjectDeep, getObjectFromMap, EMPTY_OBJECT } from './utils/object';
+import { EMPTY_OBJECT, cloneDeep, defaults, flattenObjectDeep, getObjectFromMap, mergeDefaults } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
@@ -2431,6 +2427,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async truncate(options) {
+    // TODO: this method currently uses DELETE FROM if the table is paranoid. Truncate should always ignore paranoid.
     // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
     options = cloneDeep(options) || {};
     options.truncate = true;
@@ -2497,6 +2494,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     let result;
+    // TODO: rename force -> paranoid: false, as that's how it's called in the instance version
     // Run delete query (or update if paranoid)
     if (modelDefinition.timestampAttributeNames.deletedAt && !options.force) {
       // Set query type appropriately when running soft delete
@@ -2505,6 +2503,8 @@ ${associationOwner._getAssociationDebugList()}`);
       const attrValueHash = {};
       const deletedAtAttribute = attributes.get(modelDefinition.timestampAttributeNames.deletedAt);
       const deletedAtColumnName = deletedAtAttribute.columnName;
+
+      // FIXME: where must be joined with AND instead of using Object.assign. This won't work with literals!
       const where = {
         [deletedAtColumnName]: Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue') ? deletedAtAttribute.defaultValue : null,
       };

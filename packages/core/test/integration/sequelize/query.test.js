@@ -107,7 +107,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     describe('logging', () => {
       it('executes a query with global benchmarking option and custom logger', async () => {
         const logger = sinon.spy();
-        const sequelize = Support.createSequelizeInstance({
+        const sequelize = Support.createSingleTestSequelizeInstance({
           logging: logger,
           benchmark: true,
         });
@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('executes a query with queryLabel option and custom logger', async () => {
         const logger = sinon.spy();
-        const sequelize = Support.createSequelizeInstance({
+        const sequelize = Support.createSingleTestSequelizeInstance({
           logging: logger,
         });
 
@@ -146,7 +146,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('executes a query with empty string, queryLabel option and custom logger', async () => {
         const logger = sinon.spy();
-        const sequelize = Support.createSequelizeInstance({
+        const sequelize = Support.createSingleTestSequelizeInstance({
           logging: logger,
         });
 
@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('executes a query with benchmarking option, queryLabel option and custom logger', async () => {
         const logger = sinon.spy();
-        const sequelize = Support.createSequelizeInstance({
+        const sequelize = Support.createSingleTestSequelizeInstance({
           logging: logger,
           benchmark: true,
         });
@@ -172,12 +172,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       describe('with logQueryParameters', () => {
-        beforeEach(async function () {
-          this.sequelize = Support.createSequelizeInstance({
+        const vars = Support.beforeEach2(async () => {
+          const sequelize = Support.createSequelizeInstance({
             benchmark: true,
             logQueryParameters: true,
           });
-          this.User = this.sequelize.define('User', {
+
+          const User = sequelize.define('User', {
             id: {
               type: DataTypes.INTEGER,
               primaryKey: true,
@@ -193,14 +194,20 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             timestamps: false,
           });
 
-          await this.User.sync({ force: true });
+          await User.sync({ force: true });
+
+          return { sequelize, User };
         });
 
-        it('add parameters in log sql', async function () {
+        afterEach(() => {
+          return vars.sequelize.close();
+        });
+
+        it('add parameters in log sql', async () => {
           let createSql;
           let updateSql;
 
-          const user = await this.User.create({
+          const user = await vars.User.create({
             username: 'john',
             emailAddress: 'john@gmail.com',
           }, {
@@ -228,14 +235,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           }
         });
 
-        it('add parameters in log sql when use bind value', async function () {
+        it('add parameters in log sql when use bind value', async () => {
           let logSql;
           let typeCast = dialectName === 'postgres' ? '::text' : '';
           if (['db2'].includes(dialectName)) {
             typeCast = '::VARCHAR';
           }
 
-          await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
+          await vars.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
             bind: ['foo', 'bar'],
             logging: s => {
               logSql = s;
@@ -318,8 +325,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         const users = await sequelize.query('CALL foo()');
         expect(users.map(u => u.username)).to.include('john');
       });
-    } else {
-      console.log(': I want to be supported in this dialect as well :-(');
     }
 
     it('uses the passed model', async function () {
@@ -340,7 +345,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         mapToModel: true,
       });
 
-      expect(users[0].emailAddress).to.be.equal('john@gmail.com');
+      expect(users[0].emailAddress).to.equal('john@gmail.com');
     });
 
     it('arbitrarily map the field names', async function () {
@@ -351,8 +356,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         fieldMap: { username: 'userName', email_address: 'email' },
       });
 
-      expect(users[0].userName).to.be.equal('john');
-      expect(users[0].email).to.be.equal('john@gmail.com');
+      expect(users[0].userName).to.equal('john');
+      expect(users[0].email).to.equal('john@gmail.com');
     });
 
     it('keeps field names that are mapped to the same name', async function () {
@@ -363,8 +368,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         fieldMap: { username: 'username', email_address: 'email' },
       });
 
-      expect(users[0].username).to.be.equal('john');
-      expect(users[0].email).to.be.equal('john@gmail.com');
+      expect(users[0].username).to.equal('john');
+      expect(users[0].email).to.equal('john@gmail.com');
     });
 
     // Only run stacktrace tests on Node 12+, since only Node 12+ supports

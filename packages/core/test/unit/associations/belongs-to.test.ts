@@ -4,7 +4,7 @@ import sinon from 'sinon';
 import type { CreationOptional, ModelStatic, NonAttribute } from '@sequelize/core';
 import { DataTypes, Deferrable, Model } from '@sequelize/core';
 import { BelongsTo } from '@sequelize/core/decorators-legacy';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('belongsTo'), () => {
   it('throws when invalid model is passed', () => {

@@ -3,10 +3,12 @@ import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
 import {
   beforeEach2,
+  destroySequelizeAfterTest,
   getConnectionOptionsWithoutPool,
   getSequelizeInstance,
   getTestDialect,
   getTestDialectTeaser,
+  setResetMode,
 } from './support';
 
 const dialect = getTestDialect();
@@ -14,6 +16,8 @@ describe(getTestDialectTeaser('Replication'), () => {
   if (['sqlite', 'ibmi'].includes(dialect)) {
     return;
   }
+
+  setResetMode('none');
 
   describe('connection objects', () => {
     const deps = beforeEach2(async () => {
@@ -24,6 +28,8 @@ describe(getTestDialectTeaser('Replication'), () => {
           read: [getConnectionOptionsWithoutPool()],
         },
       });
+
+      destroySequelizeAfterTest(sequelize);
 
       expect(sequelize.connectionManager.pool.write).to.be.ok;
       expect(sequelize.connectionManager.pool.read).to.be.ok;

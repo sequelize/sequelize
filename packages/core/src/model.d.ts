@@ -13,15 +13,8 @@ import type {
 import type { Deferrable } from './deferrable';
 import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
-import type {
-  IndexOptions,
-  TableName,
-  TableNameWithSchema,
-  IndexField,
-} from './dialects/abstract/query-interface';
-import type {
-  DynamicSqlExpression,
-} from './expression-builders/base-sql-expression.js';
+import type { IndexField, IndexOptions, TableName, TableNameWithSchema } from './dialects/abstract/query-interface';
+import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
@@ -31,27 +24,28 @@ import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
-import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
+import type { QueryOptions, Sequelize, SyncOptions } from './sequelize';
 import type {
   AllowArray,
   AllowReadonlyArray,
   AnyFunction,
   MakeNullishOptional,
   Nullish,
-  OmitConstructors, RequiredBy,
+  OmitConstructors,
+  RequiredBy,
 } from './utils/types.js';
-import type { LOCK, Op, Transaction, TableHints, WhereOptions } from './index';
+import type { LOCK, Op, TableHints, Transaction, WhereOptions } from './index';
 
 export interface Logging {
   /**
    * A function that gets executed while running the query to log the sql.
    */
-  logging?: boolean | ((sql: string, timing?: number) => void);
+  logging?: boolean | ((sql: string, timing?: number) => void) | undefined;
 
   /**
    * Pass query execution time in milliseconds as second argument to logging function (options.logging).
    */
-  benchmark?: boolean;
+  benchmark?: boolean | undefined;
 }
 
 export interface Poolable {
@@ -163,7 +157,7 @@ export interface SchemaOptions {
   /**
    * The character(s) that separates the schema name from the table name
    */
-  schemaDelimiter?: string;
+  schemaDelimiter?: string | undefined;
 }
 
 /**
@@ -782,13 +776,21 @@ export interface IndexHintable {
   indexHints?: IndexHint[];
 }
 
+export interface MaxExecutionTimeHintable {
+  /**
+   * This sets the max execution time for MySQL.
+   */
+  maxExecutionTimeHintMs?: number;
+}
+
 /**
  * Options that are passed to any model creating a SELECT query
  *
  * A hash of options to describe the scope of the search
  */
 export interface FindOptions<TAttributes = any>
-  extends QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable, SearchPathable {
+  extends
+  QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable, SearchPathable, MaxExecutionTimeHintable {
   /**
    * A list of associations to eagerly load using a left join (a single association is also supported).
    *
@@ -921,7 +923,7 @@ export interface NonNullFindByPkOptions<M extends Model> extends Omit<NonNullFin
  * Options for Model.count method
  */
 export interface CountOptions<TAttributes = any>
-  extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable {
+  extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable, MaxExecutionTimeHintable {
   /**
    * Include options. See `find` for details
    */
@@ -2950,6 +2952,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * If changed is called without an argument and no keys have changed, it will return `false`.
    */
+  // TODO: split this method into:
+  //  - hasChanges(): boolean;
+  //  - getChanges(): string[];
+  //  - isDirty(key: string): boolean;
+  //  - setDirty(key: string, dirty: boolean = true): void;
   changed<K extends keyof this>(key: K): boolean;
   changed<K extends keyof this>(key: K, dirty: boolean): void;
   changed(): false | string[];
@@ -2981,7 +2988,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * return a new instance. With this method, all references to the Instance are updated with the new data
    * and no new objects are created.
    */
-  reload(options?: FindOptions<TModelAttributes>): Promise<this>;
+  reload(options?: Omit<FindOptions<TModelAttributes>, 'where'>): Promise<this>;
 
   /**
    * Runs all validators defined for this model, including non-null validators, DataTypes validators, custom attribute validators and model-level validators.

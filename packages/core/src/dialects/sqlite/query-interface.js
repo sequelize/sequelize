@@ -1,6 +1,6 @@
 'use strict';
 
-import { noSchemaParameter, noSchemaDelimiterParameter } from '../../utils/deprecations';
+import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 
 const sequelizeErrors = require('../../errors');
 const { QueryTypes } = require('../../query-types');

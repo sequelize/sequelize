@@ -1,6 +1,6 @@
 'use strict';
 
-import { AggregateError, DatabaseError, BaseError } from '../../errors';
+import { AggregateError, BaseError, DatabaseError } from '../../errors';
 import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 

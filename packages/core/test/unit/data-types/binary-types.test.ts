@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { ValidationErrorItem, DataTypes } from '@sequelize/core';
+import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { testDataTypeSql } from './_utils';
 
 describe('DataTypes.BLOB', () => {

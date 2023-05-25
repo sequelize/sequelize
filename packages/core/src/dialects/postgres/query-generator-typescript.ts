@@ -2,7 +2,7 @@ import type { Expression } from '../../sequelize.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { RemoveIndexQueryOptions, TableNameOrModel, EscapeOptions } from '../abstract/query-generator-typescript';
+import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 
 /**
  * Temporary class to ease the TypeScript migration

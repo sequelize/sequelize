@@ -2,13 +2,13 @@ import { expect } from 'chai';
 import type {
   CreationOptional,
   GeoJson,
+  GeoJsonGeometryCollection,
   GeoJsonLineString,
+  GeoJsonMultiLineString,
+  GeoJsonMultiPoint,
+  GeoJsonMultiPolygon,
   GeoJsonPoint,
   GeoJsonPolygon,
-  GeoJsonMultiPoint,
-  GeoJsonMultiLineString,
-  GeoJsonGeometryCollection,
-  GeoJsonMultiPolygon,
   InferAttributes,
   InferCreationAttributes,
 } from '@sequelize/core';

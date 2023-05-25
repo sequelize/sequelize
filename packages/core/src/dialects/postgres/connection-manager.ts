@@ -1,9 +1,11 @@
+import assert from 'node:assert';
 import pick from 'lodash/pick';
-import type { ClientConfig, Client } from 'pg';
+import type { Client, ClientConfig } from 'pg';
 import type { TypeFormat, TypeId } from 'pg-types';
 import semver from 'semver';
 import {
-  ConnectionError, ConnectionRefusedError,
+  ConnectionError,
+  ConnectionRefusedError,
   ConnectionTimedOutError,
   HostNotFoundError,
   HostNotReachableError,
@@ -60,6 +62,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
 
     const pgLib = this._loadDialectModule('pg') as Lib;
     this.lib = this.sequelize.config.native ? pgLib.native! : pgLib;
+    assert(this.lib != null, 'pg-native module not found, please install it');
 
     this.#arrayParserLib = this._loadDialectModule('postgres-array') as ArrayParserLib;
   }
@@ -193,7 +196,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
     });
 
     // Don't let a Postgres restart (or error) to take down the whole app
-    connection.once('error', error => {
+    connection.on('error', (error: any) => {
       connection._invalid = true;
       debug(`connection error ${error.code || error.message}`);
       void this.pool.destroy(connection);

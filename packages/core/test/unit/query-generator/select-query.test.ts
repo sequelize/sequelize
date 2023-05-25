@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import type { InferAttributes, Model } from '@sequelize/core';
-import { Op, DataTypes, or, sql as sqlTag } from '@sequelize/core';
+import { DataTypes, Op, or, sql as sqlTag } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
-import { expectsql, sequelize } from '../../support';
+import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const { attribute, col, cast, where, fn, literal } = sqlTag;
 
@@ -656,6 +656,23 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
       expectsql(sql, {
         default: `SELECT 1 AS [_0] FROM [Users] AS [User] GROUP BY [_0] ORDER BY [_0];`,
+      });
+    });
+  });
+
+  describe('optimizer hints', () => {
+    const dialectName = getTestDialect();
+
+    it('max execution time hint', () => {
+      const notSupportedError = new Error(`The maxExecutionTimeMs option is not supported by ${dialectName}`);
+
+      expectsql(() => queryGenerator.selectQuery(User.tableName, {
+        model: User,
+        attributes: ['id'],
+        maxExecutionTimeHintMs: 1000,
+      }, User), {
+        default: notSupportedError,
+        mysql: 'SELECT /*+ MAX_EXECUTION_TIME(1000) */ `id` FROM `Users` AS `User`;',
       });
     });
   });

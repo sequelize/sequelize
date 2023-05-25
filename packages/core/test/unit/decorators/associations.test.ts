@@ -1,8 +1,8 @@
 import assert from 'node:assert';
 import { expect } from 'chai';
-import { Model, BelongsToMany as BelongsToManyAssociation } from '@sequelize/core';
+import { BelongsToMany as BelongsToManyAssociation, Model } from '@sequelize/core';
 import type { InferAttributes } from '@sequelize/core';
-import { HasOne, BelongsTo, HasMany, BelongsToMany } from '@sequelize/core/decorators-legacy';
+import { BelongsTo, BelongsToMany, HasMany, HasOne } from '@sequelize/core/decorators-legacy';
 import { sequelize, typeTest } from '../../support';
 
 describe('@BelongsTo', () => {

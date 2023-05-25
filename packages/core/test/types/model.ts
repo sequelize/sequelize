@@ -3,17 +3,13 @@ import type { SetOptional } from 'type-fest';
 import type {
   Association,
   BelongsToManyGetAssociationsMixin,
-  HasOne,
-  ModelDefined,
   CreationOptional,
+  HasOne,
   InferAttributes,
   InferCreationAttributes,
+  ModelDefined,
 } from '@sequelize/core';
-import {
-  DataTypes,
-  Model,
-  Sequelize,
-} from '@sequelize/core';
+import { DataTypes, Model, Sequelize } from '@sequelize/core';
 
 expectTypeOf<HasOne>().toMatchTypeOf<Association>();
 
