@@ -57,6 +57,7 @@
     "lint-staged": "13.2.2",
     "markdownlint-cli": "0.34.0",
     "mocha": "10.2.0",
+    "node-gyp": "^9.3.1",
     "node-hook": "1.0.0",
     "source-map-support": "0.5.21",
     "ts-node": "10.9.1",
@@ -66,7 +67,7 @@
     "typedoc-plugin-missing-exports": "1.0.0",
     "typescript": "5.0.4"
   },
-  "packageManager": "yarn@1.22.19",
+  "packageManager": "yarn@3.5.1",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
   }

@@ -27,7 +27,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: yarn
       - name: Install dependencies and build sequelize
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
       - name: Build sequelize
         run: yarn build
       - name: Compress artifact
