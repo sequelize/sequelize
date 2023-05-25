@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize, literal } = require('@sequelize/core');
 
 const _ = require('lodash');
 const dayjs = require('dayjs');
@@ -1377,7 +1377,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         const users = await this.User.findAll({
           attributes: [[
-            Sequelize.literal('(SELECT 7)'),
+            literal('(SELECT 7)'),
             'runtimeAttribute',
           ]],
           enableRuntimeAttributes: true,
@@ -1394,7 +1394,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         const users = await this.User.findAll({
           attributes: [[
-            Sequelize.literal('(SELECT 7)'),
+            literal('(SELECT 7)'),
             'runtimeAttribute',
           ]],
         });
