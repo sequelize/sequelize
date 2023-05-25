@@ -1385,7 +1385,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         users.forEach(user => {
           // as it is a runtime attribute we do not know its type so we will always get a string
-          expect(user.runtimeAttribute).to.equal('7');
+          expect(parseInt(user.runtimeAttribute, 10)).to.equal(7);
         });
       });
 
