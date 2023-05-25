@@ -265,6 +265,7 @@ export class AbstractQuery {
         attributes: this.options.originalAttributes || this.options.attributes,
         raw: true,
         comesFromDatabase: true,
+        enableRuntimeAttributes: this.options.enableRuntimeAttributes,
       });
     // Regular queries
     } else {
@@ -273,6 +274,7 @@ export class AbstractQuery {
         raw: true,
         comesFromDatabase: true,
         attributes: this.options.originalAttributes || this.options.attributes,
+        enableRuntimeAttributes: this.options.enableRuntimeAttributes,
       });
     }
 

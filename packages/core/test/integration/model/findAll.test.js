@@ -1372,6 +1372,38 @@ The following associations are defined on "Worker": "ToDos"`);
         });
       });
 
+      it('should be possible to define attributes at runtime', async function () {
+        await this.User.create();
+
+        const users = await this.User.findAll({
+          attributes: [[
+            Sequelize.literal('(SELECT 7)'),
+            'runtimeAttribute',
+          ]],
+          enableRuntimeAttributes: true,
+        });
+
+        users.forEach(user => {
+          // as it is a runtime attribute we do not know its type so we will always get a string
+          expect(user.runtimeAttribute).to.equal('7');
+        });
+      });
+
+      it('should not bring runtime attributes if enableRuntimeAttributes is not set', async function () {
+        await this.User.create();
+
+        const users = await this.User.findAll({
+          attributes: [[
+            Sequelize.literal('(SELECT 7)'),
+            'runtimeAttribute',
+          ]],
+        });
+
+        users.forEach(user => {
+          expect(user.runtimeAttribute).to.be.undefined;
+        });
+      });
+
       it('should pull in dependent fields for a VIRTUAL', async function () {
         const User = this.sequelize.define('User', {
           active: {

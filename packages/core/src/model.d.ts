@@ -907,6 +907,11 @@ export interface FindOptions<TAttributes = any>
    * Use a table hint for the query, only supported in MSSQL.
    */
   tableHint?: TableHints;
+
+  /**
+   * Put in the result values that came from the database but are not defined in the model.
+   */
+  enableRuntimeAttributes?: boolean;
 }
 
 export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttributes> {
