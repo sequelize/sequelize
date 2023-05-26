@@ -117,7 +117,7 @@ Run `yarn install` within the cloned repository folder.
 
 #### 2.1 Adding and updating dependencies
 
-[Yarn v3](https://https://yarnpkg.com//) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn.
+[Yarn v3](https://yarnpkg.com//) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn.
 
 ### 3. Prepare local databases to run tests
 
