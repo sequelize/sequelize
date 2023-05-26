@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize, literal } = require('@sequelize/core');
 
 const _ = require('lodash');
 const dayjs = require('dayjs');
@@ -1394,6 +1394,29 @@ The following associations are defined on "Worker": "ToDos"`);
           expect(user.get('createdAt')).to.be.ok;
           expect(user.get('active')).to.equal(true);
         }
+      });
+
+      it('should allow a literal as VIRTUAL', async function () {
+        const User = this.sequelize.define('User', {
+          active: {
+            type: Sequelize.VIRTUAL(Sequelize.BOOLEAN, includeAs => [
+              literal(`(SELECT IF(createdAt > NOW() - 7 * 24 * 60 * 60 * 1000, TRUE, FALSE) FROM Users WHERE User.id = ${includeAs}.id)`),
+              'active',
+            ]),
+          },
+        }, {
+          timestamps: true,
+        });
+
+        await User.create();
+
+        const users = await User.findAll({
+          attributes: ['active'],
+        });
+
+        users.forEach(user => {
+          expect(user.get('active')).to.be.equal(1);
+        });
       });
 
       it('should pull in dependent fields for a VIRTUAL in include', async function () {

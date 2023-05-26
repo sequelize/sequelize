@@ -1,15 +1,19 @@
 import assert from 'node:assert';
 import forIn from 'lodash/forIn';
-import type { Attributes, Model, ModelStatic, NormalizedAttributeOptions, WhereOptions } from '..';
+import type { IncludeAsCallback } from 'src/dialects/abstract/data-types';
+import type { Attributes, Literal, Model, ModelStatic, NormalizedAttributeOptions, WhereOptions } from '..';
+import { Fn, literal } from '..';
 
 export type FinderOptions<TAttributes> = {
-  attributes?: string[],
+  attributes?: Array<string | IncludeAsCallback>,
   where?: WhereOptions<TAttributes>,
+  as?: string,
+  parent?: FinderOptions<TAttributes>,
 };
 
 export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 'attributes'> & {
   // an array of attribute-column mapping, or just attributes
-  attributes?: Array<[columnName: string, attributeName: string] | string>,
+  attributes?: Array<[column: string | Literal | Fn, attributeName: string] | string>,
 };
 
 /**
@@ -61,19 +65,53 @@ export function mapOptionFieldNames<M extends Model>(
   const out: MappedFinderOptions<Attributes<M>> = options;
 
   if (Array.isArray(options.attributes)) {
-    out.attributes = options.attributes.map(attributeName => {
+    out.attributes = options.attributes.map(attribute => {
+      /**
+       * This is necessary to create subqueries for computed fields on included models.
+       *
+       * Column({
+       *   type: DataTypes.VIRTUAL(DataTypes.NUMBER, (includeAs: string) => [
+       *     literal(`(SELECT SUM(prop) FROM other_model WHERE other_model.id = ${includeAs}.other_model_id)`),
+       *     'total',
+       *   ]),
+       * })
+       */
+      if (typeof attribute === 'function') {
+        let as = options.as || Model.tableName;
+
+        let currentOptions = options;
+        while (currentOptions && currentOptions.parent && currentOptions.parent.parent) {
+          currentOptions = currentOptions.parent;
+
+          const parentAs = currentOptions.as;
+          as = `${parentAs}->${as}`;
+        }
+
+        const [virtualColumnLiteral, virtualColumnName] = attribute(`\`${as}\``);
+        if (virtualColumnLiteral instanceof Fn) {
+          return [virtualColumnLiteral, virtualColumnName];
+        }
+
+        // this code is to debug when a virtual field sql starts and ends
+        return [literal(`
+          /* start ${as}.${virtualColumnName} */
+            ${virtualColumnLiteral.val}
+          /* end ${as}.${virtualColumnName} */
+        `), virtualColumnName];
+      }
+
       // Object lookups will force any variable to strings, we don't want that for special objects etc
-      if (typeof attributeName !== 'string') {
-        return attributeName;
+      if (typeof attribute !== 'string') {
+        return attribute;
       }
 
       // Map attributes to column names
-      const columnName: string = Model.modelDefinition.getColumnNameLoose(attributeName);
-      if (columnName !== attributeName) {
-        return [columnName, attributeName];
+      const columnName: string = Model.modelDefinition.getColumnNameLoose(attribute);
+      if (columnName !== attribute) {
+        return [columnName, attribute];
       }
 
-      return attributeName;
+      return attribute;
     });
   }
 

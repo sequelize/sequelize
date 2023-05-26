@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
+import type { Fn, Literal } from 'src';
 import type { Class } from 'type-fest';
 import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
@@ -2017,14 +2018,16 @@ export class UUIDV4 extends AbstractDataType<string> {
   }
 }
 
+export type IncludeAsCallback = (includeAs: string) => [Literal | Fn, string];
+
 export interface VirtualOptions {
   returnType?: DataTypeClassOrInstance | undefined;
-  attributeDependencies?: string[] | undefined;
+  attributeDependencies?: string[] | IncludeAsCallback | undefined;
 }
 
 export interface NormalizedVirtualOptions {
   returnType: DataTypeClassOrInstance | undefined;
-  attributeDependencies: string[];
+  attributeDependencies: string[] | IncludeAsCallback;
 }
 
 /**
