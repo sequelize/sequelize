@@ -6,5 +6,5 @@ module.exports = {
   plugin: ['typedoc-plugin-missing-exports', 'typedoc-plugin-mdn-links', 'typedoc-plugin-carbon-ads'],
   carbonPlacement: 'sequelizeorg',
   carbonServe: 'CEAI627Y',
-  // treatWarningsAsErrors: true,
+  treatWarningsAsErrors: true,
 };
