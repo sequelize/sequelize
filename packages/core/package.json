@@ -208,10 +208,5 @@
     "----------------------------------------- development ---------------------------------------------": "",
     "build": "../../build-packages.mjs core"
   },
-  "support": true,
-  "typedoc": {
-    "entryPoint": "./src/index.d.ts",
-    "displayName": "@sequelize/core",
-    "tsconfig": "./tsconfig.json"
-  }
+  "support": true
 }
