@@ -1455,6 +1455,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         return this.formatSqlExpression(attr, options);
       }
 
+      // include as syntax
+      if (typeof attr === 'function') {
+        return attr;
+      }
+
       if (Array.isArray(attr)) {
         if (attr.length !== 2) {
           throw new Error(`${JSON.stringify(attr)} is not a valid attribute definition. Please use the following format: ['attribute definition', 'alias']`);
