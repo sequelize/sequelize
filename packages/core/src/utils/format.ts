@@ -2,7 +2,8 @@ import assert from 'node:assert';
 import forIn from 'lodash/forIn';
 import type { IncludeAsCallback } from 'src/dialects/abstract/data-types';
 import type { Attributes, Literal, Model, ModelStatic, NormalizedAttributeOptions, WhereOptions } from '..';
-import { Fn, literal } from '..';
+import { Fn } from '../expression-builders/fn.js';
+import { literal } from '../expression-builders/literal';
 
 export type FinderOptions<TAttributes> = {
   attributes?: Array<string | IncludeAsCallback>,
@@ -13,7 +14,7 @@ export type FinderOptions<TAttributes> = {
 
 export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 'attributes'> & {
   // an array of attribute-column mapping, or just attributes
-  attributes?: Array<[column: string | Literal | Fn, attributeName: string] | string>,
+  attributes?: Array<[column: string | Literal | Fn, attributeName: string] | string | IncludeAsCallback>,
 };
 
 /**
@@ -29,12 +30,12 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<Attrib
 ): MappedFinderOptions<Attributes<M>> {
   if (Array.isArray(options.attributes)) {
     options.attributes = Model._injectDependentVirtualAttributes(
-      options.attributes,
+      options.attributes as string[],
     );
 
     const modelDefinition = Model.modelDefinition;
     options.attributes = options.attributes.filter(
-      attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
+      attributeName => !modelDefinition.virtualAttributeNames.has(attributeName as string),
     );
   }
 

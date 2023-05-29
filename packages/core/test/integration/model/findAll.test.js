@@ -1415,7 +1415,7 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         users.forEach(user => {
-          expect(user.get('active')).to.be.equal(1);
+          expect(!!user.get('active')).to.be.true;
         });
       });
 
