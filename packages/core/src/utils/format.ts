@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import forIn from 'lodash/forIn';
-import type { IncludeAsCallback } from 'src/dialects/abstract/data-types';
 import type { Attributes, Literal, Model, ModelStatic, NormalizedAttributeOptions, WhereOptions } from '..';
+import type { IncludeAsCallback } from '../dialects/abstract/data-types';
 import { Fn } from '../expression-builders/fn.js';
 import { literal } from '../expression-builders/literal';
 
