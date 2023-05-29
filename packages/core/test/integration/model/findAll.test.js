@@ -1400,7 +1400,12 @@ The following associations are defined on "Worker": "ToDos"`);
         const User = this.sequelize.define('User', {
           active: {
             type: Sequelize.VIRTUAL(Sequelize.BOOLEAN, includeAs => [
-              literal(`(SELECT IF(createdAt > NOW() - 7 * 24 * 60 * 60 * 1000, TRUE, FALSE) FROM Users WHERE User.id = ${includeAs}.id)`),
+              dialectName === 'db2'
+              ? literal(`(SELECT "createdAt" > CURRENT DATE - 7 DAYS FROM "Users" WHERE "User"."id" = "${includeAs.replace(/`/g, '')}"."id")`)
+              : dialectName === 'sqlite' ? literal(`(SELECT "createdAt" > CURRENT_DATE - 7 * 24 * 60 * 60 * 1000 FROM Users WHERE "User"."id" = ${includeAs}."id")`)
+              : dialectName === 'postgres' ? literal(`(SELECT "createdAt" > NOW() - INTERVAL '1 week' FROM "Users" WHERE "User"."id" = "${includeAs.replace(/`/g, '')}"."id")`)
+              : dialectName === 'mssql' ? literal(`(SELECT COUNT(*) FROM Users WHERE Users.id = ${includeAs.replace(/`/g, '')}.id AND createdAt > DATEADD(WEEK, -1, GETDATE()))`)
+              : literal(`(SELECT createdAt > CURRENT_DATE - 7 * 24 * 60 * 60 * 1000 FROM Users WHERE User.id = ${includeAs}.id)`),
               'active',
             ]),
           },
@@ -1415,7 +1420,7 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         users.forEach(user => {
-          expect(!!user.get('active')).to.be.true;
+          expect(!!user.get('active')).to.equal(true);
         });
       });
 
