@@ -185,7 +185,7 @@ type AllowAnyAll<T> =
 
 // number is always allowed because -Infinity & +Infinity are valid
 /**
- * This type represents a valid input when describing a {@link <internal>~RANGE}.
+ * This type represents a valid input when describing a {@link DataTypes.RANGE}.
  */
 export type Rangable<T> = readonly [
   lower: T | InputRangePart<T> | number | null,
@@ -193,7 +193,7 @@ export type Rangable<T> = readonly [
 ] | EmptyRange;
 
 /**
- * This type represents the output of the {@link <internal>~RANGE} data type.
+ * This type represents the output of the {@link DataTypes.RANGE} data type.
  */
 // number is always allowed because -Infinity & +Infinity are valid
 export type Range<T> = readonly [
