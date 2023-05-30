@@ -1691,9 +1691,9 @@ __metadata:
     "@types/chai-datetime": 0.0.37
     "@types/debug": ^4.1.7
     "@types/ibm_db": 2.0.12
-    "@types/lodash": 4.14.194
+    "@types/lodash": 4.14.195
     "@types/mocha": 10.0.1
-    "@types/node": 18.16.14
+    "@types/node": 18.16.16
     "@types/pg": 8.6.6
     "@types/semver": 7.5.0
     "@types/sinon": 10.0.15
@@ -1783,14 +1783,14 @@ __metadata:
     lint-staged: 13.2.2
     markdownlint-cli: 0.34.0
     mocha: 10.2.0
-    node-gyp: ^9.3.1
+    node-gyp: 9.3.1
     node-hook: 1.0.0
     source-map-support: 0.5.21
     ts-node: 10.9.1
-    typedoc: 0.23.28
+    typedoc: 0.24.7
     typedoc-plugin-carbon-ads: 1.4.0
     typedoc-plugin-mdn-links: 3.0.3
-    typedoc-plugin-missing-exports: 1.0.0
+    typedoc-plugin-missing-exports: 2.0.0
     typescript: 5.0.4
   languageName: unknown
   linkType: soft
@@ -2028,10 +2028,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.14.194":
-  version: 4.14.194
-  resolution: "@types/lodash@npm:4.14.194"
-  checksum: 113f34831c461469d91feca2dde737f88487732898b4d25e9eb23b087bb193985f864d1e1e0f3b777edc5022e460443588b6000a3b2348c966f72d17eedc35ea
+"@types/lodash@npm:4.14.195":
+  version: 4.14.195
+  resolution: "@types/lodash@npm:4.14.195"
+  checksum: 39b75ca635b3fa943d17d3d3aabc750babe4c8212485a4df166fe0516e39288e14b0c60afc6e21913cc0e5a84734633c71e617e2bd14eaa1cf51b8d7799c432e
   languageName: node
   linkType: hard
 
@@ -2080,10 +2080,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:18.16.14":
-  version: 18.16.14
-  resolution: "@types/node@npm:18.16.14"
-  checksum: c11cb3c787236414efe58240ae71854971592554d82ff9d201876ce7cafd51c37aaa001c63602d002e8238614d7331bd6d48ac4c1c0caa826799980b6846fb08
+"@types/node@npm:18.16.16":
+  version: 18.16.16
+  resolution: "@types/node@npm:18.16.16"
+  checksum: 0efad726dd1e0bef71c392c708fc5d78c5b39c46b0ac5186fee74de4ccb1b2e847b3fa468da67d62812f56569da721b15bf31bdc795e6c69b56c73a45079ed2d
   languageName: node
   linkType: hard
 
@@ -8525,7 +8525,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:^4.2.12":
+"marked@npm:^4.3.0":
   version: 4.3.0
   resolution: "marked@npm:4.3.0"
   bin:
@@ -8691,7 +8691,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^7.1.3, minimatch@npm:^7.4.2":
+"minimatch@npm:^7.4.2":
   version: 7.4.6
   resolution: "minimatch@npm:7.4.6"
   dependencies:
@@ -9211,7 +9211,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp@npm:^9.0.0, node-gyp@npm:^9.3.1, node-gyp@npm:latest":
+"node-gyp@npm:9.3.1, node-gyp@npm:^9.0.0, node-gyp@npm:latest":
   version: 9.3.1
   resolution: "node-gyp@npm:9.3.1"
   dependencies:
@@ -12835,28 +12835,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-missing-exports@npm:1.0.0":
-  version: 1.0.0
-  resolution: "typedoc-plugin-missing-exports@npm:1.0.0"
+"typedoc-plugin-missing-exports@npm:2.0.0":
+  version: 2.0.0
+  resolution: "typedoc-plugin-missing-exports@npm:2.0.0"
   peerDependencies:
-    typedoc: 0.22.x || 0.23.x
-  checksum: 11ef3ba347a88924397f2f2f84216e5d41f9714baba671e4f9a86dd4de22d5e5e47477a295776c4f489be91065a152fedcbfa9aa6cba90499894e6670441ce31
+    typedoc: 0.24.x
+  checksum: 93981a78a83bd5c725c3342f9f2803df0b44067118b407ab06185c8f5a4e7998b1baeadba073ffb596f67048a3a692556b8ab09c617bcf039024226662a87949
   languageName: node
   linkType: hard
 
-"typedoc@npm:0.23.28":
-  version: 0.23.28
-  resolution: "typedoc@npm:0.23.28"
+"typedoc@npm:0.24.7":
+  version: 0.24.7
+  resolution: "typedoc@npm:0.24.7"
   dependencies:
     lunr: ^2.3.9
-    marked: ^4.2.12
-    minimatch: ^7.1.3
+    marked: ^4.3.0
+    minimatch: ^9.0.0
     shiki: ^0.14.1
   peerDependencies:
     typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x || 5.0.x
   bin:
     typedoc: bin/typedoc
-  checksum: 40eb4e207aac1b734e09400cf03f543642cc7b11000895198dd5a0d3166315759ccf4ac30a2915153597c5c186101c72bac2f1fc12b428184a9274d3a0e44c5e
+  checksum: 9ae433566cb02b96deb9eb2a9f5b23d1b199f5aeb61ca8c7e2653ff5d339fbfb4d526e024febab4f3278332978814aaa0885f1d5925ba21a441d93a611510ac3
   languageName: node
   linkType: hard
 
