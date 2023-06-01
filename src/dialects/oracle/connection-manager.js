@@ -128,14 +128,29 @@ export class OracleConnectionManager extends AbstractConnectionManager {
         case 'ORA-12154': // ORA-12154: TNS: Could not resolve the connect identifier specified
         case 'ORA-12505': // ORA-12505: TNS: Listener does not currently know of SID given in connect descriptor
         case 'ORA-12514': // ORA-12514: TNS: Listener does not currently know of service requested in connect descriptor
+        case 'NJS-511': // NJS-511: connection refused
+        case 'NJS-516': // NJS-516: No Config Dir
+        case 'NJS-517': // NJS-517: TNS Entry not found
+        case 'NJS-520': // NJS-520: TNS Names File missing  
           throw new SequelizeErrors.ConnectionRefusedError(err);
         case 'ORA-28000': // ORA-28000: Account locked
         case 'ORA-28040': // ORA-28040: No matching authentication protocol
         case 'ORA-01017': // ORA-01017: invalid username/password; logon denied
+        case 'NJS-506': // NJS-506: TLS Auth Failure
           throw new SequelizeErrors.AccessDeniedError(err);
         case 'ORA-12541': // ORA-12541: TNS: No listener
+        case 'NJS-503': // NJS-503: Connection Incomplete
+        case 'NJS-508': // NJS-508: TLS HOST MATCH Failure
+        case 'NJS-507': // NJS-507: TLS DN MATCH Failure
           throw new SequelizeErrors.HostNotReachableError(err);
+        case 'NJS-512': // NJS-512: Invalid Connect String Parameters
+        case 'NJS-515': // NJS-515: Invalid EZCONNECT Syntax
+        case 'NJS-518': // NJS-518: Invald ServiceName
+        case 'NJS-519': // NJS-519: Invald SID
+          throw new SequelizeErrors.InvalidConnectionError(err);
         case 'ORA-12170': // ORA-12170: TNS: Connect Timeout occurred
+        case 'NJS-510': // NJS-510: Connect Timeout occurred
+
           throw new SequelizeErrors.ConnectionTimedOutError(err);
         default:
           throw new SequelizeErrors.ConnectionError(err);
