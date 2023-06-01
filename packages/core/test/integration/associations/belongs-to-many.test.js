@@ -1934,7 +1934,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         let task; let  t;
         if (dialect === 'cockroachdb') {
-          task = Task.create({ title: 'task' });
+          task = await Task.create({ title: 'task' });
           t = await sequelize.startUnmanagedTransaction();
         } else {
           [task, t] = await Promise.all([
