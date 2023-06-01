@@ -21,17 +21,17 @@
   "type": "commonjs",
   "exports": {
     ".": {
+      "types": "./types/index.d.ts",
       "import": "./lib/index.mjs",
-      "require": "./lib/index.js",
-      "types": "./types/index.d.ts"
+      "require": "./lib/index.js"
     },
     "./lib/*": {
-      "default": "./lib/*.js",
-      "types": "./types/*.d.ts"
+      "types": "./types/*.d.ts",
+      "default": "./lib/*.js"
     },
     "./lib/errors": {
-      "default": "./lib/errors/index.js",
-      "types": "./types/errors/index.d.ts"
+      "types": "./types/errors/index.d.ts",
+      "default": "./lib/errors/index.js"
     },
     "./package.json": "./package.json",
     "./types/*": {
