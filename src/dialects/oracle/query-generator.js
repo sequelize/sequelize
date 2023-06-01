@@ -887,32 +887,31 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       let unsignedTemplate = '';
       if (attribute.type._unsigned) {
         attribute.type._unsigned = false;
-        unsignedTemplate += ` check(${this.quoteIdentifier(attribute.field)} >= 0)`;
+        unsignedTemplate += ` check(${this.quoteIdentifier(options.attributeName)} >= 0)`;
       }
       template = attribute.type.toString();
+
+      // Blobs/texts cannot have a defaultValue
+      if (
+        attribute.type &&
+        attribute.type !== 'TEXT' &&
+        attribute.type._binary !== true &&
+        Utils.defaultValueSchemable(attribute.defaultValue)
+      ) {
+        template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      }
+
+      if (!attribute.autoIncrement) {
+        // If autoincrement, not null is set automatically
+        if (attribute.allowNull === false) {
+          template += ' NOT NULL';
+        } else if (!attribute.primaryKey && !Utils.defaultValueSchemable(attribute.defaultValue)) {
+          template += ' NULL';
+        }
+      }
       template += unsignedTemplate;
     } else {
       template = '';
-    }
-    
-
-    // Blobs/texts cannot have a defaultValue
-    if (
-      attribute.type &&
-      attribute.type !== 'TEXT' &&
-      attribute.type._binary !== true &&
-      Utils.defaultValueSchemable(attribute.defaultValue)
-    ) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
-    }
-
-    if (!attribute.autoIncrement) {
-      // If autoincrement, not null is setted automatically
-      if (attribute.allowNull === false) {
-        template += ' NOT NULL';
-      } else if (!attribute.primaryKey && !Utils.defaultValueSchemable(attribute.defaultValue)) {
-        template += ' NULL';
-      }
     }
 
     if (attribute.unique === true && !attribute.primaryKey) {
