@@ -494,19 +494,12 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      const createdUser = await User.create(dialect === 'db2' ? { id: 1 } : {});
-      const mail = await Mail.create(dialect === 'db2' ? { id: 1 } : {});
-      if (dialect === 'cockroachdb') {
-        await Entry.create({ mailId: mail.id, ownerId: createdUser.id });
-        await Entry.create({ mailId: mail.id, ownerId: createdUser.id });
-        // set recipients
-        await mail.setRecipients([createdUser.id]);
-      } else {
-        await Entry.create({ mailId: mail.id, ownerId: 1 });
-        await Entry.create({ mailId: mail.id, ownerId: 1 });
-        // set recipients
-        await mail.setRecipients([1]);
-      }
+      await User.create(['db2', 'cockroachdb'].includes(dialect) ? { id: 1 } : {});
+      const mail = await Mail.create(['db2', 'cockroachdb'].includes(dialect) ? { id: 1 } : {});
+      await Entry.create({ mailId: mail.id, ownerId: 1, ...(dialect === 'cockroachdb' && { id: 1 }) });
+      await Entry.create({ mailId: mail.id, ownerId: 1, ...(dialect === 'cockroachdb' && { id: 2 }) });
+      // set recipients
+      await mail.setRecipients([1]);
 
       const result = await Entry.findAndCountAll({
         offset: 0,
@@ -520,7 +513,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
                 association: Mail.associations.recipients,
                 through: {
                   where: {
-                    recipientId: dialect === 'cockroachdb' ? createdUser.id : 1,
+                    recipientId: 1,
                   },
                 },
                 required: true,
@@ -532,35 +525,23 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       expect(result.count).to.equal(2);
-
-      // CockroachDB does not guarantee sequential IDs.
-      if (dialect === 'cockroachdb') {
-        const rowResult = result.rows[0].get({ plain: true });
-        const mailResult = rowResult.mail.recipients[0].MailRecipients;
-
-        expect(rowResult.ownerId).to.equal(createdUser.id);
-        expect(rowResult.mailId).to.equal(mail.id);
-        expect(mailResult.mailId).to.equal(mail.id);
-        expect(mailResult.recipientId).to.equal(createdUser.id);
-      } else {
-        expect(result.rows[0].get({ plain: true })).to.deep.equal(
-          {
-            id: 2,
-            ownerId: 1,
-            mailId: 1,
-            mail: {
+      expect(result.rows[0].get({ plain: true })).to.deep.equal(
+        {
+          id: 2,
+          ownerId: 1,
+          mailId: 1,
+          mail: {
+            id: 1,
+            recipients: [{
               id: 1,
-              recipients: [{
-                id: 1,
-                MailRecipients: {
-                  mailId: 1,
-                  recipientId: 1,
-                },
-              }],
-            },
+              MailRecipients: {
+                mailId: 1,
+                recipientId: 1,
+              },
+            }],
           },
-        );
-      }
+        },
+      );
     });
   });
 

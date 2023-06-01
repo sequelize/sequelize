@@ -427,7 +427,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     if (current.dialect.supports.inserts.ignoreDuplicates
-      || current.dialect.supports.inserts.onConflictDoNothing) {
+        || current.dialect.supports.inserts.onConflictDoNothing) {
       it('should support the ignoreDuplicates option', async function () {
         const data = [
           { uniqueName: 'Peter', secretValue: '42' },
@@ -1098,6 +1098,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   }
                 }
 
+                for (const membership of memberships) {
+                  membership.time_deleted;
+                }
+
                 results = await Memberships.bulkCreate(
                   memberships.map(membership => ({
                     ...membership,
@@ -1154,6 +1158,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             const actualUserIds = actualUsers.map(user => user.get('id'));
             const orderedUserIds = usersIds.sort((a, b) => a - b);
 
+            expect(users.length).to.eql(actualUsers.length);
             users.forEach(user => expect(user.get('id')).to.be.ok);
             expect(usersIds).to.eql(actualUserIds);
             expect(usersIds).to.eql(orderedUserIds);

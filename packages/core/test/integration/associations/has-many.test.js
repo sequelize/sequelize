@@ -1343,7 +1343,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      const createdUser = await User.create({
+      await User.create({
+        ...(dialect === 'cockroachdb' && { userId: 1 }),
         username: 'John Doe',
         tasks: [
           { title: 'Task #1', jobs: [{ title: 'Job #1' }, { title: 'Job #2' }] },
@@ -1360,13 +1361,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       expect(count.length).to.equal(1);
-      // CockroachDB does not guarantee the ID to be 1, it's a BigInt by default.
-      if (dialect === 'cockroachdb') {
-        expect(count).to.deep.equal([{ userId: createdUser.dataValues.userId, count: 1 }]);
-      } else {
-        expect(count).to.deep.equal([{ userId: 1, count: 1 }]);
-      }
-
+      expect(count).to.deep.equal([{ userId: 1, count: 1 }]);
       expect(rows[0].tasks[0].jobs.length).to.equal(2);
     });
   });

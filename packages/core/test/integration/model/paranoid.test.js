@@ -154,19 +154,11 @@ describe('Paranoid Model', () => {
     await User.sync({ force: true });
 
     // Cockroachdb does not guarantee sequential id generation as it uses unique_rowid().
-    if (dialectName === 'cockroachdb') {
-      await User.bulkCreate([
-        { username: 'Toni', id: 1 },
-        { username: 'Tobi', id: 2 },
-        { username: 'Max', id: 3 },
-      ]);
-    } else {
-      await User.bulkCreate([
-        { username: 'Toni' },
-        { username: 'Tobi' },
-        { username: 'Max' },
-      ]);
-    }
+    await User.bulkCreate([
+      { username: 'Toni', ...(dialectName === 'cockroachdb' && { id: 1 }) },
+      { username: 'Tobi', ...(dialectName === 'cockroachdb' && { id: 2 }) },
+      { username: 'Max', ...(dialectName === 'cockroachdb' && { id: 3 }) },
+    ]);
 
     const user = await User.findByPk(1);
     await user.destroy();
@@ -183,19 +175,11 @@ describe('Paranoid Model', () => {
     await User.sync({ force: true });
 
     // Cockroachdb does not guarantee sequential id generation as it uses unique_rowid().
-    if (dialectName === 'cockroachdb') {
-      await User.bulkCreate([
-        { username: 'Toni', id: 1 },
-        { username: 'Tobi', id: 2 },
-        { username: 'Max', id: 3 },
-      ]);
-    } else {
-      await User.bulkCreate([
-        { username: 'Toni' },
-        { username: 'Tobi' },
-        { username: 'Max' },
-      ]);
-    }
+    await User.bulkCreate([
+      { username: 'Toni', ...(dialectName === 'cockroachdb' && { id: 1 }) },
+      { username: 'Tobi', ...(dialectName === 'cockroachdb' && { id: 2 }) },
+      { username: 'Max', ...(dialectName === 'cockroachdb' && { id: 3 }) },
+    ]);
 
     const user = await User.findByPk(1);
     await user.destroy();
@@ -222,17 +206,10 @@ describe('Paranoid Model', () => {
     const userId = (await User.create({ username: 'Joe' })).id;
 
     // Cockroachdb does not guarantee sequential id generation as it uses unique_rowid().
-    if (dialectName === 'cockroachdb') {
-      await Pet.bulkCreate([
-        { name: 'Fido', UserId: userId, id: 1 },
-        { name: 'Fifi', UserId: userId, id: 2 },
-      ]);
-    } else {
-      await Pet.bulkCreate([
-        { name: 'Fido', UserId: userId },
-        { name: 'Fifi', UserId: userId },
-      ]);
-    }
+    await Pet.bulkCreate([
+      { name: 'Fido', UserId: userId, ...(dialectName === 'cockroachdb' && { id: 1 }) },
+      { name: 'Fifi', UserId: userId, ...(dialectName === 'cockroachdb' && { id: 2 }) },
+    ]);
 
     const pet = await Pet.findByPk(1);
     await pet.destroy();

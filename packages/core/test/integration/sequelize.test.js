@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     }
 
-    if (dialect === 'postgres' || dialect === 'cockroachdb') {
+    if (['postgres', 'cockroachdb'].includes(dialect)) {
       const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}${o.options ? `?options=${o.options}` : ''}`;
       it('should work with connection strings (postgres protocol)', () => {
         const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgres' });
@@ -278,7 +278,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
   describe('truncate', () => {
     it('truncates all models', async function () {
-      let project;
       const Project = this.sequelize.define(`project${Support.rand()}`, {
         id: {
           type: DataTypes.INTEGER,
@@ -289,11 +288,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      if (dialect === 'cockroachdb') {
-        project = await Project.create({ id: 1, title: 'bla' });
-      } else {
-        project = await Project.create({ title: 'bla' });
-      }
+      const project = await Project.create({ title: 'bla', ...(dialect === 'cockroachdb' && { id: 1 }) });
 
       expect(project).to.exist;
       expect(project.title).to.equal('bla');
@@ -361,7 +356,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           await User2.sync();
           expect.fail();
         } catch (error) {
-          console.log(error.message);
           switch (dialect) {
             case 'postgres': {
               assert([
@@ -620,6 +614,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             await expect(count()).to.eventually.equal(1);
           });
         } else if (dialect !== 'cockroachdb') {
+          // TODO: Find a better way for CRDB
           it('correctly handles multiple transactions', async function () {
             const TransactionTest = vars.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false });
             const aliasesMapping = new Map([['_0', 'cnt']]);

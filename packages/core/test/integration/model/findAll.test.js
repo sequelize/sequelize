@@ -239,7 +239,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to handle false/true values through associations as well...', async function () {
-        let user; let passport; let _user; let _passport; let theFalsePassport; let theTruePassport;
         const User = this.User;
         const Passports = this.sequelize.define('Passports', {
           isActive: DataTypes.BOOLEAN,
@@ -251,42 +250,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         await Passports.sync({ force: true });
 
-        const users = await User.bulkCreate([
-          { username: 'boo5', aBool: false },
-          { username: 'boo6', aBool: true },
+        await User.bulkCreate([
+          { ...(dialectName === 'cockroachdb' && { id: 1 }), username: 'boo5', aBool: false },
+          { ...(dialectName === 'cockroachdb' && { id: 2 }), username: 'boo6', aBool: true },
         ]);
 
-        const passports = await Passports.bulkCreate([
-          { isActive: true },
-          { isActive: false },
+        await Passports.bulkCreate([
+          { ...(dialectName === 'cockroachdb' && { id: 1 }), isActive: true },
+          { ...(dialectName === 'cockroachdb' && { id: 2 }), isActive: false },
         ]);
 
-        if (dialectName === 'cockroachdb') {
-          user = await User.findByPk(users[0].id);
-          passport = await Passports.findByPk(passports[0].id);
-          await user.setPassports([passport]);
-
-          const _user = await User.findByPk(users[1].id);
-          const _passport = await Passports.findByPk(passports[1].id);
-          await _user.setPassports([_passport]);
-
-          theTruePassport = await user.getPassports({
-            where: { isActive: true },
-          });
-          theFalsePassport = await _user.getPassports({
-            where: { isActive: false },
-          });
-        } else {
-          user = await User.findByPk(1);
-          passport = await Passports.findByPk(1);
-          await user.setPassports([passport]);
-          _user = await User.findByPk(2);
-          _passport = await Passports.findByPk(2);
-          await _user.setPassports([_passport]);
-          theFalsePassport = await _user.getPassports({ where: { isActive: false } });
-          theTruePassport = await user.getPassports({ where: { isActive: true } });
-        }
-
+        const user = await User.findByPk(1);
+        const passport = await Passports.findByPk(1);
+        await user.setPassports([passport]);
+        const _user = await User.findByPk(2);
+        const _passport = await Passports.findByPk(2);
+        await _user.setPassports([_passport]);
+        const theFalsePassport = await _user.getPassports({ where: { isActive: false } });
+        const theTruePassport = await user.getPassports({ where: { isActive: true } });
         expect(theFalsePassport).to.have.length(1);
         expect(theFalsePassport[0].isActive).to.be.false;
         expect(theTruePassport).to.have.length(1);
@@ -1372,6 +1353,7 @@ The following associations are defined on "Worker": "ToDos"`);
       it('sorts the results via a date column', async function () {
         await this.User.create({ username: 'user3', data: 'bar', theDate: dayjs().add(2, 'hours').toDate() });
         const users = await this.User.findAll({ order: [['theDate', 'DESC']] });
+        // Because we treat BigInt as Strings, Mocha's below and above comparisons do not work, since they expect either number or date.
         if (dialectName === 'cockroachdb') {
           const userIds = users.map(user => BigInt(user.id));
           expect(userIds[0] > userIds[2]).to.be.true;
@@ -1392,7 +1374,6 @@ The following associations are defined on "Worker": "ToDos"`);
       });
 
       it('should allow us to find IDs using capital letters', async function () {
-        let user;
         const User = this.sequelize.define(`User${Support.rand()}`, {
           ID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           Login: { type: DataTypes.STRING },
@@ -1400,11 +1381,8 @@ The following associations are defined on "Worker": "ToDos"`);
 
         await User.sync({ force: true });
         const createdUser = await User.create({ Login: 'foo' });
-        if (current.dialect.name === 'cockroachdb') {
-          user = await User.findAll({ where: { ID: createdUser.ID } });
-        } else {
-          user = await User.findAll({ where: { ID: 1 } });
-        }
+
+        const user = await User.findAll({ where: { ID: current.dialect.name === 'cockroachdb' ? createdUser.ID : 1 } });
 
         expect(user).to.be.instanceof(Array);
         expect(user).to.have.length(1);

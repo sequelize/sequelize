@@ -4,10 +4,15 @@ import sinon from 'sinon';
 import { DataTypes, Model, QueryTypes } from '@sequelize/core';
 import type { InferAttributes, InferCreationAttributes, ModelStatic } from '@sequelize/core';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
-import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from './support';
-import * as Support from './support';
+import {
+  beforeAll2,
+  createMultiTransactionalTestSequelizeInstance,
+  getTestDialect,
+  sequelize,
+  setResetMode,
+} from './support';
 
-const dialectName = Support.getTestDialect();
+const dialectName = getTestDialect();
 
 describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
   if (!sequelize.dialect.supports.transactions) {

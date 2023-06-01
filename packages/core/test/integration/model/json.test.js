@@ -159,8 +159,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      // CockroachDB does not support ordering in queries by JSONB columns
-      // Ref: https://github.com/cockroachdb/cockroach/issues/35706
+      // CockroachDB does not support ordering in queries by JSONB columns Ref: https://github.com/cockroachdb/cockroach/issues/35706
       if (dialectName !== 'cockroachdb') {
         it('should be possible to query a nested value and order results', async function () {
           await this.Event.create({
@@ -288,8 +287,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.sequelize.sync({ force: true });
       });
 
-      // CockroachDB does not support ordering in queries by JSONB columns
-      // Ref: https://github.com/cockroachdb/cockroach/issues/35706
+      // CockroachDB does not support ordering in queries by JSONB columns Ref: https://github.com/cockroachdb/cockroach/issues/35706
       if (dialect.supports.jsonOperations && dialectName !== 'cockroachdb') {
         it('should query an instance with JSONB data and order while trying to inject', async function () {
           await this.Event.create({

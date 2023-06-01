@@ -353,7 +353,7 @@ export function expectsql(
   assertions: {
     query: PartialRecord<ExpectationKey, string | Error>,
     bind: PartialRecord<ExpectationKey, unknown>,
-  },
+   },
 ): void;
 export function expectsql(
   query: MaybeLazy<string | Error>,

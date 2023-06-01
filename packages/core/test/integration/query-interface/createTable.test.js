@@ -32,9 +32,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (['mssql', 'mysql', 'mariadb'].includes(dialect)) {
         expect(result.table_id.autoIncrement).to.be.true;
-      } else if (['postgres'].includes(dialect)) {
+      } else if (dialect === 'postgres') {
         expect(result.table_id.defaultValue).to.equal('nextval("TableWithPK_table_id_seq"::regclass)');
-      } else if (['cockroachdb'].includes(dialect)) {
+      } else if (dialect === 'cockroachdb') {
         expect(result.table_id.defaultValue).to.equal('unique_rowid()');
       }
     });

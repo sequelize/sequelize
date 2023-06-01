@@ -42,7 +42,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         },
       });
 
-      this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${qq('createdAt')}, ${qq('updatedAt')
+      this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
+        qq('createdAt')}, ${qq('updatedAt')
       }) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
       if (['db2', 'ibmi'].includes(dialectName)) {
         this.insertQuery = `INSERT INTO ${qq(this.User.tableName)}
@@ -75,7 +76,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
-    describe('retry', () => {
+    describe('retry',  () => {
       it('properly bind parameters on extra retries', async function () {
         const payload = {
           username: 'test',
@@ -205,28 +206,16 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         it('add parameters in log sql', async () => {
           let createSql;
           let updateSql;
-          let user;
 
-          if (dialectName === 'cockroachdb') {
-            user = await vars.User.create({
-              username: 'john',
-              emailAddress: 'john@gmail.com',
-              id: 1,
-            }, {
-              logging: s => {
-                createSql = s;
-              },
-            });
-          } else {
-            user = await vars.User.create({
-              username: 'john',
-              emailAddress: 'john@gmail.com',
-            }, {
-              logging: s => {
-                createSql = s;
-              },
-            });
-          }
+          const user = await vars.User.create({
+            username: 'john',
+            emailAddress: 'john@gmail.com',
+            ...(dialectName === 'cockroachdb' && { id: 1 }),
+          }, {
+            logging: s => {
+              createSql = s;
+            },
+          });
 
           user.username = 'li';
 
@@ -236,7 +225,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             },
           });
 
-          if (dialectName === 'db2' || dialectName === 'postgres' || dialectName === 'mariadb' || dialectName === 'mysql') {
+          if (dialectName === 'db2' || dialectName === 'postgres' || dialectName === 'mariadb' || dialectName === 'mysql')  {
             // these dialects use positional bind parameters
             expect(createSql.endsWith(` with parameters [ 'john', 'john@gmail.com' ]`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
             expect(updateSql.endsWith(` with parameters [ 'li', 1 ]`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
@@ -444,10 +433,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         it('emits full stacktraces for unique constraint error', async function () {
           let query;
           if (['db2', 'ibmi'].includes(dialectName)) {
-            query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${qq('createdAt')}, ${qq('updatedAt')
+            query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${
+              qq('createdAt')}, ${qq('updatedAt')
             }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
           } else {
-            query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${qq('createdAt')}, ${qq('updatedAt')
+            query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${
+              qq('createdAt')}, ${qq('updatedAt')
             }) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
           }
 
@@ -529,7 +520,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('reject when binds passed with object and numeric $1 is also present', async function () {
         const typeCast = ['postgres', 'db2', 'cockroachdb'].includes(dialectName) ? '::int' : '';
 
-        await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $1 as baz`, { raw: true, bind: { one: 1, two: 2 } })
+        await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $1 as baz`, {  raw: true, bind: { one: 1, two: 2 } })
           .should.be.rejectedWith(Error, /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g);
       });
 

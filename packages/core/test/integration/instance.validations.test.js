@@ -30,13 +30,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       await User
         .update({ username: 'toni' }, { where: { id: user.id } });
 
-      let user0;
-      if (current.dialect.name === 'cockroachdb') {
-        user0 = await User.findByPk(user.id);
-      } else {
-        user0 = await User.findByPk(1);
-      }
-
+      const user0 = await User.findByPk(current.dialect.name === 'cockroachdb' ? user.id : 1);
       expect(user0.username).to.equal('toni');
     });
 

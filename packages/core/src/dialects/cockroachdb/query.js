@@ -46,7 +46,7 @@ export class CockroachDbQuery extends PostgresQuery {
     let match;
 
     if (code === '23505' && errDetail && (match = errDetail.replace(/["']/g, '').match(/Key \((.*?)\)=\((.*?)\)/))) {
-      const fields = _.zipObject(match[1].split(', '), match[2].split(', '));
+      const fields = _.zipObject(match[1].split(','), match[2].split(','));
       const errors = [];
       let message = 'Validation error';
 

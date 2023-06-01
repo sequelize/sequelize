@@ -492,7 +492,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   }
 
   // TODO: this should work with MSSQL / MariaDB too
-  if (dialect.startsWith('postgres') || dialect.startsWith('cockroachdb')) {
+  if (dialect.startsWith('postgres') || dialect === 'cockroachdb') {
     it('defaults to schema provided to sync() for references #11276', async function () {
       await Promise.all([
         sequelize.createSchema(SCHEMA_ONE),
@@ -599,7 +599,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       await sequelize.createSchema(schema);
 
       const User = sequelize.define('User', {}, { schema });
-      const BelongsToUser = sequelize.define('BelongsToUser', {}, { schema });
+      const BelongsToUser = sequelize.define('BelongsToUser', {}, { schema  });
       BelongsToUser.belongsTo(User, { foreignKey: { targetKey: 'id', allowNull: false } });
       await sequelize.sync({ alter: true });
       await sequelize.sync({ alter: true });
@@ -638,7 +638,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     });
   }
 
-  // TODO add support for db2 and mssql dialects
+  // TODO add support for db2, cockroachdb and mssql dialects
   if (!['db2', 'mssql', 'cockroachdb'].includes(dialect)) {
     it('does not recreate existing enums (#7649)', async () => {
       sequelize.define('Media', {

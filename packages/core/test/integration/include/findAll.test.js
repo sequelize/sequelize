@@ -136,7 +136,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           }
 
           const products = await Product.findAll();
-          const groupMembers = [
+          const groupMembers  = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
             { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id },
           ];

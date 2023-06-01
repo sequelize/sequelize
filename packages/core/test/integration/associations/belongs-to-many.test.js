@@ -1932,11 +1932,17 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         await sequelize.sync({ force: true });
 
-        const [task] = await Promise.all([
-          Task.create({ title: 'task' }),
-        ]);
+        let task; let  t;
+        if (dialect === 'cockroachdb') {
+          task = Task.create({ title: 'task' });
+          t = await sequelize.startUnmanagedTransaction();
+        } else {
+          [task, t] = await Promise.all([
+            Task.create({ title: 'task' }),
+            sequelize.startUnmanagedTransaction(),
+          ]);
+        }
 
-        const t = await sequelize.startUnmanagedTransaction();
         await task.createUser({ username: 'foo' }, { transaction: t });
 
         // Cockroachdb only supports SERIALIZABLE transaction isolation level.

@@ -107,7 +107,7 @@ export class CockroachDbDialect extends AbstractDialect {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
     value = value.replace(/'/g, '\'\'')
-      // null character is not allowed in Postgres
+      // null character is not allowed in Cockroachdb
       .replace(/\0/g, '\\0');
 
     return `'${value}'`;

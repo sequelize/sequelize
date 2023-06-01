@@ -226,7 +226,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('allows unique on column with field aliases', async function () {
-      let idxUnique;
       const User = this.sequelize.define('UserWithUniqueFieldAlias', {
         userName: { type: DataTypes.STRING, unique: 'user_name_unique', columnName: 'user_name' },
       });
@@ -257,22 +256,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         case 'db2':
+        case 'cockroachdb':
         case 'mssql': {
           expect(index.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }]);
 
-          break;
-        }
-
-        case 'cockroachdb': {
-          expect(index.fields).to.deep.equal([
-            {
-              // it expected order: undefined, changed to order: 'ASC'
-              attribute: 'user_name',
-              collate: undefined,
-              order: 'ASC',
-              length: undefined,
-            },
-          ]);
           break;
         }
 
@@ -285,7 +272,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    if (!['ibmi', 'cockroachdb'].includes(dialectName)) {
+    if (dialectName !== 'ibmi') {
       it('allows us to customize the error message for unique constraint', async function () {
         const User = this.sequelize.define('UserWithUniqueUsername', {
           username: { type: DataTypes.STRING, unique: { name: 'user_and_email', msg: 'User and email must be unique' } },
@@ -433,10 +420,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             attribute: 'fieldA',
             collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
             order: dialectName === 'ibmi' ? ''
-                // MySQL doesn't support DESC indexes (will throw)
-                // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
-                : (dialectName === 'mysql' || dialectName === 'mariadb') ? 'ASC'
-                  : `DESC`,
+              // MySQL doesn't support DESC indexes (will throw)
+              // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
+              : (dialectName === 'mysql' || dialectName === 'mariadb') ? 'ASC'
+              : `DESC`,
             length: 5,
           },
         ],
@@ -1316,6 +1303,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             break;
           }
 
+          case 'cockroachdb':
           case 'postgres': {
             expect(error.message).to.match(/relation "4uth0r5" does not exist/);
 
@@ -1336,12 +1324,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           case 'ibmi': {
             expect(error.message).to.match(/[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./);
-
-            break;
-          }
-
-          case 'cockroachdb': {
-            expect(error.message).to.match(/relation "4uth0r5" does not exist/);
 
             break;
           }
@@ -1449,32 +1431,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      if (dialectName === 'cockroachdb') {
-        // Added ids to this bulkCreate because CRDB doesn't
-        // guarantee incremental ids will start at 1.
-        await this.User.bulkCreate([
-          {
-            id: 1,
-            username: 'leia',
-          },
-          {
-            id: 2,
-            username: 'luke',
-          },
-          {
-            id: 3,
-            username: 'vader',
-          },
-        ]);
-      } else {
-        await this.User.bulkCreate([{
-          username: 'leia',
-        }, {
-          username: 'luke',
-        }, {
-          username: 'vader',
-        }]);
-      }
+      await this.User.bulkCreate([{
+        ...(dialectName === 'cockroachdb' && { id: 1 }),
+        username: 'leia',
+      }, {
+        ...(dialectName === 'cockroachdb' && { id: 2 }),
+        username: 'luke',
+      }, {
+        ...(dialectName === 'cockroachdb' && { id: 3 }),
+        username: 'vader',
+      }]);
 
       await this.Project.bulkCreate([{
         title: 'republic',

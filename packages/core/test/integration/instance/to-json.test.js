@@ -121,6 +121,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
       });
 
+      // TODO: Find a better way for CRDB
       it('returns a response that can be stringified', async function () {
         const user = await this.User.create({
           username: 'test.user',
@@ -129,6 +130,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           isUser: false,
           level: null,
         });
+
+        console.log(JSON.stringify(user), user.get('id'));
 
         if (dialectName === 'cockroachdb') {
           expect(JSON.stringify(user)).to.deep.equal(`{"id":"${user.get('id')}","username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`);
@@ -185,6 +188,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           isUser: false,
         });
 
+        // TODO: Find a better way for CRDB
         const user = await this.User.findByPk(user0.get('id'));
         if (dialectName === 'cockroachdb') {
           expect(JSON.stringify(user)).to.deep.equal(`{"id":"${user.get('id')}","username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);

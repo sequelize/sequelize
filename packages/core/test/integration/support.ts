@@ -245,8 +245,10 @@ export async function clearDatabase(customSequelize: Sequelize = sequelize) {
 
 afterEach('no running queries checker', () => {
   if (runningQueries.size > 0) {
-    throw new Error(`Expected 0 queries running after this test, but there are still ${runningQueries.size
-    } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${[...runningQueries].map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`).join('\n')
+    throw new Error(`Expected 0 queries running after this test, but there are still ${
+      runningQueries.size
+    } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${
+      [...runningQueries].map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`).join('\n')
     }`);
   }
 });
@@ -259,7 +261,6 @@ export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
   }
 
   const schemas = await customSequelize.showAllSchemas();
-
   const schemasPromise = [];
   for (const schema of schemas) {
     // @ts-expect-error -- TODO: type return value of "showAllSchemas"

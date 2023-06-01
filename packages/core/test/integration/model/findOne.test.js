@@ -56,8 +56,8 @@ describe('Model.findOne', () => {
         await t.rollback();
       });
 
-      // Disabled in sqlite because it only supports one connection at a time
-      if (!['sqlite', 'cockroachdb'].includes(dialectName)) {
+      // Disabled in sqlitea and cockroachdb because it only supports one connection at a time
+      if (dialectName !== 'sqlite') {
         it('supports concurrent transactions', async function () {
           this.timeout(90_000);
           const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
@@ -71,13 +71,15 @@ describe('Model.findOne', () => {
               transaction: t0,
             });
 
-            const users0 = await User.findAll({
-              where: {
-                username: 'foo',
-              },
-            });
+            if (dialectName !== 'cockroachdb') {
+              const users0 = await User.findAll({
+                where: {
+                  username: 'foo',
+                },
+              });
 
-            expect(users0).to.have.length(0);
+              expect(users0).to.have.length(0);
+            }
 
             const users = await User.findAll({
               where: {

@@ -29,17 +29,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await current.sync({ force: true });
 
         // Create an enviroment
-        if (dialectName === 'cockroachdb') {
-          await Post.bulkCreate([
-            { id: 1, name: 'post-1' },
-            { id: 2, name: 'post-2' },
-          ]);
-        } else {
-          await Post.bulkCreate([
-            { name: 'post-1' },
-            { name: 'post-2' },
-          ]);
-        }
+        await Post.bulkCreate([
+          { name: 'post-1', ...(dialectName === 'cockroachdb' && { id: 1 }) },
+          { name: 'post-2', ...(dialectName === 'cockroachdb' && { id: 2 }) },
+        ]);
 
         await Comment.bulkCreate([
           { text: 'Market', PostId: 1 },

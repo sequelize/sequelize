@@ -154,7 +154,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(result[0].name).to.equal('charlie');
     });
 
-    // TODO: Solve this for CRDB
     it('supports 2 levels of required many-to-many associations', async function () {
       await this.sequelize.sync({ force: true });
 
@@ -189,7 +188,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(result[0].name).to.equal('charlie');
     });
 
-    // TODO: Solve this for CRDB
     it('supports 2 levels of required many-to-many associations with where clause', async function () {
       await this.sequelize.sync({ force: true });
 
@@ -267,7 +265,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(result[0].name).to.equal('charlie');
     });
 
-    // TODO: Solve this for CRDB
     it('supports 3 levels of required many-to-many associations with where clause', async function () {
       await this.sequelize.sync({ force: true });
 

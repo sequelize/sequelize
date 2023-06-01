@@ -469,6 +469,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(secondInstance).to.be.ok;
 
           expect(firstInstance.id).to.equal(secondInstance.id);
+
+          await transaction.commit();
         });
       }
 
@@ -592,7 +594,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(firstInstance.id).to.equal(secondInstance.id);
       });
     });
-    // }
   });
 
   // TODO: move to own suite
@@ -621,7 +622,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (current.dialect.supports.transactions) {
         it('should work with multiple concurrent calls within a transaction', async function () {
-          let instanceId = 1;
+          let instanceId;
           const t = await this.customSequelize.startUnmanagedTransaction();
           const [
             [instance1, created1],
@@ -641,9 +642,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           // All instances are the same
-          expect(instance1.id).to.equal(instanceId);
-          expect(instance2.id).to.equal(instanceId);
-          expect(instance3.id).to.equal(instanceId);
+          expect(instance1.id).to.equal(dialectName === 'cockroachdb' ? instanceId : 1);
+          expect(instance2.id).to.equal(dialectName === 'cockroachdb' ? instanceId : 1);
+          expect(instance3.id).to.equal(dialectName === 'cockroachdb' ? instanceId : 1);
           // Only one of the createdN values is true
           expect(Boolean(created1 ^ created2 ^ created3)).to.be.true;
         });
@@ -864,7 +865,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await User.sync({ force: true });
           const user = await User.create({}, { returning: true });
-
           expect(user.get('id')).to.be.ok;
 
           // This test expects the ID to be 1 but in CockroachDB uses UUIDv4 to generate IDs.
@@ -899,8 +899,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const type = ['mysql', 'mariadb'].includes(dialectName) ? 'signed' : 'integer';
       const bindParam = ['postgres', 'cockroachdb'].includes(dialectName) ? '$1'
         : dialectName === 'sqlite' ? '$sequelize_1'
-          : dialectName === 'mssql' ? '@sequelize_1'
-            : '?';
+        : dialectName === 'mssql' ? '@sequelize_1'
+        : '?';
       let match = false;
 
       const user = await this.User.create({
@@ -1015,7 +1015,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await userWithDefaults.create({});
         const user0 = await userWithDefaults.findByPk(user.id);
         const now = new Date();
-        const pad = number => number.toString().padStart(2, '0');
+        const pad = number =>  number.toString().padStart(2, '0');
 
         expect(user0.year).to.equal(`${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`);
 

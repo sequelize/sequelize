@@ -271,8 +271,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           tableName: 'table',
         });
 
-        const noOfIndexes = dialectName === 'cockroachdb' ? 2 : 1;
-        expect(indexes.length).to.eq(noOfIndexes);
+        expect(indexes.length).to.eq(dialectName === 'cockroachdb' ? 2 : 1);
         expect(indexes[0].name).to.eq('table_name_is_admin');
       });
     }
@@ -551,8 +550,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       } else if (['mysql', 'mariadb', 'mssql'].includes(dialectName)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else if (dialectName === 'cockroachdb') {
-        // Reason: For some reason one foreign key object doesn't have a property 'on_update: cascade'
-        // but the foreign keys are created correctly
         expect(Object.keys(foreignKeys[0])).to.have.length(6);
         expect(Object.keys(foreignKeys[1])).to.have.length(7);
         expect(Object.keys(foreignKeys[2])).to.have.length(6);
@@ -684,9 +681,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    describe('primary key', () => {
-      // CockroachDB doesn't support removing the primary key outside of a transaction
-      if (dialectName !== 'cockroachdb') {
+    // CockroachDB doesn't support removing the primary key outside of a transaction
+    if (dialectName !== 'cockroachdb') {
+      describe('primary key', () => {
         it('should add, read & remove primary key constraint', async function () {
           await this.queryInterface.removeColumn('users', 'id');
           await this.queryInterface.changeColumn('users', 'username', {
@@ -743,11 +740,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             tableName: tableName.tableName,
           }]);
         });
-      }
-    });
+      });
 
-    // CockroachDB doesn't support removing the primary key outside of a transaction
-    if (dialectName !== 'cockroachdb') {
       describe('foreign key', () => {
         it('should add, read & remove foreign key constraint', async function () {
           await this.queryInterface.removeColumn('users', 'id');
