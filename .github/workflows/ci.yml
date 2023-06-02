@@ -27,11 +27,11 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: yarn
       - name: Install dependencies and build sequelize
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
       - name: Build sequelize
         run: yarn build
       - name: Compress artifact
-        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/node_modules ./packages/core/types ./packages/validator-js/lib ./packages/validator-js/node_modules ./packages/validator-js/types ./node_modules
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/types ./packages/validator-js/lib ./packages/validator-js/types ./node_modules
       - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -128,7 +128,7 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-18.tar
       - name: Install TypeScript
-        run: yarn add typescript@~${{ matrix.ts-version }} -W
+        run: yarn add typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
         run: yarn workspace @sequelize/core test-typings
   test-sqlite:
@@ -180,7 +180,8 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install pg-native
-        run: yarn workspace @sequelize/core add pg-native --ignore-engines
+        run: yarn workspace @sequelize/core add pg-native
+        if: matrix.native
       - run: yarn start-postgres-${{ matrix.postgres-version }}
       - name: Integration Tests
         run: yarn workspace @sequelize/core test-integration
