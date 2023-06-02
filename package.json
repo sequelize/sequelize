@@ -67,7 +67,7 @@
     "typedoc-plugin-missing-exports": "2.0.0",
     "typescript": "5.0.4"
   },
-  "packageManager": "yarn@3.5.1",
+  "packageManager": "yarn@3.6.0",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
   }
