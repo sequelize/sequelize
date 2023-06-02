@@ -164,7 +164,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       await expect(vars.User.create({
         geometry: {
-          // @ts-expect-error -- wrong type in coordinate causes cascading type error
+          // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 4.0
+          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+          // @ts-ignore -- Up to TypeScript 4.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
           type: 'Point',
           // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
           coordinates: [39.807_222, '\'); DELETE YOLO INJECTIONS; --'],
@@ -219,7 +221,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       await expect(vars.User.create({
         geometry: {
-          // @ts-expect-error -- wrong type in coordinate causes cascading type error
+          // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 4.0
+          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+          // @ts-ignore -- Up to TypeScript 4.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
           type: 'LineString',
           // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
           coordinates: [[39.807_222, '\'); DELETE YOLO INJECTIONS; --'], [0, 0]],
@@ -295,13 +299,17 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       await expect(vars.User.create({
         geometry: {
-          // @ts-expect-error -- wrong type in coordinate causes cascading type error
+          // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 4.0
+          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+          // @ts-ignore -- Up to TypeScript 4.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
           type: 'Polygon',
           coordinates: [
             [
               // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
               [39.807_222, '\'); DELETE YOLO INJECTIONS; --'],
-              // @ts-expect-error -- wrong type in coordinate causes cascading type error
+              // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 4.0
+              // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+              // @ts-ignore -- Up to TypeScript 4.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
               [0, 0],
             ],
           ],
@@ -375,12 +383,16 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       await expect(vars.User.create({
         geometry: {
-          // @ts-expect-error -- wrong type in coordinate causes cascading type error
+          // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 4.0
+          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+          // @ts-ignore -- Up to TypeScript 4.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
           type: 'MultiPoint',
           coordinates: [
             // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
             [100, '\'); DELETE YOLO INJECTIONS; --'],
-            // @ts-expect-error -- wrong type in coordinate causes cascading type error
+            // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 4.0
+            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+            // @ts-ignore -- Up to TypeScript 4.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
             [0, 0],
           ],
         },
@@ -453,12 +465,16 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       await expect(vars.User.create({
         geometry: {
-          // @ts-expect-error -- wrong type in coordinate causes cascading type error
+          // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 4.0
+          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+          // @ts-ignore -- Up to TypeScript 4.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
           type: 'MultiLineString',
           coordinates: [
             // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
             [[100, '\'); DELETE YOLO INJECTIONS; --'], [101, 1]],
-            // @ts-expect-error -- wrong type in coordinate causes cascading type error
+            // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 4.0
+            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+            // @ts-ignore -- Up to TypeScript 4.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
             [[102, 2], [103, 3]],
           ],
         },
