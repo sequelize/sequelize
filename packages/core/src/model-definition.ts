@@ -204,7 +204,6 @@ export class ModelDefinition {
           freezeTableName: false,
           underscored: false,
           paranoid: false,
-          rejectOnEmpty: false,
           schema: '',
           schemaDelimiter: '',
           defaultScope: {},
@@ -244,8 +243,8 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
 
     if (!this.options.tableName) {
       this.options.tableName = this.options.freezeTableName
-        ? this.modelName
-        : underscoredIf(pluralize(this.modelName), this.underscored);
+        ? this.options.name.plural
+        : underscoredIf(this.options.name.plural, this.underscored);
     }
 
     this.#table = Object.freeze(this.sequelize.queryInterface.queryGenerator.extractTableDetails(removeUndefined({

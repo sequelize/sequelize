@@ -33,6 +33,7 @@ import type {
   Nullish,
   OmitConstructors,
   RequiredBy,
+  StrictRequiredBy,
 } from './utils/types.js';
 import type { LOCK, Op, TableHints, Transaction, WhereOptions } from './index';
 
@@ -1820,11 +1821,10 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
 /**
  * Options for model definition.
  *
- * Used by {@link Sequelize.define}, {@link Model.init}, and the Table decorator.
+ * Used by {@link Sequelize.define}, {@link Model.init}, and the {@link Table} decorator.
  *
  * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
  */
-// TODO: Link to Table decorator once it's possible to have multiple entry points in the docs: https://github.com/TypeStrong/typedoc/issues/2138
 export interface ModelOptions<M extends Model = Model> {
   /**
    * Define the default search scope to use for this model. Scopes have the same form as the options passed to
@@ -1832,7 +1832,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
    */
-  defaultScope?: FindOptions<Attributes<M>>;
+  defaultScope?: FindOptions<Attributes<M>> | undefined;
 
   /**
    * More scopes, defined in the same way as {@link ModelOptions.defaultScope} above.
@@ -1840,14 +1840,14 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
    */
-  scopes?: ModelScopeOptions<Attributes<M>>;
+  scopes?: ModelScopeOptions<Attributes<M>> | undefined;
 
   /**
    * Don't persist null values. This means that all columns with null values will not be saved.
    *
    * @default false
    */
-  omitNull?: boolean;
+  omitNull?: boolean | undefined;
 
   /**
    * Sequelize will automatically add a primary key called `id` if no
@@ -1857,14 +1857,14 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @default false
    */
-  noPrimaryKey?: boolean;
+  noPrimaryKey?: boolean | undefined;
 
   /**
    * Adds createdAt and updatedAt timestamps to the model.
    *
    * @default true
    */
-  timestamps?: boolean;
+  timestamps?: boolean | undefined;
 
   /**
    * If true, calling {@link Model.destroy} will not delete the model, but will instead set a `deletedAt` timestamp.
@@ -1874,7 +1874,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @default false
    */
-  paranoid?: boolean;
+  paranoid?: boolean | undefined;
 
   /**
    * If true, Sequelize will snake_case the name of columns that do not have an explicit value set (using {@link AttributeOptions.field}).
@@ -1882,14 +1882,14 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @default false
    */
-  underscored?: boolean;
+  underscored?: boolean | undefined;
 
   /**
    * Indicates if the model's table has a trigger associated with it.
    *
    * @default false
    */
-  hasTrigger?: boolean;
+  hasTrigger?: boolean | undefined;
 
   /**
    * If true, sequelize will use the name of the Model as-is as the name of the SQL table.
@@ -1899,26 +1899,30 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @default false
    */
-  freezeTableName?: boolean;
+  freezeTableName?: boolean | undefined;
 
   // TODO: merge with modelName
   /**
    * An object with two attributes, `singular` and `plural`, which are used when this model is associated to others.
+   *
+   * Not inherited.
    */
-  name?: ModelNameOptions;
+  name?: ModelNameOptions | undefined;
 
   /**
    * The name of the model.
    *
    * If not set, the name of the class will be used instead.
    * You should specify this option if you are going to minify your code in a way that may mangle the class name.
+   *
+   * Not inherited.
    */
-  modelName?: string;
+  modelName?: string | undefined;
 
   /**
    * Indexes for the provided database table
    */
-  indexes?: readonly IndexOptions[];
+  indexes?: readonly IndexOptions[] | undefined;
 
   /**
    * Override the name of the createdAt attribute if a string is provided, or disable it if false.
@@ -1926,7 +1930,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * Not affected by underscored setting.
    */
-  createdAt?: string | boolean;
+  createdAt?: string | boolean | undefined;
 
   /**
    * Override the name of the deletedAt attribute if a string is provided, or disable it if false.
@@ -1935,7 +1939,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * Not affected by underscored setting.
    */
-  deletedAt?: string | boolean;
+  deletedAt?: string | boolean | undefined;
 
   /**
    * Override the name of the updatedAt attribute if a string is provided, or disable it if false.
@@ -1943,7 +1947,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * Not affected by underscored setting.
    */
-  updatedAt?: string | boolean;
+  updatedAt?: string | boolean | undefined;
 
   /**
    * The name of the table in SQL.
@@ -1951,44 +1955,46 @@ export interface ModelOptions<M extends Model = Model> {
    * @default The {@link ModelOptions.modelName}, pluralized,
    *  unless freezeTableName is true, in which case it uses model name
    *  verbatim.
+   *
+   * Not inherited.
    */
-  tableName?: string;
+  tableName?: string | undefined;
 
   // TODO: merge these two together into one using SchemaOptions, or replace with tableName: TableNameWithSchema
   /**
    * The database schema in which this table will be located.
    */
-  schema?: string;
-  schemaDelimiter?: string;
+  schema?: string | undefined;
+  schemaDelimiter?: string | undefined;
 
   /**
    * The name of the database storage engine to use (e.g. MyISAM, InnoDB).
    *
    * MySQL, MariaDB only.
    */
-  engine?: string;
+  engine?: string | undefined;
 
   /**
    * The charset to use for the model
    */
-  charset?: string;
+  charset?: string | undefined;
 
   /**
    * A comment for the table.
    *
    * MySQL, PG only.
    */
-  comment?: string;
+  comment?: string | undefined;
 
   /**
    * The collation for model's table
    */
-  collate?: string;
+  collate?: string | undefined;
 
   /**
    * Set the initial AUTO_INCREMENT value for the table in MySQL.
    */
-  initialAutoIncrement?: string;
+  initialAutoIncrement?: string | undefined;
 
   /**
    * Add hooks to the model.
@@ -2004,7 +2010,7 @@ export interface ModelOptions<M extends Model = Model> {
       | ModelHooks<M, Attributes<M>>[Key]
       | { name: string | symbol, callback: ModelHooks<M, Attributes<M>>[Key] }
     >
-  };
+  } | undefined;
 
   /**
    * An object of model wide validations. Validations have access to all model values via `this`. If the
@@ -2016,7 +2022,7 @@ export interface ModelOptions<M extends Model = Model> {
      * Custom validation functions run on all instances of the model.
      */
     [name: string]: (value: unknown) => boolean,
-  };
+  } | undefined;
 
   /**
    * Enable optimistic locking.
@@ -2027,7 +2033,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @default false
    */
-  version?: boolean | string;
+  version?: boolean | string | undefined;
 }
 
 /**
@@ -2041,9 +2047,9 @@ export interface InitOptions<M extends Model = Model> extends ModelOptions<M> {
 }
 
 export type BuiltModelName = Required<ModelNameOptions>;
-export type BuiltModelOptions<M extends Model = Model> = Omit<RequiredBy<InitOptions<M>, 'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'>, 'name'> & {
-  name: BuiltModelName,
-};
+export type BuiltModelOptions<M extends Model = Model> =
+  & Omit<StrictRequiredBy<InitOptions<M>, 'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'>, 'name'>
+  & { name: BuiltModelName };
 
 /**
  * AddScope Options for Model.addScope

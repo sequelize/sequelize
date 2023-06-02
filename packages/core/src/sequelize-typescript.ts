@@ -244,15 +244,13 @@ export abstract class SequelizeTypeScript {
   }
 
   addModels(models: ModelStatic[]) {
-    for (const model of models) {
-      initDecoratedModel(
-        model,
-        // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
-        this,
-      );
-    }
+    const registeredModels = models.filter(model => initDecoratedModel(
+      model,
+      // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
+      this,
+    ));
 
-    for (const model of models) {
+    for (const model of registeredModels) {
       initDecoratedAssociations(
         model,
         // @ts-expect-error -- remove once this class has been merged back with the Sequelize class

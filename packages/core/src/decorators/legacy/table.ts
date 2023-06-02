@@ -1,4 +1,5 @@
 import type { Model, ModelOptions, ModelStatic } from '../../model.js';
+import type { RegisterModelOptions } from '../shared/model.js';
 import { registerModelOptions } from '../shared/model.js';
 
 /**
@@ -27,9 +28,34 @@ export function Table(arg: any): undefined | ClassDecorator {
 
   const options: ModelOptions = { ...arg };
 
+  // @ts-expect-error -- making sure the option is not provided.
+  if (options.abstract) {
+    throw new Error('`abstract` is not a valid option for @Table. Did you mean to use @Table.Abstract?');
+  }
+
   return (target: any) => annotate(target, options);
 }
 
-function annotate(target: ModelStatic, options: ModelOptions = {}): void {
+function AbstractTable<M extends Model = Model>(options: Omit<ModelOptions<M>, 'tableName' | 'name'>): ClassDecorator;
+function AbstractTable(target: ModelStatic): void;
+function AbstractTable(arg: any): undefined | ClassDecorator {
+  if (typeof arg === 'function') {
+    annotate(arg, { abstract: true });
+
+    return undefined;
+  }
+
+  const options: ModelOptions = { ...arg, abstract: true };
+
+  if (options.tableName || options.name) {
+    throw new Error('Options "tableName" and "name" cannot be set on abstract models.');
+  }
+
+  return (target: any) => annotate(target, options);
+}
+
+Table.Abstract = AbstractTable;
+
+function annotate(target: ModelStatic, options: RegisterModelOptions = {}): void {
   registerModelOptions(target, options);
 }

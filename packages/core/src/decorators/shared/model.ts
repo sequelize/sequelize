@@ -3,10 +3,19 @@ import { mergeModelOptions } from '../../model-definition.js';
 import { initModel } from '../../model-typescript.js';
 import type { AttributeOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
-import { getAllOwnEntries } from '../../utils/object.js';
+import { isModelStatic } from '../../utils/model-utils.js';
+import { EMPTY_OBJECT, cloneDeep, getAllOwnEntries } from '../../utils/object.js';
+
+export interface RegisterModelOptions extends ModelOptions {
+  /**
+   * Abstract models cannot be used directly, or registered.
+   * They exist only to be extended by other models.
+   */
+  abstract?: boolean;
+}
 
 interface RegisteredOptions {
-  model: ModelOptions;
+  model: RegisterModelOptions;
   attributes: { [key: string]: Partial<AttributeOptions> };
 }
 
@@ -22,7 +31,7 @@ const registeredOptions = new WeakMap<ModelStatic, RegisteredOptions>();
  */
 export function registerModelOptions(
   model: ModelStatic,
-  options: ModelOptions,
+  options: RegisterModelOptions,
 ): void {
   if (!registeredOptions.has(model)) {
     registeredOptions.set(model, { model: options, attributes: {} });
@@ -122,13 +131,56 @@ export function registerModelAttributeOptions(
   }
 }
 
-export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): void {
-  const { model: modelOptions, attributes: attributeOptions = {} } = registeredOptions.get(model) ?? {};
+export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): boolean {
+  const {
+    model: { abstract } = EMPTY_OBJECT,
+    attributes: attributeOptions = EMPTY_OBJECT,
+  } = registeredOptions.get(model) ?? EMPTY_OBJECT;
+
+  if (abstract) {
+    return false;
+  }
+
+  const modelOptions = getRegisteredModelOptions(model);
 
   initModel(model, attributeOptions as ModelAttributes, {
     ...modelOptions,
     sequelize,
   });
+
+  return true;
+}
+
+const NON_INHERITABLE_MODEL_OPTIONS = [
+  'modelName',
+  'name',
+  'tableName',
+] as const;
+
+function getRegisteredModelOptions(model: ModelStatic): ModelOptions {
+  const {
+    model: modelOptions = EMPTY_OBJECT,
+  } = registeredOptions.get(model) ?? EMPTY_OBJECT;
+
+  const parentModel = Object.getPrototypeOf(model);
+  if (isModelStatic(parentModel)) {
+    const parentModelOptions: ModelOptions = { ...getRegisteredModelOptions(parentModel) };
+
+    for (const nonInheritableOption of NON_INHERITABLE_MODEL_OPTIONS) {
+      delete parentModelOptions[nonInheritableOption];
+    }
+
+    // options that must be cloned
+    parentModelOptions.indexes = cloneDeep(parentModelOptions.indexes);
+    parentModelOptions.defaultScope = cloneDeep(parentModelOptions.defaultScope);
+    parentModelOptions.scopes = cloneDeep(parentModelOptions.scopes);
+    parentModelOptions.validate = cloneDeep(parentModelOptions.validate);
+    parentModelOptions.hooks = cloneDeep(parentModelOptions.hooks);
+
+    return mergeModelOptions(parentModelOptions, modelOptions, true);
+  }
+
+  return modelOptions;
 }
 
 export function isDecoratedModel(model: ModelStatic): boolean {
