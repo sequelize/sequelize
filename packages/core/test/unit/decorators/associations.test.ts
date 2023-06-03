@@ -115,7 +115,7 @@ describe('@BelongsTo', () => {
       declare dummy?: NonAttribute<DummyModel>;
     }
 
-    expect(() => sequelize.addModels([User, DummyModel])).to.throw(`Association cannot be redeclared: Association "dummy" was declared on both "User" and "BaseUser".`);
+    expect(() => sequelize.addModels([User, DummyModel])).to.throw(`You have defined two associations with the same name "dummy" on the model "User"`);
   });
 });
 

@@ -281,13 +281,13 @@ export class BelongsTo<
    * @param instances source instances
    * @param options find options
    */
-  async get(instances: S, options: BelongsToGetAssociationMixinOptions<T>): Promise<T | null>;
-  async get(instances: S[], options: BelongsToGetAssociationMixinOptions<T>): Promise<Map<any, T | null>>;
+  async get(instances: S, options?: BelongsToGetAssociationMixinOptions<T>): Promise<T | null>;
+  async get(instances: S[], options?: BelongsToGetAssociationMixinOptions<T>): Promise<Map<any, T | null>>;
   async get(
     instances: S | S[],
-    options: BelongsToGetAssociationMixinOptions<T>,
+    options?: BelongsToGetAssociationMixinOptions<T>,
   ): Promise<Map<any, T | null> | T | null> {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     let Target = this.target;
     if (options.scope != null) {

@@ -256,7 +256,7 @@ describe(`@Table legacy decorator`, () => {
     // make sure options are inherited
     expect(inheritedOptions).to.deep.equal({
       // not inherited
-      tableName: 'InheritedUsers',
+      tableName: 'InheritedUser',
       name: {
         plural: 'InheritedUsers',
         singular: 'InheritedUser',

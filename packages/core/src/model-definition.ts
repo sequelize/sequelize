@@ -244,7 +244,7 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
 
     if (!this.options.tableName) {
       this.options.tableName = this.options.freezeTableName
-        ? this.options.name.plural
+        ? this.modelName
         : underscoredIf(this.options.name.plural, this.underscored);
     }
 

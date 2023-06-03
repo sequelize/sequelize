@@ -1765,7 +1765,7 @@ export interface AttributeOptions<M extends Model = Model> {
    * Provide a custom setter for this column.
    * Use {@link Model.setDataValue} to access the underlying values.
    */
-  set?: ((this: M, val: unknown) => void) | undefined;
+  set?: ((this: M, val: any) => void) | undefined;
 
   /**
    * This attribute is added by sequelize. Do not use!
