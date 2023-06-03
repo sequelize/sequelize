@@ -1,5 +1,5 @@
 import type { Model, ModelOptions, ModelStatic } from '../../model.js';
-import type { RegisterModelOptions } from '../shared/model.js';
+import type { RegisteredModelOptions } from '../shared/model.js';
 import { registerModelOptions } from '../shared/model.js';
 
 /**
@@ -56,6 +56,6 @@ function AbstractTable(arg: any): undefined | ClassDecorator {
 
 Table.Abstract = AbstractTable;
 
-function annotate(target: ModelStatic, options: RegisterModelOptions = {}): void {
+function annotate(target: ModelStatic, options: RegisteredModelOptions = {}): void {
   registerModelOptions(target, options);
 }

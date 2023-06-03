@@ -1,3 +1,4 @@
+import { cloneDataType } from '../../dialects/abstract/data-types-utils.js';
 import { BaseError } from '../../errors/base-error.js';
 import { mergeModelOptions } from '../../model-definition.js';
 import { initModel } from '../../model-typescript.js';
@@ -6,7 +7,7 @@ import type { Sequelize } from '../../sequelize.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT, cloneDeep, getAllOwnEntries } from '../../utils/object.js';
 
-export interface RegisterModelOptions extends ModelOptions {
+export interface RegisteredModelOptions extends ModelOptions {
   /**
    * Abstract models cannot be used directly, or registered.
    * They exist only to be extended by other models.
@@ -14,9 +15,13 @@ export interface RegisterModelOptions extends ModelOptions {
   abstract?: boolean;
 }
 
+export interface RegisteredAttributeOptions {
+  [key: string]: Partial<AttributeOptions>;
+}
+
 interface RegisteredOptions {
-  model: RegisterModelOptions;
-  attributes: { [key: string]: Partial<AttributeOptions> };
+  model: RegisteredModelOptions;
+  attributes: RegisteredAttributeOptions;
 }
 
 const registeredOptions = new WeakMap<ModelStatic, RegisteredOptions>();
@@ -31,7 +36,7 @@ const registeredOptions = new WeakMap<ModelStatic, RegisteredOptions>();
  */
 export function registerModelOptions(
   model: ModelStatic,
-  options: RegisterModelOptions,
+  options: RegisteredModelOptions,
 ): void {
   if (!registeredOptions.has(model)) {
     registeredOptions.set(model, { model: options, attributes: {} });
@@ -82,6 +87,16 @@ export function registerModelAttributeOptions(
 
   const existingOptions = existingAttributesOptions[attributeName]!;
 
+  mergeAttributeOptions(attributeName, model, existingOptions, options, false);
+}
+
+export function mergeAttributeOptions(
+  attributeName: string,
+  model: ModelStatic,
+  existingOptions: Partial<AttributeOptions>,
+  options: Partial<AttributeOptions>,
+  overrideOnConflict: boolean,
+): Partial<AttributeOptions> {
   for (const [optionName, optionValue] of Object.entries(options)) {
     if (!(optionName in existingOptions)) {
       // @ts-expect-error -- runtime type checking is enforced by model
@@ -93,7 +108,7 @@ export function registerModelAttributeOptions(
     if (optionName === 'validate') {
       // @ts-expect-error -- dynamic type, not worth typing
       for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
-        if (subOptionName in existingOptions[optionName]!) {
+        if ((subOptionName in existingOptions[optionName]!) && !overrideOnConflict) {
           throw new Error(`Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] of attribute ${attributeName} on model ${model.name}.`);
         }
 
@@ -123,25 +138,25 @@ export function registerModelAttributeOptions(
     }
 
     // @ts-expect-error -- dynamic type, not worth typing
-    if (optionValue === existingOptions[optionName]) {
+    if (optionValue === existingOptions[optionName] || overrideOnConflict) {
       continue;
     }
 
     throw new Error(`Multiple decorators are attempting to set different values for the option ${optionName} of attribute ${attributeName} on model ${model.name}.`);
   }
+
+  return existingOptions;
 }
 
 export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): boolean {
-  const {
-    model: { abstract } = EMPTY_OBJECT,
-    attributes: attributeOptions = EMPTY_OBJECT,
-  } = registeredOptions.get(model) ?? EMPTY_OBJECT;
+  const isAbstract = registeredOptions.get(model)?.model.abstract;
 
-  if (abstract) {
+  if (isAbstract) {
     return false;
   }
 
   const modelOptions = getRegisteredModelOptions(model);
+  const attributeOptions = getRegisteredAttributeOptions(model);
 
   initModel(model, attributeOptions as ModelAttributes, {
     ...modelOptions,
@@ -158,9 +173,7 @@ const NON_INHERITABLE_MODEL_OPTIONS = [
 ] as const;
 
 function getRegisteredModelOptions(model: ModelStatic): ModelOptions {
-  const {
-    model: modelOptions = EMPTY_OBJECT,
-  } = registeredOptions.get(model) ?? EMPTY_OBJECT;
+  const modelOptions = (registeredOptions.get(model)?.model ?? (EMPTY_OBJECT as ModelOptions));
 
   const parentModel = Object.getPrototypeOf(model);
   if (isModelStatic(parentModel)) {
@@ -181,6 +194,50 @@ function getRegisteredModelOptions(model: ModelStatic): ModelOptions {
   }
 
   return modelOptions;
+}
+
+function getRegisteredAttributeOptions(model: ModelStatic): RegisteredAttributeOptions {
+  const descendantAttributes = {
+    ...(registeredOptions.get(model)?.attributes ?? (EMPTY_OBJECT as RegisteredAttributeOptions)),
+  };
+
+  const parentModel = Object.getPrototypeOf(model);
+  if (isModelStatic(parentModel)) {
+    const parentAttributes: RegisteredAttributeOptions = getRegisteredAttributeOptions(parentModel);
+
+    for (const attributeName of Object.keys(parentAttributes)) {
+      const descendantAttribute = descendantAttributes[attributeName];
+      const parentAttribute = { ...parentAttributes[attributeName] };
+
+      if (parentAttribute.type) {
+        if (typeof parentAttribute.type === 'function') {
+          parentAttribute.type = new parentAttribute.type();
+        } else {
+          parentAttribute.type = cloneDataType(parentAttribute.type);
+        }
+      }
+
+      // options that must be cloned
+      parentAttribute.unique = cloneDeep(parentAttribute.unique);
+      parentAttribute.index = cloneDeep(parentAttribute.index);
+      parentAttribute.references = cloneDeep(parentAttribute.references);
+      parentAttribute.validate = cloneDeep(parentAttribute.validate);
+
+      if (!descendantAttribute) {
+        descendantAttributes[attributeName] = parentAttribute;
+      } else {
+        descendantAttributes[attributeName] = mergeAttributeOptions(
+          attributeName,
+          model,
+          parentAttribute,
+          descendantAttribute,
+          true,
+        );
+      }
+    }
+  }
+
+  return descendantAttributes;
 }
 
 export function isDecoratedModel(model: ModelStatic): boolean {

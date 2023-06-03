@@ -35,7 +35,7 @@ export interface SequelizeHooks extends ModelHooks {
   /**
    * A hook that is run at the start of {@link Sequelize#define} and {@link Model.init}
    */
-  beforeDefine(attributes: ModelAttributes, options: ModelOptions): void;
+  beforeDefine(attributes: ModelAttributes<any>, options: ModelOptions): void;
 
   /**
    * A hook that is run at the end of {@link Sequelize#define} and {@link Model.init}

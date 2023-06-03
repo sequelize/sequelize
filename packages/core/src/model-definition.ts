@@ -15,6 +15,7 @@ import type {
   AttributeOptions,
   BuiltModelOptions,
   InitOptions,
+  Model,
   ModelAttributes,
   ModelOptions,
   ModelStatic,
@@ -44,7 +45,7 @@ export interface TimestampAttributes {
  *
  * There is only one ModelDefinition instance per model per sequelize instance.
  */
-export class ModelDefinition {
+export class ModelDefinition<M extends Model = Model> {
   readonly #sequelize: Sequelize;
   readonly options: BuiltModelOptions;
   readonly #table: TableNameWithSchema;
@@ -58,7 +59,7 @@ export class ModelDefinition {
    * The list of attributes that have *not* been normalized.
    * This list can be mutated. Call {@link refreshAttributes} to update the normalized attributes ({@link attributes)}.
    */
-  readonly rawAttributes: { [attributeName: string]: AttributeOptions };
+  readonly rawAttributes: { [attributeName: string]: AttributeOptions<M> };
 
   readonly #attributes = new Map</* attribute name */ string, NormalizedAttributeOptions>();
 
@@ -160,7 +161,7 @@ export class ModelDefinition {
   /**
    * @deprecated Temporary property to be able to use elements that have not migrated to ModelDefinition yet.
    */
-  readonly #model: ModelStatic;
+  readonly #model: ModelStatic<M>;
 
   get modelName(): string {
     return this.options.modelName;
@@ -179,7 +180,7 @@ export class ModelDefinition {
     return staticModelHooks.getFor(this);
   }
 
-  constructor(attributesOptions: ModelAttributes, modelOptions: InitOptions, model: ModelStatic) {
+  constructor(attributesOptions: ModelAttributes<M>, modelOptions: InitOptions<M>, model: ModelStatic<M>) {
     if (!modelOptions.sequelize) {
       throw new Error('new ModelDefinition() expects a Sequelize instance to be passed through the option bag, which is the second parameter.');
     }
@@ -261,14 +262,14 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     }
 
     // attributes that will be added at the start of this.rawAttributes (id)
-    const rawAttributes: { [attributeName: string]: AttributeOptions } = Object.create(null);
+    const rawAttributes: { [attributeName: string]: AttributeOptions<M> } = Object.create(null);
 
     for (const [attributeName, rawAttributeOrDataType] of getAllOwnEntries(attributesOptions)) {
       if (typeof attributeName === 'symbol') {
         throw new TypeError('Symbol attributes are not supported');
       }
 
-      let rawAttribute: AttributeOptions;
+      let rawAttribute: AttributeOptions<M>;
       try {
         rawAttribute = this.sequelize.normalizeAttribute(rawAttributeOrDataType);
       } catch (error) {
@@ -357,7 +358,7 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     }
 
     if (this.#versionAttributeName) {
-      const existingAttribute: AttributeOptions | undefined = this.rawAttributes[this.#versionAttributeName];
+      const existingAttribute: AttributeOptions<M> | undefined = this.rawAttributes[this.#versionAttributeName];
 
       if (existingAttribute?.type && !(existingAttribute.type instanceof DataTypes.INTEGER)) {
         throw new Error(`Sequelize is trying to add the version attribute ${NodeUtil.inspect(this.#versionAttributeName)} to Model ${NodeUtil.inspect(this.modelName)},
@@ -390,7 +391,7 @@ The "version" attribute is managed automatically by Sequelize, and its nullabili
   }
 
   #addTimestampAttribute(attributeName: string, allowNull: boolean) {
-    const existingAttribute: AttributeOptions | undefined = this.rawAttributes[attributeName];
+    const existingAttribute: AttributeOptions<M> | undefined = this.rawAttributes[attributeName];
 
     if (existingAttribute?.type && !(existingAttribute.type instanceof DataTypes.DATE)) {
       throw new Error(`Sequelize is trying to add the timestamp attribute ${NodeUtil.inspect(attributeName)} to Model ${NodeUtil.inspect(this.modelName)},
@@ -790,9 +791,9 @@ Specify a different name for either index to resolve this issue.`);
   }
 }
 
-const modelDefinitions = new WeakMap</* model class */ Function, ModelDefinition>();
+const modelDefinitions = new WeakMap</* model class */ Function, ModelDefinition<any>>();
 
-export function registerModelDefinition(model: ModelStatic, modelDefinition: ModelDefinition): void {
+export function registerModelDefinition<M extends Model>(model: ModelStatic<M>, modelDefinition: ModelDefinition<M>): void {
   if (modelDefinitions.has(model)) {
     throw new Error(`Model ${model.name} has already been initialized. Models can only belong to one Sequelize instance. Registering the same model with multiple Sequelize instances is not yet supported. Please see https://github.com/sequelize/sequelize/issues/15389`);
   }
@@ -819,21 +820,15 @@ export function normalizeReference(references: AttributeOptions['references']): 
   }
 
   if (typeof references === 'string') {
-    return Object.freeze({
+    return Object.freeze(banReferenceModel({
       table: references,
-      get model() {
-        throw new Error('references.model has been renamed to references.tableName in normalized references options.');
-      },
-    });
+    }));
   }
 
   if (isModelStatic(references)) {
-    return Object.freeze({
+    return Object.freeze(banReferenceModel({
       table: references.table,
-      get model() {
-        throw new Error('references.model has been renamed to references.tableName in normalized references options.');
-      },
-    });
+    }));
   }
 
   const { model, table, ...referencePassDown } = references;
@@ -850,15 +845,23 @@ export function normalizeReference(references: AttributeOptions['references']): 
   }
 
   if (model || table) {
-    return Object.freeze({
+    return Object.freeze(banReferenceModel({
 
       table: model ? model.table : table!,
       ...referencePassDown,
-      get model() {
-        throw new Error('references.model has been renamed to references.tableName in normalized references options.');
-      },
-    });
+    }));
   }
+}
+
+function banReferenceModel<T>(reference: T): T {
+  Object.defineProperty(reference, 'model', {
+    enumerable: false,
+    get() {
+      throw new Error('references.model has been renamed to references.tableName in normalized references options.');
+    },
+  });
+
+  return reference;
 }
 
 /**
