@@ -1820,7 +1820,7 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
 /**
  * Options for model definition.
  *
- * Used by {@link Sequelize.define}, {@link Model.init}, and the {@link Table} decorator.
+ * Used by {@link Sequelize.define}, {@link Model.init}, and the {@link decorators-legacy.Table} decorator.
  *
  * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
  */
