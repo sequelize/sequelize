@@ -49,7 +49,7 @@
     "@rushstack/eslint-patch": "1.3.0",
     "chai": "4.3.7",
     "esbuild": "0.17.19",
-    "eslint": "8.41.0",
+    "eslint": "8.42.0",
     "eslint-plugin-jsdoc": "41.1.2",
     "eslint-plugin-mocha": "10.1.0",
     "fast-glob": "3.2.12",
@@ -61,13 +61,13 @@
     "node-hook": "1.0.0",
     "source-map-support": "0.5.21",
     "ts-node": "10.9.1",
-    "typedoc": "0.24.7",
+    "typedoc": "0.24.8",
     "typedoc-plugin-carbon-ads": "1.4.0",
     "typedoc-plugin-mdn-links": "3.0.3",
     "typedoc-plugin-missing-exports": "2.0.0",
     "typescript": "5.1.3"
   },
-  "packageManager": "yarn@3.5.1",
+  "packageManager": "yarn@3.6.0",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
   }
