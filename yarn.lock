@@ -1596,6 +1596,7 @@ __metadata:
     chai-as-promised: 7.1.1
     lodash: ^4.17.21
     mocha: 10.2.0
+    typescript: 5.1.3
   languageName: unknown
   linkType: soft
 
