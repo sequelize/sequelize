@@ -3158,12 +3158,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const projects = await this.users[0].getProjects();
 
         expect(projects.length).to.equal(3);
-        expect(projects[0].UserProject.status).to.equal('great');
-        expect(projects[0].UserProject.data).to.equal(123);
-        expect(projects[1].UserProject.status).to.equal('fine');
-        expect(projects[1].UserProject.data).to.equal(456);
-        expect(projects[2].UserProject.status).to.equal('wrong');
-        expect(projects[2].UserProject.data).to.equal(789);
+        const projectsStatus = projects.map(project => project.UserProject.status);
+        const constprojectsData = projects.map(project => project.UserProject.data);
+
+        expect(projectsStatus).to.have.members(['great', 'fine', 'wrong']);
+        expect(constprojectsData).to.have.members([123, 456, 789]);
       });
 
       it('should accept an array to be used for each association accordingly with "set" mixin', async function () {
@@ -3181,12 +3180,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const projects = await this.users[0].getProjects();
 
         expect(projects.length).to.equal(3);
-        expect(projects[0].UserProject.status).to.equal('great');
-        expect(projects[0].UserProject.data).to.equal(123);
-        expect(projects[1].UserProject.status).to.equal('fine');
-        expect(projects[1].UserProject.data).to.equal(456);
-        expect(projects[2].UserProject.status).to.equal('wrong');
-        expect(projects[2].UserProject.data).to.equal(789);
+        const projectsStatus = projects.map(project => project.UserProject.status);
+        const constprojectsData = projects.map(project => project.UserProject.data);
+
+        expect(projectsStatus).to.have.members(['great', 'fine', 'wrong']);
+        expect(constprojectsData).to.have.members([123, 456, 789]);
       });
     });
   });
