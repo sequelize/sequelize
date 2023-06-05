@@ -688,7 +688,7 @@ Add your own primary key to the through model, on different attributes than the 
     currentThroughRows: ThroughModel[],
     newTargets: TargetModel[],
     options?:
-      & { through?: JoinTableAttributes }
+      & { through?: JoinTableAttributes | JoinTableAttributes[] }
       & BulkCreateOptions<Attributes<ThroughModel>>
       & Omit<UpdateOptions<Attributes<ThroughModel>>, 'where'>,
   ) {
@@ -699,11 +699,27 @@ Add your own primary key to the through model, on different attributes than the 
 
     const defaultAttributes = options?.through || {};
 
+    const multipleAttributes = Array.isArray(defaultAttributes);
+    const defaultAttributesArray: JoinTableAttributes[] = multipleAttributes ? defaultAttributes : [defaultAttributes];
+
+    // Check that there are the same new targets than attributes to match one to one
+    if (multipleAttributes && defaultAttributesArray.length !== newTargets.length) {
+      throw new AssociationError(`Error when adding or updating association between ${this.source.name} and ${newTargets.length} instances of ${this.target.name} when providing ${defaultAttributesArray.length} objects for the join table.
+      ${newTargets.length} and ${defaultAttributesArray.length} should be the same.
+      
+      Many to Many association join table extra attributes can be updated in bulk by passing an Array to the "through" parameter by doing this:    
+      A.setB([B1, B2], { through: [{ extraAttr: true }, { extraAttr: false }] })
+
+      If the value for the extra attributes is the same for each association pass an object instead of an Array like this:
+      A.setB([B1, B2], { through: { extraAttr: true } })
+      `);
+    }
+
     const promises: Array<Promise<any>> = [];
     const unassociatedTargets: TargetModel[] = [];
     // the 'through' table of these targets has changed
     const changedTargets: TargetModel[] = [];
-    for (const newInstance of newTargets) {
+    for (const [index, newInstance] of newTargets.entries()) {
       const existingThroughRow = currentThroughRows.find(throughRow => {
         // @ts-expect-error -- throughRow[] instead of .get because throughRows are loaded using 'raw'
         return throughRow[otherKey] === newInstance.get(targetKey);
@@ -717,7 +733,10 @@ Add your own primary key to the through model, on different attributes than the 
 
       // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
       const throughAttributes = newInstance[this.through.model.name];
-      const attributes = { ...defaultAttributes, ...throughAttributes };
+      const attributes = {
+        ...(defaultAttributesArray[multipleAttributes ? index : 0]),
+        ...throughAttributes,
+      };
 
       if (Object.keys(attributes).some(attribute => {
         // @ts-expect-error -- existingThroughRow is raw
@@ -728,10 +747,13 @@ Add your own primary key to the through model, on different attributes than the 
     }
 
     if (unassociatedTargets.length > 0) {
-      const bulk = unassociatedTargets.map(unassociatedTarget => {
+      const bulk = unassociatedTargets.map((unassociatedTarget, index) => {
         // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
         const throughAttributes = unassociatedTarget[this.through.model.name];
-        const attributes = { ...defaultAttributes, ...throughAttributes };
+        const attributes = {
+          ...(defaultAttributesArray[multipleAttributes ? index : 0]),
+          ...throughAttributes,
+        };
 
         attributes[foreignKey] = sourceInstance.get(sourceKey);
         attributes[otherKey] = unassociatedTarget.get(targetKey);
@@ -744,10 +766,13 @@ Add your own primary key to the through model, on different attributes than the 
       promises.push(this.through.model.bulkCreate(bulk, { validate: true, ...options }));
     }
 
-    for (const changedTarget of changedTargets) {
+    for (const [index, changedTarget] of changedTargets.entries()) {
       // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
       let throughAttributes = changedTarget[this.through.model.name];
-      const attributes = { ...defaultAttributes, ...throughAttributes };
+      const attributes = {
+        ...(defaultAttributesArray[multipleAttributes ? index : 0]),
+        ...throughAttributes,
+      };
       // Quick-fix for subtle bug when using existing objects that might have the through model attached (not as an attribute object)
       if (throughAttributes instanceof this.through.model) {
         throughAttributes = {};
