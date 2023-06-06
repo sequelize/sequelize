@@ -1494,7 +1494,6 @@ __metadata:
     chai: 4.3.7
     chai-as-promised: 7.1.1
     chai-datetime: 1.8.0
-    cross-env: 7.0.3
     dayjs: ^1.11.5
     debug: ^4.3.4
     delay: 5.0.0
@@ -1502,7 +1501,6 @@ __metadata:
     expect-type: 0.13.0
     fast-glob: ^3.2.12
     fs-jetpack: 5.1.0
-    husky: 8.0.3
     ibm_db: 3.2.1
     inflection: ^2.0.0
     lcov-result-merger: 4.1.0
@@ -1564,11 +1562,13 @@ __metadata:
     "@rushstack/eslint-patch": 1.3.2
     chai: 4.3.7
     concurrently: 8.2.0
+    cross-env: 7.0.3
     esbuild: 0.17.19
     eslint: 8.43.0
     eslint-plugin-jsdoc: 41.1.2
     eslint-plugin-mocha: 10.1.0
     fast-glob: 3.2.12
+    husky: 8.0.3
     lerna: 7.0.2
     lint-staged: 13.2.2
     markdownlint-cli: 0.35.0
