@@ -76,23 +76,23 @@ jobs:
       - name: ESM / CJS export equivalence
         run: yarn test-unit-esm
       - name: Unit tests (validator.js)
-        run: yarn workspace @sequelize/validator.js test-unit
+        run: yarn lerna run test-unit --scope=@sequelize/validator.js
       - name: Unit tests (mariadb)
-        run: yarn workspace @sequelize/core test-unit-mariadb
+        run: yarn lerna run test-unit-mariadb --scope=@sequelize/core
       - name: Unit tests (mysql)
-        run: yarn workspace @sequelize/core test-unit-mysql
+        run: yarn lerna run test-unit-mysql --scope=@sequelize/core
       - name: Unit tests (postgres)
-        run: yarn workspace @sequelize/core test-unit-postgres
+        run: yarn lerna run test-unit-postgres --scope=@sequelize/core
       - name: Unit tests (sqlite)
-        run: yarn workspace @sequelize/core test-unit-sqlite
+        run: yarn lerna run test-unit-sqlite --scope=@sequelize/core
       - name: Unit tests (mssql)
-        run: yarn workspace @sequelize/core test-unit-mssql
+        run: yarn lerna run test-unit-mssql --scope=@sequelize/core
       - name: Unit tests (db2)
-        run: yarn workspace @sequelize/core test-unit-db2
+        run: yarn lerna run test-unit-db2 --scope=@sequelize/core
       - name: Unit tests (ibmi)
-        run: yarn workspace @sequelize/core test-unit-ibmi
+        run: yarn lerna run test-unit-ibmi --scope=@sequelize/core
       - name: Unit tests (snowflake)
-        run: yarn workspace @sequelize/core test-unit-snowflake
+        run: yarn lerna run test-unit-snowflake --scope=@sequelize/core
   docs:
     name: Generate TypeDoc
     runs-on: ubuntu-latest
@@ -131,7 +131,7 @@ jobs:
       - name: Install TypeScript
         run: yarn add typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
-        run: yarn workspace @sequelize/core test-typings
+        run: yarn lerna run test-typings --scope=@sequelize/core
   test-sqlite:
     strategy:
       fail-fast: false
@@ -154,7 +154,7 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
+        run: yarn lerna run test-integration --scope=@sequelize/core
   test-postgres:
     strategy:
       fail-fast: false
@@ -185,7 +185,7 @@ jobs:
         if: matrix.native
       - run: yarn start-postgres-${{ matrix.postgres-version }}
       - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
+        run: yarn lerna run test-integration --scope=@sequelize/core
   test-oldest-latest:
     strategy:
       fail-fast: false
@@ -211,7 +211,7 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - run: yarn start-${{ matrix.dialect }}-${{ matrix.database-version }}
       - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
+        run: yarn lerna run test-integration --scope=@sequelize/core
   release:
     name: Release
     runs-on: ubuntu-latest
