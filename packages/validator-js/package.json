@@ -45,7 +45,6 @@
     "@types/chai-as-promised": "7.1.5",
     "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
-    "mocha": "10.2.0",
-    "typescript": "5.1.3"
+    "mocha": "10.2.0"
   }
 }
