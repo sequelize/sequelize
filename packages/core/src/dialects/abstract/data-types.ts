@@ -2429,7 +2429,6 @@ export interface GeometryOptions {
  * User.create({username: 'username', geometry: point })
  * ```
  *
- * @see {@link <internal>~GEOGRAPHY}
  * @category DataTypes
  */
 export class GEOMETRY extends AbstractDataType<GeoJson> {
