@@ -37,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@sequelize/core": "^7.0.0-alpha.20",
+    "@sequelize/core": "workspace:*",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

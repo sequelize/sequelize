@@ -1470,7 +1470,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sequelize/core@^7.0.0-alpha.20, @sequelize/core@workspace:packages/core":
+"@sequelize/core@workspace:*, @sequelize/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
@@ -1587,7 +1587,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/validator.js@workspace:packages/validator-js"
   dependencies:
-    "@sequelize/core": ^7.0.0-alpha.20
+    "@sequelize/core": "workspace:*"
     "@types/chai": 4.3.5
     "@types/chai-as-promised": 7.1.5
     chai: 4.3.7
