@@ -153,30 +153,44 @@ You will have to manually install and configure each of database engines you wan
 
 ### 4. Running tests
 
+Sequelize is a monorepo and uses `lerna` to run scripts in each of the packages. The syntax for the commands is: `yarn lerna run` followed by the script name. For exmaple:
+
+```
+yarn lerna run test-unit
+```
+
+By default, the `yarn lerna run` command will run the script in all packages which have a matching script. By appending `--scope=package_name` to the command (where `package_name` is the name of the package you want to run the script on) you can select a specific package to run the script on. For example:
+
+```
+yarn lerna run test-unit --scope=@sequelize/core
+```
+
+For more information about using `lerna` commands, use the [Lerna Documentation](https://lerna.js.org/docs/api-reference/commands).
+
 Before starting any work, try to run the tests locally in order to be sure your setup is fine. Start by running the SQLite tests:
 
 ```
-yarn test-sqlite
+yarn lerna run test-sqlite
 ```
 
 Then, if you want to run tests for another dialect, assuming you've set it up as written on section 3, run the corresponding command:
 
-- `yarn test-mysql`
-- `yarn test-mariadb`
-- `yarn test-postgres`
-- `yarn test-mssql`
-- `yarn test-db2`
+- `yarn lerna run test-mysql`
+- `yarn lerna run test-mariadb`
+- `yarn lerna run test-postgres`
+- `yarn lerna run test-mssql`
+- `yarn lerna run test-db2`
 
 There are also the `test-unit-*` and `test-integration-*` sets of scripts (for example, `test-integration-postgres`).
 
 #### 4.1. Running only some tests
 
-While you're developing, you may want to execute only a single test (or a few), instead of executing everything (which takes some time). You can easily achieve this by modifying the `.mocharc.jsonc` file (but don't commit those changes!) to use `spec` (and maybe `grep`) from Mocha to specify the desired tests. Then, simply call `DIALECT=some-dialect yarn mocha` from your terminal (example: `DIALECT=postgres yarn mocha`).
+While you're developing, you may want to execute only a single test (or a few), instead of executing everything (which takes some time). You can easily achieve this by modifying the `.mocharc.jsonc` file (but don't commit those changes!) to use `spec` (and maybe `grep`) from Mocha to specify the desired tests. Then, simply call `DIALECT=some-dialect yarn lerna run mocha` from your terminal (example: `DIALECT=postgres yarn lerna run mocha`).
 
 Hint: if you're creating a new test, you can execute only that test locally against all dialects by adapting the `spec` and `grep` options on `.mocharc.jsonc` and running the following from your terminal (assuming you already set up the database instances via the corresponding `yarn setup-*` calls, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended)):
 
 ```
-DIALECT=mariadb yarn mocha && DIALECT=mysql yarn mocha && DIALECT=postgres yarn mocha && DIALECT=sqlite yarn mocha && DIALECT=mssql yarn mocha && DIALECT=db2 yarn mocha
+DIALECT=mariadb yarn lerna run mocha && DIALECT=mysql yarn lerna run mocha && DIALECT=postgres yarn lerna run mocha && DIALECT=sqlite yarn lerna run mocha && DIALECT=mssql yarn lerna run mocha && DIALECT=db2 yarn lerna run mocha
 ```
 
 ### 5. Running an SSCCE
