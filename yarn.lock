@@ -1520,7 +1520,7 @@ __metadata:
     sequelize-pool: ^8.0.0
     sinon: 15.1.2
     sinon-chai: 3.7.0
-    snowflake-sdk: 1.6.22
+    snowflake-sdk: 1.6.23
     sqlite3: 5.1.6
     tedious: 15.1.3
     toposort-class: ^1.0.1
@@ -5632,13 +5632,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-caller-file@npm:^1.0.2":
-  version: 1.0.3
-  resolution: "get-caller-file@npm:1.0.3"
-  checksum: 2b90a7f848896abcebcdc0acc627a435bcf05b9cd280599bc980ebfcdc222416c3df12c24c4845f69adc4346728e8966f70b758f9369f3534182791dfbc25c05
-  languageName: node
-  linkType: hard
-
 "get-caller-file@npm:^2.0.1, get-caller-file@npm:^2.0.5":
   version: 2.0.5
   resolution: "get-caller-file@npm:2.0.5"
@@ -8387,16 +8380,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mock-require@npm:^3.0.3":
-  version: 3.0.3
-  resolution: "mock-require@npm:3.0.3"
-  dependencies:
-    get-caller-file: ^1.0.2
-    normalize-path: ^2.1.1
-  checksum: 6355c0bd9d7acb5247155142928b0154ace2913264b42d9a611a85d469ed11048f405efe432ffc627a57efb87ec359589a7419bf680b4fd248612311deb031bd
-  languageName: node
-  linkType: hard
-
 "modify-values@npm:^1.0.1":
   version: 1.0.1
   resolution: "modify-values@npm:1.0.1"
@@ -8773,15 +8756,6 @@ __metadata:
     semver: ^7.3.5
     validate-npm-package-license: ^3.0.4
   checksum: a459f05eaf7c2b643c61234177f08e28064fde97da15800e3d3ac0404e28450d43ac46fc95fbf6407a9bf20af4c58505ad73458a912dc1517f8c1687b1d68c27
-  languageName: node
-  linkType: hard
-
-"normalize-path@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "normalize-path@npm:2.1.1"
-  dependencies:
-    remove-trailing-separator: ^1.0.1
-  checksum: 7e9cbdcf7f5b8da7aa191fbfe33daf290cdcd8c038f422faf1b8a83c972bf7a6d94c5be34c4326cb00fb63bc0fd97d9fbcfaf2e5d6142332c2cd36d2e1b86cea
   languageName: node
   linkType: hard
 
@@ -10357,13 +10331,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"remove-trailing-separator@npm:^1.0.1":
-  version: 1.1.0
-  resolution: "remove-trailing-separator@npm:1.1.0"
-  checksum: d3c20b5a2d987db13e1cca9385d56ecfa1641bae143b620835ac02a6b70ab88f68f117a0021838db826c57b31373d609d52e4f31aca75fc490c862732d595419
-  languageName: node
-  linkType: hard
-
 "require-directory@npm:^2.1.1":
   version: 2.1.1
   resolution: "require-directory@npm:2.1.1"
@@ -10964,9 +10931,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snowflake-sdk@npm:1.6.22":
-  version: 1.6.22
-  resolution: "snowflake-sdk@npm:1.6.22"
+"snowflake-sdk@npm:1.6.23":
+  version: 1.6.23
+  resolution: "snowflake-sdk@npm:1.6.23"
   dependencies:
     "@azure/storage-blob": ^12.11.0
     "@google-cloud/storage": ^6.9.3
@@ -10993,19 +10960,17 @@ __metadata:
     jsonwebtoken: ^9.0.0
     mime-types: ^2.1.29
     mkdirp: ^1.0.3
-    mock-require: ^3.0.3
     moment: ^2.29.4
     moment-timezone: ^0.5.15
     open: ^7.3.1
     python-struct: ^1.1.3
     simple-lru-cache: ^0.0.2
     string-similarity: ^4.0.4
-    test-console: ^2.0.0
     tmp: ^0.2.1
     urllib: ^2.38.0
     uuid: ^3.3.2
     winston: ^3.1.0
-  checksum: 24f1ae261231d49fe12a15356b97daab4b3f6f4044a95d233125ea9c2d653fc63cb23950a4af24884e755e3d556dfb4f7f099927bc5024d9c807bbc2978360b2
+  checksum: d933154cfddcf9f6f41ef3fa391a7826f6fe7389a7c75810c0f44b53556a58392b208408987d661c8bf9ddbfae163673eaa694545a05a3eb9c5faa18e2f2677b
   languageName: node
   linkType: hard
 
@@ -11675,13 +11640,6 @@ __metadata:
   version: 1.0.0
   resolution: "temp-dir@npm:1.0.0"
   checksum: cb2b58ddfb12efa83e939091386ad73b425c9a8487ea0095fe4653192a40d49184a771a1beba99045fbd011e389fd563122d79f54f82be86a55620667e08a6b2
-  languageName: node
-  linkType: hard
-
-"test-console@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "test-console@npm:2.0.0"
-  checksum: 5942e94b0da1106777c5af52cb717f0fa9ee8d32f424d05f270999a7ff0d211e07b6fd6761e5bf82709cf5f85e127183c0a2a540aca3ad35749385cc4ab8697a
   languageName: node
   linkType: hard
 
