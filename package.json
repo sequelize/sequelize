@@ -53,7 +53,7 @@
     "eslint-plugin-jsdoc": "41.1.2",
     "eslint-plugin-mocha": "10.1.0",
     "fast-glob": "3.2.12",
-    "lerna": "7.0.0",
+    "lerna": "7.0.2",
     "lint-staged": "13.2.2",
     "markdownlint-cli": "0.34.0",
     "mocha": "10.2.0",
