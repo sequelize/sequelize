@@ -213,13 +213,21 @@ describe('JSON Querying', () => {
         }],
       });
 
-      // we can't automatically detect that the output is JSON type in mariadb < 10.4.3,
+      // we can't automatically detect that the output is JSON type in mariadb < 10.5.2,
       // and we don't yet support specifying (nor inferring) the type of custom attributes,
       // so for now the output is different in this specific case
-      const expectedResult = dialectName === 'mariadb' && semver.lt(sequelize.getDatabaseVersion(), '10.4.3') ? '"swen"' : 'swen';
+      if (dialectName === 'mariadb' && semver.lt(sequelize.getDatabaseVersion(), '10.5.2')) {
+        if (semver.gt(sequelize.getDatabaseVersion(), '10.4.21')) {
+          // @ts-expect-error -- getDataValue does not support custom attributes
+          expect(orders[0].user.getDataValue('name')).to.equal('"swen"');
+        }
 
-      // @ts-expect-error -- getDataValue does not support custom attributes
-      expect(orders[0].user.getDataValue('name')).to.equal(expectedResult);
+        // @ts-expect-error -- getDataValue does not support custom attributes
+        expect(orders[0].user.getDataValue('name')).to.deep.equal(Buffer.from('"swen"'));
+      } else {
+        // @ts-expect-error -- getDataValue does not support custom attributes
+        expect(orders[0].user.getDataValue('name')).to.equal('swen');
+      }
     });
   }
 });
