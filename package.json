@@ -78,7 +78,7 @@
     "@typescript-eslint/eslint-plugin": "^5.8.1",
     "@typescript-eslint/parser": "^5.8.1",
     "acorn": "^8.7.0",
-    "chai": "^4.3.4",
+    "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
     "chai-datetime": "^1.8.0",
     "cheerio": "^1.0.0-rc.10",
