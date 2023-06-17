@@ -1,15 +1,13 @@
 'use strict';
 
+import { inspect } from 'node:util';
 import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
 const _ = require('lodash');
 const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
@@ -461,6 +459,25 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       this.quoteIdentifier(foreignKey),
       ';',
     ]);
+  }
+
+  _getBeforeSelectAttributesFragment(options) {
+    let fragment = '';
+
+    const MINIMUM_EXECUTION_TIME_VALUE = 0;
+    const MAXIMUM_EXECUTION_TIME_VALUE = 4_294_967_295;
+
+    if (options.maxExecutionTimeHintMs != null) {
+      if (Number.isSafeInteger(options.maxExecutionTimeHintMs)
+        && options.maxExecutionTimeHintMs >= MINIMUM_EXECUTION_TIME_VALUE
+        && options.maxExecutionTimeHintMs <= MAXIMUM_EXECUTION_TIME_VALUE) {
+        fragment += ` /*+ MAX_EXECUTION_TIME(${options.maxExecutionTimeHintMs}) */`;
+      } else {
+        throw new Error(`maxExecutionTimeMs must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}, but it is ${inspect(options.maxExecutionTimeHintMs)}`);
+      }
+    }
+
+    return fragment;
   }
 }
 

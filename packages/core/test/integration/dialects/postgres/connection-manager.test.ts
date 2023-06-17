@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import type { Options } from '@sequelize/core';
 import { DataTypes, QueryTypes } from '@sequelize/core';
-import { createSequelizeInstance, getTestDialect, sequelize as defaultSequelize } from '../../support';
+import { createSingleTestSequelizeInstance, sequelize as defaultSequelize, getTestDialect } from '../../support';
 
 const dialect = getTestDialect();
 
@@ -12,7 +12,7 @@ describe('[POSTGRES] Sequelize', () => {
 
   async function checkTimezoneParsing(baseOptions: Options) {
     const options = { ...baseOptions, timezone: 'Asia/Kolkata', timestamps: true };
-    const tzSequelize = createSequelizeInstance(options);
+    const tzSequelize = createSingleTestSequelizeInstance(options);
 
     const tzTable = tzSequelize.define('tz_table', { foo: DataTypes.STRING });
     await tzTable.sync({ force: true });
@@ -30,33 +30,33 @@ describe('[POSTGRES] Sequelize', () => {
   });
 
   it('should allow overriding client_min_messages (deprecated in v7)', async () => {
-    const sequelize = createSequelizeInstance({ clientMinMessages: 'ERROR' });
+    const sequelize = createSingleTestSequelizeInstance({ clientMinMessages: 'ERROR' });
     const result = await sequelize.query<{ client_min_messages: string }>('SHOW client_min_messages', { type: QueryTypes.SELECT });
     expect(result[0].client_min_messages).to.equal('error');
   });
 
   it('should not set client_min_messages if clientMinMessages is false (deprecated in v7)', async () => {
-    const sequelize = createSequelizeInstance({ clientMinMessages: false });
+    const sequelize = createSingleTestSequelizeInstance({ clientMinMessages: false });
     const result = await sequelize.query<{ client_min_messages: string }>('SHOW client_min_messages', { type: QueryTypes.SELECT });
     // `notice` is Postgres's default
     expect(result[0].client_min_messages).to.equal('notice');
   });
 
   it('should allow overriding client_min_messages', async () => {
-    const sequelize = createSequelizeInstance({ dialectOptions: { clientMinMessages: 'ERROR' } });
+    const sequelize = createSingleTestSequelizeInstance({ dialectOptions: { clientMinMessages: 'ERROR' } });
     const result = await sequelize.query<{ client_min_messages: string }>('SHOW client_min_messages', { type: QueryTypes.SELECT });
     expect(result[0].client_min_messages).to.equal('error');
   });
 
   it('should not set client_min_messages if clientMinMessages is ignore', async () => {
-    const sequelize = createSequelizeInstance({ dialectOptions: { clientMinMessages: 'IGNORE' } });
+    const sequelize = createSingleTestSequelizeInstance({ dialectOptions: { clientMinMessages: 'IGNORE' } });
     const result = await sequelize.query<{ client_min_messages: string }>('SHOW client_min_messages', { type: QueryTypes.SELECT });
     // `notice` is Postgres's default
     expect(result[0].client_min_messages).to.equal('notice');
   });
 
   it('should time out the query request when the query runs beyond the configured query_timeout', async () => {
-    const sequelize = createSequelizeInstance({
+    const sequelize = createSingleTestSequelizeInstance({
       dialectOptions: { query_timeout: 100 },
     });
 
@@ -64,7 +64,7 @@ describe('[POSTGRES] Sequelize', () => {
   });
 
   it('should allow overriding session variables through the `options` param', async () => {
-    const sequelize = createSequelizeInstance({ dialectOptions: { options: '-csearch_path=abc' } });
+    const sequelize = createSingleTestSequelizeInstance({ dialectOptions: { options: '-csearch_path=abc' } });
     const result = await sequelize.query<{ search_path: string }>('SHOW search_path', { type: QueryTypes.SELECT });
     expect(result[0].search_path).to.equal('abc');
   });

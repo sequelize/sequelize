@@ -4,16 +4,16 @@ import type { Col } from '../../expression-builders/col.js';
 import type { Fn } from '../../expression-builders/fn.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type {
+  AttributeOptions,
+  Attributes,
+  CreationAttributes,
+  Filterable,
   Logging,
   Model,
-  AttributeOptions,
-  Filterable,
   ModelStatic,
-  CreationAttributes,
-  Attributes,
   NormalizedAttributeOptions,
 } from '../../model';
-import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
+import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
 import type { Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';

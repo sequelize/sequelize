@@ -1,14 +1,9 @@
 import { expect } from 'chai';
 import semver from 'semver';
-import type { InferAttributes, NonAttribute, CreationOptional, InferCreationAttributes } from '@sequelize/core';
-import { DataTypes, Op, Model, sql } from '@sequelize/core';
+import type { CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute } from '@sequelize/core';
+import { DataTypes, Model, Op, sql } from '@sequelize/core';
 import { Attribute, BelongsTo } from '@sequelize/core/decorators-legacy';
-import {
-  beforeAll2,
-  beforeEach2,
-  inlineErrorCause,
-  sequelize, setResetMode,
-} from './support';
+import { beforeAll2, beforeEach2, inlineErrorCause, sequelize, setResetMode } from './support';
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
@@ -143,7 +138,7 @@ describe('JSON Querying', () => {
       return;
     }
 
-    await sequelize.query(`CREATE TABLE Posts (id INTEGER AUTO_INCREMENT PRIMARY KEY, 
+    await sequelize.query(`CREATE TABLE Posts (id INTEGER AUTO_INCREMENT PRIMARY KEY,
       metaOldJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
       metaNewJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK(json_valid(metaNewJSONtype)))`);
 

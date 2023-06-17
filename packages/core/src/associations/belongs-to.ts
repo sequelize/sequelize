@@ -5,15 +5,15 @@ import upperFirst from 'lodash/upperFirst';
 import { cloneDataType } from '../dialects/abstract/data-types-utils.js';
 import { AssociationError } from '../errors/index.js';
 import type {
-  ModelStatic,
-  Model,
+  AttributeNames,
+  AttributeReferencesOptions,
+  Attributes,
   CreateOptions,
   CreationAttributes,
   FindOptions,
+  Model,
+  ModelStatic,
   SaveOptions,
-  AttributeNames,
-  Attributes,
-  AttributeReferencesOptions,
 } from '../model';
 import { normalizeReference } from '../model-definition.js';
 import { Op } from '../operators';
@@ -21,15 +21,12 @@ import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { camelize, singularize } from '../utils/string.js';
-import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
+import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { HasMany } from './has-many.js';
 import { HasOne } from './has-one.js';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 import type { NormalizeBaseAssociationOptions } from './helpers';
-import {
-  defineAssociation,
-  mixinMethods, normalizeBaseAssociationOptions,
-} from './helpers';
 
 /**
  * One-to-one association
@@ -284,25 +281,25 @@ export class BelongsTo<
    * @param instances source instances
    * @param options find options
    */
-  async get(instances: S, options: BelongsToGetAssociationMixinOptions<T>): Promise<T | null>;
-  async get(instances: S[], options: BelongsToGetAssociationMixinOptions<T>): Promise<Map<any, T | null>>;
+  async get(instances: S, options?: BelongsToGetAssociationMixinOptions<T>): Promise<T | null>;
+  async get(instances: S[], options?: BelongsToGetAssociationMixinOptions<T>): Promise<Map<any, T | null>>;
   async get(
     instances: S | S[],
-    options: BelongsToGetAssociationMixinOptions<T>,
+    options?: BelongsToGetAssociationMixinOptions<T>,
   ): Promise<Map<any, T | null> | T | null> {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     let Target = this.target;
     if (options.scope != null) {
       if (!options.scope) {
-        Target = Target.unscoped();
+        Target = Target.withoutScope();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
-        Target = Target.scope(options.scope);
+        Target = Target.withScope(options.scope);
       }
     }
 
     if (options.schema != null) {
-      Target = Target.schema(options.schema, options.schemaDelimiter);
+      Target = Target.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
     }
 
     let isManyMode = true;

@@ -6,13 +6,14 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const pMap = require('p-map');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
 const dialectName = Support.getTestDialect();
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model.findOne', () => {
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
@@ -29,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findOne', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -49,6 +50,57 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user2).to.not.be.null;
         await t.rollback();
       });
+
+      // Disabled in sqlite because it only supports one connection at a time
+      if (dialectName !== 'sqlite') {
+        it('supports concurrent transactions', async function () {
+          this.timeout(90_000);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+          const User = sequelize.define('User', { username: DataTypes.STRING });
+          const testAsync = async function () {
+            const t0 = await sequelize.startUnmanagedTransaction();
+
+            await User.create({
+              username: 'foo',
+            }, {
+              transaction: t0,
+            });
+
+            const users0 = await User.findAll({
+              where: {
+                username: 'foo',
+              },
+            });
+
+            expect(users0).to.have.length(0);
+
+            const users = await User.findAll({
+              where: {
+                username: 'foo',
+              },
+              transaction: t0,
+            });
+
+            expect(users).to.have.length(1);
+            const t = t0;
+
+            return t.rollback();
+          };
+
+          await User.sync({ force: true });
+          const tasks = [];
+          for (let i = 0; i < 1000; i++) {
+            tasks.push(testAsync);
+          }
+
+          await pMap(tasks, entry => {
+            return entry();
+          }, {
+            // Needs to be one less than ??? else the non transaction query won't ever get a connection
+            concurrency: (sequelize.config.pool && sequelize.config.pool.max || 5) - 1,
+          });
+        });
+      }
     }
 
     describe('general / basic function', () => {
@@ -295,7 +347,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user).to.be.null;
         }));
 
-        expect(count).to.be.equal(permutations.length);
+        expect(count).to.equal(permutations.length);
       });
 
       it('should allow us to find IDs using capital letters', async function () {
@@ -340,6 +392,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user.username).to.equal('\'longUserNAME\'');
         });
       }
+
+      it('should not fail if model is paranoid and where is an empty array', async function () {
+        const User = this.sequelize.define('User', { username: DataTypes.STRING }, { paranoid: true });
+
+        await User.sync({ force: true });
+        await User.create({ username: 'A fancy name' });
+        expect((await User.findOne({ where: [] })).username).to.equal('A fancy name');
+      });
+
+      it('should work if model is paranoid and only operator in where clause is a Symbol (#8406)', async function () {
+        const User = this.sequelize.define('User', { username: DataTypes.STRING }, { paranoid: true });
+
+        await User.sync({ force: true });
+        await User.create({ username: 'foo' });
+        expect(await User.findOne({
+          where: {
+            [Op.or]: [
+              { username: 'bar' },
+              { username: 'baz' },
+            ],
+          },
+        })).to.not.be.ok;
+      });
     });
 
     describe('eager loading', () => {

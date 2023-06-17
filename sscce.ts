@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Model, DataTypes } from '@sequelize/core';
+import { DataTypes, Model } from '@sequelize/core';
 import { Attribute } from '@sequelize/core/decorators-legacy';
 import { createSequelizeInstance } from './dev/sscce-helpers';
 

@@ -3,12 +3,18 @@ import type { AsyncHookReturn } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
 import type { ValidationOptions } from './instance-validator.js';
 import type {
-  BulkCreateOptions, CountOptions,
-  CreateOptions, DestroyOptions, FindOptions,
+  BulkCreateOptions,
+  CountOptions,
+  CreateOptions,
+  DestroyOptions,
+  FindOptions,
   InstanceDestroyOptions,
   InstanceRestoreOptions,
   InstanceUpdateOptions,
-  Model, ModelStatic, RestoreOptions, UpdateOptions,
+  Model,
+  ModelStatic,
+  RestoreOptions,
+  UpdateOptions,
   UpsertOptions,
 } from './model.js';
 import type { SyncOptions } from './sequelize.js';

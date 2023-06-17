@@ -5,10 +5,7 @@ import type { GeoJson } from '../../geo-json.js';
 import { isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs';
 import * as BaseTypes from '../abstract/data-types.js';
-import type {
-  AcceptedDate,
-  BindParamOptions,
-} from '../abstract/data-types.js';
+import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
 
 export class FLOAT extends BaseTypes.FLOAT {
   protected getNumberSqlTypeName(): string {
