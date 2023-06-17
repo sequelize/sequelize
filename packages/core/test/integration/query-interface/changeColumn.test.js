@@ -174,7 +174,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
         expect(newForeignKeys).to.be.an('array');
         expect(newForeignKeys).to.have.lengthOf(1);
-        expect(newForeignKeys[0].columnName).to.be.equal('level_id');
+        expect(newForeignKeys[0].columnName).to.equal('level_id');
       });
 
       it('able to change column property without affecting other properties', async function () {
@@ -208,9 +208,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
-        expect(firstForeignKeys.length).to.be.equal(newForeignKeys.length);
-        expect(firstForeignKeys[0].columnName).to.be.equal('level_id');
-        expect(firstForeignKeys[0].columnName).to.be.equal(newForeignKeys[0].columnName);
+        expect(firstForeignKeys.length).to.equal(newForeignKeys.length);
+        expect(firstForeignKeys[0].columnName).to.equal('level_id');
+        expect(firstForeignKeys[0].columnName).to.equal(newForeignKeys[0].columnName);
 
         const describedTable = await this.queryInterface.describeTable({
           tableName: 'users',
@@ -218,7 +218,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         expect(describedTable.level_id).to.have.property('allowNull');
         expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
-        expect(describedTable.level_id.allowNull).to.be.equal(true);
+        expect(describedTable.level_id.allowNull).to.equal(true);
       });
 
       if (!['db2', 'ibmi', 'sqlite'].includes(dialect)) {
@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             tableName: 'users',
           });
 
-          expect(describedTable.level_id.comment).to.be.equal(null);
+          expect(describedTable.level_id.comment).to.equal(null);
 
           await this.queryInterface.changeColumn('users', 'level_id', {
             type: DataTypes.INTEGER,
@@ -235,7 +235,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           });
 
           const describedTable2 = await this.queryInterface.describeTable({ tableName: 'users' });
-          expect(describedTable2.level_id.comment).to.be.equal('FooBar');
+          expect(describedTable2.level_id.comment).to.equal('FooBar');
         });
       }
     });

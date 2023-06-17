@@ -1,5 +1,5 @@
 import { Pool } from 'sequelize-pool';
-import type { NormalizedPoolOptions, ConnectionOptions } from '../../sequelize.js';
+import type { ConnectionOptions, NormalizedPoolOptions } from '../../sequelize.js';
 import { logger } from '../../utils/logger.js';
 
 const debug = logger.debugContext('pool');

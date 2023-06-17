@@ -1,14 +1,10 @@
 import { expect } from 'chai';
 import delay from 'delay';
 import sinon from 'sinon';
-import { DataTypes, QueryTypes, Model } from '@sequelize/core';
-import type { ModelStatic, InferAttributes, InferCreationAttributes } from '@sequelize/core';
+import { DataTypes, Model, QueryTypes } from '@sequelize/core';
+import type { InferAttributes, InferCreationAttributes, ModelStatic } from '@sequelize/core';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
-import {
-  beforeAll2, createSequelizeInstance,
-  prepareTransactionTest,
-  sequelize, setResetMode,
-} from './support';
+import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from './support';
 
 describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
   if (!sequelize.dialect.supports.transactions) {
@@ -18,9 +14,9 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
   setResetMode('none');
 
   const vars = beforeAll2(async () => {
-    const clsSequelize = await prepareTransactionTest(createSequelizeInstance({
+    const clsSequelize = await createMultiTransactionalTestSequelizeInstance({
       disableClsTransactions: false,
-    }));
+    });
 
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
       declare name: string | null;
@@ -32,6 +28,10 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
     await clsSequelize.sync({ force: true });
 
     return { clsSequelize, User };
+  });
+
+  after(async () => {
+    return vars.clsSequelize.close();
   });
 
   describe('context', () => {

@@ -60,9 +60,9 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
       ],
     });
 
-    expect(tasks.length).to.be.equal(2);
-    expect(tasks[0].title).to.be.equal('fight empire');
-    expect(tasks[1].title).to.be.equal('stablish republic');
+    expect(tasks.length).to.equal(2);
+    expect(tasks[0].title).to.equal('fight empire');
+    expect(tasks[1].title).to.equal('stablish republic');
   });
 
   it('avoids duplicated tables in query', async function () {
@@ -123,9 +123,9 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
       ],
     });
 
-    expect(tasks.length).to.be.equal(2);
-    expect(tasks[0].title).to.be.equal('fight empire');
-    expect(tasks[1].title).to.be.equal('stablish republic');
+    expect(tasks.length).to.equal(2);
+    expect(tasks[0].title).to.equal('fight empire');
+    expect(tasks[1].title).to.equal('stablish republic');
   });
 
   it('can filter through hasMany', async function () {
@@ -181,8 +181,8 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
       ],
     });
 
-    expect(users.length).to.be.equal(1);
-    expect(users[0].username).to.be.equal('leia');
+    expect(users.length).to.equal(1);
+    expect(users[0].username).to.equal('leia');
   });
 
   it('can filter through hasMany connector', async function () {
@@ -219,7 +219,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
       ],
     });
 
-    expect(users.length).to.be.equal(1);
-    expect(users[0].username).to.be.equal('leia');
+    expect(users.length).to.equal(1);
+    expect(users[0].username).to.equal('leia');
   });
 });

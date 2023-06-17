@@ -1,5 +1,5 @@
 import type { AbstractQueryInterface } from '@sequelize/core';
-import { DataTypes, Model, fn, literal, col } from '@sequelize/core';
+import { DataTypes, Model, col, fn, literal } from '@sequelize/core';
 
 declare let queryInterface: AbstractQueryInterface;
 

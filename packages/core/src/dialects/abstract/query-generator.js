@@ -7,10 +7,7 @@ import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
 import { rejectInvalidOptions } from '../../utils/check';
-import {
-  mapFinderOptions,
-  removeNullishValuesFromHash,
-} from '../../utils/format';
+import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { nameIndex, spliceStr } from '../../utils/string';
@@ -2176,10 +2173,24 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     throw new sequelizeError.QueryError(message.replace(/ +/g, ' '));
   }
 
+  _validateSelectOptions(options) {
+    if (options.maxExecutionTimeHintMs != null && !this.dialect.supports.maxExecutionTimeHint.select) {
+      throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
+    }
+  }
+
+  _getBeforeSelectAttributesFragment(_options) {
+    return '';
+  }
+
   selectFromTableFragment(options, model, attributes, tables, mainTableAs) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
 
-    let fragment = `SELECT ${attributes.join(', ')} FROM ${tables}`;
+    this._validateSelectOptions(options);
+
+    let fragment = 'SELECT';
+    fragment += this._getBeforeSelectAttributesFragment(options);
+    fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
     if (mainTableAs) {
       fragment += ` AS ${mainTableAs}`;

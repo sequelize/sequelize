@@ -1,19 +1,15 @@
 import type {
-  InferAttributes,
   BelongsTo,
   BelongsToCreateAssociationMixin,
   BelongsToGetAssociationMixin,
   BelongsToSetAssociationMixin,
-  InferCreationAttributes,
   CreationOptional,
   FindOptions,
+  InferAttributes,
+  InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import {
-  DataTypes,
-  Model,
-  Op,
-} from '@sequelize/core';
+import { DataTypes, Model, Op } from '@sequelize/core';
 import { sequelize } from '../connection';
 import { UserGroup } from './user-group';
 import { UserPost } from './user-post';

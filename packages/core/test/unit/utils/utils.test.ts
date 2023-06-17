@@ -1,10 +1,20 @@
 import { expect } from 'chai';
-import { col, DataTypes, Where } from '@sequelize/core';
+import { DataTypes, Where, col, sql } from '@sequelize/core';
 import { canTreatArrayAsAnd } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { toDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { mapFinderOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
-import { defaults, merge, cloneDeep, flattenObjectDeep } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { underscoredIf, camelizeIf, pluralize, singularize } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import {
+  cloneDeep,
+  defaults,
+  flattenObjectDeep,
+  merge,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import {
+  camelizeIf,
+  pluralize,
+  singularize,
+  underscoredIf,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
 import { sequelize } from '../../support';
 
@@ -44,16 +54,37 @@ describe('Utils', () => {
   describe('cloneDeep', () => {
     it('should clone objects', () => {
       const obj = { foo: 1 };
-      const clone = cloneDeep(obj);
 
-      expect(obj).to.not.equal(clone);
+      const clone = cloneDeep(obj);
+      expect(clone).to.deep.equal(obj);
+      expect(clone).to.not.equal(obj);
     });
 
     it('should clone nested objects', () => {
       const obj = { foo: { bar: 1 } };
-      const clone = cloneDeep(obj);
 
-      expect(obj.foo).to.not.equal(clone.foo);
+      const clone = cloneDeep(obj);
+      expect(clone).to.deep.equal(obj);
+      expect(clone).to.not.equal(obj);
+    });
+
+    it('clones sql expression builders', () => {
+      const obj = [
+        sql`literal test`,
+        sql.where({ foo: 'bar' }),
+        sql.col('foo'),
+        sql.unquote('foo'),
+        sql.cast('foo', 'bar'),
+        sql.fn('foo', 'bar'),
+        sql.attribute('foo'),
+        sql.identifier('foo'),
+        sql.jsonPath(sql.attribute('foo'), ['foo']),
+        sql.list(['a', 'b']),
+      ];
+
+      const clone = cloneDeep(obj);
+      expect(clone).to.deep.equal(obj);
+      expect(clone).to.not.equal(obj);
     });
 
     it('should not call clone methods on plain objects', () => {
@@ -162,13 +193,13 @@ describe('Utils', () => {
 
   describe('toDefaultValue', () => {
     it('return uuid v1', () => {
-      expect(/^[\da-z-]{36}$/.test(toDefaultValue(new DataTypes.UUIDV1().toDialectDataType(dialect)) as string)).to.be.equal(true);
+      expect(/^[\da-z-]{36}$/.test(toDefaultValue(new DataTypes.UUIDV1().toDialectDataType(dialect)) as string)).to.equal(true);
     });
     it('return uuid v4', () => {
-      expect(/^[\da-z-]{36}/.test(toDefaultValue(new DataTypes.UUIDV4().toDialectDataType(dialect)) as string)).to.be.equal(true);
+      expect(/^[\da-z-]{36}/.test(toDefaultValue(new DataTypes.UUIDV4().toDialectDataType(dialect)) as string)).to.equal(true);
     });
     it('return now', () => {
-      expect(Object.prototype.toString.call(toDefaultValue(new DataTypes.NOW().toDialectDataType(dialect)))).to.be.equal('[object Date]');
+      expect(Object.prototype.toString.call(toDefaultValue(new DataTypes.NOW().toDialectDataType(dialect)))).to.equal('[object Date]');
     });
     it('return plain string', () => {
       expect(toDefaultValue('Test')).to.equal('Test');

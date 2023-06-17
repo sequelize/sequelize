@@ -3,19 +3,22 @@ import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
 import attempt from 'lodash/attempt';
 import type {
-  WhereOptions,
-  WhereOperators,
-  InferAttributes,
+  AttributeNames,
   Attributes,
-  Range,
+  Cast,
   Col,
-  Literal,
   Fn,
-  Cast, AttributeNames,
+  InferAttributes,
+  Literal,
+  Range,
+  WhereOperators,
+  WhereOptions,
 } from '@sequelize/core';
-import { DataTypes, Op, and, or, Model, sql, json } from '@sequelize/core';
-import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
-import { createTester, sequelize, expectsql, getTestDialectTeaser } from '../../support';
+import { DataTypes, Model, Op, and, json, or, sql } from '@sequelize/core';
+import type {
+  FormatWhereOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import { createTester, expectsql, getTestDialectTeaser, sequelize } from '../../support';
 
 const { literal, col, where, fn, cast, attribute } = sql;
 
@@ -64,7 +67,6 @@ class TestModel extends Model<InferAttributes<TestModel>> {
 
 type TestModelWhere = WhereOptions<Attributes<TestModel>>;
 
-// @ts-expect-error -- we only init a subset of datatypes based on feature support
 TestModel.init({
   intAttr1: DataTypes.INTEGER,
   intAttr2: DataTypes.INTEGER,
