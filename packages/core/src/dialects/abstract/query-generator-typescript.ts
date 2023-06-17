@@ -89,7 +89,7 @@ export interface FormatWhereOptions extends Bindable {
  * If it is not specified, the value will be added to the query as a literal.
  */
 export interface Bindable {
-  bindParam?(value: unknown): string;
+  bindParam?: ((value: unknown) => string) | undefined;
 }
 
 // DO NOT MAKE THIS CLASS PUBLIC!

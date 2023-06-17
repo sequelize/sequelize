@@ -185,7 +185,7 @@ type AllowAnyAll<T> =
 
 // number is always allowed because -Infinity & +Infinity are valid
 /**
- * This type represents a valid input when describing a {@link <internal>~RANGE}.
+ * This type represents a valid input when describing a {@link DataTypes.RANGE}.
  */
 export type Rangable<T> = readonly [
   lower: T | InputRangePart<T> | number | null,
@@ -193,7 +193,7 @@ export type Rangable<T> = readonly [
 ] | EmptyRange;
 
 /**
- * This type represents the output of the {@link <internal>~RANGE} data type.
+ * This type represents the output of the {@link DataTypes.RANGE} data type.
  */
 // number is always allowed because -Infinity & +Infinity are valid
 export type Range<T> = readonly [
@@ -2957,8 +2957,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   //  - getChanges(): string[];
   //  - isDirty(key: string): boolean;
   //  - setDirty(key: string, dirty: boolean = true): void;
-  changed<K extends keyof this>(key: K): boolean;
-  changed<K extends keyof this>(key: K, dirty: boolean): void;
+  changed<K extends keyof TModelAttributes>(key: K): boolean;
+  changed<K extends keyof TModelAttributes>(key: K, dirty: boolean): void;
   changed(): false | string[];
 
   /**
