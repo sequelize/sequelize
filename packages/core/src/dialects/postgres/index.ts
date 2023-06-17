@@ -59,6 +59,10 @@ export class PostgresDialect extends AbstractDialect {
       INET: true,
     },
     jsonOperations: true,
+    jsonExtraction: {
+      unquoted: true,
+      quoted: true,
+    },
     REGEXP: true,
     IREGEXP: true,
     deferrableConstraints: true,

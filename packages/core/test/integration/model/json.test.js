@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('find', () => {
-      if (!dialect.supports.jsonOperations) {
+      if (!dialect.supports.jsonOperations || !dialect.supports.jsonExtraction.quoted) {
         return;
       }
 
@@ -151,7 +151,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           employment: 'Housewife',
         });
+
       });
+
       it('should be possible to query a nested value and order results', async function () {
         await this.Event.create({
           data: {
@@ -223,7 +225,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('destroy', () => {
-      if (!dialect.supports.jsonOperations) {
+      if (!dialect.supports.jsonOperations || !dialect.supports.jsonExtraction.quoted) {
         return;
       }
 
@@ -263,8 +265,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })]);
 
         await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
-        await this.Event.destroy(conditionSearch);
 
+        await this.Event.destroy(conditionSearch);
         await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
       });
     });
@@ -277,7 +279,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.sequelize.sync({ force: true });
       });
 
-      if (dialect.supports.jsonOperations) {
+      if (dialect.supports.jsonOperations && dialect.supports.jsonExtraction.quoted) {
         it('should query an instance with JSONB data and order while trying to inject', async function () {
           await this.Event.create({
             data: {
