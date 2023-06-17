@@ -49,7 +49,24 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   showIndexesQuery(tableName: TableNameOrModel) {
-    return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(tableName))};`;
+    const table = this.extractTableDetails(tableName);
+    const objectId = table?.schema ? `${table.schema}.${table.tableName}` : `${table.tableName}`;
+
+    return joinSQLFragments([
+      'SELECT',
+      'I.[name] AS [index_name],',
+      'I.[type_desc] AS [index_type],',
+      'C.[name] AS [column_name],',
+      'IC.[is_descending_key],',
+      'IC.[is_included_column],',
+      'I.[is_unique],',
+      'I.[is_primary_key],',
+      'I.[is_unique_constraint]',
+      'FROM sys.indexes I',
+      'INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id',
+      'INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id',
+      `WHERE I.[object_id] = OBJECT_ID(${this.escape(objectId)}) ORDER BY I.[name];`,
+    ]);
   }
 
   removeIndexQuery(
