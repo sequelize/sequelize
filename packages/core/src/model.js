@@ -1028,7 +1028,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       this._conformIncludes(scope, this);
       // clone scope so it doesn't get modified
-      this._assignOptions(mergedScope, cloneDeep(scope));
+      this._assignOptions(mergedScope, cloneDeep(scope) ?? {});
       scopeNames.push(scopeName ? scopeName : 'defaultScope');
     }
 
@@ -1197,7 +1197,7 @@ ${associationOwner._getAssociationDebugList()}`);
     const tableNames = {};
 
     tableNames[this.getTableName(options)] = true;
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     setTransactionFromCls(options, this.sequelize);
 
@@ -1394,7 +1394,7 @@ ${associationOwner._getAssociationDebugList()}`);
       return null;
     }
 
-    options = cloneDeep(options) || {};
+    options = cloneDeep(options) ?? {};
 
     if (typeof param === 'number' || typeof param === 'bigint' || typeof param === 'string' || Buffer.isBuffer(param)) {
       options.where = {
@@ -1423,7 +1423,7 @@ ${associationOwner._getAssociationDebugList()}`);
       throw new Error('The argument passed to findOne must be an options object, use findByPk if you wish to pass a single primary key value');
     }
 
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     // findOne only ever needs one result
     // conditional temporarily fixes 14618
     // https://github.com/sequelize/sequelize/issues/14618
@@ -1451,7 +1451,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise<DataTypes|object>}
    */
   static async aggregate(attribute, aggregateFunction, options) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options.model = this;
 
     // We need to preserve attributes here as the `injectScope` call would inject non aggregate columns.
@@ -1514,7 +1514,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise<number>}
    */
   static async count(options) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options = _.defaults(options, { hooks: true });
 
     setTransactionFromCls(options, this.sequelize);
@@ -1605,7 +1605,7 @@ ${associationOwner._getAssociationDebugList()}`);
       throw new Error('The argument passed to findAndCountAll must be an options object, use findByPk if you wish to pass a single primary key value');
     }
 
-    const countOptions = cloneDeep(options);
+    const countOptions = cloneDeep(options) ?? {};
 
     if (countOptions.attributes) {
       countOptions.attributes = undefined;
@@ -1717,7 +1717,7 @@ ${associationOwner._getAssociationDebugList()}`);
    *
    */
   static async create(values, options) {
-    options = cloneDeep(options || {});
+    options = cloneDeep(options) ?? {};
 
     return await this.build(values, {
       isNewRecord: true,
@@ -2068,7 +2068,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const dialect = this.sequelize.options.dialect;
     const now = new Date();
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     setTransactionFromCls(options, this.sequelize);
 
@@ -2429,7 +2429,7 @@ ${associationOwner._getAssociationDebugList()}`);
   static async truncate(options) {
     // TODO: this method currently uses DELETE FROM if the table is paranoid. Truncate should always ignore paranoid.
     // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
-    options = cloneDeep(options) || {};
+    options = cloneDeep(options) ?? {};
     options.truncate = true;
 
     return await this.destroy(options);
@@ -2442,7 +2442,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise<number>} The number of destroyed rows
    */
   static async destroy(options) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     setTransactionFromCls(options, this.sequelize);
 
@@ -2620,7 +2620,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise<Array<number,number>>}
    */
   static async update(values, options) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     setTransactionFromCls(options, this.sequelize);
 
@@ -2853,7 +2853,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
   // Inject _scope into options.
   static _injectScope(options) {
-    const scope = cloneDeep(this._scope);
+    const scope = cloneDeep(this._scope) ?? {};
     this._normalizeIncludes(scope, this);
     this._defaultsOptions(options, scope);
   }
@@ -3558,7 +3558,7 @@ Instead of specifying a Model, either:
       throw new Error('The second argument was removed in favor of the options object.');
     }
 
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options = _.defaults(options, {
       hooks: true,
       validate: true,
@@ -4081,7 +4081,7 @@ Instead of specifying a Model, either:
   async increment(fields, options) {
     const identifier = this.where();
 
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options.where = { ...options.where, ...identifier };
     options.instance = this;
 

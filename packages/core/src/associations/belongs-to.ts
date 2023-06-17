@@ -281,25 +281,25 @@ export class BelongsTo<
    * @param instances source instances
    * @param options find options
    */
-  async get(instances: S, options: BelongsToGetAssociationMixinOptions<T>): Promise<T | null>;
-  async get(instances: S[], options: BelongsToGetAssociationMixinOptions<T>): Promise<Map<any, T | null>>;
+  async get(instances: S, options?: BelongsToGetAssociationMixinOptions<T>): Promise<T | null>;
+  async get(instances: S[], options?: BelongsToGetAssociationMixinOptions<T>): Promise<Map<any, T | null>>;
   async get(
     instances: S | S[],
-    options: BelongsToGetAssociationMixinOptions<T>,
+    options?: BelongsToGetAssociationMixinOptions<T>,
   ): Promise<Map<any, T | null> | T | null> {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     let Target = this.target;
     if (options.scope != null) {
       if (!options.scope) {
-        Target = Target.unscoped();
+        Target = Target.withoutScope();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
-        Target = Target.scope(options.scope);
+        Target = Target.withScope(options.scope);
       }
     }
 
     if (options.schema != null) {
-      Target = Target.schema(options.schema, options.schemaDelimiter);
+      Target = Target.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
     }
 
     let isManyMode = true;

@@ -887,6 +887,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
 
+    // mssql overwrite the abstract selectFromTableFragment function.
+    if (options.maxExecutionTimeHintMs != null) {
+      throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
+    }
+
     return joinSQLFragments([
       'SELECT',
       attributes.join(', '),

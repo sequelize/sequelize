@@ -289,7 +289,7 @@ export class AbstractQuery {
   }
 
   /**
-   * Calls {@link AbstractDataType#parseDatabaseValue} on all attributes returned by the database, if a model is specified.
+   * Calls {@link DataTypes.ABSTRACT#parseDatabaseValue} on all attributes returned by the database, if a model is specified.
    *
    * This method mutates valueArrays.
    *
