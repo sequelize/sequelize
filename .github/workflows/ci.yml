@@ -4,6 +4,7 @@ on:
     branches:
       - v7
   pull_request:
+  merge_group:
 
 # This configuration cancels previous runs if a new run is started on the same PR. Only one run at a time per PR.
 # This does not affect pushes to the v7 branch itself, only PRs.
