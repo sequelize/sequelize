@@ -350,7 +350,7 @@ export abstract class AbstractDialect {
   };
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {
-    return merge(cloneDeep(this.supports), supportsOverwrite);
+    return merge(cloneDeep(this.supports) ?? {}, supportsOverwrite);
   }
 
   readonly sequelize: Sequelize;

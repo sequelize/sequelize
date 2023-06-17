@@ -35,7 +35,7 @@ export interface SequelizeHooks extends ModelHooks {
   /**
    * A hook that is run at the start of {@link Sequelize#define} and {@link Model.init}
    */
-  beforeDefine(attributes: ModelAttributes, options: ModelOptions): void;
+  beforeDefine(attributes: ModelAttributes<any>, options: ModelOptions): void;
 
   /**
    * A hook that is run at the end of {@link Sequelize#define} and {@link Model.init}
@@ -244,15 +244,13 @@ export abstract class SequelizeTypeScript {
   }
 
   addModels(models: ModelStatic[]) {
-    for (const model of models) {
-      initDecoratedModel(
-        model,
-        // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
-        this,
-      );
-    }
+    const registeredModels = models.filter(model => initDecoratedModel(
+      model,
+      // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
+      this,
+    ));
 
-    for (const model of models) {
+    for (const model of registeredModels) {
       initDecoratedAssociations(
         model,
         // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
