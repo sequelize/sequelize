@@ -19,3 +19,11 @@ node_modules
 *.log
 /packages/*/lib
 /packages/*/types
+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

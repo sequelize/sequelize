@@ -1,0 +1,5 @@
+{
+  "extends": ["../../typedoc.base.json"],
+  "entryPoints": ["src/decorators/legacy/index.ts", "src/index.d.ts"],
+  "excludeExternals": true
+}

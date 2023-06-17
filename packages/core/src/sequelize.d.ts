@@ -1062,7 +1062,7 @@ export class Sequelize extends SequelizeTypeScript {
    */
   close(): Promise<void>;
 
-  normalizeAttribute(attribute: AttributeOptions | DataType): AttributeOptions;
+  normalizeAttribute<M extends Model = Model>(attribute: AttributeOptions<M> | DataType): AttributeOptions<M>;
 
   normalizeDataType(Type: string): string;
   normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
