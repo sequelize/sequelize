@@ -314,7 +314,33 @@ describe(`@Table legacy decorator`, () => {
     expect(baseOptions.validate).not.to.equal(inheritedOptions.validate, 'validate option must be a different instance');
   });
 
-  it('overwrites defaultScope', () => {});
+  it('overwrites defaultScope', () => {
+    const literal = sql`1 = 1`;
+
+    @Table({
+      defaultScope: {
+        where: literal,
+      },
+    })
+    class BaseUser extends Model {}
+
+    @Table({
+      defaultScope: {
+        order: ['id'],
+      },
+    })
+    class InheritedUser extends BaseUser {}
+
+    sequelize.addModels([BaseUser, InheritedUser]);
+
+    expect(BaseUser.modelDefinition.options.defaultScope).to.deep.equal({
+      where: literal,
+    });
+
+    expect(InheritedUser.modelDefinition.options.defaultScope).to.deep.equal({
+      order: ['id'],
+    });
+  });
 
   // the rules for merging are the same as when using the decorator multiple times on the same model
   // the details of which are tested in other tests
