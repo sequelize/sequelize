@@ -31,11 +31,17 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType",',
-      'COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES',
-      `WHERE TBNAME = ${this.escape(table.tableName)}`,
-      table.schema !== '' ? `AND TBCREATOR = ${this.escape(table.schema)}` : 'AND TBCREATOR = USER',
-      'ORDER BY NAME;',
+      'SELECT',
+      'i.INDNAME AS "name",',
+      'i.TABNAME AS "tableName",',
+      'i.UNIQUERULE AS "keyType",',
+      'i.INDEXTYPE AS "type",',
+      'c.COLNAME AS "columnName",',
+      'c.COLORDER AS "columnOrder"',
+      'FROM SYSCAT.INDEXES i',
+      'INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA',
+      `WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${table?.schema ? this.escape(table.schema) : 'USER'}`,
+      'ORDER BY i.INDNAME, c.COLSEQ;',
     ]);
   }
 
