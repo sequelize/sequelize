@@ -84,8 +84,9 @@ export class MariaDbDialect extends AbstractDialect {
     );
 
     registerMySqlDbDataTypeParsers(this);
-    // DECIMAL must be returned as a string, the JS number type is not precise enough.
-    this.registerDataTypeParser(['NEWDECIMAL'], (value: FieldInfo) => {
+    // For backwards compatibility, we currently return BIGINTs as strings. We will implement bigint support for all
+    // dialects in the future: https://github.com/sequelize/sequelize/issues/10468
+    this.registerDataTypeParser(['BIGINT'], (value: FieldInfo) => {
       return value.string();
     });
   }
