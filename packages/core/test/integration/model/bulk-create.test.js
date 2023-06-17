@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // weren't being run through the parsers/validators.
       // This test ensures that the bug is fixed.
       // https://github.com/sequelize/sequelize/issues/15640
-      const [user] = await this.User.bulkCreate([{ theDate: new Date() }]);
+      const [user] = await this.User.bulkCreate([{ theDate: new Date(), uniqueName: '1' }]);
 
       expect(user.theDate).to.be.instanceOf(Date);
     });
