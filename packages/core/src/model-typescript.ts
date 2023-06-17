@@ -285,7 +285,7 @@ export class ModelTypeScript {
    *   DataType, a string or a type-description object.
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    */
-  static init<MS extends ModelStatic, M extends InstanceType<MS>>(
+  static init<M extends Model, MS extends ModelStatic<M>>(
     this: MS,
     attributes: ModelAttributes<
       M,
@@ -399,7 +399,11 @@ export class ModelTypeScript {
   }
 }
 
-export function initModel(model: ModelStatic, attributes: ModelAttributes, options: InitOptions): void {
+export function initModel<M extends Model>(
+  model: ModelStatic<M>,
+  attributes: ModelAttributes<M>,
+  options: InitOptions<M>,
+): void {
   options.modelName ||= model.name;
 
   const modelDefinition = new ModelDefinition(

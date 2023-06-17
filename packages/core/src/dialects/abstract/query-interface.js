@@ -581,7 +581,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       rawTablename = tableName;
     }
 
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options.fields = attributes;
     const sql = this.queryGenerator.addIndexQuery(tableName, options, rawTablename);
 
@@ -807,7 +807,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       assertNoReservedBind(options.bind);
     }
 
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     const modelDefinition = instance?.constructor.modelDefinition;
 
     options.hasTrigger = modelDefinition?.options.hasTrigger;
@@ -989,9 +989,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       assertNoReservedBind(options.bind);
     }
 
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     if (typeof where === 'object') {
-      where = cloneDeep(where);
+      where = cloneDeep(where) ?? {};
     }
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
@@ -1066,7 +1066,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @returns {Promise}
    */
   async bulkDelete(tableName, where, options, model) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options = _.defaults(options, { limit: null });
 
     if (options.truncate === true) {
@@ -1077,7 +1077,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     if (typeof identifier === 'object') {
-      where = cloneDeep(where);
+      where = cloneDeep(where) ?? {};
     }
 
     const sql = this.queryGenerator.deleteQuery(tableName, where, options, model);
@@ -1112,7 +1112,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options.model = model;
 
     const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options);
@@ -1126,7 +1126,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   async rawSelect(tableName, options, attributeSelector, Model) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options = _.defaults(options, {
       raw: true,
       plain: true,
