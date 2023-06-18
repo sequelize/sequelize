@@ -8,6 +8,7 @@ import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-ut
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
@@ -20,6 +21,7 @@ const { Op } = require('../../operators');
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
@@ -85,6 +87,16 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   }
 
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const query = 'CREATE TABLE IF NOT EXISTS <%= table %> (<%= attributes %>)';
     const primaryKeys = [];
     const foreignKeys = {};
@@ -745,68 +757,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
   renameFunction() {
     throwMethodUndefined('renameFunction');
-  }
-
-  /**
-   * Generate SQL for ForeignKeysQuery.
-   *
-   * @param {string} condition   The condition string for query.
-   * @returns {string}
-   */
-  _getForeignKeysQuerySQL(condition) {
-    return 'SELECT R.CONSTNAME AS "constraintName", '
-        + 'TRIM(R.TABSCHEMA) AS "constraintSchema", '
-        + 'R.TABNAME AS "tableName", '
-        + 'TRIM(R.TABSCHEMA) AS "tableSchema", LISTAGG(C.COLNAME,\', \') '
-        + 'WITHIN GROUP (ORDER BY C.COLNAME) AS "columnName", '
-        + 'TRIM(R.REFTABSCHEMA) AS "referencedTableSchema", '
-        + 'R.REFTABNAME AS "referencedTableName", '
-        + 'TRIM(R.PK_COLNAMES) AS "referencedColumnName" '
-        + 'FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C '
-        + 'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA '
-        + `AND R.TABNAME = C.TABNAME${condition} GROUP BY R.REFTABSCHEMA, `
-        + 'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES';
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param {Stirng|object} table The name of the table.
-   * @param {string} schemaName   The name of the schema.
-   * @returns {string}            The generated sql query.
-   */
-  getForeignKeysQuery(table, schemaName) {
-    const tableName = table.tableName || table;
-    schemaName = table.schema || schemaName;
-    let sql = '';
-    if (tableName) {
-      sql = ` AND R.TABNAME = ${this.escape(tableName)}`;
-    }
-
-    if (schemaName) {
-      sql += ` AND R.TABSCHEMA = ${this.escape(schemaName)}`;
-    }
-
-    return this._getForeignKeysQuerySQL(sql);
-  }
-
-  getForeignKeyQuery(table, columnName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-    let sql = '';
-    if (tableName) {
-      sql = ` AND R.TABNAME = ${this.escape(tableName)}`;
-    }
-
-    if (schemaName) {
-      sql += ` AND R.TABSCHEMA = ${this.escape(schemaName)}`;
-    }
-
-    if (columnName) {
-      sql += ` AND C.COLNAME = ${this.escape(columnName)}`;
-    }
-
-    return this._getForeignKeysQuerySQL(sql);
   }
 
   dropForeignKeyQuery(tableName, foreignKey) {

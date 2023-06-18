@@ -147,7 +147,7 @@ export class SqliteQuery extends AbstractQuery {
       return results;
     }
 
-    if (this.sql.includes('PRAGMA foreign_key_list')) {
+    if (this.options.type === QueryTypes.FOREIGNKEYS) {
       return results;
     }
 

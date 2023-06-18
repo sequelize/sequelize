@@ -11,6 +11,7 @@ import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
@@ -28,6 +29,7 @@ function throwMethodUndefined(methodName) {
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['collate']);
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
@@ -150,6 +152,16 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const primaryKeys = [];
     const foreignKeys = {};
     const attributesClauseParts = [];
@@ -418,10 +430,12 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       for (const attrValueHash of attrValueHashes) {
         tuples.push(`(${
           allAttributes.map(key => {
-            // TODO: pass "type"
             // TODO: bindParam
             // TODO: pass "model"
-            return this.escape(attrValueHash[key] ?? null, options);
+            return this.escape(attrValueHash[key] ?? null, {
+              type: attributes[key]?.type,
+              replacements: options.replacements,
+            });
           }).join(',')
         })`);
       }
@@ -743,64 +757,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     throwMethodUndefined('renameFunction');
   }
 
-  /**
-   * Generate common SQL prefix for ForeignKeysQuery.
-   *
-   * @param {string} catalogName
-   * @returns {string}
-   */
-  _getForeignKeysQueryPrefix(catalogName) {
-    return `SELECT constraint_name = OBJ.NAME, constraintName = OBJ.NAME, ${
-      catalogName ? `constraintCatalog = '${catalogName}', ` : ''
-    }constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID), `
-      + 'tableName = TB.NAME, '
-      + `tableSchema = SCHEMA_NAME(TB.SCHEMA_ID), ${
-        catalogName ? `tableCatalog = '${catalogName}', ` : ''
-      }columnName = COL.NAME, `
-      + `referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID), ${
-        catalogName ? `referencedCatalog = '${catalogName}', ` : ''
-      }referencedTableName = RTB.NAME, `
-      + 'referencedColumnName = RCOL.NAME '
-      + 'FROM sys.foreign_key_columns FKC '
-      + 'INNER JOIN sys.objects OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID '
-      + 'INNER JOIN sys.tables TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID '
-      + 'INNER JOIN sys.columns COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID '
-      + 'INNER JOIN sys.tables RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID '
-      + 'INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID';
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys details of a table.
-   *
-   * @param {string|object} table
-   * @param {string} catalogName database name
-   * @returns {string}
-   */
-  getForeignKeysQuery(table, catalogName) {
-    const tableName = table.tableName || table;
-    let sql = `${this._getForeignKeysQueryPrefix(catalogName)
-    } WHERE TB.NAME =${this.escape(tableName)}`;
-
-    if (table.schema) {
-      sql += ` AND SCHEMA_NAME(TB.SCHEMA_ID) =${this.escape(table.schema)}`;
-    }
-
-    return sql;
-  }
-
-  getForeignKeyQuery(table, attributeName) {
-    const tableName = table.tableName || table;
-
-    return joinSQLFragments([
-      this._getForeignKeysQueryPrefix(),
-      'WHERE',
-      `TB.NAME =${this.escape(tableName)}`,
-      'AND',
-      `COL.NAME =${this.escape(attributeName)}`,
-      table.schema && `AND SCHEMA_NAME(TB.SCHEMA_ID) =${this.escape(table.schema)}`,
-    ]);
-  }
-
   getPrimaryKeyConstraintQuery(table, attributeName) {
     const tableName = this.escape(table.tableName || table);
 
@@ -884,6 +840,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
+
+    // mssql overwrite the abstract selectFromTableFragment function.
+    if (options.maxExecutionTimeHintMs != null) {
+      throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
+    }
 
     return joinSQLFragments([
       'SELECT',

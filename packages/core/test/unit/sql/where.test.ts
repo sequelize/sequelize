@@ -38,6 +38,8 @@ const dialectSupportsRange = () => sequelize.dialect.supports.dataTypes.RANGE;
 const dialectSupportsJsonB = () => sequelize.dialect.supports.dataTypes.JSONB;
 const dialectSupportsJson = () => sequelize.dialect.supports.dataTypes.JSON;
 const dialectSupportsJsonOperations = () => sequelize.dialect.supports.jsonOperations;
+const dialectSupportsJsonQuotedExtraction = () => sequelize.dialect.supports.jsonExtraction.quoted;
+const dialectSupportsJsonUnquotedExtraction = () => sequelize.dialect.supports.jsonExtraction.unquoted;
 
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
@@ -67,7 +69,6 @@ class TestModel extends Model<InferAttributes<TestModel>> {
 
 type TestModelWhere = WhereOptions<Attributes<TestModel>>;
 
-// @ts-expect-error -- we only init a subset of datatypes based on feature support
 TestModel.init({
   intAttr1: DataTypes.INTEGER,
   intAttr2: DataTypes.INTEGER,
@@ -758,7 +759,7 @@ Caused by: "undefined" cannot be escaped`),
         mssql: `NOT ([intAttr1] = N'5')`,
       });
 
-      if (dialectSupportsJsonOperations()) {
+      if (dialectSupportsJsonOperations() && dialectSupportsJsonQuotedExtraction()) {
         testSql({ [Op.not]: json('data.key', 10) }, {
           postgres: `NOT ("data"->'key' = '10')`,
           sqlite: `NOT (json_extract(\`data\`,'$.key') = '10')`,
@@ -2008,203 +2009,213 @@ Caused by: "undefined" cannot be escaped`),
           const ignore: TestModelWhere = { '$doesNotExist$.nested': 'value' };
         }
 
-        testSql({ jsonAttr: 'value' }, {
-          default: `[jsonAttr] = '"value"'`,
-          mysql: `\`jsonAttr\` = CAST('"value"' AS JSON)`,
-        });
+        if (dialectSupportsJsonQuotedExtraction()) {
+          testSql({ jsonAttr: 'value' }, {
+            default: `[jsonAttr] = '"value"'`,
+            mysql: `\`jsonAttr\` = CAST('"value"' AS JSON)`,
+          });
 
-        testSql({ 'jsonAttr.nested': 'value' }, {
-          postgres: `"jsonAttr"->'nested' = '"value"'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
-          mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
-        });
+          testSql({ 'jsonAttr.nested': 'value' }, {
+            postgres: `"jsonAttr"->'nested' = '"value"'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+          });
 
-        testSql(where('value', Op.eq, attribute('jsonAttr.nested')), {
-          postgres: `'"value"' = "jsonAttr"->'nested'`,
-          sqlite: `'"value"' = json_extract(\`jsonAttr\`,'$.nested')`,
-          mariadb: `'"value"' = json_compact(json_extract(\`jsonAttr\`,'$.nested'))`,
-          mysql: `CAST('"value"' AS JSON) = json_extract(\`jsonAttr\`,'$.nested')`,
-        });
+          testSql(where('value', Op.eq, attribute('jsonAttr.nested')), {
+            postgres: `'"value"' = "jsonAttr"->'nested'`,
+            sqlite: `'"value"' = json_extract(\`jsonAttr\`,'$.nested')`,
+            mariadb: `'"value"' = json_compact(json_extract(\`jsonAttr\`,'$.nested'))`,
+            mysql: `CAST('"value"' AS JSON) = json_extract(\`jsonAttr\`,'$.nested')`,
+          });
 
-        testSql({ 'jsonAttr.nested.twice': 'value' }, {
-          postgres: `"jsonAttr"#>ARRAY['nested','twice'] = '"value"'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
-          mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
-        });
+          testSql({ 'jsonAttr.nested.twice': 'value' }, {
+            postgres: `"jsonAttr"#>ARRAY['nested','twice'] = '"value"'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
+          });
 
-        testSql({
-          jsonAttr: { nested: 'value' },
-        }, {
-          postgres: `"jsonAttr"->'nested' = '"value"'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
-          mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
-        });
+          testSql({
+            jsonAttr: { nested: 'value' },
+          }, {
+            postgres: `"jsonAttr"->'nested' = '"value"'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+          });
 
-        testSql({
-          'jsonAttr.nested': { twice: 'value' },
-        }, {
-          postgres: `"jsonAttr"#>ARRAY['nested','twice'] = '"value"'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
-          mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
-        });
+          testSql({
+            'jsonAttr.nested': { twice: 'value' },
+          }, {
+            postgres: `"jsonAttr"#>ARRAY['nested','twice'] = '"value"'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
+          });
 
-        testSql({
-          jsonAttr: { [Op.eq]: { key: 'value' } },
-        }, {
-          default: `[jsonAttr] = '{"key":"value"}'`,
-          mysql: `\`jsonAttr\` = CAST('{"key":"value"}' AS JSON)`,
-        });
+          testSql({
+            jsonAttr: { [Op.eq]: { key: 'value' } },
+          }, {
+            default: `[jsonAttr] = '{"key":"value"}'`,
+            mysql: `\`jsonAttr\` = CAST('{"key":"value"}' AS JSON)`,
+          });
 
-        testSql({
-          'jsonAttr.nested': { [Op.ne]: 'value' },
-        }, {
-          postgres: `"jsonAttr"->'nested' != '"value"'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested') != '"value"'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) != '"value"'`,
-          mysql: `json_extract(\`jsonAttr\`,'$.nested') != CAST('"value"' AS JSON)`,
-        });
+          testSql({
+            'jsonAttr.nested': { [Op.ne]: 'value' },
+          }, {
+            postgres: `"jsonAttr"->'nested' != '"value"'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested') != '"value"'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) != '"value"'`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested') != CAST('"value"' AS JSON)`,
+          });
 
-        testSql({
-          '$jsonAttr$.nested': 'value',
-        }, {
-          postgres: `"jsonAttr"->'nested' = '"value"'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
-          mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
-        });
+          testSql({
+            '$jsonAttr$.nested': 'value',
+          }, {
+            postgres: `"jsonAttr"->'nested' = '"value"'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+          });
 
-        testSql({
-          '$association.jsonAttr$.nested': 'value',
-        }, {
-          postgres: `"association"."jsonAttr"->'nested' = '"value"'`,
-          sqlite: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = '"value"'`,
-          mariadb: `json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested')) = '"value"'`,
-          mysql: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
-        });
+          testSql({
+            '$association.jsonAttr$.nested': 'value',
+          }, {
+            postgres: `"association"."jsonAttr"->'nested' = '"value"'`,
+            sqlite: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = '"value"'`,
+            mariadb: `json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested')) = '"value"'`,
+            mysql: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+          });
 
-        testSql({
-          'jsonAttr.nested::STRING': 'value',
-        }, {
-          // with the left value cast to a string, we serialize the right value as a string, not as a JSON value
-          postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
-          mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
-          'sqlite mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
-        });
+          testSql({
+            'jsonAttr.nested::STRING': 'value',
+          }, {
+            // with the left value cast to a string, we serialize the right value as a string, not as a JSON value
+            postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
+            mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
+            'sqlite mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
+          });
 
-        testSql({
-          '$association.jsonAttr$.nested::STRING': {
-            attribute: 'value',
-          },
-        }, { default: new Error(`Could not guess type of value { attribute: 'value' }`) });
+          testSql({
+            '$association.jsonAttr$.nested::STRING': {
+              attribute: 'value',
+            },
+          }, {
+            default: new Error(`Could not guess type of value { attribute: 'value' }`),
+          });
 
-        testSql({
-          '$association.jsonAttr$.nested.deep::STRING': 'value',
-        }, {
-          postgres: `CAST("association"."jsonAttr"#>ARRAY['nested','deep'] AS STRING) = 'value'`,
-          mariadb: `CAST(json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep')) AS STRING) = 'value'`,
-          'sqlite mysql': `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep') AS STRING) = 'value'`,
-        });
+          testSql({
+            '$association.jsonAttr$.nested.deep::STRING': 'value',
+          }, {
+            postgres: `CAST("association"."jsonAttr"#>ARRAY['nested','deep'] AS STRING) = 'value'`,
+            mariadb: `CAST(json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep')) AS STRING) = 'value'`,
+            'sqlite mysql': `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep') AS STRING) = 'value'`,
+          });
 
-        testSql({
-          $jsonAttr$: { 'nested::string': 'value' },
-        }, {
-          postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
-          mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
-          'sqlite mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
-        });
+          testSql({
+            $jsonAttr$: { 'nested::string': 'value' },
+          }, {
+            postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
+            mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
+            'sqlite mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
+          });
 
-        testSql({ 'jsonAttr.nested.attribute': 4 }, {
-          postgres: `"jsonAttr"#>ARRAY['nested','attribute'] = '4'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = '4'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.attribute')) = '4'`,
-          mysql: `json_extract(\`jsonAttr\`,'$.nested.attribute') = CAST('4' AS JSON)`,
-        });
+          testSql({ 'jsonAttr.nested.attribute': 4 }, {
+            postgres: `"jsonAttr"#>ARRAY['nested','attribute'] = '4'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = '4'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.attribute')) = '4'`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested.attribute') = CAST('4' AS JSON)`,
+          });
 
-        // 0 is treated as a string key here, not an array index
-        testSql({ 'jsonAttr.0': 4 }, {
-          postgres: `"jsonAttr"->'0' = '4'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$."0"') = '4'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0"')) = '4'`,
-          mysql: `json_extract(\`jsonAttr\`,'$."0"') = CAST('4' AS JSON)`,
-        });
+          // 0 is treated as a string key here, not an array index
+          testSql({ 'jsonAttr.0': 4 }, {
+            postgres: `"jsonAttr"->'0' = '4'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$."0"') = '4'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0"')) = '4'`,
+            mysql: `json_extract(\`jsonAttr\`,'$."0"') = CAST('4' AS JSON)`,
+          });
 
-        // 0 is treated as an index here, not a string key
-        testSql({ 'jsonAttr[0]': 4 }, {
-          postgres: `"jsonAttr"->0 = '4'`,
+          // 0 is treated as an index here, not a string key
+          testSql({ 'jsonAttr[0]': 4 }, {
+            postgres: `"jsonAttr"->0 = '4'`,
 
-          // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
-          sqlite: `json_extract(\`jsonAttr\`,'$[0]') = '4'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$[0]')) = '4'`,
-          mysql: `json_extract(\`jsonAttr\`,'$[0]') = CAST('4' AS JSON)`,
-        });
+            // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
+            sqlite: `json_extract(\`jsonAttr\`,'$[0]') = '4'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$[0]')) = '4'`,
+            mysql: `json_extract(\`jsonAttr\`,'$[0]') = CAST('4' AS JSON)`,
+          });
 
-        testSql({ 'jsonAttr.0.attribute': 4 }, {
-          postgres: `"jsonAttr"#>ARRAY['0','attribute'] = '4'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$."0".attribute') = '4'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0".attribute')) = '4'`,
-          mysql: `json_extract(\`jsonAttr\`,'$."0".attribute') = CAST('4' AS JSON)`,
-        });
+          testSql({ 'jsonAttr.0.attribute': 4 }, {
+            postgres: `"jsonAttr"#>ARRAY['0','attribute'] = '4'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$."0".attribute') = '4'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0".attribute')) = '4'`,
+            mysql: `json_extract(\`jsonAttr\`,'$."0".attribute') = CAST('4' AS JSON)`,
+          });
 
-        // Regression test: https://github.com/sequelize/sequelize/issues/8718
-        testSql({ jsonAttr: { 'hyphenated-key': 4 } }, {
-          postgres: `"jsonAttr"->'hyphenated-key' = '4'`,
-          sqlite: `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = '4'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."hyphenated-key"')) = '4'`,
-          mysql: `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = CAST('4' AS JSON)`,
-        });
+          // Regression test: https://github.com/sequelize/sequelize/issues/8718
+          testSql({ jsonAttr: { 'hyphenated-key': 4 } }, {
+            postgres: `"jsonAttr"->'hyphenated-key' = '4'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = '4'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."hyphenated-key"')) = '4'`,
+            mysql: `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = CAST('4' AS JSON)`,
+          });
 
-        // SQL injection test
-        testSql({ jsonAttr: { '"a\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "': 1 } }, {
-          postgres: `"jsonAttr"->'a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ' = '1'`,
-          mysql: `json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = CAST('1' AS JSON)`,
-          sqlite: `json_extract(\`jsonAttr\`,'$."a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = '1'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "')) = '1'`,
-        });
+          // SQL injection test
+          testSql({ jsonAttr: { '"a\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "': 1 } }, {
+            postgres: `"jsonAttr"->'a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ' = '1'`,
+            mysql: `json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = CAST('1' AS JSON)`,
+            sqlite: `json_extract(\`jsonAttr\`,'$."a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = '1'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "')) = '1'`,
+          });
 
-        testSql({ 'jsonAttr[0].nested.attribute': 4 }, {
-          postgres: `"jsonAttr"#>ARRAY['0','nested','attribute'] = '4'`,
+          testSql({ 'jsonAttr[0].nested.attribute': 4 }, {
+            postgres: `"jsonAttr"#>ARRAY['0','nested','attribute'] = '4'`,
 
-          // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
-          sqlite: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = '4'`,
-          mariadb: `json_compact(json_extract(\`jsonAttr\`,'$[0].nested.attribute')) = '4'`,
-          mysql: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = CAST('4' AS JSON)`,
-        });
+            // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
+            sqlite: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = '4'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$[0].nested.attribute')) = '4'`,
+            mysql: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = CAST('4' AS JSON)`,
+          });
 
-        // aliases attribute -> column correctly
-        testSql({ 'aliasedJsonAttr.nested.attribute': 4 }, {
-          postgres: `"aliased_json"#>ARRAY['nested','attribute'] = '4'`,
-          sqlite: `json_extract(\`aliased_json\`,'$.nested.attribute') = '4'`,
-          mariadb: `json_compact(json_extract(\`aliased_json\`,'$.nested.attribute')) = '4'`,
-          mysql: `json_extract(\`aliased_json\`,'$.nested.attribute') = CAST('4' AS JSON)`,
-        });
+          // aliases attribute -> column correctly
+          testSql({ 'aliasedJsonAttr.nested.attribute': 4 }, {
+            postgres: `"aliased_json"#>ARRAY['nested','attribute'] = '4'`,
+            sqlite: `json_extract(\`aliased_json\`,'$.nested.attribute') = '4'`,
+            mariadb: `json_compact(json_extract(\`aliased_json\`,'$.nested.attribute')) = '4'`,
+            mysql: `json_extract(\`aliased_json\`,'$.nested.attribute') = CAST('4' AS JSON)`,
+          });
+        }
 
-        testSql({ 'jsonAttr:unquote': 0 }, {
-          postgres: `"jsonAttr"#>>ARRAY[]::TEXT[] = 0`,
-          'sqlite mysql mariadb': `json_unquote([jsonAttr]) = 0`,
-        });
+        if (dialectSupportsJsonUnquotedExtraction()) {
+          testSql({ 'jsonAttr:unquote': 0 }, {
+            postgres: `"jsonAttr"#>>ARRAY[]::TEXT[] = 0`,
+            mssql: `JSON_VALUE([jsonAttr]) = 0`,
+            'sqlite mysql mariadb': `json_unquote([jsonAttr]) = 0`,
+          });
 
-        testSql({ 'jsonAttr.key:unquote': 0 }, {
-          postgres: `"jsonAttr"->>'key' = 0`,
-          'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.key')) = 0`,
-        });
+          testSql({ 'jsonAttr.key:unquote': 0 }, {
+            postgres: `"jsonAttr"->>'key' = 0`,
+            mssql: `JSON_VALUE([jsonAttr], N'$.key') = 0`,
+            'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.key')) = 0`,
+          });
 
-        testSql({ 'jsonAttr.nested.key:unquote': 0 }, {
-          postgres: `"jsonAttr"#>>ARRAY['nested','key'] = 0`,
-          'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.nested.key')) = 0`,
-        });
+          testSql({ 'jsonAttr.nested.key:unquote': 0 }, {
+            postgres: `"jsonAttr"#>>ARRAY['nested','key'] = 0`,
+            mssql: `JSON_VALUE([jsonAttr], N'$.nested.key') = 0`,
+            'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.nested.key')) = 0`,
+          });
 
-        testSql({ 'jsonAttr[0]:unquote': 0 }, {
-          postgres: `"jsonAttr"->>0 = 0`,
+          testSql({ 'jsonAttr[0]:unquote': 0 }, {
+            postgres: `"jsonAttr"->>0 = 0`,
 
-          // must be separate because [0] will be replaced by `0` by expectsql
-          sqlite: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
-          mysql: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
-          mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
-        });
+            // must be separate because [0] will be replaced by `0` by expectsql
+            sqlite: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
+            mysql: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
+            mariadb: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
+            mssql: `JSON_VALUE([jsonAttr], N'$[0]') = 0`,
+          });
+        }
       });
     }
 
@@ -2771,7 +2782,7 @@ Caused by: "undefined" cannot be escaped`),
           default: '[col] = 1 AND [col] = 2',
         });
 
-        if (dialectSupportsJsonOperations()) {
+        if (dialectSupportsJsonOperations() && dialectSupportsJsonQuotedExtraction()) {
           testSql(where(col('col'), { jsonPath: 'value' }), {
             postgres: `"col"->'jsonPath' = '"value"'`,
             sqlite: `json_extract(\`col\`,'$.jsonPath') = '"value"'`,

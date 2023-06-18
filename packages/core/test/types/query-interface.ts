@@ -98,7 +98,7 @@ async function test() {
     }
   }
   */
-  const attributes: object = await queryInterface.describeTable('Person');
+  const attributes = await queryInterface.describeTable('Person');
 
   await queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', DataTypes.STRING);
 

@@ -4,7 +4,11 @@ import { removeNullishValuesFromHash } from '../../utils/format';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
@@ -12,6 +16,8 @@ const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+// TODO: add support for 'uniqueKeys' by improving the createTableQuery implementation so it also generates a CREATE UNIQUE INDEX query
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   createSchemaQuery() {
@@ -31,6 +37,16 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     options = options || {};
 
     const primaryKeys = [];
@@ -403,17 +419,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
   replaceBooleanDefaults(sql) {
     return sql.replace(/DEFAULT '?false'?/g, 'DEFAULT 0').replace(/DEFAULT '?true'?/g, 'DEFAULT 1');
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {TableName} tableName  The name of the table.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(tableName) {
-    return `PRAGMA foreign_key_list(${this.quoteTable(tableName)})`;
   }
 
   tableExistsQuery(tableName) {

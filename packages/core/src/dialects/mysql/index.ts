@@ -53,8 +53,15 @@ export class MysqlDialect extends AbstractDialect {
         JSON: true,
       },
       jsonOperations: true,
+      jsonExtraction: {
+        unquoted: true,
+        quoted: true,
+      },
       REGEXP: true,
       globalTimeZoneConfig: true,
+      maxExecutionTimeHint: {
+        select: true,
+      },
     },
   );
 

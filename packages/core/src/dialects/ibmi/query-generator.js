@@ -9,6 +9,7 @@ import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-ut
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
@@ -21,6 +22,7 @@ const DataTypes = require('../../data-types');
 const typeWithoutDefault = new Set(['BLOB']);
 
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
@@ -64,6 +66,16 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
   // Table queries
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const primaryKeys = [];
     const foreignKeys = Object.create(null);
     const attrStr = [];
@@ -596,70 +608,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     return result;
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {object} table  The table.
-   * @param  {string} schemaName The name of the schema.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(table, schemaName) {
-    const quotedSchemaName = schemaName ? this.escape(schemaName) : 'CURRENT SCHEMA';
-    const quotedTableName = this.escape(table.tableName || table);
-
-    const sql = [
-      'SELECT FK_NAME AS "constraintName",',
-      'PKTABLE_CAT AS "referencedTableCatalog",',
-      'PKTABLE_SCHEM AS "referencedTableSchema",',
-      'PKTABLE_NAME AS "referencedTableName",',
-      'PKCOLUMN_NAME AS "referencedColumnName",',
-      'FKTABLE_CAT AS "tableCatalog",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKTABLE_NAME AS "tableName",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKCOLUMN_NAME AS "columnName"',
-      'FROM SYSIBM.SQLFOREIGNKEYS',
-      `WHERE FKTABLE_SCHEM = ${quotedSchemaName}`,
-      `AND FKTABLE_NAME = ${quotedTableName}`,
-    ].join(' ');
-
-    return sql;
-  }
-
-  /**
-   * Generates an SQL query that returns the foreign key constraint of a given column.
-   *
-   * @param  {object} table  The table.
-   * @param  {string} columnName The name of the column.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeyQuery(table, columnName) {
-    const quotedSchemaName = table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA';
-    const quotedTableName = this.escape(table.tableName || table);
-    const quotedColumnName = this.escape(columnName);
-
-    const sql = [
-      'SELECT FK_NAME AS "constraintName",',
-      'PKTABLE_CAT AS "referencedTableCatalog",',
-      'PKTABLE_SCHEM AS "referencedTableSchema",',
-      'PKTABLE_NAME AS "referencedTableName",',
-      'PKCOLUMN_NAME AS "referencedColumnName",',
-      'FKTABLE_CAT AS "tableCatalog",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKTABLE_NAME AS "tableName",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKCOLUMN_NAME AS "columnName"',
-      'FROM SYSIBM.SQLFOREIGNKEYS',
-      `WHERE FKTABLE_SCHEM = ${quotedSchemaName}`,
-      `AND FKTABLE_NAME = ${quotedTableName}`,
-      `AND FKCOLUMN_NAME = ${quotedColumnName}`,
-    ].join(' ');
-
-    return sql;
   }
 
   /**

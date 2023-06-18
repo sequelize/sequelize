@@ -439,15 +439,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
+      const modelOptions = ['mariadb', 'mysql'].includes(dialectName) ? { indexes: indices, engine: 'MyISAM' } : { indexes: indices };
+
       const Model = this.sequelize.define('model', {
         fieldA: DataTypes.STRING,
         fieldB: DataTypes.INTEGER,
         fieldC: DataTypes.STRING,
         fieldD: DataTypes.STRING,
-      }, {
-        indexes: indices,
-        engine: 'MyISAM',
-      });
+      }, modelOptions);
 
       await this.sequelize.sync();
       await this.sequelize.sync(); // The second call should not try to create the indices again
@@ -956,8 +955,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(table.id.defaultValue).to.not.contain('special');
         }
 
-        table = await this.sequelize.queryInterface.describeTable('Publics', {
-          schema: 'special',
+        table = await this.sequelize.queryInterface.describeTable({ tableName: 'Publics', schema: 'special' }, {
           logging(sql) {
             if (dialectName === 'sqlite' && sql.includes('TABLE_INFO')) {
               test++;
