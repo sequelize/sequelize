@@ -94,34 +94,38 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       });
     });
 
-    it('creates a new transaction if nestMode is set to "separate"', async () => {
-      await sequelize.transaction(async transaction1 => {
-        await sequelize.transaction(
-          { transaction: transaction1, nestMode: TransactionNestMode.separate },
-          async transaction2 => {
-            expect(transaction1 === transaction2).to.equal(false, 'transaction1 and transaction2 should not be the same');
-            expect(transaction1.parent === null).to.equal(true, 'transaction1.parent should be null');
-            expect(transaction2.parent === null).to.equal(true, 'transaction2.parent should be null');
-          },
-        );
+    // sqlite cannot have more than one transaction at the same time, so separate is not available.
+    if (dialectName !== 'sqlite') {
+      it('creates a new transaction if nestMode is set to "separate"', async () => {
+        await sequelize.transaction(async transaction1 => {
+          await sequelize.transaction(
+            { transaction: transaction1, nestMode: TransactionNestMode.separate },
+            async transaction2 => {
+              expect(transaction1 === transaction2).to.equal(false, 'transaction1 and transaction2 should not be the same');
+              expect(transaction1.parent === null).to.equal(true, 'transaction1.parent should be null');
+              expect(transaction2.parent === null).to.equal(true, 'transaction2.parent should be null');
+            },
+          );
+        });
       });
-    });
 
-    it('does not care about option compatibility when nestMode is set to "separate"', async () => {
-      await sequelize.transaction(async transaction1 => {
-        await sequelize.transaction(
-          {
-            transaction: transaction1,
-            nestMode: TransactionNestMode.separate,
-            type: TransactionType.EXCLUSIVE,
-            isolationLevel: IsolationLevel.READ_UNCOMMITTED,
-            deferrable: Deferrable.SET_DEFERRED,
-            readOnly: true,
-          },
-          async () => { /* noop */ },
-        );
+      it('does not care about option compatibility when nestMode is set to "separate"', async () => {
+        await sequelize.transaction(async transaction1 => {
+          await sequelize.transaction(
+            {
+              transaction: transaction1,
+              nestMode: TransactionNestMode.separate,
+              type: TransactionType.EXCLUSIVE,
+              isolationLevel: IsolationLevel.READ_UNCOMMITTED,
+              deferrable: Deferrable.SET_DEFERRED,
+              readOnly: true,
+            },
+            async () => { /* noop */
+            },
+          );
+        });
       });
-    });
+    }
 
     it(`defaults nestMode to sequelize's clsTransactionNestMode option`, async () => {
       const customSequelize = await createSingleTransactionalTestSequelizeInstance({
