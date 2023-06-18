@@ -160,7 +160,7 @@ export class AbstractQueryGeneratorTypeScript {
       }
 
       if (field.attribute) {
-        field.name = field.attribute;
+        throw new Error('The field.attribute property has been removed. Use the field.name property instead');
       }
 
       if (!field.name) {
@@ -177,10 +177,6 @@ export class AbstractQueryGeneratorTypeScript {
 
       if (field instanceof BaseSqlExpression) {
         throw new TypeError(`The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`);
-      }
-
-      if (field.attribute) {
-        return field.attribute;
       }
 
       return field.name;

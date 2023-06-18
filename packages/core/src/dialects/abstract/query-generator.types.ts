@@ -66,7 +66,13 @@ export interface DeferConstraintsQueryOptions {
 export interface GetConstraintSnippetQueryOptions {
   name?: string;
   type: 'CHECK' | 'DEFAULT' | 'FOREIGN KEY' | 'PRIMARY KEY' | 'UNIQUE';
-  fields: Array<string | BaseSqlExpression | { attribute?: string, name: string }>;
+  fields: Array<string | BaseSqlExpression | {
+    /**
+     * @deprecated use `name` instead
+     */
+    attribute?: string,
+    name: string,
+  }>;
   where?: WhereOptions<any>;
   defaultValue?: unknown;
   references?: {

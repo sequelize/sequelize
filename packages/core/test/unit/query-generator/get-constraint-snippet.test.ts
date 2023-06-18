@@ -17,6 +17,12 @@ describe('QueryGenerator#getConstraintSnippet', () => {
     });
   });
 
+  it('throws an error if field.attribute is used', () => {
+    expectsql(() => queryGenerator.getConstraintSnippet('myTable', { type: 'UNIQUE', fields: [{ attribute: 'otherId', name: 'otherId' }] }), {
+      default: new Error('The field.attribute property has been removed. Use the field.name property instead'),
+    });
+  });
+
   describe('CHECK constraints', () => {
     it('generates a constraint snippet for a check constraint with a name', () => {
       expectsql(() => queryGenerator.getConstraintSnippet('myTable', { name: 'check', type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
