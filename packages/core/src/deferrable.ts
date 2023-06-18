@@ -45,7 +45,7 @@ export class Deferrable {
   }
 
   isEqual(_other: unknown): boolean {
-    throw new Error('isEquivalent implementation missing');
+    throw new Error('isEqual implementation missing');
   }
 
   static readonly INITIALLY_DEFERRED = classToInvokable(class INITIALLY_DEFERRED extends Deferrable {
