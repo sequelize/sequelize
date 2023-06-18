@@ -89,7 +89,7 @@ export interface FormatWhereOptions extends Bindable {
  * If it is not specified, the value will be added to the query as a literal.
  */
 export interface Bindable {
-  bindParam?(value: unknown): string;
+  bindParam?: ((value: unknown) => string) | undefined;
 }
 
 // DO NOT MAKE THIS CLASS PUBLIC!
@@ -136,6 +136,17 @@ export class AbstractQueryGeneratorTypeScript {
     _options?: RemoveIndexQueryOptions,
   ): string {
     throw new Error(`removeIndexQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Generates an SQL query that returns all foreign keys of a table or the foreign key constraint of a given column.
+   *
+   * @param _tableName The table or associated model.
+   * @param _columnName The name of the column. Not supported by SQLite.
+   * @returns The generated SQL query.
+   */
+  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): string {
+    throw new Error(`getForeignKeyQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   // TODO: rename to "normalizeTable" & move to sequelize class
