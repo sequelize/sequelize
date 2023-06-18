@@ -13,7 +13,7 @@ import type {
   NormalizedAttributeOptions,
 } from '../../model';
 import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
-import type { Transaction } from '../../transaction';
+import type { IsolationLevel, Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
@@ -659,7 +659,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Set the isolation level of a transaction
    */
-  setIsolationLevel(transaction: Transaction, value: string, options?: QueryRawOptions): Promise<void>;
+  setIsolationLevel(transaction: Transaction, value: IsolationLevel, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Begin a new transaction
@@ -677,7 +677,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   commitTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
-   * Rollback ( revert ) a transaction that has'nt been commited
+   * Rollback (revert) a transaction that hasn't been committed
    */
   rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 

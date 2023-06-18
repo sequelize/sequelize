@@ -15,10 +15,16 @@ import type { AsyncHookReturn, HookHandler } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
 import type { ModelHooks } from './model-hooks.js';
 import { validModelHooks } from './model-hooks.js';
+import { setTransactionFromCls } from './model-internals.js';
 import type { ModelManager } from './model-manager.js';
-import type { ConnectionOptions, Options, Sequelize } from './sequelize.js';
-import type { TransactionOptions } from './transaction.js';
-import { Transaction } from './transaction.js';
+import type { ConnectionOptions, NormalizedOptions, Options, Sequelize } from './sequelize.js';
+import type { ClsTransactionOptions, TransactionOptions } from './transaction.js';
+import {
+  Transaction,
+  TransactionNestMode,
+  assertTransactionIsCompatibleWithOptions,
+  normalizeTransactionOptions,
+} from './transaction.js';
 import type { PartialBy } from './utils/types.js';
 import type {
   AbstractQueryInterface,
@@ -148,6 +154,7 @@ export abstract class SequelizeTypeScript {
   abstract readonly dialect: AbstractDialect;
   abstract readonly queryInterface: AbstractQueryInterface;
   declare readonly connectionManager: AbstractConnectionManager;
+  declare readonly options: NormalizedOptions;
 
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);
@@ -310,12 +317,12 @@ export abstract class SequelizeTypeScript {
    * @param options Transaction Options
    * @param callback Async callback during which the transaction will be active
    */
-  transaction<T>(options: TransactionOptions, callback: TransactionCallback<T>): Promise<T>;
+  transaction<T>(options: ClsTransactionOptions, callback: TransactionCallback<T>): Promise<T>;
   async transaction<T>(
-    optionsOrCallback: TransactionOptions | TransactionCallback<T>,
+    optionsOrCallback: ClsTransactionOptions | TransactionCallback<T>,
     maybeCallback?: TransactionCallback<T>,
   ): Promise<T> {
-    let options: TransactionOptions;
+    let options: ClsTransactionOptions;
     let callback: TransactionCallback<T>;
     if (typeof optionsOrCallback === 'function') {
       callback = optionsOrCallback;
@@ -329,13 +336,40 @@ export abstract class SequelizeTypeScript {
       throw new Error('sequelize.transaction requires a callback. If you wish to start an unmanaged transaction, please use sequelize.startUnmanagedTransaction instead');
     }
 
-    const transaction = new Transaction(
-      // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
-      this,
-      options,
-    );
+    const nestMode: TransactionNestMode = options.nestMode ?? this.options.clsTransactionNestMode;
+
+    // @ts-expect-error -- will be fixed once this class has been merged back with the Sequelize class
+    const normalizedOptions = normalizeTransactionOptions(this, options);
+
+    if (nestMode === TransactionNestMode.separate) {
+      delete normalizedOptions.transaction;
+    } else {
+      // @ts-expect-error -- will be fixed once this class has been merged back with the Sequelize class
+      setTransactionFromCls(normalizedOptions, this);
+
+      // in reuse & savepoint mode,
+      // we use the same transaction, so we need to make sure it's compatible with the requested options
+      if (normalizedOptions.transaction) {
+        assertTransactionIsCompatibleWithOptions(normalizedOptions.transaction, normalizedOptions);
+      }
+    }
+
+    const transaction = nestMode === TransactionNestMode.reuse && normalizedOptions.transaction
+      ? normalizedOptions.transaction
+      : new Transaction(
+        // @ts-expect-error -- will be fixed once this class has been merged back with the Sequelize class
+        this,
+        normalizedOptions,
+      );
+
+    const isReusedTransaction = transaction === normalizedOptions.transaction;
 
     const wrappedCallback = async () => {
+      // We did not create this transaction, so we're not responsible for managing it.
+      if (isReusedTransaction) {
+        return callback(transaction);
+      }
+
       await transaction.prepareEnvironment();
 
       let result;

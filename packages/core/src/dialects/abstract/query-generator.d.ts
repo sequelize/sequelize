@@ -117,8 +117,8 @@ export interface RemoveColumnQueryOptions {
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   constructor(options: QueryGeneratorOptions);
 
-  setImmediateQuery(constraints: string[]): string;
-  setDeferredQuery(constraints: string[]): string;
+  setImmediateQuery(constraints: readonly string[]): string;
+  setDeferredQuery(constraints: readonly string[]): string;
   generateTransactionId(): string;
   quoteIdentifiers(identifiers: string): string;
 
