@@ -2,7 +2,6 @@
 
 import { map } from '../../utils/iterators';
 import { cloneDeep, getObjectFromMap } from '../../utils/object';
-import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
@@ -155,7 +154,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async createTable(tableName, attributes, options, model) {
     options = { ...options };
 
-    if (model) {
+    // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query
+    if (model && this.queryGenerator.dialect.name !== 'sqlite') {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
@@ -307,84 +307,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
 
     return tableNames.flat();
-  }
-
-  /**
-   * Describe a table structure
-   *
-   * This method returns an array of hashes containing information about all attributes in the table.
-   *
-   * ```js
-   * {
-   *    name: {
-   *      type:         'VARCHAR(255)', // this will be 'CHARACTER VARYING' for pg!
-   *      allowNull:    true,
-   *      defaultValue: null
-   *    },
-   *    isBetaMember: {
-   *      type:         'TINYINT(1)', // this will be 'BOOLEAN' for pg!
-   *      allowNull:    false,
-   *      defaultValue: false
-   *    }
-   * }
-   * ```
-   *
-   * @param {TableName} tableName
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise<object>}
-   */
-  // TODO: allow TableNameOrModel for tableName
-  async describeTable(tableName, options) {
-    let table = {};
-
-    if (typeof tableName === 'string') {
-      table.tableName = tableName;
-    }
-
-    if (typeof tableName === 'object' && tableName !== null) {
-      table = tableName;
-    }
-
-    if (typeof options === 'string') {
-      noSchemaParameter();
-      table.schema = options;
-    }
-
-    if (typeof options === 'object' && options !== null) {
-      if (options.schema) {
-        noSchemaParameter();
-        table.schema = options.schema;
-      }
-
-      if (options.schemaDelimiter) {
-        noSchemaDelimiterParameter();
-        table.delimiter = options.schemaDelimiter;
-      }
-    }
-
-    const sql = this.queryGenerator.describeTableQuery(table);
-    options = { ...options, type: QueryTypes.DESCRIBE };
-
-    try {
-      const data = await this.sequelize.queryRaw(sql, options);
-      /*
-       * If no data is returned from the query, then the table name may be wrong.
-       * Query generators that use information_schema for retrieving table info will just return an empty result set,
-       * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
-       */
-      if (_.isEmpty(data)) {
-        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
-      }
-
-      return data;
-    } catch (error) {
-      if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
-      }
-
-      throw error;
-    }
   }
 
   /**
@@ -618,7 +540,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     options = { ...options, type: QueryTypes.FOREIGNKEYS };
 
-    const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database), options)));
+    const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeyQuery(tableName), options)));
 
     const result = {};
 
@@ -628,8 +550,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       }
 
       result[tableName] = Array.isArray(results[i])
-        ? results[i].map(r => r.constraint_name)
-        : [results[i] && results[i].constraint_name];
+        ? results[i].map(r => r.constraintName)
+        : [results[i] && results[i].constraintName];
 
       result[tableName] = result[tableName].filter(_.identity);
     }
@@ -653,7 +575,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       ...options,
       type: QueryTypes.FOREIGNKEYS,
     };
-    const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.database);
+
+    const query = this.queryGenerator.getForeignKeyQuery(tableName);
 
     return this.sequelize.queryRaw(query, queryOptions);
   }

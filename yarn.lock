@@ -1470,7 +1470,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sequelize/core@^7.0.0-alpha.20, @sequelize/core@workspace:packages/core":
+"@sequelize/core@workspace:*, @sequelize/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
@@ -1494,8 +1494,6 @@ __metadata:
     chai: 4.3.7
     chai-as-promised: 7.1.1
     chai-datetime: 1.8.0
-    concurrently: 8.2.0
-    cross-env: 7.0.3
     dayjs: ^1.11.5
     debug: ^4.3.4
     delay: 5.0.0
@@ -1503,7 +1501,6 @@ __metadata:
     expect-type: 0.13.0
     fast-glob: ^3.2.12
     fs-jetpack: 5.1.0
-    husky: 8.0.3
     ibm_db: 3.2.1
     inflection: ^2.0.0
     lcov-result-merger: 4.1.0
@@ -1531,7 +1528,7 @@ __metadata:
     sqlite3: 5.1.6
     tedious: 15.1.3
     toposort-class: ^1.0.1
-    type-fest: ^2.18.1
+    type-fest: ^3.0.0
     uuid: ^9.0.0
     validator: ^13.7.0
     wkx: ^0.5.0
@@ -1562,11 +1559,14 @@ __metadata:
     "@ephys/eslint-config-typescript": 19.0.2
     "@rushstack/eslint-patch": 1.3.2
     chai: 4.3.7
+    concurrently: 8.2.0
+    cross-env: 7.0.3
     esbuild: 0.17.19
     eslint: 8.43.0
     eslint-plugin-jsdoc: 41.1.2
     eslint-plugin-mocha: 10.1.0
     fast-glob: 3.2.12
+    husky: 8.0.3
     lerna: 7.0.2
     lint-staged: 13.2.2
     markdownlint-cli: 0.35.0
@@ -1587,7 +1587,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/validator.js@workspace:packages/validator-js"
   dependencies:
-    "@sequelize/core": ^7.0.0-alpha.20
+    "@sequelize/core": "workspace:*"
     "@types/chai": 4.3.5
     "@types/chai-as-promised": 7.1.5
     chai: 4.3.7
@@ -12134,10 +12134,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^2.18.1":
-  version: 2.19.0
-  resolution: "type-fest@npm:2.19.0"
-  checksum: a4ef07ece297c9fba78fc1bd6d85dff4472fe043ede98bd4710d2615d15776902b595abf62bd78339ed6278f021235fb28a96361f8be86ed754f778973a0d278
+"type-fest@npm:^3.0.0":
+  version: 3.12.0
+  resolution: "type-fest@npm:3.12.0"
+  checksum: 11cb6f40e42f92c462a13677eafedf5c48353eaefa8e489a146e55fe0ae5cecd59a2ba03cd6b294345b5ea304361891a6313c23ed959fa0117f63fb71ee6cbab
   languageName: node
   linkType: hard
 

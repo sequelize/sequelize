@@ -2823,7 +2823,7 @@ ${associationOwner._getAssociationDebugList()}`);
   static async describe(schema, options) {
     const table = this.modelDefinition.table;
 
-    return await this.queryInterface.describeTable(table.tableName, { schema: schema || table.schema, ...options });
+    return await this.queryInterface.describeTable({ ...table, schema: schema || table.schema }, options);
   }
 
   static _getDefaultTimestamp(attributeName) {
