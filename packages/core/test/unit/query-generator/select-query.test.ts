@@ -503,6 +503,10 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         attributes: [
           // these used to have special escaping logic, now they're always escaped like any other strings. col, fn, and literal can be used for advanced logic.
           ['count(*)', 'count'],
+          // @ts-expect-error -- test against a vulnerability CVE-2023-22578
+          '.*',
+          // @ts-expect-error -- test against a vulnerability CVE-2023-22578
+          '*',
           [literal('count(*)'), 'literal_count'],
           [fn('count', '*'), 'fn_count_str'],
           [fn('count', col('*')), 'fn_count_col'],
@@ -517,6 +521,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         default: `
           SELECT
             [count(*)] AS [count],
+            [.*],
+            [*],
             count(*) AS [literal_count],
             count('*') AS [fn_count_str],
             count(*) AS [fn_count_col],
@@ -528,6 +534,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         mssql: `
           SELECT
             [count(*)] AS [count],
+            [.*],
+            [*],
             count(*) AS [literal_count],
             count(N'*') AS [fn_count_str],
             count(*) AS [fn_count_col],
