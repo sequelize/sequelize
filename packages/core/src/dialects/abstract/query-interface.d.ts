@@ -242,19 +242,6 @@ export interface FunctionParam {
   direction?: string;
 }
 
-export interface ColumnDescription {
-  type: string;
-  allowNull: boolean;
-  defaultValue: string;
-  primaryKey: boolean;
-  autoIncrement: boolean;
-  comment: string | null;
-}
-
-export interface ColumnsDescription {
-  [key: string]: ColumnDescription;
-}
-
 export interface DatabaseDescription {
   name: string;
 }

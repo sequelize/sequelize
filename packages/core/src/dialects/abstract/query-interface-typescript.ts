@@ -9,6 +9,7 @@ import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types';
 import type {
+  ColumnsDescription,
   CreateSchemaOptions,
   DescribeTableOptions,
   QueryInterfaceOptions,
@@ -117,7 +118,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options Query options
    *
    */
-  async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions) {
+  async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions): Promise<ColumnsDescription> {
     const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {

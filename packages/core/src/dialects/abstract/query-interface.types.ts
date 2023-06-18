@@ -6,6 +6,17 @@ export interface QueryInterfaceOptions {
   queryGenerator: AbstractQueryGenerator;
 }
 
+export interface ColumnDescription {
+  type: string;
+  allowNull: boolean;
+  defaultValue: string;
+  primaryKey: boolean;
+  autoIncrement: boolean;
+  comment: string | null;
+}
+
+export type ColumnsDescription = Record<string, ColumnDescription>;
+
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
 

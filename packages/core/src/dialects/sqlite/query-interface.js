@@ -4,7 +4,8 @@ import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/depre
 
 const sequelizeErrors = require('../../errors');
 const { QueryTypes } = require('../../query-types');
-const { AbstractQueryInterface, QueryOptions, ColumnsDescription } = require('../abstract/query-interface');
+const { ColumnsDescription } = require('../abstract/query-interface.types');
+const { AbstractQueryInterface, QueryOptions } = require('../abstract/query-interface');
 const { cloneDeep } = require('../../utils/object.js');
 const _ = require('lodash');
 const crypto = require('node:crypto');
