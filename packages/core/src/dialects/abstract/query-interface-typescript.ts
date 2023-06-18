@@ -14,6 +14,7 @@ import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type {
   AddConstraintOptions,
   ColumnsDescription,
+  ConstraintDescription,
   CreateSchemaOptions,
   DeferConstraintsOptions,
   DescribeTableOptions,
@@ -286,7 +287,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options - An object to define the constraint name, type etc
    *
    */
-  async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions) {
+  async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions): Promise<void> {
     if (!options.fields) {
       throw new Error('Fields must be specified through options.fields');
     }
@@ -295,17 +296,20 @@ export class AbstractQueryInterfaceTypeScript {
       throw new Error('Constraint type must be specified through options.type');
     }
 
-    const queryOptions = { ...options, raw: true };
     const sql = this.queryGenerator.addConstraintQuery(tableName, options);
 
-    return this.sequelize.queryRaw(sql, queryOptions);
+    await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
   }
 
-  async deferConstraints(transaction: Transaction, options: DeferConstraintsOptions) {
-    const queryOptions = { ...options, transaction: transaction.parent || transaction, raw: true };
+  async deferConstraints(transaction: Transaction, options: DeferConstraintsOptions): Promise<void> {
     const sql = this.queryGenerator.deferConstraintsQuery(options);
 
-    return this.sequelize.queryRaw(sql, queryOptions);
+    await this.sequelize.queryRaw(sql, {
+      ...options,
+      raw: true,
+      transaction: transaction.parent || transaction,
+      type: QueryTypes.RAW,
+    });
   }
 
   /**
@@ -315,17 +319,24 @@ export class AbstractQueryInterfaceTypeScript {
    * @param constraintName -Constraint name
    * @param options -Query options
    */
-  async removeConstraint(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintOptions) {
-    const queryOptions = { raw: true, ...options };
+  async removeConstraint(
+    tableName: TableNameOrModel,
+    constraintName: string,
+    options?: RemoveConstraintOptions,
+  ): Promise<void> {
     const sql = this.queryGenerator.removeConstraintQuery(tableName, constraintName, options);
 
-    return this.sequelize.queryRaw(sql, queryOptions);
+    await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
   }
 
-  async showConstraint(tableName: TableNameOrModel, constraintName?: string, options?: ShowConstraintOptions) {
+  async showConstraint(
+    tableName: TableNameOrModel,
+    constraintName?: string,
+    options?: ShowConstraintOptions,
+  ): Promise<ConstraintDescription[]> {
     const sql = this.queryGenerator.showConstraintsQuery(tableName, constraintName);
 
-    return this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWCONSTRAINTS });
+    return this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.SHOWCONSTRAINTS });
   }
 
   /**
