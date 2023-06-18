@@ -2273,7 +2273,7 @@ ${associationOwner._getAssociationDebugList()}`);
             const instance = instances[i];
 
             for (const key in result) {
-              if (!Object.prototype.hasOwnProperty.call(result, key)) {
+              if (!Object.hasOwn(result, key)) {
                 continue;
               }
 

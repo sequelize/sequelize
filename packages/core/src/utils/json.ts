@@ -9,7 +9,7 @@ function quoteJsonPathIdentifier(identifier: string): string {
   }
 
   // Escape backslashes and double quotes
-  return `"${identifier.replace(/["\\]/g, s => `\\${s}`)}"`;
+  return `"${identifier.replaceAll(/["\\]/g, s => `\\${s}`)}"`;
 }
 
 /**
