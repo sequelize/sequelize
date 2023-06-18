@@ -55,6 +55,10 @@ export class MariaDbDialect extends AbstractDialect {
       },
       REGEXP: true,
       jsonOperations: true,
+      jsonExtraction: {
+        unquoted: true,
+        quoted: true,
+      },
       globalTimeZoneConfig: true,
     },
   );
