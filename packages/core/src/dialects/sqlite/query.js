@@ -291,6 +291,17 @@ export class SqliteQuery extends AbstractQuery {
     });
   }
 
+  /**
+   * @deprecated this is a bad way to quote identifiers and it should not be used anymore.
+   * Use {@link quoteIdentifier} instead
+   *
+   * @param {string} string
+   * @returns {string}
+   */
+  removeTicks(string) {
+    return string.replace(/`/g, '');
+  }
+
   // TODO [>7]: remove usage of removeTicks in favor of something that does not mishandle backticks
   parseConstraintsFromSql(sql) {
     let constraints = sql.split('CONSTRAINT ');
