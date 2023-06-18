@@ -42,9 +42,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     }
 
     it('rejects when no data is available', async function () {
+      const table = this.queryInterface.queryGenerator.extractTableDetails('_some_random_missing_table');
       await expect(
-        this.queryInterface.describeTable('_some_random_missing_table'),
-      ).to.be.rejectedWith('No description found for table _some_random_missing_table. Check the table name and schema; remember, they _are_ case sensitive.');
+        this.queryInterface.describeTable(table),
+      ).to.be.rejectedWith(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
     });
 
     it('reads the metadata of the table', async function () {

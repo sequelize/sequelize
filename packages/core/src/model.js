@@ -2231,7 +2231,7 @@ ${associationOwner._getAssociationDebugList()}`);
         });
 
         // Map attributes to fields for serial identification
-        const fieldMappedAttributes = {};
+        const fieldMappedAttributes = Object.create(null);
         for (const attrName in model.tableAttributes) {
           const attribute = modelDefinition.attributes.get(attrName);
           fieldMappedAttributes[attribute.columnName] = attribute;
@@ -2273,6 +2273,10 @@ ${associationOwner._getAssociationDebugList()}`);
             const instance = instances[i];
 
             for (const key in result) {
+              if (!Object.prototype.hasOwnProperty.call(result, key)) {
+                continue;
+              }
+
               if (!instance || key === model.primaryKeyAttribute
                 && instance.get(model.primaryKeyAttribute)
                 && ['mysql', 'mariadb', 'sqlite'].includes(dialect)) {
@@ -2282,16 +2286,14 @@ ${associationOwner._getAssociationDebugList()}`);
                 continue;
               }
 
-              if (Object.prototype.hasOwnProperty.call(result, key)) {
-                const record = result[key];
-
-                const attr = find(
-                  modelDefinition.attributes.values(),
-                  attribute => attribute.attributeName === key || attribute.columnName === key,
-                );
-
-                instance.dataValues[attr && attr.attributeName || key] = record;
-              }
+              const value = result[key];
+              const attr = find(
+                modelDefinition.attributes.values(),
+                attribute => attribute.attributeName === key || attribute.columnName === key,
+              );
+              const attributeName = attr?.attributeName || key;
+              instance.dataValues[attributeName] = value != null && attr?.type instanceof AbstractDataType ? attr.type.parseDatabaseValue(value) : value;
+              instance._previousDataValues[attributeName] = instance.dataValues[attributeName];
             }
           }
         }
@@ -2821,7 +2823,7 @@ ${associationOwner._getAssociationDebugList()}`);
   static async describe(schema, options) {
     const table = this.modelDefinition.table;
 
-    return await this.queryInterface.describeTable(table.tableName, { schema: schema || table.schema, ...options });
+    return await this.queryInterface.describeTable({ ...table, schema: schema || table.schema }, options);
   }
 
   static _getDefaultTimestamp(attributeName) {
@@ -3360,7 +3362,7 @@ Instead of specifying a Model, either:
 
       // Bunch of stuff we won't do when it's raw
       if (!options.raw) {
-        // If attribute is not in model definition, return
+        // If the attribute is not in model definition, return
         if (!attributeDefinition) {
           const jsonAttributeNames = modelDefinition.jsonAttributeNames;
 
@@ -3381,6 +3383,7 @@ Instead of specifying a Model, either:
           return this;
         }
 
+        // TODO: throw an error when trying to set a read only attribute with to a different value
         // If attempting to set read only attributes, return
         const readOnlyAttributeNames = modelDefinition.readOnlyAttributeNames;
         if (!this.isNewRecord && readOnlyAttributeNames.has(key)) {
