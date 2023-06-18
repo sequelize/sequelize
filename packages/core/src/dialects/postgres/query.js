@@ -116,10 +116,8 @@ export class PostgresQuery extends AbstractQuery {
     if (this.isShowIndexesQuery()) {
       for (const row of rows) {
         let attributes;
-        let includeColumns = [];
         if (/include \(([^]*)\)/gi.test(row.definition)) {
           attributes = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi.exec(row.definition)[1].split(',');
-          includeColumns = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi.exec(row.definition)[2].split(',');
         } else {
           attributes = /on .*? (?:using .*?\s)?\(([^]*)\)/gi.exec(row.definition)[1].split(',');
         }
@@ -136,8 +134,7 @@ export class PostgresQuery extends AbstractQuery {
         let attribute;
 
         // Indkey is the order of attributes in the index, specified by a string of attribute indexes
-        const indkeys = row.indkey.split(' ');
-        row.fields = indkeys.slice(0, indkeys.length - includeColumns.length).map((indKey, index) => {
+        row.fields = row.index_fields.map((indKey, index) => {
           field = columns[indKey];
           // for functional indices indKey = 0
           if (!field) {
@@ -153,7 +150,20 @@ export class PostgresQuery extends AbstractQuery {
             length: undefined,
           };
         }).filter(n => n !== null);
+
+        row.includes = row.include_fields.map(indKey => {
+          field = columns[indKey];
+          // for functional indices indKey = 0
+          if (!field) {
+            return null;
+          }
+
+          return field;
+        }).filter(n => n !== null);
         delete row.columns;
+        delete row.definition;
+        delete row.index_fields;
+        delete row.include_fields;
       }
 
       return rows;
@@ -164,7 +174,7 @@ export class PostgresQuery extends AbstractQuery {
       for (const row of rows) {
         let defParts;
         if (row.condef !== undefined && (defParts = row.condef.match(/FOREIGN KEY \((.+)\) REFERENCES (.+)\((.+)\)( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?/))) {
-          row.id = row.constraint_name;
+          row.id = row.constraintName;
           row.table = defParts[2];
           row.from = defParts[1];
           row.to = defParts[3];
@@ -413,7 +423,7 @@ export class PostgresQuery extends AbstractQuery {
   }
 
   isForeignKeysQuery() {
-    return /SELECT conname as constraint_name, pg_catalog\.pg_get_constraintdef\(r\.oid, true\) as condef FROM pg_catalog\.pg_constraint r WHERE r\.conrelid = \(SELECT oid FROM pg_class WHERE relname = '.*' LIMIT 1\) AND r\.contype = 'f' ORDER BY 1;/.test(this.sql);
+    return /SELECT conname as constraintName, pg_catalog\.pg_get_constraintdef\(r\.oid, true\) as condef FROM pg_catalog\.pg_constraint r WHERE r\.conrelid = \(SELECT oid FROM pg_class WHERE relname = '.*' LIMIT 1\) AND r\.contype = 'f' ORDER BY 1;/.test(this.sql);
   }
 
   getInsertIdField() {

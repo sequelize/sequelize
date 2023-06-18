@@ -9,6 +9,7 @@ import { rejectInvalidOptions } from '../../utils/check';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
@@ -26,6 +27,7 @@ const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymme
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['encoding', 'collate', 'ctype', 'template']);
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['cascade']);
 
 export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
@@ -93,6 +95,16 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     options = { ...options };
 
     const attrStr = [];
@@ -767,18 +779,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(tableName) {
-    return 'SELECT conname as constraint_name, pg_catalog.pg_get_constraintdef(r.oid, true) as condef FROM pg_catalog.pg_constraint r '
-      + `WHERE r.conrelid = (SELECT oid FROM pg_class WHERE relname = '${tableName}' LIMIT 1) AND r.contype = 'f' ORDER BY 1;`;
-  }
-
-  /**
    * Generate common SQL prefix for getForeignKeyReferencesQuery.
    *
    * @returns {string}
@@ -808,7 +808,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   /**
    * Generates an SQL query that returns all foreign keys details of a table.
    *
-   * As for getForeignKeysQuery is not compatible with getForeignKeyReferencesQuery, so add a new function.
+   * As for getForeignKeyQuery is not compatible with getForeignKeyReferencesQuery, so add a new function.
    *
    * @param {string} tableName
    * @param {string} catalogName

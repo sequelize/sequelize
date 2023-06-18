@@ -1,7 +1,7 @@
 {
   "name": "@sequelize/core",
   "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
-  "version": "7.0.0-alpha.20",
+  "version": "0.0.0-development",
   "funding": [
     {
       "type": "opencollective",
@@ -74,7 +74,7 @@
     "@types/lodash": "4.14.195",
     "@types/mocha": "10.0.1",
     "@types/node": "18.16.18",
-    "@types/pg": "8.6.6",
+    "@types/pg": "8.10.2",
     "@types/semver": "7.5.0",
     "@types/sinon": "10.0.15",
     "@types/sinon-chai": "3.2.9",
@@ -84,12 +84,9 @@
     "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
-    "concurrently": "8.2.0",
-    "cross-env": "7.0.3",
     "delay": "5.0.0",
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
-    "husky": "8.0.3",
     "ibm_db": "3.2.1",
     "lcov-result-merger": "4.1.0",
     "mariadb": "2.5.6",

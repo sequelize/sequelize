@@ -32,7 +32,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.table_name=c.table_name',
       'AND pk.column_name=c.column_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
-      `AND c.table_schema = ${this.escape(table.schema)}`,
+      `AND c.table_schema = ${this.escape(table.schema!)}`,
     ]);
   }
 
@@ -41,13 +41,13 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     // TODO [>=6]: refactor the query to use pg_indexes
     return joinSQLFragments([
-      'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey,',
-      'array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names, pg_get_indexdef(ix.indexrelid)',
-      'AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a , pg_namespace s',
+      'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey[:ix.indnkeyatts-1] AS index_fields,',
+      'ix.indkey[ix.indnkeyatts:] AS include_fields, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,',
+      'pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a , pg_namespace s',
       'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND',
       `t.relkind = 'r' and t.relname = ${this.escape(table.tableName)}`,
       `AND s.oid = t.relnamespace AND s.nspname = ${this.escape(table.schema)}`,
-      'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey ORDER BY i.relname;',
+      'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;',
     ]);
   }
 
@@ -74,6 +74,48 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       options?.ifExists ? 'IF EXISTS' : '',
       `${this.quoteIdentifier(table.schema!)}.${this.quoteIdentifier(indexName)}`,
       options?.cascade ? 'CASCADE' : '',
+    ]);
+  }
+
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      // conkey and confkey are arrays for composite foreign keys.
+      // This splits them as matching separate rows
+      'WITH unnested_pg_constraint AS (',
+      'SELECT conname, confrelid, connamespace, conrelid, contype, oid,',
+      'unnest(conkey) AS conkey, unnest(confkey) AS confkey',
+      'FROM pg_constraint)',
+      'SELECT "constraint".conname as "constraintName",',
+      'constraint_schema.nspname as "constraintSchema",',
+      'current_database() as "constraintCatalog",',
+      '"table".relname as "tableName",',
+      'table_schema.nspname as "tableSchema",',
+      'current_database() as "tableCatalog",',
+      '"column".attname as "columnName",',
+      'referenced_table.relname as "referencedTableName",',
+      'referenced_schema.nspname as "referencedTableSchema",',
+      'current_database() as "referencedTableCatalog",',
+      '"referenced_column".attname as "referencedColumnName"',
+      'FROM unnested_pg_constraint "constraint"',
+      'INNER JOIN pg_catalog.pg_class referenced_table ON',
+      'referenced_table.oid = "constraint".confrelid',
+      'INNER JOIN pg_catalog.pg_namespace referenced_schema ON',
+      'referenced_schema.oid = referenced_table.relnamespace',
+      'INNER JOIN pg_catalog.pg_namespace constraint_schema ON',
+      '"constraint".connamespace = constraint_schema.oid',
+      'INNER JOIN pg_catalog.pg_class "table" ON "constraint".conrelid = "table".oid',
+      'INNER JOIN pg_catalog.pg_namespace table_schema ON "table".relnamespace = table_schema.oid',
+      'INNER JOIN pg_catalog.pg_attribute "column" ON',
+      '"column".attnum = "constraint".conkey AND "column".attrelid = "constraint".conrelid',
+      'INNER JOIN pg_catalog.pg_attribute "referenced_column" ON',
+      '"referenced_column".attnum = "constraint".confkey AND',
+      '"referenced_column".attrelid = "constraint".confrelid',
+      `WHERE "constraint".contype = 'f'`,
+      `AND "table".relname = ${this.escape(table.tableName)}`,
+      `AND table_schema.nspname = ${this.escape(table.schema!)}`,
+      columnName && `AND "column".attname = ${this.escape(columnName)};`,
     ]);
   }
 

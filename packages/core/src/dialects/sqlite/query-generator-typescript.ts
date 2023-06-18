@@ -12,7 +12,7 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  */
 export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
   describeTableQuery(tableName: TableNameOrModel) {
-    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)});`;
+    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)})`;
   }
 
   showIndexesQuery(tableName: TableNameOrModel) {
@@ -51,5 +51,35 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
       options?.ifExists ? 'IF EXISTS' : '',
       this.quoteIdentifier(indexName),
     ]);
+  }
+
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
+    if (columnName) {
+      throw new Error(`Providing a columnName in getForeignKeyQuery is not supported by ${this.dialect.name}.`);
+    }
+
+    const escapedTable = this.escapeTable(tableName);
+
+    return joinSQLFragments([
+      'SELECT id as `constraintName`,',
+      `${escapedTable} as \`tableName\`,`,
+      'pragma.`from` AS `columnName`,',
+      'pragma.`table` AS `referencedTableName`,',
+      'pragma.`to` AS `referencedColumnName`,',
+      'pragma.`on_update`,',
+      'pragma.`on_delete`',
+      `FROM pragma_foreign_key_list(${escapedTable}) AS pragma;`,
+    ]);
+  }
+
+  escapeTable(tableName: TableNameOrModel): string {
+    const table = this.extractTableDetails(tableName);
+
+    if (table.schema) {
+      return this.escape(`${table.schema}${table.delimiter}${table.tableName}`);
+    }
+
+    return this.escape(table.tableName);
+
   }
 }

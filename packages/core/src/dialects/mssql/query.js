@@ -413,45 +413,48 @@ export class MsSqlQuery extends AbstractQuery {
     return result;
   }
 
-  isShowIndexesQuery() {
-    return this.sql.toLowerCase().startsWith('exec sys.sp_helpindex @objname');
-  }
-
   handleShowIndexesQuery(data) {
     // Group by index name, and collect all fields
-    data = data.reduce((acc, item) => {
-      if (!(item.index_name in acc)) {
-        acc[item.index_name] = item;
-        item.fields = [];
-      }
-
-      for (const column of item.index_keys.split(',')) {
-        let columnName = column.trim();
-        if (columnName.includes('(-)')) {
-          columnName = columnName.replace('(-)', '');
+    const indexes = data.reduce((acc, curr) => {
+      if (acc.has(curr.index_name)) {
+        const index = acc.get(curr.index_name);
+        if (curr.is_included_column) {
+          index.includes.push(curr.column_name);
+        } else {
+          index.fields.push({
+            attribute: curr.column_name,
+            length: undefined,
+            order: curr.is_descending_key ? 'DESC' : 'ASC',
+            collate: undefined,
+          });
         }
 
-        acc[item.index_name].fields.push({
-          attribute: columnName,
-          length: undefined,
-          order: column.includes('(-)') ? 'DESC' : 'ASC',
-          collate: undefined,
-        });
+        return acc;
       }
 
-      delete item.index_keys;
+      acc.set(curr.index_name, {
+        primary: curr.is_primary_key,
+        fields: curr.is_included_column
+          ? []
+          : [
+            {
+              attribute: curr.column_name,
+              length: undefined,
+              order: curr.is_descending_key ? 'DESC' : 'ASC',
+              collate: undefined,
+            },
+          ],
+        includes: curr.is_included_column ? [curr.column_name] : [],
+        name: curr.index_name,
+        tableName: undefined,
+        unique: curr.is_unique,
+        type: null,
+      });
 
       return acc;
-    }, {});
+    }, new Map());
 
-    return _.map(data, item => ({
-      primary: item.index_name.toLowerCase().startsWith('pk'),
-      fields: item.fields,
-      name: item.index_name,
-      tableName: undefined,
-      unique: item.index_description.toLowerCase().includes('unique'),
-      type: undefined,
-    }));
+    return Array.from(indexes.values());
   }
 
   handleInsertQuery(insertedRows, metaData) {

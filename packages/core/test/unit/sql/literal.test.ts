@@ -5,7 +5,7 @@ const dialect = sequelize.dialect;
 const queryGenerator = sequelize.queryGenerator;
 
 describe('json', () => {
-  if (!dialect.supports.jsonOperations) {
+  if (!dialect.supports.jsonOperations || !dialect.supports.jsonExtraction.quoted) {
     return;
   }
 
@@ -37,7 +37,7 @@ describe('json', () => {
   });
 
   it('supports numbers in the dot notation', () => {
-    expectsql(queryGenerator.escape(json('profile.id.0.1')), {
+    expectsql(() => queryGenerator.escape(json('profile.id.0.1')), {
       postgres: `"profile"#>ARRAY['id','0','1']`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id."0"."1"'))`,
       'sqlite mysql': `json_extract(\`profile\`,'$.id."0"."1"')`,
@@ -70,7 +70,7 @@ describe('json', () => {
   // });
 
   it('accepts a nested condition object', () => {
-    expectsql(queryGenerator.escape(json({ profile: { id: 1 } })), {
+    expectsql(() => queryGenerator.escape(json({ profile: { id: 1 } })), {
       postgres: `"profile"->'id' = '1'`,
       sqlite: `json_extract(\`profile\`,'$.id') = '1'`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id')) = '1'`,
@@ -79,7 +79,7 @@ describe('json', () => {
   });
 
   it('accepts multiple condition object', () => {
-    expectsql(queryGenerator.escape(json({ property: { value: 1 }, another: { value: 'string' } })), {
+    expectsql(() => queryGenerator.escape(json({ property: { value: 1 }, another: { value: 'string' } })), {
       postgres: `"property"->'value' = '1' AND "another"->'value' = '"string"'`,
       sqlite: `json_extract(\`property\`,'$.value') = '1' AND json_extract(\`another\`,'$.value') = '"string"'`,
       mariadb: `json_compact(json_extract(\`property\`,'$.value')) = '1' AND json_compact(json_extract(\`another\`,'$.value')) = '"string"'`,
@@ -88,7 +88,7 @@ describe('json', () => {
   });
 
   it('can be used inside of where', () => {
-    expectsql(queryGenerator.escape(where(json('profile.id'), '1')), {
+    expectsql(() => queryGenerator.escape(where(json('profile.id'), '1')), {
       postgres: `"profile"->'id' = '"1"'`,
       sqlite: `json_extract(\`profile\`,'$.id') = '"1"'`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id')) = '"1"'`,
