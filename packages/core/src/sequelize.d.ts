@@ -29,7 +29,15 @@ import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
 import type { RequiredBy } from './utils/types.js';
-import type { AbstractQueryGenerator, DataTypes, ISOLATION_LEVELS, Op, QueryTypes, TRANSACTION_TYPES } from '.';
+import type {
+  AbstractQueryGenerator,
+  DataTypes,
+  IsolationLevel,
+  Op,
+  QueryTypes,
+  TransactionNestMode,
+  TransactionType,
+} from '.';
 
 export type RetryOptions = RetryAsPromisedOptions;
 
@@ -366,14 +374,14 @@ export interface Options extends Logging {
    *
    * @default 'REPEATABLE_READ'
    */
-  isolationLevel?: ISOLATION_LEVELS;
+  isolationLevel?: IsolationLevel;
 
   /**
    * Set the default transaction type. See Sequelize.Transaction.TYPES for possible options. Sqlite only.
    *
    * @default 'DEFERRED'
    */
-  transactionType?: TRANSACTION_TYPES;
+  transactionType?: TransactionType;
 
   /**
    * Disable built in type validators on insert and update, e.g. don't validate that arguments passed to integer
@@ -443,9 +451,26 @@ export interface Options extends Logging {
    * You will need to pass transactions around manually if you disable this.
    */
   disableClsTransactions?: boolean;
+
+  /**
+   * How nested transaction blocks behave by default.
+   * See {@link ClsTransactionOptions#nestMode} for more information.
+   *
+   * @default TransactionNestMode.reuse
+   */
+  clsTransactionNestMode?: TransactionNestMode;
 }
 
-export interface NormalizedOptions extends RequiredBy<Options, 'transactionType' | 'isolationLevel' | 'noTypeValidation' | 'dialectOptions' | 'dialect' | 'timezone' | 'disableClsTransactions'> {
+export interface NormalizedOptions extends RequiredBy<Options,
+  | 'transactionType'
+  | 'isolationLevel'
+  | 'noTypeValidation'
+  | 'dialectOptions'
+  | 'dialect'
+  | 'timezone'
+  | 'disableClsTransactions'
+  | 'clsTransactionNestMode'
+> {
   readonly replication: NormalizedReplicationOptions;
 }
 
@@ -750,8 +775,6 @@ export class Sequelize extends SequelizeTypeScript {
    * Final config that is used by sequelize.
    */
   readonly config: Config;
-
-  readonly options: NormalizedOptions;
 
   readonly dialect: AbstractDialect;
 

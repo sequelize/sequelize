@@ -47,7 +47,16 @@ export { QueryTypes } from './query-types';
 export { IndexHints } from './index-hints';
 export { TableHints } from './table-hints';
 export { Op, type OpTypes } from './operators';
-export * from './transaction';
+export {
+  TransactionType,
+  Lock,
+  IsolationLevel,
+  TransactionNestMode,
+  Transaction,
+  type ClsTransactionOptions,
+  type TransactionOptions,
+  type NormalizedTransactionOptions,
+} from './transaction';
 
 export type { Connection } from './dialects/abstract/connection-manager';
 export * from './associations/index';

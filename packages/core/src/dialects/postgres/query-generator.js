@@ -472,13 +472,13 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   deferConstraintsQuery(options) {
-    return options.deferrable.toString(this);
+    return options.deferrable.toSql(this);
   }
 
   setConstraintQuery(columns, type) {
     let columnFragment = 'ALL';
 
-    if (columns) {
+    if (columns?.length) {
       columnFragment = columns.map(column => this.quoteIdentifier(column)).join(', ');
     }
 
