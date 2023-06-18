@@ -522,29 +522,19 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should get a list of foreign keys for the table', async function () {
-
       const foreignKeys = await this.sequelize.query(
-        this.queryInterface.queryGenerator.getForeignKeysQuery(
-          'hosts',
-          dialectName === 'db2' ? this.sequelize.config.username.toUpperCase() : this.sequelize.config.database,
-        ),
+        this.queryInterface.queryGenerator.getForeignKeyQuery('hosts'),
         { type: this.sequelize.QueryTypes.FOREIGNKEYS },
       );
 
       expect(foreignKeys).to.have.length(3);
 
-      if (dialectName === 'postgres') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(6);
-        expect(Object.keys(foreignKeys[1])).to.have.length(7);
-        expect(Object.keys(foreignKeys[2])).to.have.length(7);
-      } else if (['sqlite', 'db2'].includes(dialectName)) {
+      if (dialectName === 'sqlite') {
+        expect(Object.keys(foreignKeys[0])).to.have.length(7);
+      } else if (['mariadb', 'mysql', 'db2'].includes(dialectName)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
-      } else if (dialectName === 'ibmi') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(9);
-      } else if (['mysql', 'mariadb', 'mssql'].includes(dialectName)) {
-        expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else {
-        throw new Error(`This test doesn't support ${dialectName}`);
+        expect(Object.keys(foreignKeys[0])).to.have.length(11);
       }
 
       if (dialectName === 'mysql') {

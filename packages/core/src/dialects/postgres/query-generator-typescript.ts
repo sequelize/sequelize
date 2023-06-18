@@ -32,7 +32,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.table_name=c.table_name',
       'AND pk.column_name=c.column_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
-      `AND c.table_schema = ${this.escape(table.schema)}`,
+      `AND c.table_schema = ${this.escape(table.schema!)}`,
     ]);
   }
 
@@ -74,6 +74,48 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       options?.ifExists ? 'IF EXISTS' : '',
       `${this.quoteIdentifier(table.schema!)}.${this.quoteIdentifier(indexName)}`,
       options?.cascade ? 'CASCADE' : '',
+    ]);
+  }
+
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      // conkey and confkey are arrays for composite foreign keys.
+      // This splits them as matching separate rows
+      'WITH unnested_pg_constraint AS (',
+      'SELECT conname, confrelid, connamespace, conrelid, contype, oid,',
+      'unnest(conkey) AS conkey, unnest(confkey) AS confkey',
+      'FROM pg_constraint)',
+      'SELECT "constraint".conname as "constraintName",',
+      'constraint_schema.nspname as "constraintSchema",',
+      'current_database() as "constraintCatalog",',
+      '"table".relname as "tableName",',
+      'table_schema.nspname as "tableSchema",',
+      'current_database() as "tableCatalog",',
+      '"column".attname as "columnName",',
+      'referenced_table.relname as "referencedTableName",',
+      'referenced_schema.nspname as "referencedTableSchema",',
+      'current_database() as "referencedTableCatalog",',
+      '"referenced_column".attname as "referencedColumnName"',
+      'FROM unnested_pg_constraint "constraint"',
+      'INNER JOIN pg_catalog.pg_class referenced_table ON',
+      'referenced_table.oid = "constraint".confrelid',
+      'INNER JOIN pg_catalog.pg_namespace referenced_schema ON',
+      'referenced_schema.oid = referenced_table.relnamespace',
+      'INNER JOIN pg_catalog.pg_namespace constraint_schema ON',
+      '"constraint".connamespace = constraint_schema.oid',
+      'INNER JOIN pg_catalog.pg_class "table" ON "constraint".conrelid = "table".oid',
+      'INNER JOIN pg_catalog.pg_namespace table_schema ON "table".relnamespace = table_schema.oid',
+      'INNER JOIN pg_catalog.pg_attribute "column" ON',
+      '"column".attnum = "constraint".conkey AND "column".attrelid = "constraint".conrelid',
+      'INNER JOIN pg_catalog.pg_attribute "referenced_column" ON',
+      '"referenced_column".attnum = "constraint".confkey AND',
+      '"referenced_column".attrelid = "constraint".confrelid',
+      `WHERE "constraint".contype = 'f'`,
+      `AND "table".relname = ${this.escape(table.tableName)}`,
+      `AND table_schema.nspname = ${this.escape(table.schema!)}`,
+      columnName && `AND "column".attname = ${this.escape(columnName)};`,
     ]);
   }
 

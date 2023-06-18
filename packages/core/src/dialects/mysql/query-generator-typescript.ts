@@ -1,6 +1,7 @@
 import { Op } from '../../operators.js';
 import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
+import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
@@ -61,6 +62,27 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return `DROP INDEX ${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableName)}`;
+  }
+
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT CONSTRAINT_NAME as constraintName,',
+      'CONSTRAINT_SCHEMA as constraintSchema,',
+      'TABLE_NAME as tableName,',
+      'TABLE_SCHEMA as tableSchema,',
+      'COLUMN_NAME as columnName,',
+      'REFERENCED_TABLE_SCHEMA as referencedTableSchema,',
+      'REFERENCED_TABLE_NAME as referencedTableName,',
+      'REFERENCED_COLUMN_NAME as referencedColumnName',
+      'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
+      'WHERE',
+      `TABLE_NAME = ${this.escape(table.tableName)}`,
+      `AND TABLE_SCHEMA = ${this.escape(table.schema!)}`,
+      columnName && `AND COLUMN_NAME = ${this.escape(columnName)}`,
+      'AND REFERENCED_TABLE_NAME IS NOT NULL',
+    ]);
   }
 
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
