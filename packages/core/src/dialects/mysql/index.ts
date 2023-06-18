@@ -73,7 +73,6 @@ export class MysqlDialect extends AbstractDialect {
 
   // minimum supported version
   readonly defaultVersion = '5.7.0';
-  readonly TICK_CHAR = '`';
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';
 

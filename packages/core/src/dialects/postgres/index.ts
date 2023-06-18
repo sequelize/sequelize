@@ -85,7 +85,6 @@ export class PostgresDialect extends AbstractDialect {
 
   // minimum supported version
   readonly defaultVersion = '11.0.0';
-  readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
 

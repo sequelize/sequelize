@@ -1,6 +1,5 @@
 'use strict';
 
-import { addTicks, removeTicks } from '../../utils/dialect';
 import { removeNullishValuesFromHash } from '../../utils/format';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
@@ -212,7 +211,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   truncateTableQuery(tableName, options = {}) {
     return [
       `DELETE FROM ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${addTicks(removeTicks(this.quoteTable(tableName), '`'), '\'')};` : '',
+      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${this.quoteTable(tableName)};` : '',
     ].join('');
   }
 

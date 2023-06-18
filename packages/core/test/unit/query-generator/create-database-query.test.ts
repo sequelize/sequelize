@@ -14,7 +14,7 @@ describe('QueryGenerator#createDatabaseQuery', () => {
       default: notSupportedError,
       postgres: 'CREATE DATABASE "myDatabase";',
       snowflake: 'CREATE DATABASE IF NOT EXISTS "myDatabase";',
-      mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN CREATE DATABASE [myDatabase] ; END;`,
+      mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = N'myDatabase' ) BEGIN CREATE DATABASE [myDatabase] ; END;`,
     });
   });
 
@@ -23,7 +23,7 @@ describe('QueryGenerator#createDatabaseQuery', () => {
       default: notSupportedError,
       postgres: `CREATE DATABASE "myDatabase" LC_COLLATE = 'en_US.UTF-8';`,
       snowflake: 'CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT COLLATE \'en_US.UTF-8\';',
-      mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN CREATE DATABASE [myDatabase] COLLATE N'en_US.UTF-8'; END;`,
+      mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = N'myDatabase' ) BEGIN CREATE DATABASE [myDatabase] COLLATE N'en_US.UTF-8'; END;`,
     });
   });
 
@@ -80,7 +80,7 @@ describe('QueryGenerator#createDatabaseQuery', () => {
       default: notSupportedError,
       postgres: `CREATE DATABASE "myDatabase" ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'zh_TW.UTF-8' TEMPLATE = 'template0';`,
       snowflake: `CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET 'utf8mb4' DEFAULT COLLATE 'en_US.UTF-8';`,
-      mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase') BEGIN CREATE DATABASE [myDatabase] COLLATE N'en_US.UTF-8'; END;`,
+      mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = N'myDatabase') BEGIN CREATE DATABASE [myDatabase] COLLATE N'en_US.UTF-8'; END;`,
     });
   });
 });

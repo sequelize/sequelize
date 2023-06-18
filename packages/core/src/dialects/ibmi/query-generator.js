@@ -3,7 +3,6 @@
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import { conformIndex } from '../../model-internals';
 import { rejectInvalidOptions } from '../../utils/check';
-import { addTicks } from '../../utils/dialect';
 import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
@@ -19,8 +18,6 @@ const util = require('node:util');
 const _ = require('lodash');
 const { IBMiQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const DataTypes = require('../../data-types');
-const { Model } = require('../../model');
-const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);
 
@@ -625,12 +622,4 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return `ALTER TABLE ${this.quoteTable(tableName)}
       DROP FOREIGN KEY ${this.quoteIdentifier(foreignKey)}`;
   }
-}
-
-/**
- * @param {string} identifier
- * @deprecated use "escape" or "escapeString" on QueryGenerator
- */
-function wrapSingleQuote(identifier) {
-  return addTicks(identifier, '\'');
 }

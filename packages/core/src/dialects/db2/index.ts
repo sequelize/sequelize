@@ -40,8 +40,6 @@ export class Db2Dialect extends AbstractDialect {
   readonly queryInterface: Db2QueryInterface;
   readonly Query = Db2Query;
 
-  /** @deprecated */
-  readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
 

@@ -46,7 +46,6 @@ export class SnowflakeDialect extends AbstractDialect {
   // TODO: fix the minimum supported version
   readonly defaultVersion = '5.7.0';
   readonly Query = SnowflakeQuery;
-  readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
   readonly connectionManager: SnowflakeConnectionManager;

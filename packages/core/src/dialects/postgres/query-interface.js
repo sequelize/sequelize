@@ -186,7 +186,7 @@ export class PostgresQueryInterface extends AbstractQueryInterface {
     options = options || {};
 
     return this.sequelize.queryRaw(
-      this.queryGenerator.pgEnumDrop(null, null, this.queryGenerator.pgEscapeAndQuote(enumName)),
+      this.queryGenerator.pgEnumDrop(null, null, this.queryGenerator.quoteIdentifier(enumName)),
       { ...options, raw: true },
     );
   }
@@ -204,7 +204,7 @@ export class PostgresQueryInterface extends AbstractQueryInterface {
     const enums = await this.pgListEnums(null, options);
 
     return await Promise.all(enums.map(result => this.sequelize.queryRaw(
-      this.queryGenerator.pgEnumDrop(null, null, this.queryGenerator.pgEscapeAndQuote(result.enum_name)),
+      this.queryGenerator.pgEnumDrop(null, null, this.queryGenerator.quoteIdentifier(result.enum_name)),
       { ...options, raw: true },
     )));
   }

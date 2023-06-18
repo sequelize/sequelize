@@ -3,10 +3,9 @@
 import { Col } from '../../expression-builders/col.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { rejectInvalidOptions } from '../../utils/check';
-import { addTicks, removeTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { generateIndexName, underscore } from '../../utils/string';
+import { generateIndexName } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -21,7 +20,6 @@ const DataTypes = require('../../data-types');
 const { TableHints } = require('../../table-hints');
 const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const randomBytes = require('node:crypto').randomBytes;
-const semver = require('semver');
 const { Op } = require('../../operators');
 
 /* istanbul ignore next */
@@ -50,7 +48,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const collation = options?.collate ? `COLLATE ${this.escape(options.collate)}` : '';
 
     return [
-      'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name =', wrapSingleQuote(databaseName), ')',
+      'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name =', this.escape(databaseName), ')',
       'BEGIN',
       'CREATE DATABASE', this.quoteIdentifier(databaseName),
       `${collation};`,
@@ -60,7 +58,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   dropDatabaseQuery(databaseName) {
     return [
-      'IF EXISTS (SELECT * FROM sys.databases WHERE name =', wrapSingleQuote(databaseName), ')',
+      'IF EXISTS (SELECT * FROM sys.databases WHERE name =', this.escape(databaseName), ')',
       'BEGIN',
       'DROP DATABASE', this.quoteIdentifier(databaseName), ';',
       'END;',
@@ -85,7 +83,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return [
       'IF NOT EXISTS (SELECT schema_name',
       'FROM information_schema.schemata',
-      'WHERE schema_name =', wrapSingleQuote(schema), ')',
+      'WHERE schema_name =', this.escape(schema), ')',
       'BEGIN',
       'EXEC sp_executesql N\'CREATE SCHEMA',
       this.quoteIdentifier(schema),
@@ -96,7 +94,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   dropSchemaQuery(schema) {
     // Mimics Postgres CASCADE, will drop objects belonging to the schema
-    const quotedSchema = wrapSingleQuote(schema);
+    const quotedSchema = this.escape(schema);
 
     return [
       'IF EXISTS (SELECT schema_name',
@@ -760,7 +758,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   getPrimaryKeyConstraintQuery(table, attributeName) {
-    const tableName = wrapSingleQuote(table.tableName || table);
+    const tableName = this.escape(table.tableName || table);
 
     return joinSQLFragments([
       'SELECT K.TABLE_NAME AS tableName,',
@@ -773,7 +771,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       'AND C.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA',
       'AND C.CONSTRAINT_NAME = K.CONSTRAINT_NAME',
       'WHERE C.CONSTRAINT_TYPE = \'PRIMARY KEY\'',
-      `AND K.COLUMN_NAME = ${wrapSingleQuote(attributeName)}`,
+      `AND K.COLUMN_NAME = ${this.escape(attributeName)}`,
       `AND K.TABLE_NAME = ${tableName}`,
       ';',
     ]);
@@ -922,12 +920,4 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     return fragment;
   }
-}
-
-/**
- * @param {string} identifier
- * @deprecated use "escape" or "escapeString" on QueryGenerator
- */
-function wrapSingleQuote(identifier) {
-  return addTicks(removeTicks(identifier, '\''), '\'');
 }
