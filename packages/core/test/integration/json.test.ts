@@ -156,80 +156,105 @@ describe('JSON Querying', () => {
     expect(posts[0].metaOldJSONtype).to.equal(posts[0].metaNewJSONtype);
   });
 
-  if (dialect.supports.jsonOperations) {
-    it('should be able to retrieve element of array by index', async () => {
-      const user = await vars.User.findOne({
-        attributes: [[sql.attribute('objectJsonAttr.phones[1]'), 'firstEmergencyNumber']],
-        rejectOnEmpty: true,
+  describe('JSON quoted', () => {
+    if (dialect.supports.jsonExtraction.quoted) {
+      it('should be able to retrieve element of array by index', async () => {
+        const user = await vars.User.findOne({
+          attributes: [[sql.attribute('objectJsonAttr.phones[1]'), 'firstEmergencyNumber']],
+          rejectOnEmpty: true,
+        });
+
+        // @ts-expect-error -- typings are not currently designed to handle custom attributes
+        const firstNumber: string = user.getDataValue('firstEmergencyNumber');
+
+        expect(Number.parseInt(firstNumber, 10)).to.equal(42);
       });
 
-      // @ts-expect-error -- typings are not currently designed to handle custom attributes
-      const firstNumber: string = user.getDataValue('firstEmergencyNumber');
+      it('should be able to query using JSON path objects', async () => {
+        // JSON requires casting to text in postgres. There is no "json = json" operator
+        // No-cast version is tested higher up in this suite
+        const comparison = dialectName === 'postgres' ? { 'name::text': '"swen"' } : { name: 'swen' };
 
-      expect(Number.parseInt(firstNumber, 10)).to.equal(42);
-    });
+        const user = await vars.User.findOne({
+          where: { objectJsonAttr: comparison },
+        });
 
-    it('should be able to query using JSON path objects', async () => {
-      // JSON requires casting to text in postgres. There is no "json = json" operator
-      // No-cast version is tested higher up in this suite
-      const comparison = dialectName === 'postgres' ? { 'name::text': '"swen"' } : { name: 'swen' };
-
-      const user = await vars.User.findOne({
-        where: { objectJsonAttr: comparison },
+        expect(user).to.exist;
       });
 
-      expect(user).to.exist;
-    });
+      it('should be able to query using JSON path dot notation', async () => {
+        // JSON requires casting to text in postgres. There is no "json = json" operator
+        // No-cast version is tested higher up in this suite
+        const comparison = dialectName === 'postgres' ? { 'objectJsonAttr.name::text': '"swen"' } : { 'objectJsonAttr.name': 'swen' };
 
-    it('should be able to query using JSON path dot notation', async () => {
-      // JSON requires casting to text in postgres. There is no "json = json" operator
-      // No-cast version is tested higher up in this suite
-      const comparison = dialectName === 'postgres' ? { 'objectJsonAttr.name::text': '"swen"' } : { 'objectJsonAttr.name': 'swen' };
+        const user = await vars.User.findOne({
+          where: comparison,
+        });
 
-      const user = await vars.User.findOne({
-        where: comparison,
+        expect(user).to.exist;
       });
 
-      expect(user).to.exist;
-    });
+      it('should be able retrieve json value with nested include', async () => {
+        const orders = await vars.Order.findAll({
+          attributes: ['id'],
+          include: [{
+            model: vars.User,
+            attributes: [
+              [sql.attribute('objectJsonAttr.name'), 'name'],
+            ],
+          }],
+        });
 
-    it('should be able to query using the JSON unquote syntax', async () => {
-      const user = await vars.User.findOne({
-        // JSON unquote does not require casting to text, as it already returns text
-        where: { 'objectJsonAttr.name:unquote': 'swen' },
-      });
-
-      expect(user).to.exist;
-    });
-
-    it('should be able retrieve json value with nested include', async () => {
-      const orders = await vars.Order.findAll({
-        attributes: ['id'],
-        include: [{
-          model: vars.User,
-          attributes: [
-            [sql.attribute('objectJsonAttr.name'), 'name'],
-          ],
-        }],
-      });
-
-      // we can't automatically detect that the output is JSON type in mariadb < 10.5.2,
-      // and we don't yet support specifying (nor inferring) the type of custom attributes,
-      // so for now the output is different in this specific case
-      if (dialectName === 'mariadb' && semver.lt(sequelize.getDatabaseVersion(), '10.5.2')) {
-        if (semver.gt(sequelize.getDatabaseVersion(), '10.4.21')) {
-          // @ts-expect-error -- getDataValue does not support custom attributes
-          expect(orders[0].user.getDataValue('name')).to.equal('"swen"');
-        }
+        // we can't automatically detect that the output is JSON type in mariadb < 10.5.2,
+        // and we don't yet support specifying (nor inferring) the type of custom attributes,
+        // so for now the output is different in this specific case
+        const expectedResult = dialectName === 'mariadb' && semver.lt(sequelize.getDatabaseVersion(), '10.5.2') ? '"swen"' : 'swen';
 
         // @ts-expect-error -- getDataValue does not support custom attributes
-        expect(orders[0].user.getDataValue('name')).to.deep.equal(Buffer.from('"swen"'));
-      } else {
+        expect(orders[0].user.getDataValue('name')).to.equal(expectedResult);
+      });
+    }
+  });
+
+  describe('JSON unquoted', () => {
+    if (dialect.supports.jsonExtraction.unquoted) {
+      it('should be able to retrieve element of array by index', async () => {
+        const user = await vars.User.findOne({
+          attributes: [[sql.attribute('objectJsonAttr.phones[1]:unquote'), 'firstEmergencyNumber']],
+          rejectOnEmpty: true,
+        });
+
+        // @ts-expect-error -- typings are not currently designed to handle custom attributes
+        const firstNumber: string = user.getDataValue('firstEmergencyNumber');
+
+        expect(Number.parseInt(firstNumber, 10)).to.equal(42);
+      });
+
+      it('should be able to query using JSON path dot notation', async () => {
+        const user = await vars.User.findOne({
+          // JSON unquote does not require casting to text, as it already returns text
+          where: { 'objectJsonAttr.name:unquote': 'swen' },
+        });
+
+        expect(user).to.exist;
+      });
+
+      it('should be able retrieve json value with nested include', async () => {
+        const orders = await vars.Order.findAll({
+          attributes: ['id'],
+          include: [{
+            model: vars.User,
+            attributes: [
+              [sql.attribute('objectJsonAttr.name:unquote'), 'name'],
+            ],
+          }],
+        });
+
         // @ts-expect-error -- getDataValue does not support custom attributes
         expect(orders[0].user.getDataValue('name')).to.equal('swen');
-      }
-    });
-  }
+      });
+    }
+  });
 });
 
 describe('JSON Casting', () => {
@@ -258,7 +283,11 @@ describe('JSON Casting', () => {
       },
     });
 
-    const cast = dialectName === 'mysql' || dialectName === 'mariadb' ? 'DATETIME' : 'TIMESTAMPTZ';
+    const cast = dialectName === 'mysql' || dialectName === 'mariadb'
+      ? 'DATETIME'
+      : dialectName === 'mssql'
+      ? 'DATETIMEOFFSET'
+      : 'TIMESTAMPTZ';
 
     const user = await vars.User.findOne({
       where: {
@@ -281,7 +310,7 @@ describe('JSON Casting', () => {
 
   it('supports casting to boolean', async () => {
     // These dialects do not have a native BOOLEAN type
-    if (dialectName === 'mariadb' || dialectName === 'mysql') {
+    if (['mariadb', 'mysql', 'mssql'].includes(dialectName)) {
       return;
     }
 

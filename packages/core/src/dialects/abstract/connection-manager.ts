@@ -54,7 +54,7 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
   #closed: boolean = false;
 
   constructor(dialect: AbstractDialect, sequelize: Sequelize) {
-    const config: Sequelize['config'] = cloneDeep(sequelize.config);
+    const config: Sequelize['config'] = cloneDeep(sequelize.config) ?? {};
 
     this.sequelize = sequelize;
     this.config = config;

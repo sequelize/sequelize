@@ -270,6 +270,7 @@ export interface IndexFieldDescription {
 export interface IndexDescription {
   primary: boolean;
   fields: IndexFieldDescription[];
+  includes: string[] | undefined;
   name: string;
   tableName: string | undefined;
   unique: boolean;

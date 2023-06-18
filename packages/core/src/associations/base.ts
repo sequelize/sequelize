@@ -161,7 +161,7 @@ export abstract class Association<
 
     this.isAliased = Boolean(options?.as);
 
-    this.options = cloneDeep(options);
+    this.options = cloneDeep(options) ?? {};
 
     source.associations[this.as] = this;
   }
