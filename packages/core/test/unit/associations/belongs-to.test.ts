@@ -149,8 +149,8 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     Log.belongsTo(Book);
 
-    expect(Log.getAttributes().Plural).to.not.exist;
-    expect(Log.getAttributes().Singular).to.exist;
+    expect(Log.getAttributes().PluralId).to.not.exist;
+    expect(Log.getAttributes().SingularId).to.exist;
   });
 
   describe('association hooks', () => {
