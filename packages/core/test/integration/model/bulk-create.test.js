@@ -225,6 +225,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(users[1].secretValue).to.equal('23');
     });
 
+    it('parses values that come from the database', async function () {
+      // Because bulkCreate uses a different code path than create,
+      // there was a bug where values coming back from the database
+      // weren't being run through the parsers/validators.
+      // This test ensures that the bug is fixed.
+      // https://github.com/sequelize/sequelize/issues/15640
+      const [user] = await this.User.bulkCreate([{ theDate: new Date(), uniqueName: '1' }]);
+
+      expect(user.theDate).to.be.instanceOf(Date);
+    });
+
     it('should set isNewRecord = false', async function () {
       const data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
         { username: 'Paul', secretValue: '23', uniqueName: '2' }];

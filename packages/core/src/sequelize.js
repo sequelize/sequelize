@@ -99,8 +99,6 @@ export class Sequelize extends SequelizeTypeScript {
    *   // - currently supported: 'mysql', 'postgres', 'mssql'
    *   dialectOptions: {
    *     socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
-   *     supportBigNumbers: true,
-   *     bigNumberStrings: true
    *   },
    *
    *   // the storage engine for sqlite

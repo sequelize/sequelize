@@ -61,7 +61,7 @@
     "semver": "^7.3.7",
     "sequelize-pool": "^8.0.0",
     "toposort-class": "^1.0.1",
-    "type-fest": "^2.18.1",
+    "type-fest": "^3.0.0",
     "uuid": "^9.0.0",
     "validator": "^13.7.0",
     "wkx": "^0.5.0"
@@ -89,7 +89,7 @@
     "fs-jetpack": "5.1.0",
     "ibm_db": "3.2.1",
     "lcov-result-merger": "4.1.0",
-    "mariadb": "2.5.6",
+    "mariadb": "3.1.2",
     "mocha": "10.2.0",
     "moment": "2.29.4",
     "mysql2": "3.3.5",
