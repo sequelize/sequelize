@@ -66,7 +66,7 @@ export class MariaDbDialect extends AbstractDialect {
   readonly TICK_CHAR = '`';
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';
-  readonly defaultVersion = '10.4.6'; // minimum supported version
+  readonly defaultVersion = '10.4.30'; // minimum supported version
   readonly dataTypesDocumentationUrl = 'https://mariadb.com/kb/en/library/resultset/#field-types';
 
   readonly queryGenerator: MariaDbQueryGenerator;
