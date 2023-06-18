@@ -2,7 +2,6 @@
 
 import { map } from '../../utils/iterators';
 import { cloneDeep, getObjectFromMap } from '../../utils/object';
-import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
@@ -308,84 +307,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
 
     return tableNames.flat();
-  }
-
-  /**
-   * Describe a table structure
-   *
-   * This method returns an array of hashes containing information about all attributes in the table.
-   *
-   * ```js
-   * {
-   *    name: {
-   *      type:         'VARCHAR(255)', // this will be 'CHARACTER VARYING' for pg!
-   *      allowNull:    true,
-   *      defaultValue: null
-   *    },
-   *    isBetaMember: {
-   *      type:         'TINYINT(1)', // this will be 'BOOLEAN' for pg!
-   *      allowNull:    false,
-   *      defaultValue: false
-   *    }
-   * }
-   * ```
-   *
-   * @param {TableName} tableName
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise<object>}
-   */
-  // TODO: allow TableNameOrModel for tableName
-  async describeTable(tableName, options) {
-    let table = {};
-
-    if (typeof tableName === 'string') {
-      table.tableName = tableName;
-    }
-
-    if (typeof tableName === 'object' && tableName !== null) {
-      table = tableName;
-    }
-
-    if (typeof options === 'string') {
-      noSchemaParameter();
-      table.schema = options;
-    }
-
-    if (typeof options === 'object' && options !== null) {
-      if (options.schema) {
-        noSchemaParameter();
-        table.schema = options.schema;
-      }
-
-      if (options.schemaDelimiter) {
-        noSchemaDelimiterParameter();
-        table.delimiter = options.schemaDelimiter;
-      }
-    }
-
-    const sql = this.queryGenerator.describeTableQuery(table);
-    options = { ...options, type: QueryTypes.DESCRIBE };
-
-    try {
-      const data = await this.sequelize.queryRaw(sql, options);
-      /*
-       * If no data is returned from the query, then the table name may be wrong.
-       * Query generators that use information_schema for retrieving table info will just return an empty result set,
-       * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
-       */
-      if (_.isEmpty(data)) {
-        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
-      }
-
-      return data;
-    } catch (error) {
-      if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
-      }
-
-      throw error;
-    }
   }
 
   /**

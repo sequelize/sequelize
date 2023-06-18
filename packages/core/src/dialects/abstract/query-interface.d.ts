@@ -8,7 +8,6 @@ import type {
   Attributes,
   CreationAttributes,
   Filterable,
-  Logging,
   Model,
   ModelStatic,
   NormalizedAttributeOptions,
@@ -243,19 +242,6 @@ export interface FunctionParam {
   direction?: string;
 }
 
-export interface ColumnDescription {
-  type: string;
-  allowNull: boolean;
-  defaultValue: string;
-  primaryKey: boolean;
-  autoIncrement: boolean;
-  comment: string | null;
-}
-
-export interface ColumnsDescription {
-  [key: string]: ColumnDescription;
-}
-
 export interface DatabaseDescription {
   name: string;
 }
@@ -385,14 +371,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param options Options passed to {@link Sequelize#query}
    */
   tableExists(tableName: TableName, options?: QueryRawOptions): Promise<boolean>;
-
-  /**
-   * Describe a table
-   */
-  describeTable(
-    tableName: TableName,
-    options?: string | { schema?: string, schemaDelimiter?: string } & Logging
-  ): Promise<ColumnsDescription>;
 
   /**
    * Adds a new column to a table
