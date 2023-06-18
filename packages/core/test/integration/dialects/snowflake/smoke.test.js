@@ -76,11 +76,9 @@ if (dialect === 'snowflake') {
     });
 
     describe('[SNOWFLAKE Specific] Test for auto_increment', () => {
-      let Task;
-
-      before(async () => {
+      const vars = Support.beforeAll2(async () => {
         const sequelize = Support.createSequelizeInstance();
-        Task = sequelize.define('Task', {
+        const Task = sequelize.define('Task', {
           id: {
             type: 'INTEGER',
             primaryKey: true,
@@ -92,14 +90,16 @@ if (dialect === 'snowflake') {
         await Task.sync({ force: true });
         await Task.create({ taskName: 'task1' });
         await Task.create({ taskName: 'task2' });
+
+        return { sequelize, Task };
       });
 
       after(async () => {
-        await Task.drop();
+        await vars.sequelize.close();
       });
 
       it('findOne with where', async () => {
-        const user = await Task.findOne({
+        const user = await vars.Task.findOne({
           where:
           {
             taskName: 'task2',

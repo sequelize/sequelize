@@ -4,6 +4,7 @@ on:
     branches:
       - v7
   pull_request:
+  merge_group:
 
 # This configuration cancels previous runs if a new run is started on the same PR. Only one run at a time per PR.
 # This does not affect pushes to the v7 branch itself, only PRs.
@@ -21,17 +22,17 @@ jobs:
     name: Upload install and build artifact (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
       - name: Install dependencies and build sequelize
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
       - name: Build sequelize
         run: yarn build
       - name: Compress artifact
-        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/node_modules ./packages/core/types ./packages/validator-js/lib ./packages/validator-js/node_modules ./packages/validator-js/types ./node_modules
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/types ./packages/validator-js/lib ./packages/validator-js/types ./node_modules
       - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -42,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: install-and-build
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: 18.x
@@ -62,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: ${{ matrix.node-version }}
@@ -75,29 +76,29 @@ jobs:
       - name: ESM / CJS export equivalence
         run: yarn test-unit-esm
       - name: Unit tests (validator.js)
-        run: yarn workspace @sequelize/validator.js test-unit
+        run: yarn lerna run test-unit --scope=@sequelize/validator.js
       - name: Unit tests (mariadb)
-        run: yarn workspace @sequelize/core test-unit-mariadb
+        run: yarn lerna run test-unit-mariadb --scope=@sequelize/core
       - name: Unit tests (mysql)
-        run: yarn workspace @sequelize/core test-unit-mysql
+        run: yarn lerna run test-unit-mysql --scope=@sequelize/core
       - name: Unit tests (postgres)
-        run: yarn workspace @sequelize/core test-unit-postgres
+        run: yarn lerna run test-unit-postgres --scope=@sequelize/core
       - name: Unit tests (sqlite)
-        run: yarn workspace @sequelize/core test-unit-sqlite
+        run: yarn lerna run test-unit-sqlite --scope=@sequelize/core
       - name: Unit tests (mssql)
-        run: yarn workspace @sequelize/core test-unit-mssql
+        run: yarn lerna run test-unit-mssql --scope=@sequelize/core
       - name: Unit tests (db2)
-        run: yarn workspace @sequelize/core test-unit-db2
+        run: yarn lerna run test-unit-db2 --scope=@sequelize/core
       - name: Unit tests (ibmi)
-        run: yarn workspace @sequelize/core test-unit-ibmi
+        run: yarn lerna run test-unit-ibmi --scope=@sequelize/core
       - name: Unit tests (snowflake)
-        run: yarn workspace @sequelize/core test-unit-snowflake
+        run: yarn lerna run test-unit-snowflake --scope=@sequelize/core
   docs:
     name: Generate TypeDoc
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: 18.x
@@ -112,12 +113,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ["4.7", "4.8", "4.9", "5.0"]
+        ts-version: ["4.8", "4.9", "5.0", "5.1"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: 18.x
@@ -128,9 +129,9 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-18.tar
       - name: Install TypeScript
-        run: yarn workspace @sequelize/core add typescript@~${{ matrix.ts-version }}
+        run: yarn add typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
-        run: yarn workspace @sequelize/core test-typings
+        run: yarn lerna run test-typings --scope=@sequelize/core
   test-sqlite:
     strategy:
       fail-fast: false
@@ -142,7 +143,7 @@ jobs:
     env:
       DIALECT: sqlite
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: ${{ matrix.node-version }}
@@ -153,7 +154,7 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
+        run: yarn lerna run test-integration --scope=@sequelize/core
   test-postgres:
     strategy:
       fail-fast: false
@@ -169,7 +170,7 @@ jobs:
       DIALECT: ${{ matrix.native && 'postgres-native' || 'postgres' }}
       SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: ${{ matrix.node-version }}
@@ -180,10 +181,11 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install pg-native
-        run: yarn workspace @sequelize/core add pg-native --ignore-engines
+        run: yarn workspace @sequelize/core add pg-native
+        if: matrix.native
       - run: yarn start-postgres-${{ matrix.postgres-version }}
       - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
+        run: yarn lerna run test-integration --scope=@sequelize/core
   test-oldest-latest:
     strategy:
       fail-fast: false
@@ -197,7 +199,7 @@ jobs:
     env:
       DIALECT: ${{ matrix.dialect }}
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: ${{ matrix.node-version }}
@@ -209,7 +211,7 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - run: yarn start-${{ matrix.dialect }}-${{ matrix.database-version }}
       - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
+        run: yarn lerna run test-integration --scope=@sequelize/core
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -226,7 +228,7 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
           # Number of commits to fetch. 0 indicates all history for all branches and tags.
           # We need the entire history to generate the changelog properly

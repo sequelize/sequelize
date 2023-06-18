@@ -108,7 +108,7 @@ export class MariaDbQuery extends AbstractQuery {
           const startId = data[this.getInsertIdField()];
           result = new Array(data.affectedRows);
           const pkColumnName = modelDefinition.attributes.get(this.model.primaryKeyAttribute).columnName;
-          for (let i = 0; i < data.affectedRows; i++) {
+          for (let i = 0n; i < data.affectedRows; i++) {
             result[i] = { [pkColumnName]: startId + i };
           }
 
@@ -135,7 +135,6 @@ export class MariaDbQuery extends AbstractQuery {
 
     if (this.isRawQuery()) {
       const meta = data.meta;
-      delete data.meta;
 
       return [data, meta];
     }

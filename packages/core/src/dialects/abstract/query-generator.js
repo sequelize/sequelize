@@ -6,11 +6,8 @@ import { Col } from '../../expression-builders/col.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
-import { rejectInvalidOptions, canTreatArrayAsAnd, isColString } from '../../utils/check';
-import {
-  mapFinderOptions,
-  removeNullishValuesFromHash,
-} from '../../utils/format';
+import { rejectInvalidOptions } from '../../utils/check';
+import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { nameIndex, spliceStr } from '../../utils/string';
@@ -40,6 +37,7 @@ const { _validateIncludedElements } = require('../../model-internals');
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
 export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
 export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS = new Set(['skip']);
+export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'engine', 'rowFormat', 'comment', 'initialAutoIncrement', 'uniqueKeys']);
 export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['cascade']);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
 export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
@@ -872,7 +870,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP CONSTRAINT',
-      this.quoteIdentifiers(constraintName),
+      this.quoteIdentifier(constraintName),
     ]);
   }
 
@@ -2175,10 +2173,24 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     throw new sequelizeError.QueryError(message.replace(/ +/g, ' '));
   }
 
+  _validateSelectOptions(options) {
+    if (options.maxExecutionTimeHintMs != null && !this.dialect.supports.maxExecutionTimeHint.select) {
+      throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
+    }
+  }
+
+  _getBeforeSelectAttributesFragment(_options) {
+    return '';
+  }
+
   selectFromTableFragment(options, model, attributes, tables, mainTableAs) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
 
-    let fragment = `SELECT ${attributes.join(', ')} FROM ${tables}`;
+    this._validateSelectOptions(options);
+
+    let fragment = 'SELECT';
+    fragment += this._getBeforeSelectAttributesFragment(options);
+    fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
     if (mainTableAs) {
       fragment += ` AS ${mainTableAs}`;

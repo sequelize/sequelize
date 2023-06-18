@@ -686,8 +686,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
             const [user, created] = await User.upsert({ name: 'Test default value' }, { returning: true });
 
-            expect(user.name).to.be.equal('Test default value');
-            expect(user.code).to.be.equal(2020);
+            expect(user.name).to.equal('Test default value');
+            expect(user.code).to.equal(2020);
 
             if (['sqlite', 'postgres'].includes(dialect)) {
               expect(created).to.be.null;

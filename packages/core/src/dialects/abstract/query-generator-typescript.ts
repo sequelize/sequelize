@@ -2,10 +2,7 @@ import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
-import {
-  BaseSqlExpression,
-
-} from '../../expression-builders/base-sql-expression.js';
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import { Cast } from '../../expression-builders/cast.js';
 import { Col } from '../../expression-builders/col.js';
 import { DialectAwareFn } from '../../expression-builders/dialect-aware-fn.js';
@@ -16,9 +13,9 @@ import { List } from '../../expression-builders/list.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
-import type { ModelStatic, Attributes, Model } from '../../model.js';
+import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
-import type { BindOrReplacements, Sequelize, Expression } from '../../sequelize.js';
+import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { isDictionary, isNullish, isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
@@ -27,8 +24,8 @@ import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
-import type { DataType, BindParamOptions } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
+import type { BindParamOptions, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -92,7 +89,7 @@ export interface FormatWhereOptions extends Bindable {
  * If it is not specified, the value will be added to the query as a literal.
  */
 export interface Bindable {
-  bindParam?(value: unknown): string;
+  bindParam?: ((value: unknown) => string) | undefined;
 }
 
 // DO NOT MAKE THIS CLASS PUBLIC!
@@ -139,6 +136,17 @@ export class AbstractQueryGeneratorTypeScript {
     _options?: RemoveIndexQueryOptions,
   ): string {
     throw new Error(`removeIndexQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Generates an SQL query that returns all foreign keys of a table or the foreign key constraint of a given column.
+   *
+   * @param _tableName The table or associated model.
+   * @param _columnName The name of the column. Not supported by SQLite.
+   * @returns The generated SQL query.
+   */
+  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): string {
+    throw new Error(`getForeignKeyQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   // TODO: rename to "normalizeTable" & move to sequelize class

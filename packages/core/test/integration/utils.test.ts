@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { DataTypes, Op, fn, cast } from '@sequelize/core';
+import { DataTypes, Op, cast, fn } from '@sequelize/core';
 import { beforeAll2, getTestDialectTeaser, sequelize, setResetMode } from './support';
 
 const dialectName = sequelize.dialect.name;

@@ -29,6 +29,7 @@ export type {
   TimeOptions,
   VirtualOptions,
   RangeOptions,
+  BindParamOptions,
 } from './dialects/abstract/data-types.js';
 export type {
   GeoJson,
@@ -52,7 +53,9 @@ export type { Connection } from './dialects/abstract/connection-manager';
 export * from './associations/index';
 export * from './errors';
 export * from './model';
+export * from './dialects/abstract/query-generator.types';
 export * from './dialects/abstract/query-interface';
+export * from './dialects/abstract/query-interface.types';
 export * from './sequelize';
 
 // TODO [>=8]: remove this alias
@@ -61,6 +64,7 @@ export { useInflection } from './utils/string';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils';
 export type { Validator } from './utils/validator-extras';
 export { Deferrable } from './deferrable';
+export { AbstractDialect } from './dialects/abstract/index.js';
 export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 export { importModels } from './import-models.js';
 export { ModelDefinition } from './model-definition.js';

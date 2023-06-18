@@ -128,11 +128,20 @@ export class HookHandler<HookConfig extends {}> {
     }
   }
 
+  /**
+   * Registers a listener for a hook.
+   *
+   * Returns a function that can be called to deregister the listener.
+   *
+   * @param hookName
+   * @param listener
+   * @param listenerName
+   */
   addListener<HookName extends keyof HookConfig>(
     hookName: HookName,
     listener: HookConfig[HookName],
     listenerName?: string,
-  ): void {
+  ): () => void {
     this.#assertValidHookName(hookName);
 
     if (listenerName) {
@@ -144,6 +153,10 @@ export class HookHandler<HookConfig extends {}> {
     }
 
     this.#listeners.append(hookName, { callback: listener, listenerName });
+
+    return () => {
+      this.removeListener(hookName, listenerName || listener);
+    };
   }
 
   addListeners(listeners: {

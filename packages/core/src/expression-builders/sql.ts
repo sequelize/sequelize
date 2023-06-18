@@ -7,7 +7,7 @@ import { fn } from './fn.js';
 import { identifier } from './identifier.js';
 import { jsonPath } from './json-path.js';
 import { list } from './list.js';
-import { literal, Literal } from './literal.js';
+import { Literal, literal } from './literal.js';
 import { Value } from './value.js';
 import { where } from './where.js';
 

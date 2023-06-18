@@ -1,5 +1,5 @@
-import type { ConnectionOptions, ModelStatic, Fn } from '@sequelize/core';
-import { Sequelize, Model, QueryTypes, Op } from '@sequelize/core';
+import type { ConnectionOptions, Fn, ModelStatic } from '@sequelize/core';
+import { Model, Op, QueryTypes, Sequelize } from '@sequelize/core';
 
 export const sequelize = new Sequelize({
   hooks: {
@@ -75,9 +75,9 @@ class Model1 extends Model {}
 
 class Model2 extends Model {}
 
-const myModel: ModelStatic<Model1> = sequelize.models.asd;
-myModel.hasOne(Model2);
-myModel.findAll();
+const MyModel: ModelStatic<Model1> = sequelize.models.asd;
+MyModel.hasOne(Model2);
+MyModel.findAll();
 
 async function test() {
   const [results, meta]: [unknown[], unknown] = await sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW });

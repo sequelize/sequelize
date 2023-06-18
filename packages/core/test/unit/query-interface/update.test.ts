@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes, literal, Op } from '@sequelize/core';
+import { DataTypes, Op, literal } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#update', () => {

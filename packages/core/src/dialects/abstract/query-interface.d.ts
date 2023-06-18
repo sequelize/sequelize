@@ -4,16 +4,15 @@ import type { Col } from '../../expression-builders/col.js';
 import type { Fn } from '../../expression-builders/fn.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type {
-  Logging,
-  Model,
   AttributeOptions,
-  Filterable,
-  ModelStatic,
-  CreationAttributes,
   Attributes,
+  CreationAttributes,
+  Filterable,
+  Model,
+  ModelStatic,
   NormalizedAttributeOptions,
 } from '../../model';
-import type { Sequelize, QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
+import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
 import type { Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
@@ -243,19 +242,6 @@ export interface FunctionParam {
   direction?: string;
 }
 
-export interface ColumnDescription {
-  type: string;
-  allowNull: boolean;
-  defaultValue: string;
-  primaryKey: boolean;
-  autoIncrement: boolean;
-  comment: string | null;
-}
-
-export interface ColumnsDescription {
-  [key: string]: ColumnDescription;
-}
-
 export interface DatabaseDescription {
   name: string;
 }
@@ -270,6 +256,7 @@ export interface IndexFieldDescription {
 export interface IndexDescription {
   primary: boolean;
   fields: IndexFieldDescription[];
+  includes: string[] | undefined;
   name: string;
   tableName: string | undefined;
   unique: boolean;
@@ -384,14 +371,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param options Options passed to {@link Sequelize#query}
    */
   tableExists(tableName: TableName, options?: QueryRawOptions): Promise<boolean>;
-
-  /**
-   * Describe a table
-   */
-  describeTable(
-    tableName: TableName,
-    options?: string | { schema?: string, schemaDelimiter?: string } & Logging
-  ): Promise<ColumnsDescription>;
 
   /**
    * Adds a new column to a table

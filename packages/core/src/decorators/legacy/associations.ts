@@ -1,3 +1,4 @@
+import { inspect } from 'node:util';
 import type { MaybeForwardedModelStatic } from '../../associations/helpers.js';
 import { AssociationSecret, getForwardedModel } from '../../associations/helpers.js';
 import type {
@@ -7,11 +8,17 @@ import type {
   HasManyOptions,
   HasOneOptions,
 } from '../../associations/index.js';
-import { BelongsTo as BelongsToAssociation, HasMany as HasManyAssociation, HasOne as HasOneAssociation, BelongsToMany as BelongsToManyAssociation } from '../../associations/index.js';
-import type { ModelStatic, Model, AttributeNames } from '../../model.js';
+import {
+  BelongsTo as BelongsToAssociation,
+  BelongsToMany as BelongsToManyAssociation,
+  HasMany as HasManyAssociation,
+  HasOne as HasOneAssociation,
+} from '../../associations/index.js';
+import type { AttributeNames, Model, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { isString } from '../../utils/check.js';
 import { isModelStatic } from '../../utils/model-utils.js';
+import { EMPTY_ARRAY } from '../../utils/object.js';
 import { throwMustBeInstanceProperty, throwMustBeModel } from './decorator-utils.js';
 
 export type AssociationType = 'BelongsTo' | 'HasOne' | 'HasMany' | 'BelongsToMany';
@@ -102,15 +109,15 @@ export function BelongsToMany(
   };
 }
 
-export function initDecoratedAssociations(model: ModelStatic, sequelize: Sequelize): void {
-  const associations = registeredAssociations.get(model);
+export function initDecoratedAssociations(source: ModelStatic, sequelize: Sequelize): void {
+  const associations = getDeclaredAssociations(source);
 
-  if (!associations) {
+  if (!associations.length) {
     return;
   }
 
   for (const association of associations) {
-    const { type, source, target: targetGetter, associationName } = association;
+    const { type, target: targetGetter, associationName } = association;
     const options: AssociationOptions = { ...association.options, as: associationName };
 
     const target = getForwardedModel(targetGetter, sequelize);
@@ -134,3 +141,33 @@ export function initDecoratedAssociations(model: ModelStatic, sequelize: Sequeli
   }
 }
 
+function getDeclaredAssociations(model: ModelStatic): readonly RegisteredAssociation[] {
+  const associations: readonly RegisteredAssociation[] = registeredAssociations.get(model) ?? EMPTY_ARRAY;
+
+  const parentModel = Object.getPrototypeOf(model);
+  if (isModelStatic(parentModel)) {
+    const parentAssociations = getDeclaredAssociations(parentModel);
+
+    for (const parentAssociation of parentAssociations) {
+      if (parentAssociation.type !== 'BelongsTo') {
+        throw new Error(
+          `Models that use @HasOne, @HasMany, or @BelongsToMany associations cannot be inherited from, as they would add conflicting foreign keys on the target model.
+Only @BelongsTo associations can be inherited, as it will add the foreign key on the source model.
+Remove the ${parentAssociation.type} association ${inspect(parentAssociation.associationName)} from model ${inspect(parentModel.name)} to fix this error.`,
+        );
+      }
+
+      if ('inverse' in parentAssociation.options) {
+        throw new Error(
+          `Models that use @BelongsTo associations with the "inverse" option cannot be inherited from, as they would add conflicting associations on the target model.
+Only @BelongsTo associations without the "inverse" option can be inherited, as they do not declare an association on the target model.
+Remove the "inverse" option from association ${inspect(parentAssociation.associationName)} on model ${inspect(parentModel.name)} to fix this error.`,
+        );
+      }
+    }
+
+    return [...parentAssociations, ...associations];
+  }
+
+  return associations;
+}

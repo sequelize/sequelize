@@ -46,6 +46,7 @@ export type DialectSupports = {
   'DEFAULT': boolean,
   'DEFAULT VALUES': boolean,
   'VALUES ()': boolean,
+  // TODO: rename to `update.limit`
   'LIMIT ON UPDATE': boolean,
   'ON DUPLICATE KEY': boolean,
   'ORDER NULLS': boolean,
@@ -192,6 +193,11 @@ export type DialectSupports = {
   IREGEXP: boolean,
   /** Whether this dialect supports SQL JSON functions */
   jsonOperations: boolean,
+  /** Whether this dialect supports returning quoted & unquoted JSON strings  */
+  jsonExtraction: {
+    unquoted: boolean,
+    quoted: boolean,
+  },
   tmpTableTrigger: boolean,
   indexHints: boolean,
   searchPath: boolean,
@@ -211,6 +217,9 @@ export type DialectSupports = {
   globalTimeZoneConfig: boolean,
   dropTable: {
     cascade: boolean,
+  },
+  maxExecutionTimeHint: {
+    select: boolean,
   },
   truncate: {
     cascade: boolean,
@@ -326,6 +335,10 @@ export abstract class AbstractDialect {
       },
     },
     jsonOperations: false,
+    jsonExtraction: {
+      unquoted: false,
+      quoted: false,
+    },
     REGEXP: false,
     IREGEXP: false,
     deferrableConstraints: false,
@@ -337,13 +350,16 @@ export abstract class AbstractDialect {
     dropTable: {
       cascade: false,
     },
+    maxExecutionTimeHint: {
+      select: false,
+    },
     truncate: {
       cascade: false,
     },
   };
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {
-    return merge(cloneDeep(this.supports), supportsOverwrite);
+    return merge(cloneDeep(this.supports) ?? {}, supportsOverwrite);
   }
 
   readonly sequelize: Sequelize;
@@ -491,12 +507,12 @@ export abstract class AbstractDialect {
    * For instance, when implementing "parse" for a Date type,
    * prefer returning a String rather than a Date object.
    *
-   * The {@link AbstractDataType#parseDatabaseValue} method will then be called on the DataType instance defined by the user,
+   * The {@link DataTypes.ABSTRACT#parseDatabaseValue} method will then be called on the DataType instance defined by the user,
    * which can decide on a more specific JS type (e.g. parse the date string & return a Date instance or a Temporal instance).
    *
    * You typically do not need to implement this method. This is used to provide default parsers when no DataType
    * is provided (e.g. raw queries that don't specify a model). Sequelize already provides a default parser for most types.
-   * For a custom Data Type, implementing {@link AbstractDataType#parseDatabaseValue} is typically what you want.
+   * For a custom Data Type, implementing {@link DataTypes.ABSTRACT#parseDatabaseValue} is typically what you want.
    *
    * @param databaseDataTypes Dialect-specific DB data type identifiers that will use this parser.
    * @param parser The parser function to call when parsing the data type. Parameters are dialect-specific.

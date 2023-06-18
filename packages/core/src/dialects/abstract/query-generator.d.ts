@@ -3,11 +3,11 @@
 import type { Col } from '../../expression-builders/col.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type {
-  NormalizedAttributeOptions,
+  AttributeOptions,
   FindOptions,
   Model,
-  AttributeOptions,
   ModelStatic,
+  NormalizedAttributeOptions,
   SearchPathable,
 } from '../../model.js';
 import type { DataType } from './data-types.js';
@@ -72,6 +72,7 @@ export interface CreateSchemaQueryOptions {
   charset?: string;
 }
 
+// keep CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateTableQueryOptions {
   collate?: string;
   charset?: string;
@@ -143,7 +144,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   ): string;
 
   removeColumnQuery(
-    table: TableName,
+    table: TableNameOrModel,
     attributeName: string,
     options?: RemoveColumnQueryOptions,
   ): string;
@@ -176,10 +177,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     tableName: TableNameOrModel,
     // TODO: rename attributes to columns and accept a map of attributes in the implementation when migrating to TS, see https://github.com/sequelize/sequelize/pull/15526/files#r1143840411
     columns: { [columnName: string]: string },
-    // TODO: throw when using invalid options when migrating to TS
     options?: CreateTableQueryOptions
   ): string;
-  dropTableQuery(tableName: TableName, options?: DropTableQueryOptions): string;
+  dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string;
+  renameTableQuery(before: TableNameOrModel, after: TableNameOrModel): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
@@ -191,6 +192,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   listDatabasesQuery(): string;
 
   dropForeignKeyQuery(tableName: TableNameOrModel, foreignKey: string): string;
+
+  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string): string;
+
+  versionQuery(): string;
 
   /**
    * Creates a function that can be used to collect bind parameters.

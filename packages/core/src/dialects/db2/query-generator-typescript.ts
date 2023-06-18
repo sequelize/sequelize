@@ -22,7 +22,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM',
       'SYSIBM.SYSCOLUMNS',
       `WHERE TBNAME = ${this.escape(table.tableName)}`,
-      table.schema !== '' ? `AND TBCREATOR = ${this.escape(table.schema)}` : 'AND TBCREATOR = USER',
+      'AND TBCREATOR =',
+      table.schema ? this.escape(table.schema) : 'USER',
       ';',
     ]);
   }
@@ -31,11 +32,19 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType",',
-      'COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES',
-      `WHERE TBNAME = ${this.escape(table.tableName)}`,
-      table.schema !== '' ? `AND TBCREATOR = ${this.escape(table.schema)}` : 'AND TBCREATOR = USER',
-      'ORDER BY NAME;',
+      'SELECT',
+      'i.INDNAME AS "name",',
+      'i.TABNAME AS "tableName",',
+      'i.UNIQUERULE AS "keyType",',
+      'i.INDEXTYPE AS "type",',
+      'c.COLNAME AS "columnName",',
+      'c.COLORDER AS "columnOrder"',
+      'FROM SYSCAT.INDEXES i',
+      'INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA',
+      `WHERE TABNAME = ${this.escape(table.tableName)}`,
+      'AND TABSCHEMA =',
+      table.schema ? this.escape(table.schema) : 'USER',
+      'ORDER BY i.INDNAME, c.COLSEQ;',
     ]);
   }
 
@@ -63,5 +72,29 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return `DROP INDEX ${this.quoteIdentifier(indexName)}`;
+  }
+
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT R.CONSTNAME AS "constraintName",',
+      'TRIM(R.TABSCHEMA) AS "constraintSchema",',
+      'R.TABNAME AS "tableName",',
+      `TRIM(R.TABSCHEMA) AS "tableSchema", LISTAGG(C.COLNAME,', ')`,
+      'WITHIN GROUP (ORDER BY C.COLNAME) AS "columnName",',
+      'TRIM(R.REFTABSCHEMA) AS "referencedTableSchema",',
+      'R.REFTABNAME AS "referencedTableName",',
+      'TRIM(R.PK_COLNAMES) AS "referencedColumnName"',
+      'FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C',
+      'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA',
+      'AND R.TABNAME = C.TABNAME',
+      `AND R.TABNAME = ${this.escape(table.tableName)}`,
+      'AND R.TABSCHEMA =',
+      table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
+      columnName && `AND C.COLNAME = ${this.escape(columnName)}`,
+      'GROUP BY R.REFTABSCHEMA,',
+      'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES',
+    ]);
   }
 }

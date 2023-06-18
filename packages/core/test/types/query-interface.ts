@@ -1,5 +1,5 @@
 import type { AbstractQueryInterface } from '@sequelize/core';
-import { DataTypes, Model, fn, literal, col } from '@sequelize/core';
+import { DataTypes, Model, col, fn, literal } from '@sequelize/core';
 
 declare let queryInterface: AbstractQueryInterface;
 
@@ -98,7 +98,7 @@ async function test() {
     }
   }
   */
-  const attributes: object = await queryInterface.describeTable('Person');
+  const attributes = await queryInterface.describeTable('Person');
 
   await queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', DataTypes.STRING);
 
