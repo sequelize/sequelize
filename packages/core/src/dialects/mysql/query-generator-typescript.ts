@@ -2,6 +2,7 @@ import { Op } from '../../operators.js';
 import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { buildJsonPath } from '../../utils/json.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
@@ -85,16 +86,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
-    let jsonPathStr = '$';
-    for (const pathElement of path) {
-      if (typeof pathElement === 'number') {
-        jsonPathStr += `[${pathElement}]`;
-      } else {
-        jsonPathStr += `.${this.#quoteJsonPathIdentifier(pathElement)}`;
-      }
-    }
-
-    const extractQuery = `json_extract(${sqlExpression},${this.escape(jsonPathStr)})`;
+    const extractQuery = `json_extract(${sqlExpression},${this.escape(buildJsonPath(path))})`;
     if (unquote) {
       return `json_unquote(${extractQuery})`;
     }
@@ -104,14 +96,5 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
     return `json_unquote(${this.escape(arg, options)})`;
-  }
-
-  #quoteJsonPathIdentifier(identifier: string): string {
-    if (/^[a-z_][a-z0-9_]*$/i.test(identifier)) {
-      return identifier;
-    }
-
-    // Escape backslashes and double quotes
-    return `"${identifier.replace(/["\\]/g, s => `\\${s}`)}"`;
   }
 }

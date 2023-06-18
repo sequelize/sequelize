@@ -121,7 +121,7 @@ describe('QueryGenerator#selectQuery', () => {
     });
   });
 
-  if (sequelize.dialect.supports.jsonOperations) {
+  if (sequelize.dialect.supports.jsonOperations && sequelize.dialect.supports.jsonExtraction.quoted) {
     it('accepts json paths in attributes', () => {
       const sql = queryGenerator.selectQuery(User.table, {
         model: User,
@@ -135,7 +135,6 @@ describe('QueryGenerator#selectQuery', () => {
         mariadb: `SELECT json_compact(json_extract(\`data\`,'$.email')) AS \`email\` FROM \`Users\` AS \`User\`;`,
         'sqlite mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
       });
-
     });
   }
 
