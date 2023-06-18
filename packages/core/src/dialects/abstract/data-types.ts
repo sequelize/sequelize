@@ -2021,14 +2021,16 @@ export class UUIDV4 extends AbstractDataType<string> {
 
 export type IncludeAsCallback = (includeAs: string) => [Literal | Fn, string];
 
+type VirtualAttributeDependencies = string[] | IncludeAsCallback;
+
 export interface VirtualOptions {
   returnType?: DataTypeClassOrInstance | undefined;
-  attributeDependencies?: string[] | IncludeAsCallback | undefined;
+  attributeDependencies?: VirtualAttributeDependencies;
 }
 
 export interface NormalizedVirtualOptions {
   returnType: DataTypeClassOrInstance | undefined;
-  attributeDependencies: string[] | IncludeAsCallback;
+  attributeDependencies: VirtualAttributeDependencies;
 }
 
 /**
@@ -2082,14 +2084,14 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
 
   options: NormalizedVirtualOptions;
 
-  constructor(returnType?: DataTypeClassOrInstance, attributeDependencies?: string[]);
+  constructor(returnType?: DataTypeClassOrInstance, attributeDependencies?: VirtualAttributeDependencies);
   constructor(options?: VirtualOptions);
 
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @hidden */
   constructor(...args:
-    | [returnType?: DataTypeClassOrInstance, attributeDependencies?: string[]]
+    | [returnType?: DataTypeClassOrInstance, attributeDependencies?: VirtualAttributeDependencies]
     | [options?: VirtualOptions]
   );
 
@@ -2097,7 +2099,8 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
    * @param [returnTypeOrOptions] return type for virtual type, or an option bag
    * @param [attributeDependencies] array of attributes this virtual type is dependent on
    */
-  constructor(returnTypeOrOptions?: DataTypeClassOrInstance | VirtualOptions, attributeDependencies?: string[]) {
+  constructor(returnTypeOrOptions?: DataTypeClassOrInstance | VirtualOptions,
+    attributeDependencies?: VirtualAttributeDependencies) {
     super();
 
     const returnType = returnTypeOrOptions == null ? undefined
