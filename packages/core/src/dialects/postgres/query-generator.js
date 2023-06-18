@@ -451,7 +451,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         }
 
         if (attribute.references.deferrable) {
-          sql += ` ${attribute.references.deferrable.toString(this)}`;
+          sql += ` ${attribute.references.deferrable.toSql(this)}`;
         }
       }
     }

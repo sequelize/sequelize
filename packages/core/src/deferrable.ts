@@ -50,6 +50,10 @@ export class Deferrable {
 
   static readonly INITIALLY_DEFERRED = classToInvokable(class INITIALLY_DEFERRED extends Deferrable {
     toSql() {
+      return INITIALLY_DEFERRED.toSql();
+    }
+
+    static toSql() {
       return 'DEFERRABLE INITIALLY DEFERRED';
     }
 
@@ -60,11 +64,15 @@ export class Deferrable {
 
   static readonly INITIALLY_IMMEDIATE = classToInvokable(class INITIALLY_IMMEDIATE extends Deferrable {
     toSql() {
-      return 'DEFERRABLE INITIALLY IMMEDIATE';
+      return INITIALLY_IMMEDIATE.toSql();
     }
 
     isEqual(other: unknown): boolean {
       return other instanceof INITIALLY_IMMEDIATE;
+    }
+
+    static toSql() {
+      return 'DEFERRABLE INITIALLY IMMEDIATE';
     }
   });
 
@@ -74,11 +82,15 @@ export class Deferrable {
    */
   static readonly NOT = classToInvokable(class NOT extends Deferrable {
     toSql() {
-      return 'NOT DEFERRABLE';
+      return NOT.toSql();
     }
 
     isEqual(other: unknown): boolean {
       return other instanceof NOT;
+    }
+
+    static toSql() {
+      return 'NOT DEFERRABLE';
     }
   });
 
@@ -107,6 +119,10 @@ export class Deferrable {
     isEqual(other: unknown): boolean {
       return other instanceof SET_DEFERRED && isEqual(this.#constraints, other.#constraints);
     }
+
+    static toSql(queryGenerator: AbstractQueryGenerator): string {
+      return queryGenerator.setDeferredQuery(EMPTY_ARRAY);
+    }
   });
 
   /**
@@ -130,6 +146,10 @@ export class Deferrable {
 
     isEqual(other: unknown): boolean {
       return other instanceof SET_IMMEDIATE && isEqual(this.#constraints, other.#constraints);
+    }
+
+    static toSql(queryGenerator: AbstractQueryGenerator): string {
+      return queryGenerator.setImmediateQuery(EMPTY_ARRAY);
     }
   });
 }
