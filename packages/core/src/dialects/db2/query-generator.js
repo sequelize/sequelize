@@ -107,7 +107,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     let commentStr = '';
 
     for (const attr in attributes) {
-      if (Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
         let match;
 
@@ -181,7 +181,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
+      if (Object.hasOwn(foreignKeys, fkey)) {
         values.attributes += `, FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
       }
     }

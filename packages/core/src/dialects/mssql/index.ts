@@ -95,7 +95,7 @@ export class MssqlDialect extends AbstractDialect {
   escapeString(value: string): string {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
-    value = value.replace(/'/g, '\'\'');
+    value = value.replaceAll('\'', '\'\'');
 
     return `N'${value}'`;
   }

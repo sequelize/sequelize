@@ -370,7 +370,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
    */
   getSavepointName(prefix = 'sequelize') {
     // sqlite does not support "-" (dashes) in transaction's name
-    const suffix = crypto.randomUUID().replace(/-/g, '_');
+    const suffix = crypto.randomUUID().replaceAll('-', '_');
 
     return `${prefix}_${suffix}`;
   }

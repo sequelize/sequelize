@@ -129,7 +129,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     const attrStr = [];
 
     for (const attr in attributes) {
-      if (!Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (!Object.hasOwn(attributes, attr)) {
         continue;
       }
 
@@ -174,7 +174,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
+      if (Object.hasOwn(foreignKeys, fkey)) {
         attributesClause += `, FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
       }
     }

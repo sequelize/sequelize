@@ -192,7 +192,7 @@ export class MsSqlQuery extends AbstractQuery {
       const result = {};
       for (const _result of data) {
         if (_result.Default) {
-          _result.Default = _result.Default.replace('(\'', '').replace('\')', '').replace(/'/g, '');
+          _result.Default = _result.Default.replace('(\'', '').replace('\')', '').replaceAll('\'', '');
         }
 
         result[_result.Name] = {

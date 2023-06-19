@@ -674,8 +674,8 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     options = _.defaults(options, {
-      logging: Object.prototype.hasOwnProperty.call(this.options, 'logging') ? this.options.logging : console.debug,
-      searchPath: Object.prototype.hasOwnProperty.call(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT',
+      logging: Object.hasOwn(this.options, 'logging') ? this.options.logging : console.debug,
+      searchPath: Object.hasOwn(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT',
     });
 
     if (!options.type) {
@@ -1096,9 +1096,9 @@ Use Sequelize#query if you wish to use replacements.`);
   log(...args) {
     let options;
 
-    const last = _.last(args);
+    const last = args.at(-1);
 
-    if (last && _.isPlainObject(last) && Object.prototype.hasOwnProperty.call(last, 'logging')) {
+    if (last && _.isPlainObject(last) && Object.hasOwn(last, 'logging')) {
       options = last;
 
       // remove options from set of logged arguments if options.logging is equal to console.log or console.debug

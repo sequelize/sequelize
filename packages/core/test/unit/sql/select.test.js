@@ -341,7 +341,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ],
         // [last_name] is not wrapped in a literal, so it's a column name and must be escaped
         // as [[[last_name]]]
-        order: [['[last_name]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
+        order: [['[last_name]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
         limit: 30,
         offset: 10,
         hasMultiAssociation: true, // must be set only for mssql dialect here
@@ -373,7 +373,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ],
         // [last_name] is not wrapped in a literal, so it's a column name and must be escaped
         // as [[[last_name]]]
-        order: [['[last_name]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
+        order: [['[last_name]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
         limit: 30,
         offset: 10,
         hasMultiAssociation: true, // must be set only for mssql dialect here
@@ -711,8 +711,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expectsql(sql.selectQuery('User', {
           attributes: [
             '* FROM [User];'
-              .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-              .replace(/]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+              .replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT)
+              .replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT),
           ],
         }), {
           default: `SELECT ${TICK_LEFT}* FROM ${TICK_LEFT}${TICK_LEFT}User${TICK_RIGHT}${TICK_RIGHT};${TICK_RIGHT} FROM ${TICK_LEFT}User${TICK_RIGHT};`,
@@ -754,8 +754,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             // [ & ] will be escaped as [[ & ]]
             [
               '* FROM [User]; DELETE FROM [User];SELECT [id]'
-                .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-                .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT),
+                .replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT)
+                .replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT),
               'myCol',
             ],
           ],
@@ -812,8 +812,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 // this is not wrapped in `literal()`, so it's a column name.
                 // [ & ] will be escaped as [[ & ]]
                 '* FROM [User]; DELETE FROM [User];SELECT [id]'
-                  .replace(/\[/g, TICK_LEFT)
-                  .replace(/\]/g, TICK_RIGHT),
+                  .replaceAll('[', TICK_LEFT)
+                  .replaceAll(']', TICK_RIGHT),
               ],
               association: User.Posts,
             }],
@@ -834,8 +834,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 // this is not wrapped in `literal()`, so it's a column name.
                 // [ & ] will be escaped as [[ & ]]
                 ['* FROM [User]; DELETE FROM [User];SELECT [id]'
-                  .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-                  .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'data'],
+                  .replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT)
+                  .replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT), 'data'],
               ],
               association: User.Posts,
             }],

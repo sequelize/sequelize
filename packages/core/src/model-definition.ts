@@ -512,7 +512,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
             });
         }
 
-        if (Object.prototype.hasOwnProperty.call(builtAttribute, 'defaultValue')) {
+        if (Object.hasOwn(builtAttribute, 'defaultValue')) {
           if (isDataTypeClass(builtAttribute.defaultValue)) {
             // @ts-expect-error -- defaultValue is not readOnly yet!
             builtAttribute.defaultValue
@@ -539,7 +539,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           this.#jsonAttributeNames.add(attributeName);
         }
 
-        if (Object.prototype.hasOwnProperty.call(rawAttribute, 'unique') && rawAttribute.unique) {
+        if (Object.hasOwn(rawAttribute, 'unique') && rawAttribute.unique) {
           const uniqueIndexes = Array.isArray(rawAttribute.unique) ? rawAttribute.unique : [rawAttribute.unique];
 
           for (const uniqueIndex of uniqueIndexes) {
@@ -559,7 +559,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           }
         }
 
-        if (Object.prototype.hasOwnProperty.call(rawAttribute, 'index') && rawAttribute.index) {
+        if (Object.hasOwn(rawAttribute, 'index') && rawAttribute.index) {
           const indexes = Array.isArray(rawAttribute.index) ? rawAttribute.index : [rawAttribute.index];
 
           for (const index of indexes) {
@@ -699,7 +699,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
   }
 
   #nameIndex(newIndex: IndexOptions): IndexOptions {
-    if (Object.prototype.hasOwnProperty.call(newIndex, 'name')) {
+    if (Object.hasOwn(newIndex, 'name')) {
       return newIndex;
     }
 

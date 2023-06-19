@@ -169,7 +169,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     let commentStr = '';
 
     for (const attr in attributes) {
-      if (Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
         let match;
 
@@ -224,7 +224,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
+      if (Object.hasOwn(foreignKeys, fkey)) {
         attributesClauseParts.push(`FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`);
       }
     }

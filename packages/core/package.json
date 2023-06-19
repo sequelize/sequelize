@@ -37,7 +37,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": "^14.17.0 || >=16.0.0"
+    "node": ">=16.0.0"
   },
   "files": [
     "lib",
@@ -73,7 +73,6 @@
     "@types/ibm_db": "2.0.12",
     "@types/lodash": "4.14.195",
     "@types/mocha": "10.0.1",
-    "@types/node": "18.16.18",
     "@types/pg": "8.10.2",
     "@types/semver": "7.5.0",
     "@types/sinon": "10.0.15",
