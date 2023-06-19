@@ -113,7 +113,7 @@ export class Deferrable {
     }
 
     toSql(queryGenerator: AbstractQueryGenerator): string {
-      return queryGenerator.setDeferredQuery(this.#constraints);
+      return queryGenerator.setConstraintCheckingQuery('DEFERRED', this.#constraints);
     }
 
     isEqual(other: unknown): boolean {
@@ -121,7 +121,7 @@ export class Deferrable {
     }
 
     static toSql(queryGenerator: AbstractQueryGenerator): string {
-      return queryGenerator.setDeferredQuery(EMPTY_ARRAY);
+      return queryGenerator.setConstraintCheckingQuery('DEFERRED', EMPTY_ARRAY);
     }
   });
 
@@ -141,7 +141,7 @@ export class Deferrable {
     }
 
     toSql(queryGenerator: AbstractQueryGenerator): string {
-      return queryGenerator.setImmediateQuery(this.#constraints);
+      return queryGenerator.setConstraintCheckingQuery('IMMEDIATE', this.#constraints);
     }
 
     isEqual(other: unknown): boolean {
@@ -149,7 +149,7 @@ export class Deferrable {
     }
 
     static toSql(queryGenerator: AbstractQueryGenerator): string {
-      return queryGenerator.setImmediateQuery(EMPTY_ARRAY);
+      return queryGenerator.setConstraintCheckingQuery('IMMEDIATE', EMPTY_ARRAY);
     }
   });
 }

@@ -284,7 +284,11 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`removeConstraintQuery has not been implemented in ${this.dialect.name}.`);
   }
 
-  setConstraintQuery(columns: readonly string[], type: 'DEFERRED' | 'IMMEDIATE') {
+  setConstraintCheckingQuery(type: 'DEFERRED' | 'IMMEDIATE', columns?: readonly string[]) {
+    if (!['DEFERRED', 'IMMEDIATE'].includes(type)) {
+      throw new Error(`Invalid constraint checking type: ${type}`);
+    }
+
     let columnFragment = 'ALL';
 
     if (columns?.length) {
@@ -292,14 +296,6 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     return `SET CONSTRAINTS ${columnFragment} ${type}`;
-  }
-
-  setDeferredQuery(columns: readonly string[]) {
-    return this.setConstraintQuery(columns, 'DEFERRED');
-  }
-
-  setImmediateQuery(columns: readonly string[]) {
-    return this.setConstraintQuery(columns, 'IMMEDIATE');
   }
 
   showConstraintsQuery(_tableName: TableNameOrModel, _constraintName?: string): string {
