@@ -29,29 +29,13 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
   }
 
   describeCreateTableQuery(tableName: TableNameOrModel) {
-    const table = this.extractTableDetails(tableName);
-    let tableAndSchema;
-    if (!table.schema || table.schema === this.dialect.getDefaultSchema()) {
-      tableAndSchema = table.tableName;
-    } else {
-      tableAndSchema = `${table.schema}${table.delimiter || '.'}${table.tableName}`;
-    }
-
-    return `SELECT sql FROM sqlite_master WHERE tbl_name = ${this.escape(tableAndSchema)};`;
+    return `SELECT sql FROM sqlite_master WHERE tbl_name = ${this.escapeTable(tableName)};`;
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions) {
-    const table = this.extractTableDetails(tableName);
-    let tableAndSchema;
-    if (!table.schema || table.schema === this.dialect.getDefaultSchema()) {
-      tableAndSchema = table.tableName;
-    } else {
-      tableAndSchema = `${table.schema}${table.delimiter || '.'}${table.tableName}`;
-    }
-
     return joinSQLFragments([
       'SELECT sql FROM sqlite_master',
-      `WHERE tbl_name = ${this.escape(tableAndSchema)}`,
+      `WHERE tbl_name = ${this.escapeTable(tableName)}`,
     ]);
   }
 
@@ -112,7 +96,7 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     ]);
   }
 
-  escapeTable(tableName: TableNameOrModel): string {
+  private escapeTable(tableName: TableNameOrModel): string {
     const table = this.extractTableDetails(tableName);
 
     if (table.schema) {
