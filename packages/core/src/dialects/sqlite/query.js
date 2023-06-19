@@ -291,7 +291,7 @@ export class SqliteQuery extends AbstractQuery {
     });
   }
 
-  // TODO [>7]: remove usages of replaceAll(/`/g, '') in favor of something that does not mishandle backticks
+  // TODO [>7]: remove usages of replaceAll(/`/, '') in favor of something that does not mishandle backticks
   parseConstraintsFromSql(sql) {
     let constraints = sql.split('CONSTRAINT ');
     let referenceTableName; let referenceTableKeys; let updateAction; let deleteAction;
@@ -313,10 +313,10 @@ export class SqliteQuery extends AbstractQuery {
 
         const referencesRegex = /REFERENCES.+\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/;
         const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
-        referenceTableName = referenceConditions[1].replaceAll(/`/g, '');
+        referenceTableName = referenceConditions[1].replaceAll(/`/, '');
         let columnNames = referenceConditions[2];
         columnNames = columnNames.replaceAll(/\(|\)/g, '').split(', ');
-        referenceTableKeys = columnNames.map(column => column.replaceAll(/`/g, ''));
+        referenceTableKeys = columnNames.map(column => column.replaceAll(/`/, ''));
       }
 
       const constraintCondition = constraintSql.match(/\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/)[0];
@@ -328,7 +328,7 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       return {
-        constraintName: constraint[0].replaceAll(/`/g, ''),
+        constraintName: constraint[0].replaceAll(/`/, ''),
         constraintType: constraint[1],
         updateAction,
         deleteAction,
