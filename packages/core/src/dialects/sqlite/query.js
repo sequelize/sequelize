@@ -313,10 +313,10 @@ export class SqliteQuery extends AbstractQuery {
 
         const referencesRegex = /REFERENCES.+\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/;
         const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
-        referenceTableName = referenceConditions[1].replaceAll(/`/, '');
+        referenceTableName = referenceConditions[1].replaceAll(/`/g, '');
         let columnNames = referenceConditions[2];
-        columnNames = columnNames.replaceAll(/\(|\)/, '').split(', ');
-        referenceTableKeys = columnNames.map(column => column.replaceAll(/`/, ''));
+        columnNames = columnNames.replaceAll(/\(|\)/g, '').split(', ');
+        referenceTableKeys = columnNames.map(column => column.replaceAll(/`/g, ''));
       }
 
       const constraintCondition = constraintSql.match(/\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/)[0];
@@ -328,7 +328,7 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       return {
-        constraintName: constraint[0].replaceAll(/`/, ''),
+        constraintName: constraint[0].replaceAll(/`/g, ''),
         constraintType: constraint[1],
         updateAction,
         deleteAction,
