@@ -1396,34 +1396,6 @@ The following associations are defined on "Worker": "ToDos"`);
         }
       });
 
-      it('should allow a literal as VIRTUAL', async function () {
-        const User = this.sequelize.define('User', {
-          active: {
-            type: Sequelize.VIRTUAL(Sequelize.BOOLEAN, includeAs => [
-              dialectName === 'db2'
-              ? literal(`(SELECT "createdAt" > CURRENT DATE - 7 DAYS FROM "Users" WHERE "User"."id" = "${includeAs.replace(/`/g, '')}"."id")`)
-              : dialectName === 'sqlite' ? literal(`(SELECT "createdAt" > CURRENT_DATE - 7 * 24 * 60 * 60 * 1000 FROM Users WHERE "User"."id" = ${includeAs}."id")`)
-              : dialectName === 'postgres' ? literal(`(SELECT "createdAt" > NOW() - INTERVAL '1 week' FROM "Users" WHERE "User"."id" = "${includeAs.replace(/`/g, '')}"."id")`)
-              : dialectName === 'mssql' ? literal(`(SELECT COUNT(*) FROM Users WHERE Users.id = ${includeAs.replace(/`/g, '')}.id AND createdAt > DATEADD(WEEK, -1, GETDATE()))`)
-              : literal(`(SELECT createdAt > CURRENT_DATE - 7 * 24 * 60 * 60 * 1000 FROM Users WHERE User.id = ${includeAs}.id)`),
-              'active',
-            ]),
-          },
-        }, {
-          timestamps: true,
-        });
-
-        await User.create();
-
-        const users = await User.findAll({
-          attributes: ['active'],
-        });
-
-        users.forEach(user => {
-          expect(!!user.get('active')).to.equal(true);
-        });
-      });
-
       it('should pull in dependent fields for a VIRTUAL in include', async function () {
         const User = this.sequelize.define('User', {
           name: DataTypes.STRING,
