@@ -366,8 +366,6 @@ export abstract class AbstractDialect {
 
   abstract readonly defaultVersion: string;
   abstract readonly Query: typeof AbstractQuery;
-  /** @deprecated use {@link TICK_CHAR_RIGHT} & {@link TICK_CHAR_LEFT} */
-  abstract readonly TICK_CHAR: string;
   abstract readonly TICK_CHAR_LEFT: string;
   abstract readonly TICK_CHAR_RIGHT: string;
   abstract readonly queryGenerator: AbstractQueryGenerator;

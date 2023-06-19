@@ -64,7 +64,6 @@ export class MssqlDialect extends AbstractDialect {
   //   .github/workflows/ci.yml
   // minimum supported version
   readonly defaultVersion = '14.0.1000';
-  readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '[';
   readonly TICK_CHAR_RIGHT = ']';
 

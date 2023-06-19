@@ -51,7 +51,6 @@ export class SqliteDialect extends AbstractDialect {
 
   readonly defaultVersion = '3.8.0';
   readonly Query = SqliteQuery;
-  readonly TICK_CHAR = '`';
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';
   readonly connectionManager: SqliteConnectionManager;

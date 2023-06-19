@@ -19,6 +19,7 @@ import { Where, where } from './expression-builders/where.js';
 import { setTransactionFromCls } from './model-internals.js';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
+import { IsolationLevel, Lock, Transaction, TransactionNestMode, TransactionType } from './transaction.js';
 import { isString } from './utils/check.js';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
@@ -32,7 +33,6 @@ const { Model } = require('./model');
 const DataTypes = require('./data-types');
 const { Deferrable } = require('./deferrable');
 const { ModelManager } = require('./model-manager');
-const { Transaction, TRANSACTION_TYPES } = require('./transaction');
 const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
@@ -261,7 +261,7 @@ export class Sequelize extends SequelizeTypeScript {
           'SQLITE_BUSY: database is locked',
         ],
       },
-      transactionType: TRANSACTION_TYPES.DEFERRED,
+      transactionType: TransactionType.DEFERRED,
       isolationLevel: null,
       databaseVersion: null,
       noTypeValidation: false,
@@ -269,6 +269,7 @@ export class Sequelize extends SequelizeTypeScript {
       minifyAliases: false,
       logQueryParameters: false,
       disableClsTransactions: false,
+      clsTransactionNestMode: TransactionNestMode.reuse,
       ...options,
       pool: _.defaults(options.pool || {}, {
         max: 5,
@@ -1054,6 +1055,7 @@ Use Sequelize#query if you wish to use replacements.`);
     return fn('RAND');
   }
 
+  // Global exports
   static Fn = Fn;
   static Col = Col;
   static Cast = Cast;
@@ -1085,6 +1087,11 @@ Use Sequelize#query if you wish to use replacements.`);
   static isSameInitialModel = isSameInitialModel;
 
   static importModels = importModels;
+
+  static TransactionNestMode = TransactionNestMode;
+  static TransactionType = TransactionType;
+  static Lock = Lock;
+  static IsolationLevel = IsolationLevel;
 
   log(...args) {
     let options;

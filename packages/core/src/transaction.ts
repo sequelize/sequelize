@@ -1,6 +1,7 @@
 import assert from 'node:assert';
 import type { Class } from 'type-fest';
-import type { RequiredBy } from './utils/types.js';
+import { EMPTY_OBJECT } from './utils/object.js';
+import type { StrictRequiredBy } from './utils/types.js';
 import type { Connection, Deferrable, Logging, Sequelize } from './index.js';
 
 type TransactionCallback = (transaction: Transaction) => void | Promise<void>;
@@ -22,8 +23,8 @@ export class Transaction {
   readonly #afterHooks: Set<TransactionCallback> = new Set();
 
   private readonly savepoints: Transaction[] = [];
-  private readonly options: RequiredBy<TransactionOptions, 'type' | 'isolationLevel' | 'readOnly'>;
-  private readonly parent: Transaction | null;
+  readonly options: Readonly<NormalizedTransactionOptions>;
+  readonly parent: Transaction | null;
   readonly id: string;
   private readonly name: string;
   private finished: 'commit' | undefined;
@@ -46,14 +47,11 @@ export class Transaction {
       .queryGenerator
       .generateTransactionId;
 
-    this.options = {
-      type: sequelize.options.transactionType,
-      isolationLevel: sequelize.options.isolationLevel,
-      readOnly: false,
-      ...options,
-    };
+    const normalizedOptions = normalizeTransactionOptions(this.sequelize, options);
+    this.parent = normalizedOptions.transaction ?? null;
+    delete normalizedOptions.transaction;
 
-    this.parent = this.options.transaction ?? null;
+    this.options = Object.freeze(normalizedOptions);
 
     if (this.parent) {
       this.id = this.parent.id;
@@ -64,8 +62,6 @@ export class Transaction {
       this.id = id;
       this.name = id;
     }
-
-    delete this.options.transaction;
   }
 
   getConnection(): Connection {
@@ -194,12 +190,18 @@ export class Transaction {
     if (this.sequelize.dialect.supports.settingIsolationLevelDuringTransaction) {
       await queryInterface.startTransaction(this, this.options);
 
-      return queryInterface.setIsolationLevel(this, this.options.isolationLevel, this.options);
+      if (this.options.isolationLevel) {
+        await queryInterface.setIsolationLevel(this, this.options.isolationLevel, this.options);
+      }
+
+      return;
     }
 
-    await queryInterface.setIsolationLevel(this, this.options.isolationLevel, this.options);
+    if (this.options.isolationLevel) {
+      await queryInterface.setIsolationLevel(this, this.options.isolationLevel, this.options);
+    }
 
-    return queryInterface.startTransaction(this, this.options);
+    await queryInterface.startTransaction(this, this.options);
   }
 
   cleanup(): void {
@@ -300,9 +302,11 @@ export class Transaction {
    * @property DEFERRED
    * @property IMMEDIATE
    * @property EXCLUSIVE
+   *
+   * @deprecated use the {@link TransactionType} export
    */
   static get TYPES() {
-    return TRANSACTION_TYPES;
+    return TransactionType;
   }
 
   /**
@@ -325,9 +329,11 @@ export class Transaction {
    * @property READ_COMMITTED
    * @property REPEATABLE_READ
    * @property SERIALIZABLE
+   *
+   * @deprecated use the {@link IsolationLevel} export
    */
   static get ISOLATION_LEVELS() {
-    return ISOLATION_LEVELS;
+    return IsolationLevel;
   }
 
   /**
@@ -374,18 +380,22 @@ export class Transaction {
    * @property SHARE
    * @property KEY_SHARE Postgres 9.3+ only
    * @property NO_KEY_UPDATE Postgres 9.3+ only
+   *
+   * @deprecated use the {@link Lock} export
    */
   static get LOCK() {
-    return LOCK;
+    return Lock;
   }
 
   /**
    * Same as {@link Transaction.LOCK}, but can also be called on instances of
    * transactions to get possible options for row locking directly from the
    * instance.
+   *
+   * @deprecated use the {@link Lock} export
    */
   get LOCK() {
-    return LOCK;
+    return Lock;
   }
 }
 
@@ -417,16 +427,14 @@ export class Transaction {
  * }
  * ```
  */
-// TODO [>=8]: Rename to IsolationLevel
-export enum ISOLATION_LEVELS {
+export enum IsolationLevel {
   READ_UNCOMMITTED = 'READ UNCOMMITTED',
   READ_COMMITTED = 'READ COMMITTED',
   REPEATABLE_READ = 'REPEATABLE READ',
   SERIALIZABLE = 'SERIALIZABLE',
 }
 
-// TODO [>=8]: Rename to TransactionType
-export enum TRANSACTION_TYPES {
+export enum TransactionType {
   DEFERRED = 'DEFERRED',
   IMMEDIATE = 'IMMEDIATE',
   EXCLUSIVE = 'EXCLUSIVE',
@@ -461,8 +469,7 @@ export enum TRANSACTION_TYPES {
  *
  * [Read more on transaction locks here](https://sequelize.org/docs/v7/other-topics/transactions/#locks)
  */
-// TODO [>=8]: Rename to Lock
-export enum LOCK {
+export enum Lock {
   UPDATE = 'UPDATE',
   SHARE = 'SHARE',
   /**
@@ -475,17 +482,104 @@ export enum LOCK {
   NO_KEY_UPDATE = 'NO KEY UPDATE',
 }
 
+export enum TransactionNestMode {
+  /**
+   * In this mode, nesting a transaction block in another will reuse the parent transaction
+   * if its options are compatible (or throw an error otherwise).
+   *
+   * This is the default mode.
+   */
+  reuse = 'reuse',
+
+  /**
+   * In this mode, nesting a transaction block will cause the creation of a SAVEPOINT
+   * on the current transaction if the options provided to the nested transaction block are compatible with the parent one.
+   */
+  savepoint = 'savepoint',
+
+  /**
+   * In this mode, nesting a transaction block will always create a new transaction, in a separate connection.
+   * This mode is equivalent to setting the "transaction" option to "null" in the nested transaction block.
+   *
+   * Be very careful when using this mode, as it can easily lead to transaction deadlocks if used improperly.
+   */
+  separate = 'separate',
+}
+
 /**
  * Options provided when the transaction is created
  */
 export interface TransactionOptions extends Logging {
-  readOnly?: boolean;
-  autocommit?: boolean;
-  isolationLevel?: ISOLATION_LEVELS;
-  type?: TRANSACTION_TYPES;
-  deferrable?: string | Deferrable | Class<Deferrable>;
+  /**
+   * Whether this transaction will only be used to read data.
+   * Used to determine whether sequelize is allowed to use a read replication server.
+   */
+  readOnly?: boolean | undefined;
+  isolationLevel?: IsolationLevel | null | undefined;
+  type?: TransactionType | undefined;
+  deferrable?: Deferrable | Class<Deferrable> | undefined;
+
   /**
    * Parent transaction.
+   * Will be retrieved from CLS automatically if not provided or if null.
    */
-  transaction?: Transaction | null;
+  transaction?: Transaction | null | undefined;
+}
+
+export type NormalizedTransactionOptions = StrictRequiredBy<Omit<TransactionOptions, 'deferrable'>, 'type' | 'isolationLevel' | 'readOnly'> & {
+  deferrable?: Deferrable | undefined,
+};
+
+/**
+ * Options accepted by {@link Sequelize#transaction}.
+ */
+export interface ClsTransactionOptions extends TransactionOptions {
+  /**
+   * How the transaction block should behave if a parent transaction block exists.
+   */
+  nestMode?: TransactionNestMode;
+}
+
+export function normalizeTransactionOptions(
+  sequelize: Sequelize,
+  options: TransactionOptions = EMPTY_OBJECT,
+): NormalizedTransactionOptions {
+  return {
+    ...options,
+    type: options.type ?? sequelize.options.transactionType,
+    isolationLevel: options.isolationLevel === undefined
+      ? (sequelize.options.isolationLevel ?? null)
+      : options.isolationLevel,
+    readOnly: options.readOnly ?? false,
+    deferrable: typeof options.deferrable === 'function' ? new options.deferrable() : options.deferrable,
+  };
+}
+
+export function assertTransactionIsCompatibleWithOptions(transaction: Transaction, options: NormalizedTransactionOptions) {
+  if (options.isolationLevel !== transaction.options.isolationLevel) {
+    throw new Error(
+      `Requested isolation level (${options.isolationLevel ?? 'unspecified'}) is not compatible with the one of the existing transaction (${transaction.options.isolationLevel ?? 'unspecified'})`,
+    );
+  }
+
+  if (options.readOnly !== transaction.options.readOnly) {
+    throw new Error(
+      `Requested a transaction in ${options.readOnly ? 'read-only' : 'read/write'} mode, which is not compatible with the existing ${transaction.options.readOnly ? 'read-only' : 'read/write'} transaction`,
+    );
+  }
+
+  if (options.type !== transaction.options.type) {
+    throw new Error(
+      `Requested transaction type (${options.type}) is not compatible with the one of the existing transaction (${transaction.options.type})`,
+    );
+  }
+
+  if (
+    options.deferrable !== transaction.options.deferrable
+    && !options.deferrable?.isEqual(transaction.options.deferrable)
+  ) {
+    throw new Error(
+      `Requested transaction deferrable (${options.deferrable ?? 'none'}) is not compatible with the one of the existing transaction (${transaction.options.deferrable ?? 'none'})`,
+    );
+  }
 }

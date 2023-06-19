@@ -4,7 +4,7 @@ import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
-import { quoteIdentifier, removeTicks } from '../../utils/dialect';
+import { quoteIdentifier } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
@@ -451,7 +451,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         }
 
         if (attribute.references.deferrable) {
-          sql += ` ${attribute.references.deferrable.toString(this)}`;
+          sql += ` ${attribute.references.deferrable.toSql(this)}`;
         }
       }
     }
@@ -472,13 +472,13 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   deferConstraintsQuery(options) {
-    return options.deferrable.toString(this);
+    return options.deferrable.toSql(this);
   }
 
   setConstraintQuery(columns, type) {
     let columnFragment = 'ALL';
 
-    if (columns) {
+    if (columns?.length) {
       columnFragment = columns.map(column => this.quoteIdentifier(column)).join(', ');
     }
 
@@ -551,10 +551,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const paramList = this._expandFunctionParamList(params);
 
     return `ALTER FUNCTION ${oldFunctionName}(${paramList}) RENAME TO ${newFunctionName};`;
-  }
-
-  pgEscapeAndQuote(val) {
-    return this.quoteIdentifier(removeTicks(this.escape(val), '\''));
   }
 
   _expandFunctionParamList(params) {

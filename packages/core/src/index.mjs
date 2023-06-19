@@ -31,6 +31,10 @@ export const Model = Pkg.Model;
 
 // export * from './lib/transaction';
 export const Transaction = Pkg.Transaction;
+export const TransactionNestMode = Pkg.TransactionNestMode;
+export const TransactionType = Pkg.TransactionType;
+export const Lock = Pkg.Lock;
+export const IsolationLevel = Pkg.IsolationLevel;
 
 // export * from './lib/associations/index';
 export const Association = Pkg.Association;

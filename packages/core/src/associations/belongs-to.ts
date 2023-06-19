@@ -20,7 +20,7 @@ import { Op } from '../operators';
 import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
-import { camelize, singularize } from '../utils/string.js';
+import { camelize } from '../utils/string.js';
 import { Association } from './base';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { HasMany } from './has-many.js';
@@ -264,7 +264,7 @@ export class BelongsTo<
   }
 
   protected inferForeignKey(): string {
-    const associationName = singularize(this.options.as);
+    const associationName = this.options.name.singular;
     if (!associationName) {
       throw new Error('Sanity check: Could not guess the name of the association');
     }

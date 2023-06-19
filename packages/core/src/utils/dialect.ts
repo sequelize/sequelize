@@ -38,37 +38,6 @@ export function toDefaultValue(value: unknown): unknown {
   return value;
 }
 
-/**
- * @deprecated use {@link AbstractDialect#TICK_CHAR_LEFT} and {@link AbstractDialect#TICK_CHAR_RIGHT},
- * or {@link AbstractQueryGenerator#quoteIdentifier}
- */
-export const TICK_CHAR = '`';
-
-/**
- * @deprecated this is a bad way to quote identifiers and it should not be used anymore.
- * it mangles the input if the input contains identifier quotes, which should not happen.
- * Use {@link quoteIdentifier} instead
- *
- * @param s
- * @param tickChar
- * @returns
- */
-export function addTicks(s: string, tickChar: string = TICK_CHAR): string {
-  return tickChar + removeTicks(s, tickChar) + tickChar;
-}
-
-/**
- * @deprecated this is a bad way to quote identifiers and it should not be used anymore.
- * Use {@link quoteIdentifier} instead
- *
- * @param s
- * @param tickChar
- * @returns
- */
-export function removeTicks(s: string, tickChar: string = TICK_CHAR): string {
-  return s.replaceAll(new RegExp(tickChar, 'g'), '');
-}
-
 export function quoteIdentifier(identifier: string, leftTick: string, rightTick: string): string {
   if (!isString(identifier)) {
     throw new Error(`quoteIdentifier received a non-string identifier: ${NodeUtil.inspect(identifier)}`);

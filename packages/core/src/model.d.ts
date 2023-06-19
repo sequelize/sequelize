@@ -34,7 +34,7 @@ import type {
   OmitConstructors,
   StrictRequiredBy,
 } from './utils/types.js';
-import type { LOCK, Op, TableHints, Transaction, WhereOptions } from './index';
+import type { Lock, Op, TableHints, Transaction, WhereOptions } from './index';
 
 export interface Logging {
   /**
@@ -862,11 +862,11 @@ export interface FindOptions<TAttributes = any>
   /**
    * Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE.
    * Postgres also supports transaction.LOCK.KEY_SHARE, transaction.LOCK.NO_KEY_UPDATE and specific model
-   * locks with joins. See {@link LOCK}.
+   * locks with joins. See {@link Lock}.
    */
   lock?:
-    | LOCK
-    | { level: LOCK, of: ModelStatic<Model> }
+    | Lock
+    | { level: Lock, of: ModelStatic<Model> }
     | boolean;
 
   /**

@@ -8,6 +8,6 @@ docker compose -p sequelize-mariadb-latest up -d
 ./../../wait-until-healthy.sh sequelize-mariadb-latest
 
 docker exec sequelize-mariadb-latest \
-  mysql --host 127.0.0.1 --port 3306 -uroot -psequelize_test -e "GRANT ALL ON *.* TO 'sequelize_test'@'%' with grant option; FLUSH PRIVILEGES;"
+  mariadb --host 127.0.0.1 --port 3306 -uroot -psequelize_test -e "GRANT ALL ON *.* TO 'sequelize_test'@'%' with grant option; FLUSH PRIVILEGES;"
 
 DIALECT=mariadb ts-node ../../check-connection.ts
