@@ -397,6 +397,17 @@ export class Transaction {
   get LOCK() {
     return Lock;
   }
+
+  /**
+   * Get the root transaction if nested, or self if this is a root transaction
+   */
+  get rootTransaction(): Transaction {
+    if (this.parent !== null) {
+      return this.parent.rootTransaction;
+    }
+
+    return this;
+  }
 }
 
 /**
