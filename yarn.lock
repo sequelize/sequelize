@@ -1481,7 +1481,6 @@ __metadata:
     "@types/ibm_db": 2.0.12
     "@types/lodash": 4.14.195
     "@types/mocha": 10.0.1
-    "@types/node": 18.16.18
     "@types/pg": 8.10.2
     "@types/semver": 7.5.0
     "@types/sinon": 10.0.15
@@ -1558,6 +1557,7 @@ __metadata:
   dependencies:
     "@ephys/eslint-config-typescript": 19.0.2
     "@rushstack/eslint-patch": 1.3.2
+    "@types/node": 20.3.1
     chai: 4.3.7
     concurrently: 8.2.0
     cross-env: 7.0.3
@@ -1851,10 +1851,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:18.16.18":
-  version: 18.16.18
-  resolution: "@types/node@npm:18.16.18"
-  checksum: d32d8a0a04cd3f5ecb361bcb42f3a07623881ac90d680e06bf626defb3c663a94860d11690babe607cfe67265eceeb8a59ba5fe40c0e49f5a1b01e0088640469
+"@types/node@npm:20.3.1":
+  version: 20.3.1
+  resolution: "@types/node@npm:20.3.1"
+  checksum: 63a393ab6d947be17320817b35d7277ef03728e231558166ed07ee30b09fd7c08861be4d746f10fdc63ca7912e8cd023939d4eab887ff6580ff704ff24ed810c
   languageName: node
   linkType: hard
 
