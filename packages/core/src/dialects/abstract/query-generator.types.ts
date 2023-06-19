@@ -1,4 +1,3 @@
-import type { Class } from 'type-fest';
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import type { ReferentialAction } from '../../model';
@@ -58,10 +57,6 @@ export type AddConstraintQueryOptions =
   | AddDefaultConstraintQueryOptions
   | AddPrimaryKeyConstraintQueryOptions
   | AddForeignKeyConstraintQueryOptions;
-
-export interface DeferConstraintsQueryOptions {
-  deferrable: Deferrable | Class<Deferrable>;
-}
 
 export interface GetConstraintSnippetQueryOptions {
   name?: string;

@@ -1,10 +1,11 @@
 import assert from 'node:assert';
 import isEmpty from 'lodash/isEmpty';
+import type { Class } from 'type-fest';
+import type { Deferrable } from '../../deferrable';
 import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
-import type { Transaction } from '../../transaction.js';
 import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
@@ -301,13 +302,18 @@ export class AbstractQueryInterfaceTypeScript {
     await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
   }
 
-  async deferConstraints(transaction: Transaction, options: DeferConstraintsOptions): Promise<void> {
-    const sql = this.queryGenerator.deferConstraintsQuery(options);
+  async deferConstraints(deferrable: Deferrable | Class<Deferrable>, options?: DeferConstraintsOptions): Promise<void> {
+    setTransactionFromCls(options ?? {}, this.sequelize);
+    if (!options?.transaction) {
+      throw new Error('Missing transaction in deferConstraints option.');
+    }
+
+    const sql = this.queryGenerator.deferConstraintsQuery(deferrable);
 
     await this.sequelize.queryRaw(sql, {
       ...options,
       raw: true,
-      transaction: transaction.parent || transaction,
+      transaction: options.transaction.rootTransaction,
       type: QueryTypes.RAW,
     });
   }

@@ -1,5 +1,7 @@
 import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
+import type { Class } from 'type-fest';
+import type { Deferrable } from '../../deferrable.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
@@ -29,7 +31,6 @@ import type { BindParamOptions, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
-  DeferConstraintsQueryOptions,
   GetConstraintSnippetQueryOptions,
   RemoveConstraintQueryOptions,
 } from './query-generator.types.js';
@@ -137,13 +138,13 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`addConstraintQuery has not been implemented in ${this.dialect.name}`);
   }
 
-  deferConstraintsQuery(options: DeferConstraintsQueryOptions) {
+  deferConstraintsQuery(deferrable: Deferrable | Class<Deferrable>) {
     if (!this.dialect.supports.constraints.deferrable) {
       throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
     }
 
     // @ts-expect-error -- remove once this class has been merged back with the AbstractQueryGenerator class
-    return options.deferrable.toSql(this);
+    return deferrable.toSql(this);
   }
 
   getConstraintSnippet(tableName: TableNameOrModel, options: GetConstraintSnippetQueryOptions) {
@@ -203,8 +204,7 @@ export class AbstractQueryGeneratorTypeScript {
         constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_uk`);
         constraintSnippet = `CONSTRAINT ${constraintName} UNIQUE (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
-          const deferOptions = { ...options, deferrable: options.deferrable };
-          constraintSnippet += ` ${this.deferConstraintsQuery(deferOptions)}`;
+          constraintSnippet += ` ${this.deferConstraintsQuery(options.deferrable)}`;
         }
 
         break;
@@ -228,8 +228,7 @@ export class AbstractQueryGeneratorTypeScript {
         constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_pk`);
         constraintSnippet = `CONSTRAINT ${constraintName} PRIMARY KEY (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
-          const deferOptions = { ...options, deferrable: options.deferrable };
-          constraintSnippet += ` ${this.deferConstraintsQuery(deferOptions)}`;
+          constraintSnippet += ` ${this.deferConstraintsQuery(options.deferrable)}`;
         }
 
         break;
@@ -265,8 +264,7 @@ export class AbstractQueryGeneratorTypeScript {
         }
 
         if (options.deferrable) {
-          const deferOptions = { ...options, deferrable: options.deferrable };
-          constraintSnippet += ` ${this.deferConstraintsQuery(deferOptions)}`;
+          constraintSnippet += ` ${this.deferConstraintsQuery(options.deferrable)}`;
         }
 
         break;

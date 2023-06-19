@@ -180,7 +180,7 @@ export class Transaction {
       await this
         .sequelize
         .getQueryInterface()
-        .deferConstraints(this, { deferrable: this.options.deferrable });
+        .deferConstraints(this.options.deferrable, { transaction: this });
     }
   }
 

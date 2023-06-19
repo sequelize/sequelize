@@ -1,11 +1,7 @@
 import type { ReferentialAction } from '../../model';
 import type { QueryRawOptions } from '../../sequelize';
 import type { CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
-import type {
-  AddConstraintQueryOptions,
-  DeferConstraintsQueryOptions,
-  RemoveConstraintQueryOptions,
-} from './query-generator.types';
+import type { AddConstraintQueryOptions, RemoveConstraintQueryOptions } from './query-generator.types';
 
 export interface ColumnDescription {
   type: string;
@@ -69,7 +65,7 @@ export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type
 export type AddConstraintOptions = AddConstraintQueryOptions & QueryRawOptions;
 
 /** Options accepted by {@link AbstractQueryInterface#deferConstraints} */
-export interface DeferConstraintsOptions extends DeferConstraintsQueryOptions, QueryRawOptions { }
+export interface DeferConstraintsOptions extends QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#removeConstraint} */
 export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, QueryRawOptions { }
