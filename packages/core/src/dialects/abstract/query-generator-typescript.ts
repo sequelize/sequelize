@@ -149,9 +149,6 @@ export class AbstractQueryGeneratorTypeScript {
   }
 
   getConstraintSnippet(tableName: TableNameOrModel, options: GetConstraintSnippetQueryOptions) {
-    let constraintName;
-    let constraintSnippet;
-
     const quotedFields = options.fields.map(field => {
       if (typeof field === 'string') {
         return this.quoteIdentifier(field);
@@ -184,32 +181,37 @@ export class AbstractQueryGeneratorTypeScript {
       return field.name;
     });
 
+    let constraintSnippet;
     const table = this.extractTableDetails(tableName);
     const fieldsSqlQuotedString = quotedFields.join(', ');
     const fieldsSqlString = constraintNameParts?.join('_');
 
     switch (options.type.toUpperCase()) {
-      case 'CHECK':
+      case 'CHECK': {
         if (!this.dialect.supports.constraints.check) {
           throw new Error(`Check constraints are not supported by ${this.dialect.name} dialect`);
         }
 
-        constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_ck`);
+        const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_ck`);
         constraintSnippet = `CONSTRAINT ${constraintName} CHECK (${this.whereItemsQuery(options.where)})`;
         break;
-      case 'UNIQUE':
+      }
+
+      case 'UNIQUE': {
         if (!this.dialect.supports.constraints.unique) {
           throw new Error(`Unique constraints are not supported by ${this.dialect.name} dialect`);
         }
 
-        constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_uk`);
+        const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_uk`);
         constraintSnippet = `CONSTRAINT ${constraintName} UNIQUE (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
           constraintSnippet += ` ${this.deferConstraintsQuery(options.deferrable)}`;
         }
 
         break;
-      case 'DEFAULT':
+      }
+
+      case 'DEFAULT': {
         if (!this.dialect.supports.constraints.default) {
           throw new Error(`Default constraints are not supported by ${this.dialect.name} dialect`);
         }
@@ -218,21 +220,25 @@ export class AbstractQueryGeneratorTypeScript {
           throw new Error('Default value must be specified for DEFAULT CONSTRAINT');
         }
 
-        constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_df`);
+        const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_df`);
         constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, options)}) FOR ${quotedFields[0]}`;
         break;
-      case 'PRIMARY KEY':
+      }
+
+      case 'PRIMARY KEY': {
         if (!this.dialect.supports.constraints.primaryKey) {
           throw new Error(`Primary key constraints are not supported by ${this.dialect.name} dialect`);
         }
 
-        constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_pk`);
+        const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_pk`);
         constraintSnippet = `CONSTRAINT ${constraintName} PRIMARY KEY (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
           constraintSnippet += ` ${this.deferConstraintsQuery(options.deferrable)}`;
         }
 
         break;
+      }
+
       case 'FOREIGN KEY': {
         if (!this.dialect.supports.constraints.foreignKey) {
           throw new Error(`Foreign key constraints are not supported by ${this.dialect.name} dialect`);
@@ -244,12 +250,12 @@ export class AbstractQueryGeneratorTypeScript {
         }
 
         const referencedTable = this.extractTableDetails(references.table);
-        constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_${referencedTable.tableName}_fk`);
+        const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_${referencedTable.tableName}_fk`);
         const quotedReferences
-          = typeof references.field !== 'undefined'
+          = references.field !== undefined
           ? this.quoteIdentifier(references.field)
           : references.fields!.map(f => this.quoteIdentifier(f)).join(', ');
-        const referencesSnippet = `${this.quoteTable(references.table)} (${quotedReferences})`;
+        const referencesSnippet = `${this.quoteTable(referencedTable)} (${quotedReferences})`;
         constraintSnippet = `CONSTRAINT ${constraintName} `;
         constraintSnippet += `FOREIGN KEY (${fieldsSqlQuotedString}) REFERENCES ${referencesSnippet}`;
         if (options.onUpdate) {
@@ -271,7 +277,9 @@ export class AbstractQueryGeneratorTypeScript {
         break;
       }
 
-      default: throw new Error(`Constraint type ${options.type} is not supported by ${this.dialect.name} dialect`);
+      default: {
+        throw new Error(`Constraint type ${options.type} is not supported by ${this.dialect.name} dialect`);
+      }
     }
 
     return constraintSnippet;
