@@ -7,7 +7,11 @@ import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { AddConstraintQueryOptions, RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
+import type {
+  AddConstraintQueryOptions,
+  RemoveConstraintQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
 
 const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -66,7 +70,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, constraintName?: string) {
+  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -92,7 +96,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       'AND c.TABLE_SCHEMA =',
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
-      constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(constraintName)}` : '',
+      options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
       'ORDER BY c.CONSTRAINT_NAME',
     ]);
   }

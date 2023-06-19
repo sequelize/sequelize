@@ -12,7 +12,7 @@ import type {
   RemoveIndexQueryOptions,
   TableNameOrModel,
 } from '../abstract/query-generator-typescript';
-import type { AddConstraintQueryOptions } from '../abstract/query-generator.types.js';
+import type { AddConstraintQueryOptions, ShowConstraintsQueryOptions } from '../abstract/query-generator.types.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -40,7 +40,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, constraintName?: string) {
+  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -62,7 +62,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND r.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA AND r.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND r.TABLE_NAME = kcu.TABLE_NAME',
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
-      constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(constraintName)}` : '',
+      options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
       'ORDER BY c.CONSTRAINT_NAME',
     ]);
   }

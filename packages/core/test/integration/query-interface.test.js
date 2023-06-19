@@ -583,11 +583,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     describe('unique', () => {
       it('should add, read & remove unique constraint', async function () {
         await this.queryInterface.addConstraint('users', { type: 'UNIQUE', fields: ['email'] });
-        let constraints = await this.queryInterface.showConstraint('users');
+        let constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('users_email_uk');
         await this.queryInterface.removeConstraint('users', 'users_email_uk');
-        constraints = await this.queryInterface.showConstraint('users');
+        constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('users_email_uk');
       });
@@ -595,17 +595,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should add a constraint after another', async function () {
         await this.queryInterface.addConstraint('users', { type: 'UNIQUE', fields: ['username'] });
         await this.queryInterface.addConstraint('users', { type: 'UNIQUE', fields: ['email'] });
-        let constraints = await this.queryInterface.showConstraint('users');
+        let constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('users_email_uk');
         expect(constraints).to.include('users_username_uk');
         await this.queryInterface.removeConstraint('users', 'users_email_uk');
-        constraints = await this.queryInterface.showConstraint('users');
+        constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('users_email_uk');
         expect(constraints).to.include('users_username_uk');
         await this.queryInterface.removeConstraint('users', 'users_username_uk');
-        constraints = await this.queryInterface.showConstraint('users');
+        constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('users_email_uk');
         expect(constraints).to.not.include('users_username_uk');
@@ -623,11 +623,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             },
             name: 'check_user_roles',
           });
-          let constraints = await this.queryInterface.showConstraint('users');
+          let constraints = await this.queryInterface.showConstraints('users');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.include('check_user_roles');
           await this.queryInterface.removeConstraint('users', 'check_user_roles');
-          constraints = await this.queryInterface.showConstraint('users');
+          constraints = await this.queryInterface.showConstraints('users');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.not.include('check_user_roles');
         });
@@ -652,11 +652,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: 'DEFAULT',
             defaultValue: 'guest',
           });
-          let constraints = await this.queryInterface.showConstraint('users');
+          let constraints = await this.queryInterface.showConstraints('users');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.include('users_roles_df');
           await this.queryInterface.removeConstraint('users', 'users_roles_df');
-          constraints = await this.queryInterface.showConstraint('users');
+          constraints = await this.queryInterface.showConstraints('users');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.not.include('users_roles_df');
         });
@@ -675,7 +675,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           fields: ['username'],
           type: 'PRIMARY KEY',
         });
-        let constraints = await this.queryInterface.showConstraint('users');
+        let constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
 
         // The name of primaryKey constraint is always `PRIMARY` in case of MySQL and MariaDB
@@ -683,7 +683,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         expect(constraints).to.include(expectedConstraintName);
         await this.queryInterface.removeConstraint('users', expectedConstraintName);
-        constraints = await this.queryInterface.showConstraint('users');
+        constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include(expectedConstraintName);
       });
@@ -712,7 +712,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           fields: ['id'],
         });
 
-        const constraints = await this.queryInterface.showConstraint(tableName);
+        const constraints = await this.queryInterface.showConstraints(tableName);
 
         expect(constraints).to.deep.eq([{
           constraintName: 'users_username_pk',
@@ -744,11 +744,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: 'FOREIGN KEY',
           onDelete: 'CASCADE',
         });
-        let constraints = await this.queryInterface.showConstraint('posts');
+        let constraints = await this.queryInterface.showConstraints('posts');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('posts_username_users_fk');
         await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
-        constraints = await this.queryInterface.showConstraint('posts');
+        constraints = await this.queryInterface.showConstraints('posts');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('posts_username_users_fk');
       });
@@ -776,11 +776,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             onUpdate: 'CASCADE',
             type: 'FOREIGN KEY',
           });
-          let constraints = await this.queryInterface.showConstraint('posts');
+          let constraints = await this.queryInterface.showConstraints('posts');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.include('posts_username_users_fk');
           await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
-          constraints = await this.queryInterface.showConstraint('posts');
+          constraints = await this.queryInterface.showConstraints('posts');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.not.include('posts_username_users_fk');
         });

@@ -89,3 +89,7 @@ export interface RemoveConstraintQueryOptions {
   ifExists?: boolean;
   cascade?: boolean;
 }
+
+export interface ShowConstraintsQueryOptions {
+  constraintName?: string;
+}

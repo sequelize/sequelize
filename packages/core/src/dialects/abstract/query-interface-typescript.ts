@@ -22,7 +22,7 @@ import type {
   FetchDatabaseVersionOptions,
   RemoveConstraintOptions,
   ShowAllSchemasOptions,
-  ShowConstraintOptions,
+  ShowConstraintsOptions,
 } from './query-interface.types';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
@@ -335,12 +335,8 @@ export class AbstractQueryInterfaceTypeScript {
     await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
   }
 
-  async showConstraint(
-    tableName: TableNameOrModel,
-    constraintName?: string,
-    options?: ShowConstraintOptions,
-  ): Promise<ConstraintDescription[]> {
-    const sql = this.queryGenerator.showConstraintsQuery(tableName, constraintName);
+  async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
+    const sql = this.queryGenerator.showConstraintsQuery(tableName, options);
 
     return this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.SHOWCONSTRAINTS });
   }

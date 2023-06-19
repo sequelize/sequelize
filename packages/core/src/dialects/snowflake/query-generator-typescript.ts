@@ -3,7 +3,11 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { AddConstraintQueryOptions, RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
+import type {
+  AddConstraintQueryOptions,
+  RemoveConstraintQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
 
 const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['cascade']);
 
@@ -44,7 +48,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, constraintName?: string) {
+  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -66,7 +70,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS fk ON r.UNIQUE_CONSTRAINT_CATALOG = fk.CONSTRAINT_CATALOG AND r.UNIQUE_CONSTRAINT_SCHEMA = fk.CONSTRAINT_SCHEMA AND r.UNIQUE_CONSTRAINT_NAME = fk.CONSTRAINT_NAME',
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
-      constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(constraintName)}` : '',
+      options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
       'ORDER BY c.CONSTRAINT_NAME',
     ]);
   }

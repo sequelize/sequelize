@@ -5,7 +5,7 @@ import { sequelize } from '../support';
 const queryInterface = sequelize.queryInterface;
 const dialect = sequelize.getDialect();
 
-describe('QueryInterface#showConstraint', () => {
+describe('QueryInterface#showConstraints', () => {
   describe('Without schema', () => {
     beforeEach(async () => {
       await queryInterface.createTable('level', {
@@ -52,7 +52,7 @@ describe('QueryInterface#showConstraint', () => {
     });
 
     it('should show constraints', async () => {
-      const constraints = await queryInterface.showConstraint('actors');
+      const constraints = await queryInterface.showConstraints('actors');
       if (['postgres'].includes(dialect)) {
         // Postgres returns the not null constraint as well
         expect(constraints).to.have.length(6);
@@ -74,7 +74,7 @@ describe('QueryInterface#showConstraint', () => {
           },
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('CHECK');
@@ -91,7 +91,7 @@ describe('QueryInterface#showConstraint', () => {
           defaultValue: 'active',
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('DEFAULT');
@@ -108,7 +108,7 @@ describe('QueryInterface#showConstraint', () => {
           fields: ['name', 'age'],
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('UNIQUE');
@@ -174,7 +174,7 @@ describe('QueryInterface#showConstraint', () => {
       });
 
       it('should show constraints', async () => {
-        const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' });
+        const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' });
         if (['postgres'].includes(dialect)) {
           // Postgres returns the not null constraint as well
           expect(constraints).to.have.length(6);
@@ -199,7 +199,7 @@ describe('QueryInterface#showConstraint', () => {
             },
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('CHECK');
@@ -219,7 +219,7 @@ describe('QueryInterface#showConstraint', () => {
             defaultValue: 'active',
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('DEFAULT');
@@ -238,7 +238,7 @@ describe('QueryInterface#showConstraint', () => {
             fields: ['name', 'age'],
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('UNIQUE');

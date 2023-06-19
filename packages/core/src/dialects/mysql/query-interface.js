@@ -67,8 +67,8 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
    * @override
    */
   async removeConstraint(tableName, constraintName, options) {
-    const queryOptions = { ...options, raw: true };
-    const constraints = await this.showConstraint(tableName, constraintName, queryOptions);
+    const queryOptions = { ...options, raw: true, constraintName };
+    const constraints = await this.showConstraints(tableName, queryOptions);
 
     const constraint = constraints[0];
     if (!constraint || !constraint.constraintType) {

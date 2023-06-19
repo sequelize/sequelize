@@ -3,7 +3,11 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { AddConstraintQueryOptions, RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
+import type {
+  AddConstraintQueryOptions,
+  RemoveConstraintQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -57,7 +61,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, constraintName?: string) {
+  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     // Postgres converts camelCased alias to lowercase unless quoted
@@ -85,7 +89,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN INFORMATION_SCHEMA.check_constraints ch ON c.constraint_catalog = ch.constraint_catalog AND c.constraint_schema = ch.constraint_schema AND c.constraint_name = ch.constraint_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
       `AND c.table_schema = ${this.escape(table.schema)}`,
-      constraintName ? `AND c.constraint_name = ${this.escape(constraintName)}` : '',
+      options?.constraintName ? `AND c.constraint_name = ${this.escape(options.constraintName)}` : '',
       'ORDER BY c.constraint_name',
     ]);
   }

@@ -78,11 +78,11 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
   /**
    * @override
    */
-  async showConstraint(tableName, constraintName, options) {
-    const constraints = await super.showConstraint(tableName, constraintName, options);
+  async showConstraints(tableName, options) {
+    const constraints = await super.showConstraints(tableName, options);
 
-    if (constraintName) {
-      return constraints.filter(constraint => constraint.constraintName === constraintName);
+    if (options?.constraintName) {
+      return constraints.filter(constraint => constraint.constraintName === options.constraintName);
     }
 
     return constraints;
@@ -96,8 +96,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, { ...options, type: QueryTypes.SELECT, raw: true });
     let createTableSql = describeCreateTable[0].sql;
 
-    const constraints = await this.showConstraint(tableName, constraintName, options);
-    // sqlite can't show only one constraint, so we find here the one to remove
+    const constraints = await this.showConstraints(tableName, options);
     const constraint = constraints.find(constaint => constaint.constraintName === constraintName);
 
     if (!constraint) {

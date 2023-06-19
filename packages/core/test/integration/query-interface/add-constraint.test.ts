@@ -61,7 +61,7 @@ describe('QueryInterface#addConstraint', () => {
           },
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('CHECK');
@@ -78,7 +78,7 @@ describe('QueryInterface#addConstraint', () => {
           defaultValue: 'active',
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('DEFAULT');
@@ -94,7 +94,7 @@ describe('QueryInterface#addConstraint', () => {
           fields: ['name', 'age'],
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('UNIQUE');
@@ -114,7 +114,7 @@ describe('QueryInterface#addConstraint', () => {
           onDelete: 'CASCADE',
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('FOREIGN KEY');
@@ -134,7 +134,7 @@ describe('QueryInterface#addConstraint', () => {
             onUpdate: 'CASCADE',
           });
 
-          const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('FOREIGN KEY');
@@ -151,12 +151,12 @@ describe('QueryInterface#addConstraint', () => {
         });
 
         if (['mariadb', 'mysql'].includes(dialect)) {
-          const constraints = await queryInterface.showConstraint('actors', 'PRIMARY');
+          const constraints = await queryInterface.showConstraints('actors', { constraintName: 'PRIMARY' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('PRIMARY');
           expect(constraints[0].constraintType).to.equal('PRIMARY KEY');
         } else {
-          const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('PRIMARY KEY');
@@ -225,7 +225,7 @@ describe('QueryInterface#addConstraint', () => {
             },
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('CHECK');
@@ -242,7 +242,7 @@ describe('QueryInterface#addConstraint', () => {
             defaultValue: 'active',
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('DEFAULT');
@@ -258,7 +258,7 @@ describe('QueryInterface#addConstraint', () => {
             fields: ['name', 'age'],
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('UNIQUE');
@@ -278,7 +278,7 @@ describe('QueryInterface#addConstraint', () => {
             onDelete: 'CASCADE',
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('FOREIGN KEY');
@@ -298,7 +298,7 @@ describe('QueryInterface#addConstraint', () => {
               onUpdate: 'CASCADE',
             });
 
-            const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+            const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
             expect(constraints).to.have.length(1);
             expect(constraints[0].constraintName).to.equal('custom_constraint_name');
             expect(constraints[0].constraintType).to.equal('FOREIGN KEY');
@@ -316,12 +316,12 @@ describe('QueryInterface#addConstraint', () => {
 
           // MariaDB and MySQL do not support named primary keys
           if (['mariadb', 'mysql'].includes(dialect)) {
-            const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'PRIMARY');
+            const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'PRIMARY' });
             expect(constraints).to.have.length(1);
             expect(constraints[0].constraintName).to.equal('PRIMARY');
             expect(constraints[0].constraintType).to.equal('PRIMARY KEY');
           } else {
-            const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+            const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
             expect(constraints).to.have.length(1);
             expect(constraints[0].constraintName).to.equal('custom_constraint_name');
             expect(constraints[0].constraintType).to.equal('PRIMARY KEY');

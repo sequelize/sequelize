@@ -3,6 +3,7 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
 import { MySqlQueryGenerator } from '../mysql/query-generator';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -39,7 +40,7 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     return `SELECT sql FROM sqlite_master WHERE tbl_name = ${this.escape(tableAndSchema)};`;
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, _constraintName?: string) {
+  showConstraintsQuery(tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
     let tableAndSchema;
     if (!table.schema || table.schema === this.dialect.getDefaultSchema()) {

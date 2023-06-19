@@ -57,14 +57,14 @@ describe('QueryInterface#removeConstraint', () => {
           },
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('CHECK');
         expect(constraints[0].definition).to.not.be.null;
 
         await queryInterface.removeConstraint('actors', 'custom_constraint_name');
-        const constraints1 = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints1 = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints1).to.have.length(0);
       });
     }
@@ -78,14 +78,14 @@ describe('QueryInterface#removeConstraint', () => {
           defaultValue: 'active',
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('DEFAULT');
         expect(constraints[0].definition).to.not.be.null;
 
         await queryInterface.removeConstraint('actors', 'custom_constraint_name');
-        const constraints1 = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints1 = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints1).to.have.length(0);
       });
     }
@@ -98,13 +98,13 @@ describe('QueryInterface#removeConstraint', () => {
           fields: ['name', 'age'],
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('UNIQUE');
 
         await queryInterface.removeConstraint('actors', 'custom_constraint_name');
-        const constraints1 = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints1 = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints1).to.have.length(0);
       });
     }
@@ -122,13 +122,13 @@ describe('QueryInterface#removeConstraint', () => {
           onDelete: 'CASCADE',
         });
 
-        const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints).to.have.length(1);
         expect(constraints[0].constraintName).to.equal('custom_constraint_name');
         expect(constraints[0].constraintType).to.equal('FOREIGN KEY');
 
         await queryInterface.removeConstraint('actors', 'custom_constraint_name');
-        const constraints1 = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+        const constraints1 = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraints1).to.have.length(0);
       });
     }
@@ -142,22 +142,22 @@ describe('QueryInterface#removeConstraint', () => {
         });
 
         if (['mariadb', 'mysql'].includes(dialect)) {
-          const constraints = await queryInterface.showConstraint('actors', 'PRIMARY');
+          const constraints = await queryInterface.showConstraints('actors', { constraintName: 'PRIMARY' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('PRIMARY');
           expect(constraints[0].constraintType).to.equal('PRIMARY KEY');
 
           await queryInterface.removeConstraint('actors', 'PRIMARY');
-          const constraints1 = await queryInterface.showConstraint('actors', 'PRIMARY');
+          const constraints1 = await queryInterface.showConstraints('actors', { constraintName: 'PRIMARY' });
           expect(constraints1).to.have.length(0);
         } else {
-          const constraints = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('PRIMARY KEY');
 
           await queryInterface.removeConstraint('actors', 'custom_constraint_name');
-          const constraints1 = await queryInterface.showConstraint('actors', 'custom_constraint_name');
+          const constraints1 = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
           expect(constraints1).to.have.length(0);
         }
       });
@@ -224,14 +224,14 @@ describe('QueryInterface#removeConstraint', () => {
             },
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('CHECK');
           expect(constraints[0].definition).to.not.be.null;
 
           await queryInterface.removeConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
-          const constraints1 = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints1 = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints1).to.have.length(0);
         });
       }
@@ -245,14 +245,14 @@ describe('QueryInterface#removeConstraint', () => {
             defaultValue: 'active',
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('DEFAULT');
           expect(constraints[0].definition).to.not.be.null;
 
           await queryInterface.removeConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
-          const constraints1 = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints1 = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints1).to.have.length(0);
         });
       }
@@ -265,13 +265,13 @@ describe('QueryInterface#removeConstraint', () => {
             fields: ['name', 'age'],
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('UNIQUE');
 
           await queryInterface.removeConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
-          const constraints1 = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints1 = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints1).to.have.length(0);
         });
       }
@@ -289,13 +289,13 @@ describe('QueryInterface#removeConstraint', () => {
             onDelete: 'CASCADE',
           });
 
-          const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
           expect(constraints[0].constraintName).to.equal('custom_constraint_name');
           expect(constraints[0].constraintType).to.equal('FOREIGN KEY');
 
           await queryInterface.removeConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
-          const constraints1 = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+          const constraints1 = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
           expect(constraints1).to.have.length(0);
         });
       }
@@ -309,22 +309,22 @@ describe('QueryInterface#removeConstraint', () => {
           });
 
           if (['mariadb', 'mysql'].includes(dialect)) {
-            const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'PRIMARY');
+            const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'PRIMARY' });
             expect(constraints).to.have.length(1);
             expect(constraints[0].constraintName).to.equal('PRIMARY');
             expect(constraints[0].constraintType).to.equal('PRIMARY KEY');
 
             await queryInterface.removeConstraint({ tableName: 'actors', schema: 'archive' }, 'PRIMARY');
-            const constraints1 = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'PRIMARY');
+            const constraints1 = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'PRIMARY' });
             expect(constraints1).to.have.length(0);
           } else {
-            const constraints = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+            const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
             expect(constraints).to.have.length(1);
             expect(constraints[0].constraintName).to.equal('custom_constraint_name');
             expect(constraints[0].constraintType).to.equal('PRIMARY KEY');
 
             await queryInterface.removeConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
-            const constraints1 = await queryInterface.showConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name');
+            const constraints1 = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
             expect(constraints1).to.have.length(0);
           }
         });

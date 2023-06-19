@@ -33,6 +33,7 @@ import type {
   AddConstraintQueryOptions,
   GetConstraintSnippetQueryOptions,
   RemoveConstraintQueryOptions,
+  ShowConstraintsQueryOptions,
 } from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -298,7 +299,7 @@ export class AbstractQueryGeneratorTypeScript {
     return `SET CONSTRAINTS ${columnFragment} ${type}`;
   }
 
-  showConstraintsQuery(_tableName: TableNameOrModel, _constraintName?: string): string {
+  showConstraintsQuery(_tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions): string {
     throw new Error(`showConstraintsQuery has not been implemented in ${this.dialect.name}.`);
   }
 

@@ -6,7 +6,7 @@ import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
+import type { RemoveConstraintQueryOptions, ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
 import { MySqlQueryGenerator } from '../mysql/query-generator.js';
 
 const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists']);
@@ -36,7 +36,7 @@ export class MariaDbQueryGeneratorTypeScript extends MySqlQueryGenerator {
     ]);
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, constraintName?: string) {
+  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -61,7 +61,7 @@ export class MariaDbQueryGeneratorTypeScript extends MySqlQueryGenerator {
       'AND c.CONSTRAINT_SCHEMA = ch.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = ch.CONSTRAINT_NAME',
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
-      constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(constraintName)}` : '',
+      options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
       'ORDER BY c.CONSTRAINT_NAME',
     ]);
   }

@@ -7,7 +7,11 @@ import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { AddConstraintQueryOptions, RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
+import type {
+  AddConstraintQueryOptions,
+  RemoveConstraintQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
 
 const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
@@ -61,7 +65,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, constraintName?: string) {
+  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -85,7 +89,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.TABNAME = ${this.escape(table.tableName)}`,
       'AND c.TABSCHEMA =',
       table.schema ? this.escape(table.schema) : 'USER',
-      constraintName ? `AND c.CONSTNAME = ${this.escape(constraintName)}` : '',
+      options?.constraintName ? `AND c.CONSTNAME = ${this.escape(options.constraintName)}` : '',
       'ORDER BY c.CONSTNAME',
     ]);
   }
