@@ -117,7 +117,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
               nestMode: TransactionNestMode.separate,
               type: TransactionType.EXCLUSIVE,
               isolationLevel: IsolationLevel.READ_UNCOMMITTED,
-              deferrable: Deferrable.SET_DEFERRED,
+              deferrable: sequelize.dialect.supports.constraints.deferrable ? Deferrable.SET_DEFERRED : undefined,
               readOnly: true,
             },
             async () => { /* noop */
