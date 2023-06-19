@@ -66,7 +66,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
       `AND c.table_schema = ${this.escape(table.schema)}`,
       options?.constraintName ? `AND c.constraint_name = ${this.escape(options.constraintName)}` : '',
-      'ORDER BY c.constraint_name',
+      'ORDER BY c.constraint_name, kcu.ordinal_position',
     ]);
   }
 
