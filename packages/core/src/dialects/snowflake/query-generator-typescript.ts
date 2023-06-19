@@ -1,15 +1,7 @@
-import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import { REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
-import type {
-  AddConstraintQueryOptions,
-  RemoveConstraintQueryOptions,
-  ShowConstraintsQueryOptions,
-} from '../abstract/query-generator.types';
-
-const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['cascade']);
+import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -17,35 +9,6 @@ const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraint
 export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   describeTableQuery(tableName: TableNameOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
-  }
-
-  addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'ADD',
-      this.getConstraintSnippet(tableName, options),
-    ]);
-  }
-
-  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeConstraintQuery',
-        this.dialect.name,
-        REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP CONSTRAINT',
-      this.quoteIdentifier(constraintName),
-      options?.cascade ? 'CASCADE' : '',
-    ]);
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {

@@ -38,6 +38,7 @@ export class MariaDbDialect extends AbstractDialect {
       },
       constraints: {
         foreignKeyChecksDisableable: true,
+        removeOptions: { ifExists: true },
       },
       indexViaAlter: true,
       indexHints: true,

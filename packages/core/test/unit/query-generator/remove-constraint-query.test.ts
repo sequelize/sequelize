@@ -2,7 +2,7 @@ import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
-const notSupportedError = new Error(`removeConstraintQuery has not been implemented in ${dialect.name}.`);
+const notSupportedError = new Error(`Remove constraint queries are not supported by ${dialect.name} dialect`);
 
 describe('QueryGenerator#removeConstraintQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;

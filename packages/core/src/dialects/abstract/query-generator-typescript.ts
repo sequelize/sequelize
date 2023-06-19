@@ -19,9 +19,10 @@ import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
-import { isDictionary, isNullish, isPlainObject, isString } from '../../utils/check.js';
+import { isDictionary, isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
+import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
@@ -135,8 +136,17 @@ export class AbstractQueryGeneratorTypeScript {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
   }
 
-  addConstraintQuery(_tableName: TableNameOrModel, _options: AddConstraintQueryOptions): string {
-    throw new Error(`addConstraintQuery has not been implemented in ${this.dialect.name}`);
+  addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions): string {
+    if (!this.dialect.supports.constraints.add) {
+      throw new Error(`Add constraint queries are not supported by ${this.dialect.name} dialect`);
+    }
+
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'ADD',
+      this.getConstraintSnippet(tableName, options),
+    ]);
   }
 
   deferConstraintsQuery(deferrable: Deferrable | Class<Deferrable>) {
@@ -285,12 +295,39 @@ export class AbstractQueryGeneratorTypeScript {
     return constraintSnippet;
   }
 
-  removeConstraintQuery(
-    _tableName: TableNameOrModel,
-    _constraintName: string,
-    _options?: RemoveConstraintQueryOptions,
-  ): string {
-    throw new Error(`removeConstraintQuery has not been implemented in ${this.dialect.name}.`);
+  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
+    if (!this.dialect.supports.constraints.remove) {
+      throw new Error(`Remove constraint queries are not supported by ${this.dialect.name} dialect`);
+    }
+
+    if (options) {
+      const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>();
+      const { removeOptions } = this.dialect.supports.constraints;
+      if (removeOptions.cascade) {
+        REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS.add('cascade');
+      }
+
+      if (removeOptions.ifExists) {
+        REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS.add('ifExists');
+      }
+
+      rejectInvalidOptions(
+        'removeConstraintQuery',
+        this.dialect.name,
+        REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
+        REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'DROP CONSTRAINT',
+      options?.ifExists ? 'IF EXISTS' : '',
+      this.quoteIdentifier(constraintName),
+      options?.cascade ? 'CASCADE' : '',
+    ]);
   }
 
   setConstraintCheckingQuery(type: 'DEFERRED' | 'IMMEDIATE', columns?: readonly string[]) {

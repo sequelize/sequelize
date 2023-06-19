@@ -122,6 +122,12 @@ export type DialectSupports = {
     foreignKeyChecksDisableable: boolean,
     primaryKey: boolean,
     onUpdate: boolean,
+    add: boolean,
+    remove: boolean,
+    removeOptions: {
+      cascade: boolean,
+      ifExists: boolean,
+    },
   },
   index: {
     collate: boolean,
@@ -283,6 +289,12 @@ export abstract class AbstractDialect {
       foreignKeyChecksDisableable: false,
       primaryKey: true,
       onUpdate: true,
+      add: true,
+      remove: true,
+      removeOptions: {
+        cascade: false,
+        ifExists: false,
+      },
     },
     index: {
       collate: true,

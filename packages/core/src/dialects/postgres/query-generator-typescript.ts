@@ -3,11 +3,7 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type {
-  AddConstraintQueryOptions,
-  RemoveConstraintQueryOptions,
-  ShowConstraintsQueryOptions,
-} from '../abstract/query-generator.types';
+import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -38,26 +34,6 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.column_name=c.column_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
       `AND c.table_schema = ${this.escape(table.schema!)}`,
-    ]);
-  }
-
-  addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'ADD',
-      this.getConstraintSnippet(tableName, options),
-    ]);
-  }
-
-  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP CONSTRAINT',
-      options?.ifExists ? 'IF EXISTS' : '',
-      this.quoteIdentifier(constraintName),
-      options?.cascade ? 'CASCADE' : '',
     ]);
   }
 

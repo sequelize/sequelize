@@ -30,6 +30,7 @@ export class SnowflakeDialect extends AbstractDialect {
     constraints: {
       deferrable: true,
       check: false,
+      removeOptions: { cascade: true },
     },
     indexViaAlter: true,
     indexHints: true,

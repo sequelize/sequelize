@@ -26,6 +26,7 @@ export class PostgresDialect extends AbstractDialect {
     forShare: 'FOR SHARE',
     constraints: {
       deferrable: true,
+      removeOptions: { cascade: true, ifExists: true },
     },
     index: {
       concurrently: true,
