@@ -1,6 +1,6 @@
 'use strict';
 
-import { getObjectFromMap } from '../../utils/object';
+import { EMPTY_OBJECT, getObjectFromMap } from '../../utils/object';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
 const { AbstractQueryInterface } = require('../abstract/query-interface');
@@ -15,21 +15,16 @@ export class MariaDbQueryInterface extends AbstractQueryInterface {
    *
    * @override
    */
-  async removeColumn(tableName, columnName, options) {
-    options = options || {};
-
+  async removeColumn(tableName, columnName, options = EMPTY_OBJECT) {
     const [results] = await this.sequelize.queryRaw(
-      this.queryGenerator.getForeignKeyQuery(tableName.tableName ? tableName : {
-        tableName,
-        schema: this.sequelize.config.database,
-      }, columnName),
+      this.queryGenerator.getForeignKeyQuery(tableName, columnName),
       { raw: true, ...options },
     );
 
     // Exclude primary key constraint
-    if (results.length > 0 && results[0].constraint_name !== 'PRIMARY') {
+    if (results.length > 0 && results[0].constraintName !== 'PRIMARY') {
       await Promise.all(results.map(constraint => this.sequelize.queryRaw(
-        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraint_name),
+        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraintName),
         { raw: true, ...options },
       )));
     }
