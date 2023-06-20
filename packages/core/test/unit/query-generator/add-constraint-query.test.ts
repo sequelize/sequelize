@@ -21,7 +21,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
     });
   });
 
-  it('calls getConstraintSnippet function', () => {
+  it('calls _getConstraintSnippet function', () => {
     const addConstraintQuerySpy = sinon.stub(queryGenerator, 'addConstraintQuery');
     queryGenerator.addConstraintQuery('myTable', { type: 'UNIQUE', fields: ['myColumn'] });
     expect(queryGenerator.addConstraintQuery).to.have.been.calledWith('myTable', { type: 'UNIQUE', fields: ['myColumn'] });

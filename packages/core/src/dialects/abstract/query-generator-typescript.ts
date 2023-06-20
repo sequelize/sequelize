@@ -145,7 +145,7 @@ export class AbstractQueryGeneratorTypeScript {
       'ALTER TABLE',
       this.quoteTable(tableName),
       'ADD',
-      this.getConstraintSnippet(tableName, options),
+      this._getConstraintSnippet(tableName, options),
     ]);
   }
 
@@ -158,7 +158,7 @@ export class AbstractQueryGeneratorTypeScript {
     return deferrable.toSql(this);
   }
 
-  getConstraintSnippet(tableName: TableNameOrModel, options: GetConstraintSnippetQueryOptions) {
+  _getConstraintSnippet(tableName: TableNameOrModel, options: GetConstraintSnippetQueryOptions) {
     const quotedFields = options.fields.map(field => {
       if (typeof field === 'string') {
         return this.quoteIdentifier(field);

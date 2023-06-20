@@ -35,7 +35,7 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
     }
 
     const constraintOptions = { ...options };
-    const constraintSnippet = this.queryGenerator.getConstraintSnippet(tableName, constraintOptions);
+    const constraintSnippet = this.queryGenerator._getConstraintSnippet(tableName, constraintOptions);
     const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
     const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, {
       ...options,
