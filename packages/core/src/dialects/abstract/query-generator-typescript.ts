@@ -1,5 +1,6 @@
 import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
+import type { Class } from 'type-fest';
 import { ConstraintChecking, Deferrable } from '../../deferrable.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
@@ -344,24 +345,27 @@ export class AbstractQueryGeneratorTypeScript {
     ]);
   }
 
-  setConstraintCheckingQuery(type: Deferrable): string;
-  setConstraintCheckingQuery(type: ConstraintChecking, columns?: readonly string[]): string;
-  setConstraintCheckingQuery(type: Deferrable | ConstraintChecking, columns?: readonly string[]) {
+  setConstraintCheckingQuery(type: ConstraintChecking): string;
+  setConstraintCheckingQuery(type: Class<ConstraintChecking>, constraints?: readonly string[]): string;
+  setConstraintCheckingQuery(type: ConstraintChecking | Class<ConstraintChecking>, constraints?: readonly string[]) {
     if (!this.dialect.supports.constraints.deferrable) {
       throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
     }
 
+    let constraintFragment = 'ALL';
     if (type instanceof ConstraintChecking) {
-      let columnFragment = 'ALL';
-
-      if (columns?.length) {
-        columnFragment = columns.map(column => this.quoteIdentifier(column)).join(', ');
+      if (type.constraints?.length) {
+        constraintFragment = type.constraints.map(constraint => this.quoteIdentifier(constraint)).join(', ');
       }
 
-      return `SET CONSTRAINTS ${columnFragment} ${type}`;
+      return `SET CONSTRAINTS ${constraintFragment} ${type.toString()}`;
     }
 
-    return this._getDeferrableConstraintSnippet(type);
+    if (constraints?.length) {
+      constraintFragment = constraints.map(constraint => this.quoteIdentifier(constraint)).join(', ');
+    }
+
+    return `SET CONSTRAINTS ${constraintFragment} ${type.toString()}`;
   }
 
   showConstraintsQuery(_tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions): string {

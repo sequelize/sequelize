@@ -52,6 +52,14 @@ export class ConstraintChecking {
     throw new Error('isEqual implementation missing');
   }
 
+  static toString() {
+    return this.name;
+  }
+
+  get constraints(): readonly string[] {
+    throw new Error('constraints getter implementation missing');
+  }
+
   /**
    * Will trigger an additional query at the beginning of a
    * transaction which sets the constraints to deferred.
@@ -69,6 +77,10 @@ export class ConstraintChecking {
 
     isEqual(other: unknown): boolean {
       return other instanceof DEFERRED && isEqual(this.#constraints, other.#constraints);
+    }
+
+    get constraints(): readonly string[] {
+      return this.#constraints;
     }
   });
 
@@ -89,6 +101,10 @@ export class ConstraintChecking {
 
     isEqual(other: unknown): boolean {
       return other instanceof IMMEDIATE && isEqual(this.#constraints, other.#constraints);
+    }
+
+    get constraints(): readonly string[] {
+      return this.#constraints;
     }
   });
 }
