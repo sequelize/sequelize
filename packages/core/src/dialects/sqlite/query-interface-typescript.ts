@@ -47,7 +47,7 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
       throw new Error('Unable to find constraints for table. Perhaps the table does not exist?');
     }
 
-    let createTableSql = describeCreateTable[0].sql as string;
+    let { sql: createTableSql } = describeCreateTable[0] as { sql: string };
     // Replace double quotes with backticks and ending ')' with constraint snippet
     createTableSql = createTableSql.replaceAll('"', '`').replace(/\);?$/, `, ${constraintSnippet});`);
 
@@ -77,7 +77,7 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
       throw new Error('Unable to find constraints for table. Perhaps the table does not exist?');
     }
 
-    const createTableSql = describeCreateTable[0].sql as string;
+    const { sql: createTableSql } = describeCreateTable[0] as { sql: string };
     const constraints = await this.showConstraints(tableName, options);
     const constraint = constraints.find(c => c.constraintName === constraintName);
 
@@ -131,7 +131,7 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
       throw new Error('Unable to find constraints for table. Perhaps the table does not exist?');
     }
 
-    const createTableSql = describeCreateTable[0].sql as string;
+    const { sql: createTableSql } = describeCreateTable[0] as { sql: string };
     const match = /CREATE TABLE (?:`|'|")(\S+)(?:`|'|") \((.+)\)/.exec(createTableSql);
     const data: ConstraintDescription[] = [];
 
