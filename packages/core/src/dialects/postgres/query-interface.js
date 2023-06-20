@@ -2,15 +2,15 @@
 
 import { Deferrable } from '../../deferrable';
 import { camelizeObjectKeys } from '../../utils/object';
+import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.js';
 
 const DataTypes = require('../../data-types');
 const { QueryTypes } = require('../../query-types');
-const { AbstractQueryInterface } = require('../abstract/query-interface');
 
 /**
  * The interface that Sequelize uses to talk with Postgres database
  */
-export class PostgresQueryInterface extends AbstractQueryInterface {
+export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
   /**
    * Ensure enum and their values.
    *

@@ -31,7 +31,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
   // Version queries
   versionQuery() {
-    return 'SELECT CONCAT(OS_VERSION, CONCAT(\'.\', OS_RELEASE)) AS VERSION FROM SYSIBMADM.ENV_SYS_INFO';
+    return 'SELECT CONCAT(OS_VERSION, CONCAT(\'.\', OS_RELEASE)) AS "version" FROM SYSIBMADM.ENV_SYS_INFO';
   }
 
   // Schema queries

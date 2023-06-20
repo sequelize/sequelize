@@ -445,14 +445,6 @@ export class Sequelize extends SequelizeTypeScript {
     return this.options.dialect;
   }
 
-  get queryInterface() {
-    return this.dialect.queryInterface;
-  }
-
-  get queryGenerator() {
-    return this.dialect.queryGenerator;
-  }
-
   /**
    * Returns the database name.
    *
@@ -779,83 +771,6 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   /**
-   * Escape value.
-   *
-   * @param {string} value string value to escape
-   *
-   * @returns {string}
-   */
-  escape(value) {
-    return this.dialect.queryGenerator.escape(value);
-  }
-
-  /**
-   * Create a new database schema.
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this command will do nothing.
-   *
-   * @see
-   * {@link Model.schema}
-   *
-   * @param {string} schema Name of the schema
-   * @param {object} [options={}] CreateSchemaQueryOptions
-   * @param {string} [options.collate=null]
-   * @param {string} [options.charset=null]
-    *
-   * @returns {Promise}
-   */
-  async createSchema(schema, options) {
-    return await this.getQueryInterface().createSchema(schema, options);
-  }
-
-  /**
-   * Show all defined schemas
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this will show all tables.
-   *
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async showAllSchemas(options) {
-    return await this.getQueryInterface().showAllSchemas(options);
-  }
-
-  /**
-   * Drop a single schema
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this drop a table matching the schema name
-   *
-   * @param {string} schema Name of the schema
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async dropSchema(schema, options) {
-    return await this.getQueryInterface().dropSchema(schema, options);
-  }
-
-  /**
-   * Drop all schemas.
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this is the equivalent of drop all tables.
-   *
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async dropAllSchemas(options) {
-    return await this.getQueryInterface().dropAllSchemas(options);
-  }
-
-  /**
    * Sync all defined models to the DB.
    *
    * @param {object} [options={}] sync options
@@ -1014,32 +929,6 @@ Use Sequelize#query if you wish to use replacements.`);
 
     await this.query(`SELECT 1+1 AS result${this.options.dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, options);
 
-  }
-
-  /**
-   * Fetches the version of the database
-   *
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise<string>} current version of the dialect
-   */
-  async fetchDatabaseVersion(options) {
-    return await this.getQueryInterface().databaseVersion(options);
-  }
-
-  /**
-   * Throws if the database version hasn't been loaded yet. It is automatically loaded the first time Sequelize connects to your database.
-   *
-   * You can use {@link Sequelize#authenticate} to cause a first connection.
-   *
-   * @returns {string} current version of the dialect that is internally loaded
-   */
-  getDatabaseVersion() {
-    if (this.options.databaseVersion == null) {
-      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
-    }
-
-    return this.options.databaseVersion;
   }
 
   /**

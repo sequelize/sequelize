@@ -3,7 +3,7 @@ import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface } from './dialects/abstract/query-interface';
-import type { ColumnsDescription, CreateSchemaOptions } from './dialects/abstract/query-interface.types';
+import type { ColumnsDescription } from './dialects/abstract/query-interface.types';
 import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { cast } from './expression-builders/cast.js';
 import type { col } from './expression-builders/col.js';
@@ -29,15 +29,7 @@ import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
 import type { RequiredBy } from './utils/types.js';
-import type {
-  AbstractQueryGenerator,
-  DataTypes,
-  IsolationLevel,
-  Op,
-  QueryTypes,
-  TransactionNestMode,
-  TransactionType,
-} from '.';
+import type { DataTypes, IsolationLevel, Op, QueryTypes, TransactionNestMode, TransactionType } from '.';
 
 export type RetryOptions = RetryAsPromisedOptions;
 
@@ -258,7 +250,7 @@ export interface Options extends Logging {
    * The version of the Database Sequelize will connect to.
    * If unspecified, or set to 0, Sequelize will retrieve it during its first connection to the Database.
    */
-  databaseVersion?: string | number;
+  databaseVersion?: string;
 
   /**
    * Default options for model definitions. See Model.init.
@@ -847,16 +839,6 @@ export class Sequelize extends SequelizeTypeScript {
   getQueryInterface(): AbstractQueryInterface;
 
   /**
-   * The QueryInterface instance, dialect dependant.
-   */
-  queryInterface: AbstractQueryInterface;
-
-  /**
-   * The QueryGenerator instance, dialect dependant.
-   */
-  queryGenerator: AbstractQueryGenerator;
-
-  /**
    * Define a new model, representing a table in the DB.
    *
    * The table columns are defined by the hash that is given as the second argument. Each attribute of the
@@ -1002,59 +984,6 @@ export class Sequelize extends SequelizeTypeScript {
   setSessionVariables(variables: object, options?: SetSessionVariablesOptions): Promise<unknown>;
 
   /**
-   * Escape value.
-   *
-   * @param value Value that needs to be escaped
-   */
-  escape(value: string | number | Date): string;
-
-  /**
-   * Create a new database schema.
-   *
-   * Note,that this is a schema in the
-   * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this command will do nothing.
-   *
-   * @param schema Name of the schema
-   * @param options Options supplied
-   */
-  createSchema(schema: string, options?: CreateSchemaOptions): Promise<void>;
-
-  /**
-   * Show all defined schemas
-   *
-   * Note,that this is a schema in the
-   * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this will show all tables.
-   *
-   * @param options Options supplied
-   */
-  showAllSchemas(options?: Logging): Promise<object[]>;
-
-  /**
-   * Drop a single schema
-   *
-   * Note,that this is a schema in the
-   * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this drop a table matching the schema name
-   *
-   * @param schema Name of the schema
-   * @param options Options supplied
-   */
-  dropSchema(schema: string, options?: Logging): Promise<unknown[]>;
-
-  /**
-   * Drop all schemas
-   *
-   * Note,that this is a schema in the
-   * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this is the equivalent of drop all tables.
-   *
-   * @param options Options supplied
-   */
-  dropAllSchemas(options?: Logging): Promise<unknown[]>;
-
-  /**
    * Sync all defined models to the DB.
    *
    * @param options Sync Options
@@ -1090,16 +1019,6 @@ export class Sequelize extends SequelizeTypeScript {
   normalizeDataType(Type: string): string;
   normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
   normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
-
-  /**
-   * Fetches the database version
-   */
-  fetchDatabaseVersion(options?: QueryRawOptions): Promise<string>;
-
-  /**
-   * Returns the database version
-   */
-  getDatabaseVersion(): string;
 
   /**
    * Returns the installed version of Sequelize

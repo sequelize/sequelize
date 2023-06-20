@@ -1,10 +1,5 @@
-import type { QueryRawOptions, Sequelize } from '../../sequelize';
-import type { AbstractQueryGenerator, CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
-
-export interface QueryInterfaceOptions {
-  sequelize: Sequelize;
-  queryGenerator: AbstractQueryGenerator;
-}
+import type { QueryRawOptions } from '../../sequelize';
+import type { CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
 
 export interface ColumnDescription {
   type: string;
@@ -42,3 +37,5 @@ export interface DescribeTableOptions extends QueryRawOptions {
    */
   schemaDelimiter?: string;
 }
+
+export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}

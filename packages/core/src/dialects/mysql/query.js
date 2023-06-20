@@ -157,10 +157,6 @@ export class MySqlQuery extends AbstractQuery {
       return data.affectedRows;
     }
 
-    if (this.isVersionQuery()) {
-      return data[0].version;
-    }
-
     if (this.isForeignKeysQuery()) {
       return data;
     }

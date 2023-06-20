@@ -122,11 +122,6 @@ export class AbstractQuery {
   isRawQuery(): boolean;
 
   /**
-   * Checks if the query type is VERSION
-   */
-  isVersionQuery(): boolean;
-
-  /**
    * Checks if the query type is UPSERT
    */
   isUpsertQuery(): boolean;

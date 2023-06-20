@@ -307,13 +307,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   sequelize: Sequelize;
 
-  constructor(sequelize: Sequelize, queryGenerator: AbstractQueryGenerator);
-
-  /**
-   * Return database version
-   */
-  databaseVersion(options?: QueryRawOptions): Promise<string>;
-
   /**
    * Drops all tables
    */

@@ -255,10 +255,6 @@ export class PostgresQuery extends AbstractQuery {
       return result;
     }
 
-    if (this.isVersionQuery()) {
-      return rows[0].server_version;
-    }
-
     if (this.isShowOrDescribeQuery()) {
       return rows;
     }

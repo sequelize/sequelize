@@ -170,10 +170,6 @@ export class MariaDbQuery extends AbstractQuery {
       return result;
     }
 
-    if (this.isVersionQuery()) {
-      return data[0].version;
-    }
-
     return result;
   }
 

@@ -1,3 +1,4 @@
+import assert from 'node:assert';
 import isEmpty from 'lodash/isEmpty';
 import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
@@ -8,11 +9,12 @@ import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types';
+import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type {
   ColumnsDescription,
   CreateSchemaOptions,
   DescribeTableOptions,
-  QueryInterfaceOptions,
+  FetchDatabaseVersionOptions,
   ShowAllSchemasOptions,
 } from './query-interface.types';
 
@@ -26,10 +28,36 @@ export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Pro
 export class AbstractQueryInterfaceTypeScript {
   readonly sequelize: Sequelize;
   readonly queryGenerator: AbstractQueryGenerator;
+  readonly #internalQueryInterface: AbstractQueryInterfaceInternal;
 
-  constructor(options: QueryInterfaceOptions) {
-    this.sequelize = options.sequelize;
-    this.queryGenerator = options.queryGenerator;
+  /**
+   * @param sequelize The sequelize instance.
+   * @param queryGenerator The query generator of the dialect used by the current Sequelize instance.
+   * @param internalQueryInterface The internal query interface to use.
+   *                               Defaults to a new instance of {@link AbstractQueryInterfaceInternal}.
+   *                               Your dialect may replace this with a custom implementation.
+   */
+  constructor(
+    sequelize: Sequelize,
+    queryGenerator: AbstractQueryGenerator,
+    internalQueryInterface?: AbstractQueryInterfaceInternal,
+  ) {
+    this.sequelize = sequelize;
+    this.queryGenerator = queryGenerator;
+    this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+  }
+
+  /**
+   * Returns the database version.
+   *
+   * @param options Query Options
+   */
+  async fetchDatabaseVersion(options?: FetchDatabaseVersionOptions): Promise<string> {
+    const payload = await this.#internalQueryInterface.fetchDatabaseVersionRaw<{ version: string }>(options);
+
+    assert(payload.version != null, 'Expected the version query to produce an object that includes a `version` property.');
+
+    return payload.version;
   }
 
   /**

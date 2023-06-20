@@ -8,6 +8,7 @@ import type { AbstractConnectionManager } from './connection-manager.js';
 import type { AbstractDataType } from './data-types.js';
 import * as BaseDataTypes from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
+import type { AbstractQueryInterface } from './query-interface.js';
 import type { AbstractQuery } from './query.js';
 
 export interface SupportableNumericOptions {
@@ -369,6 +370,7 @@ export abstract class AbstractDialect {
   abstract readonly TICK_CHAR_LEFT: string;
   abstract readonly TICK_CHAR_RIGHT: string;
   abstract readonly queryGenerator: AbstractQueryGenerator;
+  abstract readonly queryInterface: AbstractQueryInterface;
   abstract readonly connectionManager: AbstractConnectionManager<any>;
   abstract readonly dataTypesDocumentationUrl: string;
 

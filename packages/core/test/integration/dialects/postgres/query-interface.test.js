@@ -50,10 +50,10 @@ if (dialect.startsWith('postgres')) {
       });
     });
 
-    describe('databaseVersion', () => {
+    describe('fetchDatabaseVersion', () => {
       it('reports version', async function () {
-        const res = await this.queryInterface.databaseVersion();
-        // check that result matches expected version number format. example 9.5.4
+        const res = await this.queryInterface.fetchDatabaseVersion();
+        // check that result matches the expected version number format. example 9.5.4
         expect(res).to.match(/\d\.\d/);
       });
     });

@@ -16,10 +16,6 @@ const { QueryTypes } = require('../../query-types');
  * The interface that Sequelize uses to talk to all databases
  */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
-  constructor(sequelize, queryGenerator) {
-    super({ sequelize, queryGenerator });
-  }
-
   /**
    * Create a database
    *
@@ -78,23 +74,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const schemas = await this.showAllSchemas(options);
 
     return Promise.all(schemas.map(schemaName => this.dropSchema(schemaName, options)));
-  }
-
-  /**
-   * Return database version
-   *
-   * @param {object}    [options]      Query options
-   * @param {QueryType} [options.type] Query type
-   *
-   * @returns {Promise}
-   * @private
-   */
-  // TODO: rename to getDatabaseVersion
-  async databaseVersion(options) {
-    return await this.sequelize.queryRaw(
-      this.queryGenerator.versionQuery(),
-      { ...options, type: QueryTypes.VERSION },
-    );
   }
 
   /**

@@ -83,7 +83,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   }
 
   versionQuery() {
-    return 'select service_level as VERSION from TABLE (sysproc.env_get_inst_info()) as A';
+    return 'select service_level as "version" from TABLE (sysproc.env_get_inst_info()) as A';
   }
 
   createTableQuery(tableName, attributes, options) {

@@ -104,7 +104,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   }
 
   versionQuery() {
-    return 'SELECT CURRENT_VERSION()';
+    return 'SELECT CURRENT_VERSION() AS "version"';
   }
 
   createTableQuery(tableName, attributes, options) {
