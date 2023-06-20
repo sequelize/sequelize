@@ -3,7 +3,14 @@ import delay from 'delay';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type { InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
-import { DataTypes, Deferrable, IsolationLevel, Transaction, TransactionNestMode, TransactionType } from '@sequelize/core';
+import {
+  ConstraintChecking,
+  DataTypes,
+  IsolationLevel,
+  Transaction,
+  TransactionNestMode,
+  TransactionType,
+} from '@sequelize/core';
 import { createSingleTransactionalTestSequelizeInstance, getTestDialect, getTestDialectTeaser, sequelize } from '../support';
 
 const dialectName = sequelize.dialect.name;
@@ -45,7 +52,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         )).to.be.rejectedWith('Requested isolation level (READ UNCOMMITTED) is not compatible with the one of the existing transaction (unspecified)');
 
         await expect(sequelize.transaction(
-          { transaction: transaction1, deferrable: Deferrable.SET_IMMEDIATE },
+          { transaction: transaction1, constraintChecking: ConstraintChecking.IMMEDIATE },
           async () => { /* noop */ },
         )).to.be.rejectedWith('Requested transaction deferrable (SET_IMMEDIATE) is not compatible with the one of the existing transaction (none)');
 
@@ -83,7 +90,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         )).to.be.rejectedWith('Requested isolation level (READ UNCOMMITTED) is not compatible with the one of the existing transaction (unspecified)');
 
         await expect(sequelize.transaction(
-          { ...commonOptions, deferrable: Deferrable.SET_IMMEDIATE },
+          { ...commonOptions, constraintChecking: ConstraintChecking.IMMEDIATE },
           async () => { /* noop */ },
         )).to.be.rejectedWith('Requested transaction deferrable (SET_IMMEDIATE) is not compatible with the one of the existing transaction (none)');
 
@@ -117,7 +124,9 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
               nestMode: TransactionNestMode.separate,
               type: TransactionType.EXCLUSIVE,
               isolationLevel: IsolationLevel.READ_UNCOMMITTED,
-              deferrable: sequelize.dialect.supports.constraints.deferrable ? Deferrable.SET_DEFERRED : undefined,
+              constraintChecking: sequelize.dialect.supports.constraints.deferrable
+                ? ConstraintChecking.DEFERRED
+                : undefined,
               readOnly: true,
             },
             async () => { /* noop */

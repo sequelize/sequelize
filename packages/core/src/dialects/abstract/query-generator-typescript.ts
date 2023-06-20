@@ -1,7 +1,6 @@
 import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
-import type { Class } from 'type-fest';
-import type { Deferrable } from '../../deferrable.js';
+import { ConstraintChecking, Deferrable } from '../../deferrable.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
@@ -149,15 +148,6 @@ export class AbstractQueryGeneratorTypeScript {
     ]);
   }
 
-  deferConstraintsQuery(deferrable: Deferrable | Class<Deferrable>) {
-    if (!this.dialect.supports.constraints.deferrable) {
-      throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
-    }
-
-    // @ts-expect-error -- remove once this class has been merged back with the AbstractQueryGenerator class
-    return deferrable.toSql(this);
-  }
-
   _getConstraintSnippet(tableName: TableNameOrModel, options: GetConstraintSnippetQueryOptions) {
     const quotedFields = options.fields.map(field => {
       if (typeof field === 'string') {
@@ -215,7 +205,7 @@ export class AbstractQueryGeneratorTypeScript {
         const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_uk`);
         constraintSnippet = `CONSTRAINT ${constraintName} UNIQUE (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
-          constraintSnippet += ` ${this.deferConstraintsQuery(options.deferrable)}`;
+          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
         }
 
         break;
@@ -243,7 +233,7 @@ export class AbstractQueryGeneratorTypeScript {
         const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_pk`);
         constraintSnippet = `CONSTRAINT ${constraintName} PRIMARY KEY (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
-          constraintSnippet += ` ${this.deferConstraintsQuery(options.deferrable)}`;
+          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
         }
 
         break;
@@ -281,7 +271,7 @@ export class AbstractQueryGeneratorTypeScript {
         }
 
         if (options.deferrable) {
-          constraintSnippet += ` ${this.deferConstraintsQuery(options.deferrable)}`;
+          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
         }
 
         break;
@@ -293,6 +283,30 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     return constraintSnippet;
+  }
+
+  protected _getDeferrableConstraintSnippet(deferrable: Deferrable) {
+    if (!this.dialect.supports.constraints.deferrable) {
+      throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
+    }
+
+    switch (deferrable) {
+      case Deferrable.INITIALLY_DEFERRED: {
+        return 'DEFERRABLE INITIALLY DEFERRED';
+      }
+
+      case Deferrable.INITIALLY_IMMEDIATE: {
+        return 'DEFERRABLE INITIALLY IMMEDIATE';
+      }
+
+      case Deferrable.NOT: {
+        return 'NOT DEFERRABLE';
+      }
+
+      default: {
+        throw new Error(`Unknown constraint checking behavior ${deferrable}`);
+      }
+    }
   }
 
   removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
@@ -330,18 +344,24 @@ export class AbstractQueryGeneratorTypeScript {
     ]);
   }
 
-  setConstraintCheckingQuery(type: 'DEFERRED' | 'IMMEDIATE', columns?: readonly string[]) {
-    if (!['DEFERRED', 'IMMEDIATE'].includes(type)) {
-      throw new Error(`Invalid constraint checking type: ${type}`);
+  setConstraintCheckingQuery(type: Deferrable): string;
+  setConstraintCheckingQuery(type: ConstraintChecking, columns?: readonly string[]): string;
+  setConstraintCheckingQuery(type: Deferrable | ConstraintChecking, columns?: readonly string[]) {
+    if (!this.dialect.supports.constraints.deferrable) {
+      throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
     }
 
-    let columnFragment = 'ALL';
+    if (type instanceof ConstraintChecking) {
+      let columnFragment = 'ALL';
 
-    if (columns?.length) {
-      columnFragment = columns.map(column => this.quoteIdentifier(column)).join(', ');
+      if (columns?.length) {
+        columnFragment = columns.map(column => this.quoteIdentifier(column)).join(', ');
+      }
+
+      return `SET CONSTRAINTS ${columnFragment} ${type}`;
     }
 
-    return `SET CONSTRAINTS ${columnFragment} ${type}`;
+    return this._getDeferrableConstraintSnippet(type);
   }
 
   showConstraintsQuery(_tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions): string {

@@ -563,7 +563,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
         BId: {
           type: DataTypes.INTEGER,
           references: {
-            deferrable: Deferrable.INITIALLY_IMMEDIATE(),
+            deferrable: Deferrable.INITIALLY_IMMEDIATE,
           },
         },
       });

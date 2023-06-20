@@ -159,7 +159,7 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
     });
 
     it('generates a constraint snippet for a deferred unique constraint', () => {
-      expectsql(() => queryGenerator._getConstraintSnippet('myTable', { type: 'UNIQUE', fields: ['username'], deferrable: new Deferrable.INITIALLY_IMMEDIATE() }), {
+      expectsql(() => queryGenerator._getConstraintSnippet('myTable', { type: 'UNIQUE', fields: ['username'], deferrable: Deferrable.INITIALLY_IMMEDIATE }), {
         default: deferrableNotSupportedError,
         'postgres snowflake': `CONSTRAINT [myTable_username_uk] UNIQUE ([username]) DEFERRABLE INITIALLY IMMEDIATE`,
       });
@@ -226,7 +226,7 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
     });
 
     it('generates a constraint snippet for a deferred foreign key constraint', () => {
-      expectsql(() => queryGenerator._getConstraintSnippet('myTable', { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: 'otherTable', field: 'id' }, deferrable: new Deferrable.INITIALLY_IMMEDIATE() }), {
+      expectsql(() => queryGenerator._getConstraintSnippet('myTable', { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: 'otherTable', field: 'id' }, deferrable: Deferrable.INITIALLY_IMMEDIATE }), {
         default: deferrableNotSupportedError,
         'postgres snowflake': `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) DEFERRABLE INITIALLY IMMEDIATE`,
       });
@@ -315,7 +315,7 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
     });
 
     it('generates a constraint snippet for a deferred primary key constraint', () => {
-      expectsql(() => queryGenerator._getConstraintSnippet('myTable', { type: 'PRIMARY KEY', fields: ['username'], deferrable: new Deferrable.INITIALLY_IMMEDIATE() }), {
+      expectsql(() => queryGenerator._getConstraintSnippet('myTable', { type: 'PRIMARY KEY', fields: ['username'], deferrable: Deferrable.INITIALLY_IMMEDIATE }), {
         default: deferrableNotSupportedError,
         'postgres snowflake': `CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username]) DEFERRABLE INITIALLY IMMEDIATE`,
       });

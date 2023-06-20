@@ -31,7 +31,7 @@ import { importModels } from './import-models.js';
 const _ = require('lodash');
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
-const { Deferrable } = require('./deferrable');
+const { ConstraintChecking, Deferrable } = require('./deferrable');
 const { ModelManager } = require('./model-manager');
 const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
@@ -1168,10 +1168,17 @@ for (const dataTypeName in DataTypes) {
 /**
  * A reference to the deferrable collection. Use this to access the different deferrable options.
  *
+ * @see {@link QueryInterface#addConstraint}
+ */
+Sequelize.Deferrable = Deferrable;
+
+/**
+ * A reference to the deferrable collection. Use this to access the different deferrable options.
+ *
  * @see {@link Transaction.Deferrable}
  * @see {@link Sequelize#transaction}
  */
-Sequelize.Deferrable = Deferrable;
+Sequelize.ConstraintChecking = ConstraintChecking;
 
 /**
  * A reference to the sequelize association class.

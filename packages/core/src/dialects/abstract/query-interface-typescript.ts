@@ -1,7 +1,6 @@
 import assert from 'node:assert';
 import isEmpty from 'lodash/isEmpty';
-import type { Class } from 'type-fest';
-import type { Deferrable } from '../../deferrable';
+import type { ConstraintChecking } from '../../deferrable';
 import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
@@ -308,20 +307,15 @@ export class AbstractQueryInterfaceTypeScript {
     await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
   }
 
-  async deferConstraints(deferrable: Deferrable | Class<Deferrable>, options?: DeferConstraintsOptions): Promise<void> {
+  async deferConstraints(constraintChecking: ConstraintChecking, options?: DeferConstraintsOptions): Promise<void> {
     setTransactionFromCls(options ?? {}, this.sequelize);
     if (!options?.transaction) {
       throw new Error('Missing transaction in deferConstraints option.');
     }
 
-    const sql = this.queryGenerator.deferConstraintsQuery(deferrable);
+    const sql = this.queryGenerator.setConstraintCheckingQuery(constraintChecking);
 
-    await this.sequelize.queryRaw(sql, {
-      ...options,
-      raw: true,
-      transaction: options.transaction.rootTransaction,
-      type: QueryTypes.RAW,
-    });
+    await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
   }
 
   /**
