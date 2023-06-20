@@ -54,7 +54,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         await expect(sequelize.transaction(
           { transaction: transaction1, constraintChecking: ConstraintChecking.IMMEDIATE },
           async () => { /* noop */ },
-        )).to.be.rejectedWith('Requested transaction deferrable (SET_IMMEDIATE) is not compatible with the one of the existing transaction (none)');
+        )).to.be.rejectedWith('Requested transaction constraintChecking (IMMEDIATE) is not compatible with the one of the existing transaction (none)');
 
         await expect(sequelize.transaction(
           { transaction: transaction1, readOnly: true },
@@ -92,7 +92,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         await expect(sequelize.transaction(
           { ...commonOptions, constraintChecking: ConstraintChecking.IMMEDIATE },
           async () => { /* noop */ },
-        )).to.be.rejectedWith('Requested transaction deferrable (SET_IMMEDIATE) is not compatible with the one of the existing transaction (none)');
+        )).to.be.rejectedWith('Requested transaction constraintChecking (IMMEDIATE) is not compatible with the one of the existing transaction (none)');
 
         await expect(sequelize.transaction(
           { ...commonOptions, readOnly: true },
