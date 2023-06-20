@@ -97,4 +97,8 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
     return `json_unquote(${this.escape(arg, options)})`;
   }
+
+  versionQuery() {
+    return 'SELECT VERSION() as `version`';
+  }
 }

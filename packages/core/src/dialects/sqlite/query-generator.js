@@ -20,22 +20,6 @@ const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
-  createSchemaQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  dropSchemaQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  listSchemasQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  versionQuery() {
-    return 'SELECT sqlite_version() as `version`';
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(

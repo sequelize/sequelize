@@ -97,4 +97,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES',
     ]);
   }
+
+  versionQuery() {
+    return 'select service_level as "version" from TABLE (sysproc.env_get_inst_info()) as A';
+  }
 }

@@ -82,10 +82,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
-  versionQuery() {
-    return 'select service_level as "version" from TABLE (sysproc.env_get_inst_info()) as A';
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(

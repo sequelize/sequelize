@@ -50,10 +50,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     ]);
   }
 
-  versionQuery() {
-    return 'SELECT VERSION() as `version`';
-  }
-
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',

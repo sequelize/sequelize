@@ -13,4 +13,8 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     // TODO [+snowflake-sdk]: check if this is the correct implementation
     return `SELECT '' FROM DUAL`;
   }
+
+  versionQuery() {
+    return 'SELECT CURRENT_VERSION() AS "version"';
+  }
 }

@@ -11,6 +11,18 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
+  createSchemaQuery(): string {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
+  dropSchemaQuery(): string {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
+  listSchemasQuery(): string {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)})`;
   }
@@ -80,6 +92,9 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     }
 
     return this.escape(table.tableName);
+  }
 
+  versionQuery() {
+    return 'SELECT sqlite_version() as `version`';
   }
 }
