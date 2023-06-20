@@ -155,10 +155,6 @@ export class SqliteQuery extends AbstractQuery {
       return metaData.changes;
     }
 
-    if (this.options.type === QueryTypes.VERSION) {
-      return results[0].version;
-    }
-
     if (this.options.type === QueryTypes.RAW) {
       return [results, metaData];
     }
