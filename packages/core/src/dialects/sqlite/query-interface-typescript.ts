@@ -6,6 +6,7 @@ import { AbstractQueryInterface } from '../abstract/query-interface';
 import type {
   AddConstraintOptions,
   ConstraintDescription,
+  ConstraintType,
   RemoveConstraintOptions,
   ShowConstraintsOptions,
 } from '../abstract/query-interface.types';
@@ -119,12 +120,177 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
   }
 
   async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
-    const constraints = await super.showConstraints(tableName, options);
+    const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
+    const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, {
+      ...options,
+      raw: true,
+      type: QueryTypes.SELECT,
+    });
 
-    if (options?.constraintName) {
-      return constraints.filter(constraint => constraint.constraintName === options.constraintName);
+    if (!describeCreateTable.length || !('sql' in describeCreateTable[0])) {
+      throw new Error('Unable to find constraints for table. Perhaps the table does not exist?');
     }
 
-    return constraints;
+    const createTableSql = describeCreateTable[0].sql as string;
+    const match = /CREATE TABLE (?:`|'|")(\S+)(?:`|'|") \((.+)\)/.exec(createTableSql);
+    const data: ConstraintDescription[] = [];
+
+    if (match) {
+      const [, constraintTableName, attributeSQL] = match;
+      const keys = [];
+      const attributes = [];
+      const constraints = [];
+      const sqlAttributes = attributeSQL.split(/,(?![^(]*\))/).map(attr => attr.trim());
+      for (const attribute of sqlAttributes) {
+        if (attribute.startsWith('CONSTRAINT')) {
+          constraints.push(attribute);
+        } else if (attribute.startsWith('PRIMARY KEY') || attribute.startsWith('FOREIGN KEY')) {
+          keys.push(attribute);
+        } else {
+          attributes.push(attribute);
+        }
+      }
+
+      for (const attribute of attributes) {
+        if (/\bPRIMARY KEY\b/.test(attribute)) {
+          const columnNames = attribute.match(/`(\S+)`/);
+
+          data.push({
+            constraintSchema: '',
+            constraintName: 'PRIMARY',
+            constraintType: 'PRIMARY KEY',
+            tableSchema: '',
+            tableName: constraintTableName,
+            columnNames: columnNames ? columnNames[1].split(',') : [],
+          });
+        } else if (/\bREFERENCES\b/.test(attribute)) {
+          const columnNames = attribute.match(/`(\S+)`/);
+          const deleteAction = attribute.match(/ON DELETE (\w+)/);
+          const updateAction = attribute.match(/ON UPDATE (\w+)/);
+          const references = attribute.match(/REFERENCES `(\S+)` \(`(\S+)`\)/);
+
+          data.push({
+            constraintSchema: '',
+            constraintName: 'FOREIGN',
+            constraintType: 'FOREIGN KEY',
+            tableSchema: '',
+            tableName: constraintTableName,
+            columnNames: columnNames ? columnNames[1].split(',') : [],
+            referencedTableName: references ? references[1] : '',
+            referencedColumnNames: references ? references[2].split(',') : [],
+            deleteAction: deleteAction ? deleteAction[1] : '',
+            updateAction: updateAction ? updateAction[1] : '',
+          });
+        } else if (/\bUNIQUE\b/.test(attribute)) {
+          const columnNames = attribute.match(/`(\S+)`/);
+
+          data.push({
+            constraintSchema: '',
+            constraintName: 'UNIQUE',
+            constraintType: 'UNIQUE',
+            tableSchema: '',
+            tableName: constraintTableName,
+            columnNames: columnNames ? columnNames[1].split(',') : [],
+          });
+        } else if (/\bCHECK\b/.test(attribute)) {
+          const columnNames = attribute.match(/`(\S+)`/);
+          const definition = attribute.match(/CHECK (.+)/);
+
+          data.push({
+            constraintSchema: '',
+            constraintName: 'CHECK',
+            constraintType: 'CHECK',
+            tableSchema: '',
+            tableName: constraintTableName,
+            columnNames: columnNames ? columnNames[1].split(',') : [],
+            definition: definition ? definition[1] : '',
+          });
+        }
+      }
+
+      for (const constraint of constraints) {
+        const [, constraintName, constraintType, definition] = constraint.match(/CONSTRAINT (?:`|'|")(\S+)(?:`|'|") (\w+) (.+)/) || [];
+        if (/\bPRIMARY KEY\b/.test(constraint)) {
+          const columnNames = definition.match(/`(\S+)`/);
+
+          data.push({
+            constraintSchema: '',
+            constraintName,
+            constraintType: 'PRIMARY KEY',
+            tableSchema: '',
+            tableName: constraintTableName,
+            columnNames: columnNames ? columnNames[1].split(',') : [],
+          });
+        } else if (/\bREFERENCES\b/.test(constraint)) {
+          const columnNames = definition.match(/`(\S+)`/);
+          const deleteAction = definition.match(/ON DELETE (\w+)/);
+          const updateAction = definition.match(/ON UPDATE (\w+)/);
+          const references = definition.match(/REFERENCES `(\S+)` \(`(\S+)`\)/);
+
+          data.push({
+            constraintSchema: '',
+            constraintName,
+            constraintType: 'FOREIGN KEY',
+            tableSchema: '',
+            tableName: constraintTableName,
+            columnNames: columnNames ? columnNames[1].split(',') : [],
+            referencedTableName: references ? references[1] : '',
+            referencedColumnNames: references ? references[2].split(',') : [],
+            deleteAction: deleteAction ? deleteAction[1] : '',
+            updateAction: updateAction ? updateAction[1] : '',
+          });
+        } else if (['CHECK', 'DEFAULT', 'UNIQUE'].includes(constraintType)) {
+          data.push({
+            constraintSchema: '',
+            constraintName,
+            constraintType: constraintType as ConstraintType,
+            tableSchema: '',
+            tableName: constraintTableName,
+            definition,
+          });
+        }
+      }
+
+      for (const key of keys) {
+        if (key.startsWith('PRIMARY KEY')) {
+          const columnNames = key.match(/PRIMARY KEY(?:\b|\s+)\(`(\S+)`\)/);
+
+          data.push({
+            constraintSchema: '',
+            constraintName: 'PRIMARY',
+            constraintType: 'PRIMARY KEY',
+            tableSchema: '',
+            tableName: constraintTableName,
+            columnNames: columnNames ? columnNames[1].split(',') : [],
+          });
+        } else if (key.startsWith('FOREIGN KEY')) {
+          const columnNames = key.match(/FOREIGN KEY(?:\b|\s+)\(`(\S+)`\)/);
+          const deleteAction = key.match(/ON DELETE (\w+)/);
+          const updateAction = key.match(/ON UPDATE (\w+)/);
+          const references = key.match(/REFERENCES `(\S+)` \(`(\S+)`\)/);
+
+          data.push({
+            constraintSchema: '',
+            constraintName: 'FOREIGN',
+            constraintType: 'FOREIGN KEY',
+            tableSchema: '',
+            tableName: constraintTableName,
+            columnNames: columnNames ? columnNames[1].split(',') : [],
+            referencedTableName: references ? references[1] : '',
+            referencedColumnNames: references ? references[2].split(',') : [],
+            deleteAction: deleteAction ? deleteAction[1] : '',
+            updateAction: updateAction ? updateAction[1] : '',
+          });
+        }
+      }
+    } else {
+      throw new Error(`Could not parse constraints from SQL: ${createTableSql}`);
+    }
+
+    if (options?.constraintName) {
+      return data.filter(constraint => constraint.constraintName === options.constraintName);
+    }
+
+    return data;
   }
 }

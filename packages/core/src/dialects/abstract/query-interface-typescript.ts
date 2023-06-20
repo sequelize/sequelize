@@ -20,12 +20,18 @@ import type {
   DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
+  RawConstraintDescription,
   RemoveConstraintOptions,
   ShowAllSchemasOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
+
+export interface MapConstraintDescription extends Omit<RawConstraintDescription, 'columnNames' | 'referencedColumnNames'> {
+  columnNames: Set<string>;
+  referencedColumnNames: Set<string>;
+}
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -337,8 +343,27 @@ export class AbstractQueryInterfaceTypeScript {
 
   async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
     const sql = this.queryGenerator.showConstraintsQuery(tableName, options);
+    const rawConstraints = await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.SHOWCONSTRAINTS });
+    const constraintMap = new Map<string, MapConstraintDescription>();
+    for (const rawConstraint of rawConstraints) {
+      const constraint = constraintMap.get(rawConstraint.constraintName)!;
+      if (constraint) {
+        rawConstraint.columnNames && constraint.columnNames.add(rawConstraint.columnNames);
+        rawConstraint.referencedColumnNames && constraint.referencedColumnNames.add(rawConstraint.referencedColumnNames);
+      } else {
+        constraintMap.set(rawConstraint.constraintName, {
+          ...rawConstraint,
+          columnNames: new Set(rawConstraint.columnNames ? [rawConstraint.columnNames] : []),
+          referencedColumnNames: new Set(rawConstraint.referencedColumnNames ? [rawConstraint.referencedColumnNames] : []),
+        });
+      }
+    }
 
-    return this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.SHOWCONSTRAINTS });
+    return [...constraintMap.values()].map(({ columnNames, referencedColumnNames, ...constraint }) => ({
+      ...constraint,
+      columnNames: [...columnNames],
+      referencedColumnNames: [...referencedColumnNames],
+    }));
   }
 
   /**

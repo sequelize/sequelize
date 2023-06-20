@@ -3,7 +3,7 @@ import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
 import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface } from './dialects/abstract/query-interface';
-import type { ColumnsDescription, ConstraintDescription } from './dialects/abstract/query-interface.types';
+import type { ColumnsDescription, RawConstraintDescription } from './dialects/abstract/query-interface.types';
 import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { cast } from './expression-builders/cast.js';
 import type { col } from './expression-builders/col.js';
@@ -938,7 +938,7 @@ export class Sequelize extends SequelizeTypeScript {
   query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
   query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
   query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
-  query(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<ConstraintDescription[]>;
+  query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
   query<M extends Model>(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithModel<M> & { plain: true }): Promise<M | null>;
   query<M extends Model>(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithModel<M>): Promise<M[]>;
   query<T extends object>(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;
@@ -960,7 +960,7 @@ export class Sequelize extends SequelizeTypeScript {
   queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
   queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
   queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<ConstraintDescription[]>;
+  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
   queryRaw<M extends Model>(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithModel<M> & { plain: true }): Promise<M | null>;
   queryRaw<M extends Model>(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithModel<M>): Promise<M[]>;
   queryRaw<T extends object>(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;

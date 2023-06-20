@@ -310,7 +310,7 @@ export class PostgresQuery extends AbstractQuery {
     }
 
     if (this.isShowConstraintsQuery()) {
-      return this.handleShowConstraintsQuery(rows);
+      return rows;
     }
 
     if (this.isRawQuery()) {

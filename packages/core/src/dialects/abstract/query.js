@@ -189,21 +189,6 @@ export class AbstractQuery {
     return this.options.type === QueryTypes.SHOWCONSTRAINTS;
   }
 
-  handleShowConstraintsQuery(results) {
-    const data = results.reduce((constraints, value) => {
-      if (constraints.has(value.constraintName)) {
-        constraints.get(value.constraintName).columnNames.add(value.columnNames);
-        constraints.get(value.constraintName).referencedColumnNames.add(value.referencedColumnNames);
-      } else {
-        constraints.set(value.constraintName, { ...value, columnNames: new Set([value.columnNames]), referencedColumnNames: new Set([value.referencedColumnNames]) });
-      }
-
-      return constraints;
-    }, new Map());
-
-    return [...data.values()].map(value => ({ ...value, columnNames: [...value.columnNames], referencedColumnNames: [...value.referencedColumnNames] }));
-  }
-
   isDescribeQuery() {
     return this.options.type === QueryTypes.DESCRIBE;
   }

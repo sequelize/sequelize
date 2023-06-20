@@ -3,6 +3,7 @@ import type { BaseSqlExpression } from '../../expression-builders/base-sql-expre
 import type { ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableNameOrModel } from './query-generator-typescript';
+import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
 
 export interface QueryWithBindParams {
@@ -12,7 +13,7 @@ export interface QueryWithBindParams {
 
 export interface BaseConstraintQueryOptions {
   name?: string;
-  type: 'CHECK' | 'DEFAULT' | 'FOREIGN KEY' | 'PRIMARY KEY' | 'UNIQUE';
+  type: ConstraintType;
   fields: Array<string | BaseSqlExpression | { attribute?: string, name: string }>;
 }
 
@@ -60,7 +61,7 @@ export type AddConstraintQueryOptions =
 
 export interface GetConstraintSnippetQueryOptions {
   name?: string;
-  type: 'CHECK' | 'DEFAULT' | 'FOREIGN KEY' | 'PRIMARY KEY' | 'UNIQUE';
+  type: ConstraintType;
   fields: Array<string | BaseSqlExpression | {
     /**
      * @deprecated use `name` instead

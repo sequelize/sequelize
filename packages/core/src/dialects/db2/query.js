@@ -287,7 +287,7 @@ export class Db2Query extends AbstractQuery {
     } else if (this.isInsertQuery() || this.isUpdateQuery()) {
       result = [result, rowCount];
     } else if (this.isShowConstraintsQuery()) {
-      result = this.handleShowConstraintsQuery(data);
+      result = data;
     } else if (this.isRawQuery()) {
       // Db2 returns row data and metadata (affected rows etc) in a single object - let's standarize it, sorta
       result = [data, metadata];

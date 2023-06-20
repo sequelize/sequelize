@@ -1,4 +1,3 @@
-import type { ReferentialAction } from '../../model';
 import type { QueryRawOptions } from '../../sequelize';
 import type { CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
 import type {
@@ -18,11 +17,32 @@ export interface ColumnDescription {
 
 export type ColumnsDescription = Record<string, ColumnDescription>;
 
+export type ConstraintType = 'CHECK' | 'DEFAULT' | 'FOREIGN KEY' | 'PRIMARY KEY' | 'UNIQUE';
+
+export interface RawConstraintDescription {
+  constrainCatalog?: string;
+  constraintSchema: string;
+  constraintName: string;
+  constraintType: ConstraintType;
+  tableCatalog?: string;
+  tableSchema: string;
+  tableName: string;
+  columnNames?: string;
+  referencedTableSchema?: string;
+  referencedTableName?: string;
+  referencedColumnNames?: string;
+  deleteAction?: string;
+  updateAction?: string;
+  definition?: string;
+  isDeferrable?: string;
+  initiallyDeferred?: string;
+}
+
 export interface ConstraintDescription {
   constrainCatalog?: string;
   constraintSchema: string;
   constraintName: string;
-  constraintType: 'CHECK' | 'DEFAULT' | 'FOREIGN KEY' | 'PRIMARY KEY' | 'UNIQUE';
+  constraintType: ConstraintType;
   tableCatalog?: string;
   tableSchema: string;
   tableName: string;
@@ -30,8 +50,8 @@ export interface ConstraintDescription {
   referencedTableSchema?: string;
   referencedTableName?: string;
   referencedColumnNames?: string[];
-  deleteAction?: ReferentialAction;
-  updateAction?: ReferentialAction;
+  deleteAction?: string;
+  updateAction?: string;
   definition?: string;
   isDeferrable?: string;
   initiallyDeferred?: string;
