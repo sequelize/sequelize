@@ -116,7 +116,6 @@ export class AbstractQueryInterfaceTypeScript {
    *
    * @param tableName
    * @param options Query options
-   *
    */
   async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions): Promise<ColumnsDescription> {
     const table = this.queryGenerator.extractTableDetails(tableName);
