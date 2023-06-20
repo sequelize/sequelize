@@ -1,9 +1,11 @@
+import { randomBytes } from 'node:crypto';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { ColumnsDescription } from '../abstract/query-interface.types';
 import { MySqlQueryGenerator } from '../mysql/query-generator';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -93,6 +95,27 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
       'pragma.`on_update`,',
       'pragma.`on_delete`',
       `FROM pragma_foreign_key_list(${escapedTable}) AS pragma;`,
+    ]);
+  }
+
+  _replaceTableQuery(tableName: TableNameOrModel, attributes: ColumnsDescription, createTableSql?: string) {
+    const table = this.extractTableDetails(tableName);
+    const backupTable = this.extractTableDetails(`${table.tableName}_${randomBytes(8).toString('hex')}`, table);
+    const quotedTableName = this.quoteTable(table);
+    const quotedBackupTableName = this.quoteTable(backupTable);
+
+    const tableAttributes = this.attributesToSQL(attributes);
+    const attributeNames = Object.keys(tableAttributes).map(attr => this.quoteIdentifier(attr)).join(', ');
+
+    const backupTableSql = createTableSql
+      ? `${createTableSql.replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)};`
+      : this.createTableQuery(backupTable, tableAttributes);
+
+    return joinSQLFragments([
+      backupTableSql,
+      `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`,
+      `DROP TABLE ${quotedTableName};`,
+      `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`,
     ]);
   }
 

@@ -309,32 +309,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
   }
 
-  _alterConstraintQuery(tableName, attributes, createTableSql) {
-    let backupTableName;
-
-    attributes = this.attributesToSQL(attributes);
-
-    if (typeof tableName === 'object') {
-      backupTableName = {
-        tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
-      };
-    } else {
-      backupTableName = `${tableName}_backup`;
-    }
-
-    const quotedTableName = this.quoteTable(tableName);
-    const quotedBackupTableName = this.quoteTable(backupTableName);
-    const attributeNames = Object.keys(attributes).map(attr => this.quoteIdentifier(attr)).join(', ');
-
-    return `${createTableSql
-      .replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)
-      .replace(`CREATE TABLE ${quotedTableName.replaceAll('`', '"')}`, `CREATE TABLE ${quotedBackupTableName}`)
-    }INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
-      + `DROP TABLE ${quotedTableName};`
-      + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
-  }
-
   renameColumnQuery(tableName, attrNameBefore, attrNameAfter, attributes) {
 
     let backupTableName;

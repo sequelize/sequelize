@@ -93,3 +93,10 @@ export interface RemoveConstraintQueryOptions {
 export interface ShowConstraintsQueryOptions {
   constraintName?: string;
 }
+
+export interface AttributeToSqlOptions {
+  context: 'addColumn' | 'changeColumn' | 'createTable';
+  schema?: string;
+  table: string;
+  withoutForeignKeyConstraints?: boolean;
+}
