@@ -8,7 +8,7 @@ const deferrableNotSupportedError = new Error(`Deferrable constraints are not su
 const onUpdateNotSupportedError = new Error(`Foreign key constraint with onUpdate is not supported by ${dialect.name} dialect`);
 
 describe('QueryGenerator#_getConstraintSnippet', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('throws an error if invalid type', () => {
     // @ts-expect-error -- We're testing invalid options
@@ -71,7 +71,7 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
 
     it('generates a constraint snippet for a check constraint with globally set schema', () => {
       const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-      const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+      const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
       expectsql(() => queryGeneratorSchema._getConstraintSnippet('myTable', { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
@@ -131,7 +131,7 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
 
     it('generates a constraint snippet for a default constraint with globally set schema', () => {
       const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-      const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+      const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
       expectsql(() => queryGeneratorSchema._getConstraintSnippet('myTable', { type: 'DEFAULT', fields: ['role'], defaultValue: 'guest' }), {
         default: defaultNotSupportedError,
@@ -199,7 +199,7 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
 
     it('generates a constraint snippet for a unique constraint with globally set schema', () => {
       const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-      const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+      const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
       expectsql(() => queryGeneratorSchema._getConstraintSnippet('myTable', { type: 'UNIQUE', fields: ['username'] }), {
         default: `CONSTRAINT [myTable_username_uk] UNIQUE ([username])`,
@@ -287,7 +287,7 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
 
     it('generates a constraint snippet for a foreign key constraint with globally set schema', () => {
       const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-      const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+      const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
       expectsql(() => queryGeneratorSchema._getConstraintSnippet('myTable', { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: 'otherTable', field: 'id' } }), {
         default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [mySchema].[otherTable] ([id])`,
@@ -355,7 +355,7 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
 
     it('generates a constraint snippet for a primary key constraint with globally set schema', () => {
       const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-      const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+      const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
       expectsql(() => queryGeneratorSchema._getConstraintSnippet('myTable', { type: 'PRIMARY KEY', fields: ['username'] }), {
         default: `CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username])`,

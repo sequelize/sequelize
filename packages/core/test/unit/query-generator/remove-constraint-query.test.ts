@@ -5,7 +5,7 @@ const dialect = sequelize.dialect;
 const notSupportedError = new Error(`Remove constraint queries are not supported by ${dialect.name} dialect`);
 
 describe('QueryGenerator#removeConstraintQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('generates a query that drops a constraint', () => {
     expectsql(() => queryGenerator.removeConstraintQuery('myTable', 'myConstraint'), {
@@ -64,7 +64,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
 
   it('generates a query that drops a constraint from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectsql(() => queryGeneratorSchema.removeConstraintQuery('myTable', 'myConstraint'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP CONSTRAINT [myConstraint]',
