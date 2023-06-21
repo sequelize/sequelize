@@ -4,6 +4,7 @@ import { initDecoratedModel } from './decorators/shared/model.js';
 import type { AbstractConnectionManager, Connection, GetConnectionOptions } from './dialects/abstract/connection-manager.js';
 import type { AbstractDialect } from './dialects/abstract/index.js';
 import type { EscapeOptions } from './dialects/abstract/query-generator-typescript.js';
+import type { QiDropAllSchemasOptions } from './dialects/abstract/query-interface.types.js';
 import type { AbstractQuery } from './dialects/abstract/query.js';
 import {
   legacyBuildAddAnyHook,
@@ -33,7 +34,6 @@ import type {
   ModelAttributes,
   ModelOptions,
   ModelStatic,
-  QueryInterfaceDropAllTablesOptions,
   QueryOptions,
   ShowAllSchemasOptions,
   SyncOptions,
@@ -593,7 +593,7 @@ export abstract class SequelizeTypeScript {
    *
    * @param options
    */
-  async dropAllSchemas(options?: QueryInterfaceDropAllTablesOptions) {
+  async dropAllSchemas(options?: QiDropAllSchemasOptions) {
     return this.queryInterface.dropAllSchemas(options);
   }
 

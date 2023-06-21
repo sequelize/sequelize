@@ -19,7 +19,7 @@ export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawO
 export interface ShowAllSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllSchemas} */
-export interface DropAllSchemasOptions extends QueryRawOptions {
+export interface QiDropAllSchemasOptions extends QueryRawOptions {
   /**
    * List of schemas to skip dropping (i.e., list of schemas to keep)
    */
