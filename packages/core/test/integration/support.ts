@@ -74,7 +74,7 @@ export function destroySequelizeAfterTest(sequelizeInstance: Sequelize): void {
 }
 
 /**
- * Creates a sequelize instance to use in transaction-related tests.
+ * Creates a Sequelize instance to use in transaction-related tests.
  * You must dispose of this instance manually.
  *
  * If you're creating the instance within a test, consider using {@link createSingleTransactionalTestSequelizeInstance}.

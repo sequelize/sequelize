@@ -439,15 +439,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
+      const modelOptions = ['mariadb', 'mysql'].includes(dialectName) ? { indexes: indices, engine: 'MyISAM' } : { indexes: indices };
+
       const Model = this.sequelize.define('model', {
         fieldA: DataTypes.STRING,
         fieldB: DataTypes.INTEGER,
         fieldC: DataTypes.STRING,
         fieldD: DataTypes.STRING,
-      }, {
-        indexes: indices,
-        engine: 'MyISAM',
-      });
+      }, modelOptions);
 
       await this.sequelize.sync();
       await this.sequelize.sync(); // The second call should not try to create the indices again
@@ -956,8 +955,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(table.id.defaultValue).to.not.contain('special');
         }
 
-        table = await this.sequelize.queryInterface.describeTable('Publics', {
-          schema: 'special',
+        table = await this.sequelize.queryInterface.describeTable({ tableName: 'Publics', schema: 'special' }, {
           logging(sql) {
             if (dialectName === 'sqlite' && sql.includes('TABLE_INFO')) {
               test++;
@@ -1584,6 +1582,50 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(users1[0].username).to.equal('u1');
       expect(users1[1].username).to.equal('u2');
       expect(users1[1].id.toString()).to.equal('3415718944570971484');
+    });
+  });
+
+  describe('BulkUpdate', () => {
+    it('should update correctly when model defined has attributes with custom getters', async function () {
+      const User = this.sequelize.define('users', {
+        id: {
+          type: DataTypes.UUID,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4,
+        },
+        status: {
+          type: DataTypes.STRING,
+          defaultValue: 'active',
+        },
+        roles: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          get() {
+            return this.getDataValue('roles').split(',');
+          },
+          set(val) {
+            this.setDataValue('roles', val.join(','));
+          },
+        },
+      });
+      await User.sync({ force: true });
+      const u1 = await User.create({
+        roles: ['authenticated user'],
+      });
+      const u2 = await User.create({
+        roles: ['authenticated user'],
+      });
+      await User.update({ status: 'blocked' }, {
+        where: {
+          id: {
+            [Op.ne]: null,
+          },
+        },
+      });
+      const a1 = await User.findOne({ where: { id: u1.id } });
+      const a2 = await User.findOne({ where: { id: u2.id } });
+      expect(a1.get('status')).to.eq('blocked');
+      expect(a2.get('status')).to.eq('blocked');
     });
   });
 });

@@ -55,14 +55,17 @@ export class MariaDbDialect extends AbstractDialect {
       },
       REGEXP: true,
       jsonOperations: true,
+      jsonExtraction: {
+        unquoted: true,
+        quoted: true,
+      },
       globalTimeZoneConfig: true,
     },
   );
 
-  readonly TICK_CHAR = '`';
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';
-  readonly defaultVersion = '10.1.44'; // minimum supported version
+  readonly defaultVersion = '10.4.30'; // minimum supported version
   readonly dataTypesDocumentationUrl = 'https://mariadb.com/kb/en/library/resultset/#field-types';
 
   readonly queryGenerator: MariaDbQueryGenerator;
@@ -84,8 +87,9 @@ export class MariaDbDialect extends AbstractDialect {
     );
 
     registerMySqlDbDataTypeParsers(this);
-    // DECIMAL must be returned as a string, the JS number type is not precise enough.
-    this.registerDataTypeParser(['NEWDECIMAL'], (value: FieldInfo) => {
+    // For backwards compatibility, we currently return BIGINTs as strings. We will implement bigint support for all
+    // dialects in the future: https://github.com/sequelize/sequelize/issues/10468
+    this.registerDataTypeParser(['BIGINT'], (value: FieldInfo) => {
       return value.string();
     });
   }

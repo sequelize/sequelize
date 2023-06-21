@@ -132,7 +132,7 @@ export class SqliteQuery extends AbstractQuery {
         }
 
         if (typeof result[_result.name].defaultValue === 'string') {
-          result[_result.name].defaultValue = result[_result.name].defaultValue.replace(/'/g, '');
+          result[_result.name].defaultValue = result[_result.name].defaultValue.replaceAll('\'', '');
         }
       }
 
@@ -147,7 +147,7 @@ export class SqliteQuery extends AbstractQuery {
       return results;
     }
 
-    if (this.sql.includes('PRAGMA foreign_key_list')) {
+    if (this.options.type === QueryTypes.FOREIGNKEYS) {
       return results;
     }
 
@@ -244,7 +244,7 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       await Promise.all(tableNames.map(async tableName => {
-        tableName = tableName.replace(/`/g, '');
+        tableName = tableName.replaceAll('`', '');
         columnTypes[tableName] = {};
 
         const { results } = await this.#allSeries(conn, `PRAGMA table_info(\`${tableName}\`)`);
@@ -291,6 +291,7 @@ export class SqliteQuery extends AbstractQuery {
     });
   }
 
+  // TODO [>7]: remove usages of replaceAll('`', '') in favor of something that does not mishandle backticks
   parseConstraintsFromSql(sql) {
     let constraints = sql.split('CONSTRAINT ');
     let referenceTableName; let referenceTableKeys; let updateAction; let deleteAction;
@@ -312,10 +313,10 @@ export class SqliteQuery extends AbstractQuery {
 
         const referencesRegex = /REFERENCES.+\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/;
         const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
-        referenceTableName = removeTicks(referenceConditions[1]);
+        referenceTableName = referenceConditions[1].replaceAll('`', '');
         let columnNames = referenceConditions[2];
-        columnNames = columnNames.replace(/\(|\)/g, '').split(', ');
-        referenceTableKeys = columnNames.map(column => removeTicks(column));
+        columnNames = columnNames.replaceAll(/\(|\)/g, '').split(', ');
+        referenceTableKeys = columnNames.map(column => column.replaceAll('`', ''));
       }
 
       const constraintCondition = constraintSql.match(/\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/)[0];
@@ -327,11 +328,11 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       return {
-        constraintName: removeTicks(constraint[0]),
+        constraintName: constraint[0].replaceAll('`', ''),
         constraintType: constraint[1],
         updateAction,
         deleteAction,
-        sql: sql.replace(/"/g, '`'), // Sqlite returns double quotes for table name
+        sql: sql.replaceAll('"', '`'), // Sqlite returns double quotes for table name
         constraintCondition,
         referenceTableName,
         referenceTableKeys,

@@ -25,7 +25,7 @@ export function camelizeIf(str: string, condition: boolean): string {
 }
 
 export function camelize(str: string): string {
-  return str.trim().replace(/[-_\s]+(.)?/g, (match, c) => c.toUpperCase());
+  return str.trim().replaceAll(/[-_\s]+(.)?/g, (match, c) => c.toUpperCase());
 }
 
 export function underscoredIf(str: string, condition: boolean): string {
@@ -77,7 +77,7 @@ export function nameIndex(
   index: NameIndexIndex,
   tableName: TableName,
 ) {
-  if (Object.prototype.hasOwnProperty.call(index, 'name')) {
+  if (Object.hasOwn(index, 'name')) {
     return index;
   }
 
