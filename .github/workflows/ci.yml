@@ -131,7 +131,7 @@ jobs:
       - name: Install TypeScript
         run: yarn add typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
-        run: yarn lerna run test-typings --scope=@sequelize/core
+        run: yarn test-typings
   test-sqlite:
     strategy:
       fail-fast: false
