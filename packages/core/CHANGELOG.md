@@ -3,6 +3,46 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.27](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.26...v7.0.0-alpha.27) (2023-06-21)
+
+
+### Bug Fixes
+
+* Bulk Update failure when virtual attributes and getDataValue are involved ([#15741](https://github.com/sequelize/sequelize/issues/15741)) ([f5a8815](https://github.com/sequelize/sequelize/commit/f5a8815bf10d3976438d69bf58159db24bfd5ae9))
+* merge getForeignKeysQuery with getForeignKeyQuery, unify unit tests and migrate to TS ([#15454](https://github.com/sequelize/sequelize/issues/15454)) ([e940f42](https://github.com/sequelize/sequelize/commit/e940f429efc8ca1e63bd91a21e31858a09f02151))
+* **postgres:** prevent crash if postgres connection emits multiple errors ([#15867](https://github.com/sequelize/sequelize/issues/15867)) ([42fbcc4](https://github.com/sequelize/sequelize/commit/42fbcc467aad03e0c588909d81f75dc263abe240))
+* remove add/removeTicks ([#15973](https://github.com/sequelize/sequelize/issues/15973)) ([ef00e92](https://github.com/sequelize/sequelize/commit/ef00e92416d11a925cbf4f1ab06373072688626e))
+* **types:** fix generic type of `Model#changed` ([#16047](https://github.com/sequelize/sequelize/issues/16047)) ([fad20ee](https://github.com/sequelize/sequelize/commit/fad20eeee600955cb7782acaef0994804de5e532))
+* use singular association name to generate FK ([#16142](https://github.com/sequelize/sequelize/issues/16142)) ([8f8f13e](https://github.com/sequelize/sequelize/commit/8f8f13e45ce9ab4f07657c0dceb06745c62de103))
+
+
+### Features
+
+* add `nestMode` option for managed transactions ([#16143](https://github.com/sequelize/sequelize/issues/16143)) ([c4eef63](https://github.com/sequelize/sequelize/commit/c4eef638edbc807167d65ef7559622497e332348))
+* add included columns in index definition  ([#15405](https://github.com/sequelize/sequelize/issues/15405)) ([5c1c7ff](https://github.com/sequelize/sequelize/commit/5c1c7ff6b9482df4214d6c88f1c4ba4255e22af1))
+* add support for model inheritance ([#16095](https://github.com/sequelize/sequelize/issues/16095)) ([6c553a9](https://github.com/sequelize/sequelize/commit/6c553a9cd4fc4d76a1b3cf217c55de626a29288b))
+* drop support for Node 14 and add for Node 20 ([#16058](https://github.com/sequelize/sequelize/issues/16058)) ([39bf550](https://github.com/sequelize/sequelize/commit/39bf550a9f6cb4105ae6e406970557edccd2e421))
+* make `set` association method delete old associated entity for non-null FKs  ([#15840](https://github.com/sequelize/sequelize/issues/15840)) ([67d66f1](https://github.com/sequelize/sequelize/commit/67d66f1fa35ff5028bcb35aed13c3307f464d874))
+* **mariadb:** drop 10.3 and add 11.0 support ([#16133](https://github.com/sequelize/sequelize/issues/16133)) ([64e392d](https://github.com/sequelize/sequelize/commit/64e392d083ddb7f0415cc70fda1db3ab72c3a7d8))
+* migrate describeTable to typescript ([#15945](https://github.com/sequelize/sequelize/issues/15945)) ([37bff7e](https://github.com/sequelize/sequelize/commit/37bff7e2948d80fe8e5133452d2f5ba7559441cb))
+* **mssql:** add json operations support ([#15832](https://github.com/sequelize/sequelize/issues/15832)) ([b0ee419](https://github.com/sequelize/sequelize/commit/b0ee4198788858a0c7ddee492fa65e64787dab51))
+* **mysql:** support max_execution_time optimizer hint ([#15341](https://github.com/sequelize/sequelize/issues/15341)) ([fc3d6aa](https://github.com/sequelize/sequelize/commit/fc3d6aaa1e1d5a8577bbe046b40472894529bd73))
+* **postgres:** add stream to connectionConfig ([#16056](https://github.com/sequelize/sequelize/issues/16056)) ([abeacd5](https://github.com/sequelize/sequelize/commit/abeacd5ea2e32f6e6fbf91b6a0c94d9139fafb67))
+* reject invalid options for createTableQuery ([#15846](https://github.com/sequelize/sequelize/issues/15846)) ([2dcd69a](https://github.com/sequelize/sequelize/commit/2dcd69a3bb40736e23659ea99fed7f5dab29d1fb))
+* support TS 5.1, drop TS 4.7 ([#16089](https://github.com/sequelize/sequelize/issues/16089)) ([0f2706d](https://github.com/sequelize/sequelize/commit/0f2706d756786d5b754a2c5a70fed0d512c95b8f))
+* update mariadb connector to v3 ([#16139](https://github.com/sequelize/sequelize/issues/16139)) ([bc26271](https://github.com/sequelize/sequelize/commit/bc26271f090c7770b434422684a07f0f69fb9616))
+
+
+### BREAKING CHANGES
+
+* Sequelize now requires Node >=16.0.0
+* **mariadb:** If using MariaDB, Sequelize requires MariaDB 10.4.30 or higher
+* minimum mariadb npm package version is now 3.1.2
+
+
+
+
+
 # [7.0.0-alpha.26](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.25...v7.0.0-alpha.26) (2023-04-11)
 
 
