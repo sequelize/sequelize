@@ -145,4 +145,11 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
     return `JSON_VALUE(${this.escape(arg, options)})`;
   }
+
+  versionQuery() {
+    // Uses string manipulation to convert the MS Maj.Min.Patch.Build to semver Maj.Min.Patch
+    return `DECLARE @ms_ver NVARCHAR(20);
+SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion')));
+SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
+  }
 }

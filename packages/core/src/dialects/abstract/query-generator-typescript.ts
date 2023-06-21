@@ -527,4 +527,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   getToggleForeignKeyChecksQuery(_enable: boolean): string {
     throw new Error(`${this.dialect.name} does not support toggling foreign key checks`);
   }
+
+  versionQuery(): string {
+    throw new Error(`${this.dialect.name} did not implement versionQuery`);
+  }
 }

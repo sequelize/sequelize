@@ -195,8 +195,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   removeConstraintQuery(tableName: TableNameOrModel, constraintName: string): string;
 
-  versionQuery(): string;
-
   /**
    * Creates a function that can be used to collect bind parameters.
    *

@@ -90,10 +90,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
-  versionQuery() {
-    return 'SHOW SERVER_VERSION';
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(

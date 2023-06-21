@@ -243,10 +243,6 @@ export class MsSqlQuery extends AbstractQuery {
       return data[0] ? data[0].AFFECTEDROWS : 0;
     }
 
-    if (this.isVersionQuery()) {
-      return data[0].version;
-    }
-
     if (this.isForeignKeysQuery()) {
       return data;
     }

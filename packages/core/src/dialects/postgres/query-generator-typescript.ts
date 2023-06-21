@@ -137,4 +137,8 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
     return `${this.escape(arg, options)}#>>ARRAY[]::TEXT[]`;
   }
+
+  versionQuery() {
+    return 'SHOW SERVER_VERSION';
+  }
 }

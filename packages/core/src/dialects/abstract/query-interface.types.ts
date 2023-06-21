@@ -1,10 +1,5 @@
-import type { QueryRawOptions, Sequelize } from '../../sequelize';
-import type { AbstractQueryGenerator, CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
-
-export interface QueryInterfaceOptions {
-  sequelize: Sequelize;
-  queryGenerator: AbstractQueryGenerator;
-}
+import type { QueryRawOptions } from '../../sequelize';
+import type { CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
 
 export interface ColumnDescription {
   type: string;
@@ -24,7 +19,7 @@ export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawO
 export interface ShowAllSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllSchemas} */
-export interface DropAllSchemasOptions extends QueryRawOptions {
+export interface QiDropAllSchemasOptions extends QueryRawOptions {
   /**
    * List of schemas to skip dropping (i.e., list of schemas to keep)
    */
@@ -42,3 +37,5 @@ export interface DescribeTableOptions extends QueryRawOptions {
    */
   schemaDelimiter?: string;
 }
+
+export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}

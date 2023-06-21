@@ -171,10 +171,6 @@ export class SnowflakeQuery extends AbstractQuery {
       return data[0]['number of rows updated'];
     }
 
-    if (this.isVersionQuery()) {
-      return data[0].version;
-    }
-
     if (this.isForeignKeysQuery()) {
       return data;
     }

@@ -137,10 +137,6 @@ export class AbstractQuery {
     return this.options.type === QueryTypes.RAW;
   }
 
-  isVersionQuery() {
-    return this.options.type === QueryTypes.VERSION;
-  }
-
   isUpsertQuery() {
     return this.options.type === QueryTypes.UPSERT;
   }
