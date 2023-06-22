@@ -171,7 +171,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
 
   async addConstraint(tableName, options) {
     try {
-      return await super.addConstraint(tableName, options);
+      await super.addConstraint(tableName, options);
     } catch (error) {
       if (!error.cause) {
         throw error;

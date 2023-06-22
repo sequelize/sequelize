@@ -1,5 +1,4 @@
 import type { SetRequired } from 'type-fest';
-import type { Deferrable } from '../../deferrable';
 import type { Col } from '../../expression-builders/col.js';
 import type { Fn } from '../../expression-builders/fn.js';
 import type { Literal } from '../../expression-builders/literal.js';
@@ -189,49 +188,6 @@ export interface IndexOptions {
 export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> { }
 
 export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions { }
-
-export interface BaseConstraintOptions {
-  name?: string;
-  fields: string[];
-}
-
-export interface AddUniqueConstraintOptions extends BaseConstraintOptions {
-  type: 'unique';
-  deferrable?: Deferrable;
-}
-
-export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
-  type: 'default';
-  defaultValue?: unknown;
-}
-
-export interface AddCheckConstraintOptions extends BaseConstraintOptions {
-  type: 'check';
-  where?: WhereOptions<any>;
-}
-
-export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
-  type: 'primary key';
-  deferrable?: Deferrable;
-}
-
-export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
-  type: 'foreign key';
-  references?: {
-    table: TableName,
-    field: string,
-  };
-  onDelete: string;
-  onUpdate: string;
-  deferrable?: Deferrable;
-}
-
-export type AddConstraintOptions =
-  | AddUniqueConstraintOptions
-  | AddDefaultConstraintOptions
-  | AddCheckConstraintOptions
-  | AddPrimaryKeyConstraintOptions
-  | AddForeignKeyConstraintOptions;
 
 export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOptions {
   encoding?: string;
@@ -433,19 +389,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     attributes: string[],
     options?: QueryInterfaceRemoveIndexOptions
   ): Promise<void>;
-
-  /**
-   * Adds constraints to a table
-   */
-  addConstraint(
-    tableName: TableName,
-    options?: AddConstraintOptions & QueryRawOptions
-  ): Promise<void>;
-
-  /**
-   * Removes constraints from a table
-   */
-  removeConstraint(tableName: TableName, constraintName: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Shows the index of a table
@@ -659,11 +602,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Begin a new transaction
    */
   startTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Defer constraints
-   */
-  deferConstraints(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Commit an already started transaction

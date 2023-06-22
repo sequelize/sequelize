@@ -24,6 +24,10 @@ export class PostgresDialect extends AbstractDialect {
     lockOuterJoinFailure: true,
     skipLocked: true,
     forShare: 'FOR SHARE',
+    constraints: {
+      deferrable: true,
+      removeOptions: { cascade: true, ifExists: true },
+    },
     index: {
       concurrently: true,
       using: 2,
@@ -65,7 +69,6 @@ export class PostgresDialect extends AbstractDialect {
     },
     REGEXP: true,
     IREGEXP: true,
-    deferrableConstraints: true,
     searchPath: true,
     escapeStringConstants: true,
     globalTimeZoneConfig: true,

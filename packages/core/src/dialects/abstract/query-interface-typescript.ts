@@ -1,5 +1,6 @@
 import assert from 'node:assert';
 import isEmpty from 'lodash/isEmpty';
+import type { ConstraintChecking } from '../../deferrable';
 import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
@@ -11,14 +12,25 @@ import type { TableNameOrModel } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type {
+  AddConstraintOptions,
   ColumnsDescription,
+  ConstraintDescription,
   CreateSchemaOptions,
+  DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
+  RawConstraintDescription,
+  RemoveConstraintOptions,
   ShowAllSchemasOptions,
+  ShowConstraintsOptions,
 } from './query-interface.types';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
+
+export interface MapConstraintDescription extends Omit<RawConstraintDescription, 'columnNames' | 'referencedColumnNames'> {
+  columnNames: Set<string>;
+  referencedColumnNames: Set<string>;
+}
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -188,6 +200,164 @@ export class AbstractQueryInterfaceTypeScript {
 
       throw error;
     }
+  }
+
+  /**
+   * Add a constraint to a table
+   *
+   * Available constraints:
+   * - UNIQUE
+   * - DEFAULT (MSSQL only)
+   * - CHECK (Not supported by MySQL)
+   * - FOREIGN KEY
+   * - PRIMARY KEY
+   *
+   * @example UNIQUE
+   * ```ts
+   * queryInterface.addConstraint('Users', {
+   *   fields: ['email'],
+   *   type: 'UNIQUE',
+   *   name: 'custom_unique_constraint_name'
+   * });
+   * ```
+   *
+   * @example CHECK
+   * ```ts
+   * queryInterface.addConstraint('Users', {
+   *   fields: ['roles'],
+   *   type: 'CHECK',
+   *   where: {
+   *      roles: ['user', 'admin', 'moderator', 'guest']
+   *   }
+   * });
+   * ```
+   *
+   * @example Default - MSSQL only
+   * ```ts
+   * queryInterface.addConstraint('Users', {
+   *    fields: ['roles'],
+   *    type: 'DEFAULT',
+   *    defaultValue: 'guest'
+   * });
+   * ```
+   *
+   * @example Primary Key
+   * ```ts
+   * queryInterface.addConstraint('Users', {
+   *    fields: ['username'],
+   *    type: 'PRIMARY KEY',
+   *    name: 'custom_primary_constraint_name'
+   * });
+   * ```
+   *
+   * @example Composite Primary Key
+   * ```ts
+   * queryInterface.addConstraint('Users', {
+   *    fields: ['first_name', 'last_name'],
+   *    type: 'PRIMARY KEY',
+   *    name: 'custom_primary_constraint_name'
+   * });
+   * ```
+   *
+   * @example Foreign Key
+   * ```ts
+   * queryInterface.addConstraint('Posts', {
+   *   fields: ['username'],
+   *   type: 'FOREIGN KEY',
+   *   name: 'custom_fkey_constraint_name',
+   *   references: { //Required field
+   *     table: 'target_table_name',
+   *     field: 'target_column_name'
+   *   },
+   *   onDelete: 'cascade',
+   *   onUpdate: 'cascade'
+   * });
+   * ```
+   *
+   * @example Composite Foreign Key
+   * ```ts
+   * queryInterface.addConstraint('TableName', {
+   *   fields: ['source_column_name', 'other_source_column_name'],
+   *   type: 'FOREIGN KEY',
+   *   name: 'custom_fkey_constraint_name',
+   *   references: { //Required field
+   *     table: 'target_table_name',
+   *     fields: ['target_column_name', 'other_target_column_name']
+   *   },
+   *   onDelete: 'cascade',
+   *   onUpdate: 'cascade'
+   * });
+   * ```
+   *
+   * @param tableName - Table name where you want to add a constraint
+   * @param options - An object to define the constraint name, type etc
+   *
+   */
+  async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions): Promise<void> {
+    if (!options.fields) {
+      throw new Error('Fields must be specified through options.fields');
+    }
+
+    if (!options.type) {
+      throw new Error('Constraint type must be specified through options.type');
+    }
+
+    const sql = this.queryGenerator.addConstraintQuery(tableName, options);
+
+    await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
+  }
+
+  async deferConstraints(constraintChecking: ConstraintChecking, options?: DeferConstraintsOptions): Promise<void> {
+    setTransactionFromCls(options ?? {}, this.sequelize);
+    if (!options?.transaction) {
+      throw new Error('Missing transaction in deferConstraints option.');
+    }
+
+    const sql = this.queryGenerator.setConstraintCheckingQuery(constraintChecking);
+
+    await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
+  }
+
+  /**
+   * Remove a constraint from a table
+   *
+   * @param tableName -Table name to drop constraint from
+   * @param constraintName -Constraint name
+   * @param options -Query options
+   */
+  async removeConstraint(
+    tableName: TableNameOrModel,
+    constraintName: string,
+    options?: RemoveConstraintOptions,
+  ): Promise<void> {
+    const sql = this.queryGenerator.removeConstraintQuery(tableName, constraintName, options);
+
+    await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
+  }
+
+  async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
+    const sql = this.queryGenerator.showConstraintsQuery(tableName, options);
+    const rawConstraints = await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.SHOWCONSTRAINTS });
+    const constraintMap = new Map<string, MapConstraintDescription>();
+    for (const rawConstraint of rawConstraints) {
+      const constraint = constraintMap.get(rawConstraint.constraintName)!;
+      if (constraint) {
+        rawConstraint.columnNames && constraint.columnNames.add(rawConstraint.columnNames);
+        rawConstraint.referencedColumnNames && constraint.referencedColumnNames.add(rawConstraint.referencedColumnNames);
+      } else {
+        constraintMap.set(rawConstraint.constraintName, {
+          ...rawConstraint,
+          columnNames: new Set(rawConstraint.columnNames ? [rawConstraint.columnNames] : []),
+          referencedColumnNames: new Set(rawConstraint.referencedColumnNames ? [rawConstraint.referencedColumnNames] : []),
+        });
+      }
+    }
+
+    return [...constraintMap.values()].map(({ columnNames, referencedColumnNames, ...constraint }) => ({
+      ...constraint,
+      columnNames: [...columnNames],
+      referencedColumnNames: [...referencedColumnNames],
+    }));
   }
 
   /**

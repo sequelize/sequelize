@@ -309,6 +309,10 @@ export class PostgresQuery extends AbstractQuery {
       ];
     }
 
+    if (this.isShowConstraintsQuery()) {
+      return rows;
+    }
+
     if (this.isRawQuery()) {
       return [rows, queryResult];
     }

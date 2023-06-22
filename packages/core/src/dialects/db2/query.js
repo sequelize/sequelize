@@ -287,7 +287,7 @@ export class Db2Query extends AbstractQuery {
     } else if (this.isInsertQuery() || this.isUpdateQuery()) {
       result = [result, rowCount];
     } else if (this.isShowConstraintsQuery()) {
-      result = this.handleShowConstraintsQuery(data);
+      result = data;
     } else if (this.isRawQuery()) {
       // Db2 returns row data and metadata (affected rows etc) in a single object - let's standarize it, sorta
       result = [data, metadata];
@@ -304,13 +304,6 @@ export class Db2Query extends AbstractQuery {
         tableName: resultSet.TABLE_NAME,
         schema: resultSet.TABLE_SCHEMA,
       };
-    });
-  }
-
-  handleShowConstraintsQuery(data) {
-    // Remove SQL Contraints from constraints list.
-    return _.remove(data, constraint => {
-      return !constraint.constraintName.startsWith('SQL');
     });
   }
 

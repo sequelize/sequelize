@@ -24,6 +24,9 @@ export class Db2Dialect extends AbstractDialect {
       where: true,
       include: true,
     },
+    constraints: {
+      onUpdate: false,
+    },
     tmpTableTrigger: true,
     dataTypes: {
       COLLATE_BINARY: true,

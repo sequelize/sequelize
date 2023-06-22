@@ -610,10 +610,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ]);
   }
 
-  showConstraintsQuery(tableName) {
-    return `EXEC sp_helpconstraint @objname = ${this.escape(this.quoteTable(tableName))};`;
-  }
-
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
@@ -785,16 +781,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       `WHERE PARENT_OBJECT_ID = OBJECT_ID('${quotedTable}', 'U')`,
       `AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('${attributeName}')`,
       `AND object_id = OBJECT_ID('${quotedTable}', 'U'))`,
-      ';',
-    ]);
-  }
-
-  dropConstraintQuery(tableName, constraintName) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP CONSTRAINT',
-      this.quoteIdentifier(constraintName),
       ';',
     ]);
   }

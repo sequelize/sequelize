@@ -2,7 +2,7 @@ import assert from 'node:assert';
 import type { Class } from 'type-fest';
 import { EMPTY_OBJECT } from './utils/object.js';
 import type { StrictRequiredBy } from './utils/types.js';
-import type { Connection, Deferrable, Logging, Sequelize } from './index.js';
+import type { Connection, ConstraintChecking, Logging, Sequelize } from './index.js';
 
 type TransactionCallback = (transaction: Transaction) => void | Promise<void>;
 
@@ -37,7 +37,7 @@ export class Transaction {
    * @param options An object with options
    * @param [options.type] Sets the type of the transaction. Sqlite only
    * @param [options.isolationLevel] Sets the isolation level of the transaction.
-   * @param [options.deferrable] Sets the constraints to be deferred or immediately checked. PostgreSQL only
+   * @param [options.constraintChecking] Sets the constraints to be deferred or immediately checked. PostgreSQL only
    */
   constructor(sequelize: Sequelize, options: TransactionOptions) {
     this.sequelize = sequelize;
@@ -176,11 +176,11 @@ export class Transaction {
   }
 
   async setDeferrable(): Promise<void> {
-    if (this.options.deferrable) {
+    if (this.options.constraintChecking) {
       await this
         .sequelize
         .getQueryInterface()
-        .deferConstraints(this, this.options);
+        .deferConstraints(this.options.constraintChecking, { transaction: this });
     }
   }
 
@@ -397,6 +397,17 @@ export class Transaction {
   get LOCK() {
     return Lock;
   }
+
+  /**
+   * Get the root transaction if nested, or self if this is a root transaction
+   */
+  get rootTransaction(): Transaction {
+    if (this.parent !== null) {
+      return this.parent.rootTransaction;
+    }
+
+    return this;
+  }
 }
 
 /**
@@ -517,7 +528,7 @@ export interface TransactionOptions extends Logging {
   readOnly?: boolean | undefined;
   isolationLevel?: IsolationLevel | null | undefined;
   type?: TransactionType | undefined;
-  deferrable?: Deferrable | Class<Deferrable> | undefined;
+  constraintChecking?: ConstraintChecking | Class<ConstraintChecking> | undefined;
 
   /**
    * Parent transaction.
@@ -526,8 +537,8 @@ export interface TransactionOptions extends Logging {
   transaction?: Transaction | null | undefined;
 }
 
-export type NormalizedTransactionOptions = StrictRequiredBy<Omit<TransactionOptions, 'deferrable'>, 'type' | 'isolationLevel' | 'readOnly'> & {
-  deferrable?: Deferrable | undefined,
+export type NormalizedTransactionOptions = StrictRequiredBy<Omit<TransactionOptions, 'constraintChecking'>, 'type' | 'isolationLevel' | 'readOnly'> & {
+  constraintChecking?: ConstraintChecking | undefined,
 };
 
 /**
@@ -551,7 +562,7 @@ export function normalizeTransactionOptions(
       ? (sequelize.options.isolationLevel ?? null)
       : options.isolationLevel,
     readOnly: options.readOnly ?? false,
-    deferrable: typeof options.deferrable === 'function' ? new options.deferrable() : options.deferrable,
+    constraintChecking: typeof options.constraintChecking === 'function' ? new options.constraintChecking() : options.constraintChecking,
   };
 }
 
@@ -575,11 +586,11 @@ export function assertTransactionIsCompatibleWithOptions(transaction: Transactio
   }
 
   if (
-    options.deferrable !== transaction.options.deferrable
-    && !options.deferrable?.isEqual(transaction.options.deferrable)
+    options.constraintChecking !== transaction.options.constraintChecking
+    && !options.constraintChecking?.isEqual(transaction.options.constraintChecking)
   ) {
     throw new Error(
-      `Requested transaction deferrable (${options.deferrable ?? 'none'}) is not compatible with the one of the existing transaction (${transaction.options.deferrable ?? 'none'})`,
+      `Requested transaction constraintChecking (${options.constraintChecking ?? 'none'}) is not compatible with the one of the existing transaction (${transaction.options.constraintChecking ?? 'none'})`,
     );
   }
 }

@@ -1,4 +1,4 @@
-import type { Class, SetRequired } from 'type-fest';
+import type { SetRequired } from 'type-fest';
 import type {
   Association,
   BelongsTo,
@@ -1640,7 +1640,7 @@ export interface AttributeReferencesOptions {
    *
    * PostgreSQL only
    */
-  deferrable?: Deferrable | Class<Deferrable>;
+  deferrable?: Deferrable;
 }
 
 export interface NormalizedAttributeReferencesOptions extends Omit<AttributeReferencesOptions, 'model'> {

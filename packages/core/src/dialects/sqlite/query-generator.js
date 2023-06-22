@@ -276,20 +276,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
-  showConstraintsQuery(tableName, constraintName) {
-    let sql = `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}'`;
-
-    if (constraintName) {
-      sql += ` AND sql LIKE '%${constraintName}%'`;
-    }
-
-    return `${sql};`;
-  }
-
-  describeCreateTableQuery(tableName) {
-    return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
-  }
-
   // TODO: this should not implement `removeColumnQuery` but a new sqlite specific function possibly called `replaceTableQuery`
   removeColumnQuery(tableName, attributes, options) {
     if (options) {
@@ -319,32 +305,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     return `${this.createTableQuery(backupTableName, attributes)}`
       + `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
-      + `DROP TABLE ${quotedTableName};`
-      + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
-  }
-
-  _alterConstraintQuery(tableName, attributes, createTableSql) {
-    let backupTableName;
-
-    attributes = this.attributesToSQL(attributes);
-
-    if (typeof tableName === 'object') {
-      backupTableName = {
-        tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
-      };
-    } else {
-      backupTableName = `${tableName}_backup`;
-    }
-
-    const quotedTableName = this.quoteTable(tableName);
-    const quotedBackupTableName = this.quoteTable(backupTableName);
-    const attributeNames = Object.keys(attributes).map(attr => this.quoteIdentifier(attr)).join(', ');
-
-    return `${createTableSql
-      .replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)
-      .replace(`CREATE TABLE ${quotedTableName.replaceAll('`', '"')}`, `CREATE TABLE ${quotedBackupTableName}`)
-    }INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
       + `DROP TABLE ${quotedTableName};`
       + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
   }

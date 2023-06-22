@@ -13,8 +13,9 @@ import type {
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
-import type { QueryWithBindParams } from './query-generator.types.js';
+import type { AttributeToSqlOptions, QueryWithBindParams } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
+import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 type ParameterOptions = {
@@ -117,8 +118,6 @@ export interface RemoveColumnQueryOptions {
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   constructor(options: QueryGeneratorOptions);
 
-  setImmediateQuery(constraints: readonly string[]): string;
-  setDeferredQuery(constraints: readonly string[]): string;
   generateTransactionId(): string;
   quoteIdentifiers(identifiers: string): string;
 
@@ -193,12 +192,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   dropForeignKeyQuery(tableName: TableNameOrModel, foreignKey: string): string;
 
-  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string): string;
-
   /**
    * Creates a function that can be used to collect bind parameters.
    *
    * @param bind A mutable object to which bind parameters will be added.
    */
   bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
+
+  attributesToSQL(attributes: ColumnsDescription, options?: AttributeToSqlOptions): Record<string, string>;
 }
