@@ -77,7 +77,7 @@
     "@types/semver": "7.5.0",
     "@types/sinon": "10.0.15",
     "@types/sinon-chai": "3.2.9",
-    "@types/snowflake-sdk": "1.6.12",
+    "@types/snowflake-sdk": "1.6.13",
     "@types/tedious": "4.0.9",
     "@types/uuid": "9.0.2",
     "chai": "4.3.7",
