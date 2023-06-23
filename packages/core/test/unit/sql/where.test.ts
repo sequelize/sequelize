@@ -41,6 +41,10 @@ const dialectSupportsJsonOperations = () => sequelize.dialect.supports.jsonOpera
 const dialectSupportsJsonQuotedExtraction = () => sequelize.dialect.supports.jsonExtraction.quoted;
 const dialectSupportsJsonUnquotedExtraction = () => sequelize.dialect.supports.jsonExtraction.unquoted;
 
+interface SomeInterface {
+  foo: string;
+}
+
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
   declare intAttr2: number;
@@ -65,6 +69,7 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare aliasedJsonbAttr: object;
 
   declare jsonWithSpecificTypeAttr: { foo: string };
+  declare jsonWithSpecificType2Attr: SomeInterface;
 
   declare uuidAttr: string;
 }
@@ -94,6 +99,7 @@ TestModel.init({
     jsonAttr: { type: DataTypes.JSON },
     aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
     jsonWithSpecificTypeAttr: { type: DataTypes.JSON },
+    jsonWithSpecificType2Attr: { type: DataTypes.JSON },
   }),
 
   ...(dialectSupportsJsonB() && {
@@ -1272,6 +1278,19 @@ Caused by: "undefined" cannot be escaped`),
           jsonWithSpecificTypeAttr: { [Op.contains]: { bad: 'bad' } },
         }, {
           postgres: '"jsonWithSpecificTypeAttr" @> \'{"bad":"bad"}\'',
+        });
+
+        testSql({
+          jsonWithSpecificType2Attr: { [Op.contains]: { foo: 'bar' } },
+        }, {
+          postgres: '"jsonWithSpecificType2Attr" @> \'{"foo":"bar"}\'',
+        });
+
+        testSql({
+          // @ts-expect-error -- key `bad` isn't known
+          jsonWithSpecificType2Attr: { [Op.contains]: { bad: 'bad' } },
+        }, {
+          postgres: '"jsonWithSpecificType2Attr" @> \'{"bad":"bad"}\'',
         });
       });
     }

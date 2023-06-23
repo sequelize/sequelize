@@ -383,7 +383,7 @@ export interface WhereOperators<AttributeType = any> {
     // RANGE @> ELEMENT
     | AttributeType extends Range<infer RangeType> ? OperatorValues<OperatorValues<NonNullable<RangeType>>> : never
     // jsonb @> ELEMENT
-    | AttributeType extends Record<string, unknown> ? OperatorValues<Partial<AttributeType>> : never
+    | AttributeType extends object ? OperatorValues<Partial<AttributeType>> : never
     // ARRAY @> ARRAY ; RANGE @> RANGE
     | WhereOperators<AttributeType>[typeof Op.overlap];
 
