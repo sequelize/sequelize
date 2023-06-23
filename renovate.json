@@ -8,11 +8,11 @@
   "automergeStrategy": "squash",
   "semanticCommitType": "meta",
   "ignorePaths": ["dev/**/oldest/docker-compose.yml"],
-  "platformAutomerge": true,
   "packageRules": [
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest", "lockFileMaintenance"],
-      "automerge": true
+      "automerge": true,
+      "platformAutomerge": true,
     }
   ]
 }
