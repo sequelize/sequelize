@@ -1,8 +1,11 @@
+import { randomBytes } from 'node:crypto';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { ColumnsDescription } from '../abstract/query-interface.types';
 import { MySqlQueryGenerator } from '../mysql/query-generator';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -11,8 +14,31 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
+  createSchemaQuery(): string {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
+  dropSchemaQuery(): string {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
+  listSchemasQuery(): string {
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)})`;
+  }
+
+  describeCreateTableQuery(tableName: TableNameOrModel) {
+    return `SELECT sql FROM sqlite_master WHERE tbl_name = ${this.escapeTable(tableName)};`;
+  }
+
+  showConstraintsQuery(tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions) {
+    return joinSQLFragments([
+      'SELECT sql FROM sqlite_master',
+      `WHERE tbl_name = ${this.escapeTable(tableName)}`,
+    ]);
   }
 
   showIndexesQuery(tableName: TableNameOrModel) {
@@ -72,7 +98,28 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     ]);
   }
 
-  escapeTable(tableName: TableNameOrModel): string {
+  _replaceTableQuery(tableName: TableNameOrModel, attributes: ColumnsDescription, createTableSql?: string) {
+    const table = this.extractTableDetails(tableName);
+    const backupTable = this.extractTableDetails(`${table.tableName}_${randomBytes(8).toString('hex')}`, table);
+    const quotedTableName = this.quoteTable(table);
+    const quotedBackupTableName = this.quoteTable(backupTable);
+
+    const tableAttributes = this.attributesToSQL(attributes);
+    const attributeNames = Object.keys(tableAttributes).map(attr => this.quoteIdentifier(attr)).join(', ');
+
+    const backupTableSql = createTableSql
+      ? `${createTableSql.replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)};`
+      : this.createTableQuery(backupTable, tableAttributes);
+
+    return joinSQLFragments([
+      backupTableSql,
+      `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`,
+      `DROP TABLE ${quotedTableName};`,
+      `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`,
+    ]);
+  }
+
+  private escapeTable(tableName: TableNameOrModel): string {
     const table = this.extractTableDetails(tableName);
 
     if (table.schema) {
@@ -80,6 +127,9 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     }
 
     return this.escape(table.tableName);
+  }
 
+  versionQuery() {
+    return 'SELECT sqlite_version() as `version`';
   }
 }

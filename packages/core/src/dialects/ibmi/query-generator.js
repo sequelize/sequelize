@@ -28,12 +28,6 @@ const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
-
-  // Version queries
-  versionQuery() {
-    return 'SELECT CONCAT(OS_VERSION, CONCAT(\'.\', OS_RELEASE)) AS VERSION FROM SYSIBMADM.ENV_SYS_INFO';
-  }
-
   // Schema queries
   createSchemaQuery(schema, options) {
     if (options) {
@@ -356,12 +350,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return `CREATE${options.unique ? ' UNIQUE' : ''} INDEX ${schema ? ` ${schema}.` : ''}${this.quoteIdentifiers(options.name)} ON ${tableName} (${fieldsSql.join(', ')}${options.operator ? ` ${options.operator}` : ''})${options.where ? ` ${options.where}` : ''}`;
   }
 
-  addConstraintQuery(tableName, options) {
-    const query = super.addConstraintQuery(tableName, options);
-
-    return query.replace(/;$/, '');
-  }
-
   updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
     const out = super.updateQuery(tableName, attrValueHash, where, options, columnDefinitions);
 
@@ -461,33 +449,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     return fragment;
-  }
-
-  // Indexes and constraints
-
-  showConstraintsQuery(table, constraintName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-
-    let sql = [
-      'SELECT CONSTRAINT_NAME AS "constraintName",',
-      'CONSTRAINT_SCHEMA AS "constraintSchema",',
-      'CONSTRAINT_TYPE AS "constraintType",',
-      'TABLE_NAME AS "tableName",',
-      'TABLE_SCHEMA AS "tableSchema"',
-      'from QSYS2.SYSCST',
-      `WHERE table_name='${tableName}'`,
-    ].join(' ');
-
-    if (constraintName) {
-      sql += ` AND CONSTRAINT_NAME = '${constraintName}'`;
-    }
-
-    if (schemaName) {
-      sql += ` AND TABLE_SCHEMA = '${schemaName}'`;
-    }
-
-    return sql;
   }
 
   // bindParam(bind) {

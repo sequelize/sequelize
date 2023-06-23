@@ -747,133 +747,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return _.compact(ind).join(' ');
   }
 
-  addConstraintQuery(tableName, options) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'ADD',
-      this.getConstraintSnippet(tableName, options || {}),
-      ';',
-    ]);
-  }
-
-  getConstraintSnippet(tableName, options) {
-    let constraintSnippet;
-    let constraintName;
-
-    const quotedFields = options.fields.map(field => {
-      if (typeof field === 'string') {
-        return this.quoteIdentifier(field);
-      }
-
-      if (field instanceof BaseSqlExpression) {
-        return this.formatSqlExpression(field);
-      }
-
-      if (field.attribute) {
-        field.name = field.attribute;
-      }
-
-      if (!field.name) {
-        throw new Error(`The following index field has no name: ${field}`);
-      }
-
-      return this.quoteIdentifier(field.name);
-    });
-
-    const constraintNameParts = options.name ? null : options.fields.map(field => {
-      if (typeof field === 'string') {
-        return field;
-      }
-
-      if (field instanceof BaseSqlExpression) {
-        throw new TypeError(`The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`);
-      }
-
-      if (field.attribute) {
-        return field.attribute;
-      }
-
-      return field.name;
-    });
-
-    const fieldsSqlQuotedString = quotedFields.join(', ');
-    const fieldsSqlString = constraintNameParts?.join('_');
-
-    switch (options.type.toUpperCase()) {
-      case 'UNIQUE':
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_uk`);
-        constraintSnippet = `CONSTRAINT ${constraintName} UNIQUE (${fieldsSqlQuotedString})`;
-        break;
-      case 'CHECK':
-        options.where = this.whereItemsQuery(options.where);
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_ck`);
-        constraintSnippet = `CONSTRAINT ${constraintName} CHECK (${options.where})`;
-        break;
-      case 'DEFAULT':
-        if (options.defaultValue === undefined) {
-          throw new Error('Default value must be specified for DEFAULT CONSTRAINT');
-        }
-
-        if (this.dialect.name !== 'mssql') {
-          throw new Error('Default constraints are supported only for MSSQL dialect.');
-        }
-
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_df`);
-        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, options)}) FOR ${quotedFields[0]}`;
-        break;
-      case 'PRIMARY KEY':
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_pk`);
-        constraintSnippet = `CONSTRAINT ${constraintName} PRIMARY KEY (${fieldsSqlQuotedString})`;
-        break;
-      case 'FOREIGN KEY': {
-        const references = options.references;
-        if (!references || !references.table || !(references.field || references.fields)) {
-          throw new Error('references object with table and field must be specified');
-        }
-
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_${references.table}_fk`);
-        const quotedReferences
-          = typeof references.field !== 'undefined'
-          ? this.quoteIdentifier(references.field)
-          : references.fields.map(f => this.quoteIdentifier(f)).join(', ');
-        const referencesSnippet = `${this.quoteTable(references.table)} (${quotedReferences})`;
-        constraintSnippet = `CONSTRAINT ${constraintName} `;
-        constraintSnippet += `FOREIGN KEY (${fieldsSqlQuotedString}) REFERENCES ${referencesSnippet}`;
-        if (options.onUpdate) {
-          if (!this.dialect.supports.constraints.onUpdate) {
-            throw new Error(`Constraint onUpdate is not supported by ${this.dialect.name}`);
-          }
-
-          constraintSnippet += ` ON UPDATE ${options.onUpdate.toUpperCase()}`;
-        }
-
-        if (options.onDelete) {
-          constraintSnippet += ` ON DELETE ${options.onDelete.toUpperCase()}`;
-        }
-
-        break;
-      }
-
-      default: throw new Error(`${options.type} is invalid.`);
-    }
-
-    if (options.deferrable && ['UNIQUE', 'PRIMARY KEY', 'FOREIGN KEY'].includes(options.type.toUpperCase())) {
-      constraintSnippet += ` ${this.deferConstraintsQuery(options)}`;
-    }
-
-    return constraintSnippet;
-  }
-
-  removeConstraintQuery(tableName, constraintName) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP CONSTRAINT',
-      this.quoteIdentifier(constraintName),
-    ]);
-  }
-
   /*
     Quote an object based on its type. This is a more general version of quoteIdentifiers
     Strings: should proxy to quoteIdentifiers
@@ -2245,6 +2118,71 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       return result;
     }, []);
   }
-}
 
-Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/transaction'));
+  /**
+   * Returns a query that sets the transaction isolation level.
+   *
+   * @param  {string} value   The isolation level.
+   * @param  {object} options An object with options.
+   * @returns {string}         The generated sql query.
+   * @private
+   */
+  setIsolationLevelQuery(value, options) {
+    if (options.parent) {
+      return;
+    }
+
+    return `SET TRANSACTION ISOLATION LEVEL ${value};`;
+  }
+
+  generateTransactionId() {
+    return crypto.randomUUID();
+  }
+
+  /**
+   * Returns a query that starts a transaction.
+   *
+   * @param  {Transaction} transaction
+   * @returns {string}         The generated sql query.
+   * @private
+   */
+  startTransactionQuery(transaction) {
+    if (transaction.parent) {
+      // force quoting of savepoint identifiers for postgres
+      return `SAVEPOINT ${this.quoteIdentifier(transaction.name, true)};`;
+    }
+
+    return 'START TRANSACTION;';
+  }
+
+  /**
+   * Returns a query that commits a transaction.
+   *
+   * @param  {Transaction} transaction An object with options.
+   * @returns {string}         The generated sql query.
+   * @private
+   */
+  commitTransactionQuery(transaction) {
+    if (transaction.parent) {
+      return;
+    }
+
+    return 'COMMIT;';
+  }
+
+  /**
+   * Returns a query that rollbacks a transaction.
+   *
+   * @param  {Transaction} transaction
+   * @returns {string}         The generated sql query.
+   * @private
+   */
+  rollbackTransactionQuery(transaction) {
+    if (transaction.parent) {
+      // force quoting of savepoint identifiers for postgres
+      return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(transaction.name, true)};`;
+    }
+
+    return 'ROLLBACK;';
+  }
+}

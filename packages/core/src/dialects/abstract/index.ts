@@ -8,6 +8,7 @@ import type { AbstractConnectionManager } from './connection-manager.js';
 import type { AbstractDataType } from './data-types.js';
 import * as BaseDataTypes from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
+import type { AbstractQueryInterface } from './query-interface.js';
 import type { AbstractQuery } from './query.js';
 
 export interface SupportableNumericOptions {
@@ -108,8 +109,11 @@ export type DialectSupports = {
   },
   constraints: {
     restrict: boolean,
-    addConstraint: boolean,
-    dropConstraint: boolean,
+    /**
+     * This dialect supports marking a column's constraints as deferrable.
+     * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
+     */
+    deferrable: boolean,
     unique: boolean,
     default: boolean,
     check: boolean,
@@ -118,6 +122,12 @@ export type DialectSupports = {
     foreignKeyChecksDisableable: boolean,
     primaryKey: boolean,
     onUpdate: boolean,
+    add: boolean,
+    remove: boolean,
+    removeOptions: {
+      cascade: boolean,
+      ifExists: boolean,
+    },
   },
   index: {
     collate: boolean,
@@ -202,12 +212,6 @@ export type DialectSupports = {
   indexHints: boolean,
   searchPath: boolean,
   /**
-   * This dialect supports marking a column's constraints as deferrable.
-   * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
-   */
-  deferrableConstraints: boolean,
-
-  /**
    * This dialect supports E-prefixed strings, e.g. "E'foo'", which
    * enables the ability to use backslash escapes inside of the string.
    */
@@ -277,8 +281,7 @@ export abstract class AbstractDialect {
     },
     constraints: {
       restrict: true,
-      addConstraint: true,
-      dropConstraint: true,
+      deferrable: false,
       unique: true,
       default: false,
       check: true,
@@ -286,6 +289,12 @@ export abstract class AbstractDialect {
       foreignKeyChecksDisableable: false,
       primaryKey: true,
       onUpdate: true,
+      add: true,
+      remove: true,
+      removeOptions: {
+        cascade: false,
+        ifExists: false,
+      },
     },
     index: {
       collate: true,
@@ -341,7 +350,6 @@ export abstract class AbstractDialect {
     },
     REGEXP: false,
     IREGEXP: false,
-    deferrableConstraints: false,
     tmpTableTrigger: false,
     indexHints: false,
     searchPath: false,
@@ -369,6 +377,7 @@ export abstract class AbstractDialect {
   abstract readonly TICK_CHAR_LEFT: string;
   abstract readonly TICK_CHAR_RIGHT: string;
   abstract readonly queryGenerator: AbstractQueryGenerator;
+  abstract readonly queryInterface: AbstractQueryInterface;
   abstract readonly connectionManager: AbstractConnectionManager<any>;
   abstract readonly dataTypesDocumentationUrl: string;
 

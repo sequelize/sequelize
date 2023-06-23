@@ -1,7 +1,6 @@
 'use strict';
 
 import isPlainObject from 'lodash/isPlainObject';
-import { removeTicks } from '../../utils/dialect';
 
 const _ = require('lodash');
 const { AbstractQuery } = require('../abstract/query');
@@ -80,11 +79,6 @@ export class SqliteQuery extends AbstractQuery {
     }
 
     if (this.isShowConstraintsQuery()) {
-      result = results;
-      if (results && results[0] && results[0].sql) {
-        result = this.parseConstraintsFromSql(results[0].sql);
-      }
-
       return result;
     }
 
@@ -153,10 +147,6 @@ export class SqliteQuery extends AbstractQuery {
 
     if ([QueryTypes.BULKUPDATE, QueryTypes.BULKDELETE].includes(this.options.type)) {
       return metaData.changes;
-    }
-
-    if (this.options.type === QueryTypes.VERSION) {
-      return results[0].version;
     }
 
     if (this.options.type === QueryTypes.RAW) {
@@ -289,57 +279,6 @@ export class SqliteQuery extends AbstractQuery {
         });
       });
     });
-  }
-
-  // TODO [>7]: remove usages of replaceAll('`', '') in favor of something that does not mishandle backticks
-  parseConstraintsFromSql(sql) {
-    let constraints = sql.split('CONSTRAINT ');
-    let referenceTableName; let referenceTableKeys; let updateAction; let deleteAction;
-    constraints.splice(0, 1);
-    constraints = constraints.map(constraintSql => {
-      // Parse foreign key snippets
-      if (constraintSql.includes('REFERENCES')) {
-        // Parse out the constraint condition form sql string
-        updateAction = constraintSql.match(/ON UPDATE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT)/);
-        deleteAction = constraintSql.match(/ON DELETE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT)/);
-
-        if (updateAction) {
-          updateAction = updateAction[1];
-        }
-
-        if (deleteAction) {
-          deleteAction = deleteAction[1];
-        }
-
-        const referencesRegex = /REFERENCES.+\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/;
-        const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
-        referenceTableName = referenceConditions[1].replaceAll('`', '');
-        let columnNames = referenceConditions[2];
-        columnNames = columnNames.replaceAll(/\(|\)/g, '').split(', ');
-        referenceTableKeys = columnNames.map(column => column.replaceAll('`', ''));
-      }
-
-      const constraintCondition = constraintSql.match(/\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/)[0];
-      constraintSql = constraintSql.replace(/\(.+\)/, '');
-      const constraint = constraintSql.split(' ');
-
-      if (['PRIMARY', 'FOREIGN'].includes(constraint[1])) {
-        constraint[1] += ' KEY';
-      }
-
-      return {
-        constraintName: constraint[0].replaceAll('`', ''),
-        constraintType: constraint[1],
-        updateAction,
-        deleteAction,
-        sql: sql.replaceAll('"', '`'), // Sqlite returns double quotes for table name
-        constraintCondition,
-        referenceTableName,
-        referenceTableKeys,
-      };
-    });
-
-    return constraints;
   }
 
   formatError(err) {

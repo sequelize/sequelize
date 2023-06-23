@@ -82,10 +82,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
-  versionQuery() {
-    return 'select service_level as VERSION from TABLE (sysproc.env_get_inst_info()) as A';
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -322,24 +318,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       before: this.quoteIdentifier(attrBefore),
       after: this.quoteIdentifier(newName),
     });
-  }
-
-  addConstraintQuery(tableName, options) {
-    options = options || {};
-    if (options.onUpdate && options.onUpdate.toUpperCase() === 'CASCADE') {
-      // Db2 does not support ON UPDATE CASCADE, remove it.
-      delete options.onUpdate;
-    }
-
-    const constraintSnippet = this.getConstraintSnippet(tableName, options);
-
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
-
-    return `ALTER TABLE ${tableName} ADD ${constraintSnippet};`;
   }
 
   bulkInsertQuery(tableName, attrValueHashes, options, attributes) {
@@ -598,16 +576,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     return super.addIndexQuery(tableName, attributes, options, rawTablename);
-  }
-
-  showConstraintsQuery(tableName, constraintName) {
-    let sql = `SELECT CONSTNAME AS "constraintName", TRIM(TABSCHEMA) AS "schemaName", TABNAME AS "tableName" FROM SYSCAT.TABCONST WHERE TABNAME = '${tableName}'`;
-
-    if (constraintName) {
-      sql += ` AND CONSTNAME LIKE '%${constraintName}%'`;
-    }
-
-    return `${sql} ORDER BY CONSTNAME;`;
   }
 
   attributeToSQL(attribute, options) {

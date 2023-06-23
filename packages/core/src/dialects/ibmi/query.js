@@ -129,10 +129,6 @@ export class IBMiQuery extends AbstractQuery {
       return data.count;
     }
 
-    if (this.isVersionQuery()) {
-      return data[0].VERSION;
-    }
-
     if (this.isForeignKeysQuery()) {
       return data;
     }

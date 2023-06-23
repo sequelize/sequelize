@@ -255,10 +255,6 @@ export class PostgresQuery extends AbstractQuery {
       return result;
     }
 
-    if (this.isVersionQuery()) {
-      return rows[0].server_version;
-    }
-
     if (this.isShowOrDescribeQuery()) {
       return rows;
     }
@@ -311,6 +307,10 @@ export class PostgresQuery extends AbstractQuery {
         this.instance || rows && (this.options.plain && rows[0] || rows) || undefined,
         rowCount,
       ];
+    }
+
+    if (this.isShowConstraintsQuery()) {
+      return rows;
     }
 
     if (this.isRawQuery()) {

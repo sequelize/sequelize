@@ -90,10 +90,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
-  versionQuery() {
-    return 'SHOW SERVER_VERSION';
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -329,23 +325,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `DELETE FROM ${table}${whereClause}`;
   }
 
-  showConstraintsQuery(tableName) {
-    // Postgres converts camelCased alias to lowercase unless quoted
-    return [
-      'SELECT constraint_catalog AS "constraintCatalog",',
-      'constraint_schema AS "constraintSchema",',
-      'constraint_name AS "constraintName",',
-      'table_catalog AS "tableCatalog",',
-      'table_schema AS "tableSchema",',
-      'table_name AS "tableName",',
-      'constraint_type AS "constraintType",',
-      'is_deferrable AS "isDeferrable",',
-      'initially_deferred AS "initiallyDeferred"',
-      'from INFORMATION_SCHEMA.table_constraints',
-      `WHERE table_name=${this.escape(tableName)};`,
-    ].join(' ');
-  }
-
   addLimitAndOffset(options) {
     let fragment = '';
     if (options.limit != null) {
@@ -451,7 +430,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         }
 
         if (attribute.references.deferrable) {
-          sql += ` ${attribute.references.deferrable.toSql(this)}`;
+          sql += ` ${this._getDeferrableConstraintSnippet(attribute.references.deferrable)}`;
         }
       }
     }
@@ -469,28 +448,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return sql;
-  }
-
-  deferConstraintsQuery(options) {
-    return options.deferrable.toSql(this);
-  }
-
-  setConstraintQuery(columns, type) {
-    let columnFragment = 'ALL';
-
-    if (columns?.length) {
-      columnFragment = columns.map(column => this.quoteIdentifier(column)).join(', ');
-    }
-
-    return `SET CONSTRAINTS ${columnFragment} ${type}`;
-  }
-
-  setDeferredQuery(columns) {
-    return this.setConstraintQuery(columns, 'DEFERRED');
-  }
-
-  setImmediateQuery(columns) {
-    return this.setConstraintQuery(columns, 'IMMEDIATE');
   }
 
   attributesToSQL(attributes, options) {

@@ -6,6 +6,7 @@ import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -47,6 +48,43 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `AND prop.name = 'MS_Description'`,
       `WHERE t.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND t.TABLE_SCHEMA = ${this.escape(table.schema!)}`,
+    ]);
+  }
+
+  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT DB_NAME() AS constraintCatalog,',
+      's.[name] AS constraintSchema,',
+      'c.constraintName,',
+      `REPLACE(LEFT(c.constraintType, CHARINDEX('_CONSTRAINT', c.constraintType) - 1), '_', ' ') AS constraintType,`,
+      'DB_NAME() AS tableCatalog,',
+      's.[name] AS tableSchema,',
+      't.[name] AS tableName,',
+      'c.columnNames,',
+      'c.referencedTableName,',
+      'c.referencedColumnNames,',
+      'c.deleteAction,',
+      'c.updateAction,',
+      'c.definition',
+      'FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id',
+      'INNER JOIN (',
+      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null AS referencedTableName',
+      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, null AS definition FROM sys.key_constraints UNION ALL',
+      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null AS referencedTableName',
+      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.check_constraints c UNION ALL',
+      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null AS referencedTableName',
+      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.default_constraints UNION ALL',
+      'SELECT k.[name] AS constraintName, k.[type_desc] AS constraintType, k.[parent_object_id] AS constraintTableId, fcol.[name] AS columnNames',
+      ', OBJECT_NAME(k.[referenced_object_id]) AS referencedTableName, rcol.[name] AS referencedColumnNames, k.[delete_referential_action_desc] AS deleteAction',
+      ', k.[update_referential_action_desc] AS updateAction, null AS definition FROM sys.foreign_keys k INNER JOIN sys.foreign_key_columns c ON k.[object_id] = c.constraint_object_id',
+      'INNER JOIN sys.columns fcol ON c.parent_column_id = fcol.column_id AND c.parent_object_id = fcol.object_id',
+      'INNER JOIN sys.columns rcol ON c.referenced_column_id = rcol.column_id AND c.referenced_object_id = rcol.object_id',
+      ') c ON t.object_id = c.constraintTableId',
+      `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
+      options?.constraintName ? `AND c.constraintName = ${this.escape(options.constraintName)}` : '',
+      'ORDER BY c.constraintName',
     ]);
   }
 
@@ -144,5 +182,12 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
     return `JSON_VALUE(${this.escape(arg, options)})`;
+  }
+
+  versionQuery() {
+    // Uses string manipulation to convert the MS Maj.Min.Patch.Build to semver Maj.Min.Patch
+    return `DECLARE @ms_ver NVARCHAR(20);
+SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion')));
+SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
   }
 }

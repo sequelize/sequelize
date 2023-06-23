@@ -12,6 +12,7 @@ const ER_DUP_ENTRY = 1062;
 const ER_DEADLOCK = 1213;
 const ER_ROW_IS_REFERENCED = 1451;
 const ER_NO_REFERENCED_ROW = 1452;
+const ER_CANT_DROP_FIELD_OR_KEY = 1091;
 
 const debug = logger.debugContext('sql:mariadb');
 
@@ -143,7 +144,11 @@ export class MariaDbQuery extends AbstractQuery {
       return this.handleShowIndexesQuery(data);
     }
 
-    if (this.isForeignKeysQuery() || this.isShowConstraintsQuery()) {
+    if (this.isForeignKeysQuery()) {
+      return data;
+    }
+
+    if (this.isShowConstraintsQuery()) {
       return data;
     }
 
@@ -168,10 +173,6 @@ export class MariaDbQuery extends AbstractQuery {
       }
 
       return result;
-    }
-
-    if (this.isVersionQuery()) {
-      return data[0].version;
     }
 
     return result;
@@ -263,6 +264,20 @@ export class MariaDbQuery extends AbstractQuery {
           fields,
           value: fields && fields.length && this.instance && this.instance[fields[0]] || undefined,
           index: match ? match[2] : undefined,
+          cause: err,
+        });
+      }
+
+      case ER_CANT_DROP_FIELD_OR_KEY: {
+        const constraintMatch = err.sql.match(/(?:constraint|index) `(.+?)`/i);
+        const constraint = constraintMatch ? constraintMatch[1] : undefined;
+        const tableMatch = err.sql.match(/table `(.+?)`/i);
+        const table = tableMatch ? tableMatch[1] : undefined;
+
+        return new sequelizeErrors.UnknownConstraintError({
+          message: err.text,
+          constraint,
+          table,
           cause: err,
         });
       }

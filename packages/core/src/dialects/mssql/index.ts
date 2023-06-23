@@ -27,6 +27,7 @@ export class MssqlDialect extends AbstractDialect {
     constraints: {
       restrict: false,
       default: true,
+      removeOptions: { ifExists: true },
     },
     index: {
       collate: false,
