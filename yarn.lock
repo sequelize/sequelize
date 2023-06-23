@@ -1469,7 +1469,7 @@ __metadata:
     "@types/tedious": 4.0.9
     "@types/uuid": 9.0.2
     "@types/validator": ^13.7.5
-    bnf-parser: 3.1.4
+    bnf-parser: 3.1.6
     chai: 4.3.7
     chai-as-promised: 7.1.1
     chai-datetime: 1.8.0
@@ -2765,10 +2765,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bnf-parser@npm:3.1.4":
-  version: 3.1.4
-  resolution: "bnf-parser@npm:3.1.4"
-  checksum: 52c7a59b64408bf7a53c979301d6855a874409583c615c7355780a38073023075f907d4d3bb4844853be8a47442a50b2ebcda1038947a60fca1725ac322b207e
+"bnf-parser@npm:3.1.6":
+  version: 3.1.6
+  resolution: "bnf-parser@npm:3.1.6"
+  checksum: 9668d266e54e888e687008941db6da16065a24e16756c9cc82a7b0f9f3c5b3269b8e9f94a503da669a7f92d73b470166cd4c985280c04cf1e5306c02cfc98687
   languageName: node
   linkType: hard
 
