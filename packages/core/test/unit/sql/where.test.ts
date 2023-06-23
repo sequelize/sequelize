@@ -64,6 +64,8 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare aliasedJsonAttr: object;
   declare aliasedJsonbAttr: object;
 
+  declare jsonWithSpecificTypeAttr: { foo: string };
+
   declare uuidAttr: string;
 }
 
@@ -91,6 +93,7 @@ TestModel.init({
   ...(dialectSupportsJson() && {
     jsonAttr: { type: DataTypes.JSON },
     aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
+    jsonWithSpecificTypeAttr: { type: DataTypes.JSON },
   }),
 
   ...(dialectSupportsJsonB() && {
@@ -1250,6 +1253,25 @@ Caused by: "undefined" cannot be escaped`),
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
         testSql({ intArrayAttr: { [Op.contains]: 1 } }, {
           default: new Error('1 is not a valid array'),
+        });
+
+        testSql({
+          jsonAttr: { [Op.contains]: { foo: 'bar' } },
+        }, {
+          postgres: '"jsonAttr" @> \'{"foo":"bar"}\'',
+        });
+
+        testSql({
+          jsonWithSpecificTypeAttr: { [Op.contains]: { foo: 'bar' } },
+        }, {
+          postgres: '"jsonWithSpecificTypeAttr" @> \'{"foo":"bar"}\'',
+        });
+
+        testSql({
+          // @ts-expect-error -- key `bad` isn't known
+          jsonWithSpecificTypeAttr: { [Op.contains]: { bad: 'bad' } },
+        }, {
+          postgres: '"jsonWithSpecificTypeAttr" @> \'{"bad":"bad"}\'',
         });
       });
     }
