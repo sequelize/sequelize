@@ -98,7 +98,8 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     ]);
   }
 
-  _replaceTableQuery(tableName: TableNameOrModel, attributes: ColumnsDescription, createTableSql?: string) {
+  // TODO: fix the attributes type
+  _replaceTableQuery(tableName: TableNameOrModel, attributes: any, createTableSql?: string) {
     const table = this.extractTableDetails(tableName);
     const backupTable = this.extractTableDetails(`${table.tableName}_${randomBytes(8).toString('hex')}`, table);
     const quotedTableName = this.quoteTable(table);
