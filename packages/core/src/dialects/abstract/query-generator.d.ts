@@ -4,13 +4,13 @@ import type { Col } from '../../expression-builders/col.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type {
   AttributeOptions,
+  CreationAttributes,
   FindOptions,
   Model,
+  ModelAttributes,
   ModelStatic,
   NormalizedAttributeOptions,
   SearchPathable,
-  ModelAttributes,
-  CreationAttributes,
 } from '../../model.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
@@ -59,17 +59,6 @@ type DeleteOptions = ParameterOptions & {
 type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>,
 };
-
-// TODO: remove tableName and schema when migrating to TypeScript in favour of a table that supports TableNameOrModel
-interface AttributeToSqlOptions extends ParameterOptions {
-  table?: TableName;
-  tableName?: string;
-  context?: 'createTable' | 'addColumn' | 'changeColumn';
-  withoutForeignKeyConstraints?: boolean;
-  schema?: string;
-  foreignKey?: string;
-  key?: string;
-}
 
 // keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateDatabaseQueryOptions {
