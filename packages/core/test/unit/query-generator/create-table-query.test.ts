@@ -197,7 +197,7 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo' }, { comment: 'Bar' }), {
       default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['comment']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo) ENGINE=InnoDB COMMENT \'Bar\';',
-      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Bar'; COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
+      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Bar'; COMMENT ON COLUMN "myTable"."myColumn" IS Foo;`,
       snowflake: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo) COMMENT 'Bar';`,
     });
   });

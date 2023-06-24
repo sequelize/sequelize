@@ -579,7 +579,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return super.addIndexQuery(tableName, attributes, options, rawTablename);
   }
 
-  attributeToSQL(attribute, options) {
+  attributeToSql(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,

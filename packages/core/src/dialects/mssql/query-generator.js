@@ -611,7 +611,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ]);
   }
 
-  attributeToSQL(attribute, options) {
+  attributeToSql(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,

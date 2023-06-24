@@ -368,7 +368,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  attributeToSQL(attribute, options) {
+  attributeToSql(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,

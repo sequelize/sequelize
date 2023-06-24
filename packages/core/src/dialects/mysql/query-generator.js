@@ -261,7 +261,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     return query;
   }
 
-  attributeToSQL(attribute, options) {
+  attributeToSql(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,

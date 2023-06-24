@@ -104,7 +104,7 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     const quotedTableName = this.quoteTable(table);
     const quotedBackupTableName = this.quoteTable(backupTable);
 
-    const tableAttributes = this.attributesToSQL(attributes);
+    const tableAttributes = this.attributesToSql(attributes);
     const attributeNames = Object.keys(tableAttributes).map(attr => this.quoteIdentifier(attr)).join(', ');
 
     const backupTableSql = createTableSql

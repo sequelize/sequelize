@@ -449,7 +449,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return sql;
   }
 
-  attributesToSQL(attributes, options) {
+  attributesToSql(attributes, options) {
     const result = {};
 
     for (const key in attributes) {

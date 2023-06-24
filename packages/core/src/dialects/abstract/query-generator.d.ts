@@ -4,10 +4,8 @@ import type { Col } from '../../expression-builders/col.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type {
   AttributeOptions,
-  CreationAttributes,
   FindOptions,
   Model,
-  ModelAttributes,
   ModelStatic,
   NormalizedAttributeOptions,
   SearchPathable,
@@ -128,7 +126,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: AttributeToSqlOptions,
   ): string;
 
-  attributesToSql<M extends Model>(
+  attributesToSql(
     // TODO: update this type based on feedback from ephys
     /**
      * Considering multiple dialects don't accept ModelAttributes here, what you want is this type:
@@ -136,9 +134,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
      *   readonly [Key in keyof Attributes<M>]: NormalizedAttributeOptions & { after?: string }
      * }
      */
-    attributes: ModelAttributes<M, CreationAttributes<M>>,
+    attributes: ColumnsDescription,
     options?: AttributeToSqlOptions,
-  ): object;
+  ): Record<string, string>;
 
   selectQuery<M extends Model>(tableName: TableName, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
@@ -217,6 +215,4 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    * @param bind A mutable object to which bind parameters will be added.
    */
   bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
-
-  attributesToSQL(attributes: ColumnsDescription, options?: AttributeToSqlOptions): Record<string, string>;
 }
