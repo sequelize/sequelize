@@ -1,5 +1,5 @@
-import type { ConnectionOptions, ModelStatic, Fn } from '@sequelize/core';
-import { Sequelize, Model, QueryTypes, Op } from '@sequelize/core';
+import type { ConnectionOptions, Fn, ModelStatic } from '@sequelize/core';
+import { Model, Op, QueryTypes, Sequelize } from '@sequelize/core';
 
 export const sequelize = new Sequelize({
   hooks: {

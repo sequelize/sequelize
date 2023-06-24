@@ -34,16 +34,6 @@ module.exports = {
     // Enable this one if you want to prevent creating throwaway objects (perf)
     'unicorn/no-object-as-default-parameter': 'off',
 
-    // sequelize 7 needs to support node >= 14.
-    // Object.hasOwn, Array#at, String#replaceAll are available in node >= 16.
-    'prefer-object-has-own': 'off',
-    'unicorn/prefer-at': 'off',
-    'unicorn/prefer-string-replace-all': 'off',
-    'consistent-return': 'off',
-
-    // This rule is incompatible with DataTypes
-    'babel/new-cap': 'off',
-
     // Too opinionated
     'unicorn/prefer-set-has': 'off',
   },
@@ -78,7 +68,7 @@ module.exports = {
       'unicorn/error-message': 'off',
       'no-implicit-coercion': 'off',
       'no-fallthrough': 'off',
-      'babel/no-invalid-this': 'off',
+      'no-invalid-this': 'off',
       'prefer-rest-params': 'off',
       'no-loss-of-precision': 'off',
 
@@ -132,7 +122,6 @@ module.exports = {
     // .ts files will need to migrate.
     files: ['packages/*/test/**/*.js'],
     rules: {
-      'babel/no-invalid-this': 'off',
       'func-names': 'off',
       'import/order': 'off',
 

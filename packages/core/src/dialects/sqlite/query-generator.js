@@ -1,11 +1,14 @@
 'use strict';
 
-import { addTicks, removeTicks } from '../../utils/dialect';
 import { removeNullishValuesFromHash } from '../../utils/format';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
@@ -13,25 +16,21 @@ const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+// TODO: add support for 'uniqueKeys' by improving the createTableQuery implementation so it also generates a CREATE UNIQUE INDEX query
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
-  createSchemaQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  dropSchemaQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  listSchemasQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  versionQuery() {
-    return 'SELECT sqlite_version() as `version`';
-  }
-
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     options = options || {};
 
     const primaryKeys = [];
@@ -39,7 +38,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const attrArray = [];
 
     for (const attr in attributes) {
-      if (Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (Object.hasOwn(attributes, attr)) {
         const dataType = attributes[attr];
         const containsAutoIncrement = dataType.includes('AUTOINCREMENT');
 
@@ -196,7 +195,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   truncateTableQuery(tableName, options = {}) {
     return [
       `DELETE FROM ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${addTicks(removeTicks(this.quoteTable(tableName), '`'), '\'')};` : '',
+      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${this.quoteTable(tableName)};` : '',
     ].join('');
   }
 
@@ -282,20 +281,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
-  showConstraintsQuery(tableName, constraintName) {
-    let sql = `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}'`;
-
-    if (constraintName) {
-      sql += ` AND sql LIKE '%${constraintName}%'`;
-    }
-
-    return `${sql};`;
-  }
-
-  describeCreateTableQuery(tableName) {
-    return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
-  }
-
   // TODO: this should not implement `removeColumnQuery` but a new sqlite specific function possibly called `replaceTableQuery`
   removeColumnQuery(tableName, attributes, options) {
     if (options) {
@@ -325,32 +310,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     return `${this.createTableQuery(backupTableName, attributes)}`
       + `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
-      + `DROP TABLE ${quotedTableName};`
-      + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
-  }
-
-  _alterConstraintQuery(tableName, attributes, createTableSql) {
-    let backupTableName;
-
-    attributes = this.attributesToSql(attributes);
-
-    if (typeof tableName === 'object') {
-      backupTableName = {
-        tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
-      };
-    } else {
-      backupTableName = `${tableName}_backup`;
-    }
-
-    const quotedTableName = this.quoteTable(tableName);
-    const quotedBackupTableName = this.quoteTable(backupTableName);
-    const attributeNames = Object.keys(attributes).map(attr => this.quoteIdentifier(attr)).join(', ');
-
-    return `${createTableSql
-      .replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)
-      .replace(`CREATE TABLE ${quotedTableName.replace(/`/g, '"')}`, `CREATE TABLE ${quotedBackupTableName}`)
-    }INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
       + `DROP TABLE ${quotedTableName};`
       + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
   }
@@ -408,18 +367,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   replaceBooleanDefaults(sql) {
-    return sql.replace(/DEFAULT '?false'?/g, 'DEFAULT 0').replace(/DEFAULT '?true'?/g, 'DEFAULT 1');
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {TableName} tableName  The name of the table.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(tableName) {
-    return `PRAGMA foreign_key_list(${this.quoteTable(tableName)})`;
+    return sql.replaceAll(/DEFAULT '?false'?/g, 'DEFAULT 0').replaceAll(/DEFAULT '?true'?/g, 'DEFAULT 1');
   }
 
   tableExistsQuery(tableName) {

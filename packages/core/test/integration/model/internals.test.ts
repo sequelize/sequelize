@@ -14,6 +14,10 @@ describe('setTransactionFromCls', () => {
     return { sequelize };
   });
 
+  after(async () => {
+    return vars.sequelize.close();
+  });
+
   it('sets the transaction & connection if they exists in CLS', async () => {
     const { sequelize } = vars;
 

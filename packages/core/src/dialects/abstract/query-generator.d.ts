@@ -3,11 +3,11 @@
 import type { Col } from '../../expression-builders/col.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type {
-  NormalizedAttributeOptions,
+  AttributeOptions,
   FindOptions,
   Model,
-  AttributeOptions,
   ModelStatic,
+  NormalizedAttributeOptions,
   SearchPathable,
   ModelAttributes,
   CreationAttributes,
@@ -15,8 +15,9 @@ import type {
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
-import type { QueryWithBindParams } from './query-generator.types.js';
+import type { AttributeToSqlOptions, QueryWithBindParams } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
+import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 type ParameterOptions = {
@@ -85,6 +86,7 @@ export interface CreateSchemaQueryOptions {
   charset?: string;
 }
 
+// keep CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateTableQueryOptions {
   collate?: string;
   charset?: string;
@@ -129,8 +131,6 @@ export interface RemoveColumnQueryOptions {
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   constructor(options: QueryGeneratorOptions);
 
-  setImmediateQuery(constraints: string[]): string;
-  setDeferredQuery(constraints: string[]): string;
   generateTransactionId(): string;
   quoteIdentifiers(identifiers: string): string;
 
@@ -206,7 +206,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     tableName: TableNameOrModel,
     // TODO: rename attributes to columns and accept a map of attributes in the implementation when migrating to TS, see https://github.com/sequelize/sequelize/pull/15526/files#r1143840411
     columns: { [columnName: string]: string },
-    // TODO: throw when using invalid options when migrating to TS
     options?: CreateTableQueryOptions
   ): string;
   dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string;
@@ -223,14 +222,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   dropForeignKeyQuery(tableName: TableNameOrModel, foreignKey: string): string;
 
-  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string): string;
-
-  versionQuery(): string;
-
   /**
    * Creates a function that can be used to collect bind parameters.
    *
    * @param bind A mutable object to which bind parameters will be added.
    */
   bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
+
+  attributesToSQL(attributes: ColumnsDescription, options?: AttributeToSqlOptions): Record<string, string>;
 }

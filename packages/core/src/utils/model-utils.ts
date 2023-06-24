@@ -1,4 +1,4 @@
-import type { ModelStatic, Model } from '../model';
+import type { Model, ModelStatic } from '../model';
 
 /**
  * Returns true if the value is a model subclass.

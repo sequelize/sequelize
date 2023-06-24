@@ -7,10 +7,7 @@ import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
 import { rejectInvalidOptions } from '../../utils/check';
-import {
-  mapFinderOptions,
-  removeNullishValuesFromHash,
-} from '../../utils/format';
+import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { nameIndex, spliceStr } from '../../utils/string';
@@ -40,6 +37,7 @@ const { _validateIncludedElements } = require('../../model-internals');
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
 export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
 export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS = new Set(['skip']);
+export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'engine', 'rowFormat', 'comment', 'initialAutoIncrement', 'uniqueKeys']);
 export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['cascade']);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
 export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
@@ -183,7 +181,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
     for (const key in valueHash) {
-      if (Object.prototype.hasOwnProperty.call(valueHash, key)) {
+      if (Object.hasOwn(valueHash, key)) {
         // if value is undefined, we replace it with null
         const value = valueHash[key] ?? null;
         fields.push(this.quoteIdentifier(key));
@@ -291,7 +289,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         returningModelAttributes.push('*');
       }
 
-      const delimiter = `$func_${crypto.randomUUID().replace(/-/g, '')}$`;
+      const delimiter = `$func_${crypto.randomUUID().replaceAll('-', '')}$`;
       const selectQuery = `SELECT (testfunc.response).${returningModelAttributes.join(', (testfunc.response).')}, testfunc.sequelize_caught_exception FROM pg_temp.testfunc();`;
 
       options.exception = 'WHEN unique_violation THEN GET STACKED DIAGNOSTICS sequelize_caught_exception = PG_EXCEPTION_DETAIL;';
@@ -627,7 +625,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     options.prefix = options.prefix || rawTablename || tableName;
     if (options.prefix && typeof options.prefix === 'string') {
-      options.prefix = options.prefix.replace(/\./g, '_');
+      options.prefix = options.prefix.replaceAll('.', '_');
     }
 
     const fieldsSql = options.fields.map(field => {
@@ -747,133 +745,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     );
 
     return _.compact(ind).join(' ');
-  }
-
-  addConstraintQuery(tableName, options) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'ADD',
-      this.getConstraintSnippet(tableName, options || {}),
-      ';',
-    ]);
-  }
-
-  getConstraintSnippet(tableName, options) {
-    let constraintSnippet;
-    let constraintName;
-
-    const quotedFields = options.fields.map(field => {
-      if (typeof field === 'string') {
-        return this.quoteIdentifier(field);
-      }
-
-      if (field instanceof BaseSqlExpression) {
-        return this.formatSqlExpression(field);
-      }
-
-      if (field.attribute) {
-        field.name = field.attribute;
-      }
-
-      if (!field.name) {
-        throw new Error(`The following index field has no name: ${field}`);
-      }
-
-      return this.quoteIdentifier(field.name);
-    });
-
-    const constraintNameParts = options.name ? null : options.fields.map(field => {
-      if (typeof field === 'string') {
-        return field;
-      }
-
-      if (field instanceof BaseSqlExpression) {
-        throw new TypeError(`The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`);
-      }
-
-      if (field.attribute) {
-        return field.attribute;
-      }
-
-      return field.name;
-    });
-
-    const fieldsSqlQuotedString = quotedFields.join(', ');
-    const fieldsSqlString = constraintNameParts?.join('_');
-
-    switch (options.type.toUpperCase()) {
-      case 'UNIQUE':
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_uk`);
-        constraintSnippet = `CONSTRAINT ${constraintName} UNIQUE (${fieldsSqlQuotedString})`;
-        break;
-      case 'CHECK':
-        options.where = this.whereItemsQuery(options.where);
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_ck`);
-        constraintSnippet = `CONSTRAINT ${constraintName} CHECK (${options.where})`;
-        break;
-      case 'DEFAULT':
-        if (options.defaultValue === undefined) {
-          throw new Error('Default value must be specified for DEFAULT CONSTRAINT');
-        }
-
-        if (this.dialect.name !== 'mssql') {
-          throw new Error('Default constraints are supported only for MSSQL dialect.');
-        }
-
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_df`);
-        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, options)}) FOR ${quotedFields[0]}`;
-        break;
-      case 'PRIMARY KEY':
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_pk`);
-        constraintSnippet = `CONSTRAINT ${constraintName} PRIMARY KEY (${fieldsSqlQuotedString})`;
-        break;
-      case 'FOREIGN KEY': {
-        const references = options.references;
-        if (!references || !references.table || !(references.field || references.fields)) {
-          throw new Error('references object with table and field must be specified');
-        }
-
-        constraintName = this.quoteIdentifier(options.name || `${tableName}_${fieldsSqlString}_${references.table}_fk`);
-        const quotedReferences
-          = typeof references.field !== 'undefined'
-          ? this.quoteIdentifier(references.field)
-          : references.fields.map(f => this.quoteIdentifier(f)).join(', ');
-        const referencesSnippet = `${this.quoteTable(references.table)} (${quotedReferences})`;
-        constraintSnippet = `CONSTRAINT ${constraintName} `;
-        constraintSnippet += `FOREIGN KEY (${fieldsSqlQuotedString}) REFERENCES ${referencesSnippet}`;
-        if (options.onUpdate) {
-          if (!this.dialect.supports.constraints.onUpdate) {
-            throw new Error(`Constraint onUpdate is not supported by ${this.dialect.name}`);
-          }
-
-          constraintSnippet += ` ON UPDATE ${options.onUpdate.toUpperCase()}`;
-        }
-
-        if (options.onDelete) {
-          constraintSnippet += ` ON DELETE ${options.onDelete.toUpperCase()}`;
-        }
-
-        break;
-      }
-
-      default: throw new Error(`${options.type} is invalid.`);
-    }
-
-    if (options.deferrable && ['UNIQUE', 'PRIMARY KEY', 'FOREIGN KEY'].includes(options.type.toUpperCase())) {
-      constraintSnippet += ` ${this.deferConstraintsQuery(options)}`;
-    }
-
-    return constraintSnippet;
-  }
-
-  removeConstraintQuery(tableName, constraintName) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP CONSTRAINT',
-      this.quoteIdentifier(constraintName),
-    ]);
   }
 
   /*
@@ -1081,7 +952,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       identifiers = identifiers.split('.');
 
       const head = identifiers.slice(0, -1).join('->');
-      const tail = identifiers[identifiers.length - 1];
+      const tail = identifiers.at(-1);
 
       return `${this.quoteIdentifier(head)}.${tail === '*' ? '*' : this.quoteIdentifier(tail)}`;
     }
@@ -1335,7 +1206,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Add WHERE to sub or main query
-    if (Object.prototype.hasOwnProperty.call(options, 'where') && !options.groupedLimit) {
+    if (Object.hasOwn(options, 'where') && !options.groupedLimit) {
       options.where = this.whereItemsQuery(options.where, {
         ...options,
         model,
@@ -1371,7 +1242,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Add HAVING to sub or main query
-    if (Object.prototype.hasOwnProperty.call(options, 'having')) {
+    if (Object.hasOwn(options, 'having')) {
       options.having = this.whereItemsQuery(options.having, {
         ...options,
         model,
@@ -1550,7 +1421,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         if (verbatim === true) {
           prefix = attr;
         } else if (/#>>|->>/.test(attr)) {
-          prefix = `(${this.quoteIdentifier(includeAs.internalAs)}.${attr.replace(/\(|\)/g, '')})`;
+          prefix = `(${this.quoteIdentifier(includeAs.internalAs)}.${attr.replaceAll(/\(|\)/g, '')})`;
         } else if (/json_extract\(/.test(attr)) {
           prefix = attr.replace(/json_extract\(/i, `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`);
         } else {
@@ -1750,7 +1621,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           subqueryAttributes.push(dbIdentifier !== joinOn ? `${dbIdentifier} AS ${this.quoteIdentifier(attrNameLeft)}` : dbIdentifier);
         }
       } else {
-        const joinSource = `${asLeft.replace(/->/g, '.')}.${attrNameLeft}`;
+        const joinSource = `${asLeft.replaceAll('->', '.')}.${attrNameLeft}`;
 
         // Check for potential aliased JOIN condition
         joinOn = this._getAliasForField(asLeft, joinSource, topLevelInfo.options) || this.quoteIdentifier(joinSource);
@@ -2172,13 +2043,27 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const asPart = extraInfo.as && `as ${extraInfo.as}` || '';
     const namePart = extraInfo.modelName && `for model '${extraInfo.modelName}'` || '';
     const message = `Attempted a SELECT query ${namePart} ${asPart} without selecting any columns`;
-    throw new sequelizeError.QueryError(message.replace(/ +/g, ' '));
+    throw new sequelizeError.QueryError(message.replaceAll(/ +/g, ' '));
+  }
+
+  _validateSelectOptions(options) {
+    if (options.maxExecutionTimeHintMs != null && !this.dialect.supports.maxExecutionTimeHint.select) {
+      throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
+    }
+  }
+
+  _getBeforeSelectAttributesFragment(_options) {
+    return '';
   }
 
   selectFromTableFragment(options, model, attributes, tables, mainTableAs) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
 
-    let fragment = `SELECT ${attributes.join(', ')} FROM ${tables}`;
+    this._validateSelectOptions(options);
+
+    let fragment = 'SELECT';
+    fragment += this._getBeforeSelectAttributesFragment(options);
+    fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
     if (mainTableAs) {
       fragment += ` AS ${mainTableAs}`;
@@ -2233,6 +2118,71 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       return result;
     }, []);
   }
-}
 
-Object.assign(AbstractQueryGenerator.prototype, require('./query-generator/transaction'));
+  /**
+   * Returns a query that sets the transaction isolation level.
+   *
+   * @param  {string} value   The isolation level.
+   * @param  {object} options An object with options.
+   * @returns {string}         The generated sql query.
+   * @private
+   */
+  setIsolationLevelQuery(value, options) {
+    if (options.parent) {
+      return;
+    }
+
+    return `SET TRANSACTION ISOLATION LEVEL ${value};`;
+  }
+
+  generateTransactionId() {
+    return crypto.randomUUID();
+  }
+
+  /**
+   * Returns a query that starts a transaction.
+   *
+   * @param  {Transaction} transaction
+   * @returns {string}         The generated sql query.
+   * @private
+   */
+  startTransactionQuery(transaction) {
+    if (transaction.parent) {
+      // force quoting of savepoint identifiers for postgres
+      return `SAVEPOINT ${this.quoteIdentifier(transaction.name, true)};`;
+    }
+
+    return 'START TRANSACTION;';
+  }
+
+  /**
+   * Returns a query that commits a transaction.
+   *
+   * @param  {Transaction} transaction An object with options.
+   * @returns {string}         The generated sql query.
+   * @private
+   */
+  commitTransactionQuery(transaction) {
+    if (transaction.parent) {
+      return;
+    }
+
+    return 'COMMIT;';
+  }
+
+  /**
+   * Returns a query that rollbacks a transaction.
+   *
+   * @param  {Transaction} transaction
+   * @returns {string}         The generated sql query.
+   * @private
+   */
+  rollbackTransactionQuery(transaction) {
+    if (transaction.parent) {
+      // force quoting of savepoint identifiers for postgres
+      return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(transaction.name, true)};`;
+    }
+
+    return 'ROLLBACK;';
+  }
+}

@@ -150,7 +150,7 @@ export class SnowflakeQuery extends AbstractQuery {
           allowNull: _result.Null === 'YES',
           defaultValue: _result.Default,
           primaryKey: _result.Key === 'PRI',
-          autoIncrement: Object.prototype.hasOwnProperty.call(_result, 'Extra')
+          autoIncrement: Object.hasOwn(_result, 'Extra')
             && _result.Extra.toLowerCase() === 'auto_increment',
           comment: _result.Comment ? _result.Comment : null,
         };
@@ -169,10 +169,6 @@ export class SnowflakeQuery extends AbstractQuery {
 
     if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery()) {
       return data[0]['number of rows updated'];
-    }
-
-    if (this.isVersionQuery()) {
-      return data[0].version;
     }
 
     if (this.isForeignKeysQuery()) {
