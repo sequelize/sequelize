@@ -5,7 +5,6 @@ import { generateIndexName } from '../../utils/string';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
-import type { ColumnsDescription } from '../abstract/query-interface.types';
 import { MySqlQueryGenerator } from '../mysql/query-generator';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
