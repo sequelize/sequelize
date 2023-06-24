@@ -1487,7 +1487,7 @@ __metadata:
     mariadb: 3.2.0
     mocha: 10.2.0
     moment: 2.29.4
-    mysql2: 3.3.5
+    mysql2: 3.4.1
     nyc: 15.1.0
     odbc: 2.4.8
     p-map: 4.0.0
@@ -8329,9 +8329,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:3.3.5":
-  version: 3.3.5
-  resolution: "mysql2@npm:3.3.5"
+"mysql2@npm:3.4.1":
+  version: 3.4.1
+  resolution: "mysql2@npm:3.4.1"
   dependencies:
     denque: ^2.1.0
     generate-function: ^2.3.1
@@ -8341,7 +8341,7 @@ __metadata:
     named-placeholders: ^1.1.3
     seq-queue: ^0.0.5
     sqlstring: ^2.3.2
-  checksum: ead89234541e19eb4b5190e76d3877aa3891abb4275f7e62effb229361ab0f905fcab327832e75cee80d7096f86e4556315ced2f07fb1c9e8be09566d023c65d
+  checksum: 65b2e9be0c3bcc6b8c27637a1f81750995a4fe5b89ee722ddf287a9388fc28607238e9d7952f35b2d616c9fede9fbf0c3bb4d53e276bd6fc09f61b985fab140d
   languageName: node
   linkType: hard
 
