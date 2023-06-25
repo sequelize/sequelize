@@ -127,6 +127,7 @@ if (current.dialect.supports['UNION ALL']) {
               },
               order: [
                 Sequelize.fn('ABS', Sequelize.col('age')),
+                // Two users have the same abs(age), so we need to make sure that the order is deterministic
                 'id',
               ],
               include: [this.User.Tasks],
