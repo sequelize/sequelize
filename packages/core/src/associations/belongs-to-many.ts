@@ -705,7 +705,7 @@ Add your own primary key to the through model, on different attributes than the 
     // Check that there are the same new targets than attributes to match one to one
     if (multipleAttributes && defaultAttributesArray.length !== newTargets.length) {
       throw new AssociationError(`Error when adding or updating association between ${this.source.name} and ${newTargets.length} instances of ${this.target.name} when providing ${defaultAttributesArray.length} objects for the join table.
-      ${newTargets.length} and ${defaultAttributesArray.length} should be the same.
+      The number of ${this.target.name} to associate (${newTargets.length}), and the number of entries in the "through" option (${defaultAttributesArray.length}) must be the same.
       
       Many to Many association join table extra attributes can be updated in bulk by passing an Array to the "through" parameter by doing this:    
       A.setB([B1, B2], { through: [{ extraAttr: true }, { extraAttr: false }] })
