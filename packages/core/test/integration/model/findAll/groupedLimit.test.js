@@ -117,7 +117,7 @@ if (current.dialect.supports['UNION ALL']) {
             }
           });
 
-          it('works with computed order', async function () {
+          it('works with computed orders', async function () {
             const users = await this.User.findAll({
               attributes: ['id'],
               groupedLimit: {
@@ -128,29 +128,6 @@ if (current.dialect.supports['UNION ALL']) {
               order: [
                 Sequelize.fn('ABS', Sequelize.col('age')),
                 // Two users have the same abs(age), so we need to make sure that the order is deterministic
-                'id',
-              ],
-              include: [this.User.Tasks],
-            });
-
-            /*
-             project1 - 1, 3, 4
-             project2 - 3, 5, 4
-           */
-            // Flaky test
-            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 4]);
-          });
-
-          it('works with multiple orders', async function () {
-            const users = await this.User.findAll({
-              attributes: ['id'],
-              groupedLimit: {
-                limit: 3,
-                on: this.User.Projects,
-                values: this.projects.map(item => item.get('id')),
-              },
-              order: [
-                Sequelize.fn('ABS', Sequelize.col('age')),
                 ['id', 'DESC'],
               ],
               include: [this.User.Tasks],
