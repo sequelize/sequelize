@@ -136,9 +136,9 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       });
     }
 
-    it(`defaults nestMode to sequelize's clsTransactionNestMode option`, async () => {
+    it(`defaults nestMode to sequelize's defaultTransactionNestMode option`, async () => {
       const customSequelize = await createSingleTransactionalTestSequelizeInstance({
-        clsTransactionNestMode: TransactionNestMode.savepoint,
+        defaultTransactionNestMode: TransactionNestMode.savepoint,
       });
 
       await customSequelize.transaction(async transaction1 => {
