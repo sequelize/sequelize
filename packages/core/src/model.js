@@ -151,7 +151,7 @@ export class Model extends ModelTypeScript {
       // do after default values since it might have UUID as a default value
       if (modelDefinition.primaryKeysAttributeNames.size > 0) {
         for (const primaryKeyAttribute of modelDefinition.primaryKeysAttributeNames) {
-          if (!Object.prototype.hasOwnProperty.call(defaults, primaryKeyAttribute)) {
+          if (!Object.hasOwn(defaults, primaryKeyAttribute)) {
             defaults[primaryKeyAttribute] = null;
           }
         }
@@ -258,7 +258,7 @@ export class Model extends ModelTypeScript {
   }
 
   static getAssociation(associationName) {
-    if (!Object.prototype.hasOwnProperty.call(this.associations, associationName)) {
+    if (!Object.hasOwn(this.associations, associationName)) {
       throw new Error(`Association with alias "${associationName}" does not exist on ${this.name}.
 ${this._getAssociationDebugList()}`);
     }
@@ -601,7 +601,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     // Validate child includes
-    if (Object.prototype.hasOwnProperty.call(include, 'include')) {
+    if (Object.hasOwn(include, 'include')) {
       _validateIncludedElements(include, tableNames);
     }
 
@@ -766,7 +766,7 @@ ${associationOwner._getAssociationDebugList()}`);
       const removedConstraints = {};
 
       for (const columnName in physicalAttributes) {
-        if (!Object.prototype.hasOwnProperty.call(physicalAttributes, columnName)) {
+        if (!Object.hasOwn(physicalAttributes, columnName)) {
           continue;
         }
 
@@ -777,7 +777,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       if (options.alter === true || typeof options.alter === 'object' && options.alter.drop !== false) {
         for (const columnName in columns) {
-          if (!Object.prototype.hasOwnProperty.call(columns, columnName)) {
+          if (!Object.hasOwn(columns, columnName)) {
             continue;
           }
 
@@ -1028,7 +1028,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       this._conformIncludes(scope, this);
       // clone scope so it doesn't get modified
-      this._assignOptions(mergedScope, cloneDeep(scope));
+      this._assignOptions(mergedScope, cloneDeep(scope) ?? {});
       scopeNames.push(scopeName ? scopeName : 'defaultScope');
     }
 
@@ -1197,14 +1197,14 @@ ${associationOwner._getAssociationDebugList()}`);
     const tableNames = {};
 
     tableNames[this.getTableName(options)] = true;
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     setTransactionFromCls(options, this.sequelize);
 
     _.defaults(options, { hooks: true, model: this });
 
     // set rejectOnEmpty option, defaults to model options
-    options.rejectOnEmpty = Object.prototype.hasOwnProperty.call(options, 'rejectOnEmpty')
+    options.rejectOnEmpty = Object.hasOwn(options, 'rejectOnEmpty')
       ? options.rejectOnEmpty
       : this.options.rejectOnEmpty;
 
@@ -1394,7 +1394,7 @@ ${associationOwner._getAssociationDebugList()}`);
       return null;
     }
 
-    options = cloneDeep(options) || {};
+    options = cloneDeep(options) ?? {};
 
     if (typeof param === 'number' || typeof param === 'bigint' || typeof param === 'string' || Buffer.isBuffer(param)) {
       options.where = {
@@ -1423,7 +1423,7 @@ ${associationOwner._getAssociationDebugList()}`);
       throw new Error('The argument passed to findOne must be an options object, use findByPk if you wish to pass a single primary key value');
     }
 
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     // findOne only ever needs one result
     // conditional temporarily fixes 14618
     // https://github.com/sequelize/sequelize/issues/14618
@@ -1451,7 +1451,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise<DataTypes|object>}
    */
   static async aggregate(attribute, aggregateFunction, options) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options.model = this;
 
     // We need to preserve attributes here as the `injectScope` call would inject non aggregate columns.
@@ -1514,7 +1514,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise<number>}
    */
   static async count(options) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options = _.defaults(options, { hooks: true });
 
     setTransactionFromCls(options, this.sequelize);
@@ -1605,7 +1605,7 @@ ${associationOwner._getAssociationDebugList()}`);
       throw new Error('The argument passed to findAndCountAll must be an options object, use findByPk if you wish to pass a single primary key value');
     }
 
-    const countOptions = cloneDeep(options);
+    const countOptions = cloneDeep(options) ?? {};
 
     if (countOptions.attributes) {
       countOptions.attributes = undefined;
@@ -1717,7 +1717,7 @@ ${associationOwner._getAssociationDebugList()}`);
    *
    */
   static async create(values, options) {
-    options = cloneDeep(options || {});
+    options = cloneDeep(options) ?? {};
 
     return await this.build(values, {
       isNewRecord: true,
@@ -1840,7 +1840,7 @@ ${associationOwner._getAssociationDebugList()}`);
         }
 
         const flattenedWhere = flattenObjectDeep(options.where);
-        const flattenedWhereKeys = Object.keys(flattenedWhere).map(name => _.last(name.split('.')));
+        const flattenedWhereKeys = Object.keys(flattenedWhere).map(name => name.split('.').at(-1));
         const whereFields = flattenedWhereKeys.map(name => modelDefinition.attributes.get(name)?.columnName ?? name);
         const defaultFields = options.defaults && Object.keys(options.defaults)
           .filter(name => modelDefinition.attributes.get(name))
@@ -2068,7 +2068,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const dialect = this.sequelize.options.dialect;
     const now = new Date();
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     setTransactionFromCls(options, this.sequelize);
 
@@ -2231,7 +2231,7 @@ ${associationOwner._getAssociationDebugList()}`);
         });
 
         // Map attributes to fields for serial identification
-        const fieldMappedAttributes = {};
+        const fieldMappedAttributes = Object.create(null);
         for (const attrName in model.tableAttributes) {
           const attribute = modelDefinition.attributes.get(attrName);
           fieldMappedAttributes[attribute.columnName] = attribute;
@@ -2273,6 +2273,10 @@ ${associationOwner._getAssociationDebugList()}`);
             const instance = instances[i];
 
             for (const key in result) {
+              if (!Object.hasOwn(result, key)) {
+                continue;
+              }
+
               if (!instance || key === model.primaryKeyAttribute
                 && instance.get(model.primaryKeyAttribute)
                 && ['mysql', 'mariadb', 'sqlite'].includes(dialect)) {
@@ -2282,16 +2286,14 @@ ${associationOwner._getAssociationDebugList()}`);
                 continue;
               }
 
-              if (Object.prototype.hasOwnProperty.call(result, key)) {
-                const record = result[key];
-
-                const attr = find(
-                  modelDefinition.attributes.values(),
-                  attribute => attribute.attributeName === key || attribute.columnName === key,
-                );
-
-                instance.dataValues[attr && attr.attributeName || key] = record;
-              }
+              const value = result[key];
+              const attr = find(
+                modelDefinition.attributes.values(),
+                attribute => attribute.attributeName === key || attribute.columnName === key,
+              );
+              const attributeName = attr?.attributeName || key;
+              instance.dataValues[attributeName] = value != null && attr?.type instanceof AbstractDataType ? attr.type.parseDatabaseValue(value) : value;
+              instance._previousDataValues[attributeName] = instance.dataValues[attributeName];
             }
           }
         }
@@ -2429,7 +2431,7 @@ ${associationOwner._getAssociationDebugList()}`);
   static async truncate(options) {
     // TODO: this method currently uses DELETE FROM if the table is paranoid. Truncate should always ignore paranoid.
     // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
-    options = cloneDeep(options) || {};
+    options = cloneDeep(options) ?? {};
     options.truncate = true;
 
     return await this.destroy(options);
@@ -2442,7 +2444,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise<number>} The number of destroyed rows
    */
   static async destroy(options) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     setTransactionFromCls(options, this.sequelize);
 
@@ -2506,7 +2508,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       // FIXME: where must be joined with AND instead of using Object.assign. This won't work with literals!
       const where = {
-        [deletedAtColumnName]: Object.prototype.hasOwnProperty.call(deletedAtAttribute, 'defaultValue') ? deletedAtAttribute.defaultValue : null,
+        [deletedAtColumnName]: Object.hasOwn(deletedAtAttribute, 'defaultValue') ? deletedAtAttribute.defaultValue : null,
       };
 
       attrValueHash[deletedAtColumnName] = new Date();
@@ -2620,7 +2622,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise<Array<number,number>>}
    */
   static async update(values, options) {
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
 
     setTransactionFromCls(options, this.sequelize);
 
@@ -2821,7 +2823,7 @@ ${associationOwner._getAssociationDebugList()}`);
   static async describe(schema, options) {
     const table = this.modelDefinition.table;
 
-    return await this.queryInterface.describeTable(table.tableName, { schema: schema || table.schema, ...options });
+    return await this.queryInterface.describeTable({ ...table, schema: schema || table.schema }, options);
   }
 
   static _getDefaultTimestamp(attributeName) {
@@ -2853,7 +2855,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
   // Inject _scope into options.
   static _injectScope(options) {
-    const scope = cloneDeep(this._scope);
+    const scope = cloneDeep(this._scope) ?? {};
     this._normalizeIncludes(scope, this);
     this._defaultsOptions(options, scope);
   }
@@ -2863,7 +2865,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   static hasAlias(alias) {
-    return Object.prototype.hasOwnProperty.call(this.associations, alias);
+    return Object.hasOwn(this.associations, alias);
   }
 
   static getAssociations(target) {
@@ -3222,8 +3224,8 @@ Instead of specifying a Model, either:
 
       for (const attributeName2 in this.dataValues) {
         if (
-          !Object.prototype.hasOwnProperty.call(values, attributeName2)
-          && Object.prototype.hasOwnProperty.call(this.dataValues, attributeName2)
+          !Object.hasOwn(values, attributeName2)
+          && Object.hasOwn(this.dataValues, attributeName2)
         ) {
           values[attributeName2] = this.get(attributeName2, options);
         }
@@ -3360,7 +3362,7 @@ Instead of specifying a Model, either:
 
       // Bunch of stuff we won't do when it's raw
       if (!options.raw) {
-        // If attribute is not in model definition, return
+        // If the attribute is not in model definition, return
         if (!attributeDefinition) {
           const jsonAttributeNames = modelDefinition.jsonAttributeNames;
 
@@ -3381,6 +3383,7 @@ Instead of specifying a Model, either:
           return this;
         }
 
+        // TODO: throw an error when trying to set a read only attribute with to a different value
         // If attempting to set read only attributes, return
         const readOnlyAttributeNames = modelDefinition.readOnlyAttributeNames;
         if (!this.isNewRecord && readOnlyAttributeNames.has(key)) {
@@ -3558,7 +3561,7 @@ Instead of specifying a Model, either:
       throw new Error('The second argument was removed in favor of the options object.');
     }
 
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options = _.defaults(options, {
       hooks: true,
       validate: true,
@@ -4081,7 +4084,7 @@ Instead of specifying a Model, either:
   async increment(fields, options) {
     const identifier = this.where();
 
-    options = cloneDeep(options);
+    options = cloneDeep(options) ?? {};
     options.where = { ...options.where, ...identifier };
     options.instance = this;
 

@@ -202,7 +202,7 @@ function mapBindParametersAndReplacements(
 
       // @ts-expect-error -- isPlainObject does not tell typescript that replacements is a plain object, not an array
       const replacementValue = replacements[replacementName];
-      if (!Object.prototype.hasOwnProperty.call(replacements, replacementName) || replacementValue === undefined) {
+      if (!Object.hasOwn(replacements as object, replacementName) || replacementValue === undefined) {
         throw new Error(`Named replacement ":${replacementName}" has no entry in the replacement map.`);
       }
 

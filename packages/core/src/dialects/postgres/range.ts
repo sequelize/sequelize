@@ -93,7 +93,7 @@ export function parse<T>(value: string, parser: ParseValue<T>): Range<T> {
 }
 
 export function isInputRangePart<T>(val: unknown): val is InputRangePart<T> {
-  return isPlainObject(val) && Object.prototype.hasOwnProperty.call(val, 'value');
+  return isPlainObject(val) && Object.hasOwn(val as object, 'value');
 }
 
 export function buildRangeParser(subTypeParser: (value: unknown) => unknown): (value: unknown) => unknown {

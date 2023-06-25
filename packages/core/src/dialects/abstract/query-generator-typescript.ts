@@ -1,5 +1,7 @@
 import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
+import type { Class } from 'type-fest';
+import { ConstraintChecking, Deferrable } from '../../deferrable.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
@@ -17,9 +19,10 @@ import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
-import { isDictionary, isNullish, isPlainObject, isString } from '../../utils/check.js';
+import { isDictionary, isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
+import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
@@ -27,6 +30,12 @@ import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
 import { AbstractDataType } from './data-types.js';
 import type { BindParamOptions, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
+import type {
+  AddConstraintQueryOptions,
+  GetConstraintSnippetQueryOptions,
+  RemoveConstraintQueryOptions,
+  ShowConstraintsQueryOptions,
+} from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import { PojoWhere, WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
@@ -41,6 +50,7 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
+export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 
 export interface QueryGeneratorOptions {
@@ -126,6 +136,242 @@ export class AbstractQueryGeneratorTypeScript {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
   }
 
+  addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions): string {
+    if (!this.dialect.supports.constraints.add) {
+      throw new Error(`Add constraint queries are not supported by ${this.dialect.name} dialect`);
+    }
+
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'ADD',
+      this._getConstraintSnippet(tableName, options),
+    ]);
+  }
+
+  _getConstraintSnippet(tableName: TableNameOrModel, options: GetConstraintSnippetQueryOptions) {
+    const quotedFields = options.fields.map(field => {
+      if (typeof field === 'string') {
+        return this.quoteIdentifier(field);
+      }
+
+      if (field instanceof BaseSqlExpression) {
+        return this.formatSqlExpression(field);
+      }
+
+      if (field.attribute) {
+        throw new Error('The field.attribute property has been removed. Use the field.name property instead');
+      }
+
+      if (!field.name) {
+        throw new Error(`The following index field has no name: ${field}`);
+      }
+
+      return this.quoteIdentifier(field.name);
+    });
+
+    const constraintNameParts = options.name ? null : options.fields.map(field => {
+      if (typeof field === 'string') {
+        return field;
+      }
+
+      if (field instanceof BaseSqlExpression) {
+        throw new TypeError(`The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`);
+      }
+
+      return field.name;
+    });
+
+    let constraintSnippet;
+    const table = this.extractTableDetails(tableName);
+    const fieldsSqlQuotedString = quotedFields.join(', ');
+    const fieldsSqlString = constraintNameParts?.join('_');
+
+    switch (options.type.toUpperCase()) {
+      case 'CHECK': {
+        if (!this.dialect.supports.constraints.check) {
+          throw new Error(`Check constraints are not supported by ${this.dialect.name} dialect`);
+        }
+
+        const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_ck`);
+        constraintSnippet = `CONSTRAINT ${constraintName} CHECK (${this.whereItemsQuery(options.where)})`;
+        break;
+      }
+
+      case 'UNIQUE': {
+        if (!this.dialect.supports.constraints.unique) {
+          throw new Error(`Unique constraints are not supported by ${this.dialect.name} dialect`);
+        }
+
+        const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_uk`);
+        constraintSnippet = `CONSTRAINT ${constraintName} UNIQUE (${fieldsSqlQuotedString})`;
+        if (options.deferrable) {
+          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
+        }
+
+        break;
+      }
+
+      case 'DEFAULT': {
+        if (!this.dialect.supports.constraints.default) {
+          throw new Error(`Default constraints are not supported by ${this.dialect.name} dialect`);
+        }
+
+        if (options.defaultValue === undefined) {
+          throw new Error('Default value must be specified for DEFAULT CONSTRAINT');
+        }
+
+        const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_df`);
+        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.escape(options.defaultValue, options)}) FOR ${quotedFields[0]}`;
+        break;
+      }
+
+      case 'PRIMARY KEY': {
+        if (!this.dialect.supports.constraints.primaryKey) {
+          throw new Error(`Primary key constraints are not supported by ${this.dialect.name} dialect`);
+        }
+
+        const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_pk`);
+        constraintSnippet = `CONSTRAINT ${constraintName} PRIMARY KEY (${fieldsSqlQuotedString})`;
+        if (options.deferrable) {
+          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
+        }
+
+        break;
+      }
+
+      case 'FOREIGN KEY': {
+        if (!this.dialect.supports.constraints.foreignKey) {
+          throw new Error(`Foreign key constraints are not supported by ${this.dialect.name} dialect`);
+        }
+
+        const references = options.references;
+        if (!references || !references.table || !(references.field || references.fields)) {
+          throw new Error('Invalid foreign key constraint options. `references` object with `table` and `field` must be specified');
+        }
+
+        const referencedTable = this.extractTableDetails(references.table);
+        const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_${referencedTable.tableName}_fk`);
+        const quotedReferences
+          = references.field !== undefined
+          ? this.quoteIdentifier(references.field)
+          : references.fields!.map(f => this.quoteIdentifier(f)).join(', ');
+        const referencesSnippet = `${this.quoteTable(referencedTable)} (${quotedReferences})`;
+        constraintSnippet = `CONSTRAINT ${constraintName} `;
+        constraintSnippet += `FOREIGN KEY (${fieldsSqlQuotedString}) REFERENCES ${referencesSnippet}`;
+        if (options.onUpdate) {
+          if (!this.dialect.supports.constraints.onUpdate) {
+            throw new Error(`Foreign key constraint with onUpdate is not supported by ${this.dialect.name} dialect`);
+          }
+
+          constraintSnippet += ` ON UPDATE ${options.onUpdate.toUpperCase()}`;
+        }
+
+        if (options.onDelete) {
+          constraintSnippet += ` ON DELETE ${options.onDelete.toUpperCase()}`;
+        }
+
+        if (options.deferrable) {
+          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
+        }
+
+        break;
+      }
+
+      default: {
+        throw new Error(`Constraint type ${options.type} is not supported by ${this.dialect.name} dialect`);
+      }
+    }
+
+    return constraintSnippet;
+  }
+
+  protected _getDeferrableConstraintSnippet(deferrable: Deferrable) {
+    if (!this.dialect.supports.constraints.deferrable) {
+      throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
+    }
+
+    switch (deferrable) {
+      case Deferrable.INITIALLY_DEFERRED: {
+        return 'DEFERRABLE INITIALLY DEFERRED';
+      }
+
+      case Deferrable.INITIALLY_IMMEDIATE: {
+        return 'DEFERRABLE INITIALLY IMMEDIATE';
+      }
+
+      case Deferrable.NOT: {
+        return 'NOT DEFERRABLE';
+      }
+
+      default: {
+        throw new Error(`Unknown constraint checking behavior ${deferrable}`);
+      }
+    }
+  }
+
+  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
+    if (!this.dialect.supports.constraints.remove) {
+      throw new Error(`Remove constraint queries are not supported by ${this.dialect.name} dialect`);
+    }
+
+    if (options) {
+      const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>();
+      const { removeOptions } = this.dialect.supports.constraints;
+      if (removeOptions.cascade) {
+        REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS.add('cascade');
+      }
+
+      if (removeOptions.ifExists) {
+        REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS.add('ifExists');
+      }
+
+      rejectInvalidOptions(
+        'removeConstraintQuery',
+        this.dialect.name,
+        REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
+        REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'DROP CONSTRAINT',
+      options?.ifExists ? 'IF EXISTS' : '',
+      this.quoteIdentifier(constraintName),
+      options?.cascade ? 'CASCADE' : '',
+    ]);
+  }
+
+  setConstraintCheckingQuery(type: ConstraintChecking): string;
+  setConstraintCheckingQuery(type: Class<ConstraintChecking>, constraints?: readonly string[]): string;
+  setConstraintCheckingQuery(type: ConstraintChecking | Class<ConstraintChecking>, constraints?: readonly string[]) {
+    if (!this.dialect.supports.constraints.deferrable) {
+      throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
+    }
+
+    let constraintFragment = 'ALL';
+    if (type instanceof ConstraintChecking) {
+      if (type.constraints?.length) {
+        constraintFragment = type.constraints.map(constraint => this.quoteIdentifier(constraint)).join(', ');
+      }
+
+      return `SET CONSTRAINTS ${constraintFragment} ${type.toString()}`;
+    }
+
+    if (constraints?.length) {
+      constraintFragment = constraints.map(constraint => this.quoteIdentifier(constraint)).join(', ');
+    }
+
+    return `SET CONSTRAINTS ${constraintFragment} ${type.toString()}`;
+  }
+
+  showConstraintsQuery(_tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions): string {
+    throw new Error(`showConstraintsQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
   showIndexesQuery(_tableName: TableNameOrModel): string {
     throw new Error(`showIndexesQuery has not been implemented in ${this.dialect.name}.`);
   }
@@ -136,6 +382,17 @@ export class AbstractQueryGeneratorTypeScript {
     _options?: RemoveIndexQueryOptions,
   ): string {
     throw new Error(`removeIndexQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Generates an SQL query that returns all foreign keys of a table or the foreign key constraint of a given column.
+   *
+   * @param _tableName The table or associated model.
+   * @param _columnName The name of the column. Not supported by SQLite.
+   * @returns The generated SQL query.
+   */
+  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): string {
+    throw new Error(`getForeignKeyQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   // TODO: rename to "normalizeTable" & move to sequelize class
@@ -515,5 +772,9 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
   getToggleForeignKeyChecksQuery(_enable: boolean): string {
     throw new Error(`${this.dialect.name} does not support toggling foreign key checks`);
+  }
+
+  versionQuery(): string {
+    throw new Error(`${this.dialect.name} did not implement versionQuery`);
   }
 }

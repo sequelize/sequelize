@@ -3,12 +3,13 @@
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { addTicks, quoteIdentifier } from '../../utils/dialect.js';
+import { quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
@@ -16,21 +17,6 @@ import {
 const _ = require('lodash');
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { Op } = require('../../operators');
-
-const FOREIGN_KEY_FIELDS = [
-  'CONSTRAINT_NAME as constraint_name',
-  'CONSTRAINT_NAME as constraintName',
-  'CONSTRAINT_SCHEMA as constraintSchema',
-  'CONSTRAINT_SCHEMA as constraintCatalog',
-  'TABLE_NAME as tableName',
-  'TABLE_SCHEMA as tableSchema',
-  'TABLE_SCHEMA as tableCatalog',
-  'COLUMN_NAME as columnName',
-  'REFERENCED_TABLE_SCHEMA as referencedTableSchema',
-  'REFERENCED_TABLE_SCHEMA as referencedTableCatalog',
-  'REFERENCED_TABLE_NAME as referencedTableName',
-  'REFERENCED_COLUMN_NAME as referencedColumnName',
-].join(',');
 
 /**
  * list of reserved words in Snowflake
@@ -47,6 +33,7 @@ const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['collate', 'charset', 'rowFormat', 'comment', 'uniqueKeys']);
 
 export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   constructor(options) {
@@ -116,11 +103,17 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     return `SHOW SCHEMAS;`;
   }
 
-  versionQuery() {
-    return 'SELECT CURRENT_VERSION()';
-  }
-
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     options = {
       charset: null,
       rowFormat: null,
@@ -132,7 +125,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     const attrStr = [];
 
     for (const attr in attributes) {
-      if (!Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (!Object.hasOwn(attributes, attr)) {
         continue;
       }
 
@@ -177,7 +170,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
+      if (Object.hasOwn(foreignKeys, fkey)) {
         attributesClause += `, FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
       }
     }
@@ -375,25 +368,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  showConstraintsQuery(table, constraintName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-
-    return joinSQLFragments([
-      'SELECT CONSTRAINT_CATALOG AS constraintCatalog,',
-      'CONSTRAINT_NAME AS constraintName,',
-      'CONSTRAINT_SCHEMA AS constraintSchema,',
-      'CONSTRAINT_TYPE AS constraintType,',
-      'TABLE_NAME AS tableName,',
-      'TABLE_SCHEMA AS tableSchema',
-      'from INFORMATION_SCHEMA.TABLE_CONSTRAINTS',
-      `WHERE table_name='${tableName}'`,
-      constraintName && `AND constraint_name = '${constraintName}'`,
-      schemaName && `AND TABLE_SCHEMA = '${schemaName}'`,
-      ';',
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
@@ -501,61 +475,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   }
 
   /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {object} table  The table.
-   * @param  {string} schemaName The name of the schema.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(table, schemaName) {
-    const tableName = table.tableName || table;
-
-    return joinSQLFragments([
-      'SELECT',
-      FOREIGN_KEY_FIELDS,
-      `FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '${tableName}'`,
-      `AND CONSTRAINT_NAME!='PRIMARY' AND CONSTRAINT_SCHEMA='${schemaName}'`,
-      'AND REFERENCED_TABLE_NAME IS NOT NULL',
-      ';',
-    ]);
-  }
-
-  /**
-   * Generates an SQL query that returns the foreign key constraint of a given column.
-   *
-   * @param  {object} table  The table.
-   * @param  {string} columnName The name of the column.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeyQuery(table, columnName) {
-    const quotedSchemaName = table.schema ? wrapSingleQuote(table.schema) : '';
-    const quotedTableName = wrapSingleQuote(table.tableName || table);
-    const quotedColumnName = wrapSingleQuote(columnName);
-
-    return joinSQLFragments([
-      'SELECT',
-      FOREIGN_KEY_FIELDS,
-      'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
-      'WHERE (',
-      [
-        `REFERENCED_TABLE_NAME = ${quotedTableName}`,
-        table.schema && `AND REFERENCED_TABLE_SCHEMA = ${quotedSchemaName}`,
-        `AND REFERENCED_COLUMN_NAME = ${quotedColumnName}`,
-      ],
-      ') OR (',
-      [
-        `TABLE_NAME = ${quotedTableName}`,
-        table.schema && `AND TABLE_SCHEMA = ${quotedSchemaName}`,
-        `AND COLUMN_NAME = ${quotedColumnName}`,
-        'AND REFERENCED_TABLE_NAME IS NOT NULL',
-      ],
-      ')',
-    ]);
-  }
-
-  /**
    * Generates an SQL query that removes a foreign key from a table.
    *
    * @param  {string} tableName  The name of the table.
@@ -616,12 +535,4 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
     return identifier;
   }
-}
-
-/**
- * @param {string} identifier
- * @deprecated use "escape" or "escapeString" on QueryGenerator
- */
-function wrapSingleQuote(identifier) {
-  return addTicks(identifier, '\'');
 }

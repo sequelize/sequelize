@@ -44,7 +44,7 @@ export class AbstractQuery {
       }
 
       for (const _warningResult of _warningRow) {
-        if (Object.prototype.hasOwnProperty.call(_warningResult, 'Message')) {
+        if (Object.hasOwn(_warningResult, 'Message')) {
           messages.push(_warningResult.Message);
         } else {
           for (const _objectKey of _warningResult.keys()) {
@@ -125,7 +125,7 @@ export class AbstractQuery {
         continue;
       }
 
-      if (index.fields.includes(field.replace(/"/g, '')) && index.msg) {
+      if (index.fields.includes(field.replaceAll('"', '')) && index.msg) {
         return index.msg;
       }
     }
@@ -135,10 +135,6 @@ export class AbstractQuery {
 
   isRawQuery() {
     return this.options.type === QueryTypes.RAW;
-  }
-
-  isVersionQuery() {
-    return this.options.type === QueryTypes.VERSION;
   }
 
   isUpsertQuery() {
@@ -156,10 +152,10 @@ export class AbstractQuery {
     result = result && this.sql.toLowerCase().startsWith('insert into');
 
     // is insert query if no results are passed or if the result has the inserted id
-    result = result && (!results || Object.prototype.hasOwnProperty.call(results, this.getInsertIdField()));
+    result = result && (!results || Object.hasOwn(results, this.getInsertIdField()));
 
     // is insert query if no metadata are passed or if the metadata has the inserted id
-    result = result && (!metaData || Object.prototype.hasOwnProperty.call(metaData, this.getInsertIdField()));
+    result = result && (!metaData || Object.hasOwn(metaData, this.getInsertIdField()));
 
     return result;
   }
@@ -239,7 +235,7 @@ export class AbstractQuery {
         let o = {};
 
         for (const key in result) {
-          if (Object.prototype.hasOwnProperty.call(result, key)) {
+          if (Object.hasOwn(result, key)) {
             o[key] = result[key];
           }
         }
@@ -309,7 +305,7 @@ export class AbstractQuery {
     for (const key of Object.keys(values)) {
       // parse association values
       // hasOwnProperty is very important here. An include could be called "toString"
-      if (includeMap && Object.hasOwnProperty.call(includeMap, key)) {
+      if (includeMap && Object.hasOwn(includeMap, key)) {
         if (Array.isArray(values[key])) {
           values[key] = this._parseDataArrayByType(values[key], includeMap[key].model, includeMap[key].includeMap);
         } else {
@@ -484,7 +480,7 @@ export class AbstractQuery {
     // Map each key to an include option
     let previousPiece;
     const buildIncludeMap = piece => {
-      if (Object.prototype.hasOwnProperty.call($current.includeMap, piece)) {
+      if (Object.hasOwn($current.includeMap, piece)) {
         includeMap[key] = $current = $current.includeMap[piece];
         if (previousPiece) {
           previousPiece = `${previousPiece}.${piece}`;
@@ -499,7 +495,7 @@ export class AbstractQuery {
     // Calculate the string prefix of a key ('User.Results' for 'User.Results.id')
     const keyPrefixStringMemo = {};
     const keyPrefixString = (key, memo) => {
-      if (!Object.prototype.hasOwnProperty.call(memo, key)) {
+      if (!Object.hasOwn(memo, key)) {
         memo[key] = key.slice(0, Math.max(0, key.lastIndexOf('.')));
       }
 
@@ -509,7 +505,7 @@ export class AbstractQuery {
     // Removes the prefix from a key ('id' for 'User.Results.id')
     const removeKeyPrefixMemo = {};
     const removeKeyPrefix = key => {
-      if (!Object.prototype.hasOwnProperty.call(removeKeyPrefixMemo, key)) {
+      if (!Object.hasOwn(removeKeyPrefixMemo, key)) {
         const index = key.lastIndexOf('.');
         removeKeyPrefixMemo[key] = key.slice(index === -1 ? 0 : index + 1);
       }
@@ -521,9 +517,9 @@ export class AbstractQuery {
     const keyPrefixMemo = {};
     const keyPrefix = key => {
       // We use a double memo and keyPrefixString so that different keys with the same prefix will receive the same array instead of differnet arrays with equal values
-      if (!Object.prototype.hasOwnProperty.call(keyPrefixMemo, key)) {
+      if (!Object.hasOwn(keyPrefixMemo, key)) {
         const prefixString = keyPrefixString(key, keyPrefixStringMemo);
-        if (!Object.prototype.hasOwnProperty.call(keyPrefixMemo, prefixString)) {
+        if (!Object.hasOwn(keyPrefixMemo, prefixString)) {
           keyPrefixMemo[prefixString] = prefixString ? prefixString.split('.') : [];
         }
 
@@ -536,7 +532,7 @@ export class AbstractQuery {
     // Calcuate the last item in the array prefix ('Results' for 'User.Results.id')
     const lastKeyPrefixMemo = {};
     const lastKeyPrefix = key => {
-      if (!Object.prototype.hasOwnProperty.call(lastKeyPrefixMemo, key)) {
+      if (!Object.hasOwn(lastKeyPrefixMemo, key)) {
         const prefix = keyPrefix(key);
         const length = prefix.length;
 
@@ -602,7 +598,7 @@ export class AbstractQuery {
         $keyPrefix = keyPrefix(key);
 
         // On the first row we compute the includeMap
-        if (rowsI === 0 && !Object.prototype.hasOwnProperty.call(includeMap, key)) {
+        if (rowsI === 0 && !Object.hasOwn(includeMap, key)) {
           if ($keyPrefix.length === 0) {
             includeMap[key] = includeMap[''] = includeOptions;
           } else {

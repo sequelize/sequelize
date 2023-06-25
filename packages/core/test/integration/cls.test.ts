@@ -45,6 +45,19 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
       }
     });
 
+    // other tests for nested transaction are in sequelize/transaction.test.ts.
+    it('supports nested transactions', async () => {
+      await vars.clsSequelize.transaction(async () => {
+        const transactionA = vars.clsSequelize.getCurrentClsTransaction();
+
+        await vars.clsSequelize.transaction(async () => {
+          const transactionB = vars.clsSequelize.getCurrentClsTransaction();
+
+          expect(transactionA === transactionB).to.equal(true, 'transactions should be the same');
+        });
+      });
+    });
+
     it('supports several concurrent transactions', async () => {
       let t1id;
       let t2id;
