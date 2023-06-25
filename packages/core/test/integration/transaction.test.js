@@ -797,7 +797,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
       const newTransactionFunc = async function () {
         const t = await sequelize.startUnmanagedTransaction({ type: Transaction.TYPES.EXCLUSIVE, retry: { match: ['NO_MATCH'] } });
         // introduce delay to force the busy state race condition to fail
-        await delay(1000);
+        await delay(1500);
         await User.create({ id: null, username: `test ${t.id}` }, { transaction: t });
 
         return t.commit();
