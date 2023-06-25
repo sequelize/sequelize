@@ -117,7 +117,7 @@ if (current.dialect.supports['UNION ALL']) {
             }
           });
 
-          it('[Flaky] works with computed order', async function () {
+          it('works with computed order', async function () {
             const users = await this.User.findAll({
               attributes: ['id'],
               groupedLimit: {
