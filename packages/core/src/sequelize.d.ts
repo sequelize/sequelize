@@ -446,11 +446,11 @@ export interface Options extends Logging {
 
   /**
    * How nested transaction blocks behave by default.
-   * See {@link ClsTransactionOptions#nestMode} for more information.
+   * See {@link ManagedTransactionOptions#nestMode} for more information.
    *
    * @default TransactionNestMode.reuse
    */
-  clsTransactionNestMode?: TransactionNestMode;
+  defaultTransactionNestMode?: TransactionNestMode;
 }
 
 export interface NormalizedOptions extends RequiredBy<Options,
@@ -461,7 +461,7 @@ export interface NormalizedOptions extends RequiredBy<Options,
   | 'dialect'
   | 'timezone'
   | 'disableClsTransactions'
-  | 'clsTransactionNestMode'
+  | 'defaultTransactionNestMode'
 > {
   readonly replication: NormalizedReplicationOptions;
 }

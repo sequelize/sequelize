@@ -53,7 +53,7 @@ export {
   IsolationLevel,
   TransactionNestMode,
   Transaction,
-  type ClsTransactionOptions,
+  type ManagedTransactionOptions,
   type TransactionOptions,
   type NormalizedTransactionOptions,
 } from './transaction';

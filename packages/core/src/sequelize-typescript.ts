@@ -20,7 +20,7 @@ import { validModelHooks } from './model-hooks.js';
 import { setTransactionFromCls } from './model-internals.js';
 import type { ModelManager } from './model-manager.js';
 import type { ConnectionOptions, NormalizedOptions, Options, QueryRawOptions, Sequelize } from './sequelize.js';
-import type { ClsTransactionOptions, TransactionOptions } from './transaction.js';
+import type { ManagedTransactionOptions, TransactionOptions } from './transaction.js';
 import {
   Transaction,
   TransactionNestMode,
@@ -346,12 +346,12 @@ export abstract class SequelizeTypeScript {
    * @param options Transaction Options
    * @param callback Async callback during which the transaction will be active
    */
-  transaction<T>(options: ClsTransactionOptions, callback: TransactionCallback<T>): Promise<T>;
+  transaction<T>(options: ManagedTransactionOptions, callback: TransactionCallback<T>): Promise<T>;
   async transaction<T>(
-    optionsOrCallback: ClsTransactionOptions | TransactionCallback<T>,
+    optionsOrCallback: ManagedTransactionOptions | TransactionCallback<T>,
     maybeCallback?: TransactionCallback<T>,
   ): Promise<T> {
-    let options: ClsTransactionOptions;
+    let options: ManagedTransactionOptions;
     let callback: TransactionCallback<T>;
     if (typeof optionsOrCallback === 'function') {
       callback = optionsOrCallback;
@@ -365,7 +365,7 @@ export abstract class SequelizeTypeScript {
       throw new Error('sequelize.transaction requires a callback. If you wish to start an unmanaged transaction, please use sequelize.startUnmanagedTransaction instead');
     }
 
-    const nestMode: TransactionNestMode = options.nestMode ?? this.options.clsTransactionNestMode;
+    const nestMode: TransactionNestMode = options.nestMode ?? this.options.defaultTransactionNestMode;
 
     // @ts-expect-error -- will be fixed once this class has been merged back with the Sequelize class
     const normalizedOptions = normalizeTransactionOptions(this, options);

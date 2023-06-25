@@ -544,7 +544,7 @@ export type NormalizedTransactionOptions = StrictRequiredBy<Omit<TransactionOpti
 /**
  * Options accepted by {@link Sequelize#transaction}.
  */
-export interface ClsTransactionOptions extends TransactionOptions {
+export interface ManagedTransactionOptions extends TransactionOptions {
   /**
    * How the transaction block should behave if a parent transaction block exists.
    */
