@@ -127,6 +127,7 @@ if (current.dialect.supports['UNION ALL']) {
               },
               order: [
                 Sequelize.fn('ABS', Sequelize.col('age')),
+                'id',
               ],
               include: [this.User.Tasks],
             });
