@@ -68,8 +68,8 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare aliasedJsonAttr: object;
   declare aliasedJsonbAttr: object;
 
-  declare jsonWithSpecificTypeAttr: { foo: string };
-  declare jsonWithSpecificType2Attr: SomeInterface;
+  declare jsonbTypeLiteralAttr: { foo: string };
+  declare jsonbInterfaceAttr: SomeInterface;
 
   declare uuidAttr: string;
 }
@@ -98,13 +98,13 @@ TestModel.init({
   ...(dialectSupportsJson() && {
     jsonAttr: { type: DataTypes.JSON },
     aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
-    jsonWithSpecificTypeAttr: { type: DataTypes.JSON },
-    jsonWithSpecificType2Attr: { type: DataTypes.JSON },
   }),
 
   ...(dialectSupportsJsonB() && {
     jsonbAttr: { type: DataTypes.JSONB },
     aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
+    jsonbTypeLiteralAttr: { type: DataTypes.JSONB },
+    jsonbInterfaceAttr: { type: DataTypes.JSONB },
   }),
 
   uuidAttr: DataTypes.UUID,
@@ -1259,38 +1259,6 @@ Caused by: "undefined" cannot be escaped`),
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
         testSql({ intArrayAttr: { [Op.contains]: 1 } }, {
           default: new Error('1 is not a valid array'),
-        });
-
-        testSql({
-          jsonAttr: { [Op.contains]: { foo: 'bar' } },
-        }, {
-          postgres: '"jsonAttr" @> \'{"foo":"bar"}\'',
-        });
-
-        testSql({
-          jsonWithSpecificTypeAttr: { [Op.contains]: { foo: 'bar' } },
-        }, {
-          postgres: '"jsonWithSpecificTypeAttr" @> \'{"foo":"bar"}\'',
-        });
-
-        testSql({
-          // @ts-expect-error -- key `bad` isn't known
-          jsonWithSpecificTypeAttr: { [Op.contains]: { bad: 'bad' } },
-        }, {
-          postgres: '"jsonWithSpecificTypeAttr" @> \'{"bad":"bad"}\'',
-        });
-
-        testSql({
-          jsonWithSpecificType2Attr: { [Op.contains]: { foo: 'bar' } },
-        }, {
-          postgres: '"jsonWithSpecificType2Attr" @> \'{"foo":"bar"}\'',
-        });
-
-        testSql({
-          // @ts-expect-error -- key `bad` isn't known
-          jsonWithSpecificType2Attr: { [Op.contains]: { bad: 'bad' } },
-        }, {
-          postgres: '"jsonWithSpecificType2Attr" @> \'{"bad":"bad"}\'',
         });
       });
     }
@@ -2470,6 +2438,32 @@ Caused by: "undefined" cannot be escaped`),
           },
         }, {
           default: `[jsonbAttr] @> '{"company":"Magnafone"}'`,
+        });
+
+        testSql({
+          jsonbTypeLiteralAttr: { [Op.contains]: { foo: 'bar' } },
+        }, {
+          postgres: '"jsonbTypeLiteralAttr" @> \'{"foo":"bar"}\'',
+        });
+
+        testSql({
+          // @ts-expect-error -- key `bad` isn't known
+          jsonbTypeLiteralAttr: { [Op.contains]: { bad: 'bad' } },
+        }, {
+          postgres: '"jsonbTypeLiteralAttr" @> \'{"bad":"bad"}\'',
+        });
+
+        testSql({
+          jsonbInterfaceAttr: { [Op.contains]: { foo: 'bar' } },
+        }, {
+          postgres: '"jsonbInterfaceAttr" @> \'{"foo":"bar"}\'',
+        });
+
+        testSql({
+          // @ts-expect-error -- key `bad` isn't known
+          jsonbInterfaceAttr: { [Op.contains]: { bad: 'bad' } },
+        }, {
+          postgres: '"jsonbInterfaceAttr" @> \'{"bad":"bad"}\'',
         });
 
         // aliases correctly
