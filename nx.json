@@ -11,7 +11,7 @@
       "outputs": ["{projectRoot}/lib", "{projectRoot}/types"]
     },
     "test-typings": {
-      "inputs": ["prod", "^prod"]
+      "inputs": ["default", "^prod"]
     },
     "test-unit": {
       "dependsOn": ["build"],
