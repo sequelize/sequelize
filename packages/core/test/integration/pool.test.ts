@@ -209,7 +209,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
       await cm.releaseConnection(secondConnection);
     });
 
-    it('[Flaky] should get new connection beyond idle range', async () => {
+    it('should get new connection beyond idle range', async () => {
       const sequelize = createSingleTestSequelizeInstance({
         pool: { max: 1, idle: 100, evict: 10 },
       });
@@ -225,7 +225,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
       await cm.releaseConnection(firstConnection);
 
       // Wait a little and then get next available connection
-      await delay(110);
+      await delay(150);
 
       const secondConnection = await cm.getConnection();
 

@@ -269,7 +269,7 @@ export class Sequelize extends SequelizeTypeScript {
       minifyAliases: false,
       logQueryParameters: false,
       disableClsTransactions: false,
-      clsTransactionNestMode: TransactionNestMode.reuse,
+      defaultTransactionNestMode: TransactionNestMode.reuse,
       ...options,
       pool: _.defaults(options.pool || {}, {
         max: 5,
