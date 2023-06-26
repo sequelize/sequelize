@@ -156,7 +156,6 @@ export class AbstractQueryInterfaceTypeScript {
    *
    * @param tableName
    * @param options Query options
-   *
    */
   async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions): Promise<ColumnsDescription> {
     const table = this.queryGenerator.extractTableDetails(tableName);
@@ -291,7 +290,6 @@ export class AbstractQueryInterfaceTypeScript {
    *
    * @param tableName - Table name where you want to add a constraint
    * @param options - An object to define the constraint name, type etc
-   *
    */
   async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions): Promise<void> {
     if (!options.fields) {

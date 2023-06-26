@@ -1714,7 +1714,6 @@ ${associationOwner._getAssociationDebugList()}`);
    * @param {object} values
    * @param {object} options
    * @returns {Promise<Model>}
-   *
    */
   static async create(values, options) {
     options = cloneDeep(options) ?? {};
