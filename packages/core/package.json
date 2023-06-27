@@ -202,7 +202,7 @@
     "test-db2": "cross-env DIALECT=db2 yarn test",
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
-    "build": "../../build-packages.mjs core"
+    "build": "node ../../build-packages.mjs core"
   },
   "support": true
 }
