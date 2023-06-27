@@ -152,18 +152,9 @@ describe('DataTypes.ARRAY', () => {
       return;
     }
 
-    it('should not throw if cloning within a scope', () => {
-      const Foo = sequelize.define('foo', {
-        bar: DataTypes.ARRAY(DataTypes.STRING(128)),
-      }, {
-        scopes: {
-          everything: {},
-        },
-      });
-
-      expect(() => {
-        Foo.withScope('everything');
-      }).not.to.throw();
+    it('should have a different data type instance when cloning', () => {
+      const arrType = DataTypes.ARRAY(DataTypes.STRING(128)).toDialectDataType(dialect);
+      expect(arrType.options.type).to.not.equal(arrType.clone().options.type);
     });
   });
 });
