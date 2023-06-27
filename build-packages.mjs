@@ -31,8 +31,10 @@ const libDir = path.join(packageDir, 'lib');
 const typesDir = path.join(packageDir, 'types');
 
 const [sourceFiles] = await Promise.all([
-  // Find all .js and .ts files from /src
-  glob(`${sourceDir}/**/*.{mjs,cjs,js,mts,cts,ts}`, { onlyFiles: true, absolute: false }),
+  // Find all .js and .ts files from /src.
+  // `fast-glob` doesn't find any files when `sourceDir` contains "forward slashes"
+  // (Windows) instead of "back slashes" (Linux).
+  glob(`${sourceDir.replaceAll('\\', '/')}/**/*.{mjs,cjs,js,mts,cts,ts}`, { onlyFiles: true, absolute: false }),
   // Delete /lib for a full rebuild.
   rmDir(libDir),
   // Delete /types for a full rebuild.
