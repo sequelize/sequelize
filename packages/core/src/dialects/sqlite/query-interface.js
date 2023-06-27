@@ -174,18 +174,19 @@ export class SqliteQueryInterface extends SqliteQueryInterfaceTypeScript {
         }
       }
 
-      const foreignKeys = await this.getForeignKeyReferencesForTable(tableName, options);
+      const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
       for (const foreignKey of foreignKeys) {
-        data[foreignKey.columnName].references = {
-          table: foreignKey.referencedTableName,
-          key: foreignKey.referencedColumnName,
-        };
-
-        // Add constraints to column definition
-        Object.assign(data[foreignKey.columnName], {
-          onUpdate: foreignKey.constraints.onUpdate,
-          onDelete: foreignKey.constraints.onDelete,
-        });
+        for (const [index, columnName] of foreignKey.columnNames.entries()) {
+          // Add constraints to column definition
+          Object.assign(data[columnName], {
+            references: {
+              table: foreignKey.referencedTableName,
+              key: foreignKey.referencedColumnNames.at(index),
+            },
+            onUpdate: foreignKey.updateAction,
+            onDelete: foreignKey.deleteAction,
+          });
+        }
       }
 
       return data;

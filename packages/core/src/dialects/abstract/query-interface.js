@@ -219,19 +219,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async dropAllTables(options) {
     options = options || {};
     const skip = options.skip || [];
-
     const tableNames = await this.showAllTables(options);
-    const foreignKeys = await this.getForeignKeysForTables(tableNames, options);
-
     for (const tableName of tableNames) {
-      let normalizedTableName = tableName;
-      if (isObject(tableName)) {
-        normalizedTableName = `${tableName.schema}.${tableName.tableName}`;
-      }
-
-      for (const foreignKey of foreignKeys[normalizedTableName]) {
-        await this.sequelize.queryRaw(this.queryGenerator.dropForeignKeyQuery(tableName, foreignKey));
-      }
+      const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
+      await Promise.all(foreignKeys.map(foreignKey => this.removeConstraint(tableName, foreignKey.constraintName, options)));
     }
 
     await this._dropAllTables(tableNames, skip, options);

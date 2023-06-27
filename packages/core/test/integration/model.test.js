@@ -1195,12 +1195,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       await Post.sync();
 
-      const foreignKeys = await this.sequelize.queryInterface.getForeignKeyReferencesForTable(Post.getTableName());
+      const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, { constraintType: 'FOREIGN KEY' });
 
       expect(foreignKeys.length).to.eq(1);
-      expect(foreignKeys[0].columnName).to.eq('authorId');
+      expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
       expect(foreignKeys[0].referencedTableName).to.eq('authors');
-      expect(foreignKeys[0].referencedColumnName).to.eq('id');
+      expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
     });
 
     it('uses a table name as a string and references the author table', async function () {
@@ -1214,12 +1214,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       await Post.sync();
 
-      const foreignKeys = await this.sequelize.queryInterface.getForeignKeyReferencesForTable(Post.getTableName());
+      const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, { constraintType: 'FOREIGN KEY' });
 
       expect(foreignKeys.length).to.eq(1);
-      expect(foreignKeys[0].columnName).to.eq('authorId');
+      expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
       expect(foreignKeys[0].referencedTableName).to.eq('authors');
-      expect(foreignKeys[0].referencedColumnName).to.eq('id');
+      expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
     });
 
     it('throws an error if the referenced table name is invalid', async function () {

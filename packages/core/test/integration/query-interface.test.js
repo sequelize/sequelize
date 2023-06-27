@@ -525,42 +525,32 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should get a list of foreign keys for the table', async function () {
-      const foreignKeys = await this.sequelize.query(
-        this.queryInterface.queryGenerator.getForeignKeyQuery('hosts'),
-        { type: this.sequelize.QueryTypes.FOREIGNKEYS },
-      );
+      const foreignKeys = await this.sequelize.queryInterface.showConstraints('hosts', { constraintType: 'FOREIGN KEY' });
 
       expect(foreignKeys).to.have.length(3);
 
-      if (dialectName === 'sqlite') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(7);
-      } else if (['mariadb', 'mysql', 'db2'].includes(dialectName)) {
-        expect(Object.keys(foreignKeys[0])).to.have.length(8);
-      } else {
-        expect(Object.keys(foreignKeys[0])).to.have.length(11);
-      }
-
-      if (dialectName === 'mysql') {
-        const [foreignKeysViaDirectMySQLQuery] = await this.sequelize.query(
-          this.queryInterface.queryGenerator.getForeignKeyQuery('hosts', 'admin'),
-        );
-        expect(foreignKeysViaDirectMySQLQuery[0]).to.deep.equal(foreignKeys[0]);
+      switch (dialectName) {
+        case 'mssql':
+          expect(Object.keys(foreignKeys[0])).to.have.length(13);
+          break;
+        case 'postgres':
+          expect(Object.keys(foreignKeys[0])).to.have.length(14);
+          break;
+        default:
+          expect(Object.keys(foreignKeys[0])).to.have.length(11);
       }
     });
 
     it('should get a list of foreign key references details for the table', async function () {
-      const references = await this.queryInterface.getForeignKeyReferencesForTable('hosts', this.sequelize.options);
+      const references = await this.queryInterface.showConstraints('hosts', { ...this.sequelize.options, constraintType: 'FOREIGN KEY' });
       expect(references).to.have.length(3);
       for (const ref of references) {
         expect(ref.tableName).to.equal('hosts');
-        expect(ref.referencedColumnName).to.equal('id');
+        expect(ref.referencedColumnNames).to.deep.equal(['id']);
         expect(ref.referencedTableName).to.equal('users');
-        if (dialectName === 'sqlite') {
-          expect(ref).to.have.property('constraints');
-        }
       }
 
-      const columnNames = references.map(reference => reference.columnName);
+      const columnNames = references.flatMap(reference => reference.columnNames);
       expect(columnNames).to.have.same.members(['owner', 'operator', 'admin']);
     });
   });
