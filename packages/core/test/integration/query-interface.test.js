@@ -6,7 +6,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, Sequelize, AggregateError, UnknownConstraintError } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -796,12 +796,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           });
           throw new Error('Error not thrown...');
         } catch (error) {
-          expect(error).to.be.instanceOf(Sequelize.UnknownConstraintError);
-          if (dialectName !== 'ibmi') {
-            expect(error.table).to.equal('users');
-          }
+          if (dialectName === 'mssql') {
+            expect(error).to.be.instanceOf(AggregateError);
+            const constraintError = error.errors.at(-1);
+            expect(constraintError).to.be.instanceOf(UnknownConstraintError);
+            expect(constraintError.table).to.equal('users');
+            expect(constraintError.constraint).to.equal('unknown__constraint__name');
+          } else {
+            expect(error).to.be.instanceOf(Sequelize.UnknownConstraintError);
+            if (dialectName !== 'ibmi') {
+              expect(error.table).to.equal('users');
+            }
 
-          expect(error.constraint).to.equal('unknown__constraint__name');
+            expect(error.constraint).to.equal('unknown__constraint__name');
+          }
         }
       });
     });
