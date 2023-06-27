@@ -18,7 +18,11 @@ const sequelize = new Sequelize('sqlite://dbname', {
 
 ## Install
 
-* Clone the repo: https://github.com/catamphetamine/sequelize/tree/feature/browser
+* Clone the repo: https://github.com/catamphetamine/sequelize
+
+* Go to the repo's folder: `cd ...`.
+
+* Switch to the [`feature/browser`](https://github.com/catamphetamine/sequelize/tree/feature/browser) branch of the repo: `git checkout feature/browser`.
 
 * Run `yarn` in the root folder. It installs the packages.
 
