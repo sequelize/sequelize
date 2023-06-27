@@ -1,7 +1,20 @@
 This pull request is a casual attempt at "bunding" Sequelize for in-browser usage.
 
 The original issue is:
-https://github.com/sequelize/sequelize/issues/14654#issuecomment-1609794201
+https://github.com/sequelize/sequelize/issues/14654#issuecomment-1609773219
+
+## Rationale
+
+Sequelize supports `sql.js` database which runs in a web browser which means that Sequelize could run in a web browser too.
+
+```js
+import Sequelize from 'sequelize'
+import sqlJsAsSqlite3 from 'sql.js-as-sqlite3'
+
+const sequelize = new Sequelize('sqlite://dbname', {
+  dialectModule: sqlJsAsSqlite3
+})
+````
 
 ## Install
 
@@ -52,3 +65,7 @@ lib/index.js?commonjs-entry
 ```
 
 * The Rollup config can be found at `packages/core/build/rollup.config.mjs`. It "shims" some of the server-side packages by replacing them with plaform-agnostic (pure-javascript) ones so that the code could run in a web browser environment.
+
+## Notes
+
+* I guess for a minimal version there's no need to include any "dialects" other than `sqlite3` because currently it seems like of all supported databases only `sql.js` can be run in a purely web-browser environment. Excluding the rest of the "dialects" from the bundle also means that there's much less Node.js-specific `require()`s to fix.
