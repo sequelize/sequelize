@@ -46,6 +46,8 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-replace": "^5.0.2",
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
     "bnf-parser": "3.1.6",
@@ -58,6 +60,7 @@
     "pg-connection-string": "^2.5.0",
     "pg-hstore": "^2.3.4",
     "retry-as-promised": "^7.0.3",
+    "rollup": "^3.25.3",
     "semver": "^7.3.7",
     "sequelize-pool": "^8.0.0",
     "toposort-class": "^1.0.1",
@@ -67,6 +70,8 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.2",
+    "@rollup/plugin-json": "^6.0.0",
     "@types/chai": "4.3.5",
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
@@ -92,6 +97,7 @@
     "mocha": "10.2.0",
     "moment": "2.29.4",
     "mysql2": "3.4.2",
+    "nanoid": "^4.0.2",
     "nyc": "15.1.0",
     "odbc": "2.4.8",
     "p-map": "4.0.0",
@@ -202,7 +208,8 @@
     "test-db2": "cross-env DIALECT=db2 yarn test",
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
-    "build": "node ../../build-packages.mjs core"
+    "build": "node ../../build-packages.mjs core",
+    "build-browser": "rollup --config build/rollup.config.mjs"
   },
   "support": true
 }
