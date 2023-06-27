@@ -4,11 +4,12 @@ import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
-import { quoteIdentifier, removeTicks } from '../../utils/dialect';
+import { quoteIdentifier } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
@@ -26,6 +27,7 @@ const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymme
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['encoding', 'collate', 'ctype', 'template']);
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['cascade']);
 
 export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
@@ -88,11 +90,17 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
-  versionQuery() {
-    return 'SHOW SERVER_VERSION';
-  }
-
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     options = { ...options };
 
     const attrStr = [];
@@ -317,23 +325,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `DELETE FROM ${table}${whereClause}`;
   }
 
-  showConstraintsQuery(tableName) {
-    // Postgres converts camelCased alias to lowercase unless quoted
-    return [
-      'SELECT constraint_catalog AS "constraintCatalog",',
-      'constraint_schema AS "constraintSchema",',
-      'constraint_name AS "constraintName",',
-      'table_catalog AS "tableCatalog",',
-      'table_schema AS "tableSchema",',
-      'table_name AS "tableName",',
-      'constraint_type AS "constraintType",',
-      'is_deferrable AS "isDeferrable",',
-      'initially_deferred AS "initiallyDeferred"',
-      'from INFORMATION_SCHEMA.table_constraints',
-      `WHERE table_name=${this.escape(tableName)};`,
-    ].join(' ');
-  }
-
   addLimitAndOffset(options) {
     let fragment = '';
     if (options.limit != null) {
@@ -439,7 +430,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         }
 
         if (attribute.references.deferrable) {
-          sql += ` ${attribute.references.deferrable.toString(this)}`;
+          sql += ` ${this._getDeferrableConstraintSnippet(attribute.references.deferrable)}`;
         }
       }
     }
@@ -457,28 +448,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return sql;
-  }
-
-  deferConstraintsQuery(options) {
-    return options.deferrable.toString(this);
-  }
-
-  setConstraintQuery(columns, type) {
-    let columnFragment = 'ALL';
-
-    if (columns) {
-      columnFragment = columns.map(column => this.quoteIdentifier(column)).join(', ');
-    }
-
-    return `SET CONSTRAINTS ${columnFragment} ${type}`;
-  }
-
-  setDeferredQuery(columns) {
-    return this.setConstraintQuery(columns, 'DEFERRED');
-  }
-
-  setImmediateQuery(columns) {
-    return this.setConstraintQuery(columns, 'IMMEDIATE');
   }
 
   attributesToSQL(attributes, options) {
@@ -539,10 +508,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const paramList = this._expandFunctionParamList(params);
 
     return `ALTER FUNCTION ${oldFunctionName}(${paramList}) RENAME TO ${newFunctionName};`;
-  }
-
-  pgEscapeAndQuote(val) {
-    return this.quoteIdentifier(removeTicks(this.escape(val), '\''));
   }
 
   _expandFunctionParamList(params) {
@@ -735,7 +700,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       return [];
     }
 
-    matches = matches.map(m => m.replace(/",$/, '').replace(/,$/, '').replace(/(^"|"$)/g, ''));
+    matches = matches.map(m => m.replace(/",$/, '').replace(/,$/, '').replaceAll(/(^"|"$)/g, ''));
 
     return matches.slice(0, -1);
   }
@@ -764,18 +729,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return dataType;
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(tableName) {
-    return 'SELECT conname as constraint_name, pg_catalog.pg_get_constraintdef(r.oid, true) as condef FROM pg_catalog.pg_constraint r '
-      + `WHERE r.conrelid = (SELECT oid FROM pg_class WHERE relname = '${tableName}' LIMIT 1) AND r.contype = 'f' ORDER BY 1;`;
   }
 
   /**
@@ -808,7 +761,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   /**
    * Generates an SQL query that returns all foreign keys details of a table.
    *
-   * As for getForeignKeysQuery is not compatible with getForeignKeyReferencesQuery, so add a new function.
+   * As for getForeignKeyQuery is not compatible with getForeignKeyReferencesQuery, so add a new function.
    *
    * @param {string} tableName
    * @param {string} catalogName

@@ -8,6 +8,7 @@ import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-ut
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
@@ -20,6 +21,7 @@ const { Op } = require('../../operators');
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
@@ -56,7 +58,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     // DROP SCHEMA Can't drop schema if it is not empty.
     // DROP SCHEMA Can't drop objects belonging to the schema
     // So, call the admin procedure to drop schema.
-    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${wrapSingleQuote(schema.trim())}, NULL, $sequelize_errorSchema, $sequelize_errorTable)`;
+    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${this.escape(schema.trim())}, NULL, $sequelize_errorSchema, $sequelize_errorTable)`;
 
     if (this._errorTableCount >= Number.MAX_SAFE_INTEGER) {
       this._errorTableCount = 0;
@@ -80,11 +82,17 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
-  versionQuery() {
-    return 'select service_level as VERSION from TABLE (sysproc.env_get_inst_info()) as A';
-  }
-
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const query = 'CREATE TABLE IF NOT EXISTS <%= table %> (<%= attributes %>)';
     const primaryKeys = [];
     const foreignKeys = {};
@@ -95,7 +103,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     let commentStr = '';
 
     for (const attr in attributes) {
-      if (Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
         let match;
 
@@ -169,7 +177,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
+      if (Object.hasOwn(foreignKeys, fkey)) {
         values.attributes += `, FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
       }
     }
@@ -197,7 +205,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const schemaName = table.schema || this.sequelize.config.username.toUpperCase();
 
     // https://www.ibm.com/docs/en/db2-for-zos/11?topic=tables-systables
-    return `SELECT name FROM sysibm.systables WHERE NAME = ${wrapSingleQuote(tableName)} AND CREATOR = ${wrapSingleQuote(schemaName)}`;
+    return `SELECT name FROM sysibm.systables WHERE NAME = ${this.escape(tableName)} AND CREATOR = ${this.escape(schemaName)}`;
   }
 
   addColumnQuery(table, key, dataType, options) {
@@ -310,24 +318,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       before: this.quoteIdentifier(attrBefore),
       after: this.quoteIdentifier(newName),
     });
-  }
-
-  addConstraintQuery(tableName, options) {
-    options = options || {};
-    if (options.onUpdate && options.onUpdate.toUpperCase() === 'CASCADE') {
-      // Db2 does not support ON UPDATE CASCADE, remove it.
-      delete options.onUpdate;
-    }
-
-    const constraintSnippet = this.getConstraintSnippet(tableName, options);
-
-    if (typeof tableName === 'string') {
-      tableName = this.quoteIdentifiers(tableName);
-    } else {
-      tableName = this.quoteTable(tableName);
-    }
-
-    return `ALTER TABLE ${tableName} ADD ${constraintSnippet};`;
   }
 
   bulkInsertQuery(tableName, attrValueHashes, options, attributes) {
@@ -588,16 +578,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return super.addIndexQuery(tableName, attributes, options, rawTablename);
   }
 
-  showConstraintsQuery(tableName, constraintName) {
-    let sql = `SELECT CONSTNAME AS "constraintName", TRIM(TABSCHEMA) AS "schemaName", TABNAME AS "tableName" FROM SYSCAT.TABCONST WHERE TABNAME = '${tableName}'`;
-
-    if (constraintName) {
-      sql += ` AND CONSTNAME LIKE '%${constraintName}%'`;
-    }
-
-    return `${sql} ORDER BY CONSTNAME;`;
-  }
-
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
@@ -747,68 +727,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     throwMethodUndefined('renameFunction');
   }
 
-  /**
-   * Generate SQL for ForeignKeysQuery.
-   *
-   * @param {string} condition   The condition string for query.
-   * @returns {string}
-   */
-  _getForeignKeysQuerySQL(condition) {
-    return 'SELECT R.CONSTNAME AS "constraintName", '
-        + 'TRIM(R.TABSCHEMA) AS "constraintSchema", '
-        + 'R.TABNAME AS "tableName", '
-        + 'TRIM(R.TABSCHEMA) AS "tableSchema", LISTAGG(C.COLNAME,\', \') '
-        + 'WITHIN GROUP (ORDER BY C.COLNAME) AS "columnName", '
-        + 'TRIM(R.REFTABSCHEMA) AS "referencedTableSchema", '
-        + 'R.REFTABNAME AS "referencedTableName", '
-        + 'TRIM(R.PK_COLNAMES) AS "referencedColumnName" '
-        + 'FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C '
-        + 'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA '
-        + `AND R.TABNAME = C.TABNAME${condition} GROUP BY R.REFTABSCHEMA, `
-        + 'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES';
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param {Stirng|object} table The name of the table.
-   * @param {string} schemaName   The name of the schema.
-   * @returns {string}            The generated sql query.
-   */
-  getForeignKeysQuery(table, schemaName) {
-    const tableName = table.tableName || table;
-    schemaName = table.schema || schemaName;
-    let sql = '';
-    if (tableName) {
-      sql = ` AND R.TABNAME = ${wrapSingleQuote(tableName)}`;
-    }
-
-    if (schemaName) {
-      sql += ` AND R.TABSCHEMA = ${wrapSingleQuote(schemaName)}`;
-    }
-
-    return this._getForeignKeysQuerySQL(sql);
-  }
-
-  getForeignKeyQuery(table, columnName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-    let sql = '';
-    if (tableName) {
-      sql = ` AND R.TABNAME = ${wrapSingleQuote(tableName)}`;
-    }
-
-    if (schemaName) {
-      sql += ` AND R.TABSCHEMA = ${wrapSingleQuote(schemaName)}`;
-    }
-
-    if (columnName) {
-      sql += ` AND C.COLNAME = ${wrapSingleQuote(columnName)}`;
-    }
-
-    return this._getForeignKeysQuerySQL(sql);
-  }
-
   dropForeignKeyQuery(tableName, foreignKey) {
     return _.template('ALTER TABLE <%= table %> DROP FOREIGN KEY <%= key %>;', this._templateSettings)({
       table: this.quoteTable(tableName),
@@ -892,7 +810,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 function wrapSingleQuote(identifier) {
   if (identifier) {
     return `'${identifier}'`;
-    // return addTicks("'"); // It removes quote from center too.
   }
 
   return '';

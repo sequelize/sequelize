@@ -1,5 +1,4 @@
 import type { SetRequired } from 'type-fest';
-import type { Deferrable } from '../../deferrable';
 import type { Col } from '../../expression-builders/col.js';
 import type { Fn } from '../../expression-builders/fn.js';
 import type { Literal } from '../../expression-builders/literal.js';
@@ -8,18 +7,18 @@ import type {
   Attributes,
   CreationAttributes,
   Filterable,
-  Logging,
   Model,
   ModelStatic,
   NormalizedAttributeOptions,
 } from '../../model';
 import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
-import type { Transaction } from '../../transaction';
+import type { IsolationLevel, Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
+import type { QiDropAllSchemasOptions } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 interface Replaceable {
@@ -190,49 +189,6 @@ export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptions
 
 export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions { }
 
-export interface BaseConstraintOptions {
-  name?: string;
-  fields: string[];
-}
-
-export interface AddUniqueConstraintOptions extends BaseConstraintOptions {
-  type: 'unique';
-  deferrable?: Deferrable;
-}
-
-export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
-  type: 'default';
-  defaultValue?: unknown;
-}
-
-export interface AddCheckConstraintOptions extends BaseConstraintOptions {
-  type: 'check';
-  where?: WhereOptions<any>;
-}
-
-export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
-  type: 'primary key';
-  deferrable?: Deferrable;
-}
-
-export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
-  type: 'foreign key';
-  references?: {
-    table: TableName,
-    field: string,
-  };
-  onDelete: string;
-  onUpdate: string;
-  deferrable?: Deferrable;
-}
-
-export type AddConstraintOptions =
-  | AddUniqueConstraintOptions
-  | AddDefaultConstraintOptions
-  | AddCheckConstraintOptions
-  | AddPrimaryKeyConstraintOptions
-  | AddForeignKeyConstraintOptions;
-
 export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOptions {
   encoding?: string;
 }
@@ -241,19 +197,6 @@ export interface FunctionParam {
   type: string;
   name?: string;
   direction?: string;
-}
-
-export interface ColumnDescription {
-  type: string;
-  allowNull: boolean;
-  defaultValue: string;
-  primaryKey: boolean;
-  autoIncrement: boolean;
-  comment: string | null;
-}
-
-export interface ColumnsDescription {
-  [key: string]: ColumnDescription;
 }
 
 export interface DatabaseDescription {
@@ -270,6 +213,7 @@ export interface IndexFieldDescription {
 export interface IndexDescription {
   primary: boolean;
   fields: IndexFieldDescription[];
+  includes: string[] | undefined;
   name: string;
   tableName: string | undefined;
   unique: boolean;
@@ -320,17 +264,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   sequelize: Sequelize;
 
-  constructor(sequelize: Sequelize, queryGenerator: AbstractQueryGenerator);
-
-  /**
-   * Return database version
-   */
-  databaseVersion(options?: QueryRawOptions): Promise<string>;
-
   /**
    * Drops all tables
    */
-  dropAllSchemas(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
+  dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void>;
 
   /**
    * Creates a table with specified attributes.
@@ -384,14 +321,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param options Options passed to {@link Sequelize#query}
    */
   tableExists(tableName: TableName, options?: QueryRawOptions): Promise<boolean>;
-
-  /**
-   * Describe a table
-   */
-  describeTable(
-    tableName: TableName,
-    options?: string | { schema?: string, schemaDelimiter?: string } & Logging
-  ): Promise<ColumnsDescription>;
 
   /**
    * Adds a new column to a table
@@ -460,19 +389,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     attributes: string[],
     options?: QueryInterfaceRemoveIndexOptions
   ): Promise<void>;
-
-  /**
-   * Adds constraints to a table
-   */
-  addConstraint(
-    tableName: TableName,
-    options?: AddConstraintOptions & QueryRawOptions
-  ): Promise<void>;
-
-  /**
-   * Removes constraints from a table
-   */
-  removeConstraint(tableName: TableName, constraintName: string, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Shows the index of a table
@@ -680,7 +596,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Set the isolation level of a transaction
    */
-  setIsolationLevel(transaction: Transaction, value: string, options?: QueryRawOptions): Promise<void>;
+  setIsolationLevel(transaction: Transaction, value: IsolationLevel, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Begin a new transaction
@@ -688,17 +604,12 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   startTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
-   * Defer constraints
-   */
-  deferConstraints(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
-
-  /**
    * Commit an already started transaction
    */
   commitTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
-   * Rollback ( revert ) a transaction that has'nt been commited
+   * Rollback (revert) a transaction that hasn't been committed
    */
   rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 

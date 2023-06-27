@@ -98,7 +98,7 @@ async function test() {
     }
   }
   */
-  const attributes: object = await queryInterface.describeTable('Person');
+  const attributes = await queryInterface.describeTable('Person');
 
   await queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', DataTypes.STRING);
 
@@ -221,7 +221,7 @@ async function test() {
   await queryInterface.sequelize.transaction(async trx => queryInterface.addConstraint('Person', {
     name: 'firstnamexlastname',
     fields: ['firstname', 'lastname'],
-    type: 'unique',
+    type: 'UNIQUE',
     transaction: trx,
   }));
 

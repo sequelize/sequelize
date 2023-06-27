@@ -13,7 +13,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
       default: 'CREATE SCHEMA IF NOT EXISTS [myDatabase];',
       db2: 'CREATE SCHEMA "myDatabase";',
       ibmi: 'CREATE SCHEMA "myDatabase"',
-      mssql: `IF NOT EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'myDatabase') BEGIN EXEC sp_executesql N'CREATE SCHEMA [myDatabase] ;' END;`,
+      mssql: `IF NOT EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = N'myDatabase') BEGIN EXEC sp_executesql N'CREATE SCHEMA [myDatabase] ;' END;`,
       sqlite: notSupportedError,
     });
   });

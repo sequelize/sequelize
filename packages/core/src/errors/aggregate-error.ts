@@ -20,8 +20,8 @@ export class AggregateError extends BaseError {
       .map((error: Error | AggregateError) => (error === this
           ? '[Circular AggregateError]'
           : error instanceof AggregateError
-            ? String(error).replace(/\n$/, '').replace(/^/gm, '  ')
-            : String(error).replace(/^/gm, '    ').slice(2)))
+            ? String(error).replace(/\n$/, '').replaceAll(/^/gm, '  ')
+            : String(error).replaceAll(/^/gm, '    ').slice(2)))
       .join('\n')}\n`;
 
     return message;

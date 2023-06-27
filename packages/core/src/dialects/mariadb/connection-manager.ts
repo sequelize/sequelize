@@ -80,8 +80,6 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<MariaDbC
       password: config.password,
       database: config.database,
       timezone: tzOffset,
-      bigNumberStrings: false,
-      supportBigNumbers: true,
       foundRows: false,
       ...config.dialectOptions,
       typeCast: (field: FieldInfo, next: TypeCastNextFunction) => this.#typeCast(field, next),

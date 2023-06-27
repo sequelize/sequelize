@@ -20,17 +20,14 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
     options = options || {};
 
     const [results] = await this.sequelize.queryRaw(
-      this.queryGenerator.getForeignKeyQuery(tableName.tableName ? tableName : {
-        tableName,
-        schema: this.sequelize.config.database,
-      }, columnName),
+      this.queryGenerator.getForeignKeyQuery(tableName, columnName),
       { raw: true, ...options },
     );
 
     // Exclude primary key constraint
-    if (results.length > 0 && results[0].constraint_name !== 'PRIMARY') {
+    if (results.length > 0 && results[0].constraintName !== 'PRIMARY') {
       await Promise.all(results.map(constraint => this.sequelize.queryRaw(
-        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraint_name),
+        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraintName),
         { raw: true, ...options },
       )));
     }
@@ -70,20 +67,10 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
    * @override
    */
   async removeConstraint(tableName, constraintName, options) {
-    const sql = this.queryGenerator.showConstraintsQuery(
-      tableName.tableName ? tableName : {
-        tableName,
-        schema: this.sequelize.config.database,
-      }, constraintName,
-    );
-
-    const constraints = await this.sequelize.queryRaw(sql, {
-      ...options,
-      type: this.sequelize.QueryTypes.SHOWCONSTRAINTS,
-    });
+    const queryOptions = { ...options, raw: true, constraintName };
+    const constraints = await this.showConstraints(tableName, queryOptions);
 
     const constraint = constraints[0];
-    let query;
     if (!constraint || !constraint.constraintType) {
       throw new sequelizeErrors.UnknownConstraintError(
         {
@@ -94,12 +81,13 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
       );
     }
 
+    let query;
     if (constraint.constraintType === 'FOREIGN KEY') {
       query = this.queryGenerator.dropForeignKeyQuery(tableName, constraintName);
     } else {
-      query = this.queryGenerator.removeIndexQuery(constraint.tableName, constraint.constraintName);
+      query = this.queryGenerator.removeIndexQuery(tableName, constraint.constraintName);
     }
 
-    return await this.sequelize.queryRaw(query, options);
+    return this.sequelize.queryRaw(query, queryOptions);
   }
 }
