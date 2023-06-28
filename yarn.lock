@@ -973,22 +973,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lerna/child-process@npm:7.1.0":
-  version: 7.1.0
-  resolution: "@lerna/child-process@npm:7.1.0"
+"@lerna/child-process@npm:7.1.1":
+  version: 7.1.1
+  resolution: "@lerna/child-process@npm:7.1.1"
   dependencies:
     chalk: ^4.1.0
     execa: ^5.0.0
     strong-log-transformer: ^2.1.0
-  checksum: 03f440ef548537699083ded2b2431da40d957632628aaab13d09c08e9fdab1cb284e3e775af62de94477a032f8c80ca486c30526123a8bd2890595f7829e38f8
+  checksum: 022f0cc9094d1242601426c6225575888b66073fd020416abd57bcdd07b31825d30be4143ec0f69ceff94177de42bbb096378c80ba403e7adb38f1bb8b4f41e2
   languageName: node
   linkType: hard
 
-"@lerna/create@npm:7.1.0":
-  version: 7.1.0
-  resolution: "@lerna/create@npm:7.1.0"
+"@lerna/create@npm:7.1.1":
+  version: 7.1.1
+  resolution: "@lerna/create@npm:7.1.1"
   dependencies:
-    "@lerna/child-process": 7.1.0
+    "@lerna/child-process": 7.1.1
     dedent: 0.7.0
     fs-extra: ^11.1.1
     init-package-json: 5.0.0
@@ -1001,7 +1001,7 @@ __metadata:
     validate-npm-package-license: ^3.0.4
     validate-npm-package-name: 5.0.0
     yargs-parser: 20.2.4
-  checksum: 403511902ac11a9a223d91260a9b5f9711cfd74c9be97456a24c1652c9fc5a62ea320b9a65f7a1e6129e449c2a3ddbb9117b1ed92f9de330850bb729e624be8b
+  checksum: 2c64e8af432717562a028d09a53d9758a8bfab81affd56e1b98f563b9ac47833d1c8f673c505655cd77ade9c4f0e3cf7074efcc4ef0c1dba511a360fba8d4a09
   languageName: node
   linkType: hard
 
@@ -1547,7 +1547,7 @@ __metadata:
     eslint-plugin-mocha: 10.1.0
     fast-glob: 3.2.12
     husky: 8.0.3
-    lerna: 7.1.0
+    lerna: 7.1.1
     lint-staged: 13.2.3
     markdownlint-cli: 0.35.0
     mocha: 10.2.0
@@ -7347,12 +7347,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lerna@npm:7.1.0":
-  version: 7.1.0
-  resolution: "lerna@npm:7.1.0"
+"lerna@npm:7.1.1":
+  version: 7.1.1
+  resolution: "lerna@npm:7.1.1"
   dependencies:
-    "@lerna/child-process": 7.1.0
-    "@lerna/create": 7.1.0
+    "@lerna/child-process": 7.1.1
+    "@lerna/create": 7.1.1
     "@npmcli/run-script": 6.0.2
     "@nx/devkit": ">=16.1.3 < 17"
     "@octokit/plugin-enterprise-rest": 6.0.1
@@ -7427,7 +7427,7 @@ __metadata:
     yargs-parser: 20.2.4
   bin:
     lerna: dist/cli.js
-  checksum: efc8a84545dedba30b26cfa2285e5d5eacb40593739e57e770e8f290bb5233911ca665daf84a20e9bf4c78c817cb878f5b028d4dccca25cfeaf74fb63a61b408
+  checksum: 0d67412d9db1638d5fdb38443f900325bd2671a6c28f01e630d9e7db9ceb6cb4b66bc4854fc201fa8d4d875de2119750b08f724d151121ad4aa47fb5d0c32a16
   languageName: node
   linkType: hard
 
