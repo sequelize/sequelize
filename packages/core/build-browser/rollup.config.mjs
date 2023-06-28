@@ -7,8 +7,8 @@ import terser from '@rollup/plugin-terser';
 
 function getConfig({ minify }) {
   return {
-    // Uses the output of `npm run build` command.
-    input: './lib/index.js',
+    // Builds a "bundle" from the output of `npm run build` command.
+    input: './build-browser/index.js',
 
     plugins: [
       // Allows `require()`-ing "*.json" files.

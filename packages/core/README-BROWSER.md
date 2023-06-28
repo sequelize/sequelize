@@ -90,12 +90,6 @@ typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, 
 
 * Not done:
 
-  * Force `disableClsTransactions: true` option in `Sequelize()` constructor options.
-
-  * `packages\core\src\dialects\abstract\connection-manager.ts`:
-    * Remove `require(this.sequelize.config.dialectModulePath);`.
-    * Remove `require(moduleName);`.
-
   * `packages\core\src\sequelize.js`:
     * Remove the `require()`s of all "dialects" except `sqlite`.
       * For a minimal version there's no need to include any "dialects" other than `sqlite3` because currently it seems like of all supported databases only `sql.js` can be run in a purely web-browser environment. Excluding the rest of the "dialects" from the "bundle" also means that there's much less Node.js-specific `require()`s to fix.
