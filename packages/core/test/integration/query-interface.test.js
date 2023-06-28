@@ -796,19 +796,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           });
           throw new Error('Error not thrown...');
         } catch (error) {
+          let err = error;
           if (dialectName === 'mssql') {
-            expect(error).to.be.instanceOf(AggregateError);
-            const constraintError = error.errors.at(-1);
-            expect(constraintError).to.be.instanceOf(UnknownConstraintError);
-            expect(constraintError.table).to.equal('users');
-            expect(constraintError.constraint).to.equal('unknown__constraint__name');
+            expect(err).to.be.instanceOf(AggregateError);
+            err = error.errors.at(-1);
           } else {
-            expect(error).to.be.instanceOf(Sequelize.UnknownConstraintError);
+            expect(err).to.be.instanceOf(Sequelize.UnknownConstraintError);
             if (dialectName !== 'ibmi') {
-              expect(error.table).to.equal('users');
+              expect(err.table).to.equal('users');
             }
 
-            expect(error.constraint).to.equal('unknown__constraint__name');
+            expect(err.constraint).to.equal('unknown__constraint__name');
           }
         }
       });
