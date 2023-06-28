@@ -97,8 +97,10 @@ typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, 
 ## Status
 
 * For some reason, it doesn't replace `require()` calls in `dialects/abstract/data-types.js`. See [issue](https://github.com/rollup/rollup/issues/5048).
+  * `rollup` could be replaced with `esbuild` or `webpack`.
 
 * For some reason, it doesn't replace `module.exports = ` expressions (e.g. in `data-types.js`) which results in a `ReferenceError: module is not defined` error in a web browser. See [issue](https://github.com/rollup/rollup/issues/5048).
+  * `rollup` could be replaced with `esbuild` or `webpack`.
 
 ## Limitations
 
