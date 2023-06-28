@@ -20,9 +20,9 @@ node_modules
 /packages/*/lib
 /packages/*/types
 /packages/*/build-browser/sequelize.js
-/packages/*/build-browser/sequelize.map
+/packages/*/build-browser/sequelize.js.map
 /packages/*/build-browser/sequelize.min.js
-/packages/*/build-browser/sequelize.min.map
+/packages/*/build-browser/sequelize.min.js.map
 
 .pnp.*
 .yarn/*
