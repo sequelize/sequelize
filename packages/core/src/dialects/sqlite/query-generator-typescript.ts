@@ -2,18 +2,18 @@ import { randomBytes } from 'node:crypto';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
+import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
 import type { ColumnsDescription } from '../abstract/query-interface.types';
-import { MySqlQueryGenerator } from '../mysql/query-generator';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
 /**
  * Temporary class to ease the TypeScript migration
  */
-export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
+export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   createSchemaQuery(): string {
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
