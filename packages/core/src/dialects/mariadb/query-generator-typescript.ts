@@ -42,6 +42,7 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'c.TABLE_SCHEMA AS tableSchema,',
       'c.TABLE_NAME AS tableName,',
       'kcu.COLUMN_NAME AS columnNames,',
+      'kcu.REFERENCED_TABLE_SCHEMA AS referencedTableSchema,',
       'kcu.REFERENCED_TABLE_NAME AS referencedTableName,',
       'kcu.REFERENCED_COLUMN_NAME AS referencedColumnNames,',
       'r.DELETE_RULE AS deleteAction,',
@@ -50,14 +51,14 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS c',
       'LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS r ON c.CONSTRAINT_CATALOG = r.CONSTRAINT_CATALOG',
       'AND c.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = r.CONSTRAINT_NAME AND c.TABLE_NAME = r.TABLE_NAME',
-      'LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON r.CONSTRAINT_CATALOG = kcu.CONSTRAINT_CATALOG',
-      'AND r.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA AND r.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND r.TABLE_NAME = kcu.TABLE_NAME',
+      'LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON c.CONSTRAINT_CATALOG = kcu.CONSTRAINT_CATALOG',
+      'AND c.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND c.TABLE_NAME = kcu.TABLE_NAME',
       'LEFT JOIN INFORMATION_SCHEMA.CHECK_CONSTRAINTS ch ON c.CONSTRAINT_CATALOG = ch.CONSTRAINT_CATALOG',
       'AND c.CONSTRAINT_SCHEMA = ch.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = ch.CONSTRAINT_NAME',
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
       options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
-      'ORDER BY c.CONSTRAINT_NAME',
+      'ORDER BY c.CONSTRAINT_NAME, kcu.ORDINAL_POSITION',
     ]);
   }
 

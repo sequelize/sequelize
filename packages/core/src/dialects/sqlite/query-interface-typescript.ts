@@ -49,7 +49,7 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
 
     let { sql: createTableSql } = describeCreateTable[0] as { sql: string };
     // Replace double quotes with backticks and ending ')' with constraint snippet
-    createTableSql = createTableSql.replaceAll('"', '`').replace(/\);?$/, `, ${constraintSnippet});`);
+    createTableSql = createTableSql.replaceAll('"', '`').replace(/\);?$/, `, ${constraintSnippet})`);
 
     const fields = await this.describeTable(tableName, options);
     const sql = this.queryGenerator._replaceTableQuery(tableName, fields, createTableSql);
@@ -110,7 +110,7 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
 
     const fields = await this.describeTable(tableName, options);
     // Replace double quotes with backticks and remove constraint snippet
-    const sql = this.queryGenerator._replaceTableQuery(tableName, fields, `${createTableSql.replaceAll('"', '`').replace(constraintSnippet, '')};`);
+    const sql = this.queryGenerator._replaceTableQuery(tableName, fields, createTableSql.replaceAll('"', '`').replace(constraintSnippet, ''));
     const subQueries = sql.split(';').filter(q => q !== '');
 
     for (const subQuery of subQueries) {
@@ -152,22 +152,20 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
       }
 
       for (const attribute of attributes) {
-        if (/\bPRIMARY KEY\b/.test(attribute)) {
-          const columnNames = attribute.match(/`(\S+)`/);
-
+        const [, column, type] = attribute.match(/`(\S+)` (.+)/) || [];
+        if (/\bPRIMARY KEY\b/.test(type)) {
           data.push({
             constraintSchema: '',
             constraintName: 'PRIMARY',
             constraintType: 'PRIMARY KEY',
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnNames ? columnNames[1].split(',') : [],
+            columnNames: [column],
           });
-        } else if (/\bREFERENCES\b/.test(attribute)) {
-          const columnNames = attribute.match(/`(\S+)`/);
-          const deleteAction = attribute.match(/ON DELETE (\w+)/);
-          const updateAction = attribute.match(/ON UPDATE (\w+)/);
-          const references = attribute.match(/REFERENCES `(\S+)` \(`(\S+)`\)/);
+        } else if (/\bREFERENCES\b/.test(type)) {
+          const deleteAction = type.match(/ON DELETE (\w+(?: (?!ON UPDATE)\w+)?)/);
+          const updateAction = type.match(/ON UPDATE (\w+(?: (?!ON DELETE)\w+)?)/);
+          const [, referencedTableName, referencedColumnNames] = type.match(/REFERENCES `(\S+)` \(`(\S+)`\)/) || [];
 
           data.push({
             constraintSchema: '',
@@ -175,26 +173,24 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
             constraintType: 'FOREIGN KEY',
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnNames ? columnNames[1].split(',') : [],
-            referencedTableName: references ? references[1] : '',
-            referencedColumnNames: references ? references[2].split(',') : [],
-            deleteAction: deleteAction ? deleteAction[1] : '',
-            updateAction: updateAction ? updateAction[1] : '',
+            columnNames: [column],
+            referencedTableSchema: '',
+            referencedTableName: referencedTableName ?? '',
+            referencedColumnNames: [referencedColumnNames],
+            deleteAction: deleteAction?.at(1) ?? '',
+            updateAction: updateAction?.at(1) ?? '',
           });
-        } else if (/\bUNIQUE\b/.test(attribute)) {
-          const columnNames = attribute.match(/`(\S+)`/);
-
+        } else if (/\bUNIQUE\b/.test(type)) {
           data.push({
             constraintSchema: '',
             constraintName: 'UNIQUE',
             constraintType: 'UNIQUE',
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnNames ? columnNames[1].split(',') : [],
+            columnNames: [column],
           });
-        } else if (/\bCHECK\b/.test(attribute)) {
-          const columnNames = attribute.match(/`(\S+)`/);
-          const definition = attribute.match(/CHECK (.+)/);
+        } else if (/\bCHECK\b/.test(type)) {
+          const definition = type.match(/CHECK (.+)/);
 
           data.push({
             constraintSchema: '',
@@ -202,16 +198,16 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
             constraintType: 'CHECK',
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnNames ? columnNames[1].split(',') : [],
-            definition: definition ? definition[1] : '',
+            columnNames: [column],
+            definition: definition ? definition[1] ?? '' : '',
           });
         }
       }
 
       for (const constraint of constraints) {
-        const [, constraintName, constraintType, definition] = constraint.match(/CONSTRAINT (?:`|'|")(\S+)(?:`|'|") (\w+) (.+)/) || [];
+        const [, constraintName, constraintType, definition] = constraint.match(/CONSTRAINT (?:`|'|")(\S+)(?:`|'|") (\w+(?: \w+)?) (.+)/) || [];
         if (/\bPRIMARY KEY\b/.test(constraint)) {
-          const columnNames = definition.match(/`(\S+)`/);
+          const columnsMatch = [...definition.matchAll(/`(\S+)`/g)];
 
           data.push({
             constraintSchema: '',
@@ -219,13 +215,14 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
             constraintType: 'PRIMARY KEY',
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnNames ? columnNames[1].split(',') : [],
+            columnNames: columnsMatch.map(col => col[1]),
           });
         } else if (/\bREFERENCES\b/.test(constraint)) {
-          const columnNames = definition.match(/`(\S+)`/);
-          const deleteAction = definition.match(/ON DELETE (\w+)/);
-          const updateAction = definition.match(/ON UPDATE (\w+)/);
-          const references = definition.match(/REFERENCES `(\S+)` \(`(\S+)`\)/);
+          const deleteAction = definition.match(/ON DELETE (\w+(?: (?!ON UPDATE)\w+)?)/);
+          const updateAction = definition.match(/ON UPDATE (\w+(?: (?!ON DELETE)\w+)?)/);
+          const [, rawColumnNames, referencedTableName, rawReferencedColumnNames] = definition.match(/\(([^\s,]+(?:,\s?[^\s,]+)*)\) REFERENCES `(\S+)` \(([^\s,]+(?:,\s?[^\s,]+)*)\)/) || [];
+          const columnsMatch = [...rawColumnNames.matchAll(/`(\S+)`/g)];
+          const referencedColumnNames = [...rawReferencedColumnNames.matchAll(/`(\S+)`/g)];
 
           data.push({
             constraintSchema: '',
@@ -233,53 +230,60 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
             constraintType: 'FOREIGN KEY',
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnNames ? columnNames[1].split(',') : [],
-            referencedTableName: references ? references[1] : '',
-            referencedColumnNames: references ? references[2].split(',') : [],
-            deleteAction: deleteAction ? deleteAction[1] : '',
-            updateAction: updateAction ? updateAction[1] : '',
+            columnNames: columnsMatch.map(col => col[1]),
+            referencedTableSchema: '',
+            referencedTableName: referencedTableName ?? '',
+            referencedColumnNames: referencedColumnNames.map(col => col[1]),
+            deleteAction: deleteAction?.at(1) ?? '',
+            updateAction: updateAction?.at(1) ?? '',
           });
         } else if (['CHECK', 'DEFAULT', 'UNIQUE'].includes(constraintType)) {
+          const columnsMatch = [...definition.matchAll(/`(\S+)`/g)];
+
           data.push({
             constraintSchema: '',
             constraintName,
             constraintType: constraintType as ConstraintType,
             tableSchema: '',
             tableName: constraintTableName,
+            columnNames: columnsMatch.map(col => col[1]),
             definition,
           });
         }
       }
 
       for (const key of keys) {
-        if (key.startsWith('PRIMARY KEY')) {
-          const columnNames = key.match(/PRIMARY KEY(?:\b|\s+)\(`(\S+)`\)/);
+        const [, constraintType, rawColumnNames] = key.match(/(\w+(?: \w+)?)\s?\(([^\s,]+(?:,\s?[^\s,]+)*)\)/) || [];
+        const columnsMatch = [...rawColumnNames.matchAll(/`(\S+)`/g)];
+        const columnNames = columnsMatch.map(col => col[1]);
 
+        if (constraintType === 'PRIMARY KEY') {
           data.push({
             constraintSchema: '',
             constraintName: 'PRIMARY',
-            constraintType: 'PRIMARY KEY',
+            constraintType,
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnNames ? columnNames[1].split(',') : [],
+            columnNames,
           });
-        } else if (key.startsWith('FOREIGN KEY')) {
-          const columnNames = key.match(/FOREIGN KEY(?:\b|\s+)\(`(\S+)`\)/);
-          const deleteAction = key.match(/ON DELETE (\w+)/);
-          const updateAction = key.match(/ON UPDATE (\w+)/);
-          const references = key.match(/REFERENCES `(\S+)` \(`(\S+)`\)/);
+        } else if (constraintType === 'FOREIGN KEY') {
+          const deleteAction = key.match(/ON DELETE (\w+(?: (?!ON UPDATE)\w+)?)/);
+          const updateAction = key.match(/ON UPDATE (\w+(?: (?!ON DELETE)\w+)?)/);
+          const [, referencedTableName, rawReferencedColumnNames] = key.match(/REFERENCES `(\S+)` \(([^\s,]+(?:,\s?[^\s,]+)*)\)/) || [];
+          const referencedColumnNames = [...rawReferencedColumnNames.matchAll(/`(\S+)`/g)];
 
           data.push({
             constraintSchema: '',
             constraintName: 'FOREIGN',
-            constraintType: 'FOREIGN KEY',
+            constraintType,
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnNames ? columnNames[1].split(',') : [],
-            referencedTableName: references ? references[1] : '',
-            referencedColumnNames: references ? references[2].split(',') : [],
-            deleteAction: deleteAction ? deleteAction[1] : '',
-            updateAction: updateAction ? updateAction[1] : '',
+            columnNames,
+            referencedTableSchema: '',
+            referencedTableName,
+            referencedColumnNames: referencedColumnNames.map(col => col[1]),
+            deleteAction: deleteAction?.at(1) ?? '',
+            updateAction: updateAction?.at(1) ?? '',
           });
         }
       }
