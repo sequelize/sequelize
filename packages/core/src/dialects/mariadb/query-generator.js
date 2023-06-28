@@ -25,6 +25,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
   }
 
+  // TODO: typescript - protected
   _getTechnicalSchemaNames() {
     return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema'];
   }
@@ -68,7 +69,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
         primaryKeys.push(attr);
 
         if (dataType.includes('REFERENCES')) {
-          // MySQL doesn't support inline REFERENCES declarations: move to the end
+          // MariaDB doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
           foreignKeys[attr] = match[2];
@@ -76,7 +77,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
           attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
         }
       } else if (dataType.includes('REFERENCES')) {
-        // MySQL doesn't support inline REFERENCES declarations: move to the end
+        // MariaDB doesn't support inline REFERENCES declarations: move to the end
         match = dataType.match(/^(.+) (REFERENCES.*)$/);
         attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
         foreignKeys[attr] = match[2];
