@@ -7,6 +7,7 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { ConstraintType } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -51,6 +52,23 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
+  private _getConstraintType(type: ConstraintType): string {
+    switch (type) {
+      case 'CHECK':
+        return 'CHECK_CONSTRAINT';
+      case 'DEFAULT':
+        return 'DEFAULT_CONSTRAINT';
+      case 'FOREIGN KEY':
+        return 'FOREIGN_KEY_CONSTRAINT';
+      case 'PRIMARY KEY':
+        return 'PRIMARY_KEY_CONSTRAINT';
+      case 'UNIQUE':
+        return 'UNIQUE_CONSTRAINT';
+      default:
+        throw new Error(`Constraint type ${type} is not supported`);
+    }
+  }
+
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
@@ -88,7 +106,9 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'INNER JOIN sys.columns rcol ON c.referenced_column_id = rcol.column_id AND c.referenced_object_id = rcol.object_id',
       ') c ON t.object_id = c.constraintTableId',
       `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
+      options?.columnName ? `AND c.columnNames = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.constraintName = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.constraintType = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
       'ORDER BY c.constraintName',
     ]);
   }

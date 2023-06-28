@@ -60,7 +60,9 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       'AND c.TABLE_SCHEMA =',
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
+      options?.columnName ? `AND k.COLUMN_NAME = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
       'ORDER BY c.CONSTRAINT_NAME, k.ORDINAL_POSITION',
     ]);
   }

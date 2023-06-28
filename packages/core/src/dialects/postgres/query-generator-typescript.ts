@@ -65,7 +65,9 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN INFORMATION_SCHEMA.check_constraints ch ON c.constraint_catalog = ch.constraint_catalog AND c.constraint_schema = ch.constraint_schema AND c.constraint_name = ch.constraint_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
       `AND c.table_schema = ${this.escape(table.schema)}`,
+      options?.columnName ? `AND kcu.column_name = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.constraint_name = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.constraint_type = ${this.escape(options.constraintType)}` : '',
       'ORDER BY c.constraint_name, kcu.ordinal_position',
     ]);
   }

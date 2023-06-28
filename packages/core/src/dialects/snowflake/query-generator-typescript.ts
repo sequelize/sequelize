@@ -14,6 +14,10 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
+    if (options?.columnName) {
+      throw new Error(`showConstraintsQuery does not support options.columnName for ${this.dialect.name}.`);
+    }
+
     return joinSQLFragments([
       'SELECT c.CONSTRAINT_CATALOG AS constraintCatalog,',
       'c.CONSTRAINT_SCHEMA AS constraintSchema,',
@@ -34,6 +38,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
       options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
       'ORDER BY c.CONSTRAINT_NAME',
     ]);
   }

@@ -291,10 +291,27 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
       throw new Error(`Could not parse constraints from SQL: ${createTableSql}`);
     }
 
-    if (options?.constraintName) {
-      return data.filter(constraint => constraint.constraintName === options.constraintName);
+    let constraintData = data;
+
+    if (options?.columnName) {
+      constraintData = constraintData.filter(constraint => constraint.columnNames?.includes(options.columnName!));
+      constraintData = constraintData.map(constraint => {
+        if (constraint.columnNames) {
+          constraint.columnNames = constraint.columnNames.filter(column => column === options.columnName);
+        }
+
+        return constraint;
+      });
     }
 
-    return data;
+    if (options?.constraintName) {
+      constraintData = constraintData.filter(constraint => constraint.constraintName === options.constraintName);
+    }
+
+    if (options?.constraintType) {
+      constraintData = constraintData.filter(constraint => constraint.constraintType === options.constraintType);
+    }
+
+    return constraintData;
   }
 }

@@ -93,7 +93,9 @@ export interface RemoveConstraintQueryOptions {
 }
 
 export interface ShowConstraintsQueryOptions {
+  columnName?: string;
   constraintName?: string;
+  constraintType?: ConstraintType;
 }
 
 export interface AttributeToSqlOptions {
