@@ -94,6 +94,12 @@ typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, 
     * Remove the `require()`s of all "dialects" except `sqlite`.
       * For a minimal version there's no need to include any "dialects" other than `sqlite3` because currently it seems like of all supported databases only `sql.js` can be run in a purely web-browser environment. Excluding the rest of the "dialects" from the "bundle" also means that there's much less Node.js-specific `require()`s to fix.
 
+## Status
+
+* For some reason, it doesn't replace `require()` calls in `dialects/abstract/data-types.js`. See [issue](https://github.com/rollup/rollup/issues/5048).
+
+* For some reason, it doesn't replace `module.exports = ` expressions (e.g. in `data-types.js`) which results in a `ReferenceError: module is not defined` error in a web browser. See [issue](https://github.com/rollup/rollup/issues/5048).
+
 ## Limitations
 
 * The only supported databases at the moment are:
