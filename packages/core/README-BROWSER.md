@@ -11,12 +11,18 @@ Sequelize supports `sql.js` database which runs in a web browser which means tha
 import Sequelize from 'sequelize'
 import sqlJsAsSqlite3 from 'sql.js-as-sqlite3'
 
-const sequelize = new Sequelize('sqlite://dbname', {
+const sequelize = new Sequelize('sqlite://:memory:', {
   dialectModule: sqlJsAsSqlite3
 })
 ````
 
-## Install
+## Demo
+
+* Build the browser "bundle" via `npm run build-browser`.
+* Open `build-browser/index.html` file in a web browser and click "Run the Example" button.
+  * It's supposed to work after Sequelize browser bundle is fixed.
+
+## Development
 
 * Clone the repo: https://github.com/catamphetamine/sequelize
 
@@ -82,9 +88,9 @@ typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, 
 
 ## Notes
 
-* I guess for a minimal version there's no need to include any "dialects" other than `sqlite3` because currently it seems like of all supported databases only `sql.js` can be run in a purely web-browser environment. Excluding the rest of the "dialects" from the "bundle" also means that there's much less Node.js-specific `require()`s to fix.
+* Not done:
 
-* Files with unresolved `require()`s:
+  * Force `disableClsTransactions: true` option in `Sequelize()` constructor options.
 
   * `packages\core\src\dialects\abstract\connection-manager.ts`:
     * Remove `require(this.sequelize.config.dialectModulePath);`.
@@ -92,3 +98,33 @@ typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, 
 
   * `packages\core\src\sequelize.js`:
     * Remove the `require()`s of all "dialects" except `sqlite`.
+      * For a minimal version there's no need to include any "dialects" other than `sqlite3` because currently it seems like of all supported databases only `sql.js` can be run in a purely web-browser environment. Excluding the rest of the "dialects" from the "bundle" also means that there's much less Node.js-specific `require()`s to fix.
+
+## Limitations
+
+* The only supported databases at the moment are:
+  * SQLite (with `sql.js-as-sqlite3` module as a `dialectModule` parameter value).
+
+```js
+import Sequelize from 'sequelize'
+import sqlJsAsSqlite3 from 'sql.js-as-sqlite3'
+
+const sequelize = new Sequelize('sqlite://:memory:', {
+  dialectModule: sqlJsAsSqlite3
+})
+```
+
+* When creating ["managed" transactions](https://sequelize.org/docs/v6/other-topics/transactions/) via `sequelize.transaction(options, callback)`, it doesn't enable the "CLS" (Continuation Local Storage) feature for automatically selecting that transaction for any queries dispatched from the `callback`. The workaround is to pass the `transaction` parameter explicitly to any queries dispatched from such `callback`.
+
+```js
+await sequelize.transaction(async t => {
+  const user = await User.create({
+    firstName: 'Abraham',
+    lastName: 'Lincoln'
+  }, { transaction: t });
+});
+```
+
+## Tests
+
+"Shims" could be tested by running `yarn run test-browser-shims` script in the `core` package directory.

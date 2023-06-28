@@ -1,0 +1,157 @@
+<html>
+  <head>
+    <title>sequelize</title>
+
+    <meta charset="utf-8">
+
+    <script src="./sequelize.js"></script>
+
+    <script src="https://prismjs.com/prism.js"></script>
+    <script src="https://unpkg.com/sql.js-as-sqlite3@0.1.x/bundle/sql.js-as-sqlite3.min.js"></script>
+
+    <style>
+      body
+      {
+        margin : 20px;
+        font-family : Arial, Helvetica;
+        background: #434343;
+        color: #dddddd;
+      }
+
+      #main-link
+      {
+        display     : block;
+        font-size   : 24px;
+        color       : #fd8900;
+        font-family : monospace;
+        text-decoration : none;
+      }
+
+      a
+      {
+        color: #fd8900;
+      }
+
+      code {
+        color: #fd8900;
+        font-family: monospace;
+        font-size: 1.2em;
+      }
+
+      .code-link {
+        text-decoration: none;
+      }
+
+      #run {
+        background-color: #fd8900;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.75rem;
+        color: #000000;
+        border: 1px solid currentColor;
+        border-radius: 4px;
+        display: inline-block;
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+
+      #run:active {
+        background-color: #fb7200;
+      }
+    </style>
+
+    <link href="https://prismjs.com/themes/prism-tomorrow.css" rel="stylesheet" />
+  </head>
+
+  <body>
+    <a id="main-link" href="https://gitlab.com/catamphetamine/sequelize">
+      sequelize
+    </a>
+
+    <br/>
+
+    <div style="line-height: 1.35em">
+      In a web browser using an <a class="code-link" target="_blank" href="https://www.npmjs.com/package/sqlite3"><code>sqlite3</code></a>-compatible interface for <a class="code-link" target="_blank" href="https://www.npmjs.com/package/sql.js"><code>sql.js</code></a>.
+    </div>
+
+    <pre><code class="language-html" id="example-html">&lt;script src="https://unpkg.com/sql.js-as-sqlite3@0.1.x/bundle/sql.js-as-sqlite3.min.js"&gt;&lt;/script&gt;
+&lt;script src="https://unpkg.com/sequelize@6.x/build-browser/sequelize.min.js"&gt;&lt;/script&gt;    </code></pre>
+
+    <pre><code class="language-js" id="example">const sequelize = new Sequelize('sqlite://:memory:', { dialectModule: sqlJsAsSqlite3 });
+
+const User = sequelize.define('user', {
+  username: Sequelize.STRING,
+  birthday: Sequelize.DATE
+})
+
+await sequelize.sync()
+
+// Create and fetch a record.
+
+let user = await User.create({
+  username: 'jane',
+  birthday: Date.UTC(1980, 6, 1)
+})
+
+user = user.get({ plain: true })
+delete user.createdAt
+delete user.updatedAt
+
+alert(user)
+
+// Clear the database.
+await User.truncate()</code></pre>
+
+    <button id="run">
+      Run the example
+    </button>
+
+    <script>
+      let output = ''
+
+      function log(line) {
+        console.log(line)
+        output += line + '\n'
+      }
+
+      function clear() {
+        output = ''
+      }
+
+      async function run() {
+        clear()
+
+        const sequelize = new Sequelize('sqlite://:memory:', { dialectModule: sqlJsAsSqlite3 });
+
+        const User = sequelize.define('user', {
+          username: Sequelize.STRING,
+          birthday: Sequelize.DATE
+        })
+
+        await sequelize.sync()
+
+        // Create and fetch a record.
+
+        let user = await User.create({
+          username: 'jane',
+          birthday: Date.UTC(1980, 6, 1)
+        })
+
+        user = user.get({ plain: true })
+        delete user.createdAt
+        delete user.updatedAt
+
+        // Clear the database.
+        await User.truncate()
+
+        return user
+      }
+
+      function onClick() {
+        run().then(user => alert(user), error => alert(error))
+      }
+
+      document.getElementById('run').addEventListener('click', onClick)
+    </script>
+  </body>
+</html>

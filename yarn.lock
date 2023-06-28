@@ -1472,6 +1472,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@rollup/plugin-inject@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "@rollup/plugin-inject@npm:5.0.3"
+  dependencies:
+    "@rollup/pluginutils": ^5.0.1
+    estree-walker: ^2.0.2
+    magic-string: ^0.27.0
+  peerDependencies:
+    rollup: ^1.20.0||^2.0.0||^3.0.0
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+  checksum: d8458b11af3447710ce200fe2886faff07bb054e1269a4f06f5f3c1a1b83019b6ce7761badfa116ca96fbb9c49f16b94ad02d1a72c2fb64dc68cb7dd81331cb7
+  languageName: node
+  linkType: hard
+
 "@rollup/plugin-json@npm:^6.0.0":
   version: 6.0.0
   resolution: "@rollup/plugin-json@npm:6.0.0"
@@ -1564,6 +1580,7 @@ __metadata:
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
     "@rollup/plugin-commonjs": ^25.0.2
+    "@rollup/plugin-inject": ^5.0.3
     "@rollup/plugin-json": ^6.0.0
     "@rollup/plugin-node-resolve": ^15.1.0
     "@rollup/plugin-replace": ^5.0.2
@@ -1572,19 +1589,23 @@ __metadata:
     "@types/chai-as-promised": 7.1.5
     "@types/chai-datetime": 0.0.37
     "@types/debug": ^4.1.7
+    "@types/format-util": ^1
     "@types/ibm_db": 2.0.12
     "@types/lodash": 4.14.195
     "@types/mocha": 10.0.1
     "@types/pg": 8.10.2
+    "@types/qs": ^6
     "@types/randombytes": ^2
     "@types/semver": 7.5.0
     "@types/sinon": 10.0.15
     "@types/sinon-chai": 3.2.9
     "@types/snowflake-sdk": 1.6.13
     "@types/tedious": 4.0.9
+    "@types/util-deprecate": ^1
     "@types/uuid": 9.0.2
     "@types/validator": ^13.7.5
     bnf-parser: 3.1.6
+    buffer: ^6.0.3
     chai: 4.3.7
     chai-as-promised: 7.1.1
     chai-datetime: 1.8.0
@@ -1594,6 +1615,7 @@ __metadata:
     dottie: ^2.0.2
     expect-type: 0.13.0
     fast-glob: ^3.2.12
+    format-util: ^1.0.5
     fs-jetpack: 5.1.0
     ibm_db: 3.2.1
     inflection: ^2.0.0
@@ -1613,6 +1635,8 @@ __metadata:
     pg: 8.11.1
     pg-connection-string: ^2.5.0
     pg-hstore: ^2.3.4
+    process: ^0.11.10
+    qs: ^6.11.2
     randombytes: ^2.1.0
     retry-as-promised: ^7.0.3
     rimraf: 5.0.1
@@ -1626,6 +1650,7 @@ __metadata:
     tedious: 16.1.0
     toposort-class: ^1.0.1
     type-fest: ^3.0.0
+    util-deprecate: ^1.0.2
     uuid: ^9.0.0
     validator: ^13.7.0
     wkx: ^0.5.0
@@ -1878,6 +1903,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/format-util@npm:^1":
+  version: 1.0.2
+  resolution: "@types/format-util@npm:1.0.2"
+  checksum: 59b5d0f7d83cd64cd4ef57485db1f62d232c48e1d30b04f78386de974446ed57d3415134fcdaa2e8052baf0926b89148a34f6575ab21245fea77802a9f4de0a3
+  languageName: node
+  linkType: hard
+
 "@types/geojson@npm:^7946.0.10":
   version: 7946.0.10
   resolution: "@types/geojson@npm:7946.0.10"
@@ -1990,6 +2022,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/qs@npm:^6":
+  version: 6.9.7
+  resolution: "@types/qs@npm:6.9.7"
+  checksum: 7fd6f9c25053e9b5bb6bc9f9f76c1d89e6c04f7707a7ba0e44cc01f17ef5284adb82f230f542c2d5557d69407c9a40f0f3515e8319afd14e1e16b5543ac6cdba
+  languageName: node
+  linkType: hard
+
 "@types/randombytes@npm:^2":
   version: 2.0.0
   resolution: "@types/randombytes@npm:2.0.0"
@@ -2071,6 +2110,13 @@ __metadata:
   dependencies:
     "@types/node": "*"
   checksum: 53e23a1f9fb14a491c00425b2a4fc443817564d77be5e1b95fcbeb6d009551b62ea82ffc3e5ca0c6b9f6b186824ca6ec46e7450c1bcd6674a46d1325f0116e24
+  languageName: node
+  linkType: hard
+
+"@types/util-deprecate@npm:^1":
+  version: 1.0.0
+  resolution: "@types/util-deprecate@npm:1.0.0"
+  checksum: 0d28d1450e70a42eacc1a1e5e5539e599687c910fe947734c5c50f06e103bd0bf4010997793f48f9000b8e81ab51bc729a3d1b385acdee2bcd91e9ecadf1b842
   languageName: node
   linkType: hard
 
@@ -5513,6 +5559,13 @@ __metadata:
     combined-stream: ^1.0.8
     mime-types: ^2.1.12
   checksum: 01135bf8675f9d5c61ff18e2e2932f719ca4de964e3be90ef4c36aacfc7b9cb2fceb5eca0b7e0190e3383fe51c5b37f4cb80b62ca06a99aaabfcfd6ac7c9328c
+  languageName: node
+  linkType: hard
+
+"format-util@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "format-util@npm:1.0.5"
+  checksum: 0c8622e54ad899ca184ff0b4999e9ff9567965051bade140911209d60554c2ea4d43075763c1cf574d2f740966afe46469c9284357919505cdddf1a0b65ff85c
   languageName: node
   linkType: hard
 
@@ -10196,7 +10249,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.4.0":
+"qs@npm:^6.11.2, qs@npm:^6.4.0":
   version: 6.11.2
   resolution: "qs@npm:6.11.2"
   dependencies:
@@ -12398,7 +12451,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"util-deprecate@npm:^1.0.1, util-deprecate@npm:~1.0.1":
+"util-deprecate@npm:^1.0.1, util-deprecate@npm:^1.0.2, util-deprecate@npm:~1.0.1":
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
   checksum: 474acf1146cb2701fe3b074892217553dfcf9a031280919ba1b8d651a068c9b15d863b7303cb15bd00a862b498e6cf4ad7b4a08fb134edd5a6f7641681cb54a2
