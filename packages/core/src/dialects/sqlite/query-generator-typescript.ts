@@ -49,6 +49,10 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `PRAGMA foreign_keys = ${enable ? 'ON' : 'OFF'}`;
   }
 
+  dropForeignKeyQuery(_tableName: TableNameOrModel, _foreignKey: string): string {
+    throw new Error(`dropForeignKeyQuery is not supported in ${this.dialect.name}.`);
+  }
+
   removeIndexQuery(
     tableName: TableNameOrModel,
     indexNameOrAttributes: string | string[],
