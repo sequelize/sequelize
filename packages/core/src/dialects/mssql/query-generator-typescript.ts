@@ -108,7 +108,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
       options?.columnName ? `AND c.columnNames = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.constraintName = ${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND c.constraintType = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
+      options?.constraintType ? `AND c.constraintType = ${this._getConstraintType(options.constraintType)}` : '',
       'ORDER BY c.constraintName',
     ]);
   }
