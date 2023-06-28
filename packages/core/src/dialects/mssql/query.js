@@ -288,7 +288,7 @@ export class MsSqlQuery extends AbstractQuery {
   formatError(err) {
     let match;
 
-    match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'. Cannot insert duplicate key in object '.*'\.(:? The duplicate key value is \((.*)\).)?/s);
+    match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'\. Cannot insert duplicate key in object '.*'\.(:? The duplicate key value is \((.*)\).)?/s);
     match = match || err.message.match(/Cannot insert duplicate key row in object .* with unique index '(.*)'\.(:? The duplicate key value is \((.*)\).)?/s);
     if (match && match.length > 1) {
       let fields = {};
@@ -329,14 +329,13 @@ export class MsSqlQuery extends AbstractQuery {
       return uniqueConstraintError;
     }
 
-    match = err.message.match(/Failed on step '(.*)'.Could not create constraint. See previous errors./)
-      || err.message.match(/The DELETE statement conflicted with the REFERENCE constraint "(.*)". The conflict occurred in database "(.*)", table "(.*)", column '(.*)'./)
-      || err.message.match(/The (?:INSERT|MERGE|UPDATE) statement conflicted with the FOREIGN KEY constraint "(.*)". The conflict occurred in database "(.*)", table "(.*)", column '(.*)'./);
-    if (match && match.length > 0) {
+    match = err.message.match(/The (?:DELETE|INSERT|MERGE|UPDATE) statement conflicted with the (?:FOREIGN KEY|REFERENCE) constraint "(.*)"\. The conflict occurred in database "(.*)", table "(.*)", column '(.*)'\./);
+    if (match && match.length > 1) {
       const fkConstraintError = new sequelizeErrors.ForeignKeyConstraintError({
-        fields: null,
         index: match[1],
         cause: err,
+        table: match[3],
+        fields: [match[4]],
       });
 
       if (err.errors?.length > 0) {
@@ -348,8 +347,8 @@ export class MsSqlQuery extends AbstractQuery {
 
     if (err.errors?.length > 0) {
       let firstError;
-      for (const error of err.errors) {
-        match = error.message.match(/Could not (?:create|drop) constraint(?: or index)?. See previous errors./);
+      for (const [index, error] of err.errors.entries()) {
+        match = error.message.match(/Could not (?:create|drop) constraint(?: or index)?\. See previous errors\./);
         if (match && match.length > 0) {
           let constraint = err.sql.match(/(?:constraint|index) \[(.+?)]/i);
           constraint = constraint ? constraint[1] : undefined;
@@ -357,7 +356,7 @@ export class MsSqlQuery extends AbstractQuery {
           table = table ? table[1] : undefined;
 
           firstError = new sequelizeErrors.UnknownConstraintError({
-            message: match[1],
+            message: err.errors[index - 1].message,
             constraint,
             table,
             cause: err,
