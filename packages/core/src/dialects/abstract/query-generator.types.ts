@@ -92,6 +92,7 @@ export interface RemoveConstraintQueryOptions {
   cascade?: boolean;
 }
 
+// keep SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface ShowConstraintsQueryOptions {
   columnName?: string;
   constraintName?: string;
