@@ -1,6 +1,76 @@
-import { GEOMETRY as MySqlGeometry } from '../mysql/data-types.js';
+import dayjs from 'dayjs';
+import wkx from 'wkx';
+import type { Falsy } from '../../generic/falsy.js';
+import type { GeoJson } from '../../geo-json.js';
+import { isString } from '../../utils/check.js';
+import { isValidTimeZone } from '../../utils/dayjs';
+import * as BaseTypes from '../abstract/data-types.js';
+import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
 
-export class GEOMETRY extends MySqlGeometry {
+export class FLOAT extends BaseTypes.FLOAT {
+  protected getNumberSqlTypeName(): string {
+    return 'FLOAT';
+  }
+}
+
+export class BOOLEAN extends BaseTypes.BOOLEAN {
+  toSql() {
+    return 'TINYINT(1)';
+  }
+
+  toBindableValue(value: boolean | Falsy): unknown {
+    // when binding, must be an integer
+    return value ? 1 : 0;
+  }
+}
+
+export class DATE extends BaseTypes.DATE {
+  toBindableValue(date: AcceptedDate) {
+    date = this._applyTimezone(date);
+
+    // MySQL datetime precision defaults to 0
+    const precision = this.options.precision ?? 0;
+    let format = 'YYYY-MM-DD HH:mm:ss';
+    // TODO: We should normally use `S`, `SS` or `SSS` based on the precision, but
+    //  dayjs has a bug which causes `S` and `SS` to be ignored:
+    //  https://github.com/iamkun/dayjs/issues/1734
+    if (precision > 0) {
+      format += `.SSS`;
+    }
+
+    return date.format(format);
+  }
+
+  sanitize(value: unknown, options?: { timezone?: string }): unknown {
+    if (isString(value) && options?.timezone) {
+      if (isValidTimeZone(options.timezone)) {
+        return dayjs.tz(value, options.timezone).toDate();
+      }
+
+      return new Date(`${value} ${options.timezone}`);
+    }
+
+    return super.sanitize(value);
+  }
+}
+
+export class GEOMETRY extends BaseTypes.GEOMETRY {
+  toBindableValue(value: GeoJson) {
+    const srid = this.options.srid ? `, ${this.options.srid}` : '';
+
+    return `ST_GeomFromText(${this._getDialect().escapeString(
+      wkx.Geometry.parseGeoJSON(value).toWkt(),
+    )}${srid})`;
+  }
+
+  getBindParamSql(value: GeoJson, options: BindParamOptions) {
+    const srid = this.options.srid ? `, ${options.bindParam(this.options.srid)}` : '';
+
+    return `ST_GeomFromText(${options.bindParam(
+      wkx.Geometry.parseGeoJSON(value).toWkt(),
+    )}${srid})`;
+  }
+
   toSql() {
     const sql = this.options.type?.toUpperCase() || 'GEOMETRY';
 
@@ -12,8 +82,10 @@ export class GEOMETRY extends MySqlGeometry {
   }
 }
 
-export { BIGINT, DATE, BOOLEAN, DECIMAL, DOUBLE, FLOAT, ENUM, INTEGER, MEDIUMINT, SMALLINT, UUID, TINYINT, REAL } from '../mysql/data-types.js';
+export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
+  toSql() {
+    const dialect = this._getDialect();
 
-// Unlike MySQL, MariaDB does not need to cast JSON values when comparing them to other values,
-// so we do not need that override.
-export { JSON } from '../abstract/data-types.js';
+    return `ENUM(${this.options.values.map(value => dialect.escapeString(value)).join(', ')})`;
+  }
+}
