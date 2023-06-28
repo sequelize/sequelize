@@ -7,11 +7,11 @@ import { testDataTypeSql } from './_utils';
 describe('DataTypes.UUID', () => {
   describe('toSql', () => {
     testDataTypeSql('UUID', DataTypes.UUID, {
-      postgres: 'UUID',
+      default: 'UUID',
       ibmi: 'CHAR(36)',
       db2: 'CHAR(36) FOR BIT DATA',
       mssql: 'UNIQUEIDENTIFIER',
-      'mariadb mysql': 'CHAR(36) BINARY',
+      mysql: 'CHAR(36) BINARY',
       snowflake: 'VARCHAR(36)',
       sqlite: 'TEXT',
     });
