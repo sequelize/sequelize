@@ -19,6 +19,10 @@ node_modules
 *.log
 /packages/*/lib
 /packages/*/types
+/packages/*/build-browser/sequelize.js
+/packages/*/build-browser/sequelize.map
+/packages/*/build-browser/sequelize.min.js
+/packages/*/build-browser/sequelize.min.map
 
 .pnp.*
 .yarn/*

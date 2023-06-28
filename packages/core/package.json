@@ -46,8 +46,6 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@rollup/plugin-node-resolve": "^15.1.0",
-    "@rollup/plugin-replace": "^5.0.2",
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
     "bnf-parser": "3.1.6",
@@ -72,6 +70,9 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.2",
     "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@rollup/plugin-replace": "^5.0.2",
+    "@rollup/plugin-terser": "^0.4.3",
     "@types/chai": "4.3.5",
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
@@ -79,6 +80,7 @@
     "@types/lodash": "4.14.195",
     "@types/mocha": "10.0.1",
     "@types/pg": "8.10.2",
+    "@types/randombytes": "^2",
     "@types/semver": "7.5.0",
     "@types/sinon": "10.0.15",
     "@types/sinon-chai": "3.2.9",
@@ -105,6 +107,7 @@
     "p-settle": "4.1.1",
     "p-timeout": "4.1.0",
     "pg": "8.11.1",
+    "randombytes": "^2.1.0",
     "rimraf": "5.0.1",
     "sinon": "15.2.0",
     "sinon-chai": "3.7.0",
@@ -209,7 +212,7 @@
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
     "build": "node ../../build-packages.mjs core",
-    "build-browser": "rollup --config build/rollup.config.mjs"
+    "build-browser": "rollup --config build-browser/rollup.config.mjs"
   },
   "support": true
 }

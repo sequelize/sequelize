@@ -30,12 +30,12 @@ const sequelize = new Sequelize('sqlite://dbname', {
 
 * Run `npm run build` there. It creates a server-side build of Sequelize (core) and outputs it in the `lib` folder. The "entry" file is `lib/index.js`.
 
-* Run `npm run build-browser` there. It creates a client-side "bundle" of Sequelize (core) from the server-side build in the `lib` folder, and outputs the results in the `bundle` folder. The file is `bundle/sequelize.min.js`.
+* Run `npm run build-browser` there. It creates a client-side "bundle" of Sequelize (core) from the server-side build in the `lib` folder, and outputs the results in the `build-browser` folder. The files are `build-browser/sequelize.js` and `build-browser/sequelize.min.js` (the latter file is currently not emitted for faster re-builds).
 
 * See the console output with the list of issues:
 
 ```
-./lib/index.js → bundle/sequelize.min.js...
+./lib/index.js → build-browser/sequelize.js...
 (!) Missing shims for Node.js built-ins
 Creating a browser bundle that depends on "node:util", "node:buffer", "node:crypto", "node:assert", "node:async_hooks", "node:path", "node:url", "fs", "path", "os", "util", "stream", "events" and "node:fs". You might need to include https://github.com/FredKSchott/rollup-plugin-polyfill-node
 (!) Circular dependencies
@@ -68,8 +68,27 @@ The following entry modules are using named and default exports together:
 lib/index.js?commonjs-entry
 ```
 
-* The Rollup config can be found at `packages/core/build/rollup.config.mjs`. It "shims" some of the server-side packages by replacing them with plaform-agnostic (pure-javascript) ones so that the code could run in a web browser environment.
+* Open `build-browser/sequelize.js` file in an editor and see the second line. It lists all server-side-only packages that're used in the code and aren't supported in web browsers:
+
+```js
+typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('node:util'), require('node:buffer'), require('node:crypto'), require('node:assert'), require('node:async_hooks'), require('node:path'), require('node:url'), require('fs'), require('path'), require('os'), require('util'), require('stream'), require('events'), require('node:fs')) :
+```
+
+* The Rollup config can be found at `packages/core/build-browser/rollup.config.mjs`. It "shims" some of the server-side packages by replacing them with plaform-agnostic (pure-javascript) ones so that the code could run in a web browser environment.
+
+* To search for the places in the code where Node.js-specific packages are `require()`d, use "Find in Files" features of an IDE while searching for `require(` string in `packages/core/src` folder. If the IDE supports searching for a regular expression, search for `require(['"][^\.]` instead.
+
+* To search for the places in the code where Node.js-specific packages are `import`ed, use "Find in Files" features of an IDE while searching for ` from ` string in `packages/core/src` folder. If the IDE supports searching for a regular expression, search for ` from ['"][^\.]` instead.
 
 ## Notes
 
-* I guess for a minimal version there's no need to include any "dialects" other than `sqlite3` because currently it seems like of all supported databases only `sql.js` can be run in a purely web-browser environment. Excluding the rest of the "dialects" from the bundle also means that there's much less Node.js-specific `require()`s to fix.
+* I guess for a minimal version there's no need to include any "dialects" other than `sqlite3` because currently it seems like of all supported databases only `sql.js` can be run in a purely web-browser environment. Excluding the rest of the "dialects" from the "bundle" also means that there's much less Node.js-specific `require()`s to fix.
+
+* Files with unresolved `require()`s:
+
+  * `packages\core\src\dialects\abstract\connection-manager.ts`:
+    * Remove `require(this.sequelize.config.dialectModulePath);`.
+    * Remove `require(moduleName);`.
+
+  * `packages\core\src\sequelize.js`:
+    * Remove the `require()`s of all "dialects" except `sqlite`.
