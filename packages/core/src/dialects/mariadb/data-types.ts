@@ -54,6 +54,13 @@ export class DATE extends BaseTypes.DATE {
   }
 }
 
+export class UUID extends BaseTypes.UUID {
+  // TODO: add check constraint to enforce GUID format
+  toSql() {
+    return 'CHAR(36) BINARY';
+  }
+}
+
 export class GEOMETRY extends BaseTypes.GEOMETRY {
   toBindableValue(value: GeoJson) {
     const srid = this.options.srid ? `, ${this.options.srid}` : '';
