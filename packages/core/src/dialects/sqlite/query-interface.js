@@ -230,7 +230,7 @@ export class SqliteQueryInterface extends SqliteQueryInterfaceTypeScript {
           }
         }
 
-        const sql = this.queryGenerator.removeColumnQuery(tableName, columns);
+        const sql = this.queryGenerator._replaceTableQuery(tableName, columns);
         const subQueries = sql.split(';').filter(q => q !== '');
 
         for (const subQuery of subQueries) {

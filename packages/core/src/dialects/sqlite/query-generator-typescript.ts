@@ -3,6 +3,7 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
+import type { RemoveColumnQueryOptions } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
@@ -51,6 +52,10 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   dropForeignKeyQuery(_tableName: TableNameOrModel, _foreignKey: string): string {
     throw new Error(`dropForeignKeyQuery is not supported in ${this.dialect.name}.`);
+  }
+
+  removeColumnQuery(_table: TableNameOrModel, _attributeName: string, _options?: RemoveColumnQueryOptions): string {
+    throw new Error(`removeColumnQuery is not supported in ${this.dialect.name}.`);
   }
 
   removeIndexQuery(
