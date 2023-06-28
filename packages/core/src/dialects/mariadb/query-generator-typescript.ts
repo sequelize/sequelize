@@ -1,17 +1,36 @@
+import { Op } from '../../operators.js';
+import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { buildJsonPath } from '../../utils/json.js';
 import { generateIndexName } from '../../utils/string';
+import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
-import { MySqlQueryGenerator } from '../mysql/query-generator.js';
+import type {
+  EscapeOptions,
+  QueryGeneratorOptions,
+  RemoveIndexQueryOptions,
+  TableNameOrModel,
+} from '../abstract/query-generator-typescript';
+import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
 /**
  * Temporary class to ease the TypeScript migration
  */
-export class MariaDbQueryGeneratorTypeScript extends MySqlQueryGenerator {
+export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  constructor(options: QueryGeneratorOptions) {
+    super(options);
+
+    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
+    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
+  }
+
+  describeTableQuery(tableName: TableNameOrModel) {
+    return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
+  }
+
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
@@ -40,6 +59,10 @@ export class MariaDbQueryGeneratorTypeScript extends MySqlQueryGenerator {
       options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
       'ORDER BY c.CONSTRAINT_NAME',
     ]);
+  }
+
+  showIndexesQuery(tableName: TableNameOrModel) {
+    return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
   }
 
   removeIndexQuery(
@@ -74,11 +97,36 @@ export class MariaDbQueryGeneratorTypeScript extends MySqlQueryGenerator {
     ]);
   }
 
+  getToggleForeignKeyChecksQuery(enable: boolean): string {
+    return `SET FOREIGN_KEY_CHECKS=${enable ? '1' : '0'}`;
+  }
+
+  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT CONSTRAINT_NAME as constraintName,',
+      'CONSTRAINT_SCHEMA as constraintSchema,',
+      'TABLE_NAME as tableName,',
+      'TABLE_SCHEMA as tableSchema,',
+      'COLUMN_NAME as columnName,',
+      'REFERENCED_TABLE_SCHEMA as referencedTableSchema,',
+      'REFERENCED_TABLE_NAME as referencedTableName,',
+      'REFERENCED_COLUMN_NAME as referencedColumnName',
+      'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
+      'WHERE',
+      `TABLE_NAME = ${this.escape(table.tableName)}`,
+      `AND TABLE_SCHEMA = ${this.escape(table.schema!)}`,
+      columnName && `AND COLUMN_NAME = ${this.escape(columnName)}`,
+      'AND REFERENCED_TABLE_NAME IS NOT NULL',
+    ]);
+  }
+
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
-    const sql = super.jsonPathExtractionQuery(sqlExpression, path, unquote);
+    const extractQuery = `json_extract(${sqlExpression},${this.escape(buildJsonPath(path))})`;
 
     if (unquote) {
-      return sql;
+      return `json_unquote(${extractQuery})`;
     }
 
     // MariaDB has a very annoying behavior with json_extract: It returns the JSON value as a proper JSON string (e.g. "true" or "null" instead true or null)
@@ -86,6 +134,14 @@ export class MariaDbQueryGeneratorTypeScript extends MySqlQueryGenerator {
     // This is a problem because it makes it impossible to distinguish between a JSON text "true" and a JSON boolean true.
     // This useless function call is here to make mariadb not think the value will be used in a comparison, and thus not unquote it.
     // We could replace it with a custom function that does nothing, but this would require a custom function to be created on the database ahead of time.
-    return `json_compact(${sql})`;
+    return `json_compact(${extractQuery})`;
+  }
+
+  formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
+    return `json_unquote(${this.escape(arg, options)})`;
+  }
+
+  versionQuery() {
+    return 'SELECT VERSION() as `version`';
   }
 }
