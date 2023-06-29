@@ -10,7 +10,7 @@
   "ignorePaths": ["dev/**/oldest/docker-compose.yml"],
   "packageRules": [
     {
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest", "lockFileMaintenance"],
       "automerge": true
     }
   ]

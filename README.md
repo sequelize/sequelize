@@ -1,10 +1,7 @@
-<p align="center">
-  <img src="logo.svg" width="100" alt="Sequelize logo" />
-  <h1 align="center"><a href="https://sequelize.org">Sequelize</a></h1>
-</p>
+<p align="center"><img src="logo.svg" width="100" alt="Sequelize logo" /></p>
+<h1 align="center" style="margin-top: 0;"><a href="https://sequelize.org">Sequelize</a></h1>
 
 [![npm version](https://badgen.net/npm/v/@sequelize/core)](https://www.npmjs.com/package/@sequelize/core)
-[![Build Status](https://github.com/sequelize/sequelize/workflows/CI/badge.svg)](https://github.com/sequelize/sequelize/actions?query=workflow%3ACI)
 [![npm downloads](https://badgen.net/npm/dm/@sequelize/core)](https://www.npmjs.com/package/@sequelize/core)
 [![contributors](https://img.shields.io/github/contributors/sequelize/sequelize)](https://github.com/sequelize/sequelize/graphs/contributors)
 [![Open Collective](https://img.shields.io/opencollective/backers/sequelize)](https://opencollective.com/sequelize#section-contributors)
@@ -43,7 +40,7 @@ Please find upgrade information to major versions here:
 - [Databases Compatibility Table](https://sequelize.org/releases/)
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Discussions](https://github.com/sequelize/sequelize/discussions)
-- [Slack Inviter](http://sequelize-slack.herokuapp.com/)
+- [Slack](https://join.slack.com/t/sequelize/shared_invite/zt-1igt9hx8h-tGWU4AI1bRPvkRdEK5wnuQ)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
 
 ### :wrench: Tools

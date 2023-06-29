@@ -2,9 +2,8 @@
 set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
-
-docker-compose -p sequelize-postgres-latest down --remove-orphans
-docker-compose -p sequelize-postgres-latest up -d
+docker compose -p sequelize-postgres-latest down --remove-orphans
+docker compose -p sequelize-postgres-latest up -d
 
 ./../../wait-until-healthy.sh sequelize-postgres-latest
 

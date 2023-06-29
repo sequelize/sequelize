@@ -3,6 +3,7 @@
 require('@rushstack/eslint-patch/modern-module-resolution');
 
 module.exports = {
+  root: true,
   extends: [
     '@ephys/eslint-config-typescript',
     '@ephys/eslint-config-typescript/node',
@@ -27,30 +28,24 @@ module.exports = {
     'jsdoc/valid-types': 'error',
     'jsdoc/no-types': 'error',
 
-    // We need to enable this in the next Major, it resolves a code smell
-    'unicorn/custom-error-definition': 'off',
+    // enable this as an error, or keep disabled (not warning)
+    'unicorn/no-unsafe-regex': 'off',
 
     // Enable this one if you want to prevent creating throwaway objects (perf)
     'unicorn/no-object-as-default-parameter': 'off',
 
-    // sequelize needs to support node >= 12.
+    // sequelize 7 needs to support node >= 14.
     // Object.hasOwn, Array#at, String#replaceAll are available in node >= 16.
-    // `node:` protocol is available in node >= 14.
     'prefer-object-has-own': 'off',
     'unicorn/prefer-at': 'off',
     'unicorn/prefer-string-replace-all': 'off',
-    'unicorn/prefer-node-protocol': 'off',
-
-    // Too opinionated.
-    'unicorn/prevent-abbreviations': 'off',
-    'unicorn/prefer-switch': 'off',
+    'consistent-return': 'off',
 
     // This rule is incompatible with DataTypes
     'babel/new-cap': 'off',
 
-    // Too slow for the scale of this codebase
-    'import/no-deprecated': 'off',
-    'import/named': 'off',
+    // Too opinionated
+    'unicorn/prefer-set-has': 'off',
   },
   overrides: [{
     files: ['**/*.{js,mjs,cjs}'],
@@ -135,7 +130,7 @@ module.exports = {
     // let's disable the most problematic rules for now.
     // they're only disabled for .js files.
     // .ts files will need to migrate.
-    files: ['test/**/*.js'],
+    files: ['packages/*/test/**/*.js'],
     rules: {
       'babel/no-invalid-this': 'off',
       'func-names': 'off',
@@ -150,7 +145,7 @@ module.exports = {
     },
   }, {
     // Disable slow rules that are not important in tests (perf)
-    files: ['test/**/*'],
+    files: ['packages/*/test/**/*'],
     rules: {
       'import/no-extraneous-dependencies': 'off',
       // no need to check jsdoc in tests & docs
@@ -173,11 +168,8 @@ module.exports = {
     env: {
       mocha: true,
     },
-    parserOptions: {
-      project: ['./test/tsconfig.json'],
-    },
   }, {
-    files: ['test/types/**/*'],
+    files: ['packages/*/test/types/**/*'],
     rules: {
       // This code is never executed, it's typing only, so these rules make no sense:
       '@typescript-eslint/no-unused-vars': 'off',
@@ -190,9 +182,9 @@ module.exports = {
       'json/*': ['error', { allowComments: true }],
     },
   }, {
-    files: ['dev/**/*'],
-    parserOptions: {
-      project: ['./dev/tsconfig.json'],
+    files: ['sscce.ts'],
+    rules: {
+      'no-console': 'off',
     },
   }],
   settings: {
@@ -205,7 +197,14 @@ module.exports = {
           type: false,
           required: ['name'],
         },
+        category: {
+          type: false,
+          required: ['name'],
+        },
         internal: {
+          type: false,
+        },
+        hidden: {
           type: false,
         },
       },
@@ -216,8 +215,8 @@ module.exports = {
     sourceType: 'module',
   },
   ignorePatterns: [
-    'lib/**/*',
-    'types/**/*',
+    'packages/*/lib/**/*',
+    'packages/*/types/**/*',
     '.typedoc-build',
   ],
   env: {

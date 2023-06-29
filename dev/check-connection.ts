@@ -1,4 +1,4 @@
-import { createSequelizeInstance } from '../test/support';
+import { createSequelizeInstance } from '../packages/core/test/support';
 
 const sequelize = createSequelizeInstance();
 
@@ -6,5 +6,5 @@ const sequelize = createSequelizeInstance();
   await sequelize.authenticate();
   await sequelize.close();
 
-  console.info(`Connected to ${sequelize.dialect.name} ${sequelize.options.databaseVersion} successfully`);
+  console.info(`Connected to ${sequelize.dialect.name} ${sequelize.getDatabaseVersion()} successfully`);
 })();
