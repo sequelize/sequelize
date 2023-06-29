@@ -1,4 +1,4 @@
-import type { Class, SetRequired } from 'type-fest';
+import type { SetRequired } from 'type-fest';
 import type {
   Association,
   BelongsTo,
@@ -11,46 +11,41 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
-import type { AbstractDataType, DataType } from './dialects/abstract/data-types.js';
-import type {
-  IndexOptions,
-  TableName,
-  TableNameWithSchema,
-  IndexField,
-} from './dialects/abstract/query-interface';
+import type { Connection } from './dialects/abstract/connection-manager.js';
+import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
+import type { IndexField, IndexOptions, TableName, TableNameWithSchema } from './dialects/abstract/query-interface';
+import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
+import type { Cast } from './expression-builders/cast.js';
+import type { Col } from './expression-builders/col.js';
+import type { Fn } from './expression-builders/fn.js';
+import type { Literal } from './expression-builders/literal.js';
+import type { Where } from './expression-builders/where.js';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
-import type { Sequelize, SyncOptions, QueryOptions } from './sequelize';
-import type {
-  Cast,
-  Col,
-  Fn,
-  Json,
-  Literal,
-  Where,
-} from './utils/sequelize-method.js';
+import type { QueryOptions, Sequelize, SyncOptions } from './sequelize';
 import type {
   AllowArray,
   AllowReadonlyArray,
   AnyFunction,
   MakeNullishOptional,
   Nullish,
-  OmitConstructors, RequiredBy,
+  OmitConstructors,
+  StrictRequiredBy,
 } from './utils/types.js';
-import type { LOCK, Op, Transaction, TableHints } from './index';
+import type { Lock, Op, TableHints, Transaction, WhereOptions } from './index';
 
 export interface Logging {
   /**
    * A function that gets executed while running the query to log the sql.
    */
-  logging?: boolean | ((sql: string, timing?: number) => void);
+  logging?: boolean | ((sql: string, timing?: number) => void) | undefined;
 
   /**
    * Pass query execution time in milliseconds as second argument to logging function (options.logging).
    */
-  benchmark?: boolean;
+  benchmark?: boolean | undefined;
 }
 
 export interface Poolable {
@@ -65,11 +60,24 @@ export interface Poolable {
 export interface Transactionable {
   /**
    * The transaction in which this query must be run.
+   * Mutually exclusive with {@link Transactionable.connection}.
    *
    * If {@link Options.disableClsTransactions} has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
-   * that transaction will be used, unless null or a Transaction is manually specified here.
+   * that transaction will be used, unless null or another Transaction is manually specified here.
    */
   transaction?: Transaction | null | undefined;
+
+  /**
+   * The connection on which this query must be run.
+   * Mutually exclusive with {@link Transactionable.transaction}.
+   *
+   * Can be used to ensure that a query is run on the same connection as a previous query, which is useful when
+   * configuring session options.
+   *
+   * Specifying this option takes precedence over CLS Transactions. If a transaction is running in the current
+   * AsyncLocalStorage context, it will be ignored in favor of the specified connection.
+   */
+  connection?: Connection | null | undefined;
 }
 
 export interface SearchPathable {
@@ -149,7 +157,7 @@ export interface SchemaOptions {
   /**
    * The character(s) that separates the schema name from the table name
    */
-  schemaDelimiter?: string;
+  schemaDelimiter?: string | undefined;
 }
 
 /**
@@ -168,42 +176,6 @@ export interface ScopeOptions {
 
 type InvalidInSqlArray = ColumnReference | Fn | Cast | null | Literal;
 
-/**
- * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
- * It also supports using a plain Array as an alias for `Op.and`. (unlike {@link AllowNotOrAndRecursive}).
- *
- * Example of plain-array treated as `Op.and`:
- * ```ts
- * User.findAll({ where: [{ id: 1 }, { id: 2 }] });
- * ```
- *
- * Meant to be used by {@link WhereOptions}.
- */
-type AllowNotOrAndWithImplicitAndArrayRecursive<T> = AllowArray<
-  // this is the equivalent of Op.and
-  | T
-  | { [Op.or]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
-  | { [Op.and]: AllowArray<AllowNotOrAndWithImplicitAndArrayRecursive<T>> }
-  | { [Op.not]: AllowNotOrAndWithImplicitAndArrayRecursive<T> }
-  >;
-
-/**
- * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.
- * Unlike {@link AllowNotOrAndWithImplicitAndArrayRecursive}, it does not allow the 'implicit AND Array'.
- *
- * Example of plain-array NOT treated as Op.and:
- * ```ts
- * User.findAll({ where: { id: [1, 2] } });
- * ```
- *
- * Meant to be used by {@link WhereAttributeHashValue}.
- */
-type AllowNotOrAndRecursive<T> =
-  | T
-  | { [Op.or]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.and]: AllowArray<AllowNotOrAndRecursive<T>> }
-  | { [Op.not]: AllowNotOrAndRecursive<T> };
-
 type AllowAnyAll<T> =
   | T
   // Op.all: [x, z] results in ALL (ARRAY[x, z])
@@ -211,20 +183,9 @@ type AllowAnyAll<T> =
   | { [Op.all]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } }
   | { [Op.any]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } };
 
-/**
- * The type accepted by every `where` option
- */
-export type WhereOptions<TAttributes = any> = AllowNotOrAndWithImplicitAndArrayRecursive<
-  | WhereAttributeHash<TAttributes>
-  | Literal
-  | Fn
-  | Where
-  | Json
->;
-
 // number is always allowed because -Infinity & +Infinity are valid
 /**
- * This type represents a valid input when describing a {@link <internal>~RANGE}.
+ * This type represents a valid input when describing a {@link DataTypes.RANGE}.
  */
 export type Rangable<T> = readonly [
   lower: T | InputRangePart<T> | number | null,
@@ -232,7 +193,7 @@ export type Rangable<T> = readonly [
 ] | EmptyRange;
 
 /**
- * This type represents the output of the {@link <internal>~RANGE} data type.
+ * This type represents the output of the {@link DataTypes.RANGE} data type.
  */
 // number is always allowed because -Infinity & +Infinity are valid
 export type Range<T> = readonly [
@@ -330,11 +291,8 @@ export interface WhereOperators<AttributeType = any> {
    */
   [Op.is]?: Extract<AttributeType, null | boolean> | Literal;
 
-  /**
-   * @example `[Op.not]: true` becomes `IS NOT TRUE`
-   * @example `{ col: { [Op.not]: { [Op.gt]: 5 } } }` becomes `NOT (col > 5)`
-   */
-  [Op.not]?: WhereOperators<AttributeType>[typeof Op.eq]; // accepts the same types as Op.eq ('Op.not' is not strictly the opposite of 'Op.is' due to legacy reasons)
+  /** Example: `[Op.isNot]: null,` becomes `IS NOT NULL` */
+  [Op.isNot]?: WhereOperators<AttributeType>[typeof Op.is]; // accepts the same types as Op.is
 
   /** @example `[Op.gte]: 6` becomes `>= 6` */
   [Op.gte]?: AllowAnyAll<OperatorValues<NonNullable<AttributeType>>>;
@@ -628,52 +586,6 @@ export interface WhereGeometryOptions {
 }
 
 /**
- * A hash of attributes to describe your search.
- *
- * Possible key values:
- *
- * - An attribute name: `{ id: 1 }`
- * - A nested attribute: `{ '$projects.id$': 1 }`
- * - A JSON key: `{ 'object.key': 1 }`
- * - A cast: `{ 'id::integer': 1 }`
- *
- * - A combination of the above: `{ '$join.attribute$.json.path::integer': 1 }`
- */
-export type WhereAttributeHash<TAttributes = any> = {
-  // support 'attribute' & '$attribute$'
-  [AttributeName in keyof TAttributes as AttributeName extends string ? AttributeName | `$${AttributeName}$` : never]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
-} & {
-  [AttributeName in keyof TAttributes as AttributeName extends string ?
-    // support 'json.path', '$json$.path'
-    | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`
-    // support 'attribute::cast', '$attribute$::cast', 'json.path::cast' & '$json$.path::cast'
-    | `${AttributeName | `$${AttributeName}$` | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`}::${string}`
-  : never]?: WhereAttributeHashValue<any>;
-} & {
-  // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast'
-  [attribute: `$${string}.${string}$` | `$${string}.${string}$::${string}` | `$${string}.${string}$.${string}` | `$${string}.${string}$.${string}::${string}`]: WhereAttributeHashValue<any>,
-};
-
-/**
- * Types that can be compared to an attribute in a WHERE context.
- */
-export type WhereAttributeHashValue<AttributeType> =
-  | AllowNotOrAndRecursive<
-    // if the right-hand side is an array, it will be equal to Op.in
-    // otherwise it will be equal to Op.eq
-    // Exception: array attribtues always use Op.eq, never Op.in.
-    | AttributeType extends any[]
-      ? WhereOperators<AttributeType>[typeof Op.eq] | WhereOperators<AttributeType>
-      : (
-        | WhereOperators<AttributeType>[typeof Op.in]
-        | WhereOperators<AttributeType>[typeof Op.eq]
-        | WhereOperators<AttributeType>
-      )
-    >
-  // TODO: this needs a simplified version just for JSON columns
-  | WhereAttributeHash<any>; // for JSON columns
-
-/**
  * Through options for Include Options
  */
 export interface IncludeThroughOptions extends Filterable<any>, Projectable {
@@ -836,7 +748,10 @@ export type Order = Fn | Col | Literal | OrderItem[];
  * Please note if this is used the aliased property will not be available on the model instance
  * as a property but only via `instance.get('alias')`.
  */
-export type ProjectionAlias = readonly [string | Literal | Fn | Col | Cast, string];
+export type ProjectionAlias = readonly [
+  expressionOrAttributeName: string | DynamicSqlExpression,
+  alias: string,
+];
 
 export type FindAttributeOptions =
   | Array<string | ProjectionAlias | Literal>
@@ -861,13 +776,21 @@ export interface IndexHintable {
   indexHints?: IndexHint[];
 }
 
+export interface MaxExecutionTimeHintable {
+  /**
+   * This sets the max execution time for MySQL.
+   */
+  maxExecutionTimeHintMs?: number;
+}
+
 /**
  * Options that are passed to any model creating a SELECT query
  *
  * A hash of options to describe the scope of the search
  */
 export interface FindOptions<TAttributes = any>
-  extends QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable, SearchPathable {
+  extends
+  QueryOptions, Filterable<TAttributes>, Projectable, Paranoid, IndexHintable, SearchPathable, MaxExecutionTimeHintable {
   /**
    * A list of associations to eagerly load using a left join (a single association is also supported).
    *
@@ -939,11 +862,11 @@ export interface FindOptions<TAttributes = any>
   /**
    * Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE.
    * Postgres also supports transaction.LOCK.KEY_SHARE, transaction.LOCK.NO_KEY_UPDATE and specific model
-   * locks with joins. See {@link LOCK}.
+   * locks with joins. See {@link Lock}.
    */
   lock?:
-    | LOCK
-    | { level: LOCK, of: ModelStatic<Model> }
+    | Lock
+    | { level: Lock, of: ModelStatic<Model> }
     | boolean;
 
   /**
@@ -955,6 +878,12 @@ export interface FindOptions<TAttributes = any>
    * Return raw result. See {@link Sequelize#query} for more information.
    */
   raw?: boolean;
+
+  /**
+   * Controls whether aliases are minified in this query.
+   * This overrides the global option
+   */
+  minifyAliases?: boolean;
 
   /**
    * Select group rows after groups and aggregates are computed.
@@ -994,7 +923,7 @@ export interface NonNullFindByPkOptions<M extends Model> extends Omit<NonNullFin
  * Options for Model.count method
  */
 export interface CountOptions<TAttributes = any>
-  extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable {
+  extends Logging, Transactionable, Filterable<TAttributes>, Projectable, Paranoid, Poolable, MaxExecutionTimeHintable {
   /**
    * Include options. See `find` for details
    */
@@ -1147,6 +1076,12 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
    */
   validate?: boolean;
   /**
+   * An optional parameter that specifies a where clause for the `ON CONFLICT` part of the query
+   * (in particular: for applying to partial unique indexes).
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
+  /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
@@ -1200,17 +1135,29 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
   returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+
+  /**
+   * An optional parameter to specify a where clause for partial unique indexes
+   * (note: `ON CONFLICT WHERE` not `ON CONFLICT DO UPDATE WHERE`).
+   * Only supported in Postgres >= 9.5 and sqlite >= 9.5
+   */
+  conflictWhere?: WhereOptions<TAttributes>;
+  /**
+   * Optional override for the conflict fields in the ON CONFLICT part of the query.
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
+   */
+   conflictAttributes?: Array<keyof TAttributes>;
 }
 
 /**
- * The options passed to Model.destroy in addition to truncate
+ * The options accepted by {@link Model.truncate}.
  */
-export interface TruncateOptions<TAttributes = any> extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
+export interface TruncateOptions extends Logging, Transactionable, Hookable {
   /**
-   * Only used in conjuction with TRUNCATE. Truncates all tables that have foreign-key references to the
+   * Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the
    * named table, or to any tables added to the group due to CASCADE.
    *
-   * @default false;
+   * @default false
    */
   cascade?: boolean;
 
@@ -1244,14 +1191,16 @@ export interface TruncateOptions<TAttributes = any> extends Logging, Transaction
 }
 
 /**
- * Options used for Model.destroy
+ * Options accepted by {@link Model.destroy}.
  */
-export interface DestroyOptions<TAttributes = any> extends TruncateOptions<TAttributes> {
+export interface DestroyOptions<TAttributes = any> extends TruncateOptions, Filterable<TAttributes> {
   /**
    * If set to true, dialects that support it will use TRUNCATE instead of DELETE FROM. If a table is
    * truncated the where and limit options are ignored.
    *
    * __Danger__: This will completely empty your table!
+   *
+   * @deprecated use {@link Model.truncate}.
    */
   truncate?: boolean;
 }
@@ -1691,7 +1640,7 @@ export interface AttributeReferencesOptions {
    *
    * PostgreSQL only
    */
-  deferrable?: Deferrable | Class<Deferrable>;
+  deferrable?: Deferrable;
 }
 
 export interface NormalizedAttributeReferencesOptions extends Omit<AttributeReferencesOptions, 'model'> {
@@ -1723,57 +1672,57 @@ export interface AttributeOptions<M extends Model = Model> {
    *
    * @default true
    */
-  allowNull?: boolean;
+  allowNull?: boolean | undefined;
 
   /**
    * @deprecated use {@link columnName} instead.
    */
-  field?: string;
+  field?: string | undefined;
 
   /**
    * The name of the column.
    *
    * If no value is provided, Sequelize will use the name of the attribute (in snake_case if {@link InitOptions.underscored} is true)
    */
-  columnName?: string;
+  columnName?: string | undefined;
 
   /**
    * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
    */
-  defaultValue?: unknown;
+  defaultValue?: unknown | undefined;
 
   /**
    * If true, the column will get a unique constraint. If a string is provided, the column will be part of a
    * composite unique index. If multiple columns have the same string, they will be part of the same unique
    * index
    */
-  unique?: AllowArray<boolean | string | { name: string, msg?: string }>;
+  unique?: AllowArray<boolean | string | { name: string, msg?: string }> | undefined;
 
   /**
    * If true, an index will be created for this column.
    * If a string is provided, the column will be part of a composite index together with the other attributes that specify the same index name.
    */
-  index?: AllowArray<boolean | string | AttributeIndexOptions>;
+  index?: AllowArray<boolean | string | AttributeIndexOptions> | undefined;
 
   /**
    * If true, this attribute will be marked as primary key
    */
-  primaryKey?: boolean;
+  primaryKey?: boolean | undefined;
 
   /**
    * Is this field an auto increment field
    */
-  autoIncrement?: boolean;
+  autoIncrement?: boolean | undefined;
 
   /**
    * If this field is a Postgres auto increment field, use Postgres `GENERATED BY DEFAULT AS IDENTITY` instead of `SERIAL`. Postgres 10+ only.
    */
-  autoIncrementIdentity?: boolean;
+  autoIncrementIdentity?: boolean | undefined;
 
   /**
    * Comment to add on the column in the database.
    */
-  comment?: string;
+  comment?: string | undefined;
 
   /**
    * Makes this attribute a foreign key.
@@ -1781,19 +1730,19 @@ export interface AttributeOptions<M extends Model = Model> {
    *
    * Setting this value to a string equivalent to setting it to `{ tableName: 'myString' }`.
    */
-  references?: string | ModelStatic | AttributeReferencesOptions;
+  references?: string | ModelStatic | AttributeReferencesOptions | undefined;
 
   /**
    * What should happen when the referenced key is updated.
    * One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or NO ACTION
    */
-  onUpdate?: ReferentialAction;
+  onUpdate?: ReferentialAction | undefined;
 
   /**
    * What should happen when the referenced key is deleted.
    * One of CASCADE, RESTRICT, SET DEFAULT, SET NULL or NO ACTION
    */
-  onDelete?: ReferentialAction;
+  onDelete?: ReferentialAction | undefined;
 
   /**
    * An object of validations to execute for this column every time the model is saved. Can be either the
@@ -1801,22 +1750,22 @@ export interface AttributeOptions<M extends Model = Model> {
    * (see the
    * `DAOValidator` property for more details), or a custom validation function. Custom validation functions
    * are called with the value of the field, and can possibly take a second callback argument, to signal that
-   * they are asynchronous. If the validator is sync, it should throw in the case of a failed validation, it
+   * they are asynchronous. If the validator is sync, it should throw in the case of a failed validation,
    * it is async, the callback should be called with the error text.
    */
-  validate?: ColumnValidateOptions;
+  validate?: ColumnValidateOptions | undefined;
 
   /**
    * Provide a custom getter for this column.
    * Use {@link Model.getDataValue} to access the underlying values.
    */
-  get?(this: M): unknown;
+  get?: ((this: M) => unknown) | undefined;
 
   /**
    * Provide a custom setter for this column.
    * Use {@link Model.setDataValue} to access the underlying values.
    */
-  set?(this: M, val: unknown): void;
+  set?: ((this: M, val: any) => void) | undefined;
 
   /**
    * This attribute is added by sequelize. Do not use!
@@ -1824,7 +1773,7 @@ export interface AttributeOptions<M extends Model = Model> {
    * @private
    */
   // TODO: use a private symbol
-  _autoGenerated?: boolean;
+  _autoGenerated?: boolean | undefined;
 }
 
 export interface AttributeIndexOptions extends Omit<IndexOptions, 'fields'> {
@@ -1835,7 +1784,7 @@ export interface AttributeIndexOptions extends Omit<IndexOptions, 'fields'> {
 }
 
 export interface NormalizedAttributeOptions<M extends Model = Model> extends Readonly<Omit<
-  RequiredBy<AttributeOptions<M>, 'columnName'>,
+  StrictRequiredBy<AttributeOptions<M>, 'columnName'>,
   | 'type'
   // index and unique are always removed from attribute options, Model.getIndexes() must be used instead.
   | 'index' | 'unique'
@@ -1854,7 +1803,7 @@ export interface NormalizedAttributeOptions<M extends Model = Model> extends Rea
   /**
    * Like {@link AttributeOptions.type}, but normalized.
    */
-  readonly type: string | AbstractDataType<any>;
+  readonly type: NormalizedDataType;
   readonly references?: NormalizedAttributeReferencesOptions;
 }
 
@@ -1869,18 +1818,12 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
 };
 
 /**
- * Possible types for primary keys
- */
-export type Identifier = number | bigint | string | Buffer;
-
-/**
  * Options for model definition.
  *
- * Used by {@link Sequelize.define}, {@link Model.init}, and the Table decorator.
+ * Used by {@link Sequelize.define}, {@link Model.init}, and the {@link decorators-legacy.Table} decorator.
  *
  * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
  */
-// TODO: Link to Table decorator once it's possible to have multiple entry points in the docs: https://github.com/TypeStrong/typedoc/issues/2138
 export interface ModelOptions<M extends Model = Model> {
   /**
    * Define the default search scope to use for this model. Scopes have the same form as the options passed to
@@ -1888,7 +1831,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
    */
-  defaultScope?: FindOptions<Attributes<M>>;
+  defaultScope?: FindOptions<Attributes<M>> | undefined;
 
   /**
    * More scopes, defined in the same way as {@link ModelOptions.defaultScope} above.
@@ -1896,14 +1839,14 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.
    */
-  scopes?: ModelScopeOptions<Attributes<M>>;
+  scopes?: ModelScopeOptions<Attributes<M>> | undefined;
 
   /**
    * Don't persist null values. This means that all columns with null values will not be saved.
    *
    * @default false
    */
-  omitNull?: boolean;
+  omitNull?: boolean | undefined;
 
   /**
    * Sequelize will automatically add a primary key called `id` if no
@@ -1913,14 +1856,14 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @default false
    */
-  noPrimaryKey?: boolean;
+  noPrimaryKey?: boolean | undefined;
 
   /**
    * Adds createdAt and updatedAt timestamps to the model.
    *
    * @default true
    */
-  timestamps?: boolean;
+  timestamps?: boolean | undefined;
 
   /**
    * If true, calling {@link Model.destroy} will not delete the model, but will instead set a `deletedAt` timestamp.
@@ -1930,7 +1873,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @default false
    */
-  paranoid?: boolean;
+  paranoid?: boolean | undefined;
 
   /**
    * If true, Sequelize will snake_case the name of columns that do not have an explicit value set (using {@link AttributeOptions.field}).
@@ -1938,14 +1881,14 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @default false
    */
-  underscored?: boolean;
+  underscored?: boolean | undefined;
 
   /**
    * Indicates if the model's table has a trigger associated with it.
    *
    * @default false
    */
-  hasTrigger?: boolean;
+  hasTrigger?: boolean | undefined;
 
   /**
    * If true, sequelize will use the name of the Model as-is as the name of the SQL table.
@@ -1955,26 +1898,30 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @default false
    */
-  freezeTableName?: boolean;
+  freezeTableName?: boolean | undefined;
 
   // TODO: merge with modelName
   /**
    * An object with two attributes, `singular` and `plural`, which are used when this model is associated to others.
+   *
+   * Not inherited.
    */
-  name?: ModelNameOptions;
+  name?: ModelNameOptions | undefined;
 
   /**
    * The name of the model.
    *
    * If not set, the name of the class will be used instead.
    * You should specify this option if you are going to minify your code in a way that may mangle the class name.
+   *
+   * Not inherited.
    */
-  modelName?: string;
+  modelName?: string | undefined;
 
   /**
    * Indexes for the provided database table
    */
-  indexes?: readonly IndexOptions[];
+  indexes?: readonly IndexOptions[] | undefined;
 
   /**
    * Override the name of the createdAt attribute if a string is provided, or disable it if false.
@@ -1982,7 +1929,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * Not affected by underscored setting.
    */
-  createdAt?: string | boolean;
+  createdAt?: string | boolean | undefined;
 
   /**
    * Override the name of the deletedAt attribute if a string is provided, or disable it if false.
@@ -1991,7 +1938,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * Not affected by underscored setting.
    */
-  deletedAt?: string | boolean;
+  deletedAt?: string | boolean | undefined;
 
   /**
    * Override the name of the updatedAt attribute if a string is provided, or disable it if false.
@@ -1999,7 +1946,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * Not affected by underscored setting.
    */
-  updatedAt?: string | boolean;
+  updatedAt?: string | boolean | undefined;
 
   /**
    * The name of the table in SQL.
@@ -2007,44 +1954,46 @@ export interface ModelOptions<M extends Model = Model> {
    * @default The {@link ModelOptions.modelName}, pluralized,
    *  unless freezeTableName is true, in which case it uses model name
    *  verbatim.
+   *
+   * Not inherited.
    */
-  tableName?: string;
+  tableName?: string | undefined;
 
   // TODO: merge these two together into one using SchemaOptions, or replace with tableName: TableNameWithSchema
   /**
    * The database schema in which this table will be located.
    */
-  schema?: string;
-  schemaDelimiter?: string;
+  schema?: string | undefined;
+  schemaDelimiter?: string | undefined;
 
   /**
    * The name of the database storage engine to use (e.g. MyISAM, InnoDB).
    *
    * MySQL, MariaDB only.
    */
-  engine?: string;
+  engine?: string | undefined;
 
   /**
    * The charset to use for the model
    */
-  charset?: string;
+  charset?: string | undefined;
 
   /**
    * A comment for the table.
    *
    * MySQL, PG only.
    */
-  comment?: string;
+  comment?: string | undefined;
 
   /**
    * The collation for model's table
    */
-  collate?: string;
+  collate?: string | undefined;
 
   /**
    * Set the initial AUTO_INCREMENT value for the table in MySQL.
    */
-  initialAutoIncrement?: string;
+  initialAutoIncrement?: string | undefined;
 
   /**
    * Add hooks to the model.
@@ -2060,7 +2009,7 @@ export interface ModelOptions<M extends Model = Model> {
       | ModelHooks<M, Attributes<M>>[Key]
       | { name: string | symbol, callback: ModelHooks<M, Attributes<M>>[Key] }
     >
-  };
+  } | undefined;
 
   /**
    * An object of model wide validations. Validations have access to all model values via `this`. If the
@@ -2072,7 +2021,7 @@ export interface ModelOptions<M extends Model = Model> {
      * Custom validation functions run on all instances of the model.
      */
     [name: string]: (value: unknown) => boolean,
-  };
+  } | undefined;
 
   /**
    * Enable optimistic locking.
@@ -2083,7 +2032,7 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @default false
    */
-  version?: boolean | string;
+  version?: boolean | string | undefined;
 }
 
 /**
@@ -2097,9 +2046,9 @@ export interface InitOptions<M extends Model = Model> extends ModelOptions<M> {
 }
 
 export type BuiltModelName = Required<ModelNameOptions>;
-export type BuiltModelOptions<M extends Model = Model> = Omit<RequiredBy<InitOptions<M>, 'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'>, 'name'> & {
-  name: BuiltModelName,
-};
+export type BuiltModelOptions<M extends Model = Model> =
+  & Omit<StrictRequiredBy<InitOptions<M>, 'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'>, 'name'>
+  & { name: BuiltModelName };
 
 /**
  * AddScope Options for Model.addScope
@@ -2302,7 +2251,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withScope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
   ): ModelStatic<M>;
 
   /**
@@ -2311,7 +2260,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereAttributeHash<M>>,
+    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
   ): ModelStatic<M>;
 
   /**
@@ -2399,22 +2348,22 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: FindByPkOptions<M> & { raw: true, rejectOnEmpty?: false }
   ): Promise<R | null>;
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M> & { raw: true }
   ): Promise<R>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier: Identifier,
+    identifier: unknown,
     options: NonNullFindByPkOptions<M>
   ): Promise<M>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
-    identifier?: Identifier,
+    identifier: unknown,
     options?: FindByPkOptions<M>
   ): Promise<M | null>;
 
@@ -2698,7 +2647,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static truncate<M extends Model>(
     this: ModelStatic<M>,
-    options?: TruncateOptions<Attributes<M>>
+    options?: TruncateOptions
   ): Promise<void>;
 
   /**
@@ -3008,8 +2957,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * If changed is called without an argument and no keys have changed, it will return `false`.
    */
-  changed<K extends keyof this>(key: K): boolean;
-  changed<K extends keyof this>(key: K, dirty: boolean): void;
+  // TODO: split this method into:
+  //  - hasChanges(): boolean;
+  //  - getChanges(): string[];
+  //  - isDirty(key: string): boolean;
+  //  - setDirty(key: string, dirty: boolean = true): void;
+  changed<K extends keyof TModelAttributes>(key: K): boolean;
+  changed<K extends keyof TModelAttributes>(key: K, dirty: boolean): void;
   changed(): false | string[];
 
   /**
@@ -3039,7 +2993,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * return a new instance. With this method, all references to the Instance are updated with the new data
    * and no new objects are created.
    */
-  reload(options?: FindOptions<TModelAttributes>): Promise<this>;
+  reload(options?: Omit<FindOptions<TModelAttributes>, 'where'>): Promise<this>;
 
   /**
    * Runs all validators defined for this model, including non-null validators, DataTypes validators, custom attribute validators and model-level validators.

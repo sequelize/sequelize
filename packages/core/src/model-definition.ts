@@ -12,14 +12,15 @@ import type { ModelHooks } from './model-hooks.js';
 import { staticModelHooks } from './model-hooks.js';
 import { conformIndex } from './model-internals.js';
 import type {
+  AttributeOptions,
   BuiltModelOptions,
   InitOptions,
-  AttributeOptions,
+  Model,
   ModelAttributes,
+  ModelOptions,
   ModelStatic,
   NormalizedAttributeOptions,
   NormalizedAttributeReferencesOptions,
-  ModelOptions,
 } from './model.js';
 import type { Sequelize } from './sequelize.js';
 import { fieldToColumn } from './utils/deprecations.js';
@@ -44,7 +45,7 @@ export interface TimestampAttributes {
  *
  * There is only one ModelDefinition instance per model per sequelize instance.
  */
-export class ModelDefinition {
+export class ModelDefinition<M extends Model = Model> {
   readonly #sequelize: Sequelize;
   readonly options: BuiltModelOptions;
   readonly #table: TableNameWithSchema;
@@ -58,7 +59,7 @@ export class ModelDefinition {
    * The list of attributes that have *not* been normalized.
    * This list can be mutated. Call {@link refreshAttributes} to update the normalized attributes ({@link attributes)}.
    */
-  readonly rawAttributes: { [attributeName: string]: AttributeOptions };
+  readonly rawAttributes: { [attributeName: string]: AttributeOptions<M> };
 
   readonly #attributes = new Map</* attribute name */ string, NormalizedAttributeOptions>();
 
@@ -160,7 +161,7 @@ export class ModelDefinition {
   /**
    * @deprecated Temporary property to be able to use elements that have not migrated to ModelDefinition yet.
    */
-  readonly #model: ModelStatic;
+  readonly #model: ModelStatic<M>;
 
   get modelName(): string {
     return this.options.modelName;
@@ -174,11 +175,12 @@ export class ModelDefinition {
     return this.#sequelize;
   }
 
+  // TODO: add generic type to ModelHooks (model, attributes)
   get hooks(): HookHandler<ModelHooks> {
     return staticModelHooks.getFor(this);
   }
 
-  constructor(attributesOptions: ModelAttributes, modelOptions: InitOptions, model: ModelStatic) {
+  constructor(attributesOptions: ModelAttributes<M>, modelOptions: InitOptions<M>, model: ModelStatic<M>) {
     if (!modelOptions.sequelize) {
       throw new Error('new ModelDefinition() expects a Sequelize instance to be passed through the option bag, which is the second parameter.');
     }
@@ -203,7 +205,6 @@ export class ModelDefinition {
           freezeTableName: false,
           underscored: false,
           paranoid: false,
-          rejectOnEmpty: false,
           schema: '',
           schemaDelimiter: '',
           defaultScope: {},
@@ -213,7 +214,7 @@ export class ModelDefinition {
         },
         globalOptions.define as ModelOptions,
       ),
-      modelOptions,
+      removeUndefined(modelOptions),
       true,
     ) as BuiltModelOptions;
 
@@ -226,13 +227,11 @@ If you need regular getters & setters, define your model as a class and add gett
 See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprecated-in-sequelize-v7-gettermethods-and-settermethods for more information.`);
     }
 
-    this.options.name.plural ??= pluralize(modelOptions.modelName);
+    this.options.name.plural ??= pluralize(this.options.modelName);
     // Model Names must be singular!
-    this.options.name.singular ??= modelOptions.modelName;
+    this.options.name.singular ??= this.options.modelName;
 
     this.#sequelize.hooks.runSync('beforeDefine', attributesOptions, this.options);
-
-    delete modelOptions.modelName;
 
     // if you call "define" multiple times for the same modelName, do not clutter the factory
     if (this.sequelize.isDefined(this.modelName)) {
@@ -246,7 +245,7 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     if (!this.options.tableName) {
       this.options.tableName = this.options.freezeTableName
         ? this.modelName
-        : underscoredIf(pluralize(this.modelName), this.underscored);
+        : underscoredIf(this.options.name.plural, this.underscored);
     }
 
     this.#table = Object.freeze(this.sequelize.queryInterface.queryGenerator.extractTableDetails(removeUndefined({
@@ -263,14 +262,14 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     }
 
     // attributes that will be added at the start of this.rawAttributes (id)
-    const rawAttributes: { [attributeName: string]: AttributeOptions } = Object.create(null);
+    const rawAttributes: { [attributeName: string]: AttributeOptions<M> } = Object.create(null);
 
     for (const [attributeName, rawAttributeOrDataType] of getAllOwnEntries(attributesOptions)) {
       if (typeof attributeName === 'symbol') {
         throw new TypeError('Symbol attributes are not supported');
       }
 
-      let rawAttribute: AttributeOptions;
+      let rawAttribute: AttributeOptions<M>;
       try {
         rawAttribute = this.sequelize.normalizeAttribute(rawAttributeOrDataType);
       } catch (error) {
@@ -359,7 +358,7 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     }
 
     if (this.#versionAttributeName) {
-      const existingAttribute: AttributeOptions | undefined = this.rawAttributes[this.#versionAttributeName];
+      const existingAttribute: AttributeOptions<M> | undefined = this.rawAttributes[this.#versionAttributeName];
 
       if (existingAttribute?.type && !(existingAttribute.type instanceof DataTypes.INTEGER)) {
         throw new Error(`Sequelize is trying to add the version attribute ${NodeUtil.inspect(this.#versionAttributeName)} to Model ${NodeUtil.inspect(this.modelName)},
@@ -392,7 +391,7 @@ The "version" attribute is managed automatically by Sequelize, and its nullabili
   }
 
   #addTimestampAttribute(attributeName: string, allowNull: boolean) {
-    const existingAttribute: AttributeOptions | undefined = this.rawAttributes[attributeName];
+    const existingAttribute: AttributeOptions<M> | undefined = this.rawAttributes[attributeName];
 
     if (existingAttribute?.type && !(existingAttribute.type instanceof DataTypes.DATE)) {
       throw new Error(`Sequelize is trying to add the timestamp attribute ${NodeUtil.inspect(attributeName)} to Model ${NodeUtil.inspect(this.modelName)},
@@ -505,7 +504,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
         if (builtAttribute.type instanceof AbstractDataType) {
           // @ts-expect-error -- defaultValue is not readOnly yet!
           builtAttribute.type
-            = builtAttribute.type.clone().attachUsageContext({
+            = builtAttribute.type.withUsageContext({
               // TODO: Repository Pattern - replace with ModelDefinition
               model: this.#model,
               attributeName,
@@ -513,14 +512,14 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
             });
         }
 
-        if (Object.prototype.hasOwnProperty.call(builtAttribute, 'defaultValue')) {
+        if (Object.hasOwn(builtAttribute, 'defaultValue')) {
           if (isDataTypeClass(builtAttribute.defaultValue)) {
             // @ts-expect-error -- defaultValue is not readOnly yet!
             builtAttribute.defaultValue
               = new builtAttribute.defaultValue();
           }
 
-          this.#defaultValues.set(attributeName, () => toDefaultValue(builtAttribute.defaultValue, this.sequelize.dialect));
+          this.#defaultValues.set(attributeName, () => toDefaultValue(builtAttribute.defaultValue));
         }
 
         // TODO: remove "notNull" & "isNull" validators
@@ -540,7 +539,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           this.#jsonAttributeNames.add(attributeName);
         }
 
-        if (Object.prototype.hasOwnProperty.call(rawAttribute, 'unique') && rawAttribute.unique) {
+        if (Object.hasOwn(rawAttribute, 'unique') && rawAttribute.unique) {
           const uniqueIndexes = Array.isArray(rawAttribute.unique) ? rawAttribute.unique : [rawAttribute.unique];
 
           for (const uniqueIndex of uniqueIndexes) {
@@ -560,7 +559,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           }
         }
 
-        if (Object.prototype.hasOwnProperty.call(rawAttribute, 'index') && rawAttribute.index) {
+        if (Object.hasOwn(rawAttribute, 'index') && rawAttribute.index) {
           const indexes = Array.isArray(rawAttribute.index) ? rawAttribute.index : [rawAttribute.index];
 
           for (const index of indexes) {
@@ -700,7 +699,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
   }
 
   #nameIndex(newIndex: IndexOptions): IndexOptions {
-    if (Object.prototype.hasOwnProperty.call(newIndex, 'name')) {
+    if (Object.hasOwn(newIndex, 'name')) {
       return newIndex;
     }
 
@@ -754,11 +753,47 @@ Specify a different name for either index to resolve this issue.`);
 
     return attribute?.columnName ?? attributeName;
   }
+
+  /**
+   * Follows the association path and returns the association at the end of the path.
+   * For instance, say we have a model User, associated to a model Profile, associated to a model Address.
+   *
+   * If we call `User.modelDefinition.getAssociation(['profile', 'address'])`, we will get the association named `address` in the model Profile.
+   * If we call `User.modelDefinition.getAssociation(['profile'])`, we will get the association named `profile` in the model User.
+   *
+   * @param associationPath
+   */
+  getAssociation(associationPath: readonly string[] | string): Association | undefined {
+    if (typeof associationPath === 'string') {
+      return this.associations[associationPath];
+    }
+
+    return this.#getAssociationFromPathMut([...associationPath]);
+  }
+
+  #getAssociationFromPathMut(associationPath: string[]): Association | undefined {
+    if (associationPath.length === 0) {
+      return undefined;
+    }
+
+    const associationName = associationPath.shift()!;
+    const association = this.associations[associationName];
+
+    if (association == null) {
+      return undefined;
+    }
+
+    if (associationPath.length === 0) {
+      return association;
+    }
+
+    return association.target.modelDefinition.#getAssociationFromPathMut(associationPath);
+  }
 }
 
-const modelDefinitions = new WeakMap</* model class */ Function, ModelDefinition>();
+const modelDefinitions = new WeakMap</* model class */ Function, ModelDefinition<any>>();
 
-export function registerModelDefinition(model: ModelStatic, modelDefinition: ModelDefinition): void {
+export function registerModelDefinition<M extends Model>(model: ModelStatic<M>, modelDefinition: ModelDefinition<M>): void {
   if (modelDefinitions.has(model)) {
     throw new Error(`Model ${model.name} has already been initialized. Models can only belong to one Sequelize instance. Registering the same model with multiple Sequelize instances is not yet supported. Please see https://github.com/sequelize/sequelize/issues/15389`);
   }
@@ -785,21 +820,15 @@ export function normalizeReference(references: AttributeOptions['references']): 
   }
 
   if (typeof references === 'string') {
-    return Object.freeze({
+    return Object.freeze(banReferenceModel({
       table: references,
-      get model() {
-        throw new Error('references.model has been renamed to references.tableName in normalized references options.');
-      },
-    });
+    }));
   }
 
   if (isModelStatic(references)) {
-    return Object.freeze({
+    return Object.freeze(banReferenceModel({
       table: references.table,
-      get model() {
-        throw new Error('references.model has been renamed to references.tableName in normalized references options.');
-      },
-    });
+    }));
   }
 
   const { model, table, ...referencePassDown } = references;
@@ -816,15 +845,23 @@ export function normalizeReference(references: AttributeOptions['references']): 
   }
 
   if (model || table) {
-    return Object.freeze({
+    return Object.freeze(banReferenceModel({
 
       table: model ? model.table : table!,
       ...referencePassDown,
-      get model() {
-        throw new Error('references.model has been renamed to references.tableName in normalized references options.');
-      },
-    });
+    }));
   }
+}
+
+function banReferenceModel<T>(reference: T): T {
+  Object.defineProperty(reference, 'model', {
+    enumerable: false,
+    get() {
+      throw new Error('references.model has been renamed to references.tableName in normalized references options.');
+    },
+  });
+
+  return reference;
 }
 
 /**

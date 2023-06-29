@@ -11,7 +11,7 @@ describe('QueryGenerator#insertQuery', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('parses named replacements in literals', () => {
-    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+    const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: literal(':name'),
     }, {}, {
       replacements: {
@@ -29,7 +29,7 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('supports named bind parameters in literals', () => {
-    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+    const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$lastName'),
       username: 'jd',
@@ -48,7 +48,7 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('parses positional bind parameters in literals', () => {
-    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+    const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
@@ -67,7 +67,7 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('parses bind parameters in literals even with bindParams: false', () => {
-    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+    const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
       username: 'jd',
@@ -84,9 +84,29 @@ describe('QueryGenerator#insertQuery', () => {
     expect(bind).to.be.undefined;
   });
 
+  // This test was added due to a regression where these values were being converted to strings
+  it('binds number values', () => {
+    if (!sequelize.dialect.supports.dataTypes.ARRAY) {
+      return;
+    }
+
+    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+      numbers: [1, 2, 3],
+    });
+
+    expectsql(query, {
+      default: `INSERT INTO "Users" ([numbers]) VALUES ($sequelize_1);`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("numbers") VALUES ($sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("numbers") VALUES ($sequelize_1))`,
+    });
+    expect(bind).to.deep.eq({
+      sequelize_1: [1, 2, 3],
+    });
+  });
+
   describe('returning', () => {
     it('supports returning: true', () => {
-      const { query } = queryGenerator.insertQuery(User.tableName, {
+      const { query } = queryGenerator.insertQuery(User.table, {
         firstName: 'John',
       }, User.getAttributes(), {
         returning: true,
@@ -105,7 +125,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of strings (column names)', () => {
-      const { query } = queryGenerator.insertQuery(User.tableName, {
+      const { query } = queryGenerator.insertQuery(User.table, {
         firstName: 'John',
       }, User.getAttributes(), {
         returning: ['*', 'myColumn'],
@@ -127,7 +147,7 @@ describe('QueryGenerator#insertQuery', () => {
     it('supports array of literals', () => {
 
       expectsql(() => {
-        return queryGenerator.insertQuery(User.tableName, {
+        return queryGenerator.insertQuery(User.table, {
           firstName: 'John',
         }, User.getAttributes(), {
           returning: [literal('*')],
@@ -142,6 +162,100 @@ describe('QueryGenerator#insertQuery', () => {
         // TODO: should only select specified columns
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
+      });
+    });
+
+    it('binds date values', () => {
+      const result = queryGenerator.insertQuery('myTable', { birthday: new Date('2011-03-27T10:01:55Z') });
+      expectsql(result, {
+        query: {
+          default: 'INSERT INTO [myTable] ([birthday]) VALUES ($sequelize_1);',
+          'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1));',
+        },
+        bind: {
+          mysql: {
+            sequelize_1: '2011-03-27 10:01:55.000',
+          },
+          mariadb: {
+            sequelize_1: '2011-03-27 10:01:55.000',
+          },
+          db2: {
+            sequelize_1: '2011-03-27 10:01:55.000',
+          },
+          ibmi: {
+            sequelize_1: '2011-03-27 10:01:55.000',
+          },
+          snowflake: {
+            sequelize_1: '2011-03-27 10:01:55.000',
+          },
+          sqlite: {
+            sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          },
+          postgres: {
+            sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          },
+          mssql: {
+            sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          },
+        },
+      });
+    });
+
+    it('binds boolean values', () => {
+      const result = queryGenerator.insertQuery('myTable', { positive: true, negative: false });
+      expectsql(result, {
+        query: {
+          default: 'INSERT INTO [myTable] ([positive],[negative]) VALUES ($sequelize_1,$sequelize_2);',
+          'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("positive","negative") VALUES ($sequelize_1,$sequelize_2));',
+        },
+        bind: {
+          sqlite: {
+            sequelize_1: 1,
+            sequelize_2: 0,
+          },
+          mysql: {
+            sequelize_1: 1,
+            sequelize_2: 0,
+          },
+          mariadb: {
+            sequelize_1: 1,
+            sequelize_2: 0,
+          },
+          mssql: {
+            sequelize_1: 1,
+            sequelize_2: 0,
+          },
+          postgres: {
+            sequelize_1: true,
+            sequelize_2: false,
+          },
+          db2: {
+            sequelize_1: true,
+            sequelize_2: false,
+          },
+          ibmi: {
+            sequelize_1: 1,
+            sequelize_2: 0,
+          },
+          snowflake: {
+            sequelize_1: true,
+            sequelize_2: false,
+          },
+        },
+      });
+    });
+
+    // TODO: Should we ignore undefined values instead? undefined is closer to "missing property" than null
+    it('treats undefined as null', () => {
+      const { query, bind } = queryGenerator.insertQuery('myTable', { value: undefined, name: 'bar' });
+      expectsql(query, {
+        default: 'INSERT INTO [myTable] ([value],[name]) VALUES ($sequelize_1,$sequelize_2);',
+        'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("value","name") VALUES ($sequelize_1,$sequelize_2));',
+      });
+
+      expect(bind).to.deep.eq({
+        sequelize_1: null,
+        sequelize_2: 'bar',
       });
     });
   });

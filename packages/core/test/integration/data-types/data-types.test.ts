@@ -12,8 +12,8 @@ import type {
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
-import { beforeAll2, disableDatabaseResetForSuite, sequelize } from '../support';
+import { DataTypes, Model, QueryTypes, ValidationError, fn } from '@sequelize/core';
+import { beforeAll2, sequelize, setResetMode } from '../support';
 import 'moment-timezone';
 
 dayjs.extend(DayjsTimezone);
@@ -29,7 +29,7 @@ enum TestEnum {
 }
 
 describe('DataTypes', () => {
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   // TODO: merge STRING & TEXT: remove default length limit on STRING instead of using 255.
   describe('STRING(<length>)', () => {
@@ -1343,6 +1343,25 @@ describe('DataTypes', () => {
         return { User };
       });
 
+      it('produces the right DataType in the database', async () => {
+        const table = await sequelize.queryInterface.describeTable(vars.User.table);
+        switch (dialect.name) {
+          // mssql & sqlite use text columns with CHECK constraints
+          case 'mssql':
+            expect(table.jsonStr.type).to.equal('NVARCHAR(MAX)');
+            break;
+          case 'sqlite':
+            expect(table.jsonStr.type).to.equal('TEXT');
+            break;
+          case 'mariadb':
+            // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
+            expect(table.jsonStr.type).to.equal('LONGTEXT');
+            break;
+          default:
+            expect(table.jsonStr.type).to.equal(jsonTypeName);
+        }
+      });
+
       it('properly serializes default values', async () => {
         const createdUser = await vars.User.create();
         await createdUser.reload();
@@ -1369,7 +1388,7 @@ describe('DataTypes', () => {
 
       // MariaDB: supports a JSON type, but:
       // - MariaDB 10.5 says it's a JSON col, on which we enabled automatic JSON parsing.
-      // - MariaDB 10.3 says it's a string, so we can't parse it based on the type.
+      // - MariaDB 10.4 says it's a string, so we can't parse it based on the type.
       // TODO [2024-06-18]: Re-enable this test when we drop support for MariaDB < 10.5
       if (dialect.name !== 'mariadb') {
         if (dialect.name === 'mssql' || dialect.name === 'sqlite') {
@@ -1383,8 +1402,7 @@ describe('DataTypes', () => {
             await testSimpleInOutRaw(vars.User, 'jsonNumber', 123.4, '123.4');
             await testSimpleInOutRaw(vars.User, 'jsonArray', [1, 2], '[1,2]');
             await testSimpleInOutRaw(vars.User, 'jsonObject', { a: 1 }, '{"a":1}');
-            // this isn't the JSON null value, but a SQL null value
-            await testSimpleInOutRaw(vars.User, 'jsonNull', null, null);
+            await testSimpleInOutRaw(vars.User, 'jsonNull', null, 'null');
           });
         } else {
           it(`is deserialized as a parsed JSON value when DataType is not specified`, async () => {

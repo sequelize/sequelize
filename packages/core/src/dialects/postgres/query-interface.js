@@ -2,15 +2,15 @@
 
 import { Deferrable } from '../../deferrable';
 import { camelizeObjectKeys } from '../../utils/object';
+import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.js';
 
 const DataTypes = require('../../data-types');
 const { QueryTypes } = require('../../query-types');
-const { AbstractQueryInterface } = require('../abstract/query-interface');
 
 /**
  * The interface that Sequelize uses to talk with Postgres database
  */
-export class PostgresQueryInterface extends AbstractQueryInterface {
+export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
   /**
    * Ensure enum and their values.
    *
@@ -186,7 +186,7 @@ export class PostgresQueryInterface extends AbstractQueryInterface {
     options = options || {};
 
     return this.sequelize.queryRaw(
-      this.queryGenerator.pgEnumDrop(null, null, this.queryGenerator.pgEscapeAndQuote(enumName)),
+      this.queryGenerator.pgEnumDrop(null, null, this.queryGenerator.quoteIdentifier(enumName)),
       { ...options, raw: true },
     );
   }
@@ -204,7 +204,7 @@ export class PostgresQueryInterface extends AbstractQueryInterface {
     const enums = await this.pgListEnums(null, options);
 
     return await Promise.all(enums.map(result => this.sequelize.queryRaw(
-      this.queryGenerator.pgEnumDrop(null, null, this.queryGenerator.pgEscapeAndQuote(result.enum_name)),
+      this.queryGenerator.pgEnumDrop(null, null, this.queryGenerator.quoteIdentifier(result.enum_name)),
       { ...options, raw: true },
     )));
   }
@@ -234,7 +234,7 @@ export class PostgresQueryInterface extends AbstractQueryInterface {
     await super.dropTable(tableName, options);
     const promises = [];
     // TODO: we support receiving the model class instead of getting it from modelManager. More than one model can use the same table.
-    const model = this.sequelize.modelManager.getModel(tableName, { attribute: 'tableName' });
+    const model = this.sequelize.modelManager.findModel(model => this.queryGenerator.isSameTable(model.table, tableName));
 
     if (!model) {
       // Do nothing when model is not available

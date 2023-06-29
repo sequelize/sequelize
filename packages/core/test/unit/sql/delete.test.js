@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mariadb: 'TRUNCATE `public`.`test_users`',
             mysql: 'TRUNCATE `public`.`test_users`',
             db2: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
-            sqlite: 'DELETE FROM `public.test_users`; DELETE FROM `sqlite_sequence` WHERE `name` = \'public.test_users\';',
+            sqlite: 'DELETE FROM `public.test_users`; DELETE FROM `sqlite_sequence` WHERE `name` = `public.test_users`;',
             snowflake: 'TRUNCATE "public"."test_users"',
           },
         );
@@ -215,16 +215,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       };
 
       it(util.inspect(options, { depth: 2 }), () => {
-        const sqlOrError = _.attempt(
-          sql.deleteQuery.bind(sql),
-          options.table,
-          options.where,
-          options,
-          User,
-        );
-
-        return expectsql(sqlOrError, {
-          default: new Error('WHERE parameter "name" has invalid "undefined" value'),
+        return expectsql(() => sql.deleteQuery(options.table, options.where, options, User), {
+          default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
+Value: { name: undefined }
+Caused by: "undefined" cannot be escaped`),
         });
       });
     });

@@ -68,7 +68,7 @@ export class IBMiQuery extends AbstractQuery {
     if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery()) {
       if (this.instance && this.instance.dataValues) {
         for (const key in data[0]) {
-          if (Object.prototype.hasOwnProperty.call(data[0], key)) {
+          if (Object.hasOwn(data[0], key)) {
             const record = data[0][key];
 
             const attributes = this.model.modelDefinition.attributes;
@@ -129,10 +129,6 @@ export class IBMiQuery extends AbstractQuery {
       return data.count;
     }
 
-    if (this.isVersionQuery()) {
-      return data[0].VERSION;
-    }
-
     if (this.isForeignKeysQuery()) {
       return data;
     }
@@ -181,7 +177,7 @@ export class IBMiQuery extends AbstractQuery {
 
     data.forEach(item => {
 
-      if (Object.prototype.hasOwnProperty.call(indexes, item.NAME)) {
+      if (Object.hasOwn(indexes, item.NAME)) {
         indexes[item.NAME].fields.push({ attribute: item.COLUMN_NAME, length: undefined, order: undefined, collate: undefined });
       } else {
         indexes[item.NAME] = {
@@ -211,7 +207,7 @@ export class IBMiQuery extends AbstractQuery {
       return new sequelizeErrors.ConnectionRefusedError(err);
     }
 
-    if (Object.prototype.hasOwnProperty.call(err, 'odbcErrors') && err.odbcErrors.length > 0) {
+    if (Object.hasOwn(err, 'odbcErrors') && err.odbcErrors.length > 0) {
       const odbcError = err.odbcErrors[0];
       const foreignKeyConstraintCodes = [
         -530, // The insert or update value of a foreign key is invalid.

@@ -1,27 +1,33 @@
+import isObject from 'lodash/isObject';
 import upperFirst from 'lodash/upperFirst';
+import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
 import { AssociationError } from '../errors/index.js';
+import { col } from '../expression-builders/col.js';
+import { fn } from '../expression-builders/fn.js';
 import type {
-  Model,
+  AttributeNames,
+  Attributes,
   CreateOptions,
   CreationAttributes,
+  DestroyOptions,
   Filterable,
   FindOptions,
   InstanceUpdateOptions,
-  Transactionable,
+  Model,
   ModelStatic,
-  AttributeNames, UpdateValues, Attributes,
+  Transactionable,
+  UpdateValues,
 } from '../model';
 import { Op } from '../operators';
-import { col, fn } from '../sequelize';
 import { isPlainObject } from '../utils/check.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import type { AllowArray } from '../utils/types.js';
-import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
 import { MultiAssociation } from './base';
+import type { Association, AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions } from './base';
 import { BelongsTo } from './belongs-to.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
 import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
+import type { NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-many association.
@@ -87,6 +93,7 @@ export class HasMany<
     target: ModelStatic<T>,
     options: NormalizedHasManyOptions<SourceKey, TargetKey>,
     parent?: Association,
+    inverse?: BelongsTo<T, S, TargetKey, SourceKey>,
   ) {
     if (
       options.sourceKey
@@ -105,7 +112,7 @@ export class HasMany<
 
     super(secret, source, target, options, parent);
 
-    this.inverse = BelongsTo.associate(secret, target, source, removeUndefined({
+    this.inverse = inverse ?? BelongsTo.associate(secret, target, source, removeUndefined({
       as: options.inverse?.as,
       scope: options.inverse?.scope,
       foreignKey: options.foreignKey,
@@ -140,12 +147,13 @@ export class HasMany<
     T extends Model,
     SourceKey extends AttributeNames<S>,
     TargetKey extends AttributeNames<T>,
-    >(
+  >(
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,
     options: HasManyOptions<SourceKey, TargetKey> = {},
     parent?: Association<any>,
+    inverse?: BelongsTo<T, S, TargetKey, SourceKey>,
   ): HasMany<S, T, SourceKey, TargetKey> {
 
     return defineAssociation<
@@ -160,7 +168,7 @@ export class HasMany<
         throw new AssociationError('Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different.');
       }
 
-      return new HasMany(secret, source, target, normalizedOptions, parent);
+      return new HasMany(secret, source, target, normalizedOptions, parent, inverse);
     });
   }
 
@@ -231,14 +239,14 @@ export class HasMany<
     let Model = this.target;
     if (options.scope != null) {
       if (!options.scope) {
-        Model = Model.unscoped();
+        Model = Model.withoutScope();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
-        Model = Model.scope(options.scope);
+        Model = Model.withScope(options.scope);
       }
     }
 
     if (options.schema != null) {
-      Model = Model.schema(options.schema, options.schemaDelimiter);
+      Model = Model.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
     }
 
     const results = await Model.findAll(findOptions);
@@ -309,6 +317,8 @@ export class HasMany<
     const where = {
       [Op.or]: targetInstances.map(instance => {
         if (instance instanceof this.target) {
+
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
           return (instance as T).where();
         }
 
@@ -370,8 +380,10 @@ export class HasMany<
     });
 
     if (obsoleteAssociations.length > 0) {
-      // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
-      promises.push(this.remove(sourceInstance, obsoleteAssociations, options));
+      promises.push(this.remove(sourceInstance, obsoleteAssociations, {
+        ...options,
+        destroy: options?.destroyPrevious,
+      }));
     }
 
     if (unassociatedObjects.length > 0) {
@@ -388,7 +400,7 @@ export class HasMany<
         }),
       };
 
-      promises.push(this.target.unscoped().update(
+      promises.push(this.target.withoutScope().update(
         update,
         {
           ...options,
@@ -432,7 +444,7 @@ export class HasMany<
       }),
     };
 
-    await this.target.unscoped().update(update, { ...options, where });
+    await this.target.withoutScope().update(update, { ...options, where });
   }
 
   /**
@@ -459,17 +471,13 @@ export class HasMany<
       return;
     }
 
-    // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
-    const update = {
-      [this.foreignKey]: null,
-    } as UpdateValues<T>;
-
-    const where = {
+    const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       // @ts-expect-error -- TODO: what if the target has no primary key?
       [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => {
         if (targetInstance instanceof this.target) {
           // @ts-expect-error -- TODO: what if the target has no primary key?
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
           return (targetInstance as T).get(this.target.primaryKeyAttribute);
         }
 
@@ -485,7 +493,23 @@ export class HasMany<
       }),
     };
 
-    await this.target.unscoped().update(update, { ...options, where });
+    const foreignKeyIsNullable = this.target.modelDefinition.attributes.get(this.foreignKey)?.allowNull ?? true;
+
+    if (options.destroy || !foreignKeyIsNullable) {
+      await this.target.withoutScope().destroy({
+        ...(isObject(options.destroy) ? options.destroy : undefined),
+        logging: options.logging,
+        benchmark: options.benchmark,
+        transaction: options.transaction,
+        where,
+      });
+    } else {
+      const update = {
+        [this.foreignKey]: null,
+      } as UpdateValues<T>;
+
+      await this.target.withoutScope().update(update, { ...options, where });
+    }
   }
 
   /**
@@ -598,7 +622,16 @@ export type HasManyGetAssociationsMixin<T extends Model> = (options?: HasManyGet
  * @see HasManySetAssociationsMixin
  */
 export interface HasManySetAssociationsMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>>, InstanceUpdateOptions<Attributes<T>> {}
+  extends FindOptions<Attributes<T>>, InstanceUpdateOptions<Attributes<T>> {
+
+  /**
+   * Delete the previous associated model. Default to false.
+   *
+   * Only applies if the foreign key is nullable. If the foreign key is not nullable,
+   * the previous associated model is always deleted.
+   */
+  destroyPrevious?: boolean | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'> | undefined;
+}
 
 /**
  * The setAssociations mixin applied to models with hasMany.
@@ -615,7 +648,7 @@ export interface HasManySetAssociationsMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManySetAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Array<T | TModelPrimaryKey>,
+  newAssociations?: Array<T | TModelPrimaryKey> | null,
   options?: HasManySetAssociationsMixinOptions<T>,
 ) => Promise<void>;
 
@@ -696,13 +729,12 @@ export interface HasManyCreateAssociationMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManyCreateAssociationMixin<
-  TModel extends Model,
-  TForeignKey extends keyof CreationAttributes<TModel> = never,
-  TScope extends keyof CreationAttributes<TModel> = never,
+  Target extends Model,
+  ExcludedAttributes extends keyof CreationAttributes<Target> = never,
   > = (
-  values?: Omit<CreationAttributes<TModel>, TForeignKey | TScope>,
-  options?: HasManyCreateAssociationMixinOptions<TModel>
-) => Promise<TModel>;
+  values?: Omit<CreationAttributes<Target>, ExcludedAttributes>,
+  options?: HasManyCreateAssociationMixinOptions<Target>
+) => Promise<Target>;
 
 /**
  * The options for the removeAssociation mixin of the hasMany association.
@@ -737,7 +769,16 @@ export type HasManyRemoveAssociationMixin<T extends Model, TModelPrimaryKey> = (
  * @see HasManyRemoveAssociationsMixin
  */
 export interface HasManyRemoveAssociationsMixinOptions<T extends Model>
-  extends InstanceUpdateOptions<Attributes<T>> {}
+  extends Omit<InstanceUpdateOptions<Attributes<T>>, 'where'> {
+
+  /**
+   * Delete the associated model. Default to false.
+   *
+   * Only applies if the foreign key is nullable. If the foreign key is not nullable,
+   * the associated model is always deleted.
+   */
+  destroy?: boolean | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'> | undefined;
+}
 
 /**
  * The removeAssociations mixin applied to models with hasMany.
@@ -807,6 +848,9 @@ export interface HasManyHasAssociationsMixinOptions<T extends Model>
  *
  * @see Model.hasMany
  */
+// TODO: this should be renamed to "HasManyHasAllAssociationsMixin",
+//       we should also add a "HasManyHasAnyAssociationsMixin"
+//       and "HasManyHasAssociationsMixin" should instead return a Map of id -> boolean or WeakMap of instance -> boolean
 export type HasManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
   targets: Array<TModel | TModelPrimaryKey>,
   options?: HasManyHasAssociationsMixinOptions<TModel>

@@ -40,7 +40,7 @@ export class AsyncQueue {
     // However, this ensures that this.previous will never be a rejected promise so the queue will
     // always keep going, while still communicating rejection from asyncFunction to the user.
     return new Promise((resolve, reject) => {
-      this.previous = this.previous.then(() => {
+      this.previous = this.previous.then(async () => {
         this.rejectCurrent = reject;
         if (this.closed) {
           return reject(

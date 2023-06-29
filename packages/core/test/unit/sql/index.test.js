@@ -148,11 +148,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           },
         }), {
-          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
-          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE (`type` = \'group\' OR `type` = \'private\')',
-          db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE ("type" = \'group\' OR "type" = \'private\')',
-          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE ([type] = N\'group\' OR [type] = N\'private\')',
+          ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'group\' OR "type" = \'private\'',
+          sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'group\' OR `type` = \'private\'',
+          db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'group\' OR "type" = \'private\'',
+          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'group\' OR "type" = \'private\'',
+          mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'group\' OR [type] = N\'private\'',
         });
 
         expectsql(sql.addIndexQuery('table', {

@@ -1,6 +1,6 @@
 'use strict';
 
-import { AggregateError, DatabaseError, BaseError } from '../../errors';
+import { AggregateError, BaseError, DatabaseError } from '../../errors';
 import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
@@ -18,7 +18,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
       ...options,
       type: QueryTypes.FOREIGNKEYS,
     };
-    const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.username.toUpperCase());
+    const query = this.queryGenerator.getForeignKeyQuery(tableName);
 
     return this.sequelize.queryRaw(query, queryOptions);
   }
@@ -171,7 +171,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
 
   async addConstraint(tableName, options) {
     try {
-      return await super.addConstraint(tableName, options);
+      await super.addConstraint(tableName, options);
     } catch (error) {
       if (!error.cause) {
         throw error;

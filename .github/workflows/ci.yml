@@ -4,11 +4,7 @@ on:
     branches:
       - v7
   pull_request:
-
-env:
-  SEQ_DB: sequelize_test
-  SEQ_USER: sequelize_test
-  SEQ_PW: sequelize_test
+  merge_group:
 
 # This configuration cancels previous runs if a new run is started on the same PR. Only one run at a time per PR.
 # This does not affect pushes to the v7 branch itself, only PRs.
@@ -22,22 +18,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [ 14, 18 ]
+        node-version: [16, 20]
     name: Upload install and build artifact (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
       - name: Install dependencies and build sequelize
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
       - name: Build sequelize
         run: yarn build
       - name: Compress artifact
-        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/node_modules ./packages/core/types ./packages/validator-js/lib ./packages/validator-js/node_modules ./packages/validator-js/types ./node_modules
-      - uses: actions/upload-artifact@v3
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/types ./packages/validator-js/lib ./packages/validator-js/types ./node_modules
+      - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
           path: install-build-node-${{ matrix.node-version }}.tar
@@ -47,32 +43,32 @@ jobs:
     runs-on: ubuntu-latest
     needs: install-and-build
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: install-build-artifact-node-18
+          name: install-build-artifact-node-20
       - name: Extract artifact
-        run: tar -xf install-build-node-18.tar
+        run: tar -xf install-build-node-20.tar
       - run: yarn lint-no-fix
   unit-test:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14, 18]
+        node-version: [16, 20]
     name: Unit test all dialects (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -80,213 +76,142 @@ jobs:
       - name: ESM / CJS export equivalence
         run: yarn test-unit-esm
       - name: Unit tests (validator.js)
-        run: yarn workspace @sequelize/validator.js test-unit
+        run: yarn lerna run test-unit --scope=@sequelize/validator.js
       - name: Unit tests (mariadb)
-        run: yarn workspace @sequelize/core test-unit-mariadb
+        run: yarn lerna run test-unit-mariadb --scope=@sequelize/core
       - name: Unit tests (mysql)
-        run: yarn workspace @sequelize/core test-unit-mysql
+        run: yarn lerna run test-unit-mysql --scope=@sequelize/core
       - name: Unit tests (postgres)
-        run: yarn workspace @sequelize/core test-unit-postgres
+        run: yarn lerna run test-unit-postgres --scope=@sequelize/core
       - name: Unit tests (sqlite)
-        run: yarn workspace @sequelize/core test-unit-sqlite
+        run: yarn lerna run test-unit-sqlite --scope=@sequelize/core
       - name: Unit tests (mssql)
-        run: yarn workspace @sequelize/core test-unit-mssql
+        run: yarn lerna run test-unit-mssql --scope=@sequelize/core
       - name: Unit tests (db2)
-        run: yarn workspace @sequelize/core test-unit-db2
+        run: yarn lerna run test-unit-db2 --scope=@sequelize/core
       - name: Unit tests (ibmi)
-        run: yarn workspace @sequelize/core test-unit-ibmi
+        run: yarn lerna run test-unit-ibmi --scope=@sequelize/core
       - name: Unit tests (snowflake)
-        run: yarn workspace @sequelize/core test-unit-snowflake
+        run: yarn lerna run test-unit-snowflake --scope=@sequelize/core
   docs:
     name: Generate TypeDoc
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: install-build-artifact-node-18
+          name: install-build-artifact-node-20
       - name: Extract artifact
-        run: tar -xf install-build-node-18.tar
+        run: tar -xf install-build-node-20.tar
       - run: yarn docs
   test-typings:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ["4.6", "4.7", "4.8", "4.9"]
+        ts-version: ["4.8", "4.9", "5.0", "5.1"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
-          node-version: 18.x
+          node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: install-build-artifact-node-18
+          name: install-build-artifact-node-20
       - name: Extract artifact
-        run: tar -xf install-build-node-18.tar
+        run: tar -xf install-build-node-20.tar
       - name: Install TypeScript
-        run: yarn workspace @sequelize/core add typescript@~${{ matrix.ts-version }}
+        run: yarn add typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
-        run: yarn test-typings
-  test-db2:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [14, 18]
-    name: DB2 (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [ unit-test, test-typings ]
-    env:
-      DIALECT: db2
-      SEQ_DB: testdb
-      SEQ_USER: db2inst1
-      SEQ_PW: password
-      SEQ_TEST_CLEANUP_TIMEOUT: 1200000
-      SEQ_PORT: 50000
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
-      - uses: actions/download-artifact@v3
-        with:
-          name: install-build-artifact-node-${{ matrix.node-version }}
-      - name: Extract artifact
-        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Install Local DB2 Copy
-        run: yarn start-db2-oldest
-      - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
+        run: yarn lerna run test-typings --scope=@sequelize/core
   test-sqlite:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14, 18]
-    name: SQLite (Node ${{ matrix.node-version }})
+        node-version: [16, 20]
+    name: sqlite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
       DIALECT: sqlite
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
+        run: yarn lerna run test-integration --scope=@sequelize/core
   test-postgres:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14, 18]
+        node-version: [16, 20]
         postgres-version: [oldest, latest]
         minify-aliases: [true, false]
         native: [true, false]
-    name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
+    name: postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
       DIALECT: ${{ matrix.native && 'postgres-native' || 'postgres' }}
       SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Install pg-native
-        run: yarn workspace @sequelize/core add pg-native --ignore-engines
+        run: yarn workspace @sequelize/core add pg-native
+        if: matrix.native
       - run: yarn start-postgres-${{ matrix.postgres-version }}
       - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
-  test-mysql-mariadb:
+        run: yarn lerna run test-integration --scope=@sequelize/core
+  test-oldest-latest:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14, 18]
+        node-version: [16,20]
         database-version: [oldest, latest]
-        dialect: [mysql, mariadb]
+        dialect: [mysql, mariadb, mssql, db2]
     name: ${{ matrix.dialect }} ${{ matrix.database-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [ unit-test, test-typings ]
     env:
       DIALECT: ${{ matrix.dialect }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - run: yarn start-${{ matrix.dialect }}-${{ matrix.database-version }}
       - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
-  test-mssql:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [14, 18]
-        mssql-version: [2017, 2022]
-    name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
-    needs: [ unit-test, test-typings ]
-    services:
-      mssql:
-        image: mcr.microsoft.com/mssql/server:${{ matrix.mssql-version }}-latest
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: Password12!
-        ports:
-          - 1433:1433
-        options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P \"Password12!\" -l 30 -Q \"SELECT 1\""
-          --health-start-period 10s
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DIALECT: mssql
-      SEQ_USER: SA
-      SEQ_PW: Password12!
-      SEQ_PORT: 1433
-    steps:
-      - run: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
-      - uses: actions/download-artifact@v3
-        with:
-          name: install-build-artifact-node-${{ matrix.node-version }}
-      - name: Extract artifact
-        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Integration Tests
-        run: yarn workspace @sequelize/core test-integration
+        run: yarn lerna run test-integration --scope=@sequelize/core
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -295,27 +220,37 @@ jobs:
         docs,
         test-sqlite,
         test-postgres,
-        test-mysql-mariadb,
-        test-mssql,
+        test-oldest-latest
       ]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v7')
+    if: github.event_name == 'push'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
         with:
-          node-version: 18.x
+          # Number of commits to fetch. 0 indicates all history for all branches and tags.
+          # We need the entire history to generate the changelog properly
+          fetch-depth: 0
+      - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        with:
+          node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
-          name: install-build-artifact-node-18
+          name: install-build-artifact-node-20
       - name: Extract artifact
-        run: tar -xf install-build-node-18.tar
+        run: tar -xf install-build-node-20.tar
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "bot@sequelize.org"
+      - name: Set npm auth token
+        run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
       - run: yarn publish-all
       - id: sequelize
-        uses: sdepold/github-action-get-latest-release@master
+        uses: sdepold/github-action-get-latest-release@aa12fcb2943e8899cbcc29ff6f73409b32b48fa1 # master
         with:
           repository: sequelize/sequelize
       - name: Notify channels

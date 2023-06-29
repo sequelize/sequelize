@@ -4,11 +4,17 @@ on:
   schedule:
     - cron: "0 0 * * *"
 
+permissions:
+  contents: read
+
 jobs:
   stale:
+    permissions:
+      issues: write  # for actions/stale to close stale issues
+      pull-requests: write  # for actions/stale to close stale PRs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@main
+      - uses: actions/stale@1160a2240286f5da8ec72b1c0816ce2481aabf84 # v8.0.0
         id: stale-bug
         with:
           stale-issue-label: "stale"
@@ -20,7 +26,7 @@ jobs:
           days-before-pr-close: -1
           only-issue-labels: 'type: bug'
           any-of-issue-labels: 'pending-approval'
-      - uses: actions/stale@main
+      - uses: actions/stale@1160a2240286f5da8ec72b1c0816ce2481aabf84 # v8.0.0
         id: stale-feature
         with:
           stale-issue-label: "stale"
@@ -34,7 +40,7 @@ jobs:
           only-issue-labels: 'type: feature'
           any-of-issue-labels: 'pending-approval'
           any-of-pr-labels: 'maybe-abandoned'
-      - uses: actions/stale@main
+      - uses: actions/stale@1160a2240286f5da8ec72b1c0816ce2481aabf84 # v8.0.0
         id: invalid
         with:
           stale-issue-label: "stale"

@@ -4,7 +4,8 @@ import { Model } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { registerModelOptions } from '../shared/model.js';
 import {
-  createOptionallyParameterizedPropertyDecorator, throwMustBeMethod,
+  createOptionallyParameterizedPropertyDecorator,
+  throwMustBeMethod,
   throwMustBeModel,
   throwMustBeStaticProperty,
 } from './decorator-utils.js';

@@ -11,7 +11,7 @@ describe('QueryGenerator#deleteQuery', () => {
   // you'll find more replacement tests in query-generator tests
   it('parses named replacements in literals', async () => {
     const query = queryGenerator.deleteQuery(
-      User.tableName,
+      User.table,
       literal('name = :name'),
       {
         limit: literal(':limit'),

@@ -52,8 +52,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ],
         });
 
-        expect(Number.parseInt(posts[0].get('comment_count'), 10)).to.be.equal(3);
-        expect(Number.parseInt(posts[1].get('comment_count'), 10)).to.be.equal(2);
+        expect(Number.parseInt(posts[0].get('comment_count'), 10)).to.equal(3);
+        expect(Number.parseInt(posts[1].get('comment_count'), 10)).to.equal(2);
       });
 
       it('should not add primary key when grouping using a belongsTo association', async () => {
@@ -98,8 +98,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(posts[0].get().hasOwnProperty('id')).to.equal(false);
         expect(posts[1].get().hasOwnProperty('id')).to.equal(false);
-        expect(Number.parseInt(posts[0].get('comment_count'), 10)).to.be.equal(3);
-        expect(Number.parseInt(posts[1].get('comment_count'), 10)).to.be.equal(2);
+        expect(Number.parseInt(posts[0].get('comment_count'), 10)).to.equal(3);
+        expect(Number.parseInt(posts[1].get('comment_count'), 10)).to.equal(2);
       });
     });
   });

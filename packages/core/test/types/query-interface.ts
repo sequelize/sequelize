@@ -1,5 +1,5 @@
 import type { AbstractQueryInterface } from '@sequelize/core';
-import { DataTypes, Model, fn, literal, col } from '@sequelize/core';
+import { DataTypes, Model, col, fn, literal } from '@sequelize/core';
 
 declare let queryInterface: AbstractQueryInterface;
 
@@ -10,12 +10,15 @@ async function test() {
       attr1: DataTypes.STRING,
       attr2: DataTypes.INTEGER,
       attr3: {
+        unique: true,
         allowNull: false,
         defaultValue: false,
         type: DataTypes.BOOLEAN,
       },
       // foreign key usage
       attr4: {
+        // @ts-expect-error -- unique attribute in createTable is boolean
+        unique: 'attr4_pk',
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
         references: {
@@ -95,7 +98,7 @@ async function test() {
     }
   }
   */
-  const attributes: object = await queryInterface.describeTable('Person');
+  const attributes = await queryInterface.describeTable('Person');
 
   await queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', DataTypes.STRING);
 
@@ -218,7 +221,7 @@ async function test() {
   await queryInterface.sequelize.transaction(async trx => queryInterface.addConstraint('Person', {
     name: 'firstnamexlastname',
     fields: ['firstname', 'lastname'],
-    type: 'unique',
+    type: 'UNIQUE',
     transaction: trx,
   }));
 

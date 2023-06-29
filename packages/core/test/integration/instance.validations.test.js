@@ -531,7 +531,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     await expect(failingBar.validate({ skip: ['field'] })).not.to.be.rejected;
   });
 
-  it('skips validations for fields with value that is SequelizeMethod', async function () {
+  it('skips validations for fields with value that is BaseExpression', async function () {
     const values = ['value1', 'value2'];
 
     const Bar = this.sequelize.define(`Bar${Support.rand()}`, {

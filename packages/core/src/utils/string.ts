@@ -1,7 +1,7 @@
 import NodeUtil from 'node:util';
 import * as _inflection from 'inflection';
 import type { IndexOptions, TableName } from '../dialects/abstract/query-interface.js';
-import { SequelizeMethod } from './sequelize-method.js';
+import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 
 /* Inflection */
 type Inflection = typeof _inflection;
@@ -25,7 +25,7 @@ export function camelizeIf(str: string, condition: boolean): string {
 }
 
 export function camelize(str: string): string {
-  return str.trim().replace(/[-_\s]+(.)?/g, (match, c) => c.toUpperCase());
+  return str.trim().replaceAll(/[-_\s]+(.)?/g, (match, c) => c.toUpperCase());
 }
 
 export function underscoredIf(str: string, condition: boolean): string {
@@ -77,7 +77,7 @@ export function nameIndex(
   index: NameIndexIndex,
   tableName: TableName,
 ) {
-  if (Object.prototype.hasOwnProperty.call(index, 'name')) {
+  if (Object.hasOwn(index, 'name')) {
     return index;
   }
 
@@ -101,8 +101,7 @@ ${NodeUtil.inspect(index)}`);
       return field;
     }
 
-    if (field instanceof SequelizeMethod) {
-      // eslint-disable-next-line unicorn/prefer-type-error -- not a type error.
+    if (field instanceof BaseSqlExpression) {
       throw new Error(`Index on table ${tableName} uses Sequelize's ${field.constructor.name} as one of its fields. You need to name this index manually.`);
     }
 

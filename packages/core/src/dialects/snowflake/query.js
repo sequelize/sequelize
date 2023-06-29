@@ -112,6 +112,7 @@ export class SnowflakeQuery extends AbstractQuery {
     if (this.isSelectQuery()) {
       // Snowflake will treat tables as case-insensitive, so fix the case
       // of the returned values to match attributes
+      // TODO [>7]: remove this.sequelize.options.quoteIdentifiers === false
       if (this.options.raw === false && this.sequelize.options.quoteIdentifiers === false) {
         const attrsMap = Object.create(null);
 
@@ -149,7 +150,7 @@ export class SnowflakeQuery extends AbstractQuery {
           allowNull: _result.Null === 'YES',
           defaultValue: _result.Default,
           primaryKey: _result.Key === 'PRI',
-          autoIncrement: Object.prototype.hasOwnProperty.call(_result, 'Extra')
+          autoIncrement: Object.hasOwn(_result, 'Extra')
             && _result.Extra.toLowerCase() === 'auto_increment',
           comment: _result.Comment ? _result.Comment : null,
         };
@@ -168,10 +169,6 @@ export class SnowflakeQuery extends AbstractQuery {
 
     if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery()) {
       return data[0]['number of rows updated'];
-    }
-
-    if (this.isVersionQuery()) {
-      return data[0].version;
     }
 
     if (this.isForeignKeysQuery()) {

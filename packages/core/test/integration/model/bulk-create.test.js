@@ -12,10 +12,10 @@ const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
-    const sequelize = await Support.prepareTransactionTest(this.sequelize);
-    this.sequelize = sequelize;
+    const sequelize = await Support.createMultiTransactionalTestSequelizeInstance(this.sequelize);
+    this.customSequelize = sequelize;
 
-    this.User = this.sequelize.define('User', {
+    this.User = this.customSequelize.define('User', {
       username: DataTypes.STRING,
       secretValue: {
         type: DataTypes.STRING,
@@ -27,14 +27,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       aBool: DataTypes.BOOLEAN,
       uniqueName: { type: DataTypes.STRING, unique: true },
     });
-    this.Account = this.sequelize.define('Account', {
+    this.Account = this.customSequelize.define('Account', {
       accountName: DataTypes.STRING,
     });
-    this.Student = this.sequelize.define('Student', {
+    this.Student = this.customSequelize.define('Student', {
       no: { type: DataTypes.INTEGER, primaryKey: true },
       name: { type: DataTypes.STRING, allowNull: false },
     });
-    this.Car = this.sequelize.define('Car', {
+    this.Car = this.customSequelize.define('Car', {
       plateNumber: {
         type: DataTypes.STRING,
         primaryKey: true,
@@ -45,17 +45,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       },
     });
 
-    await this.sequelize.sync({ force: true });
+    await this.customSequelize.sync({ force: true });
+  });
+
+  afterEach(function () {
+    return this.customSequelize.close();
   });
 
   describe('bulkCreate', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const User = this.sequelize.define('User', {
+        const User = this.customSequelize.define('User', {
           username: DataTypes.STRING,
         });
         await User.sync({ force: true });
-        const transaction = await this.sequelize.startUnmanagedTransaction();
+        const transaction = await this.customSequelize.startUnmanagedTransaction();
         await User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction });
         const count1 = await User.count();
         const count2 = await User.count({ transaction });
@@ -66,7 +70,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     it('should not alter options', async function () {
-      const User = this.sequelize.define('User');
+      const User = this.customSequelize.define('User');
       await User.sync({ force: true });
       const options = { anOption: 1 };
       await User.bulkCreate([{}], options);
@@ -74,7 +78,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to set createdAt and updatedAt if using silent: true', async function () {
-      const User = this.sequelize.define('user', {
+      const User = this.customSequelize.define('user', {
         name: DataTypes.STRING,
       }, {
         timestamps: true,
@@ -108,7 +112,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not fail on validate: true and individualHooks: true', async function () {
-      const User = this.sequelize.define('user', {
+      const User = this.customSequelize.define('user', {
         name: DataTypes.STRING,
       });
 
@@ -120,7 +124,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not map instance dataValues to fields with individualHooks: true', async function () {
-      const User = this.sequelize.define('user', {
+      const User = this.customSequelize.define('user', {
         name: DataTypes.STRING,
         type: {
           type: DataTypes.STRING,
@@ -144,7 +148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should not insert NULL for unused fields', async function () {
-      const Beer = this.sequelize.define('Beer', {
+      const Beer = this.customSequelize.define('Beer', {
         style: DataTypes.STRING,
         size: DataTypes.INTEGER,
       });
@@ -221,6 +225,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(users[1].secretValue).to.equal('23');
     });
 
+    it('parses values that come from the database', async function () {
+      // Because bulkCreate uses a different code path than create,
+      // there was a bug where values coming back from the database
+      // weren't being run through the parsers/validators.
+      // This test ensures that the bug is fixed.
+      // https://github.com/sequelize/sequelize/issues/15640
+      const [user] = await this.User.bulkCreate([{ theDate: new Date(), uniqueName: '1' }]);
+
+      expect(user.theDate).to.be.instanceOf(Date);
+    });
+
     it('should set isNewRecord = false', async function () {
       const data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
         { username: 'Paul', secretValue: '23', uniqueName: '2' }];
@@ -276,7 +291,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('properly handles a model with a length column', async function () {
-      const UserWithLength = this.sequelize.define('UserWithLength', {
+      const UserWithLength = this.customSequelize.define('UserWithLength', {
         length: DataTypes.INTEGER,
       });
 
@@ -299,7 +314,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('emits an error when validate is set to true', async function () {
-      const Tasks = this.sequelize.define('Task', {
+      const Tasks = this.customSequelize.define('Task', {
         name: {
           type: DataTypes.STRING,
           allowNull: false,
@@ -341,7 +356,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('doesn\'t emit an error when validate is set to true but our selectedValues are fine', async function () {
-      const Tasks = this.sequelize.define('Task', {
+      const Tasks = this.customSequelize.define('Task', {
         name: {
           type: DataTypes.STRING,
           validate: {
@@ -365,7 +380,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow blank arrays (return immediately)', async function () {
-      const Worker = this.sequelize.define('Worker', {});
+      const Worker = this.customSequelize.define('Worker', {});
       await Worker.sync();
       const workers = await Worker.bulkCreate([]);
       expect(workers).to.be.ok;
@@ -373,14 +388,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should allow blank creates (with timestamps: false)', async function () {
-      const Worker = this.sequelize.define('Worker', {}, { timestamps: false });
+      const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
       await Worker.sync();
       const workers = await Worker.bulkCreate([{}, {}]);
       expect(workers).to.be.ok;
     });
 
     it('should allow autoincremented attributes to be set', async function () {
-      const Worker = this.sequelize.define('Worker', {}, { timestamps: false });
+      const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
       await Worker.sync();
 
       await Worker.bulkCreate([
@@ -395,7 +410,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (dialect.supports.schemas) {
       it('should support schemas', async function () {
-        const Dummy = this.sequelize.define('Dummy', {
+        const Dummy = this.customSequelize.define('Dummy', {
           foo: DataTypes.STRING,
           bar: DataTypes.STRING,
         }, {
@@ -403,8 +418,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           tableName: 'Dummy',
         });
 
-        await Support.dropTestSchemas(this.sequelize);
-        await this.sequelize.createSchema('space1');
+        await Support.dropTestSchemas(this.customSequelize);
+        await this.customSequelize.createSchema('space1');
         await Dummy.sync({ force: true });
 
         await Dummy.bulkCreate([
@@ -526,7 +541,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('when the primary key column names and model field names are different and have unique constraints', async function () {
-            const Person = this.sequelize.define('Person', {
+            const Person = this.customSequelize.define('Person', {
               emailAddress: {
                 type: DataTypes.STRING,
                 allowNull: false,
@@ -564,7 +579,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('when the composite primary key column names and model field names are different', async function () {
-            const Person = this.sequelize.define('Person', {
+            const Person = this.customSequelize.define('Person', {
               systemId: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
@@ -610,7 +625,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('when the primary key column names and model field names are different and have composite unique constraints', async function () {
-            const Person = this.sequelize.define('Person', {
+            const Person = this.customSequelize.define('Person', {
               id: {
                 type: DataTypes.INTEGER,
                 allowNull: false,
@@ -662,7 +677,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('[#12516] when the primary key column names and model field names are different and have composite unique index constraints', async function () {
-            const Person = this.sequelize.define(
+            const Person = this.customSequelize.define(
               'Person',
               {
                 id: {
@@ -745,13 +760,371 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.User.bulkCreate(data, { updateOnDuplicate: [] }),
           ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
         });
+
+        if (current.dialect.supports.inserts.conflictFields) {
+          it('should respect the conflictAttributes option', async function () {
+            const Permissions = this.customSequelize.define(
+              'permissions',
+              {
+                userId: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  field: 'user_id',
+                },
+                permissions: {
+                  type: new DataTypes.ENUM('owner', 'admin', 'member'),
+                  allowNull: false,
+                  default: 'member',
+                },
+              },
+              {
+                timestamps: false,
+              },
+            );
+
+            await Permissions.sync({ force: true });
+
+            // We don't want to create this index with the table, since we don't want our sequelize instance
+            // to know it exists.  This prevents it from being inferred.
+            await this.customSequelize.queryInterface.addIndex(
+              'permissions',
+              ['user_id'],
+              {
+                unique: true,
+              },
+            );
+
+            const initialPermissions = [
+              {
+                userId: 1,
+                permissions: 'member',
+              },
+              {
+                userId: 2,
+                permissions: 'admin',
+              },
+              {
+                userId: 3,
+                permissions: 'owner',
+              },
+            ];
+
+            const initialResults = await Permissions.bulkCreate(initialPermissions, {
+              conflictAttributes: ['userId'],
+              updateOnDuplicate: ['permissions'],
+            });
+
+            expect(initialResults.length).to.eql(3);
+
+            for (let i = 0; i < 3; i++) {
+              const result = initialResults[i];
+              const exp = initialPermissions[i];
+
+              expect(result).to.not.eql(null);
+              expect(result.userId).to.eql(exp.userId);
+              expect(result.permissions).to.eql(exp.permissions);
+            }
+
+            const newPermissions = [
+              {
+                userId: 1,
+                permissions: 'owner',
+              },
+              {
+                userId: 2,
+                permissions: 'member',
+              },
+              {
+                userId: 3,
+                permissions: 'admin',
+              },
+            ];
+
+            const newResults = await Permissions.bulkCreate(newPermissions, {
+              conflictAttributes: ['userId'],
+              updateOnDuplicate: ['permissions'],
+            });
+
+            expect(newResults.length).to.eql(3);
+
+            for (let i = 0; i < 3; i++) {
+              const result = newResults[i];
+              const exp = newPermissions[i];
+
+              expect(result).to.not.eql(null);
+              expect(result.id).to.eql(initialResults[i].id);
+              expect(result.userId).to.eql(exp.userId);
+              expect(result.permissions).to.eql(exp.permissions);
+            }
+          });
+
+          describe('conflictWhere', () => {
+            const Memberships = current.define(
+              'memberships',
+              {
+                // ID of the member (no foreign key constraint for testing purposes)
+                user_id: DataTypes.INTEGER,
+                // ID of what the member is a member of
+                foreign_id: DataTypes.INTEGER,
+                time_deleted: DataTypes.DATE,
+              },
+              {
+                createdAt: false,
+                updatedAt: false,
+                deletedAt: 'time_deleted',
+                indexes: [
+                  {
+                    fields: ['user_id', 'foreign_id'],
+                    unique: true,
+                    where: { time_deleted: null },
+                  },
+                ],
+              },
+            );
+
+            const options = {
+              conflictWhere: { time_deleted: null },
+              conflictAttributes: ['user_id', 'foreign_id'],
+              updateOnDuplicate: ['user_id', 'foreign_id', 'time_deleted'],
+            };
+
+            beforeEach(() => Memberships.sync({ force: true }));
+
+            it('should insert items with conflictWhere', async () => {
+              const memberships = new Array(10).fill().map((_, i) => ({
+                user_id: i + 1,
+                foreign_id: i + 20,
+                time_deleted: null,
+              }));
+
+              const results = await Memberships.bulkCreate(
+                memberships,
+                options,
+              );
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.eq(null);
+              }
+            });
+
+            it('should not conflict with soft deleted memberships', async () => {
+              const memberships = new Array(10).fill().map((_, i) => ({
+                user_id: i + 1,
+                foreign_id: i + 20,
+                time_deleted: new Date(),
+              }));
+
+              let results = await Memberships.bulkCreate(memberships, options);
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.not.eq(null);
+              }
+
+              results = await Memberships.bulkCreate(
+                memberships.map(membership => ({
+                  ...membership,
+                  time_deleted: null,
+                })),
+                options,
+              );
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.eq(null);
+              }
+
+              const count = await Memberships.count();
+
+              expect(count).to.eq(20);
+            });
+
+            it('should upsert existing memberships', async () => {
+              const memberships = new Array(10).fill().map((_, i) => ({
+                user_id: i + 1,
+                foreign_id: i + 20,
+                time_deleted: i % 2 ? new Date() : null,
+              }));
+
+              let results = await Memberships.bulkCreate(memberships, options);
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                if (i % 2) {
+                  expect(results[i].time_deleted).to.not.eq(null);
+                } else {
+                  expect(results[i].time_deleted).to.eq(null);
+                }
+              }
+
+              for (const membership of memberships) {
+                membership.time_deleted;
+              }
+
+              results = await Memberships.bulkCreate(
+                memberships.map(membership => ({
+                  ...membership,
+                  time_deleted: null,
+                })),
+                options,
+              );
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.eq(null);
+              }
+
+              const count = await Memberships.count({ paranoid: false });
+
+              expect(count).to.eq(15);
+            });
+          });
+
+          if (
+            current.dialect.supports.inserts.onConflictWhere
+          ) {
+            describe('conflictWhere', () => {
+              const Memberships = current.define(
+                'memberships',
+                {
+                  // ID of the member (no foreign key constraint for testing purposes)
+                  user_id: DataTypes.INTEGER,
+                  // ID of what the member is a member of
+                  foreign_id: DataTypes.INTEGER,
+                  time_deleted: DataTypes.DATE,
+                },
+                {
+                  createdAt: false,
+                  updatedAt: false,
+                  deletedAt: 'time_deleted',
+                  indexes: [
+                    {
+                      fields: ['user_id', 'foreign_id'],
+                      unique: true,
+                      where: { time_deleted: null },
+                    },
+                  ],
+                },
+              );
+
+              const options = {
+                conflictWhere: { time_deleted: null },
+                conflictAttributes: ['user_id', 'foreign_id'],
+                updateOnDuplicate: ['user_id', 'foreign_id', 'time_deleted'],
+              };
+
+              beforeEach(() => Memberships.sync({ force: true }));
+
+              it('should insert items with conflictWhere', async () => {
+                const memberships = new Array(10).fill().map((_, i) => ({
+                  user_id: i + 1,
+                  foreign_id: i + 20,
+                  time_deleted: null,
+                }));
+
+                const results = await Memberships.bulkCreate(
+                  memberships,
+                  options,
+                );
+
+                for (let i = 0; i < 10; i++) {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].time_deleted).to.eq(null);
+                }
+              });
+
+              it('should not conflict with soft deleted memberships', async () => {
+                const memberships = new Array(10).fill().map((_, i) => ({
+                  user_id: i + 1,
+                  foreign_id: i + 20,
+                  time_deleted: new Date(),
+                }));
+
+                let results = await Memberships.bulkCreate(memberships, options);
+
+                for (let i = 0; i < 10; i++) {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].time_deleted).to.not.eq(null);
+                }
+
+                results = await Memberships.bulkCreate(
+                  memberships.map(membership => ({
+                    ...membership,
+                    time_deleted: null,
+                  })),
+                  options,
+                );
+
+                for (let i = 0; i < 10; i++) {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].time_deleted).to.eq(null);
+                }
+
+                const count = await Memberships.count();
+
+                expect(count).to.eq(20);
+              });
+
+              it('should upsert existing memberships', async () => {
+                const memberships = new Array(10).fill().map((_, i) => ({
+                  user_id: i + 1,
+                  foreign_id: i + 20,
+                  time_deleted: i % 2 ? new Date() : null,
+                }));
+
+                let results = await Memberships.bulkCreate(memberships, options);
+
+                for (let i = 0; i < 10; i++) {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  if (i % 2) {
+                    expect(results[i].time_deleted).to.not.eq(null);
+                  } else {
+                    expect(results[i].time_deleted).to.eq(null);
+                  }
+                }
+
+                for (const membership of memberships) {
+                  membership.time_deleted;
+                }
+
+                results = await Memberships.bulkCreate(
+                  memberships.map(membership => ({
+                    ...membership,
+                    time_deleted: null,
+                  })),
+                  options,
+                );
+
+                for (let i = 0; i < 10; i++) {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].time_deleted).to.eq(null);
+                }
+
+                const count = await Memberships.count({ paranoid: false });
+
+                expect(count).to.eq(15);
+              });
+            });
+          }
+        }
       });
     }
 
     if (current.dialect.supports.returnValues) {
       describe('return values', () => {
         it('should make the auto incremented values available on the returned instances', async function () {
-          const User = this.sequelize.define('user', {});
+          const User = this.customSequelize.define('user', {});
 
           await User
             .sync({ force: true });
@@ -775,7 +1148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should make the auto incremented values available on the returned instances with custom fields', async function () {
-          const User = this.sequelize.define('user', {
+          const User = this.customSequelize.define('user', {
             maId: {
               type: DataTypes.INTEGER,
               primaryKey: true,
@@ -806,12 +1179,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should only return fields that are not defined in the model (with returning: true)', async function () {
-          const User = this.sequelize.define('user');
+          const User = this.customSequelize.define('user');
 
           await User
             .sync({ force: true });
 
-          await this.sequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
+          await this.customSequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
 
           const users0 = await User.bulkCreate([
             {},
@@ -830,12 +1203,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should return fields that are not defined in the model (with returning: ["*"])', async function () {
-          const User = this.sequelize.define('user');
+          const User = this.customSequelize.define('user');
 
           await User
             .sync({ force: true });
 
-          await this.sequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
+          await this.customSequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
 
           const users0 = await User.bulkCreate([
             {},
@@ -857,7 +1230,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('enums', () => {
       it('correctly restores enum values', async function () {
-        const Item = this.sequelize.define('Item', {
+        const Item = this.customSequelize.define('Item', {
           state: { type: DataTypes.ENUM(['available', 'in_cart', 'shipped']) },
           name: DataTypes.STRING,
         });
@@ -870,7 +1243,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should properly map field names to attribute names', async function () {
-      const Maya = this.sequelize.define('Maya', {
+      const Maya = this.customSequelize.define('Maya', {
         name: DataTypes.STRING,
         secret: {
           field: 'secret_given',
@@ -911,7 +1284,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('handles auto increment values', () => {
       it('should return auto increment primary key values', async function () {
-        const Maya = this.sequelize.define('Maya', {});
+        const Maya = this.customSequelize.define('Maya', {});
 
         const M1 = {};
         const M2 = {};
@@ -923,7 +1296,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should return supplied values on primary keys', async function () {
-        const User = this.sequelize.define('user', {});
+        const User = this.customSequelize.define('user', {});
 
         await User
           .sync({ force: true });
@@ -944,7 +1317,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should return supplied values on primary keys when some instances already exists', async function () {
-        const User = this.sequelize.define('user', {});
+        const User = this.customSequelize.define('user', {});
 
         await User
           .sync({ force: true });
@@ -970,7 +1343,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('virtual attribute', () => {
       beforeEach(function () {
-        this.User = this.sequelize.define('user', {
+        this.User = this.customSequelize.define('user', {
           password: {
             type: DataTypes.VIRTUAL,
             validate: {

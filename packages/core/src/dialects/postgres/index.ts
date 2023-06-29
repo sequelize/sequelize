@@ -24,6 +24,10 @@ export class PostgresDialect extends AbstractDialect {
     lockOuterJoinFailure: true,
     skipLocked: true,
     forShare: 'FOR SHARE',
+    constraints: {
+      deferrable: true,
+      removeOptions: { cascade: true, ifExists: true },
+    },
     index: {
       concurrently: true,
       using: 2,
@@ -36,6 +40,7 @@ export class PostgresDialect extends AbstractDialect {
       onConflictDoNothing: ' ON CONFLICT DO NOTHING',
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
       conflictFields: true,
+      onConflictWhere: true,
     },
     dataTypes: {
       ARRAY: true,
@@ -58,13 +63,19 @@ export class PostgresDialect extends AbstractDialect {
       INET: true,
     },
     jsonOperations: true,
+    jsonExtraction: {
+      unquoted: true,
+      quoted: true,
+    },
     REGEXP: true,
     IREGEXP: true,
-    deferrableConstraints: true,
     searchPath: true,
     escapeStringConstants: true,
     globalTimeZoneConfig: true,
     dropTable: {
+      cascade: true,
+    },
+    truncate: {
       cascade: true,
     },
   });
@@ -77,7 +88,6 @@ export class PostgresDialect extends AbstractDialect {
 
   // minimum supported version
   readonly defaultVersion = '11.0.0';
-  readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
 
@@ -110,9 +120,9 @@ export class PostgresDialect extends AbstractDialect {
   escapeString(value: string): string {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
-    value = value.replace(/'/g, '\'\'')
+    value = value.replaceAll('\'', '\'\'')
       // null character is not allowed in Postgres
-      .replace(/\0/g, '\\0');
+      .replaceAll('\0', '\\0');
 
     return `'${value}'`;
   }

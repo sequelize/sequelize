@@ -1,9 +1,11 @@
 import assert from 'node:assert';
 import { expect } from 'chai';
-import { Model, BelongsToMany as BelongsToManyAssociation } from '@sequelize/core';
-import type { InferAttributes } from '@sequelize/core';
-import { HasOne, BelongsTo, HasMany, BelongsToMany } from '@sequelize/core/decorators-legacy';
+import { BelongsToMany as BelongsToManyAssociation, Model } from '@sequelize/core';
+import type { InferAttributes, NonAttribute } from '@sequelize/core';
+import { BelongsTo, BelongsToMany, HasMany, HasOne } from '@sequelize/core/decorators-legacy';
 import { sequelize, typeTest } from '../../support';
+
+const CANNOT_INHERIT_ASSOCIATION_ERROR = /Models that use @HasOne, @HasMany, or @BelongsToMany associations cannot be inherited from/;
 
 describe('@BelongsTo', () => {
   it('defines a belongsTo association', () => {
@@ -51,6 +53,69 @@ describe('@BelongsTo', () => {
 
       declare userId: number;
     }
+  });
+
+  it('is inherited', () => {
+    class DummyModel extends Model<InferAttributes<DummyModel>> {}
+
+    class BaseUser extends Model<InferAttributes<BaseUser>> {
+      @BelongsTo(() => DummyModel, {
+        foreignKey: 'dummyId',
+        scope: {
+          deletedAt: null,
+        },
+      })
+      declare dummy?: NonAttribute<DummyModel>;
+
+      declare dummyId: number;
+    }
+
+    class User extends BaseUser {}
+
+    sequelize.addModels([DummyModel, User]);
+    // register in two steps to make sure you can register a model without registering its parent (when the parent is abstract)
+    sequelize.addModels([BaseUser]);
+
+    expect(Object.keys(User.associations)).to.deep.eq(['dummy']);
+  });
+
+  it('throws when inherited and uses the "inverse" option', () => {
+    class DummyModel extends Model<InferAttributes<DummyModel>> {}
+
+    class BaseUser extends Model<InferAttributes<BaseUser>> {
+      @BelongsTo(() => DummyModel, {
+        foreignKey: 'dummyId',
+        inverse: {
+          as: 'users',
+          type: 'hasMany',
+        },
+      })
+      declare dummy?: NonAttribute<DummyModel>;
+
+      declare dummyId: number;
+    }
+
+    class User extends BaseUser {}
+
+    expect(() => sequelize.addModels([User, DummyModel])).to.throw(/Models that use @BelongsTo associations with the "inverse" option cannot be inherited from/);
+  });
+
+  it('throws if the same association is declared twice', () => {
+    class DummyModel extends Model<InferAttributes<DummyModel>> {}
+
+    class BaseUser extends Model<InferAttributes<BaseUser>> {
+      @BelongsTo(() => DummyModel, 'dummyId')
+      declare dummy?: NonAttribute<DummyModel>;
+
+      declare dummyId: number;
+    }
+
+    class User extends BaseUser {
+      @BelongsTo(() => DummyModel, 'dummyId')
+      declare dummy?: NonAttribute<DummyModel>;
+    }
+
+    expect(() => sequelize.addModels([User, DummyModel])).to.throw(`You have defined two associations with the same name "dummy" on the model "User"`);
   });
 });
 
@@ -101,6 +166,21 @@ describe('@HasOne', () => {
       declare userId: number;
     }
   });
+
+  it('throws when inherited', () => {
+    class DummyModel extends Model<InferAttributes<DummyModel>> {
+      declare dummyId: number;
+    }
+
+    class BaseUser extends Model<InferAttributes<BaseUser>> {
+      @HasOne(() => DummyModel, 'dummyId')
+      declare dummy?: NonAttribute<DummyModel>;
+    }
+
+    class User extends BaseUser {}
+
+    expect(() => sequelize.addModels([DummyModel, User])).to.throw(CANNOT_INHERIT_ASSOCIATION_ERROR);
+  });
 });
 
 describe('@HasMany', () => {
@@ -149,6 +229,21 @@ describe('@HasMany', () => {
     class Profile extends Model<InferAttributes<Profile>> {
       declare userId: number;
     }
+  });
+
+  it('throws when inherited', () => {
+    class DummyModel extends Model<InferAttributes<DummyModel>> {
+      declare dummyId: number;
+    }
+
+    class BaseUser extends Model<InferAttributes<BaseUser>> {
+      @HasMany(() => DummyModel, 'dummyId')
+      declare dummies?: NonAttribute<DummyModel[]>;
+    }
+
+    class User extends BaseUser {}
+
+    expect(() => sequelize.addModels([DummyModel, User])).to.throw(CANNOT_INHERIT_ASSOCIATION_ERROR);
   });
 });
 
@@ -202,5 +297,20 @@ describe('@BelongsToMany', () => {
     const roleToUser = Role.associations.users;
     assert(roleToUser instanceof BelongsToManyAssociation);
     expect(roleToUser.throughModel).to.eq(UserRole);
+  });
+
+  it('throws when inherited', () => {
+    class DummyModel extends Model<InferAttributes<DummyModel>> {}
+
+    class BaseUser extends Model<InferAttributes<BaseUser>> {
+      @BelongsToMany(() => DummyModel, {
+        through: 'DummyUser',
+      })
+      declare dummies?: NonAttribute<DummyModel[]>;
+    }
+
+    class User extends BaseUser {}
+
+    expect(() => sequelize.addModels([DummyModel, User])).to.throw(CANNOT_INHERIT_ASSOCIATION_ERROR);
   });
 });

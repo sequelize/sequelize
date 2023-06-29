@@ -9,10 +9,13 @@ import isPlainObject from 'lodash/isPlainObject';
 import isUndefined from 'lodash/isUndefined.js';
 import mergeWith from 'lodash/mergeWith';
 import omitBy from 'lodash/omitBy.js';
-import { getComplexKeys } from './format';
 import type { MapView } from './immutability.js';
 import { combinedIterator, map } from './iterators.js';
 import { camelize } from './string';
+import { getComplexKeys } from './where.js';
+
+export const EMPTY_OBJECT = Object.freeze(Object.create(null));
+export const EMPTY_ARRAY = Object.freeze([]);
 
 /**
  * Deeply merges object `b` into `a`.
@@ -75,14 +78,14 @@ export function merge(...args: object[]): object {
   return result;
 }
 
-export function cloneDeep<T extends object>(obj: T, onlyPlain?: boolean): T {
-  return cloneDeepWith(obj || {}, elem => {
+export function cloneDeep<T>(obj: T, onlyPlain?: boolean): T {
+  return cloneDeepWith(obj, elem => {
     // Do not try to customize cloning of arrays or POJOs
     if (Array.isArray(elem) || isPlainObject(elem)) {
       return;
     }
 
-    // If we specified to clone only plain objects & arrays, we ignore everyhing else
+    // If we specified to clone only plain objects & arrays, we ignore everything else
     // In any case, don't clone stuff that's an object, but not a plain one - fx example sequelize models and instances
     if (onlyPlain || typeof elem === 'object') {
       return elem;
@@ -189,7 +192,7 @@ export function defaults(
       if (
         value === undefined
         || isEqual(value, objectPrototype[key])
-        && !Object.prototype.hasOwnProperty.call(objectIn, key)
+        && !Object.hasOwn(objectIn, key)
       ) {
         objectIn[key] = source[key];
       }

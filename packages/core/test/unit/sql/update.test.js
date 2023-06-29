@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       const options = {
         returning: false,
       };
-      expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.getAttributes()),
+      expectsql(sql.updateQuery(User.table, { user_name: 'triggertest' }, { id: 2 }, options, User.getAttributes()),
         {
           query: {
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         returning: true,
         hasTrigger: true,
       };
-      expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.getAttributes()),
+      expectsql(sql.updateQuery(User.table, { user_name: 'triggertest' }, { id: 2 }, options, User.getAttributes()),
         {
           query: {
             ibmi: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         timestamps: false,
       });
 
-      expectsql(sql.updateQuery(User.tableName, { username: 'new.username' }, { username: 'username' }, { limit: 1 }), {
+      expectsql(sql.updateQuery(User.table, { username: 'new.username' }, { username: 'username' }, { limit: 1 }), {
         query: {
           ibmi: 'UPDATE "Users" SET "username"=$sequelize_1 WHERE "username" = $sequelize_2',
           mssql: 'UPDATE TOP(1) [Users] SET [username]=$sequelize_1 WHERE [username] = $sequelize_2',

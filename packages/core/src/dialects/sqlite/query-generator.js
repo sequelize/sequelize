@@ -1,39 +1,36 @@
 'use strict';
 
-import { addTicks, removeTicks } from '../../utils/dialect';
 import { removeNullishValuesFromHash } from '../../utils/format';
+import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
-import { Cast, Json, SequelizeMethod } from '../../utils/sequelize-method';
-import { underscore } from '../../utils/string';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 const { Transaction } = require('../../transaction');
 const _ = require('lodash');
 const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const { AbstractQueryGenerator } = require('../abstract/query-generator');
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+// TODO: add support for 'uniqueKeys' by improving the createTableQuery implementation so it also generates a CREATE UNIQUE INDEX query
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
-  createSchemaQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  dropSchemaQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  listSchemasQuery() {
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  versionQuery() {
-    return 'SELECT sqlite_version() as `version`';
-  }
-
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     options = options || {};
 
     const primaryKeys = [];
@@ -41,7 +38,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const attrArray = [];
 
     for (const attr in attributes) {
-      if (Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (Object.hasOwn(attributes, attr)) {
         const dataType = attributes[attr];
         const containsAutoIncrement = dataType.includes('AUTOINCREMENT');
 
@@ -107,106 +104,17 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   addLimitAndOffset(options, model) {
     let fragment = '';
     if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, undefined, options)}`;
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
     } else if (options.offset) {
       // limit must be specified if offset is specified.
       fragment += ` LIMIT -1`;
     }
 
     if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, undefined, options)}`;
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
     }
 
     return fragment;
-  }
-
-  booleanValue(value) {
-    return value ? 1 : 0;
-  }
-
-  /**
-   * Check whether the statmement is json function or simple path
-   *
-   * @param   {string}  stmt  The statement to validate
-   * @returns {boolean}       true if the given statement is json function
-   * @throws  {Error}         throw if the statement looks like json function but has invalid token
-   */
-  _checkValidJsonStatement(stmt) {
-    if (typeof stmt !== 'string') {
-      return false;
-    }
-
-    // https://sqlite.org/json1.html
-    const jsonFunctionRegex = /^\s*(json(?:_[a-z]+){0,2})\([^)]*\)/i;
-    const tokenCaptureRegex = /^\s*((?:(["'`])(?:(?!\2).|\2{2})*\2)|[\s\w]+|[()+,.;-])/i;
-
-    let currentIndex = 0;
-    let openingBrackets = 0;
-    let closingBrackets = 0;
-    let hasJsonFunction = false;
-    let hasInvalidToken = false;
-
-    while (currentIndex < stmt.length) {
-      const string = stmt.slice(currentIndex);
-      const functionMatches = jsonFunctionRegex.exec(string);
-      if (functionMatches) {
-        currentIndex += functionMatches[0].indexOf('(');
-        hasJsonFunction = true;
-        continue;
-      }
-
-      const tokenMatches = tokenCaptureRegex.exec(string);
-      if (tokenMatches) {
-        const capturedToken = tokenMatches[1];
-        if (capturedToken === '(') {
-          openingBrackets++;
-        } else if (capturedToken === ')') {
-          closingBrackets++;
-        } else if (capturedToken === ';') {
-          hasInvalidToken = true;
-          break;
-        }
-
-        currentIndex += tokenMatches[0].length;
-        continue;
-      }
-
-      break;
-    }
-
-    // Check invalid json statement
-    hasInvalidToken |= openingBrackets !== closingBrackets;
-    if (hasJsonFunction && hasInvalidToken) {
-      throw new Error(`Invalid json statement: ${stmt}`);
-    }
-
-    // return true if the statement has valid json function
-    return hasJsonFunction;
-  }
-
-  // sqlite can't cast to datetime so we need to convert date values to their ISO strings
-  _toJSONValue(value) {
-    if (value instanceof Date) {
-      return value.toISOString();
-    }
-
-    if (Array.isArray(value) && value[0] instanceof Date) {
-      return value.map(val => val.toISOString());
-    }
-
-    return value;
-  }
-
-  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    if (smth instanceof Json) {
-      return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
-    }
-
-    if (smth instanceof Cast && /timestamp/i.test(smth.type)) {
-      smth.type = 'datetime';
-    }
-
-    return AbstractQueryGenerator.prototype.handleSequelizeMethod.call(this, smth, tableName, factory, options, prepend);
   }
 
   addColumnQuery(table, key, dataType, options) {
@@ -240,7 +148,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
-    const modelAttributeMap = {};
+    const modelAttributeMap = Object.create(null);
     const values = [];
     const bind = Object.create(null);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
@@ -255,13 +163,16 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     }
 
     for (const key in attrValueHash) {
-      const value = attrValueHash[key];
+      const value = attrValueHash[key] ?? null;
 
-      if (value instanceof SequelizeMethod || options.bindParam === false) {
-        values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements })}`);
-      } else {
-        values.push(`${this.quoteIdentifier(key)}=${this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE', replacements: options.replacements }, bindParam)}`);
-      }
+      const escapedValue = this.escape(value, {
+        replacements: options.replacements,
+        bindParam,
+        type: modelAttributeMap[key]?.type,
+        // TODO: model,
+      });
+
+      values.push(`${this.quoteIdentifier(key)}=${escapedValue}`);
     }
 
     let query;
@@ -284,21 +195,20 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   truncateTableQuery(tableName, options = {}) {
     return [
       `DELETE FROM ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${addTicks(removeTicks(this.quoteTable(tableName), '`'), '\'')};` : '',
+      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${this.quoteTable(tableName)};` : '',
     ].join('');
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
+  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     _.defaults(options, this.options);
 
-    let whereClause = this.getWhereConditions(where, null, model, options);
-
+    let whereClause = this.whereQuery(where, { ...options, model });
     if (whereClause) {
-      whereClause = `WHERE ${whereClause}`;
+      whereClause = ` ${whereClause}`;
     }
 
     if (options.limit) {
-      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit, undefined, options)})`;
+      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit, options)})`;
     }
 
     return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`.trim();
@@ -321,7 +231,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
-          sql += ` DEFAULT ${this.escape(attribute.defaultValue, attribute, options)}`;
+          sql += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
         }
 
         if (attribute.unique === true) {
@@ -366,20 +276,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
-  showConstraintsQuery(tableName, constraintName) {
-    let sql = `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}'`;
-
-    if (constraintName) {
-      sql += ` AND sql LIKE '%${constraintName}%'`;
-    }
-
-    return `${sql};`;
-  }
-
-  describeCreateTableQuery(tableName) {
-    return `SELECT sql FROM sqlite_master WHERE tbl_name='${tableName}';`;
-  }
-
+  // TODO: this should not implement `removeColumnQuery` but a new sqlite specific function possibly called `replaceTableQuery`
   removeColumnQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -393,15 +290,14 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     attributes = this.attributesToSQL(attributes);
 
-    let backupTableName;
-    if (typeof tableName === 'object') {
-      backupTableName = {
-        tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
-      };
-    } else {
-      backupTableName = `${tableName}_backup`;
-    }
+    const table = this.extractTableDetails(tableName);
+
+    // TODO: this is unsafe, this table could already exist
+    const backupTableName = {
+      tableName: `${table.tableName}_backup`,
+      schema: table.schema,
+      delimiter: table.delimiter,
+    };
 
     const quotedTableName = this.quoteTable(tableName);
     const quotedBackupTableName = this.quoteTable(backupTableName);
@@ -409,32 +305,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     return `${this.createTableQuery(backupTableName, attributes)}`
       + `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
-      + `DROP TABLE ${quotedTableName};`
-      + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
-  }
-
-  _alterConstraintQuery(tableName, attributes, createTableSql) {
-    let backupTableName;
-
-    attributes = this.attributesToSQL(attributes);
-
-    if (typeof tableName === 'object') {
-      backupTableName = {
-        tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
-      };
-    } else {
-      backupTableName = `${tableName}_backup`;
-    }
-
-    const quotedTableName = this.quoteTable(tableName);
-    const quotedBackupTableName = this.quoteTable(backupTableName);
-    const attributeNames = Object.keys(attributes).map(attr => this.quoteIdentifier(attr)).join(', ');
-
-    return `${createTableSql
-      .replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)
-      .replace(`CREATE TABLE ${quotedTableName.replace(/`/g, '"')}`, `CREATE TABLE ${quotedBackupTableName}`)
-    }INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
       + `DROP TABLE ${quotedTableName};`
       + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
   }
@@ -492,18 +362,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   replaceBooleanDefaults(sql) {
-    return sql.replace(/DEFAULT '?false'?/g, 'DEFAULT 0').replace(/DEFAULT '?true'?/g, 'DEFAULT 1');
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {TableName} tableName  The name of the table.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(tableName) {
-    return `PRAGMA foreign_key_list(${this.quoteTable(tableName)})`;
+    return sql.replaceAll(/DEFAULT '?false'?/g, 'DEFAULT 0').replaceAll(/DEFAULT '?true'?/g, 'DEFAULT 1');
   }
 
   tableExistsQuery(tableName) {
@@ -517,26 +376,5 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
    */
   foreignKeyCheckQuery(tableName) {
     return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
-  }
-
-  /**
-   * Generates an SQL query that extract JSON property of given path.
-   *
-   * @param   {string}               column  The JSON column
-   * @param   {string|Array<string>} [path]  The path to extract (optional)
-   * @returns {string}                       The generated sql query
-   * @private
-   */
-  jsonPathExtractionQuery(column, path) {
-    const quotedColumn = this.isIdentifierQuoted(column)
-      ? column
-      : this.quoteIdentifier(column);
-
-    const pathStr = this.escape(['$']
-      .concat(_.toPath(path))
-      .join('.')
-      .replace(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
-
-    return `json_extract(${quotedColumn},${pathStr})`;
   }
 }

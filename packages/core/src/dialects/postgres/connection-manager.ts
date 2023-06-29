@@ -1,9 +1,11 @@
+import assert from 'node:assert';
 import pick from 'lodash/pick';
-import type { ClientConfig, Client } from 'pg';
-import type { TypeFormat, TypeId } from 'pg-types';
+import type { Client, ClientConfig } from 'pg';
+import type { TypeId, TypeParser } from 'pg-types';
 import semver from 'semver';
 import {
-  ConnectionError, ConnectionRefusedError,
+  ConnectionError,
+  ConnectionRefusedError,
   ConnectionTimedOutError,
   HostNotFoundError,
   HostNotReachableError,
@@ -25,7 +27,7 @@ type Lib = typeof import('pg');
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 type ArrayParserLib = typeof import('postgres-array');
 
-type TypeParser = (source: string) => unknown;
+type TypeFormat = 'text' | 'binary';
 
 interface TypeOids {
   oid: number;
@@ -53,13 +55,14 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
   readonly #arrayParserLib: ArrayParserLib;
 
   #oidMap = new Map<number, TypeOids>();
-  #oidParserCache = new Map<number, TypeParser>();
+  #oidParserCache = new Map<number, TypeParser<any, any>>();
 
   constructor(dialect: PostgresDialect, sequelize: Sequelize) {
     super(dialect, sequelize);
 
     const pgLib = this._loadDialectModule('pg') as Lib;
     this.lib = this.sequelize.config.native ? pgLib.native! : pgLib;
+    assert(this.lib != null, 'pg-native module not found, please install it');
 
     this.#arrayParserLib = this._loadDialectModule('postgres-array') as ArrayParserLib;
   }
@@ -91,6 +94,8 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
         'statement_timeout',
         // Times out queries after a set time in milliseconds in client end, query would be still running in database end.
         'query_timeout',
+        // Number of milliseconds to wait for connection, default is no timeout.
+        'connectionTimeoutMillis',
         // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. Added in pg v7.17.0 only supported in postgres >= 10
         'idle_in_transaction_session_timeout',
         // Maximum wait time for lock requests in milliseconds. Added in pg v8.8.0.
@@ -98,6 +103,9 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
         // Postgres allows additional session variables to be configured in the connection string in the `options` param.
         // see [https://www.postgresql.org/docs/14/libpq-connect.html#LIBPQ-CONNECT-OPTIONS]
         'options',
+        // The stream acts as a user-defined socket factory for postgres. In particular, it enables IAM autentication
+        // with Google Cloud SQL. see: https://github.com/sequelize/sequelize/issues/16001#issuecomment-1561136388
+        'stream',
       ])),
       port,
       ...pick(config, ['password', 'host', 'database']),
@@ -191,7 +199,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
     });
 
     // Don't let a Postgres restart (or error) to take down the whole app
-    connection.once('error', error => {
+    connection.on('error', (error: any) => {
       connection._invalid = true;
       debug(`connection error ${error.code || error.message}`);
       void this.pool.destroy(connection);
@@ -339,7 +347,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
     };
   }
 
-  getTypeParser(oid: TypeId, format?: TypeFormat): TypeParser {
+  getTypeParser(oid: TypeId, format?: TypeFormat): TypeParser<any, any> {
     const cachedParser = this.#oidParserCache.get(oid);
 
     if (cachedParser) {
@@ -353,10 +361,11 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       return customParser;
     }
 
+    // @ts-expect-error -- pg did not provide a broadly-typed version of getTypeParser. The typing boilerplate is not worth the result.
     return this.lib.types.getTypeParser(oid, format);
   }
 
-  #getCustomTypeParser(oid: TypeId, format?: TypeFormat): TypeParser | null {
+  #getCustomTypeParser(oid: TypeId, format?: TypeFormat): TypeParser<any, any> | null {
     const typeData = this.#oidMap.get(oid);
 
     if (!typeData) {

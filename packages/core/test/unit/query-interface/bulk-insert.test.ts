@@ -17,7 +17,7 @@ describe('QueryInterface#bulkInsert', () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     const users = range(1000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.getQueryInterface().bulkInsert(User.tableName, users);
+    await sequelize.getQueryInterface().bulkInsert(User.table, users);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
@@ -34,7 +34,7 @@ describe('QueryInterface#bulkInsert', () => {
     const transaction = new Transaction(sequelize, {});
 
     const users = range(2000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.getQueryInterface().bulkInsert(User.tableName, users, { transaction });
+    await sequelize.getQueryInterface().bulkInsert(User.table, users, { transaction });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
@@ -50,7 +50,7 @@ describe('QueryInterface#bulkInsert', () => {
   it('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    await sequelize.getQueryInterface().bulkInsert(User.tableName, [{
+    await sequelize.getQueryInterface().bulkInsert(User.table, [{
       firstName: ':injection',
     }], {
       replacements: {

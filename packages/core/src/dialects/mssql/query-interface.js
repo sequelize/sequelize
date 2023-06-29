@@ -25,7 +25,7 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
     const [results0] = await this.sequelize.queryRaw(findConstraintSql, options);
     if (results0.length > 0) {
       // No default constraint found -- we can cleanly remove the column
-      const dropConstraintSql = this.queryGenerator.dropConstraintQuery(tableName, results0[0].name);
+      const dropConstraintSql = this.queryGenerator.removeConstraintQuery(tableName, results0[0].name);
       await this.sequelize.queryRaw(dropConstraintSql, options);
     }
 
@@ -33,7 +33,7 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
     const [results] = await this.sequelize.queryRaw(findForeignKeySql, options);
     if (results.length > 0) {
       // No foreign key constraints found, so we can remove the column
-      const dropForeignKeySql = this.queryGenerator.dropForeignKeyQuery(tableName, results[0].constraint_name);
+      const dropForeignKeySql = this.queryGenerator.dropForeignKeyQuery(tableName, results[0].constraintName);
       await this.sequelize.queryRaw(dropForeignKeySql, options);
     }
 
@@ -41,7 +41,7 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
     const primaryKeyConstraintSql = this.queryGenerator.getPrimaryKeyConstraintQuery(tableName, attributeName);
     const [result] = await this.sequelize.queryRaw(primaryKeyConstraintSql, options);
     if (result.length > 0) {
-      const dropConstraintSql = this.queryGenerator.dropConstraintQuery(tableName, result[0].constraintName);
+      const dropConstraintSql = this.queryGenerator.removeConstraintQuery(tableName, result[0].constraintName);
       await this.sequelize.queryRaw(dropConstraintSql, options);
     }
 

@@ -19,6 +19,13 @@ export const Unique = Pkg.Unique;
 export const Index = Pkg.Index;
 export const createIndexDecorator = Pkg.createIndexDecorator;
 
+// Built-in Attribute Decorators
+
+export const CreatedAt = Pkg.CreatedAt;
+export const UpdatedAt = Pkg.UpdatedAt;
+export const DeletedAt = Pkg.DeletedAt;
+export const Version = Pkg.Version;
+
 // Association Decorators
 
 export const BelongsTo = Pkg.BelongsTo;

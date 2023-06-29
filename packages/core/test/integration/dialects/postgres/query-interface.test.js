@@ -32,7 +32,7 @@ if (dialect.startsWith('postgres')) {
           `, { type: this.sequelize.QueryTypes.SELECT });
 
         expect(res, 'query results').to.not.be.empty;
-        expect(res[0].schema_name).to.be.equal('testschema');
+        expect(res[0].schema_name).to.equal('testschema');
       });
 
       it('works even when schema exists', async function () {
@@ -46,14 +46,14 @@ if (dialect.startsWith('postgres')) {
           `, { type: this.sequelize.QueryTypes.SELECT });
 
         expect(res, 'query results').to.not.be.empty;
-        expect(res[0].schema_name).to.be.equal('testschema');
+        expect(res[0].schema_name).to.equal('testschema');
       });
     });
 
-    describe('databaseVersion', () => {
+    describe('fetchDatabaseVersion', () => {
       it('reports version', async function () {
-        const res = await this.queryInterface.databaseVersion();
-        // check that result matches expected version number format. example 9.5.4
+        const res = await this.queryInterface.fetchDatabaseVersion();
+        // check that result matches the expected version number format. example 9.5.4
         expect(res).to.match(/\d\.\d/);
       });
     });

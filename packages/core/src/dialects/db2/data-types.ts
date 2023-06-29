@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import maxBy from 'lodash/maxBy.js';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { AcceptedDate, ToSqlOptions } from '../abstract/data-types.js';
+import type { AcceptedDate } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
@@ -36,7 +36,7 @@ export class BLOB extends BaseTypes.BLOB {
 }
 
 export class STRING extends BaseTypes.STRING {
-  toSql(options: ToSqlOptions) {
+  toSql() {
     const length = this.options.length ?? 255;
 
     if (this.options.binary) {
@@ -44,7 +44,7 @@ export class STRING extends BaseTypes.STRING {
         return `VARCHAR(${length}) FOR BIT DATA`;
       }
 
-      throw new Error(`${options.dialect.name} does not support the BINARY option for data types with a length greater than 4000.`);
+      throw new Error(`${this._getDialect().name} does not support the BINARY option for data types with a length greater than 4000.`);
     }
 
     if (length <= 4000) {

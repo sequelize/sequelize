@@ -1,7 +1,7 @@
 {
   "name": "@sequelize/core",
   "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
-  "version": "7.0.0-alpha.20",
+  "version": "0.0.0-development",
   "funding": [
     {
       "type": "opencollective",
@@ -21,9 +21,9 @@
   "type": "commonjs",
   "exports": {
     ".": {
+      "types": "./types/index.d.ts",
       "import": "./lib/index.mjs",
-      "require": "./lib/index.js",
-      "types": "./types/index.d.ts"
+      "require": "./lib/index.js"
     },
     "./decorators-legacy": {
       "types": "./types/decorators/legacy/index.d.ts",
@@ -37,7 +37,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": "^14.17.0 || >=16.0.0"
+    "node": ">=16.0.0"
   },
   "files": [
     "lib",
@@ -48,6 +48,7 @@
   "dependencies": {
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
+    "bnf-parser": "3.1.6",
     "dayjs": "^1.11.5",
     "debug": "^4.3.4",
     "dottie": "^2.0.2",
@@ -55,80 +56,73 @@
     "inflection": "^2.0.0",
     "lodash": "^4.17.21",
     "pg-connection-string": "^2.5.0",
+    "pg-hstore": "^2.3.4",
     "retry-as-promised": "^7.0.3",
     "semver": "^7.3.7",
     "sequelize-pool": "^8.0.0",
     "toposort-class": "^1.0.1",
-    "type-fest": "^2.18.1",
+    "type-fest": "^3.0.0",
     "uuid": "^9.0.0",
     "validator": "^13.7.0",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.4",
+    "@types/chai": "4.3.5",
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",
-    "@types/ibm_db": "2.0.11",
-    "@types/lodash": "4.14.191",
+    "@types/ibm_db": "2.0.12",
+    "@types/lodash": "4.14.195",
     "@types/mocha": "10.0.1",
-    "@types/node": "18.11.17",
-    "@types/pg": "8.6.6",
-    "@types/semver": "7.3.13",
-    "@types/sinon": "10.0.13",
+    "@types/pg": "8.10.2",
+    "@types/semver": "7.5.0",
+    "@types/sinon": "10.0.15",
     "@types/sinon-chai": "3.2.9",
-    "@types/snowflake-sdk": "1.6.11",
+    "@types/snowflake-sdk": "1.6.13",
     "@types/tedious": "4.0.9",
-    "@types/uuid": "9.0.0",
+    "@types/uuid": "9.0.2",
     "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
-    "concurrently": "7.6.0",
-    "cross-env": "7.0.3",
     "delay": "5.0.0",
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
-    "husky": "8.0.2",
-    "ibm_db": "3.1.0",
-    "lcov-result-merger": "4.0.0",
-    "mariadb": "2.5.6",
+    "ibm_db": "3.2.1",
+    "lcov-result-merger": "4.1.0",
+    "mariadb": "3.2.0",
     "mocha": "10.2.0",
     "moment": "2.29.4",
-    "mysql2": "2.3.3",
+    "mysql2": "3.4.2",
     "nyc": "15.1.0",
-    "odbc": "2.4.6",
+    "odbc": "2.4.8",
     "p-map": "4.0.0",
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
     "p-timeout": "4.1.0",
-    "pg": "8.8.0",
-    "pg-hstore": "2.3.4",
-    "rimraf": "4.1.2",
-    "sinon": "15.0.1",
+    "pg": "8.11.1",
+    "rimraf": "5.0.1",
+    "sinon": "15.2.0",
     "sinon-chai": "3.7.0",
-    "snowflake-sdk": "1.6.17",
-    "sqlite3": "5.1.4",
-    "tedious": "15.1.2"
+    "snowflake-sdk": "1.6.23",
+    "sqlite3": "5.1.6",
+    "tedious": "16.1.0"
   },
   "peerDependenciesMeta": {
-    "pg": {
+    "ibm_db": {
       "optional": true
     },
-    "pg-hstore": {
+    "mariadb": {
       "optional": true
     },
     "mysql2": {
       "optional": true
     },
-    "ibm_db": {
-      "optional": true
-    },
     "odbc": {
       "optional": true
     },
-    "snowflake-sdk": {
+    "pg": {
       "optional": true
     },
-    "mariadb": {
+    "snowflake-sdk": {
       "optional": true
     },
     "sqlite3": {
@@ -210,10 +204,5 @@
     "----------------------------------------- development ---------------------------------------------": "",
     "build": "../../build-packages.mjs core"
   },
-  "support": true,
-  "typedoc": {
-    "entryPoint": "./src/index.d.ts",
-    "displayName": "@sequelize/core",
-    "tsconfig": "./tsconfig.json"
-  }
+  "support": true
 }

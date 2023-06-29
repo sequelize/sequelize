@@ -1,16 +1,17 @@
 'use strict';
 
+import { Col } from '../../expression-builders/col.js';
+import { Literal } from '../../expression-builders/literal.js';
 import { rejectInvalidOptions } from '../../utils/check';
-import { addTicks, removeTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { Col, Literal } from '../../utils/sequelize-method';
-import { generateIndexName, underscore } from '../../utils/string';
+import { generateIndexName } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
@@ -19,7 +20,6 @@ const DataTypes = require('../../data-types');
 const { TableHints } = require('../../table-hints');
 const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const randomBytes = require('node:crypto').randomBytes;
-const semver = require('semver');
 const { Op } = require('../../operators');
 
 /* istanbul ignore next */
@@ -29,6 +29,7 @@ function throwMethodUndefined(methodName) {
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['collate']);
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
@@ -47,7 +48,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const collation = options?.collate ? `COLLATE ${this.escape(options.collate)}` : '';
 
     return [
-      'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name =', wrapSingleQuote(databaseName), ')',
+      'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name =', this.escape(databaseName), ')',
       'BEGIN',
       'CREATE DATABASE', this.quoteIdentifier(databaseName),
       `${collation};`,
@@ -57,7 +58,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   dropDatabaseQuery(databaseName) {
     return [
-      'IF EXISTS (SELECT * FROM sys.databases WHERE name =', wrapSingleQuote(databaseName), ')',
+      'IF EXISTS (SELECT * FROM sys.databases WHERE name =', this.escape(databaseName), ')',
       'BEGIN',
       'DROP DATABASE', this.quoteIdentifier(databaseName), ';',
       'END;',
@@ -82,7 +83,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return [
       'IF NOT EXISTS (SELECT schema_name',
       'FROM information_schema.schemata',
-      'WHERE schema_name =', wrapSingleQuote(schema), ')',
+      'WHERE schema_name =', this.escape(schema), ')',
       'BEGIN',
       'EXEC sp_executesql N\'CREATE SCHEMA',
       this.quoteIdentifier(schema),
@@ -93,7 +94,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   dropSchemaQuery(schema) {
     // Mimics Postgres CASCADE, will drop objects belonging to the schema
-    const quotedSchema = wrapSingleQuote(schema);
+    const quotedSchema = this.escape(schema);
 
     return [
       'IF EXISTS (SELECT schema_name',
@@ -141,16 +142,17 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ].join(' ');
   }
 
-  versionQuery() {
-    // Uses string manipulation to convert the MS Maj.Min.Patch.Build to semver Maj.Min.Patch
-    return [
-      'DECLARE @ms_ver NVARCHAR(20);',
-      'SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY(\'ProductVersion\')));',
-      'SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX(\'.\', @ms_ver)+1, 20)) AS \'version\'',
-    ].join(' ');
-  }
-
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const primaryKeys = [];
     const foreignKeys = {};
     const attributesClauseParts = [];
@@ -158,7 +160,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     let commentStr = '';
 
     for (const attr in attributes) {
-      if (Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
         let match;
 
@@ -194,7 +196,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
-    if (options.uniqueKeys) {
+    if (options?.uniqueKeys) {
       _.each(options.uniqueKeys, (columns, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = generateIndexName(tableName, columns);
@@ -213,7 +215,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
+      if (Object.hasOwn(foreignKeys, fkey)) {
         attributesClauseParts.push(`FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`);
       }
     }
@@ -418,7 +420,14 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     if (allAttributes.length > 0) {
       for (const attrValueHash of attrValueHashes) {
         tuples.push(`(${
-          allAttributes.map(key => this.escape(attrValueHash[key], undefined, options)).join(',')
+          allAttributes.map(key => {
+            // TODO: bindParam
+            // TODO: pass "model"
+            return this.escape(attrValueHash[key] ?? null, {
+              type: attributes[key]?.type,
+              replacements: options.replacements,
+            });
+          }).join(',')
         })`);
       }
 
@@ -456,6 +465,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
+    // TODO: support TableNameWithSchema objects
     const targetTableAlias = this.quoteTable(`${tableName}_target`);
     const sourceTableAlias = this.quoteTable(`${tableName}_source`);
     const primaryKeysColumns = [];
@@ -492,7 +502,10 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const updateKeys = Object.keys(updateValues);
     const insertKeys = Object.keys(insertValues);
     const insertKeysQuoted = insertKeys.map(key => this.quoteIdentifier(key)).join(', ');
-    const insertValuesEscaped = insertKeys.map(key => this.escape(insertValues[key], undefined, options)).join(', ');
+    const insertValuesEscaped = insertKeys.map(key => {
+      // TODO: pass "model", "type" and "bindParam" options
+      return this.escape(insertValues[key], options);
+    }).join(', ');
     const sourceTableQuery = `VALUES(${insertValuesEscaped})`; // Virtual Table
     let joinCondition;
 
@@ -541,7 +554,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // Search for primary key attribute in clauses -- Model can have two separate unique keys
       for (const key in clauses) {
         const keys = Object.keys(clauses[key]);
-        if (primaryKeysColumns.includes(keys[0])) {
+        const columnName = modelDefinition.getColumnNameLoose(keys[0]);
+
+        if (primaryKeysColumns.includes(columnName)) {
           joinCondition = getJoinSnippet(primaryKeysColumns).join(' AND ');
           break;
         }
@@ -579,22 +594,20 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
-    const whereClause = this.getWhereConditions(where, null, model, options);
+
+    const escapeOptions = { ...options, model };
+    const whereClause = this.whereQuery(where, escapeOptions);
 
     return joinSQLFragments([
       'DELETE',
-      options.limit && `TOP(${this.escape(options.limit, undefined, options)})`,
+      options.limit && `TOP(${this.escape(options.limit, escapeOptions)})`,
       'FROM',
       table,
-      whereClause && `WHERE ${whereClause}`,
+      whereClause,
       ';',
       'SELECT @@ROWCOUNT AS AFFECTEDROWS',
       ';',
     ]);
-  }
-
-  showConstraintsQuery(tableName) {
-    return `EXEC sp_helpconstraint @objname = ${this.escape(this.quoteTable(tableName))};`;
   }
 
   attributeToSQL(attribute, options) {
@@ -618,7 +631,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
-        return this.escape(value, undefined, options);
+        return this.escape(value, options);
       }).join(', ')}))`;
 
       return template;
@@ -639,7 +652,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
         && defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, attribute, options)}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 
     if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
@@ -731,66 +744,8 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     throwMethodUndefined('renameFunction');
   }
 
-  /**
-   * Generate common SQL prefix for ForeignKeysQuery.
-   *
-   * @param {string} catalogName
-   * @returns {string}
-   */
-  _getForeignKeysQueryPrefix(catalogName) {
-    return `SELECT constraint_name = OBJ.NAME, constraintName = OBJ.NAME, ${
-      catalogName ? `constraintCatalog = '${catalogName}', ` : ''
-    }constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID), `
-      + 'tableName = TB.NAME, '
-      + `tableSchema = SCHEMA_NAME(TB.SCHEMA_ID), ${
-        catalogName ? `tableCatalog = '${catalogName}', ` : ''
-      }columnName = COL.NAME, `
-      + `referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID), ${
-        catalogName ? `referencedCatalog = '${catalogName}', ` : ''
-      }referencedTableName = RTB.NAME, `
-      + 'referencedColumnName = RCOL.NAME '
-      + 'FROM sys.foreign_key_columns FKC '
-      + 'INNER JOIN sys.objects OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID '
-      + 'INNER JOIN sys.tables TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID '
-      + 'INNER JOIN sys.columns COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID '
-      + 'INNER JOIN sys.tables RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID '
-      + 'INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID';
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys details of a table.
-   *
-   * @param {string|object} table
-   * @param {string} catalogName database name
-   * @returns {string}
-   */
-  getForeignKeysQuery(table, catalogName) {
-    const tableName = table.tableName || table;
-    let sql = `${this._getForeignKeysQueryPrefix(catalogName)
-    } WHERE TB.NAME =${wrapSingleQuote(tableName)}`;
-
-    if (table.schema) {
-      sql += ` AND SCHEMA_NAME(TB.SCHEMA_ID) =${wrapSingleQuote(table.schema)}`;
-    }
-
-    return sql;
-  }
-
-  getForeignKeyQuery(table, attributeName) {
-    const tableName = table.tableName || table;
-
-    return joinSQLFragments([
-      this._getForeignKeysQueryPrefix(),
-      'WHERE',
-      `TB.NAME =${wrapSingleQuote(tableName)}`,
-      'AND',
-      `COL.NAME =${wrapSingleQuote(attributeName)}`,
-      table.schema && `AND SCHEMA_NAME(TB.SCHEMA_ID) =${wrapSingleQuote(table.schema)}`,
-    ]);
-  }
-
   getPrimaryKeyConstraintQuery(table, attributeName) {
-    const tableName = wrapSingleQuote(table.tableName || table);
+    const tableName = this.escape(table.tableName || table);
 
     return joinSQLFragments([
       'SELECT K.TABLE_NAME AS tableName,',
@@ -803,7 +758,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       'AND C.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA',
       'AND C.CONSTRAINT_NAME = K.CONSTRAINT_NAME',
       'WHERE C.CONSTRAINT_TYPE = \'PRIMARY KEY\'',
-      `AND K.COLUMN_NAME = ${wrapSingleQuote(attributeName)}`,
+      `AND K.COLUMN_NAME = ${this.escape(attributeName)}`,
       `AND K.TABLE_NAME = ${tableName}`,
       ';',
     ]);
@@ -826,16 +781,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       `WHERE PARENT_OBJECT_ID = OBJECT_ID('${quotedTable}', 'U')`,
       `AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('${attributeName}')`,
       `AND object_id = OBJECT_ID('${quotedTable}', 'U'))`,
-      ';',
-    ]);
-  }
-
-  dropConstraintQuery(tableName, constraintName) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP CONSTRAINT',
-      this.quoteIdentifier(constraintName),
       ';',
     ]);
   }
@@ -872,6 +817,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
     this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
+
+    // mssql overwrite the abstract selectFromTableFragment function.
+    if (options.maxExecutionTimeHintMs != null) {
+      throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
+    }
 
     return joinSQLFragments([
       'SELECT',
@@ -916,7 +866,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
             const value = Array.isArray(order) ? order[0] : order;
 
             if (value instanceof Col) {
-              return value.col;
+              return value.identifiers[0];
             }
 
             if (value instanceof Literal) {
@@ -937,26 +887,14 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       }
 
       if (options.offset || options.limit) {
-        fragment += ` OFFSET ${this.escape(offset, undefined, options)} ROWS`;
+        fragment += ` OFFSET ${this.escape(offset, options)} ROWS`;
       }
 
       if (options.limit) {
-        fragment += ` FETCH NEXT ${this.escape(options.limit, undefined, options)} ROWS ONLY`;
+        fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
       }
     }
 
     return fragment;
   }
-
-  booleanValue(value) {
-    return value ? 1 : 0;
-  }
-}
-
-/**
- * @param {string} identifier
- * @deprecated use "escape" or "escapeString" on QueryGenerator
- */
-function wrapSingleQuote(identifier) {
-  return addTicks(removeTicks(identifier, '\''), '\'');
 }
