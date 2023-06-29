@@ -69,7 +69,7 @@
     "typedoc-plugin-carbon-ads": "1.4.0",
     "typedoc-plugin-mdn-links": "3.0.3",
     "typedoc-plugin-missing-exports": "2.0.0",
-    "typescript": "5.1.5"
+    "typescript": "5.1.6"
   },
   "packageManager": "yarn@3.6.0",
   "lint-staged": {
