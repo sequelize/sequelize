@@ -58,7 +58,6 @@
     "pg-connection-string": "^2.5.0",
     "pg-hstore": "^2.3.4",
     "retry-as-promised": "^7.0.3",
-    "rollup": "^3.25.3",
     "semver": "^7.3.7",
     "sequelize-pool": "^8.0.0",
     "toposort-class": "^1.0.1",
@@ -68,12 +67,6 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^25.0.2",
-    "@rollup/plugin-inject": "^5.0.3",
-    "@rollup/plugin-json": "^6.0.0",
-    "@rollup/plugin-node-resolve": "^15.1.0",
-    "@rollup/plugin-replace": "^5.0.2",
-    "@rollup/plugin-terser": "^0.4.3",
     "@types/chai": "4.3.5",
     "@types/chai-as-promised": "7.1.5",
     "@types/chai-datetime": "0.0.37",

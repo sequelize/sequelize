@@ -20,7 +20,6 @@ const sequelize = new Sequelize('sqlite://:memory:', {
 
 * Build the browser "bundle" via `npm run build-browser`.
 * Open `build-browser/index.html` file in a web browser and click "Run the Example" button.
-  * It's supposed to work after Sequelize browser bundle is fixed.
 
 ## Development
 
@@ -36,7 +35,7 @@ const sequelize = new Sequelize('sqlite://:memory:', {
 
 * Run `npm run build` there. It creates a server-side build of Sequelize (core) and outputs it in the `lib` folder. The "entry" file is `lib/index.js`.
 
-* Run `npm run build-browser` there. It creates a client-side "bundle" of Sequelize (core) from the server-side build in the `lib` folder, and outputs the results in the `build-browser` folder. The files are `build-browser/sequelize.js` and `build-browser/sequelize.min.js` (the latter file is currently not emitted for faster re-builds).
+* Run `npm run build-browser` there. It creates a client-side "bundle" of Sequelize (core) from the server-side build in the `lib` folder, and outputs the results in the `build-browser` folder. The files are `build-browser/sequelize.js` and `build-browser/sequelize.min.js`.
 
 * See the console output with the list of issues:
 
@@ -80,7 +79,7 @@ lib/index.js?commonjs-entry
 typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('node:util'), require('node:buffer'), require('node:crypto'), require('node:assert'), require('node:async_hooks'), require('node:path'), require('node:url'), require('fs'), require('path'), require('os'), require('util'), require('stream'), require('events'), require('node:fs')) :
 ```
 
-* The Rollup config can be found at `packages/core/build-browser/rollup.config.mjs`. It "shims" some of the server-side packages by replacing them with plaform-agnostic (pure-javascript) ones so that the code could run in a web browser environment.
+* The ESBuild config can be found at `packages/core/build-browser/esbuild.mjs`. It "shims" some of the server-side packages by replacing them with plaform-agnostic (pure-javascript) ones so that the code could run in a web browser environment.
 
 * To search for the places in the code where Node.js-specific packages are `require()`d, use "Find in Files" features of an IDE while searching for `require(` string in `packages/core/src` folder. If the IDE supports searching for a regular expression, search for `require(['"][^\.]` instead.
 
@@ -114,10 +113,6 @@ await sequelize.transaction(async t => {
   }, { transaction: t });
 });
 ```
-
-## Trivia
-
-* Rollup was replaced with ESBuild due to some [unresolved issues](https://github.com/rollup/rollup/issues/5048).
 
 ## Tests
 
