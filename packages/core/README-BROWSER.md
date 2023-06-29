@@ -25,6 +25,44 @@ Locally:
 * Build the browser "bundle" via `npm run build-browser`.
 * Open `build-browser/index.html` file in a web browser and click "Run the Example" button.
 
+## Build
+
+The following pre-built bundles already can be used to run Sequelize in a web browser:
+
+```html
+<!-- There's also a non-minified version for potential debugging: -->
+<!-- <script src="https://catamphetamine.github.io/sequelize/sequelize.js"/> -->
+<script src="https://catamphetamine.github.io/sequelize/sequelize.min.js"/>
+<script src="https://unpkg.com/sql.js-as-sqlite3@0.1.x/bundle/sql.js-as-sqlite3.min.js"></script>
+
+<script>
+  const sequelize = new Sequelize('sqlite://:memory:', { dialectModule: sqlJsAsSqlite3 });
+
+  const User = sequelize.define('user', {
+    username: Sequelize.STRING,
+    birthday: Sequelize.DATE
+  })
+
+  await sequelize.sync()
+
+  // Create and fetch a record.
+
+  let user = await User.create({
+    username: 'jane',
+    birthday: Date.UTC(1980, 6, 1)
+  })
+
+  user = user.get({ plain: true })
+  delete user.createdAt
+  delete user.updatedAt
+
+  alert(user)
+
+  // Clear the database.
+  await User.truncate()
+</script>
+```
+
 ## Development
 
 * Clone the repo: https://github.com/catamphetamine/sequelize
