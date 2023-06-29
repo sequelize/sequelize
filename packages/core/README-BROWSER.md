@@ -5,7 +5,7 @@ https://github.com/sequelize/sequelize/issues/16207
 
 ## Rationale
 
-Sequelize supports `sql.js` database which runs in a web browser which means that Sequelize could run in a web browser too.
+Sequelize supports `sql.js` database (via [`sql.js-as-sqlite3`](https://www.npmjs.com/package/sql.js-as-sqlite3) module) which runs in a web browser which means that Sequelize could run in a web browser too.
 
 ```js
 import Sequelize from 'sequelize'
