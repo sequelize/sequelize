@@ -1,7 +1,7 @@
 This pull request is a casual attempt at "bunding" Sequelize for in-browser usage.
 
 The original issue is:
-https://github.com/sequelize/sequelize/issues/14654#issuecomment-1609773219
+https://github.com/sequelize/sequelize/issues/16207
 
 ## Rationale
 
@@ -18,6 +18,10 @@ const sequelize = new Sequelize('sqlite://:memory:', {
 
 ## Demo
 
+Online:
+https://catamphetamine.github.io/sequelize
+
+Locally:
 * Build the browser "bundle" via `npm run build-browser`.
 * Open `build-browser/index.html` file in a web browser and click "Run the Example" button.
 
