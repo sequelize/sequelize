@@ -171,7 +171,7 @@
     "----------------------------------------- tests ---------------------------------------------------": "",
     "mocha": "mocha -r ../../test/register-esbuild.js",
     "_test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",
-    "test-browser-shims": "yarn mocha \"build-browser/shims/**/*.test.[m][tj]s\"",
+    "test-browser-shims": "yarn mocha \"build-browser/shims/**/*.test.{js,cjs,mjs,ts,cts,mts}\"",
     "test-integration": "yarn mocha \"test/integration/**/*.test.[tj]s\"",
     "test-smoke": "yarn mocha \"test/smoke/**/*.test.[tj]s\" --timeout 600000",
     "teaser": "ts-node test/teaser.ts",
