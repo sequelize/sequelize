@@ -6,8 +6,8 @@ export default class Sequelize extends SequelizeOriginal {
   // The reason is that the "CLS" (Continuation Local Storage) feature for automatically
   // selecting the "current" transaction in any queries dispatched from a transaction's `callback`
   // requires the use of `AsyncLocalStorage` from `node:async_hook` which is not available in a web browser.
-  constructor(database, username, password, options) {
-    super(transformOptions(database), transformOptions(username), transformOptions(password), transformOptions(options));
+  constructor(...args) {
+    super(...args.map(transformOptions));
   }
 }
 

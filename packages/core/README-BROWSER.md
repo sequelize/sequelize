@@ -88,19 +88,7 @@ typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, 
 
 ## Notes
 
-* Not done:
-
-  * `packages\core\src\sequelize.js`:
-    * Remove the `require()`s of all "dialects" except `sqlite`.
-      * For a minimal version there's no need to include any "dialects" other than `sqlite3` because currently it seems like of all supported databases only `sql.js` can be run in a purely web-browser environment. Excluding the rest of the "dialects" from the "bundle" also means that there's much less Node.js-specific `require()`s to fix.
-
-## Status
-
-* For some reason, it doesn't replace `require()` calls in `dialects/abstract/data-types.js`. See [issue](https://github.com/rollup/rollup/issues/5048).
-  * `rollup` could be replaced with `esbuild` or `webpack`.
-
-* For some reason, it doesn't replace `module.exports = ` expressions (e.g. in `data-types.js`) which results in a `ReferenceError: module is not defined` error in a web browser. See [issue](https://github.com/rollup/rollup/issues/5048).
-  * `rollup` could be replaced with `esbuild` or `webpack`.
+* Not required, but someone could do that, if they preferred. In `packages/core/src/sequelize.js` file, in `switch (this.getDialect())` statement, there're `require()`s of all supported "dialects". Since the only web-browser-supported database currently is SQLite (via `sql.js`), all the other "dialect" `require()`s could be removed from there. Presumably that would slightly reduce the overall bundle size, although I'd guess that the effect would be negligible. It works as-is anyway.
 
 ## Limitations
 
@@ -126,6 +114,10 @@ await sequelize.transaction(async t => {
   }, { transaction: t });
 });
 ```
+
+## Trivia
+
+* Rollup was replaced with ESBuild due to some [unresolved issues](https://github.com/rollup/rollup/issues/5048).
 
 ## Tests
 

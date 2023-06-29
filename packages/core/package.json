@@ -83,7 +83,6 @@
     "@types/mocha": "10.0.1",
     "@types/pg": "8.10.2",
     "@types/qs": "^6",
-    "@types/randombytes": "^2",
     "@types/semver": "7.5.0",
     "@types/sinon": "10.0.15",
     "@types/sinon-chai": "3.2.9",
@@ -96,6 +95,7 @@
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
     "delay": "5.0.0",
+    "esbuild": "^0.18.10",
     "expect-type": "0.13.0",
     "format-util": "^1.0.5",
     "fs-jetpack": "5.1.0",
@@ -115,7 +115,6 @@
     "pg": "8.11.1",
     "process": "^0.11.10",
     "qs": "^6.11.2",
-    "randombytes": "^2.1.0",
     "rimraf": "5.0.1",
     "sinon": "15.2.0",
     "sinon-chai": "3.7.0",
@@ -222,7 +221,8 @@
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
     "build": "node ../../build-packages.mjs core",
-    "build-browser": "rollup --config build-browser/rollup.config.mjs"
+    "build-browser": "node build-browser/esbuild.mjs",
+    "build-browser-rollup": "rollup --config build-browser/rollup.config.mjs"
   },
   "support": true
 }

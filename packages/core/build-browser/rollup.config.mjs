@@ -1,4 +1,14 @@
-import { resolve, dirname } from 'node:path';
+// Rollup ended up not working:
+//
+// * For some reason, it didn't replace `require()` calls in `dialects/abstract/data-types.js` file.
+//   Issue: https://github.com/rollup/rollup/issues/5048
+//
+// * For some reason, it doesn't replace `module.exports = ` expressions (e.g. in `data-types.js`) which results in a `ReferenceError: module is not defined` error in a web browser.
+//   Issue: https://github.com/rollup/rollup/issues/5048
+//
+// Rollup was eventually replaced with ESBuild.
+
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import commonjs from '@rollup/plugin-commonjs';
 import inject from '@rollup/plugin-inject';
@@ -6,6 +16,7 @@ import json from '@rollup/plugin-json';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import terser from '@rollup/plugin-terser';
+import aliases from './aliases.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,178 +27,7 @@ function getConfig({ minify }) {
     input: './build-browser/index.js',
 
     plugins: [
-      // Replace 'node:crypto' module with a "shim".
-      replace({
-        include: getFilePathsInLib([
-          // `require()`s.
-          './src/dialects/abstract/query.js',
-          './src/dialects/abstract/query-generator.js',
-          './src/dialects/mssql/query-generator.js',
-          './src/dialects/db2/query-generator.js',
-          // `import`s.
-          './src/utils/dialect.ts',
-          './src/dialects/sqlite/query-generator-typescript.ts',
-        ]),
-        values: {
-          crypto: getShimRequireReplacement('crypto'),
-          'node:crypto': getShimRequireReplacement('crypto'),
-        },
-        delimiters: ['require\\("', '"\\)'],
-        // Doesn't skip replacing the left part of an assignment to such variable.
-        // https://www.npmjs.com/package/@rollup/plugin-replace#user-content-preventassignment
-        preventAssignment: false,
-      }),
-
-      // Replace 'node:util' module with a "shim".
-      replace({
-        include: getFilePathsInLib([
-          // `require()`s.
-          './src/dialects/abstract/query-generator.js',
-          './src/dialects/ibmi/query-generator.js',
-          './src/model.js',
-          './src/instance-validator.js',
-          // `import`s.
-          './src/geo-json.ts',
-          './src/dialects/sqlite/connection-manager.ts',
-          './src/model-definition.ts',
-          './src/model-internals.ts',
-          './src/associations/helpers.ts',
-          './src/decorators/legacy/associations.ts',
-          './src/dialects/abstract/data-types-utils.ts',
-          './src/dialects/abstract/data-types.ts',
-          './src/dialects/abstract/query-generator-typescript.ts',
-          './src/dialects/abstract/query-generator.js',
-          './src/dialects/abstract/query.js',
-          './src/dialects/abstract/where-sql-builder.ts',
-          './src/dialects/abstract/where-sql-builder.ts',
-          './src/utils/deprecations.ts',
-          './src/utils/dialect.ts',
-          './src/utils/immutability.ts',
-          './src/utils/logger.ts',
-          './src/utils/string.ts',
-          './src/dialects/sqlite/data-types.ts',
-          './src/dialects/sqlite/connection-manager.ts',
-        ]),
-        values: {
-          'node:util': getShimRequireReplacement('util'),
-        },
-        delimiters: ['require\\("', '"\\)'],
-        // Doesn't skip replacing the left part of an assignment to such variable.
-        // https://www.npmjs.com/package/@rollup/plugin-replace#user-content-preventassignment
-        preventAssignment: false,
-      }),
-
-      // Replace 'node:buffer' module with a "shim".
-      replace({
-        include: getFilePathsInLib([
-          // `import`s.
-          './src/dialects/abstract/data-types.ts',
-        ]),
-        values: {
-          'node:buffer': getShimRequireReplacement('buffer'),
-        },
-        delimiters: ['require\\("', '"\\)'],
-        // Doesn't skip replacing the left part of an assignment to such variable.
-        // https://www.npmjs.com/package/@rollup/plugin-replace#user-content-preventassignment
-        preventAssignment: false,
-      }),
-
-      // Replace 'node:assert' module with a "shim".
-      replace({
-        include: getFilePathsInLib([
-          // `require()`s.
-          './src/model.js',
-          // `import`s.
-          './src/transaction.ts',
-          './src/associations/belongs-to.ts',
-          './src/associations/helpers.ts',
-          './src/dialects/abstract/query-interface-internal.ts',
-          './src/dialects/abstract/query-interface-typescript.ts',
-          './src/utils/format.ts',
-        ]),
-        values: {
-          'node:assert': getShimRequireReplacement('assert'),
-        },
-        delimiters: ['require\\("', '"\\)'],
-        // Doesn't skip replacing the left part of an assignment to such variable.
-        // https://www.npmjs.com/package/@rollup/plugin-replace#user-content-preventassignment
-        preventAssignment: false,
-      }),
-
-      // Replace 'node:url' module with a "shim".
-      replace({
-        include: getFilePathsInLib([
-          // `import`s.
-          './src/dialects/sqlite/connection-manager.ts',
-        ]),
-        values: {
-          'node:url': getShimRequireReplacement('url'),
-        },
-        delimiters: ['require\\("', '"\\)'],
-        // Doesn't skip replacing the left part of an assignment to such variable.
-        // https://www.npmjs.com/package/@rollup/plugin-replace#user-content-preventassignment
-        preventAssignment: false,
-      }),
-
-      // Replace 'node:fs' module with a "shim".
-      replace({
-        include: getFilePathsInLib([
-          // `import`s.
-          './src/dialects/sqlite/connection-manager.ts',
-        ]),
-        values: {
-          'node:fs': getShimRequireReplacement('fs'),
-        },
-        delimiters: ['require\\("', '"\\)'],
-        // Doesn't skip replacing the left part of an assignment to such variable.
-        // https://www.npmjs.com/package/@rollup/plugin-replace#user-content-preventassignment
-        preventAssignment: false,
-      }),
-
-      // Replace 'node:path' module with a "shim".
-      replace({
-        include: getFilePathsInLib([
-          // `import`s.
-          './src/dialects/sqlite/connection-manager.ts',
-        ]),
-        values: {
-          'node:path': getShimRequireReplacement('path'),
-        },
-        delimiters: ['require\\("', '"\\)'],
-        // Doesn't skip replacing the left part of an assignment to such variable.
-        // https://www.npmjs.com/package/@rollup/plugin-replace#user-content-preventassignment
-        preventAssignment: false,
-      }),
-
-      // Replace 'node:async_hooks' module with a "shim".
-      replace({
-        include: getFilePathsInLib([
-          // `import`s.
-          './src/sequelize-typescript.ts',
-        ]),
-        values: {
-          'node:async_hooks': getShimRequireReplacement('async_hooks'),
-        },
-        delimiters: ['require\\("', '"\\)'],
-        // Doesn't skip replacing the left part of an assignment to such variable.
-        // https://www.npmjs.com/package/@rollup/plugin-replace#user-content-preventassignment
-        preventAssignment: false,
-      }),
-
-      // Replace 'fast-glob' module with a "shim".
-      replace({
-        include: getFilePathsInLib([
-          // `import`s.
-          './src/import-models.ts',
-        ]),
-        values: {
-          'fast-glob': getShimRequireReplacement('fast-glob'),
-        },
-        delimiters: ['require\\("', '"\\)'],
-        // Doesn't skip replacing the left part of an assignment to such variable.
-        // https://www.npmjs.com/package/@rollup/plugin-replace#user-content-preventassignment
-        preventAssignment: false,
-      }),
+      ...aliases.map(alias),
 
       // Replace `Buffer` and `process` global variables with web browser "polyfills".
       inject({
@@ -196,7 +36,7 @@ function getConfig({ minify }) {
         ],
         sourceMap: true,
         modules: {
-          process: 'process',
+          // process: 'process',
           Buffer: ['buffer', 'Buffer'],
         },
       }),
@@ -228,7 +68,7 @@ function getConfig({ minify }) {
 
 export default [
   getConfig({ minify: false }),
-  // getConfig({ minify: true }),
+  getConfig({ minify: true }),
 ];
 
 function getFilePathsInLib(filePaths) {
@@ -237,8 +77,25 @@ function getFilePathsInLib(filePaths) {
   });
 }
 
-function getShimRequireReplacement(shimName) {
+function getShimPath(shimName) {
   const importPath = `./shims/${shimName}/index.js`;
 
-  return `require(${JSON.stringify(resolve(__dirname, importPath))})`;
+  return resolve(__dirname, importPath);
+}
+
+function alias({ include, exclude, packages }) {
+  return replace({
+    include: include && getFilePathsInLib(include),
+    exclude: exclude && getFilePathsInLib(exclude),
+    values: Object.fromEntries(
+      Object.keys(packages).map(packageName => [
+        packageName, // key
+        `require(${JSON.stringify(getShimPath(packages[packageName]))})`, // value
+      ]),
+    ),
+    delimiters: ['require\\("', '"\\)'],
+    // Doesn't skip replacing the left part of an assignment to such variable.
+    // https://www.npmjs.com/package/@rollup/plugin-replace#user-content-preventassignment
+    preventAssignment: false,
+  });
 }

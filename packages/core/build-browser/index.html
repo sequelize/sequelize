@@ -148,7 +148,15 @@ await User.truncate()</code></pre>
       }
 
       function onClick() {
-        run().then(user => alert(user), error => alert(error))
+        run().then(
+          user => {
+            alert(JSON.stringify(user, null, 2))
+          },
+          error => {
+            console.error(error)
+            alert(error)
+          }
+        )
       }
 
       document.getElementById('run').addEventListener('click', onClick)
