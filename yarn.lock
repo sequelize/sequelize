@@ -1543,7 +1543,7 @@ __metadata:
     cross-env: 7.0.3
     esbuild: 0.17.19
     eslint: 8.43.0
-    eslint-plugin-jsdoc: 46.4.2
+    eslint-plugin-jsdoc: 46.4.3
     eslint-plugin-mocha: 10.1.0
     fast-glob: 3.3.0
     husky: 8.0.3
@@ -4556,9 +4556,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsdoc@npm:46.4.2":
-  version: 46.4.2
-  resolution: "eslint-plugin-jsdoc@npm:46.4.2"
+"eslint-plugin-jsdoc@npm:46.4.3":
+  version: 46.4.3
+  resolution: "eslint-plugin-jsdoc@npm:46.4.3"
   dependencies:
     "@es-joy/jsdoccomment": ~0.39.4
     are-docs-informative: ^0.0.2
@@ -4571,7 +4571,7 @@ __metadata:
     spdx-expression-parse: ^3.0.1
   peerDependencies:
     eslint: ^7.0.0 || ^8.0.0
-  checksum: b15a1648d0f8682358c90ac018d9665ada97ee7480470702e105059cde91932c356d55f2ee242001ba2cb7385bcc8c53eb5158df7b3116fa1b7a8158322f6909
+  checksum: 9cec116649f7bcd8abea165975ce5d5ae8fd095b3f7c53e00a93c0bd3aeeeb913c8ed3d5c9f67f04fe84d71d20c342b44cf41fc0f7dfd93bdafadeae8c235a81
   languageName: node
   linkType: hard
 
