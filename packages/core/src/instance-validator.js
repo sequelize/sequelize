@@ -6,10 +6,20 @@ import { BaseSqlExpression } from './expression-builders/base-sql-expression.js'
 import { getAllOwnKeys } from './utils/object';
 import { BelongsTo } from './associations/belongs-to';
 
-const _ = require('lodash');
+import difference from 'lodash/difference';
+import forIn from 'lodash/forIn';
+import get from 'lodash/get';
+
 const sequelizeError = require('./errors');
 const validator = require('./utils/validator-extras').validator;
 const { promisify } = require('node:util');
+
+// `lodash`.
+const _ = {
+  difference,
+  forIn,
+  get,
+};
 
 /**
  * Instance Validator.

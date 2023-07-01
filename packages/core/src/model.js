@@ -1,6 +1,5 @@
 'use strict';
 
-import omit from 'lodash/omit';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { intersects } from './utils/array';
@@ -25,14 +24,66 @@ import { _validateIncludedElements, combineIncludes, setTransactionFromCls, thro
 import { QueryTypes } from './query-types';
 import { getComplexKeys } from './utils/where.js';
 
+import assignWith from 'lodash/assignWith';
+import cloneDeepLodash from 'lodash/cloneDeep';
+import defaultsLodash from 'lodash/defaults';
+import difference from 'lodash/difference';
+import each from 'lodash/each';
+import flattenDepth from 'lodash/flattenDepth';
+import forEach from 'lodash/forEach';
+import forIn from 'lodash/forIn';
+import get from 'lodash/get';
+import isEqual from 'lodash/isEqual';
+import isEmpty from 'lodash/isEmpty';
+import isObject from 'lodash/isObject';
+import isPlainObject from 'lodash/isPlainObject';
+import intersection from 'lodash/intersection';
+import mapValues from 'lodash/mapValues';
+import omit from 'lodash/omit';
+import omitBy from 'lodash/omitBy';
+import pick from 'lodash/pick';
+import pickBy from 'lodash/pickBy';
+import remove from 'lodash/remove';
+import union from 'lodash/union';
+import uniq from 'lodash/uniq';
+import unionBy from 'lodash/unionBy';
+import without from 'lodash/without';
+
 const assert = require('node:assert');
 const NodeUtil = require('node:util');
-const _ = require('lodash');
 const Dottie = require('dottie');
 const { logger } = require('./utils/logger');
 const { InstanceValidator } = require('./instance-validator');
 const sequelizeErrors = require('./errors');
 const DataTypes = require('./data-types');
+
+// `lodash`.
+const _ = {
+  assignWith,
+  cloneDeep: cloneDeepLodash,
+  defaults: defaultsLodash,
+  difference,
+  each,
+  flattenDepth,
+  forEach,
+  forIn,
+  get,
+  isEqual,
+  isEmpty,
+  isObject,
+  isPlainObject,
+  intersection,
+  mapValues,
+  omit,
+  omitBy,
+  pick,
+  pickBy,
+  remove,
+  union,
+  uniq,
+  unionBy,
+  without,
+};
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -119,7 +170,7 @@ export class Model extends ModelTypeScript {
     this._previousDataValues = {};
     this.uniqno = 1;
     this._changed = new Set();
-    this._options = omit(options, ['comesFromDatabase']);
+    this._options = _.omit(options, ['comesFromDatabase']);
 
     /**
      * Returns true if this instance has not yet been persisted to the database

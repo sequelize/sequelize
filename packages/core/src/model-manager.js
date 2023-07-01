@@ -1,7 +1,13 @@
 'use strict';
 
+import defaults from 'lodash/defaults';
+
 const Toposort = require('toposort-class');
-const _ = require('lodash');
+
+// `lodash`.
+const _ = {
+  defaults,
+};
 
 export class ModelManager {
   constructor(sequelize) {
