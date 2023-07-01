@@ -156,7 +156,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       tableName.schema = modelTable?.schema || options.schema;
     }
 
-    attributes = this.queryGenerator.attributesToSQL(attributes, {
+    attributes = this.queryGenerator.attributesToSql(attributes, {
       table: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
@@ -386,7 +386,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options = options || {};
 
-    const query = this.queryGenerator.attributesToSQL({
+    const query = this.queryGenerator.attributesToSql({
       [attributeName]: this.normalizeAttribute(dataTypeOrOptions),
     }, {
       context: 'changeColumn',
@@ -445,7 +445,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const sql = this.queryGenerator.renameColumnQuery(
       tableName,
       attrNameBefore,
-      this.queryGenerator.attributesToSQL(_options),
+      this.queryGenerator.attributesToSql(_options),
     );
 
     return await this.sequelize.queryRaw(sql, options);

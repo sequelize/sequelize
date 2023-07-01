@@ -30,7 +30,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       'ADD',
       ifNotExists,
       this.quoteIdentifier(key),
-      this.attributeToSQL(dataType, {
+      this.attributeToSql(dataType, {
         context: 'addColumn',
         tableName: table,
         foreignKey: key,

@@ -5,7 +5,6 @@ import { generateIndexName } from '../../utils/string';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
-import type { ColumnsDescription } from '../abstract/query-interface.types';
 import { MySqlQueryGenerator } from '../mysql/query-generator';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -98,13 +97,14 @@ export class SqliteQueryGeneratorTypeScript extends MySqlQueryGenerator {
     ]);
   }
 
-  _replaceTableQuery(tableName: TableNameOrModel, attributes: ColumnsDescription, createTableSql?: string) {
+  // TODO: fix the attributes type
+  _replaceTableQuery(tableName: TableNameOrModel, attributes: any, createTableSql?: string) {
     const table = this.extractTableDetails(tableName);
     const backupTable = this.extractTableDetails(`${table.tableName}_${randomBytes(8).toString('hex')}`, table);
     const quotedTableName = this.quoteTable(table);
     const quotedBackupTableName = this.quoteTable(backupTable);
 
-    const tableAttributes = this.attributesToSQL(attributes);
+    const tableAttributes = this.attributesToSql(attributes);
     const attributeNames = Object.keys(tableAttributes).map(attr => this.quoteIdentifier(attr)).join(', ');
 
     const backupTableSql = createTableSql

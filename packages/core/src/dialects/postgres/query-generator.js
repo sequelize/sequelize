@@ -117,9 +117,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       const quotedAttr = this.quoteIdentifier(attr);
       const i = attributes[attr].indexOf('COMMENT ');
       if (i !== -1) {
-        // Move comment to a separate query
-        const escapedCommentText = this.escape(attributes[attr].slice(Math.max(0, i + 8)));
-        columnComments += `; COMMENT ON COLUMN ${quotedTable}.${quotedAttr} IS ${escapedCommentText}`;
+        // escaping is done in attributeToSql
+        columnComments += `; COMMENT ON COLUMN ${quotedTable}.${quotedAttr} IS ${attributes[attr].slice(Math.max(0, i + 8))}`;
         attributes[attr] = attributes[attr].slice(0, Math.max(0, i));
       }
 
@@ -189,7 +188,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   addColumnQuery(table, key, attribute, options) {
     options = options || {};
 
-    const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
+    const dbDataType = this.attributeToSql(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
@@ -338,7 +337,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return fragment;
   }
 
-  attributeToSQL(attribute, options) {
+  attributeToSql(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,
@@ -443,19 +442,19 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       } else {
         // for createTable event which does it's own parsing
         // TODO: centralize creation of comment statements here
-        sql += ` COMMENT ${attribute.comment}`;
+        sql += ` COMMENT ${this.escape(attribute.comment)}`;
       }
     }
 
     return sql;
   }
 
-  attributesToSQL(attributes, options) {
+  attributesToSql(attributes, options) {
     const result = {};
 
     for (const key in attributes) {
       const attribute = attributes[key];
-      result[attribute.field || key] = this.attributeToSQL(attribute, { key, ...options });
+      result[attribute.field || key] = this.attributeToSql(attribute, { key, ...options });
     }
 
     return result;

@@ -113,7 +113,8 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
             const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
             commentStr += _.template(commentTemplate, this._templateSettings)({
               table: this.quoteTable(tableName),
-              comment: this.escape(commentText),
+              // escaping is done by attributeToSql
+              comment: commentText,
               column: this.quoteIdentifier(attr),
             });
             // remove comment related substring from dataType
@@ -221,7 +222,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     dataType = {
       ...dataType,
-      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      // TODO: attributeToSql SHOULD be using attributes in addColumnQuery
       //       but instead we need to pass the key along as the field here
       field: key,
       type: normalizeDataType(dataType.type, this.dialect),
@@ -230,7 +231,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const query = 'ALTER TABLE <%= table %> ADD <%= attribute %>;';
     const attribute = _.template('<%= key %> <%= definition %>', this._templateSettings)({
       key: this.quoteIdentifier(key),
-      definition: this.attributeToSQL(dataType, {
+      definition: this.attributeToSql(dataType, {
         context: 'addColumn',
       }),
     });
@@ -578,7 +579,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return super.addIndexQuery(tableName, attributes, options, rawTablename);
   }
 
-  attributeToSQL(attribute, options) {
+  attributeToSql(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
         type: attribute,
@@ -664,14 +665,14 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     if (attribute.comment && typeof attribute.comment === 'string') {
-      template += ` COMMENT ${attribute.comment}`;
+      template += ` COMMENT ${this.escape(attribute.comment)}`;
     }
 
     return template;
   }
 
-  attributesToSQL(attributes, options) {
-    const result = {};
+  attributesToSql(attributes, options) {
+    const result = Object.create(null);
     const existingConstraints = [];
     let key;
     let attribute;
@@ -697,7 +698,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
         attribute.field = key;
       }
 
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+      result[attribute.field || key] = this.attributeToSql(attribute, options);
     }
 
     return result;

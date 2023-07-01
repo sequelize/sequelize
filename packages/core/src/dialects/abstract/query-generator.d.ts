@@ -4,8 +4,10 @@ import type { Col } from '../../expression-builders/col.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type {
   AttributeOptions,
+  CreationAttributes,
   FindOptions,
   Model,
+  ModelAttributes,
   ModelStatic,
   NormalizedAttributeOptions,
   SearchPathable,
@@ -15,7 +17,6 @@ import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { AttributeToSqlOptions, QueryWithBindParams } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
-import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 type ParameterOptions = {
@@ -121,6 +122,23 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   generateTransactionId(): string;
   quoteIdentifiers(identifiers: string): string;
 
+  attributeToSql(
+    attribute: NormalizedAttributeOptions,
+    options?: AttributeToSqlOptions,
+  ): string;
+
+  attributesToSql<M extends Model>(
+    // TODO: update this type based on feedback from ephys
+    /**
+     * Considering multiple dialects don't accept ModelAttributes here, what you want is this type:
+     * {
+     *   readonly [Key in keyof Attributes<M>]: NormalizedAttributeOptions & { after?: string }
+     * }
+     */
+    attributes: ModelAttributes<M, CreationAttributes<M>>,
+    options?: AttributeToSqlOptions,
+  ): Record<string, string>;
+
   selectQuery<M extends Model>(tableName: TableName, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
   insertQuery(
     table: TableName,
@@ -198,6 +216,4 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    * @param bind A mutable object to which bind parameters will be added.
    */
   bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
-
-  attributesToSQL(attributes: ColumnsDescription, options?: AttributeToSqlOptions): Record<string, string>;
 }

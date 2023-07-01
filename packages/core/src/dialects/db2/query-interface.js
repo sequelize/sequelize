@@ -163,7 +163,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
       tableName.schema = modelTable?.schema || options.schema || tableName.schema;
     }
 
-    attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable', withoutForeignKeyConstraints: options.withoutForeignKeyConstraints });
+    attributes = this.queryGenerator.attributesToSql(attributes, { table: tableName, context: 'createTable', withoutForeignKeyConstraints: options.withoutForeignKeyConstraints });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
     return await this.sequelize.queryRaw(sql, options);
