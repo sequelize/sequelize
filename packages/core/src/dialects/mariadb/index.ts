@@ -1,12 +1,11 @@
-import type { FieldInfo } from 'mariadb';
 import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
-import { registerMySqlDbDataTypeParsers } from '../mysql/data-types.db.js';
 import { escapeMysqlString } from '../mysql/mysql-utils';
 import { MariaDbConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
+import { registerMariaDbDbDataTypeParsers } from './data-types.db.js';
 import { MariaDbQuery } from './query';
 import { MariaDbQueryGenerator } from './query-generator';
 import { MariaDbQueryInterface } from './query-interface';
@@ -85,12 +84,7 @@ export class MariaDbDialect extends AbstractDialect {
       this.queryGenerator,
     );
 
-    registerMySqlDbDataTypeParsers(this);
-    // For backwards compatibility, we currently return BIGINTs as strings. We will implement bigint support for all
-    // dialects in the future: https://github.com/sequelize/sequelize/issues/10468
-    this.registerDataTypeParser(['BIGINT'], (value: FieldInfo) => {
-      return value.string();
-    });
+    registerMariaDbDbDataTypeParsers(this);
   }
 
   createBindCollector() {

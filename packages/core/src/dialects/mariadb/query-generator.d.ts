@@ -1,3 +1,3 @@
-import { MySqlQueryGenerator } from '../mysql/query-generator.js';
+import { MariaDbQueryGeneratorTypeScript } from './query-generator-typescript.js';
 
-export class MariaDbQueryGenerator extends MySqlQueryGenerator {}
+export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {}
