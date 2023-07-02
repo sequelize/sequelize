@@ -1,23 +1,38 @@
-import { UnknownConstraintError } from '../../errors';
+import isEmpty from 'lodash/isEmpty';
+import { BaseError, ForeignKeyConstraintError, UnknownConstraintError } from '../../errors';
+import type { AttributeOptions } from '../../model';
 import { QueryTypes } from '../../query-types';
-import type { Sequelize } from '../../sequelize';
+import type { QueryRawOptions, Sequelize } from '../../sequelize';
+import { TransactionNestMode } from '../../transaction';
+import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
+import type { DataType } from '../abstract/data-types';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import { AbstractQueryInterface } from '../abstract/query-interface';
 import type {
   AddConstraintOptions,
+  ColumnDescription,
   ConstraintDescription,
   ConstraintType,
+  DescribeTableOptions,
   QiDropAllTablesOptions,
+  RemoveColumnOptions,
   RemoveConstraintOptions,
   ShowConstraintsOptions,
 } from '../abstract/query-interface.types';
 import type { SqliteQueryGenerator } from './query-generator';
 import { withSqliteForeignKeysOff } from './sqlite-utils';
 
-/**
- * Temporary class to ease the TypeScript migration
- */
-export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
+export interface SQLiteColumnDescription extends ColumnDescription {
+  unique?: boolean;
+  references?: {
+    table: string,
+    key: string,
+  };
+}
+
+export type SQLiteColumnsDescription = Record<string, SQLiteColumnDescription>;
+
+export class SqliteQueryInterface extends AbstractQueryInterface {
   readonly sequelize: Sequelize;
   readonly queryGenerator: SqliteQueryGenerator;
 
@@ -27,19 +42,87 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
     this.queryGenerator = queryGenerator;
   }
 
-  /**
-   * Drop all tables
-   *
-   * @param options
-   */
-  async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
+  async dropAllTables(options?: QiDropAllTablesOptions) {
     const skip = options?.skip || [];
     const allTables = await this.listTables(options);
     const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
 
     await withSqliteForeignKeysOff(this.sequelize, options, async () => {
-      await Promise.all(tableNames.map(async tableName => this.dropTable(tableName, options)));
+      for (const table of tableNames) {
+        // eslint-disable-next-line no-await-in-loop
+        await this.dropTable(table, options);
+      }
     });
+  }
+
+  async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions): Promise<SQLiteColumnsDescription> {
+    const table = this.queryGenerator.extractTableDetails(tableName);
+
+    if (typeof options === 'string') {
+      noSchemaParameter();
+      table.schema = options;
+    }
+
+    if (typeof options === 'object' && options !== null) {
+      if (options.schema) {
+        noSchemaParameter();
+        table.schema = options.schema;
+      }
+
+      if (options.schemaDelimiter) {
+        noSchemaDelimiterParameter();
+        table.delimiter = options.schemaDelimiter;
+      }
+    }
+
+    const sql = this.queryGenerator.describeTableQuery(table);
+    try {
+      const data = await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.DESCRIBE }) as SQLiteColumnsDescription;
+      /*
+       * If no data is returned from the query, then the table name may be wrong.
+       * Query generators that use information_schema for retrieving table info will just return an empty result set,
+       * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
+       */
+      if (isEmpty(data)) {
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
+      }
+
+      const indexes = await this.showIndex(tableName, { ...options });
+      for (const column of Object.values(data)) {
+        column.unique = false;
+      }
+
+      for (const index of indexes) {
+        for (const field of index.fields) {
+          if (index.unique !== undefined) {
+            data[field.attribute].unique = index.unique;
+          }
+        }
+      }
+
+      const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
+      for (const foreignKey of foreignKeys) {
+        for (const [index, columnName] of foreignKey.columnNames!.entries()) {
+          // Add constraints to column definition
+          Object.assign(data[columnName], {
+            references: {
+              table: foreignKey.referencedTableName,
+              key: foreignKey.referencedColumnNames!.at(index),
+            },
+            onUpdate: foreignKey.updateAction,
+            onDelete: foreignKey.deleteAction,
+          });
+        }
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof BaseError && error.cause?.code === 'ER_NO_SUCH_TABLE') {
+        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
+      }
+
+      throw error;
+    }
   }
 
   async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions): Promise<void> {
@@ -330,5 +413,151 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
     }
 
     return constraintData;
+  }
+
+  /**
+   * A wrapper that fixes SQLite's inability to remove columns from existing tables.
+   * It will create a backup of the table, drop the table afterwards and create a
+   * new table with the same name but without the obsolete column.
+   *
+   * @param tableName
+   * @param removeColumn
+   * @param options
+   */
+  async removeColumn(tableName: TableNameOrModel, removeColumn: string, options?: RemoveColumnOptions) {
+    const fields = await this.describeTable(tableName, { ...options });
+    delete fields[removeColumn];
+
+    return this.alterTableInternal(tableName, fields, { ...options });
+  }
+
+  /**
+   * A wrapper that fixes SQLite's inability to change columns from existing tables.
+   * It will create a backup of the table, drop the table afterwards and create a
+   * new table with the same name but with a modified version of the respective column.
+   *
+   * @param tableName
+   * @param columnName
+   * @param dataTypeOrOptions
+   * @param options
+   */
+  async changeColumn(
+    tableName: TableNameOrModel,
+    columnName: string,
+    dataTypeOrOptions: DataType | AttributeOptions,
+    options?: QueryRawOptions,
+  ) {
+    const columns = await this.describeTable(tableName, { ...options });
+    for (const column of Object.values(columns)) {
+      // This is handled by copying indexes over,
+      // we don't use "unique" because it creates an index with a name
+      // we can't control
+      delete column.unique;
+    }
+
+    Object.assign(columns[columnName], this.sequelize.normalizeAttribute(dataTypeOrOptions));
+
+    return this.alterTableInternal(tableName, columns, { ...options });
+  }
+
+  /**
+   * A wrapper that fixes SQLite's inability to rename columns from existing tables.
+   * It will create a backup of the table, drop the table afterwards and create a
+   * new table with the same name but with a renamed version of the respective column.
+   *
+   * @param tableName
+   * @param attrNameBefore
+   * @param attrNameAfter
+   * @param options
+   */
+  async renameColumn(tableName: TableNameOrModel, attrNameBefore: string, attrNameAfter: string, options?: QueryRawOptions) {
+    const fields = await this.assertTableHasColumn(tableName, attrNameBefore, options);
+
+    fields[attrNameAfter] = { ...fields[attrNameBefore] };
+    delete fields[attrNameBefore];
+
+    const sql = this.queryGenerator._replaceColumnQuery(tableName, attrNameBefore, attrNameAfter, fields);
+    const subQueries = sql.split(';').filter(q => q !== '');
+
+    for (const subQuery of subQueries) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.sequelize.queryRaw(`${subQuery};`, { raw: true, ...options });
+    }
+  }
+
+  /**
+   * Alters a table in sqlite.
+   * Workaround for sqlite's limited alter table support.
+   *
+   * @param tableName
+   * @param columns
+   * @param options
+   */
+  private async alterTableInternal(
+    tableName: TableNameOrModel,
+    columns: SQLiteColumnsDescription,
+    options?: QueryRawOptions,
+  ) {
+    const table = this.queryGenerator.extractTableDetails(tableName);
+
+    return withSqliteForeignKeysOff(this.sequelize, options ?? {}, async () => {
+      await this.sequelize.transaction({
+        nestMode: TransactionNestMode.savepoint,
+        transaction: options?.transaction,
+      }, async () => {
+        const indexes = await this.showIndex(tableName, options);
+        for (const index of indexes) {
+          // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
+          if (!index.name.startsWith('sqlite_autoindex_')) {
+            continue;
+          }
+
+          if (!index.unique) {
+            continue;
+          }
+
+          for (const field of index.fields) {
+            if (columns[field.attribute]) {
+              columns[field.attribute].unique = true;
+            }
+          }
+        }
+
+        const sql = this.queryGenerator._replaceTableQuery(tableName, columns);
+        const subQueries = sql.split(';').filter(q => q !== '');
+
+        for (const subQuery of subQueries) {
+          // eslint-disable-next-line no-await-in-loop
+          await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
+        }
+
+        // Run a foreign keys integrity check
+        const foreignKeyCheckResult = await this.sequelize.queryRaw(this.queryGenerator.foreignKeyCheckQuery(tableName), {
+          ...options,
+          type: QueryTypes.SELECT,
+        });
+
+        if (foreignKeyCheckResult.length > 0) {
+          // There are foreign key violations, exit
+          throw new ForeignKeyConstraintError({
+            message: `Foreign key violations detected: ${JSON.stringify(foreignKeyCheckResult, null, 2)}`,
+            table: table.tableName,
+          });
+        }
+
+        await Promise.all(indexes.map(async index => {
+          // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
+          if (index.name.startsWith('sqlite_autoindex_')) {
+            return;
+          }
+
+          return this.addIndex(tableName, {
+            ...index,
+            type: undefined,
+            fields: index.fields.map(field => field.attribute),
+          });
+        }));
+      });
+    });
   }
 }
