@@ -8,6 +8,7 @@ import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/depre
 import type { DataType } from '../abstract/data-types';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import { AbstractQueryInterface } from '../abstract/query-interface';
+import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal';
 import type {
   AddConstraintOptions,
   ColumnDescription,
@@ -35,11 +36,17 @@ export type SQLiteColumnsDescription = Record<string, SQLiteColumnDescription>;
 export class SqliteQueryInterface extends AbstractQueryInterface {
   readonly sequelize: Sequelize;
   readonly queryGenerator: SqliteQueryGenerator;
+  readonly #internalQueryInterface: AbstractQueryInterfaceInternal;
 
-  constructor(sequelize: Sequelize, queryGenerator: SqliteQueryGenerator) {
-    super(sequelize, queryGenerator);
+  constructor(
+    sequelize: Sequelize,
+    queryGenerator: SqliteQueryGenerator,
+    internalQueryInterface?: AbstractQueryInterfaceInternal,
+  ) {
+    super(sequelize, queryGenerator, internalQueryInterface);
     this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
+    this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
   }
 
   async dropAllTables(options?: QiDropAllTablesOptions) {
@@ -153,12 +160,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
 
     const fields = await this.describeTable(tableName, options);
     const sql = this.queryGenerator._replaceTableQuery(tableName, fields, createTableSql);
-    const subQueries = sql.split(';').filter(q => q !== '');
-
-    for (const subQuery of subQueries) {
-      // eslint-disable-next-line no-await-in-loop
-      await this.sequelize.queryRaw(`${subQuery};`, { ...options, raw: true });
-    }
+    await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
   }
 
   async removeConstraint(
@@ -211,12 +213,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     const fields = await this.describeTable(tableName, options);
     // Replace double quotes with backticks and remove constraint snippet
     const sql = this.queryGenerator._replaceTableQuery(tableName, fields, createTableSql.replaceAll('"', '`').replace(constraintSnippet, ''));
-    const subQueries = sql.split(';').filter(q => q !== '');
-
-    for (const subQuery of subQueries) {
-      // eslint-disable-next-line no-await-in-loop
-      await this.sequelize.queryRaw(`${subQuery};`, { ...options, raw: true });
-    }
+    await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
   }
 
   async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
@@ -477,12 +474,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     delete fields[attrNameBefore];
 
     const sql = this.queryGenerator._replaceColumnQuery(tableName, attrNameBefore, attrNameAfter, fields);
-    const subQueries = sql.split(';').filter(q => q !== '');
-
-    for (const subQuery of subQueries) {
-      // eslint-disable-next-line no-await-in-loop
-      await this.sequelize.queryRaw(`${subQuery};`, { raw: true, ...options });
-    }
+    await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
   }
 
   /**
@@ -524,12 +516,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
         }
 
         const sql = this.queryGenerator._replaceTableQuery(tableName, columns);
-        const subQueries = sql.split(';').filter(q => q !== '');
-
-        for (const subQuery of subQueries) {
-          // eslint-disable-next-line no-await-in-loop
-          await this.sequelize.query(`${subQuery};`, { raw: true, ...options });
-        }
+        await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
 
         // Run a foreign keys integrity check
         const foreignKeyCheckResult = await this.sequelize.queryRaw(this.queryGenerator.foreignKeyCheckQuery(tableName), {

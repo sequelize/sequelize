@@ -127,7 +127,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const attributeNamesImport = Object.keys(tableAttributes).map(attr => (attrNameAfter === attr ? `${this.quoteIdentifier(attrNameBefore)} AS ${this.quoteIdentifier(attr)}` : this.quoteIdentifier(attr))).join(', ');
     const attributeNamesExport = Object.keys(tableAttributes).map(attr => this.quoteIdentifier(attr)).join(', ');
 
-    return joinSQLFragments([
+    return [
       this.createTableQuery(backupTable, tableAttributes),
       `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNamesImport} FROM ${quotedTableName};`,
       `DROP TABLE ${quotedTableName};`,
@@ -135,7 +135,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `INSERT INTO ${quotedTableName} SELECT ${attributeNamesExport} FROM ${quotedBackupTableName};`,
       `DROP TABLE ${quotedBackupTableName};`,
 
-    ]);
+    ];
   }
 
   _replaceTableQuery(tableName: TableNameOrModel, attributes: ColumnsDescription, createTableSql?: string) {
@@ -151,12 +151,12 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       ? `${createTableSql.replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)};`
       : this.createTableQuery(backupTable, tableAttributes);
 
-    return joinSQLFragments([
+    return [
       backupTableSql,
       `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`,
       `DROP TABLE ${quotedTableName};`,
       `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`,
-    ]);
+    ];
   }
 
   private escapeTable(tableName: TableNameOrModel): string {
