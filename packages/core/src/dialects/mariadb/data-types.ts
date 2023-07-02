@@ -28,7 +28,7 @@ export class DATE extends BaseTypes.DATE {
   toBindableValue(date: AcceptedDate) {
     date = this._applyTimezone(date);
 
-    // MySQL datetime precision defaults to 0
+    // MariaDB datetime precision defaults to 0
     const precision = this.options.precision ?? 0;
     let format = 'YYYY-MM-DD HH:mm:ss';
     // TODO: We should normally use `S`, `SS` or `SSS` based on the precision, but
