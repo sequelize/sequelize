@@ -2,6 +2,7 @@ import { assert, expect } from 'chai';
 import { spy } from 'sinon';
 import {
   AccessDeniedError,
+  AggregateError,
   BaseError,
   ConnectionError,
   ConnectionRefusedError,
