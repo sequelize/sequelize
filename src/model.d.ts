@@ -3095,14 +3095,15 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * If no key is given, returns all values of the instance, also invoking virtual getters.
    *
-   * If key is given and a field or virtual getter is present for the key it will call that getter - else it
-   * will return the value for key.
+   * If key is given and a field or virtual getter is present for the key it will call that getter,
+   * unless the raw flag is true in the options - else it will return the value for key.
    *
    * @param options.plain If set to true, included instances will be returned as plain objects
+   * @param options.raw If set to true, field and virtual setters will be ignored
    */
   public get(options?: { plain?: boolean; clone?: boolean }): TModelAttributes;
   public get<K extends keyof this>(key: K, options?: { plain?: boolean; clone?: boolean }): this[K];
-  public get(key: string, options?: { plain?: boolean; clone?: boolean }): unknown;
+  public get(key: string, options?: { plain?: boolean; clone?: boolean; raw?: boolean }): unknown;
 
   /**
    * Set is used to update values on the instance (the sequelize representation of the instance that is,
