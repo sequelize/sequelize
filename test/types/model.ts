@@ -29,6 +29,7 @@ class OtherModel extends Model {}
 const Instance: MyModel = new MyModel({ int: 10 });
 
 expectTypeOf(Instance.get('num')).toEqualTypeOf<number>();
+expectTypeOf(Instance.get('num', { raw: true })).toEqualTypeOf<number>();
 
 MyModel.findOne({
   include: [
