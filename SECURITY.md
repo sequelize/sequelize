@@ -19,5 +19,4 @@ After validating & discussing scope of security vulnerability, we will set a tim
 
 Once affected versions are patched you may report security issue to any Node.js security vulnerability database. A few which we have worked with in past are listed below.
 
-- [NPM](https://www.npmjs.com/advisories/report)
 - [Snyk.io](https://snyk.io/vulnerability-disclosure)
