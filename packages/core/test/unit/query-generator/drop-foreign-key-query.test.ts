@@ -1,6 +1,7 @@
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
+const notSupportedError = new Error(`dropForeignKeyQuery is not supported in ${dialect.name}.`);
 
 describe('QueryGenerator#dropForeignKeyQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
@@ -10,6 +11,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
       default: 'ALTER TABLE [myTable] DROP FOREIGN KEY [myColumnKey];',
       postgres: 'ALTER TABLE "myTable" DROP CONSTRAINT "myColumnKey";',
       mssql: 'ALTER TABLE [myTable] DROP [myColumnKey]',
+      sqlite: notSupportedError,
     });
   });
 
@@ -20,6 +22,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
       default: 'ALTER TABLE [MyModels] DROP FOREIGN KEY [myColumnKey];',
       postgres: 'ALTER TABLE "MyModels" DROP CONSTRAINT "myColumnKey";',
       mssql: 'ALTER TABLE [MyModels] DROP [myColumnKey]',
+      sqlite: notSupportedError,
     });
   });
 
@@ -28,7 +31,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
       default: 'ALTER TABLE [mySchema].[myTable] DROP FOREIGN KEY [myColumnKey];',
       postgres: 'ALTER TABLE "mySchema"."myTable" DROP CONSTRAINT "myColumnKey";',
       mssql: 'ALTER TABLE [mySchema].[myTable] DROP [myColumnKey]',
-      sqlite: 'ALTER TABLE `mySchema.myTable` DROP FOREIGN KEY `myColumnKey`;',
+      sqlite: notSupportedError,
     });
   });
 
@@ -37,6 +40,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
       default: 'ALTER TABLE [myTable] DROP FOREIGN KEY [myColumnKey];',
       postgres: 'ALTER TABLE "myTable" DROP CONSTRAINT "myColumnKey";',
       mssql: 'ALTER TABLE [myTable] DROP [myColumnKey]',
+      sqlite: notSupportedError,
     });
   });
 
@@ -48,7 +52,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
       default: 'ALTER TABLE [mySchema].[myTable] DROP FOREIGN KEY [myColumnKey];',
       postgres: 'ALTER TABLE "mySchema"."myTable" DROP CONSTRAINT "myColumnKey";',
       mssql: 'ALTER TABLE [mySchema].[myTable] DROP [myColumnKey]',
-      sqlite: 'ALTER TABLE `mySchema.myTable` DROP FOREIGN KEY `myColumnKey`;',
+      sqlite: notSupportedError,
     });
   });
 
@@ -59,7 +63,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
     }
 
     expectsql(() => queryGenerator.dropForeignKeyQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }, 'myColumnKey'), {
-      sqlite: 'ALTER TABLE `mySchemacustommyTable` DROP FOREIGN KEY `myColumnKey`;',
+      sqlite: notSupportedError,
     });
   });
 });
