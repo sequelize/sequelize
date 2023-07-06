@@ -1,4 +1,5 @@
-import type { QueryRawOptions } from '../../index';
+import type { QueryRawOptions, RemoveConstraintOptions } from '../../index';
+import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import { PostgresQueryInterface } from '../postgres/query-interface';
 
 export class CockroachDbQueryInterface extends PostgresQueryInterface {
@@ -12,7 +13,11 @@ export class CockroachDbQueryInterface extends PostgresQueryInterface {
 
   // CockroachDB support dropping constraints like Postgres unless the constraint is being referenced by a partial index predicate.
   // In such cases only DROP index is to be used https://github.com/cockroachdb/cockroach/issues/97813
-  async removeConstraint(tableName: string, constraintName: string, options: QueryRawOptions): Promise<any> {
+  async removeConstraint(
+    tableName: TableNameOrModel,
+    constraintName: string,
+    options: RemoveConstraintOptions,
+  ): Promise<any> {
     try {
       await super.removeConstraint(tableName, constraintName, options);
     } catch (error: any) {
@@ -22,7 +27,14 @@ export class CockroachDbQueryInterface extends PostgresQueryInterface {
           constraintName,
         );
         const [, queryConstraintName] = query.split('DROP CONSTRAINT');
-        const newQuery = `DROP INDEX ${queryConstraintName} CASCADE;`;
+        const tableDetails = this.queryGenerator.extractTableDetails(tableName);
+        let newQuery;
+
+        if (tableDetails?.schema && tableDetails?.tableName) {
+          newQuery = `DROP INDEX ${tableDetails.schema}.${tableDetails.tableName}@${queryConstraintName.trim()} CASCADE`;
+        } else {
+          newQuery = `DROP INDEX ${queryConstraintName} CASCADE;`;
+        }
 
         return this.sequelize.query(newQuery, options);
       }

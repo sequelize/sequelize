@@ -86,7 +86,7 @@ describe('Paranoid Model', () => {
     expect(count).to.equal(1);
   });
 
-  if (current.dialect.supports.jsonOperations) {
+  if (current.dialect.supports.jsonOperations && current.dialect.supports.jsonExtraction.quoted) {
     describe('JSON Operations', () => {
       before(function () {
         this.Model = this.sequelize.define('Model', {

@@ -19,6 +19,7 @@ import { Where, where } from './expression-builders/where.js';
 import { setTransactionFromCls } from './model-internals.js';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
+import { IsolationLevel, Lock, Transaction, TransactionNestMode, TransactionType } from './transaction.js';
 import { isString } from './utils/check.js';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
@@ -30,9 +31,8 @@ import { importModels } from './import-models.js';
 const _ = require('lodash');
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
-const { Deferrable } = require('./deferrable');
+const { ConstraintChecking, Deferrable } = require('./deferrable');
 const { ModelManager } = require('./model-manager');
-const { Transaction, TRANSACTION_TYPES } = require('./transaction');
 const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
@@ -99,8 +99,6 @@ export class Sequelize extends SequelizeTypeScript {
    *   // - currently supported: 'mysql', 'postgres', 'mssql'
    *   dialectOptions: {
    *     socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
-   *     supportBigNumbers: true,
-   *     bigNumberStrings: true
    *   },
    *
    *   // the storage engine for sqlite
@@ -263,7 +261,7 @@ export class Sequelize extends SequelizeTypeScript {
           'SQLITE_BUSY: database is locked',
         ],
       },
-      transactionType: TRANSACTION_TYPES.DEFERRED,
+      transactionType: TransactionType.DEFERRED,
       isolationLevel: null,
       databaseVersion: null,
       noTypeValidation: false,
@@ -271,6 +269,7 @@ export class Sequelize extends SequelizeTypeScript {
       minifyAliases: false,
       logQueryParameters: false,
       disableClsTransactions: false,
+      defaultTransactionNestMode: TransactionNestMode.reuse,
       ...options,
       pool: _.defaults(options.pool || {}, {
         max: 5,
@@ -447,14 +446,6 @@ export class Sequelize extends SequelizeTypeScript {
   // TODO [>=8]: rename to getDialectName or remove
   getDialect() {
     return this.options.dialect;
-  }
-
-  get queryInterface() {
-    return this.dialect.queryInterface;
-  }
-
-  get queryGenerator() {
-    return this.dialect.queryGenerator;
   }
 
   /**
@@ -678,8 +669,8 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     options = _.defaults(options, {
-      logging: Object.prototype.hasOwnProperty.call(this.options, 'logging') ? this.options.logging : console.debug,
-      searchPath: Object.prototype.hasOwnProperty.call(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT',
+      logging: Object.hasOwn(this.options, 'logging') ? this.options.logging : console.debug,
+      searchPath: Object.hasOwn(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT',
     });
 
     if (!options.type) {
@@ -780,83 +771,6 @@ Use Sequelize#query if you wish to use replacements.`);
         _.map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
 
     return await this.query(query, options);
-  }
-
-  /**
-   * Escape value.
-   *
-   * @param {string} value string value to escape
-   *
-   * @returns {string}
-   */
-  escape(value) {
-    return this.dialect.queryGenerator.escape(value);
-  }
-
-  /**
-   * Create a new database schema.
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this command will do nothing.
-   *
-   * @see
-   * {@link Model.schema}
-   *
-   * @param {string} schema Name of the schema
-   * @param {object} [options={}] CreateSchemaQueryOptions
-   * @param {string} [options.collate=null]
-   * @param {string} [options.charset=null]
-    *
-   * @returns {Promise}
-   */
-  async createSchema(schema, options) {
-    return await this.getQueryInterface().createSchema(schema, options);
-  }
-
-  /**
-   * Show all defined schemas
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this will show all tables.
-   *
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async showAllSchemas(options) {
-    return await this.getQueryInterface().showAllSchemas(options);
-  }
-
-  /**
-   * Drop a single schema
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this drop a table matching the schema name
-   *
-   * @param {string} schema Name of the schema
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async dropSchema(schema, options) {
-    return await this.getQueryInterface().dropSchema(schema, options);
-  }
-
-  /**
-   * Drop all schemas.
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this is the equivalent of drop all tables.
-   *
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async dropAllSchemas(options) {
-    return await this.getQueryInterface().dropAllSchemas(options);
   }
 
   /**
@@ -1021,32 +935,6 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   /**
-   * Fetches the version of the database
-   *
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise<string>} current version of the dialect
-   */
-  async fetchDatabaseVersion(options) {
-    return await this.getQueryInterface().databaseVersion(options);
-  }
-
-  /**
-   * Throws if the database version hasn't been loaded yet. It is automatically loaded the first time Sequelize connects to your database.
-   *
-   * You can use {@link Sequelize#authenticate} to cause a first connection.
-   *
-   * @returns {string} current version of the dialect that is internally loaded
-   */
-  getDatabaseVersion() {
-    if (this.options.databaseVersion == null) {
-      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
-    }
-
-    return this.options.databaseVersion;
-  }
-
-  /**
    * Get the fn for random based on the dialect
    *
    * @returns {Fn}
@@ -1059,6 +947,7 @@ Use Sequelize#query if you wish to use replacements.`);
     return fn('RAND');
   }
 
+  // Global exports
   static Fn = Fn;
   static Col = Col;
   static Cast = Cast;
@@ -1091,12 +980,17 @@ Use Sequelize#query if you wish to use replacements.`);
 
   static importModels = importModels;
 
+  static TransactionNestMode = TransactionNestMode;
+  static TransactionType = TransactionType;
+  static Lock = Lock;
+  static IsolationLevel = IsolationLevel;
+
   log(...args) {
     let options;
 
-    const last = _.last(args);
+    const last = args.at(-1);
 
-    if (last && _.isPlainObject(last) && Object.prototype.hasOwnProperty.call(last, 'logging')) {
+    if (last && _.isPlainObject(last) && Object.hasOwn(last, 'logging')) {
       options = last;
 
       // remove options from set of logged arguments if options.logging is equal to console.log or console.debug
@@ -1277,10 +1171,17 @@ for (const dataTypeName in DataTypes) {
 /**
  * A reference to the deferrable collection. Use this to access the different deferrable options.
  *
+ * @see {@link QueryInterface#addConstraint}
+ */
+Sequelize.Deferrable = Deferrable;
+
+/**
+ * A reference to the deferrable collection. Use this to access the different deferrable options.
+ *
  * @see {@link Transaction.Deferrable}
  * @see {@link Sequelize#transaction}
  */
-Sequelize.Deferrable = Deferrable;
+Sequelize.ConstraintChecking = ConstraintChecking;
 
 /**
  * A reference to the sequelize association class.

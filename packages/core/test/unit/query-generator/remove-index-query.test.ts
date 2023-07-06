@@ -3,6 +3,8 @@ import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
+const notImplementedError = new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`);
+
 describe('QueryGenerator#removeIndexQuery', () => {
   const queryGenerator = sequelize.getQueryInterface().queryGenerator;
 
@@ -13,7 +15,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "user_foo_bar"`,
       'postgres cockroachdb': `DROP INDEX "public"."user_foo_bar"`,
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      snowflake: notImplementedError,
     });
   });
 
@@ -23,18 +25,16 @@ describe('QueryGenerator#removeIndexQuery', () => {
       sqlite: 'DROP INDEX `my_table_foo_bar`',
       ibmi: `BEGIN DROP INDEX "my_table_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "my_table_foo_bar"`,
-      postgres: `DROP INDEX "public"."my_table_foo_bar"`,
-      cockroachdb: `DROP INDEX "public"."my_table_foo_bar"`,
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      'postgres cockroachdb': `DROP INDEX "public"."my_table_foo_bar"`,
+      snowflake: notImplementedError,
     });
   });
 
   it('produces a DROP INDEX with CONCURRENTLY query from a table', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { concurrently: true }), {
       default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['concurrently']),
-      postgres: `DROP INDEX CONCURRENTLY "public"."user_foo_bar"`,
-      cockroachdb: `DROP INDEX CONCURRENTLY "public"."user_foo_bar"`,
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      'postgres cockroachdb': `DROP INDEX CONCURRENTLY "public"."user_foo_bar"`,
+      snowflake: notImplementedError,
     });
   });
 
@@ -45,7 +45,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       postgres: `DROP INDEX IF EXISTS "public"."user_foo_bar"`,
       cockroachdb: `DROP INDEX IF EXISTS "public"."user_foo_bar"`,
       ibmi: `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = "user_foo_bar") THEN DROP INDEX "user_foo_bar"; COMMIT; END IF; END`,
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      snowflake: notImplementedError,
       'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['ifExists']),
     });
   });
@@ -53,18 +53,16 @@ describe('QueryGenerator#removeIndexQuery', () => {
   it('produces a DROP INDEX with CASCADE query from a table', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { cascade: true }), {
       default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade']),
-      postgres: `DROP INDEX "public"."user_foo_bar" CASCADE`,
-      cockroachdb: `DROP INDEX "public"."user_foo_bar" CASCADE`,
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      'postgres cockroachdb': `DROP INDEX "public"."user_foo_bar" CASCADE`,
+      snowflake: notImplementedError,
     });
   });
 
   it('produces a DROP INDEX with CASCADE and IF EXISTS query from a table', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { cascade: true, ifExists: true }), {
       default: `DROP INDEX IF EXISTS [user_foo_bar] ON [myTable] CASCADE`,
-      postgres: `DROP INDEX IF EXISTS "public"."user_foo_bar" CASCADE`,
-      cockroachdb: `DROP INDEX IF EXISTS "public"."user_foo_bar" CASCADE`,
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      'postgres cockroachdb': `DROP INDEX IF EXISTS "public"."user_foo_bar" CASCADE`,
+      snowflake: notImplementedError,
       'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade', 'ifExists']),
       'ibmi mariadb mssql sqlite': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade']),
     });
@@ -73,9 +71,8 @@ describe('QueryGenerator#removeIndexQuery', () => {
   it('produces a DROP INDEX with CONCURRENTLY and IF EXISTS query from a table', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { concurrently: true, ifExists: true }), {
       default: `DROP INDEX CONCURRENTLY IF EXISTS [user_foo_bar] ON [myTable]`,
-      postgres: `DROP INDEX CONCURRENTLY IF EXISTS "public"."user_foo_bar"`,
-      cockroachdb: `DROP INDEX CONCURRENTLY IF EXISTS "public"."user_foo_bar"`,
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      'postgres cockroachdb': `DROP INDEX CONCURRENTLY IF EXISTS "public"."user_foo_bar"`,
+      snowflake: notImplementedError,
       'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['concurrently', 'ifExists']),
       'ibmi mariadb mssql sqlite': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['concurrently']),
     });
@@ -85,7 +82,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { cascade: true, concurrently: true }), {
       default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade', 'concurrently']),
       'postgres cockroachdb': new Error(`Cannot specify both concurrently and cascade options in removeIndexQuery for ${dialect.name} dialect`),
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      snowflake: notImplementedError,
     });
   });
 
@@ -97,9 +94,8 @@ describe('QueryGenerator#removeIndexQuery', () => {
       sqlite: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "user_foo_bar"`,
-      postgres: `DROP INDEX "public"."user_foo_bar"`,
-      cockroachdb: `DROP INDEX "public"."user_foo_bar"`,
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      'postgres cockroachdb': `DROP INDEX "public"."user_foo_bar"`,
+      snowflake: notImplementedError,
     });
   });
 
@@ -110,7 +106,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       'postgres cockroachdb': `DROP INDEX "mySchema"."user_foo_bar"`,
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "user_foo_bar"`,
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      snowflake: notImplementedError,
     });
   });
 
@@ -120,9 +116,8 @@ describe('QueryGenerator#removeIndexQuery', () => {
       sqlite: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "user_foo_bar"`,
-      postgres: `DROP INDEX "public"."user_foo_bar"`,
-      cockroachdb: `DROP INDEX "public"."user_foo_bar"`,
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      'postgres cockroachdb': `DROP INDEX "public"."user_foo_bar"`,
+      snowflake: notImplementedError,
     });
   });
 
@@ -136,7 +131,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       'postgres cockroachdb': `DROP INDEX "mySchema"."user_foo_bar"`,
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: 'DROP INDEX "user_foo_bar"',
-      snowflake: new Error(`removeIndexQuery has not been implemented in ${dialect.name}.`),
+      snowflake: notImplementedError,
     });
   });
 });

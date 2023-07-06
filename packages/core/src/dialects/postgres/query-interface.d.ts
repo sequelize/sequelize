@@ -1,8 +1,8 @@
 import type { Sequelize } from '../../sequelize.js';
-import { AbstractQueryInterface } from '../abstract/query-interface.js';
 import type { PostgresQueryGenerator } from './query-generator.js';
+import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.js';
 
-export class PostgresQueryInterface extends AbstractQueryInterface {
+export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
   queryGenerator: PostgresQueryGenerator;
 
   constructor(sequelize: Sequelize, queryGenerator: PostgresQueryGenerator);

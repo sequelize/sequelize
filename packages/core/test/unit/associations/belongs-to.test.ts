@@ -137,6 +137,22 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     sequelize.addModels([Post, Author]);
   });
 
+  it(`uses the model's singular name to generate the foreign key name`, () => {
+    const Book = sequelize.define('Book', {}, {
+      name: {
+        singular: 'Singular',
+        plural: 'Plural',
+      },
+    });
+
+    const Log = sequelize.define('Log', {}, {});
+
+    Log.belongsTo(Book);
+
+    expect(Log.getAttributes().PluralId).to.not.exist;
+    expect(Log.getAttributes().SingularId).to.exist;
+  });
+
   describe('association hooks', () => {
     let Projects: ModelStatic<any>;
     let Tasks: ModelStatic<any>;

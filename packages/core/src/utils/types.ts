@@ -65,6 +65,10 @@ export type NonNullish<T> = T extends null | undefined ? never : T;
 
 export type NonUndefined<T> = T extends undefined ? never : T;
 
+export type NonUndefinedKeys<T, K extends keyof T> = {
+  [P in keyof T]: P extends K ? NonUndefined<T[P]> : T[P];
+};
+
 export type AllowArray<T> = T | T[];
 
 export type AllowLowercase<T extends string> = T | Lowercase<T>;
@@ -83,5 +87,7 @@ export type OmitConstructors<T> = Pick<T, NonConstructorKeys<T>>;
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+
+export type StrictRequiredBy<T, K extends keyof T> = NonUndefinedKeys<Omit<T, K> & Required<Pick<T, K>>, K>;
 
 export type ReadOnlyRecord<K extends PropertyKey, V> = Readonly<Record<K, V>>;

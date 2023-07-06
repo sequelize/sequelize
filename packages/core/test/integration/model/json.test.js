@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('find', () => {
-      if (!dialect.supports.jsonOperations) {
+      if (!dialect.supports.jsonOperations || !dialect.supports.jsonExtraction.quoted) {
         return;
       }
 
@@ -157,6 +157,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           employment: 'Housewife',
         });
+
       });
 
       // CockroachDB does not support ordering in queries by JSONB columns Ref: https://github.com/cockroachdb/cockroach/issues/35706
@@ -233,7 +234,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('destroy', () => {
-      if (!dialect.supports.jsonOperations) {
+      if (!dialect.supports.jsonOperations || !dialect.supports.jsonExtraction.quoted) {
         return;
       }
 
@@ -273,8 +274,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         })]);
 
         await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
-        await this.Event.destroy(conditionSearch);
 
+        await this.Event.destroy(conditionSearch);
         await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(0);
       });
     });
@@ -288,7 +289,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       // CockroachDB does not support ordering in queries by JSONB columns Ref: https://github.com/cockroachdb/cockroach/issues/35706
-      if (dialect.supports.jsonOperations && dialectName !== 'cockroachdb') {
+      if (dialect.supports.jsonOperations && dialect.supports.jsonExtraction.quoted && dialectName !== 'cockroachdb') {
         it('should query an instance with JSONB data and order while trying to inject', async function () {
           await this.Event.create({
             data: {

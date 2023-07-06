@@ -58,7 +58,6 @@ export class CockroachDbDialect extends AbstractDialect {
     jsonOperations: true,
     REGEXP: true,
     IREGEXP: true,
-    deferrableConstraints: false,
     searchPath: true,
     escapeStringConstants: true,
     globalTimeZoneConfig: true,
@@ -69,6 +68,10 @@ export class CockroachDbDialect extends AbstractDialect {
     lockOuterJoinFailure: false,
     skipLocked: false,
     lockKey: false,
+    constraints: {
+      deferrable: false,
+      removeOptions: { cascade: true, ifExists: true },
+    },
   });
 
   readonly connectionManager: CockroachdbConnectionManager;
@@ -106,9 +109,9 @@ export class CockroachDbDialect extends AbstractDialect {
   escapeString(value: string): string {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
-    value = value.replace(/'/g, '\'\'')
+    value = value.replaceAll('\'', '\'\'')
       // null character is not allowed in Cockroachdb
-      .replace(/\0/g, '\\0');
+      .replaceAll('\0', '\\0');
 
     return `'${value}'`;
   }

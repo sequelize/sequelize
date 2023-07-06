@@ -12,7 +12,7 @@ describe('QueryGenerator#dropDatabaseQuery', () => {
     expectsql(() => queryGenerator.dropDatabaseQuery('myDatabase'), {
       default: notSupportedError,
       'postgres snowflake cockroachdb': 'DROP DATABASE IF EXISTS [myDatabase];',
-      mssql: `IF EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN DROP DATABASE [myDatabase] ; END;`,
+      mssql: `IF EXISTS (SELECT * FROM sys.databases WHERE name = N'myDatabase' ) BEGIN DROP DATABASE [myDatabase] ; END;`,
     });
   });
 
@@ -20,7 +20,7 @@ describe('QueryGenerator#dropDatabaseQuery', () => {
     expectsql(() => noQuoteQueryGenerator.dropDatabaseQuery('myDatabase'), {
       default: notSupportedError,
       'postgres snowflake cockroachdb': 'DROP DATABASE IF EXISTS myDatabase;',
-      mssql: `IF EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN DROP DATABASE [myDatabase] ; END;`,
+      mssql: `IF EXISTS (SELECT * FROM sys.databases WHERE name = N'myDatabase' ) BEGIN DROP DATABASE [myDatabase] ; END;`,
     });
   });
 });

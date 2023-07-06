@@ -49,7 +49,7 @@ rl.on('line', line => {
   const { author, email } = match.groups;
 
   const botRegex = /bot@users.noreply.github.com/g;
-  const botEmail = email.replace(/\[bot.*?\]/g, 'bot');
+  const botEmail = email.replaceAll(/\[bot.*?\]/g, 'bot');
 
   if (
     seen.has(email)

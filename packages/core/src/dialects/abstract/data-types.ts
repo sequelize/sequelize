@@ -1920,7 +1920,6 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
  * __Fallback policy:__
  * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a GUID format.
  *
- *
  * @example
  * ```ts
  * const User = sequelize.define('User', {
@@ -1971,7 +1970,6 @@ export class UUIDV1 extends AbstractDataType<string> {
   static readonly [kDataTypeIdentifier]: string = 'UUIDV1';
 
   validate(value: any) {
-    // @ts-expect-error -- the typings for isUUID are missing '1' as a valid uuid version, but its implementation does accept it
     if (typeof value !== 'string' || !Validator.isUUID(value, 1)) {
       ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid uuidv1', value),
@@ -2430,7 +2428,6 @@ export interface GeometryOptions {
  * User.create({username: 'username', geometry: point })
  * ```
  *
- * @see {@link <internal>~GEOGRAPHY}
  * @category DataTypes
  */
 export class GEOMETRY extends AbstractDataType<GeoJson> {

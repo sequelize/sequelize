@@ -18,10 +18,6 @@ export class Fn extends BaseSqlExpression {
     this.fn = fnName;
     this.args = args;
   }
-
-  clone(): Fn {
-    return new Fn(this.fn, this.args);
-  }
 }
 
 /**

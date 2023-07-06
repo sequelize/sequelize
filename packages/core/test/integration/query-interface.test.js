@@ -313,6 +313,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             schema: 'archive',
             tableName: 'Users',
           });
+          expect(table).to.have.property('pseudo');
+          expect(table).to.not.have.property('username');
         });
       }
 
@@ -528,33 +530,23 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should get a list of foreign keys for the table', async function () {
-
       const foreignKeys = await this.sequelize.query(
-        this.queryInterface.queryGenerator.getForeignKeysQuery(
-          'hosts',
-          dialectName === 'db2' ? this.sequelize.config.username.toUpperCase() : this.sequelize.config.database,
-        ),
+        this.queryInterface.queryGenerator.getForeignKeyQuery('hosts'),
         { type: this.sequelize.QueryTypes.FOREIGNKEYS },
       );
 
       expect(foreignKeys).to.have.length(3);
 
-      if (dialectName === 'postgres') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(6);
-        expect(Object.keys(foreignKeys[1])).to.have.length(7);
-        expect(Object.keys(foreignKeys[2])).to.have.length(7);
-      } else if (['sqlite', 'db2'].includes(dialectName)) {
+      if (dialectName === 'sqlite') {
+        expect(Object.keys(foreignKeys[0])).to.have.length(7);
+      } else if (['mariadb', 'mysql', 'db2'].includes(dialectName)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
-      } else if (dialectName === 'ibmi') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(9);
-      } else if (['mysql', 'mariadb', 'mssql'].includes(dialectName)) {
-        expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else if (dialectName === 'cockroachdb') {
         expect(Object.keys(foreignKeys[0])).to.have.length(6);
         expect(Object.keys(foreignKeys[1])).to.have.length(7);
         expect(Object.keys(foreignKeys[2])).to.have.length(6);
       } else {
-        throw new Error(`This test doesn't support ${dialectName}`);
+        expect(Object.keys(foreignKeys[0])).to.have.length(11);
       }
 
       if (dialectName === 'mysql') {
@@ -600,30 +592,30 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     describe('unique', () => {
       it('should add, read & remove unique constraint', async function () {
-        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['email'] });
-        let constraints = await this.queryInterface.showConstraint('users');
+        await this.queryInterface.addConstraint('users', { type: 'UNIQUE', fields: ['email'] });
+        let constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('users_email_uk');
         await this.queryInterface.removeConstraint('users', 'users_email_uk');
-        constraints = await this.queryInterface.showConstraint('users');
+        constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('users_email_uk');
       });
 
       it('should add a constraint after another', async function () {
-        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['username'] });
-        await this.queryInterface.addConstraint('users', { type: 'unique', fields: ['email'] });
-        let constraints = await this.queryInterface.showConstraint('users');
+        await this.queryInterface.addConstraint('users', { type: 'UNIQUE', fields: ['username'] });
+        await this.queryInterface.addConstraint('users', { type: 'UNIQUE', fields: ['email'] });
+        let constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.include('users_email_uk');
         expect(constraints).to.include('users_username_uk');
         await this.queryInterface.removeConstraint('users', 'users_email_uk');
-        constraints = await this.queryInterface.showConstraint('users');
+        constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('users_email_uk');
         expect(constraints).to.include('users_username_uk');
         await this.queryInterface.removeConstraint('users', 'users_username_uk');
-        constraints = await this.queryInterface.showConstraint('users');
+        constraints = await this.queryInterface.showConstraints('users');
         constraints = constraints.map(constraint => constraint.constraintName);
         expect(constraints).to.not.include('users_email_uk');
         expect(constraints).to.not.include('users_username_uk');
@@ -634,18 +626,18 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       describe('check', () => {
         it('should add, read & remove check constraint', async function () {
           await this.queryInterface.addConstraint('users', {
-            type: 'check',
+            type: 'CHECK',
             fields: ['roles'],
             where: {
               roles: ['user', 'admin', 'guest', 'moderator'],
             },
             name: 'check_user_roles',
           });
-          let constraints = await this.queryInterface.showConstraint('users');
+          let constraints = await this.queryInterface.showConstraints('users');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.include('check_user_roles');
           await this.queryInterface.removeConstraint('users', 'check_user_roles');
-          constraints = await this.queryInterface.showConstraint('users');
+          constraints = await this.queryInterface.showConstraints('users');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.not.include('check_user_roles');
         });
@@ -667,82 +659,111 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         it('should add, read & remove default constraint', async function () {
           await this.queryInterface.addConstraint('users', {
             fields: ['roles'],
-            type: 'default',
+            type: 'DEFAULT',
             defaultValue: 'guest',
           });
-          let constraints = await this.queryInterface.showConstraint('users');
+          let constraints = await this.queryInterface.showConstraints('users');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.include('users_roles_df');
           await this.queryInterface.removeConstraint('users', 'users_roles_df');
-          constraints = await this.queryInterface.showConstraint('users');
+          constraints = await this.queryInterface.showConstraints('users');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.not.include('users_roles_df');
         });
       });
     }
 
-    // CockroachDB doesn't support removing the primary key outside of a transaction
-    if (dialectName !== 'cockroachdb') {
-      describe('primary key', () => {
-        it('should add, read & remove primary key constraint', async function () {
-          await this.queryInterface.removeColumn('users', 'id');
-          await this.queryInterface.changeColumn('users', 'username', {
-            type: DataTypes.STRING,
-            allowNull: false,
-          });
-
-          await this.queryInterface.addConstraint('users', {
-            fields: ['username'],
-            type: 'PRIMARY KEY',
-          });
-          let constraints = await this.queryInterface.showConstraint('users');
-          constraints = constraints.map(constraint => constraint.constraintName);
-
-          // The name of primaryKey constraint is always `PRIMARY` in case of MySQL and MariaDB
-          const expectedConstraintName = ['mysql', 'mariadb'].includes(dialectName) ? 'PRIMARY' : 'users_username_pk';
-
-          expect(constraints).to.include(expectedConstraintName);
-          await this.queryInterface.removeConstraint('users', expectedConstraintName);
-          constraints = await this.queryInterface.showConstraint('users');
-          constraints = constraints.map(constraint => constraint.constraintName);
-          expect(constraints).to.not.include(expectedConstraintName);
+    describe('primary key', () => {
+      it('should add, read & remove primary key constraint', async function () {
+        await this.queryInterface.removeColumn('users', 'id');
+        await this.queryInterface.changeColumn('users', 'username', {
+          type: DataTypes.STRING,
+          allowNull: false,
         });
 
-        // TODO: addConstraint does not support schemas yet.
-        it.skip('can add a constraint to a table in a non-default schema', async function () {
-          const tableName = {
-            tableName: 'users',
-            schema: 'archive',
-          };
-
-          await this.queryInterface.createTable(tableName, {
-            id: {
-              type: DataTypes.INTEGER,
-            },
-          });
-
-          // changeColumn before addConstraint puts the DB2 table in "reorg pending state"
-          // addConstraint will be forced to execute a REORG TABLE command, which checks that it is done properly when using schemas.
-          await this.queryInterface.changeColumn(tableName, 'id', {
-            type: DataTypes.BIGINT,
-          });
-
-          await this.queryInterface.addConstraint(tableName, {
-            type: 'PRIMARY KEY',
-            fields: ['id'],
-          });
-
-          const constraints = await this.queryInterface.showConstraint(tableName);
-
-          expect(constraints).to.deep.eq([{
-            constraintName: 'users_username_pk',
-            schemaName: tableName.schema,
-            tableName: tableName.tableName,
-          }]);
+        await this.queryInterface.addConstraint('users', {
+          fields: ['username'],
+          type: 'PRIMARY KEY',
         });
+        let constraints = await this.queryInterface.showConstraints('users');
+        constraints = constraints.map(constraint => constraint.constraintName);
+
+        // The name of primaryKey constraint is always `PRIMARY` in case of MySQL and MariaDB
+        const expectedConstraintName = ['mysql', 'mariadb'].includes(dialectName) ? 'PRIMARY' : 'users_username_pk';
+
+        expect(constraints).to.include(expectedConstraintName);
+        await this.queryInterface.removeConstraint('users', expectedConstraintName);
+        constraints = await this.queryInterface.showConstraints('users');
+        constraints = constraints.map(constraint => constraint.constraintName);
+        expect(constraints).to.not.include(expectedConstraintName);
       });
 
-      describe('foreign key', () => {
+      // TODO: addConstraint does not support schemas yet.
+      it.skip('can add a constraint to a table in a non-default schema', async function () {
+        const tableName = {
+          tableName: 'users',
+          schema: 'archive',
+        };
+
+        await this.queryInterface.createTable(tableName, {
+          id: {
+            type: DataTypes.INTEGER,
+          },
+        });
+
+        // changeColumn before addConstraint puts the DB2 table in "reorg pending state"
+        // addConstraint will be forced to execute a REORG TABLE command, which checks that it is done properly when using schemas.
+        await this.queryInterface.changeColumn(tableName, 'id', {
+          type: DataTypes.BIGINT,
+        });
+
+        await this.queryInterface.addConstraint(tableName, {
+          type: 'PRIMARY KEY',
+          fields: ['id'],
+        });
+
+        const constraints = await this.queryInterface.showConstraints(tableName);
+
+        expect(constraints).to.deep.eq([{
+          constraintName: 'users_username_pk',
+          schemaName: tableName.schema,
+          tableName: tableName.tableName,
+        }]);
+      });
+    });
+
+    describe('foreign key', () => {
+      it('should add, read & remove foreign key constraint', async function () {
+        await this.queryInterface.removeColumn('users', 'id');
+        await this.queryInterface.changeColumn('users', 'username', {
+          type: DataTypes.STRING,
+          allowNull: false,
+        });
+
+        await this.queryInterface.addConstraint('users', {
+          type: 'PRIMARY KEY',
+          fields: ['username'],
+        });
+
+        await this.queryInterface.addConstraint('posts', {
+          fields: ['username'],
+          references: {
+            table: 'users',
+            field: 'username',
+          },
+          type: 'FOREIGN KEY',
+          onDelete: 'CASCADE',
+        });
+        let constraints = await this.queryInterface.showConstraints('posts');
+        constraints = constraints.map(constraint => constraint.constraintName);
+        expect(constraints).to.include('posts_username_users_fk');
+        await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
+        constraints = await this.queryInterface.showConstraints('posts');
+        constraints = constraints.map(constraint => constraint.constraintName);
+        expect(constraints).to.not.include('posts_username_users_fk');
+      });
+
+      if (current.dialect.supports.constraints.onUpdate) {
         it('should add, read & remove foreign key constraint', async function () {
           await this.queryInterface.removeColumn('users', 'id');
           await this.queryInterface.changeColumn('users', 'username', {
@@ -761,20 +782,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               table: 'users',
               field: 'username',
             },
-            onDelete: 'cascade',
-            onUpdate: 'cascade',
-            type: 'foreign key',
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
+            type: 'FOREIGN KEY',
           });
-          let constraints = await this.queryInterface.showConstraint('posts');
+          let constraints = await this.queryInterface.showConstraints('posts');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.include('posts_username_users_fk');
           await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
-          constraints = await this.queryInterface.showConstraint('posts');
+          constraints = await this.queryInterface.showConstraints('posts');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.not.include('posts_username_users_fk');
         });
-      });
-    }
+      }
+    });
 
     describe('unknown constraint', () => {
       it('should throw non existent constraints as UnknownConstraintError', async function () {

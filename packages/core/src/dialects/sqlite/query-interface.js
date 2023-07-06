@@ -4,15 +4,16 @@ import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/depre
 
 const sequelizeErrors = require('../../errors');
 const { QueryTypes } = require('../../query-types');
-const { AbstractQueryInterface, QueryOptions, ColumnsDescription } = require('../abstract/query-interface');
-const { cloneDeep } = require('../../utils/object.js');
+const { ColumnsDescription } = require('../abstract/query-interface.types');
+const { QueryOptions } = require('../abstract/query-interface');
+const { SqliteQueryInterfaceTypeScript } = require('./query-interface-typescript');
 const _ = require('lodash');
 const crypto = require('node:crypto');
 
 /**
  * The interface that Sequelize uses to talk with SQLite database
  */
-export class SqliteQueryInterface extends AbstractQueryInterface {
+export class SqliteQueryInterface extends SqliteQueryInterfaceTypeScript {
   /**
    * A wrapper that fixes SQLite's inability to remove columns from existing tables.
    * It will create a backup of the table, drop the table afterwards and create a
@@ -77,95 +78,23 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
   /**
    * @override
    */
-  async removeConstraint(tableName, constraintName, options) {
-    let createTableSql;
-
-    const constraints = await this.showConstraint(tableName, constraintName);
-    // sqlite can't show only one constraint, so we find here the one to remove
-    const constraint = constraints.find(constaint => constaint.constraintName === constraintName);
-
-    if (!constraint) {
-      throw new sequelizeErrors.UnknownConstraintError({
-        message: `Constraint ${constraintName} on table ${tableName} does not exist`,
-        constraint: constraintName,
-        table: tableName,
-      });
-    }
-
-    createTableSql = constraint.sql;
-    constraint.constraintName = this.queryGenerator.quoteIdentifier(constraint.constraintName);
-    let constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType} ${constraint.constraintCondition}`;
-
-    if (constraint.constraintType === 'FOREIGN KEY') {
-      const referenceTableName = this.queryGenerator.quoteTable(constraint.referenceTableName);
-      constraint.referenceTableKeys = constraint.referenceTableKeys.map(columnName => this.queryGenerator.quoteIdentifier(columnName));
-      const referenceTableKeys = constraint.referenceTableKeys.join(', ');
-      constraintSnippet += ` REFERENCES ${referenceTableName} (${referenceTableKeys})`;
-      constraintSnippet += ` ON UPDATE ${constraint.updateAction}`;
-      constraintSnippet += ` ON DELETE ${constraint.deleteAction}`;
-    }
-
-    createTableSql = createTableSql.replace(constraintSnippet, '');
-    createTableSql += ';';
-
-    const fields = await this.describeTable(tableName, options);
-
-    const sql = this.queryGenerator._alterConstraintQuery(tableName, fields, createTableSql);
-    const subQueries = sql.split(';').filter(q => q !== '');
-
-    for (const subQuery of subQueries) {
-      await this.sequelize.queryRaw(`${subQuery};`, { raw: true, ...options });
-    }
-  }
-
-  /**
-   * @override
-   */
-  async addConstraint(tableName, options) {
-    if (!options.fields) {
-      throw new Error('Fields must be specified through options.fields');
-    }
-
-    if (!options.type) {
-      throw new Error('Constraint type must be specified through options.type');
-    }
-
-    options = cloneDeep(options);
-
-    const constraintSnippet = this.queryGenerator.getConstraintSnippet(tableName, options);
-    const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
-
-    const constraints = await this.sequelize.queryRaw(describeCreateTableSql, { ...options, type: QueryTypes.SELECT, raw: true });
-    let sql = constraints[0].sql;
-    const index = sql.length - 1;
-    // Replace ending ')' with constraint snippet - Simulates String.replaceAt
-    // http://stackoverflow.com/questions/1431094
-    const createTableSql = `${sql.slice(0, Math.max(0, index))}, ${constraintSnippet})${sql.slice(index + 1)};`;
-
-    const fields = await this.describeTable(tableName, options);
-    sql = this.queryGenerator._alterConstraintQuery(tableName, fields, createTableSql);
-    const subQueries = sql.split(';').filter(q => q !== '');
-
-    for (const subQuery of subQueries) {
-      await this.sequelize.queryRaw(`${subQuery};`, { raw: true, ...options });
-    }
-  }
-
-  /**
-   * @override
-   */
   async getForeignKeyReferencesForTable(tableName, options) {
-    const database = this.sequelize.config.database;
-    const query = this.queryGenerator.getForeignKeysQuery(tableName, database);
-    const result = await this.sequelize.queryRaw(query, options);
+    const queryOptions = {
+      ...options,
+      type: QueryTypes.FOREIGNKEYS,
+    };
 
+    const query = this.queryGenerator.getForeignKeyQuery(tableName);
+
+    const result = await this.sequelize.queryRaw(query, queryOptions);
+
+    // Mapping the result for the constraints is the only change
     return result.map(row => ({
-      tableName,
-      columnName: row.from,
-      referencedTableName: row.table,
-      referencedColumnName: row.to,
-      tableCatalog: database,
-      referencedTableCatalog: database,
+      tableName: row.tableName,
+      constraintName: row.constraintName,
+      columnName: row.columnName,
+      referencedTableName: row.referencedTableName,
+      referencedColumnName: row.referencedColumnName,
       constraints: {
         onUpdate: row.on_update,
         onDelete: row.on_delete,
@@ -218,11 +147,10 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     }
 
     const sql = this.queryGenerator.describeTableQuery(table);
-    options = { ...options, type: QueryTypes.DESCRIBE };
     const sqlIndexes = this.queryGenerator.showIndexesQuery(table);
 
     try {
-      const data = await this.sequelize.queryRaw(sql, options);
+      const data = await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.DESCRIBE });
       /*
        * If no data is returned from the query, then the table name may be wrong.
        * Query generators that use information_schema for retrieving table info will just return an empty result set,
@@ -232,7 +160,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
         throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
-      const indexes = await this.sequelize.queryRaw(sqlIndexes, options);
+      const indexes = await this.sequelize.queryRaw(sqlIndexes, { ...options, type: QueryTypes.SHOWINDEXES });
       for (const prop in data) {
         data[prop].unique = false;
       }
@@ -261,7 +189,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
 
       return data;
     } catch (error) {
-      if (error.original && error.original.code === 'ER_NO_SUCH_TABLE') {
+      if (error.cause && error.cause.code === 'ER_NO_SUCH_TABLE') {
         throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
@@ -302,7 +230,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
           }
         }
 
-        const sql = this.queryGenerator.removeColumnQuery(tableName, columns);
+        const sql = this.queryGenerator._replaceTableQuery(tableName, columns);
         const subQueries = sql.split(';').filter(q => q !== '');
 
         for (const subQuery of subQueries) {
@@ -365,7 +293,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
    */
   getSavepointName(prefix = 'sequelize') {
     // sqlite does not support "-" (dashes) in transaction's name
-    const suffix = crypto.randomUUID().replace(/-/g, '_');
+    const suffix = crypto.randomUUID().replaceAll('-', '_');
 
     return `${prefix}_${suffix}`;
   }

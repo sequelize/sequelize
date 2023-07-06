@@ -1,4 +1,4 @@
-import { Deferrable, Sequelize, Transaction } from '@sequelize/core';
+import { ConstraintChecking, Sequelize, Transaction } from '@sequelize/core';
 import { User } from './models/user';
 
 export const sequelize = new Sequelize('uri');
@@ -66,7 +66,7 @@ async function trans4() {
 
 async function transact() {
   const t = await sequelize.startUnmanagedTransaction({
-    deferrable: Deferrable.SET_DEFERRED(['test']),
+    constraintChecking: ConstraintChecking.DEFERRED(['test']),
     isolationLevel: Transaction.ISOLATION_LEVELS.READ_COMMITTED,
     type: Transaction.TYPES.DEFERRED,
   });

@@ -430,14 +430,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           onUpdate: 'CASCADE',
         });
 
-        // TODO: replace with queryInterface.showConstraint once it lists foreign keys properly for sqlite
-        const constraintsQuery = this.queryInterface.queryGenerator.showConstraintsQuery('users');
-        const [{ sql: usersSql }] = await this.queryInterface.sequelize.query(constraintsQuery, {
-          type: 'SELECT',
-        });
-
-        expect(usersSql).to.include('ON DELETE CASCADE', 'should include ON DELETE constraint');
-        expect(usersSql).to.include('ON UPDATE CASCADE', 'should include ON UPDATE constraint');
+        const constraints = await this.queryInterface.showConstraints('users');
+        const foreignKey = constraints.find(constraint => constraint.constraintType === 'FOREIGN KEY');
+        expect(foreignKey).to.not.be.undefined;
+        expect(foreignKey).to.have.property('deleteAction', 'CASCADE');
+        expect(foreignKey).to.have.property('updateAction', 'CASCADE');
       });
 
       it('should change columns with foreign key constraints without data loss', async function () {
