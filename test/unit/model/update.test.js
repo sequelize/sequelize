@@ -51,47 +51,47 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('Update with multiple models to the same table', () => {
-    before(function () {
+    before(function() {
       this.Model1 = current.define('Model1', {
         value: DataTypes.INTEGER,
         name: DataTypes.STRING,
         isModel2: DataTypes.BOOLEAN,
-        model1ExclusiveData: DataTypes.STRING,
+        model1ExclusiveData: DataTypes.STRING
       }, {
-        tableName: 'model_table',
+        tableName: 'model_table'
       });
 
       this.Model2 = current.define('Model2', {
         value: DataTypes.INTEGER,
-        name: DataTypes.STRING,
+        name: DataTypes.STRING
       }, {
-        tableName: 'model_table',
+        tableName: 'model_table'
       });
     });
 
-    beforeEach(function () {
+    beforeEach(function() {
       this.stubQuery = sinon.stub(current, 'query').resolves([]);
     });
 
-    afterEach(function () {
+    afterEach(function() {
       this.stubQuery.restore();
     });
 
-    it('updates model1 using model1 model', async function ()  {
+    it('updates model1 using model1 model', async function()  {
       await this.Model1.update({
         name: 'other name',
-        model1ExclusiveData: 'only I can update this field',
+        model1ExclusiveData: 'only I can update this field'
       }, {
-        where: { value: 1 },
+        where: { value: 1 }
       });
       expect(this.stubQuery.lastCall.lastArg.model).to.eq(this.Model1);
     });
 
-    it('updates model2 using model2 model', async function ()  {
+    it('updates model2 using model2 model', async function()  {
       await this.Model2.update({
-        name: 'other name',
+        name: 'other name'
       }, {
-        where: { value: 2 },
+        where: { value: 2 }
       });
       expect(this.stubQuery.lastCall.lastArg.model).to.eq(this.Model2);
     });

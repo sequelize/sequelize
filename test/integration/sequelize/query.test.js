@@ -713,8 +713,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('binds named parameters with the passed object using the same key twice', async function() {
         const typeCast = dialect === 'postgres' ? '::int' : '';
         let logSql;
-        const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $one${typeCast} as baz${Support.addDualInSelect()}`, { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } });
-        const expected = dialect !== 'oracle' ? [{ foo: 1, bar: 2, baz: 1 }] : [{ FOO: 1, BAR: 2, BAZ: 1 }];
+        const result = await this.sequelize.query(`select $one${typeCast} as foo, $one${typeCast} as bar, $two${typeCast} as baz${Support.addDualInSelect()}`, { raw: true, bind: { one: 1, two: 2 }, logging(s) { logSql = s; } });
+        const expected = dialect !== 'oracle' ? [{ foo: 1, bar: 1, baz: 2 }] : [{ FOO: 1, BAR: 1, BAZ: 2 }];
         expect(result[0]).to.deep.equal(expected);
         if (dialect === 'postgres') {
           expect(logSql).to.include('$1');
