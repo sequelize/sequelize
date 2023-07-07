@@ -1,6 +1,6 @@
 'use strict';
 
-const after = require('lodash/after');
+const afterLodash = require('lodash/after');
 const once = require('lodash/once');
 
 const chai = require('chai');
@@ -996,7 +996,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await UserPub.sync({ force: true });
         await ItemPub.sync({
           force: true,
-          logging: after(2, once(sql => {
+          logging: afterLodash(2, once(sql => {
             test = true;
             switch (dialectName) {
               case 'postgres':
