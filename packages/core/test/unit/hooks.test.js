@@ -1,12 +1,13 @@
 'use strict';
 
+import noop from 'lodash/noop';
+
 const chai = require('chai');
 const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
-const _ = require('lodash');
 
 const sequelize = Support.sequelize;
 
@@ -240,7 +241,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       const Model = sequelize.define('M', {}, {
         hooks: {
-          beforeUpdate: _.noop, // Just to make sure we can define other hooks without overwriting the global one
+          beforeUpdate: noop, // Just to make sure we can define other hooks without overwriting the global one
           beforeCreate: localHook,
         },
       });

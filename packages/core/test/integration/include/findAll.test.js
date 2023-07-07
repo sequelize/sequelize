@@ -1,11 +1,13 @@
 'use strict';
 
+import partition from 'lodash/partition';
+import upperFirst from 'lodash/upperFirst';
+
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Op, Sequelize } = require('@sequelize/core');
-const _ = require('lodash');
 const promiseProps = require('p-props');
 
 const sortById = function (a, b) {
@@ -469,7 +471,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             await promise;
             const instance = await model.create({});
             if (previousInstance) {
-              await previousInstance[`set${_.upperFirst(model.name)}`](instance);
+              await previousInstance[`set${upperFirst(model.name)}`](instance);
               previousInstance = instance;
 
               return;
@@ -578,7 +580,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             await promise;
             const instance = await model.create(values);
             if (previousInstance) {
-              await previousInstance[`set${_.upperFirst(model.name)}`](instance);
+              await previousInstance[`set${upperFirst(model.name)}`](instance);
               previousInstance = instance;
 
               return;
@@ -2166,7 +2168,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(userCustomers).to.be.an('array');
       expect(userCustomers).to.be.lengthOf(2);
 
-      const [nonDeletedUserCustomers, deletedUserCustomers] = _.partition(userCustomers, userCustomer => !userCustomer.deletedAt);
+      const [nonDeletedUserCustomers, deletedUserCustomers] = partition(userCustomers, userCustomer => !userCustomer.deletedAt);
 
       expect(nonDeletedUserCustomers).to.be.lengthOf(1);
       expect(deletedUserCustomers).to.be.lengthOf(1);

@@ -1,12 +1,13 @@
 'use strict';
 
+import each from 'lodash/each';
+
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const _ = require('lodash');
 const { Op, IndexHints } = require('@sequelize/core');
 const { MariaDbQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mariadb/query-generator.js');
 const { createSequelizeInstance } = require('../../../support');
@@ -441,7 +442,7 @@ if (dialect === 'mariadb') {
       ],
     };
 
-    _.each(suites, (tests, suiteTitle) => {
+    each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;

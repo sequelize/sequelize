@@ -2,9 +2,12 @@
 
 import NodeUtil from 'node:util';
 
+import forOwn from 'lodash/forOwn';
+import map from 'lodash/map';
+import zipObject from 'lodash/zipObject';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
 const ER_DUP_ENTRY = 1062;
@@ -199,13 +202,13 @@ export class MySqlQuery extends AbstractQuery {
             message = uniqueKey.msg;
           }
 
-          fields = _.zipObject(uniqueKey.fields, values);
+          fields = zipObject(uniqueKey.fields, values);
         } else {
           fields[fieldKey] = fieldVal;
         }
 
         const errors = [];
-        _.forOwn(fields, (value, field) => {
+        forOwn(fields, (value, field) => {
           errors.push(new sequelizeErrors.ValidationErrorItem(
             this.getUniqueConstraintErrorMessage(field),
             'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -274,7 +277,7 @@ export class MySqlQuery extends AbstractQuery {
       return acc;
     }, {});
 
-    return _.map(data, item => {
+    return map(data, item => {
       return ({
         primary: item.Key_name === 'PRIMARY',
         fields: item.fields,

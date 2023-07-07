@@ -1,5 +1,7 @@
 'use strict';
 
+import uniq from 'lodash/uniq';
+
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -9,7 +11,6 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
 const current = Support.sequelize;
-const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
@@ -234,11 +235,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('adds, reads and removes an index to the table', async function () {
       await this.queryInterface.addIndex('Group', ['username', 'isAdmin']);
       let indexes = await this.queryInterface.showIndex('Group');
-      let indexColumns = _.uniq(indexes.map(index => index.name));
+      let indexColumns = uniq(indexes.map(index => index.name));
       expect(indexColumns).to.include('group_username_is_admin');
       await this.queryInterface.removeIndex('Group', ['username', 'isAdmin']);
       indexes = await this.queryInterface.showIndex('Group');
-      indexColumns = _.uniq(indexes.map(index => index.name));
+      indexColumns = uniq(indexes.map(index => index.name));
       expect(indexColumns).to.be.empty;
     });
 

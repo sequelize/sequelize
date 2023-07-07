@@ -1,10 +1,11 @@
 'use strict';
 
+import at from 'lodash/at';
+
 const Support = require('../../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 const util = require('node:util');
-const _ = require('lodash');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -21,7 +22,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       Sequelize.Model._conformIncludes(options, options.model);
       options = _validateIncludedElements(options);
 
-      const include = _.at(options, path)[0];
+      const include = at(options, path)[0];
 
       it(name, () => {
 

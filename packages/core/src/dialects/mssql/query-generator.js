@@ -15,7 +15,11 @@ import {
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const _ = require('lodash');
+import each from 'lodash/each';
+import forOwn from 'lodash/forOwn';
+import isPlainObject from 'lodash/isPlainObject';
+import isString from 'lodash/isString';
+
 const DataTypes = require('../../data-types');
 const { TableHints } = require('../../table-hints');
 const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
@@ -197,7 +201,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options?.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = generateIndexName(tableName, columns);
         }
@@ -287,7 +291,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     let commentStr = '';
 
-    if (dataType.comment && _.isString(dataType.comment)) {
+    if (dataType.comment && isString(dataType.comment)) {
       commentStr = this.commentTemplate(dataType.comment, table, key);
       // attributeToSQL will try to include `COMMENT 'Comment Text'` when it returns if the comment key
       // is present. This is needed for createTable statement where that part is extracted with regex.
@@ -402,7 +406,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       }
 
       // normal case
-      _.forOwn(attrValueHash, (value, key) => {
+      forOwn(attrValueHash, (value, key) => {
         if (value !== null && attributes[key] && attributes[key].autoIncrement) {
           needIdentityInsertWrapper = true;
         }
@@ -611,7 +615,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };

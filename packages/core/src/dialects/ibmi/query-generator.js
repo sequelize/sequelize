@@ -14,8 +14,10 @@ import {
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
+import each from 'lodash/each';
+import isPlainObject from 'lodash/isPlainObject';
+
 const util = require('node:util');
-const _ = require('lodash');
 const { IBMiQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const DataTypes = require('../../data-types');
 
@@ -97,7 +99,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       const sortedPrimaryKeys = [...primaryKeys];
       sortedPrimaryKeys.sort();
 
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         // sort the columns for each unique key, so they can be easily compared
         // with the sorted primary key fields
         const sortedColumnFields = [...columns.fields];
@@ -460,7 +462,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   // }
 
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };

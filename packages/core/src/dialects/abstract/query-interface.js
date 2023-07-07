@@ -6,7 +6,13 @@ import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import { AbstractDataType } from './data-types';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
-const _ = require('lodash');
+import defaults from 'lodash/defaults';
+import find from 'lodash/find';
+import identity from 'lodash/identity';
+import intersection from 'lodash/intersection';
+import isObject from 'lodash/isObject';
+import mapValues from 'lodash/mapValues';
+import uniq from 'lodash/uniq';
 
 const DataTypes = require('../../data-types');
 const { Transaction } = require('../../transaction');
@@ -138,7 +144,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
-    attributes = _.mapValues(
+    attributes = mapValues(
       attributes,
       attribute => this.sequelize.normalizeAttribute(attribute),
     );
@@ -237,7 +243,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     for (const tableName of tableNames) {
       let normalizedTableName = tableName;
-      if (_.isObject(tableName)) {
+      if (isObject(tableName)) {
         normalizedTableName = `${tableName.schema}.${tableName.tableName}`;
       }
 
@@ -524,7 +530,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const result = {};
 
     for (let [i, tableName] of tableNames.entries()) {
-      if (_.isObject(tableName)) {
+      if (isObject(tableName)) {
         tableName = `${tableName.schema}.${tableName.tableName}`;
       }
 
@@ -532,7 +538,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
         ? results[i].map(r => r.constraintName)
         : [results[i] && results[i].constraintName];
 
-      result[tableName] = result[tableName].filter(_.identity);
+      result[tableName] = result[tableName].filter(identity);
     }
 
     return result;
@@ -656,12 +662,12 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       // Always use PK, if no constraint available OR update data contains PK
       if (
         options.upsertKeys.length === 0
-        || _.intersection(options.updateOnDuplicate, primaryKeys).length > 0
+        || intersection(options.updateOnDuplicate, primaryKeys).length > 0
       ) {
         options.upsertKeys = primaryKeys;
       }
 
-      options.upsertKeys = _.uniq(options.upsertKeys);
+      options.upsertKeys = uniq(options.upsertKeys);
     }
 
     const { bind, query } = this.queryGenerator.insertQuery(
@@ -770,8 +776,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
-    const table = _.isObject(tableName) ? tableName : { tableName };
-    const model = options.model ? options.model : _.find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const table = isObject(tableName) ? tableName : { tableName };
+    const model = options.model ? options.model : find(this.sequelize.modelManager.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;
@@ -842,7 +848,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   async bulkDelete(tableName, where, options, model) {
     options = cloneDeep(options) ?? {};
-    options = _.defaults(options, { limit: null });
+    options = defaults(options, { limit: null });
 
     if (options.truncate === true) {
       return this.sequelize.queryRaw(
@@ -902,7 +908,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
   async rawSelect(tableName, options, attributeSelector, Model) {
     options = cloneDeep(options) ?? {};
-    options = _.defaults(options, {
+    options = defaults(options, {
       raw: true,
       plain: true,
       type: QueryTypes.SELECT,

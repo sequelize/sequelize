@@ -1,5 +1,7 @@
 'use strict';
 
+import each from 'lodash/each';
+
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -15,7 +17,6 @@ const dialect = Support.getTestDialect();
 const dayjs = require('dayjs');
 
 const current = Support.sequelize;
-const _ = require('lodash');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
@@ -814,7 +815,7 @@ if (dialect.startsWith('postgres')) {
       ],
     };
 
-    _.each(suites, (tests, suiteTitle) => {
+    each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
@@ -875,7 +876,7 @@ if (dialect.startsWith('postgres')) {
         },
       ];
 
-      _.each(tests, test => {
+      each(tests, test => {
         it(test.title, function () {
           const convertedText = this.queryGenerator.fromArray(test.arguments);
           expect(convertedText).to.deep.equal(test.expectation);
@@ -901,7 +902,7 @@ if (dialect.startsWith('postgres')) {
         ],
       };
 
-      _.each(customSchemaSuites, (customSchemaTests, customSchemaSuiteTitle) => {
+      each(customSchemaSuites, (customSchemaTests, customSchemaSuiteTitle) => {
         for (const customSchemaTest of customSchemaTests) {
           it(customSchemaTest.title, function () {
             const convertedText = customSchemaTest.arguments ? this.queryGenerator[customSchemaSuiteTitle](...customSchemaTest.arguments) : this.queryGenerator[customSchemaSuiteTitle]();

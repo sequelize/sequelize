@@ -1,5 +1,7 @@
 'use strict';
 
+import uniq from 'lodash/uniq';
+
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -7,7 +9,6 @@ const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
 const { DataTypes } = require('@sequelize/core');
-const _ = require('lodash');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryInterface', () => {
@@ -254,7 +255,7 @@ if (dialect.startsWith('postgres')) {
           )`)], { name: 'group_username_case' });
 
         const indexes = await this.queryInterface.showIndex('Group');
-        const indexColumns = _.uniq(indexes.map(index => index.name));
+        const indexColumns = uniq(indexes.map(index => index.name));
 
         expect(indexColumns).to.include('group_username_case');
       });
@@ -265,12 +266,12 @@ if (dialect.startsWith('postgres')) {
         });
 
         const indexes0 = await this.queryInterface.showIndex('Group');
-        const indexColumns0 = _.uniq(indexes0.map(index => index.name));
+        const indexColumns0 = uniq(indexes0.map(index => index.name));
 
         expect(indexColumns0).to.include('group_username_lower');
         await this.queryInterface.removeIndex('Group', 'group_username_lower');
         const indexes = await this.queryInterface.showIndex('Group');
-        const indexColumns = _.uniq(indexes.map(index => index.name));
+        const indexColumns = uniq(indexes.map(index => index.name));
         expect(indexColumns).to.be.empty;
       });
     });

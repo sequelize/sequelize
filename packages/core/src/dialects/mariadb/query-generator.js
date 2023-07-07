@@ -5,7 +5,9 @@ import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 
-const _ = require('lodash');
+import each from 'lodash/each';
+import isPlainObject from 'lodash/isPlainObject';
+
 const { MariaDbQueryGeneratorTypeScript } = require('./query-generator-typescript');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
@@ -91,7 +93,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
@@ -243,7 +245,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
   }
 
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };

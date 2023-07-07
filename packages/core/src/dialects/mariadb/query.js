@@ -2,9 +2,11 @@
 
 import NodeUtil from 'node:util';
 
+import forOwn from 'lodash/forOwn';
+import zipObject from 'lodash/zipObject';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 const DataTypes = require('../../data-types');
 const { logger } = require('../../utils/logger');
 
@@ -229,13 +231,13 @@ export class MariaDbQuery extends AbstractQuery {
             message = uniqueKey.msg;
           }
 
-          fields = _.zipObject(uniqueKey.fields, values);
+          fields = zipObject(uniqueKey.fields, values);
         } else {
           fields[fieldKey] = fieldVal;
         }
 
         const errors = [];
-        _.forOwn(fields, (value, field) => {
+        forOwn(fields, (value, field) => {
           errors.push(new sequelizeErrors.ValidationErrorItem(
             this.getUniqueConstraintErrorMessage(field),
             'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,

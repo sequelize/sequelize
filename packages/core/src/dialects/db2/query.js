@@ -4,8 +4,9 @@ import assert from 'node:assert';
 import { AbstractQuery } from '../abstract/query';
 import { logger } from '../../utils/logger';
 
+import forOwn from 'lodash/forOwn';
+
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 
 const debug = logger.debugContext('sql:db2');
 
@@ -78,7 +79,7 @@ export class Db2Query extends AbstractQuery {
 
     const params = [];
     if (parameters) {
-      _.forOwn(parameters, (value, key) => {
+      forOwn(parameters, (value, key) => {
         const param = this.getSQLTypeFromJsType(value, key);
         params.push(param);
       });
@@ -353,7 +354,7 @@ export class Db2Query extends AbstractQuery {
       }
 
       const errors = [];
-      _.forOwn(fields, (value, field) => {
+      forOwn(fields, (value, field) => {
         errors.push(new sequelizeErrors.ValidationErrorItem(
           this.getUniqueConstraintErrorMessage(field),
           'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
