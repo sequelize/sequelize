@@ -1,6 +1,6 @@
 'use strict';
 
-import at from 'lodash/at';
+const at = require('lodash/at');
 
 const Support = require('../../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
