@@ -15,6 +15,7 @@ import { List } from '../../expression-builders/list.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
+import { IndexHints } from '../../index-hints.js';
 import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
@@ -51,6 +52,7 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
+export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 
@@ -426,6 +428,13 @@ export class AbstractQueryGeneratorTypeScript {
    * @param options options
    */
   quoteTable(param: TableNameOrModel, options?: QuoteTableOptions): string {
+    const QUOTE_TABLE_SUPPORTED_OPTIONS = new Set<keyof QuoteTableOptions>();
+    if (this.dialect.supports.indexHints) {
+      QUOTE_TABLE_SUPPORTED_OPTIONS.add('indexHints');
+    }
+
+    rejectInvalidOptions('quoteTable', this.dialect.name, QUOTE_TABLE_SUPPORTABLE_OPTIONS, QUOTE_TABLE_SUPPORTED_OPTIONS, { ...options });
+
     if (isModelStatic(param)) {
       param = param.getTableName();
     }
@@ -458,6 +467,14 @@ export class AbstractQueryGeneratorTypeScript {
 
     if (options?.alias) {
       sql += ` AS ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
+    }
+
+    if (options?.indexHints) {
+      for (const hint of options.indexHints) {
+        if (IndexHints[hint.type]) {
+          sql += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifier(indexName)).join(',')})`;
+        }
+      }
     }
 
     return sql;

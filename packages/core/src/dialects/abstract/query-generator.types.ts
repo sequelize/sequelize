@@ -1,6 +1,6 @@
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
-import type { ReferentialAction } from '../../model';
+import type { IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableNameOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
@@ -102,6 +102,6 @@ export interface AttributeToSqlOptions {
   withoutForeignKeyConstraints?: boolean;
 }
 
-export interface QuoteTableOptions {
+export interface QuoteTableOptions extends IndexHintable {
   alias: boolean | string;
 }
