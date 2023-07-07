@@ -1,6 +1,6 @@
 'use strict';
 
-import range from 'lodash/range';
+const range = require('lodash/range');
 
 const chai = require('chai');
 

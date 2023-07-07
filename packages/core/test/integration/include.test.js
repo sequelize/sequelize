@@ -1,6 +1,6 @@
 'use strict';
 
-import omit from 'lodash/omit';
+const omit = require('lodash/omit');
 
 const chai = require('chai');
 

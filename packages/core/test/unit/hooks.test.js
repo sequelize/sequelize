@@ -1,6 +1,6 @@
 'use strict';
 
-import noop from 'lodash/noop';
+const noop = require('lodash/noop');
 
 const chai = require('chai');
 const sinon = require('sinon');

@@ -1,8 +1,8 @@
 'use strict';
 
-import groupBy from 'lodash/groupBy';
-import invokeMap from 'lodash/invokeMap';
-import property from 'lodash/property';
+const groupBy = require('lodash/groupBy');
+const invokeMap = require('lodash/invokeMap');
+const property = require('lodash/property');
 
 const chai = require('chai');
 const sinon = require('sinon');

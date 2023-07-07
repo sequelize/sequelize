@@ -1,6 +1,6 @@
 'use strict';
 
-import forEach from 'lodash/forEach';
+const forEach = require('lodash/forEach');
 
 const chai = require('chai');
 const sinon = require('sinon');

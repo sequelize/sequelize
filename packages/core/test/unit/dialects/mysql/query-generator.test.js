@@ -1,6 +1,6 @@
 'use strict';
 
-import each from 'lodash/each';
+const each = require('lodash/each');
 
 const chai = require('chai');
 

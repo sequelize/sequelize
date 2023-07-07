@@ -1,6 +1,6 @@
 'use strict';
 
-import cloneDeep from 'lodash/cloneDeep';
+const cloneDeep = require('lodash/cloneDeep');
 
 const { expect, assert } = require('chai');
 const Support = require('./support');

@@ -1,6 +1,6 @@
 'use strict';
 
-import upperFirst from 'lodash/upperFirst';
+const upperFirst = require('lodash/upperFirst');
 
 const chai = require('chai');
 

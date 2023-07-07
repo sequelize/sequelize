@@ -1,7 +1,7 @@
 'use strict';
 
-import after from 'lodash/after';
-import once from 'lodash/once';
+const after = require('lodash/after');
+const once = require('lodash/once');
 
 const chai = require('chai');
 

@@ -1,7 +1,7 @@
 'use strict';
 
-import partition from 'lodash/partition';
-import upperFirst from 'lodash/upperFirst';
+const partition = require('lodash/partition');
+const upperFirst = require('lodash/upperFirst');
 
 const chai = require('chai');
 

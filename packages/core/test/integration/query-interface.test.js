@@ -1,6 +1,6 @@
 'use strict';
 
-import uniq from 'lodash/uniq';
+const uniq = require('lodash/uniq');
 
 const chai = require('chai');
 

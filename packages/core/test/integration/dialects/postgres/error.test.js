@@ -1,14 +1,14 @@
 'use strict';
 
-import each from 'lodash/each';
+const each = require('lodash/each');
 
-const chai      = require('chai');
+const chai = require('chai');
 
-const expect    = chai.expect;
+const expect = chai.expect;
 const { DataTypes, Sequelize } = require('@sequelize/core');
-const Support   = require('../../support');
+const Support = require('../../support');
 
-const dialect   = Support.getTestDialect();
+const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] ExclusionConstraintError', () => {
