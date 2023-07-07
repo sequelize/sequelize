@@ -1,6 +1,5 @@
 'use strict';
 
-import isPlainObject from 'lodash/isPlainObject';
 import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { AssociationPath } from './expression-builders/association-path';
