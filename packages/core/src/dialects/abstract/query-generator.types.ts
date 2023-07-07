@@ -101,3 +101,7 @@ export interface AttributeToSqlOptions {
   table: string;
   withoutForeignKeyConstraints?: boolean;
 }
+
+export interface QuoteTableOptions {
+  alias: boolean | string;
+}

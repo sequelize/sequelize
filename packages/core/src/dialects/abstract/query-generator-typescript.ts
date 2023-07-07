@@ -33,6 +33,7 @@ import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
   GetConstraintSnippetQueryOptions,
+  QuoteTableOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types.js';
@@ -422,9 +423,9 @@ export class AbstractQueryGeneratorTypeScript {
    * Quote table name with optional alias and schema attribution
    *
    * @param param table string or object
-   * @param alias alias name
+   * @param options options
    */
-  quoteTable(param: TableNameOrModel, alias: boolean | string = false): string {
+  quoteTable(param: TableNameOrModel, options?: QuoteTableOptions): string {
     if (isModelStatic(param)) {
       param = param.getTableName();
     }
@@ -433,10 +434,6 @@ export class AbstractQueryGeneratorTypeScript {
 
     if (isObject(param) && ('as' in param || 'name' in param)) {
       throw new Error('parameters "as" and "name" are not allowed in the first parameter of quoteTable, pass them as the second parameter.');
-    }
-
-    if (alias === true) {
-      alias = tableName.tableName;
     }
 
     let sql = '';
@@ -459,8 +456,8 @@ export class AbstractQueryGeneratorTypeScript {
       sql += this.quoteIdentifier(fakeSchemaPrefix + tableName.tableName);
     }
 
-    if (alias) {
-      sql += ` AS ${this.quoteIdentifier(alias)}`;
+    if (options?.alias) {
+      sql += ` AS ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
     }
 
     return sql;

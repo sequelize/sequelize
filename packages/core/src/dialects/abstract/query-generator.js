@@ -1042,7 +1042,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     mainTable.quotedAs = mainTable.as && this.quoteIdentifier(mainTable.as);
 
     mainTable.quotedName = !Array.isArray(mainTable.name) ? this.quoteTable(mainTable.name) : tableName.map(t => {
-      return Array.isArray(t) ? this.quoteTable(t[0], t[1]) : this.quoteTable(t, true);
+      return Array.isArray(t) ? this.quoteTable(t[0], { alias: t[1] }) : this.quoteTable(t, { alias: true });
     }).join(', ');
 
     const mainModelDefinition = mainTable.model?.modelDefinition;
@@ -1668,7 +1668,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     return {
       join: include.required ? 'INNER JOIN' : include.right && this.dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN',
-      body: this.quoteTable(tableRight, asRight),
+      body: this.quoteTable(tableRight, { alias: asRight }),
       condition: joinOn,
       attributes: {
         main: [],
@@ -1835,7 +1835,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
-    joinBody = `( ${this.quoteTable(throughTable, throughAs)} INNER JOIN ${this.quoteTable(include.model.getTableName(), includeAs.internalAs)} ON ${targetJoinOn}`;
+    joinBody = `( ${this.quoteTable(throughTable, { alias: throughAs })} INNER JOIN ${this.quoteTable(include.model.getTableName(), { alias: includeAs.internalAs })} ON ${targetJoinOn}`;
     if (throughWhere) {
       joinBody += ` AND ${throughWhere}`;
     }
