@@ -20,6 +20,7 @@ import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
+import { TableHints } from '../../table-hints.js';
 import { isDictionary, isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
@@ -52,7 +53,7 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
-export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints']);
+export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 
@@ -433,6 +434,10 @@ export class AbstractQueryGeneratorTypeScript {
       QUOTE_TABLE_SUPPORTED_OPTIONS.add('indexHints');
     }
 
+    if (this.dialect.supports.tableHints) {
+      QUOTE_TABLE_SUPPORTED_OPTIONS.add('tableHints');
+    }
+
     rejectInvalidOptions('quoteTable', this.dialect.name, QUOTE_TABLE_SUPPORTABLE_OPTIONS, QUOTE_TABLE_SUPPORTED_OPTIONS, { ...options });
 
     if (isModelStatic(param)) {
@@ -474,6 +479,19 @@ export class AbstractQueryGeneratorTypeScript {
         if (IndexHints[hint.type]) {
           sql += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifier(indexName)).join(',')})`;
         }
+      }
+    }
+
+    if (options?.tableHints) {
+      const hints: TableHints[] = [];
+      for (const hint of options.tableHints) {
+        if (TableHints[hint]) {
+          hints.push(TableHints[hint]);
+        }
+      }
+
+      if (hints.length) {
+        sql += ` WITH (${hints.join(', ')})`;
       }
     }
 

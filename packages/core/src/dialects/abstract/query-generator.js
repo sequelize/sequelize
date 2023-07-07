@@ -1668,7 +1668,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     return {
       join: include.required ? 'INNER JOIN' : include.right && this.dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN',
-      body: this.quoteTable(tableRight, { alias: asRight }),
+      body: this.quoteTable(tableRight, { ...topLevelInfo.options, ...include, alias: asRight }),
       condition: joinOn,
       attributes: {
         main: [],
@@ -1835,7 +1835,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
-    joinBody = `( ${this.quoteTable(throughTable, { alias: throughAs })} INNER JOIN ${this.quoteTable(include.model.getTableName(), { alias: includeAs.internalAs })} ON ${targetJoinOn}`;
+    joinBody = `( ${this.quoteTable(throughTable, { ...topLevelInfo.options, ...include, alias: throughAs })} INNER JOIN ${this.quoteTable(include.model.getTableName(), { ...topLevelInfo.options, ...include, alias: includeAs.internalAs })} ON ${targetJoinOn}`;
     if (throughWhere) {
       joinBody += ` AND ${throughWhere}`;
     }
