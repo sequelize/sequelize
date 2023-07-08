@@ -98,17 +98,19 @@ import { SemiDeepWritable } from "./type-helpers/deep-writable";
     expectTypeOf(args).toMatchTypeOf<[GetConnectionOptions | undefined]>();
   });
 
-  Sequelize.afterPoolAcquire('name', (connection: Connection, options?: GetConnectionOptions) => {
+  Sequelize.afterPoolAcquire('name', (connection: Connection, options?: GetConnectionOptions, timeTakenToAcquireInMs?: number) => {
     expectTypeOf(connection).toMatchTypeOf<Connection>();
     expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+    expectTypeOf(timeTakenToAcquireInMs).toMatchTypeOf<number | undefined>();
   });
 
-  Sequelize.afterPoolAcquire((connection: Connection, options?: GetConnectionOptions) => {
+  Sequelize.afterPoolAcquire((connection: Connection, options?: GetConnectionOptions, timeTakenToAcquireInMs?: number) => {
     expectTypeOf(connection).toMatchTypeOf<Connection>();
     expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+    expectTypeOf(timeTakenToAcquireInMs).toMatchTypeOf<number | undefined>();
   });
 
-  Sequelize.addHook('afterPoolAcquire', (...args: [Connection | GetConnectionOptions | undefined]) => {
-    expectTypeOf(args).toMatchTypeOf<[Connection | GetConnectionOptions | undefined]>();
+  Sequelize.addHook('afterPoolAcquire', (...args: [Connection | GetConnectionOptions | number | undefined]) => {
+    expectTypeOf(args).toMatchTypeOf<[Connection | GetConnectionOptions | number | undefined]>();
   });
 }

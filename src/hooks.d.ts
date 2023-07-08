@@ -78,7 +78,7 @@ export interface SequelizeHooks<
   beforeConnect(config: DeepWriteable<Config>): HookReturn;
   afterConnect(connection: unknown, config: Config): HookReturn;
   beforePoolAcquire(config: GetConnectionOptions): HookReturn;
-  afterPoolAcquire(connection: Connection, config: GetConnectionOptions): HookReturn;
+  afterPoolAcquire(connection: Connection, config: GetConnectionOptions, timeTakenToAcquireInMs: number): HookReturn;
   beforeDisconnect(connection: unknown): HookReturn;
   afterDisconnect(connection: unknown): HookReturn;
 }

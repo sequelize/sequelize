@@ -736,8 +736,8 @@ export class Sequelize extends Hooks {
    * @param name
    * @param fn   A callback function that is called with options
    */
-  public static afterPoolAcquire(name: string, fn: (connection: Connection, options: GetConnectionOptions) => void): void;
-  public static afterPoolAcquire(fn: (connection: Connection, options: GetConnectionOptions) => void): void;
+  public static afterPoolAcquire(name: string, fn: (connection: Connection, options: GetConnectionOptions, timeTakenToAcquireInMs: number) => void): void;
+  public static afterPoolAcquire(fn: (connection: Connection, options: GetConnectionOptions, timeTakenToAcquireInMs: number) => void): void;
 
 
   /**

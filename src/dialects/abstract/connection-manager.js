@@ -285,10 +285,11 @@ class ConnectionManager {
     try {
 
       await this.sequelize.runHooks('beforePoolAcquire', options);
-
+      const start = Date.now();
       result = await this.pool.acquire(options.type, options.useMaster);
+      const timeTakenToAcquireInMs = Date.now() - start;
 
-      await this.sequelize.runHooks('afterPoolAcquire', result, options);
+      await this.sequelize.runHooks('afterPoolAcquire', result, options, timeTakenToAcquireInMs);
 
     } catch (error) {
       if (error instanceof TimeoutError) throw new errors.ConnectionAcquireTimeoutError(error);
