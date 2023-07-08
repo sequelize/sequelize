@@ -168,18 +168,20 @@ sequelize.addHook('beforePoolAcquire', (...args: [GetConnectionOptions | undefin
   expectTypeOf(args).toMatchTypeOf<[GetConnectionOptions | undefined]>();
 });
 
-sequelize.afterPoolAcquire('name', (connection: Connection, options?: GetConnectionOptions) => {
+sequelize.afterPoolAcquire('name', (connection: Connection, options?: GetConnectionOptions, timeTakenToAcquireInMs?: number) => {
   expectTypeOf(connection).toMatchTypeOf<Connection>();
   expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+  expectTypeOf(timeTakenToAcquireInMs).toMatchTypeOf<number | undefined>();
 });
 
-sequelize.afterPoolAcquire((connection: Connection, options?: GetConnectionOptions) => {
+sequelize.afterPoolAcquire((connection: Connection, options?: GetConnectionOptions, timeTakenToAcquireInMs?: number) => {
   expectTypeOf(connection).toMatchTypeOf<Connection>();
   expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
+  expectTypeOf(timeTakenToAcquireInMs).toMatchTypeOf<number | undefined>();
 });
 
-sequelize.addHook('afterPoolAcquire', (...args: [Connection | GetConnectionOptions | undefined]) => {
-  expectTypeOf(args).toMatchTypeOf<[Connection | GetConnectionOptions | undefined]>();
+sequelize.addHook('afterPoolAcquire', (...args: [Connection | GetConnectionOptions | number | undefined]) => {
+  expectTypeOf(args).toMatchTypeOf<[Connection | GetConnectionOptions | number | undefined]>();
 });
 
 sequelize.beforeQuery((options, query) => {

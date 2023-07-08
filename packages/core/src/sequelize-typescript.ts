@@ -91,7 +91,7 @@ export interface SequelizeHooks extends ModelHooks {
   /**
    * A hook that is run after a connection to the pool
    */
-  afterPoolAcquire(connection: Connection, options?: GetConnectionOptions): AsyncHookReturn;
+  afterPoolAcquire(connection: Connection, options?: GetConnectionOptions, timeTakenToAcquireInMs?: number): AsyncHookReturn;
 }
 
 export interface StaticSequelizeHooks {

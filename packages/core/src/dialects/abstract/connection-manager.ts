@@ -185,9 +185,11 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
 
       await this.sequelize.hooks.runAsync('beforePoolAcquire', options);
 
+      const start = Date.now();
       const result = await this.pool.acquire(options?.type, options?.useMaster);
+      const timeTakenToAcquireInMs = Date.now() - start;
 
-      await this.sequelize.hooks.runAsync('afterPoolAcquire', result, options);
+      await this.sequelize.hooks.runAsync('afterPoolAcquire', result, options, timeTakenToAcquireInMs);
 
       debug('connection acquired');
 
