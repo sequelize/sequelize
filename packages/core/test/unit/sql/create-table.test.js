@@ -6,7 +6,6 @@ const { DataTypes } = require('@sequelize/core');
 const expectsql = Support.expectsql;
 const current   = Support.sequelize;
 const sql       = current.dialect.queryGenerator;
-const _         = require('lodash');
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   if (current.dialect.name === 'snowflake') {

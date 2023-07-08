@@ -1,8 +1,9 @@
 'use strict';
 
+import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject';
+import merge from 'lodash/merge';
 
-const _ = require('lodash');
 const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
@@ -40,7 +41,7 @@ export class SqliteQuery extends AbstractQuery {
         ret[key] = _include.model;
 
         if (_include.include) {
-          _.merge(ret, this._collectModels(_include.include, key));
+          merge(ret, this._collectModels(_include.include, key));
         }
       }
     }
@@ -326,7 +327,7 @@ export class SqliteQuery extends AbstractQuery {
 
         if (this.model) {
           for (const index of this.model.getIndexes()) {
-            if (index.unique && _.isEqual(index.fields, fields) && index.msg) {
+            if (index.unique && isEqual(index.fields, fields) && index.msg) {
               message = index.msg;
               break;
             }

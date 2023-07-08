@@ -13,9 +13,14 @@ import {
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
+import each from 'lodash/each';
+import isEmpty from 'lodash/isEmpty';
+import isPlainObject from 'lodash/isPlainObject';
+import map from 'lodash/map';
+import reduce from 'lodash/reduce';
+
 const DataTypes = require('../../data-types');
 const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const _ = require('lodash');
 
 /**
  * list of reserved words in PostgreSQL 10
@@ -130,7 +135,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let attributesClause = attrStr.join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (index, indexName) => {
+      each(options.uniqueKeys, (index, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = generateIndexName(tableName, index);
         }
@@ -144,7 +149,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       });
     }
 
-    const pks = _.reduce(attributes, (acc, attribute, key) => {
+    const pks = reduce(attributes, (acc, attribute, key) => {
       if (attribute.includes('PRIMARY KEY')) {
         acc.push(this.quoteIdentifier(key));
       }
@@ -339,7 +344,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };
@@ -566,7 +571,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   expandOptions(options) {
-    return options === undefined || _.isEmpty(options)
+    return options === undefined || isEmpty(options)
       ? '' : options.join(' ');
   }
 
@@ -590,11 +595,11 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   expandTriggerEventSpec(fireOnSpec) {
-    if (_.isEmpty(fireOnSpec)) {
+    if (isEmpty(fireOnSpec)) {
       throw new Error('no table change events specified to trigger on');
     }
 
-    return _.map(fireOnSpec, (fireValue, fireKey) => {
+    return map(fireOnSpec, (fireValue, fireKey) => {
       const EVENT_MAP = {
         insert: 'INSERT',
         update: 'UPDATE',

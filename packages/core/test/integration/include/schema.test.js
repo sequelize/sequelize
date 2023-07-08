@@ -1,5 +1,7 @@
 'use strict';
 
+const upperFirst = require('lodash/upperFirst');
+
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -7,7 +9,6 @@ const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
 
 const dialect = Support.sequelize.dialect;
-const _ = require('lodash');
 const promiseProps = require('p-props');
 
 const sortById = function (a, b) {
@@ -362,7 +363,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       for (const model of singles) {
         const instance = await model.create({});
         if (previousInstance) {
-          await previousInstance[`set${_.upperFirst(model.name)}`](instance);
+          await previousInstance[`set${upperFirst(model.name)}`](instance);
           previousInstance = instance;
           continue;
         }
