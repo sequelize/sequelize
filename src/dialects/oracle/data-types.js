@@ -218,11 +218,6 @@ module.exports = BaseTypes => {
   DATE.prototype.escape = false;
 
   class DECIMAL extends BaseTypes.DECIMAL {
-    constructor() {
-      super();
-      this.key = 'DECIMAL';
-    }
-
     toSql() {
       let result = '';
       if (this._length) {
@@ -261,7 +256,10 @@ module.exports = BaseTypes => {
 
   class SMALLINT extends BaseTypes.SMALLINT {
     toSql() {
-      return 'NUMBER(5)';
+      if (this._length) {
+        return `NUMBER(${this._length},0)`;
+      }
+      return 'SMALLINT';
     }
 
     _getBindDef(oracledb) {
@@ -319,6 +317,13 @@ module.exports = BaseTypes => {
   }
 
   class INTEGER extends BaseTypes.INTEGER {
+    toSql() {
+      if (this._length) {
+        return `NUMBER(${this._length},0)`;
+      }
+      return 'INTEGER';
+    }
+
     _getBindDef(oracledb) {
       return { type: oracledb.DB_TYPE_NUMBER };
     }

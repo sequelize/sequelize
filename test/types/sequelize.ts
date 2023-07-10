@@ -37,6 +37,7 @@ sequelize.and()
 sequelize.or()
 sequelize.json('data.id')
 sequelize.where(sequelize.col("ABS"), Op.is, null);
+sequelize.getQueryInterface();
 
 const databaseName = sequelize.getDatabaseName();
 
