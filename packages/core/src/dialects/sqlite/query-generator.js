@@ -6,8 +6,11 @@ import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
+import defaults from 'lodash/defaults';
+import each from 'lodash/each';
+import isObject from 'lodash/isObject';
+
 const { Transaction } = require('../../transaction');
-const _ = require('lodash');
 const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
@@ -72,7 +75,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     //  CREATE UNIQUE INDEX does not have this issue, so we're using that instead
     //
     // if (options.uniqueKeys) {
-    //   _.each(options.uniqueKeys, (columns, indexName) => {
+    //   each(options.uniqueKeys, (columns, indexName) => {
     //     if (columns.customIndex) {
     //       if (typeof indexName !== 'string') {
     //         indexName = generateIndexName(tableName, columns);
@@ -139,7 +142,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
   updateQuery(tableName, attrValueHash, where, options, attributes) {
     options = options || {};
-    _.defaults(options, this.options);
+    defaults(options, this.options);
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
@@ -149,7 +152,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
     if (attributes) {
-      _.each(attributes, (attribute, key) => {
+      each(attributes, (attribute, key) => {
         modelAttributeMap[key] = attribute;
         if (attribute.field) {
           modelAttributeMap[attribute.field] = attribute;
@@ -195,7 +198,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    _.defaults(options, this.options);
+    defaults(options, this.options);
 
     let whereClause = this.whereQuery(where, { ...options, model });
     if (whereClause) {
@@ -215,7 +218,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       const attribute = attributes[name];
       const columnName = attribute.field || attribute.columnName || name;
 
-      if (_.isObject(attribute)) {
+      if (isObject(attribute)) {
         let sql = attribute.type.toString();
 
         if (attribute.allowNull === false) {

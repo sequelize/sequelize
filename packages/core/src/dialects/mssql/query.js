@@ -2,9 +2,11 @@
 
 import { getAttributeName } from '../../utils/format';
 
+import forOwn from 'lodash/forOwn';
+import zipObject from 'lodash/zipObject';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:mssql');
@@ -105,7 +107,7 @@ export class MsSqlQuery extends AbstractQuery {
             request.addParameter(String(i + 1), paramType.type, paramType.value, paramType.typeOptions);
           }
         } else {
-          _.forOwn(parameters, (parameter, parameterName) => {
+          forOwn(parameters, (parameter, parameterName) => {
             const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
             request.addParameter(parameterName, paramType.type, paramType.value, paramType.typeOptions);
           });
@@ -305,14 +307,14 @@ export class MsSqlQuery extends AbstractQuery {
       if (match[3]) {
         const values = match[3].split(',').map(part => part.trim());
         if (uniqueKey) {
-          fields = _.zipObject(uniqueKey.fields, values);
+          fields = zipObject(uniqueKey.fields, values);
         } else {
           fields[match[1]] = match[3];
         }
       }
 
       const errors = [];
-      _.forOwn(fields, (value, field) => {
+      forOwn(fields, (value, field) => {
         errors.push(new sequelizeErrors.ValidationErrorItem(
           this.getUniqueConstraintErrorMessage(field),
           'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,

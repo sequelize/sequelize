@@ -1,5 +1,9 @@
 'use strict';
 
+const groupBy = require('lodash/groupBy');
+const invokeMap = require('lodash/invokeMap');
+const property = require('lodash/property');
+
 const chai = require('chai');
 const sinon = require('sinon');
 
@@ -9,7 +13,6 @@ const Support = require('../../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
-const _ = require('lodash');
 
 const dialectName = Support.getTestDialect();
 
@@ -244,23 +247,21 @@ if (current.dialect.supports['UNION ALL']) {
               },
             });
 
-            const byUser = _.groupBy(tasks, _.property('userId'));
+            const byUser = groupBy(tasks, property('userId'));
             const userKeys = Object.keys(byUser);
             expect(userKeys).to.have.length(3);
 
+            expect(byUser[userKeys[0]]).to.have.length(1);
+            expect(byUser[userKeys[1]]).to.have.length(3);
             if (dialectName === 'cockroachdb') {
-              expect(byUser[userKeys[0]]).to.have.length(1);
-              expect(byUser[userKeys[1]]).to.have.length(3);
-              expect(_.invokeMap(byUser[userKeys[1]], 'get', 'id')).to.deep.equal([
+              expect(invokeMap(byUser[userKeys[1]], 'get', 'id')).to.deep.equal([
                 4,
                 3,
                 2,
               ]);
               expect(byUser[userKeys[2]]).to.have.length(2);
             } else {
-              expect(byUser[1]).to.have.length(1);
-              expect(byUser[2]).to.have.length(3);
-              expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
+              expect(invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
               expect(byUser[3]).to.have.length(2);
             }
           });

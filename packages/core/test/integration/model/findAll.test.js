@@ -1,5 +1,7 @@
 'use strict';
 
+const forEach = require('lodash/forEach');
+
 const chai = require('chai');
 const sinon = require('sinon');
 
@@ -8,7 +10,6 @@ const Support = require('../support');
 
 const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
-const _ = require('lodash');
 const dayjs = require('dayjs');
 const promiseProps = require('p-props');
 
@@ -914,7 +915,7 @@ The following associations are defined on "Worker": "ToDos"`);
             bob: this.Person.create({ name: 'Bob', lastName: 'Becket' }),
           });
 
-          _.forEach(r, (item, itemName) => {
+          forEach(r, (item, itemName) => {
             this[itemName] = item;
           });
 
@@ -1090,7 +1091,7 @@ The following associations are defined on "Worker": "ToDos"`);
             kim: this.Person.create({ name: 'Kim', lastName: 'Z' }),
           });
 
-          _.forEach(r, (item, itemName) => {
+          forEach(r, (item, itemName) => {
             this[itemName] = item;
           });
 
@@ -1246,7 +1247,7 @@ The following associations are defined on "Worker": "ToDos"`);
             tech: this.Industry.create({ name: 'Tech' }),
           });
 
-          _.forEach(r, (item, itemName) => {
+          forEach(r, (item, itemName) => {
             this[itemName] = item;
           });
 

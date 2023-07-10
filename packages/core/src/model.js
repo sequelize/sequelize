@@ -1,6 +1,5 @@
 'use strict';
 
-import omit from 'lodash/omit';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { intersects } from './utils/array';
@@ -25,9 +24,33 @@ import { _validateIncludedElements, combineIncludes, setTransactionFromCls, thro
 import { QueryTypes } from './query-types';
 import { getComplexKeys } from './utils/where.js';
 
+import assignWith from 'lodash/assignWith';
+import cloneDeepLodash from 'lodash/cloneDeep';
+import defaultsLodash from 'lodash/defaults';
+import difference from 'lodash/difference';
+import each from 'lodash/each';
+import flattenDepth from 'lodash/flattenDepth';
+import forEach from 'lodash/forEach';
+import forIn from 'lodash/forIn';
+import get from 'lodash/get';
+import isEqual from 'lodash/isEqual';
+import isEmpty from 'lodash/isEmpty';
+import isObject from 'lodash/isObject';
+import isPlainObject from 'lodash/isPlainObject';
+import intersection from 'lodash/intersection';
+import mapValues from 'lodash/mapValues';
+import omit from 'lodash/omit';
+import omitBy from 'lodash/omitBy';
+import pick from 'lodash/pick';
+import pickBy from 'lodash/pickBy';
+import remove from 'lodash/remove';
+import union from 'lodash/union';
+import uniq from 'lodash/uniq';
+import unionBy from 'lodash/unionBy';
+import without from 'lodash/without';
+
 const assert = require('node:assert');
 const NodeUtil = require('node:util');
-const _ = require('lodash');
 const Dottie = require('dottie');
 const { logger } = require('./utils/logger');
 const { InstanceValidator } = require('./instance-validator');
@@ -139,10 +162,10 @@ export class Model extends ModelTypeScript {
       const modelDefinition = this.constructor.modelDefinition;
 
       const defaults = modelDefinition.defaultValues.size > 0
-        ? _.mapValues(getObjectFromMap(modelDefinition.defaultValues), getDefaultValue => {
+        ? mapValues(getObjectFromMap(modelDefinition.defaultValues), getDefaultValue => {
           const value = getDefaultValue();
 
-          return value && value instanceof BaseSqlExpression ? value : _.cloneDeep(value);
+          return value && value instanceof BaseSqlExpression ? value : cloneDeepLodash(value);
         })
         : Object.create(null);
 
@@ -197,8 +220,8 @@ export class Model extends ModelTypeScript {
     }
 
     // apply paranoid when groupedLimit is used
-    if (_.get(options, 'groupedLimit.on.through.model.options.paranoid')) {
-      const throughModel = _.get(options, 'groupedLimit.on.through.model');
+    if (get(options, 'groupedLimit.on.through.model.options.paranoid')) {
+      const throughModel = get(options, 'groupedLimit.on.through.model');
       if (throughModel) {
         options.groupedLimit.through = this._paranoidClause(throughModel, options.groupedLimit.through);
       }
@@ -324,7 +347,7 @@ ${this._getAssociationDebugList()}`);
     }
 
     // normalize to IncludeOptions
-    if (!_.isPlainObject(include)) {
+    if (!isPlainObject(include)) {
       if (isModelStatic(include)) {
         include = {
           model: include,
@@ -425,7 +448,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const visitedModels = [];
     const addAllIncludes = (parent, includes) => {
-      _.forEach(parent.associations, association => {
+      forEach(parent.associations, association => {
         if (all !== true && !all.includes(association.associationType)) {
           return;
         }
@@ -486,7 +509,7 @@ ${associationOwner._getAssociationDebugList()}`);
       include = mapFinderOptions(include, include.model);
 
       if (include.attributes.length > 0) {
-        _.each(include.model.primaryKeys, (attr, key) => {
+        each(include.model.primaryKeys, (attr, key) => {
           // Include the primary key if it's not already included - take into account that the pk might be aliased (due to a .field prop)
           if (!include.attributes.some(includeAttr => {
             if (attr.field !== key) {
@@ -526,7 +549,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       const through = include.association.through;
 
-      include.through = _.defaults(include.through || {}, {
+      include.through = defaultsLodash(include.through || {}, {
         model: through.model,
         // Through Models are a special case: we always want to load them as the name of the model, not the name of the association
         as: through.model.name,
@@ -586,7 +609,7 @@ ${associationOwner._getAssociationDebugList()}`);
       if (
         options.attributes
         && options.attributes.length > 0
-        && !_.flattenDepth(options.attributes, 2).includes(association.sourceKey)
+        && !flattenDepth(options.attributes, 2).includes(association.sourceKey)
       ) {
         options.attributes.push(association.sourceKey);
       }
@@ -594,7 +617,7 @@ ${associationOwner._getAssociationDebugList()}`);
       if (
         include.attributes
         && include.attributes.length > 0
-        && !_.flattenDepth(include.attributes, 2).includes(association.foreignKey)
+        && !flattenDepth(include.attributes, 2).includes(association.foreignKey)
       ) {
         include.attributes.push(association.foreignKey);
       }
@@ -631,7 +654,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   static _baseMerge(...args) {
-    _.assignWith(...args);
+    assignWith(...args);
 
     return args[0];
   }
@@ -642,15 +665,15 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     if (Array.isArray(objValue) && Array.isArray(srcValue)) {
-      return _.union(objValue, srcValue);
+      return union(objValue, srcValue);
     }
 
     if (['where', 'having'].includes(key)) {
       return combineWheresWithAnd(objValue, srcValue);
-    } else if (key === 'attributes' && _.isPlainObject(objValue) && _.isPlainObject(srcValue)) {
-      return _.assignWith(objValue, srcValue, (objValue, srcValue) => {
+    } else if (key === 'attributes' && isPlainObject(objValue) && isPlainObject(srcValue)) {
+      return assignWith(objValue, srcValue, (objValue, srcValue) => {
         if (Array.isArray(objValue) && Array.isArray(srcValue)) {
-          return _.union(objValue, srcValue);
+          return union(objValue, srcValue);
         }
       });
     }
@@ -1000,7 +1023,7 @@ ${associationOwner._getAssociationDebugList()}`);
       let scope = null;
       let scopeName = null;
 
-      if (_.isPlainObject(option)) {
+      if (isPlainObject(option)) {
         if (option.method) {
           if (Array.isArray(option.method) && Boolean(initialModel.options.scopes[option.method[0]])) {
             scopeName = option.method[0];
@@ -1012,7 +1035,7 @@ ${associationOwner._getAssociationDebugList()}`);
         } else {
           scope = option;
         }
-      } else if (option === 'defaultScope' && _.isPlainObject(initialModel.options.defaultScope)) {
+      } else if (option === 'defaultScope' && isPlainObject(initialModel.options.defaultScope)) {
         scope = initialModel.options.defaultScope;
       } else {
         scopeName = option;
@@ -1115,11 +1138,11 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       // the item order of these arrays is important! scope('a', 'b') is not equal to scope('b', 'a')
-      if (!_.isEqual(modelVariant._scopeNames, scopeNames)) {
+      if (!isEqual(modelVariant._scopeNames, scopeNames)) {
         continue;
       }
 
-      if (!_.isEqual(modelVariant._scope, mergedScope)) {
+      if (!isEqual(modelVariant._scope, mergedScope)) {
         continue;
       }
 
@@ -1182,11 +1205,11 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise} A promise that will resolve with the array containing the results of the SELECT query.
    */
   static async findAll(options) {
-    if (options !== undefined && !_.isPlainObject(options)) {
+    if (options !== undefined && !isPlainObject(options)) {
       throw new sequelizeErrors.QueryError('The argument passed to findAll must be an options object, use findByPk if you wish to pass a single primary key value');
     }
 
-    if (options !== undefined && options.attributes && !Array.isArray(options.attributes) && !_.isPlainObject(options.attributes)) {
+    if (options !== undefined && options.attributes && !Array.isArray(options.attributes) && !isPlainObject(options.attributes)) {
       throw new sequelizeErrors.QueryError('The attributes option must be an array of column names or an object');
     }
 
@@ -1201,7 +1224,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     setTransactionFromCls(options, this.sequelize);
 
-    _.defaults(options, { hooks: true, model: this });
+    defaultsLodash(options, { hooks: true, model: this });
 
     // set rejectOnEmpty option, defaults to model options
     options.rejectOnEmpty = Object.hasOwn(options, 'rejectOnEmpty')
@@ -1262,7 +1285,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     // rejectOnEmpty mode
-    if (_.isEmpty(results) && options.rejectOnEmpty) {
+    if (isEmpty(results) && options.rejectOnEmpty) {
       if (typeof options.rejectOnEmpty === 'function') {
         throw new options.rejectOnEmpty();
       }
@@ -1278,12 +1301,12 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   static _warnOnInvalidOptions(options, validColumnNames) {
-    if (!_.isPlainObject(options)) {
+    if (!isPlainObject(options)) {
       return;
     }
 
     const unrecognizedOptions = Object.keys(options).filter(k => !validQueryKeywords.has(k));
-    const unexpectedModelAttributes = _.intersection(unrecognizedOptions, validColumnNames);
+    const unexpectedModelAttributes = intersection(unrecognizedOptions, validColumnNames);
     if (!options.where && unexpectedModelAttributes.length > 0) {
       logger.warn(`Model attributes (${unexpectedModelAttributes.join(', ')}) passed into finder method options of model ${this.name}, but the options.where object is empty. Did you forget to use options.where?`);
     }
@@ -1309,7 +1332,7 @@ ${associationOwner._getAssociationDebugList()}`);
       }
     }
 
-    attributes = _.uniq(attributes);
+    attributes = uniq(attributes);
 
     return attributes;
   }
@@ -1352,7 +1375,7 @@ ${associationOwner._getAssociationDebugList()}`);
           }, []),
           {
 
-            ..._.omit(options, 'include', 'attributes', 'order', 'where', 'limit', 'offset', 'plain', 'scope'),
+            ...omit(options, 'include', 'attributes', 'order', 'where', 'limit', 'offset', 'plain', 'scope'),
             include: include.include || [],
           },
         );
@@ -1360,8 +1383,8 @@ ${associationOwner._getAssociationDebugList()}`);
 
       const map = await include.association.get(results, {
 
-        ..._.omit(options, nonCascadingOptions),
-        ..._.omit(include, ['parent', 'association', 'as', 'originalAttributes']),
+        ...omit(options, nonCascadingOptions),
+        ...omit(include, ['parent', 'association', 'as', 'originalAttributes']),
       });
 
       for (const result of results) {
@@ -1419,7 +1442,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise<Model|null>}
    */
   static async findOne(options) {
-    if (options !== undefined && !_.isPlainObject(options)) {
+    if (options !== undefined && !isPlainObject(options)) {
       throw new Error('The argument passed to findOne must be an options object, use findByPk if you wish to pass a single primary key value');
     }
 
@@ -1432,7 +1455,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     // Bypass a possible overloaded findAll.
-    return await Model.findAll.call(this, (_.defaults(options, {
+    return await Model.findAll.call(this, (defaultsLodash(options, {
       model: this,
       plain: true,
     })));
@@ -1479,7 +1502,7 @@ ${associationOwner._getAssociationDebugList()}`);
       group = group.flat();
     }
 
-    options.attributes = _.unionBy(
+    options.attributes = unionBy(
       options.attributes,
       group,
       [[this.sequelize.fn(aggregateFunction, aggregateColumn), aggregateFunction]],
@@ -1515,7 +1538,7 @@ ${associationOwner._getAssociationDebugList()}`);
    */
   static async count(options) {
     options = cloneDeep(options) ?? {};
-    options = _.defaults(options, { hooks: true });
+    options = defaultsLodash(options, { hooks: true });
 
     setTransactionFromCls(options, this.sequelize);
 
@@ -1601,7 +1624,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise<{count: number | number[], rows: Model[]}>}
    */
   static async findAndCountAll(options) {
-    if (options !== undefined && !_.isPlainObject(options)) {
+    if (options !== undefined && !isPlainObject(options)) {
       throw new Error('The argument passed to findAndCountAll must be an options object, use findByPk if you wish to pass a single primary key value');
     }
 
@@ -1747,7 +1770,7 @@ ${associationOwner._getAssociationDebugList()}`);
     let instance = await this.findOne(options);
     if (instance === null) {
       values = { ...options.defaults };
-      if (_.isPlainObject(options.where)) {
+      if (isPlainObject(options.where)) {
         values = defaults(values, options.where);
       }
 
@@ -1818,7 +1841,7 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       values = { ...options.defaults };
-      if (_.isPlainObject(options.where)) {
+      if (isPlainObject(options.where)) {
         values = defaults(values, options.where);
       }
 
@@ -1852,7 +1875,7 @@ ${associationOwner._getAssociationDebugList()}`);
         }
 
         if (errFieldsWhereIntersects) {
-          _.each(error.fields, (value, key) => {
+          each(error.fields, (value, key) => {
             const name = modelDefinition.columns.get(key).attributeName;
             if (value.toString() !== options.where[name].toString()) {
               throw new Error(`${this.name}#findOrCreate: value used for ${name} was not equal for both the find and the create calls, '${options.where[name]}' vs '${value}'`);
@@ -1899,7 +1922,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     let values = { ...options.defaults };
-    if (_.isPlainObject(options.where)) {
+    if (isPlainObject(options.where)) {
       values = defaults(values, options.where);
     }
 
@@ -1984,7 +2007,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     // Map field names
-    const updatedDataValues = _.pick(instance.dataValues, changed);
+    const updatedDataValues = pick(instance.dataValues, changed);
     const insertValues = mapValueFieldNames(instance.dataValues, modelDefinition.attributes.keys(), this);
     const updateValues = mapValueFieldNames(updatedDataValues, options.fields, this);
     const now = new Date();
@@ -2117,8 +2140,8 @@ ${associationOwner._getAssociationDebugList()}`);
 
       if (options.updateOnDuplicate !== undefined) {
         if (Array.isArray(options.updateOnDuplicate) && options.updateOnDuplicate.length > 0) {
-          options.updateOnDuplicate = _.intersection(
-            _.without(Object.keys(model.tableAttributes), createdAtAttr),
+          options.updateOnDuplicate = intersection(
+            without(Object.keys(model.tableAttributes), createdAtAttr),
             options.updateOnDuplicate,
           );
         } else {
@@ -2182,14 +2205,14 @@ ${associationOwner._getAssociationDebugList()}`);
               return;
             }
 
-            const includeOptions = _(cloneDeep(include))
-              .omit(['association'])
-              .defaults({
+            const includeOptions = defaultsLodash(
+              omit(cloneDeep(include), ['association']),
+              {
                 connection: options.connection,
                 transaction: options.transaction,
                 logging: options.logging,
-              })
-              .value();
+              },
+            );
 
             const createdAssociationInstances = await recursiveBulkCreate(associationInstances, includeOptions);
             for (const idx in createdAssociationInstances) {
@@ -2327,14 +2350,14 @@ ${associationOwner._getAssociationDebugList()}`);
             return;
           }
 
-          const includeOptions = _(cloneDeep(include))
-            .omit(['association'])
-            .defaults({
+          const includeOptions = defaultsLodash(
+            omit(cloneDeep(include), ['association']),
+            {
               connection: options.connection,
               transaction: options.transaction,
               logging: options.logging,
-            })
-            .value();
+            },
+          );
 
           const createdAssociationInstances = await recursiveBulkCreate(associationInstances, includeOptions);
           if (include.association instanceof BelongsToMany) {
@@ -2370,14 +2393,14 @@ ${associationOwner._getAssociationDebugList()}`);
               valueSets.push(values);
             }
 
-            const throughOptions = _(cloneDeep(include))
-              .omit(['association', 'attributes'])
-              .defaults({
+            const throughOptions = defaultsLodash(
+              omit(cloneDeep(include), ['association', 'attributes']),
+              {
                 connection: options.connection,
                 transaction: options.transaction,
                 logging: options.logging,
-              })
-              .value();
+              },
+            );
             throughOptions.model = include.association.throughModel;
             const throughInstances = include.association.throughModel.bulkBuild(valueSets, throughOptions);
 
@@ -2453,14 +2476,14 @@ ${associationOwner._getAssociationDebugList()}`);
       throw new Error('Missing where or truncate attribute in the options parameter of model.destroy.');
     }
 
-    if (!options.truncate && !_.isPlainObject(options.where) && !Array.isArray(options.where) && !(options.where instanceof BaseSqlExpression)) {
+    if (!options.truncate && !isPlainObject(options.where) && !Array.isArray(options.where) && !(options.where instanceof BaseSqlExpression)) {
       throw new Error('Expected plain object, array or sequelize method in the options.where parameter of model.destroy.');
     }
 
     const modelDefinition = this.modelDefinition;
     const attributes = modelDefinition.attributes;
 
-    options = _.defaults(options, {
+    options = defaultsLodash(options, {
       hooks: true,
       individualHooks: false,
       force: false,
@@ -2630,7 +2653,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const modelDefinition = this.modelDefinition;
 
-    options = this._paranoidClause(this, _.defaults(options, {
+    options = this._paranoidClause(this, defaultsLodash(options, {
       validate: true,
       hooks: true,
       individualHooks: false,
@@ -2642,7 +2665,7 @@ ${associationOwner._getAssociationDebugList()}`);
     options.type = QueryTypes.BULKUPDATE;
 
     // Clone values so it doesn't get modified for caller scope and ignore undefined values
-    values = _.omitBy(values, value => value === undefined);
+    values = omitBy(values, value => value === undefined);
 
     const updatedAtAttrName = modelDefinition.timestampAttributeNames.updatedAt;
 
@@ -2654,7 +2677,7 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
     } else {
-      options.fields = _.intersection(Object.keys(values), Array.from(modelDefinition.physicalAttributes.keys()));
+      options.fields = intersection(Object.keys(values), Array.from(modelDefinition.physicalAttributes.keys()));
       if (updatedAtAttrName && !options.fields.includes(updatedAtAttrName)) {
         options.fields.push(updatedAtAttrName);
       }
@@ -2673,17 +2696,17 @@ ${associationOwner._getAssociationDebugList()}`);
       build.set(updatedAtAttrName, values[updatedAtAttrName], { raw: true });
 
       if (options.sideEffects) {
-        Object.assign(values, _.pick(build.get(), build.changed()));
-        options.fields = _.union(options.fields, Object.keys(values));
+        Object.assign(values, pick(build.get(), build.changed()));
+        options.fields = union(options.fields, Object.keys(values));
       }
 
       // TODO: instead of setting "skip", set the "fields" property on a copy of options that's passed to "validate"
       // We want to skip validations for all other fields
-      options.skip = _.difference(Array.from(modelDefinition.attributes.keys()), Object.keys(values));
+      options.skip = difference(Array.from(modelDefinition.attributes.keys()), Object.keys(values));
       const attributes = await build.validate(options);
       options.skip = undefined;
       if (attributes && attributes.dataValues) {
-        values = _.pick(attributes.dataValues, Object.keys(values));
+        values = pick(attributes.dataValues, Object.keys(values));
       }
     }
 
@@ -2720,7 +2743,7 @@ ${associationOwner._getAssociationDebugList()}`);
           // Record updates in instances dataValues
           Object.assign(instance.dataValues, values);
           // Set the changed fields on the instance
-          _.forIn(valuesUse, (newValue, attr) => {
+          forIn(valuesUse, (newValue, attr) => {
             if (newValue !== instance._previousDataValues[attr]) {
               instance.setDataValue(attr, newValue);
             }
@@ -2731,7 +2754,7 @@ ${associationOwner._getAssociationDebugList()}`);
           await this.hooks.runAsync('beforeSave', instance, options);
           if (!different) {
             const thisChangedValues = {};
-            _.forIn(instance.dataValues, (newValue, attr) => {
+            forIn(instance.dataValues, (newValue, attr) => {
               if (newValue !== instance._previousDataValues[attr]) {
                 thisChangedValues[attr] = newValue;
               }
@@ -2740,7 +2763,7 @@ ${associationOwner._getAssociationDebugList()}`);
             if (!changedValues) {
               changedValues = thisChangedValues;
             } else {
-              different = !_.isEqual(changedValues, thisChangedValues);
+              different = !isEqual(changedValues, thisChangedValues);
             }
           }
 
@@ -2753,7 +2776,7 @@ ${associationOwner._getAssociationDebugList()}`);
           if (keys.length > 0) {
             // Hooks change values - record changes in valuesUse so they are executed
             valuesUse = changedValues;
-            options.fields = _.union(options.fields, keys);
+            options.fields = union(options.fields, keys);
           }
         } else {
           instances = await Promise.all(instances.map(async instance => {
@@ -2774,7 +2797,7 @@ ${associationOwner._getAssociationDebugList()}`);
     let result;
     if (updateDoneRowByRow) {
       result = [instances.length, instances];
-    } else if (_.isEmpty(valuesUse)
+    } else if (isEmpty(valuesUse)
        || Object.keys(valuesUse).length === 1 && valuesUse[updatedAtAttrName]) {
       // only updatedAt is being passed, then skip update
       result = [0];
@@ -2835,7 +2858,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   static _expandAttributes(options) {
-    if (!_.isPlainObject(options.attributes)) {
+    if (!isPlainObject(options.attributes)) {
       return;
     }
 
@@ -3073,7 +3096,7 @@ Instead of specifying a Model, either:
 
   static _optionsMustContainWhere(options) {
     assert(options && options.where, 'Missing where attribute in the options parameter');
-    assert(_.isPlainObject(options.where) || Array.isArray(options.where) || options.where instanceof BaseSqlExpression,
+    assert(isPlainObject(options.where) || Array.isArray(options.where) || options.where instanceof BaseSqlExpression,
       'Expected plain object, array or sequelize method in the options.where parameter');
   }
 
@@ -3155,7 +3178,7 @@ Instead of specifying a Model, either:
   setDataValue(key, value) {
     const originalValue = this._previousDataValues[key];
 
-    if (!_.isEqual(value, originalValue)) {
+    if (!isEqual(value, originalValue)) {
       this.changed(key, true);
     }
 
@@ -3346,7 +3369,7 @@ Instead of specifying a Model, either:
       // custom setter should have changed value, get that changed value
       // TODO: v5 make setters return new value instead of changing internal store
       const newValue = this.dataValues[key];
-      if (!_.isEqual(newValue, originalValue)) {
+      if (!isEqual(newValue, originalValue)) {
         this._previousDataValues[key] = originalValue;
         this.changed(key, true);
       }
@@ -3367,7 +3390,7 @@ Instead of specifying a Model, either:
 
           if (key.includes('.') && jsonAttributeNames.has(key.split('.')[0])) {
             const previousNestedValue = Dottie.get(this.dataValues, key);
-            if (!_.isEqual(previousNestedValue, value)) {
+            if (!isEqual(previousNestedValue, value)) {
               Dottie.set(this.dataValues, key, value);
               this.changed(key.split('.')[0], true);
             }
@@ -3411,7 +3434,7 @@ Instead of specifying a Model, either:
           value instanceof BaseSqlExpression
           // Otherwise, check for data type type comparators
           || ((value != null && attributeType && attributeType instanceof AbstractDataType) && !attributeType.areValuesEqual(value, originalValue, options))
-          || ((value == null || !attributeType || !(attributeType instanceof AbstractDataType)) && !_.isEqual(value, originalValue))
+          || ((value == null || !attributeType || !(attributeType instanceof AbstractDataType)) && !isEqual(value, originalValue))
         )
       ) {
         this._previousDataValues[key] = originalValue;
@@ -3495,7 +3518,7 @@ Instead of specifying a Model, either:
       return this._previousDataValues[key];
     }
 
-    return _.pickBy(this._previousDataValues, (value, key) => this.changed(key));
+    return pickBy(this._previousDataValues, (value, key) => this.changed(key));
   }
 
   _setInclude(key, value, options) {
@@ -3561,7 +3584,7 @@ Instead of specifying a Model, either:
     }
 
     options = cloneDeep(options) ?? {};
-    options = _.defaults(options, {
+    options = defaultsLodash(options, {
       hooks: true,
       validate: true,
     });
@@ -3574,7 +3597,7 @@ Instead of specifying a Model, either:
       if (this.isNewRecord) {
         options.fields = Array.from(modelDefinition.attributes.keys());
       } else {
-        options.fields = _.intersection(this.changed(), Array.from(modelDefinition.attributes.keys()));
+        options.fields = intersection(this.changed(), Array.from(modelDefinition.attributes.keys()));
       }
 
       options.defaultFields = options.fields;
@@ -3608,7 +3631,7 @@ Instead of specifying a Model, either:
 
     if (options.silent === true && !(this.isNewRecord && this.get(updatedAtAttr, { raw: true }))) {
       // UpdateAtAttr might have been added as a result of Object.keys(Model.rawAttributes). In that case we have to remove it again
-      _.remove(options.fields, val => val === updatedAtAttr);
+      remove(options.fields, val => val === updatedAtAttr);
       updatedAtAttr = false;
     }
 
@@ -3651,19 +3674,19 @@ Instead of specifying a Model, either:
 
     // Run before hook
     if (options.hooks) {
-      const beforeHookValues = _.pick(this.dataValues, options.fields);
-      let ignoreChanged = _.difference(this.changed(), options.fields); // In case of update where it's only supposed to update the passed values and the hook values
+      const beforeHookValues = pick(this.dataValues, options.fields);
+      let ignoreChanged = difference(this.changed(), options.fields); // In case of update where it's only supposed to update the passed values and the hook values
       let hookChanged;
       let afterHookValues;
 
       if (updatedAtAttr && options.fields.includes(updatedAtAttr)) {
-        ignoreChanged = _.without(ignoreChanged, updatedAtAttr);
+        ignoreChanged = without(ignoreChanged, updatedAtAttr);
       }
 
       await this.constructor.hooks.runAsync(`before${hook}`, this, options);
       await this.constructor.hooks.runAsync(`beforeSave`, this, options);
       if (options.defaultFields && !this.isNewRecord) {
-        afterHookValues = _.pick(this.dataValues, _.difference(this.changed(), ignoreChanged));
+        afterHookValues = pick(this.dataValues, difference(this.changed(), ignoreChanged));
 
         hookChanged = [];
         for (const key of Object.keys(afterHookValues)) {
@@ -3672,13 +3695,13 @@ Instead of specifying a Model, either:
           }
         }
 
-        options.fields = _.uniq(options.fields.concat(hookChanged));
+        options.fields = uniq(options.fields.concat(hookChanged));
       }
 
       if (hookChanged && options.validate) {
         // Validate again
 
-        options.skip = _.difference(Array.from(modelDefinition.attributes.keys()), hookChanged);
+        options.skip = difference(Array.from(modelDefinition.attributes.keys()), hookChanged);
         await this.validate(options);
         delete options.skip;
       }
@@ -3691,15 +3714,15 @@ Instead of specifying a Model, either:
           return;
         }
 
-        const includeOptions = _(cloneDeep(include))
-          .omit(['association'])
-          .defaults({
+        const includeOptions = defaultsLodash(
+          omit(cloneDeep(include), ['association']),
+          {
             connection: options.connection,
             transaction: options.transaction,
             logging: options.logging,
             parentRecord: this,
-          })
-          .value();
+          },
+        );
 
         await instance.save(includeOptions);
 
@@ -3781,15 +3804,15 @@ Instead of specifying a Model, either:
             instances = [instances];
           }
 
-          const includeOptions = _(cloneDeep(include))
-            .omit(['association'])
-            .defaults({
+          const includeOptions = defaultsLodash(
+            omit(cloneDeep(include), ['association']),
+            {
               connection: options.connection,
               transaction: options.transaction,
               logging: options.logging,
               parentRecord: this,
-            })
-            .value();
+            },
+          );
 
           // Instances will be updated in place so we can safely treat HasOne like a HasMany
           await Promise.all(instances.map(async instance => {
@@ -3905,7 +3928,7 @@ Instead of specifying a Model, either:
    */
   async update(values, options) {
     // Clone values so it doesn't get modified for caller scope and ignore undefined values
-    values = _.omitBy(values, value => value === undefined);
+    values = omitBy(values, value => value === undefined);
 
     const changedBefore = this.changed() || [];
 
@@ -3924,11 +3947,11 @@ Instead of specifying a Model, either:
     this.set(values, setOptions);
 
     // Now we need to figure out which fields were actually affected by the setter.
-    const sideEffects = _.without(this.changed(), ...changedBefore);
-    const fields = _.union(Object.keys(values), sideEffects);
+    const sideEffects = without(this.changed(), ...changedBefore);
+    const fields = union(Object.keys(values), sideEffects);
 
     if (!options.fields) {
-      options.fields = _.intersection(fields, this.changed());
+      options.fields = intersection(fields, this.changed());
       options.defaultFields = options.fields;
     }
 
@@ -3967,7 +3990,7 @@ Instead of specifying a Model, either:
       const defaultValue = attribute.defaultValue ?? null;
       const currentValue = this.getDataValue(attributeName);
       const undefinedOrNull = currentValue == null && defaultValue == null;
-      if (undefinedOrNull || _.isEqual(currentValue, defaultValue)) {
+      if (undefinedOrNull || isEqual(currentValue, defaultValue)) {
         // only update timestamp if it wasn't already set
         this.setDataValue(attributeName, new Date());
       }
@@ -4170,7 +4193,7 @@ Instead of specifying a Model, either:
    * @returns {object}
    */
   toJSON() {
-    return _.cloneDeep(
+    return cloneDeepLodash(
       this.get({
         plain: true,
       }),
@@ -4274,7 +4297,7 @@ Instead of specifying a Model, either:
  * @private
  */
 function unpackAnd(where) {
-  if (!_.isObject(where)) {
+  if (!isObject(where)) {
     return where;
   }
 

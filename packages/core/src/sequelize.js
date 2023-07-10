@@ -1,6 +1,5 @@
 'use strict';
 
-import isPlainObject from 'lodash/isPlainObject';
 import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { AssociationPath } from './expression-builders/association-path';
@@ -28,7 +27,11 @@ import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
 import { importModels } from './import-models.js';
 
-const _ = require('lodash');
+import defaults from 'lodash/defaults';
+import defaultsDeep from 'lodash/defaultsDeep';
+import isPlainObject from 'lodash/isPlainObject';
+import map from 'lodash/map';
+
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
 const { ConstraintChecking, Deferrable } = require('./deferrable');
@@ -208,19 +211,19 @@ export class Sequelize extends SequelizeTypeScript {
   constructor(database, username, password, options) {
     super();
 
-    if (arguments.length === 1 && _.isPlainObject(database)) {
+    if (arguments.length === 1 && isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
-    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && _.isPlainObject(username)) {
+    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && isPlainObject(username)) {
       // new Sequelize(URI, { ... options })
       options = username ? { ...username } : Object.create(null);
 
-      _.defaultsDeep(options, parseConnectionString(arguments[0]));
+      defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
       options = options ? { ...options } : Object.create(null);
 
-      _.defaults(options, {
+      defaults(options, {
         database,
         username,
         password,
@@ -271,7 +274,7 @@ export class Sequelize extends SequelizeTypeScript {
       disableClsTransactions: false,
       defaultTransactionNestMode: TransactionNestMode.reuse,
       ...options,
-      pool: _.defaults(options.pool || {}, {
+      pool: defaults(options.pool || {}, {
         max: 5,
         min: 0,
         idle: 10_000,
@@ -377,7 +380,7 @@ export class Sequelize extends SequelizeTypeScript {
     }
 
     // Map main connection config
-    this.options.replication.write = _.defaults(this.options.replication.write ?? {}, connectionConfig);
+    this.options.replication.write = defaults(this.options.replication.write ?? {}, connectionConfig);
     this.options.replication.write.port = Number(this.options.replication.write.port);
 
     if (!this.options.replication.read) {
@@ -394,7 +397,7 @@ export class Sequelize extends SequelizeTypeScript {
       readEntry.port = Number(readEntry.port);
 
       // Apply defaults to each read config
-      return _.defaults(readEntry, connectionConfig);
+      return defaults(readEntry, connectionConfig);
     });
 
     // ==========================================
@@ -668,7 +671,7 @@ Use Sequelize#query if you wish to use replacements.`);
       options.fieldMap = options.model?.fieldAttributeMap;
     }
 
-    options = _.defaults(options, {
+    options = defaults(options, {
       logging: Object.hasOwn(this.options, 'logging') ? this.options.logging : console.debug,
       searchPath: Object.hasOwn(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT',
     });
@@ -768,7 +771,7 @@ Use Sequelize#query if you wish to use replacements.`);
     // Generate SQL Query
     const query
       = `SET ${
-        _.map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
+        map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
 
     return await this.query(query, options);
   }
@@ -990,7 +993,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
     const last = args.at(-1);
 
-    if (last && _.isPlainObject(last) && Object.hasOwn(last, 'logging')) {
+    if (last && isPlainObject(last) && Object.hasOwn(last, 'logging')) {
       options = last;
 
       // remove options from set of logged arguments if options.logging is equal to console.log or console.debug
@@ -1034,7 +1037,7 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   normalizeAttribute(attribute) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = { type: attribute };
     } else {
       attribute = { ...attribute };

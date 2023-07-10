@@ -3,7 +3,6 @@
 const Support = require('../../support');
 const { QueryTypes, DataTypes } = require('@sequelize/core');
 const util = require('node:util');
-const _ = require('lodash');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;

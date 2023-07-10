@@ -2,12 +2,13 @@
 
 import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 
+import isEmpty from 'lodash/isEmpty';
+
 const sequelizeErrors = require('../../errors');
 const { QueryTypes } = require('../../query-types');
 const { ColumnsDescription } = require('../abstract/query-interface.types');
 const { QueryOptions } = require('../abstract/query-interface');
 const { SqliteQueryInterfaceTypeScript } = require('./query-interface-typescript');
-const _ = require('lodash');
 const crypto = require('node:crypto');
 
 /**
@@ -156,7 +157,7 @@ export class SqliteQueryInterface extends SqliteQueryInterfaceTypeScript {
        * Query generators that use information_schema for retrieving table info will just return an empty result set,
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
-      if (_.isEmpty(data)) {
+      if (isEmpty(data)) {
         throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
