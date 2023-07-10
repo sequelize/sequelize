@@ -1,24 +1,30 @@
 import { QueryTypes } from '../../query-types';
 import { PostgresQuery } from '../postgres/query';
 import { AbstractQuery } from '../abstract/query';
-import _ from 'lodash';
 import * as sequelizeErrors from '../../errors';
 import { logger } from '../../utils/logger';
+import isEmpty from 'lodash/isEmpty';
+import toPairs from 'lodash/toPairs';
+import escapeRegExp from 'lodash/escapeRegExp';
+import zipObject from 'lodash/zipObject';
+import mapKeys from 'lodash/mapKeys';
+import forOwn from 'lodash/forOwn';
+import isEqual from 'lodash/isEqual';
 
 const debug = logger.debugContext('sql:pg');
 export class CockroachDbQuery extends AbstractQuery {
   async run(sql, parameters, options) {
     const { connection } = this;
 
-    if (!_.isEmpty(this.options.searchPath)) {
+    if (!isEmpty(this.options.searchPath)) {
       sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
     }
 
     if (options?.minifyAliases && this.options.includeAliases) {
-      for (const [alias, original] of _.toPairs(this.options.includeAliases)
+      for (const [alias, original] of toPairs(this.options.includeAliases)
         // Sorting to replace the longest aliases first to prevent alias collision
         .sort((a, b) => b[1].length - a[1].length)) {
-        const reg = new RegExp(_.escapeRegExp(original), 'g');
+        const reg = new RegExp(escapeRegExp(original), 'g');
 
         sql = sql.replace(reg, alias);
       }
@@ -73,7 +79,7 @@ export class CockroachDbQuery extends AbstractQuery {
 
     if (options?.minifyAliases && this.options.aliasesMapping) {
       rows = rows
-        .map(row => _.toPairs(row)
+        .map(row => toPairs(row)
           .reduce((acc, [key, value]) => {
             const mapping = this.options.aliasesMapping.get(key);
             acc[mapping || key] = value;
@@ -121,7 +127,7 @@ export class CockroachDbQuery extends AbstractQuery {
         }
 
         // Map column index in table to column name
-        const columns = _.zipObject(
+        const columns = zipObject(
           row.column_indexes,
           this.sequelize.getQueryInterface().queryGenerator.fromArray(row.column_names),
         );
@@ -208,7 +214,7 @@ export class CockroachDbQuery extends AbstractQuery {
         }
 
         result = rows.map(row => {
-          return _.mapKeys(row, (value, key) => {
+          return mapKeys(row, (value, key) => {
             const targetAttr = attrsMap[key];
             if (typeof targetAttr === 'string' && targetAttr !== key) {
               return targetAttr;
@@ -351,11 +357,11 @@ export class CockroachDbQuery extends AbstractQuery {
         });
       case '23505':
         if (errDetail && (match = errDetail.replaceAll(/["']/g, '').match(/Key \((.*?)\)=\((.*?)\)/))) {
-          const fields = _.zipObject(match[1].split(','), match[2].split(','));
+          const fields = zipObject(match[1].split(','), match[2].split(','));
           const errors = [];
           let message = 'Validation error';
 
-          _.forOwn(fields, (value, field) => {
+          forOwn(fields, (value, field) => {
             errors.push(new sequelizeErrors.ValidationErrorItem(
               this.getUniqueConstraintErrorMessage(field),
               'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -368,7 +374,7 @@ export class CockroachDbQuery extends AbstractQuery {
 
           if (this.model) {
             for (const index of this.model.getIndexes()) {
-              if (index.unique && _.isEqual(index.fields, Object.keys(fields)) && index.msg) {
+              if (index.unique && isEqual(index.fields, Object.keys(fields)) && index.msg) {
                 message = index.msg;
                 break;
               }
@@ -387,7 +393,7 @@ export class CockroachDbQuery extends AbstractQuery {
         match = errDetail.match(/Key \((.*?)\)=\((.*?)\)/);
 
         if (match) {
-          fields = _.zipObject(match[1].split(', '), match[2].split(', '));
+          fields = zipObject(match[1].split(', '), match[2].split(', '));
         }
 
         message = 'Exclusion constraint error';
