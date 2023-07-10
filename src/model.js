@@ -3670,30 +3670,24 @@ class Model {
     ) {
       const values = {};
       let _key;
-
-      if (this._hasCustomGetters) {
-        for (_key in this._customGetters) {
-
-          //obtaining key schema object from rawAttributes
-          const keySchemaObject = this.constructor.rawAttributes[_key];
-
-          //if the key is not in rawAttributes it means that _key is a "virtual getter"
-          if (keySchemaObject != void 0) {            
-
-            //(this._options.attributes&& this._options.attributes.includes(_key))    
-            //checks if the _key is in model instance options 
-            //keySchemaObject.type.hasOwnProperty('VIRTUAL')
-            //checks if the _key is in rawAttributes and type is virtual
-            //when the _key is absent  and neither a virtual attribute, we should iterate to next key
-            if (!(this._options.attributes && this._options.attributes.includes(_key))            
-              || Object.prototype.hasOwnProperty.call(keySchemaObject.type, 'VIRTUAL')) {
-              continue;
-            }
+      if (this._hasCustomGetters && this._options.attributes !== undefined) {
+        for (_key in this._customGetters) {          
+          if (!this._options.attributes.includes(_key)) {
+            continue;
           }
-
-          if (Object.prototype.hasOwnProperty.call(this._customGetters, _key)) {
-            values[_key] = this.get(_key, options);
-          }
+          values[_key] = this.get(_key, options);          
+        }
+      }
+      //called by .get() in methods like toJSON, update etc. where this._options is not initialized
+      //so getters in custom getters can have missing datavalue[key](field + getter) or can be purely getter method
+      //above two cases cant be handled simultaneously by above logic
+      else if (this._hasCustomGetters) {
+        const notPureGetter = Object.keys(this.constructor.rawAttributes);
+        for (_key in this._customGetters) {          
+          if (!Object.prototype.hasOwnProperty.call(this.dataValues, _key) && notPureGetter.includes(_key)) {
+            continue;
+          }          
+          values[_key] = this.get(_key, options);          
         }
       }
 
