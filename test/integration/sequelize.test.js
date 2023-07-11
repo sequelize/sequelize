@@ -1321,7 +1321,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               self = this;
 
             const count = function(transaction) {
-              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
+              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [[Sequelize.literal('count(*)'), 'cnt']] });
 
               return self.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
                 return result.cnt;
@@ -1349,7 +1349,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               self = this;
 
             const count = function(transaction) {
-              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
+              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [[Sequelize.literal('count(*)'), 'cnt']] });
 
               return self.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
                 return parseInt(result.cnt, 10);

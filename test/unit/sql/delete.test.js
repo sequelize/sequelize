@@ -2,6 +2,7 @@
 
 const Support   = require(__dirname + '/../support'),
   util = require('util'),
+  suite = require('mocha').suite,
   expectsql = Support.expectsql,
   current   = Support.sequelize,
   Sequelize = Support.Sequelize,

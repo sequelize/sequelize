@@ -273,7 +273,8 @@ if (dialect.match(/^postgres/)) {
           expectation: 'SELECT * FROM \"myTable\" WHERE \"myTable\".\"id\" = 2;'
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS \"count\" FROM \"foo\";'
+          expectation: 'SELECT count(*) AS \"count\" FROM \"foo\";',
+          context: { options: { attributeBehavior: 'unsafe-legacy' } }
         }, {
           arguments: ['myTable', {order: ['id']}],
           expectation: 'SELECT * FROM "myTable" ORDER BY "id";',
@@ -468,7 +469,7 @@ if (dialect.match(/^postgres/)) {
         }, {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
           expectation: 'SELECT count(*) AS count FROM foo;',
-          context: {options: {quoteIdentifiers: false}}
+          context: {options: {quoteIdentifiers: false, attributeBehavior: 'unsafe-legacy' } }
         }, {
           arguments: ['myTable', {order: ['id DESC']}],
           expectation: 'SELECT * FROM myTable ORDER BY id DESC;',

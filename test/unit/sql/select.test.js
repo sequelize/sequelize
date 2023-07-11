@@ -5,6 +5,11 @@ const Support   = require(__dirname + '/../support'),
   Model = require(__dirname + '/../../../lib/model'),
   util = require('util'),
   chai = require('chai'),
+  mocha = require('mocha'),
+  suite = mocha.suite,
+  test = mocha.test,
+  suiteSetup = mocha.suiteSetup,
+  suiteTeardown = mocha.suiteTeardown,
   expect = chai.expect,
   expectsql = Support.expectsql,
   current   = Support.sequelize,
@@ -671,7 +676,6 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'SELECT User.name, User.age, Posts.id AS "Posts.id", Posts.title AS "Posts.title", "Posts->Comments".id AS "Posts.Comments.id", "Posts->Comments".title AS "Posts.Comments.title", "Posts->Comments".createdAt AS "Posts.Comments.createdAt", "Posts->Comments".updatedAt AS "Posts.Comments.updatedAt", "Posts->Comments".post_id AS "Posts.Comments.post_id" FROM User AS User LEFT OUTER JOIN Post AS Posts ON User.id = Posts.user_id LEFT OUTER JOIN Comment AS "Posts->Comments" ON Posts.id = "Posts->Comments".post_id;'
       });
     });
-
   });
 
   suite('raw query', () => {
@@ -727,6 +731,63 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
           having: 'name = \'something\''
         });
       }).to.throw(Error, 'Support for `{where: \'raw query\'}` has been removed.');
+    });
+  });
+
+  suite('queryGenerator: selectQuery', () => {
+    const User = Support.sequelize.define('User', {
+      username: DataTypes.STRING
+    }, { timestamps: false });
+
+    const Project = Support.sequelize.define('Project', {
+      duration: DataTypes.BIGINT
+    }, { timestamps: false });
+
+    const ProjectContributor = Support.sequelize.define('ProjectContributor', {}, { timestamps: false });
+
+    // project owners
+    User.hasMany(Project, { as: 'projects' });
+    Project.belongsTo(User, { as: 'owner' });
+
+    // project contributors
+    Project.belongsToMany(User, {
+      through: ProjectContributor,
+      as: 'contributors'
+    });
+
+    test('throws an error if encountering parentheses in an attribute', () => {
+      expect(() => sql.selectQuery(Project.tableName, {
+        model: Project,
+        attributes: [['count(*)', 'count']]
+      }, Project)).to.throw('In order to fix the vulnerability CVE-2023-22578, we had to remove support for treating attributes as raw SQL if they included parentheses.');
+    });
+
+    test('escapes attributes with parentheses if attributeBehavior is escape', () => {
+      const escapeSequelize = Support.createSequelizeInstance({
+        attributeBehavior: 'escape'
+      });
+
+      expectsql(escapeSequelize.queryInterface.QueryGenerator.selectQuery(Project.tableName, {
+        model: Project,
+        attributes: [['count(*)', 'count']]
+      }, Project), {
+        default: 'SELECT [count(*)] AS [count] FROM [Projects] AS [Project];',
+        oracle: 'SELECT "count(*)" AS "count" FROM "Projects" "Project";'
+      });
+    });
+
+    test('inlines attributes with parentheses if attributeBehavior is unsafe-legacy', () => {
+      const escapeSequelize = Support.createSequelizeInstance({
+        attributeBehavior: 'unsafe-legacy'
+      });
+
+      expectsql(escapeSequelize.queryInterface.QueryGenerator.selectQuery(Project.tableName, {
+        model: Project,
+        attributes: [['count(*)', 'count']]
+      }, Project), {
+        default: 'SELECT count(*) AS [count] FROM [Projects] AS [Project];',
+        oracle: 'SELECT count(*) AS "count" FROM "Projects" "Project";'
+      });
     });
   });
 });

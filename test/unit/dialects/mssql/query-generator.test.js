@@ -7,6 +7,7 @@ const Operators = require('../../../../lib/operators');
 const TableHints = require('../../../../lib/table-hints');
 const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator');
 const _ = require('lodash');
+const suite = require('mocha').suite;
 
 if (current.dialect.name === 'mssql') {
   suite('[MSSQL Specific] QueryGenerator', () => {
