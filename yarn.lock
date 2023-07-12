@@ -1495,7 +1495,7 @@ __metadata:
     mariadb: 3.2.0
     mocha: 10.2.0
     moment: 2.29.4
-    mysql2: 3.5.0
+    mysql2: 3.5.1
     nyc: 15.1.0
     odbc: 2.4.8
     p-map: 4.0.0
@@ -1513,7 +1513,7 @@ __metadata:
     sinon-chai: 3.7.0
     snowflake-sdk: 1.6.23
     sqlite3: 5.1.6
-    tedious: 16.1.0
+    tedious: 16.2.0
     toposort-class: ^1.0.1
     type-fest: ^3.0.0
     uuid: ^9.0.0
@@ -8346,9 +8346,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:3.5.0":
-  version: 3.5.0
-  resolution: "mysql2@npm:3.5.0"
+"mysql2@npm:3.5.1":
+  version: 3.5.1
+  resolution: "mysql2@npm:3.5.1"
   dependencies:
     denque: ^2.1.0
     generate-function: ^2.3.1
@@ -8358,7 +8358,7 @@ __metadata:
     named-placeholders: ^1.1.3
     seq-queue: ^0.0.5
     sqlstring: ^2.3.2
-  checksum: a52067b069ecc020ef0ac3d4e0e372a33562b2878e5382a64aceb0b5593c6ad31698217e4b6962b1056d2e9c59a004865771703d8dd505fd5a3099973c403ff0
+  checksum: 93c88c88ae374504dc07e5ac1370e74f86f560962d41f7e674a933110167d01023e02947199f6d0be06e75a234c3c19bc9ada8db449a9ebddd928e11357891d3
   languageName: node
   linkType: hard
 
@@ -11530,9 +11530,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:16.1.0":
-  version: 16.1.0
-  resolution: "tedious@npm:16.1.0"
+"tedious@npm:16.2.0":
+  version: 16.2.0
+  resolution: "tedious@npm:16.2.0"
   dependencies:
     "@azure/identity": ^2.0.4
     "@azure/keyvault-keys": ^4.4.0
@@ -11546,7 +11546,7 @@ __metadata:
     node-abort-controller: ^3.1.1
     punycode: ^2.1.0
     sprintf-js: ^1.1.2
-  checksum: 4ffe07c63524ba3ef8211baea97bfee5f025d074c28025c6ec30fa9286c48a174f1718ddc7df0e9d231dee1fc4f62c1830e4f01d74b545c4e6d947337d5b8845
+  checksum: 90b7c564568b8d02863472bbeac92a488a1569d93688ad1578e69d1164396b258a586e8061284aaa8e7cf2c64122092ed5ff1ce1cfe59576681116a09c01f951
   languageName: node
   linkType: hard
 
