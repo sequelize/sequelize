@@ -1,7 +1,10 @@
 import { expect } from 'chai';
-import { sql, AssociationPath, Attribute } from '@sequelize/core';
+import { AssociationPath, Attribute, sql } from '@sequelize/core';
 import { Unquote } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/dialect-aware-fn.js';
-import { parseNestedJsonKeySyntax, parseAttributeSyntax } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/attribute-syntax.js';
+import {
+  parseAttributeSyntax,
+  parseNestedJsonKeySyntax,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/attribute-syntax.js';
 
 describe('parseAttributeSyntax', () => {
   it('parses simple attributes', () => {
@@ -28,7 +31,9 @@ describe('parseAttributeSyntax', () => {
 foo$
    ^`);
 
-    expect(() => parseAttributeSyntax('$foo')).to.throwWithCause(`Failed to parse syntax of attribute. Parse error at index 0:`);
+    expect(() => parseAttributeSyntax('$foo')).to.throwWithCause(`Failed to parse syntax of attribute. Parse error at index 4:
+$foo
+    ^`);
   });
 
   it('parses cast syntax', () => {

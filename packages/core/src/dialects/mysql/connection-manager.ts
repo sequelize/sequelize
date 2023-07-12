@@ -1,7 +1,11 @@
 import assert from 'node:assert';
 import { promisify } from 'node:util';
 import dayjs from 'dayjs';
-import type { createConnection as mysqlCreateConnection, Connection, ConnectionOptions as MySqlConnectionOptions } from 'mysql2';
+import type {
+  Connection,
+  ConnectionOptions as MySqlConnectionOptions,
+  createConnection as mysqlCreateConnection,
+} from 'mysql2';
 import {
   AccessDeniedError,
   ConnectionError,

@@ -10,7 +10,6 @@ describe('QueryGenerator#listSchemasQuery', () => {
 
   it('produces a query used to list schemas in supported dialects', () => {
     expectsql(() => queryGenerator.listSchemasQuery(), {
-      default: 'DROP SCHEMA IF EXISTS [myDatabase];',
       mariadb: `SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema');`,
       mysql: `SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys');`,
       mssql: `SELECT "name" as "schema_name" FROM sys.schemas as s WHERE "s"."name" NOT IN (N'INFORMATION_SCHEMA', N'dbo', N'guest', N'sys', N'archive') AND "s"."name" NOT LIKE 'db_%'`,

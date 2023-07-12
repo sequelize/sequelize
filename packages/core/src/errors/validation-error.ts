@@ -33,7 +33,7 @@ export enum ValidationErrorItemOrigin {
   FUNCTION = 'FUNCTION',
 
   /**
-   * specifies validation errors that originate from {@link <internal>~AbstractDataType#validate} constraint validation.
+   * specifies validation errors that originate from {@link DataTypes.ABSTRACT#validate} constraint validation.
    */
   DATATYPE = 'DATATYPE',
 }

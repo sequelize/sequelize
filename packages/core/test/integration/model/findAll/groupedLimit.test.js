@@ -1,5 +1,9 @@
 'use strict';
 
+const groupBy = require('lodash/groupBy');
+const invokeMap = require('lodash/invokeMap');
+const property = require('lodash/property');
+
 const chai = require('chai');
 const sinon = require('sinon');
 
@@ -9,7 +13,6 @@ const Support = require('../../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
-const _ = require('lodash');
 
 if (current.dialect.supports['UNION ALL']) {
   describe(Support.getTestDialectTeaser('Model'), () => {
@@ -117,7 +120,7 @@ if (current.dialect.supports['UNION ALL']) {
             }
           });
 
-          it('[Flaky] works with computed order', async function () {
+          it('works with computed orders', async function () {
             const users = await this.User.findAll({
               attributes: ['id'],
               groupedLimit: {
@@ -127,28 +130,7 @@ if (current.dialect.supports['UNION ALL']) {
               },
               order: [
                 Sequelize.fn('ABS', Sequelize.col('age')),
-              ],
-              include: [this.User.Tasks],
-            });
-
-            /*
-             project1 - 1, 3, 4
-             project2 - 3, 5, 4
-           */
-            // Flaky test
-            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 4]);
-          });
-
-          it('works with multiple orders', async function () {
-            const users = await this.User.findAll({
-              attributes: ['id'],
-              groupedLimit: {
-                limit: 3,
-                on: this.User.Projects,
-                values: this.projects.map(item => item.get('id')),
-              },
-              order: [
-                Sequelize.fn('ABS', Sequelize.col('age')),
+                // Two users have the same abs(age), so we need to make sure that the order is deterministic
                 ['id', 'DESC'],
               ],
               include: [this.User.Tasks],
@@ -247,12 +229,12 @@ if (current.dialect.supports['UNION ALL']) {
               },
             });
 
-            const byUser = _.groupBy(tasks, _.property('userId'));
+            const byUser = groupBy(tasks, property('userId'));
             expect(Object.keys(byUser)).to.have.length(3);
 
             expect(byUser[1]).to.have.length(1);
             expect(byUser[2]).to.have.length(3);
-            expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
+            expect(invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
             expect(byUser[3]).to.have.length(2);
           });
         });

@@ -41,7 +41,6 @@ export class IBMiDialect extends AbstractDialect {
   readonly dataTypesDocumentationUrl = 'https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_73/db2/rbafzch2data.htm';
   readonly defaultVersion = '7.3.0';
   readonly Query = IBMiQuery;
-  readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
 

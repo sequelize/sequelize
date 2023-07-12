@@ -6,7 +6,10 @@ import { BaseSqlExpression } from './expression-builders/base-sql-expression.js'
 import { getAllOwnKeys } from './utils/object';
 import { BelongsTo } from './associations/belongs-to';
 
-const _ = require('lodash');
+import difference from 'lodash/difference';
+import forIn from 'lodash/forIn';
+import get from 'lodash/get';
+
 const sequelizeError = require('./errors');
 const validator = require('./utils/validator-extras').validator;
 const { promisify } = require('node:util');
@@ -28,7 +31,7 @@ export class InstanceValidator {
     };
 
     if (options.fields && !options.skip) {
-      options.skip = _.difference(Array.from(modelInstance.constructor.modelDefinition.attributes.keys()), options.fields);
+      options.skip = difference(Array.from(modelInstance.constructor.modelDefinition.attributes.keys()), options.fields);
     } else {
       options.skip ??= [];
     }
@@ -212,7 +215,7 @@ export class InstanceValidator {
 
     const attribute = this.modelInstance.constructor.modelDefinition.attributes.get(attributeName);
 
-    _.forIn(attribute.validate, (test, validatorType) => {
+    forIn(attribute.validate, (test, validatorType) => {
       if (['isUrl', 'isURL', 'isEmail'].includes(validatorType)) {
         // Preserve backwards compat. Validator.js now expects the second param to isURL and isEmail to be an object
         if (typeof test === 'object' && test !== null && test.msg) {
@@ -372,7 +375,7 @@ export class InstanceValidator {
       if (!association || !this.modelInstance.get(association.as)) {
         const modelDefinition = this.modelInstance.constructor.modelDefinition;
         const validators = modelDefinition.attributes.get(attributeName)?.validate;
-        const errMsg = _.get(validators, 'notNull.msg', `${this.modelInstance.constructor.name}.${attributeName} cannot be null`);
+        const errMsg = get(validators, 'notNull.msg', `${this.modelInstance.constructor.name}.${attributeName} cannot be null`);
 
         this.errors.push(new sequelizeError.ValidationErrorItem(
           errMsg,

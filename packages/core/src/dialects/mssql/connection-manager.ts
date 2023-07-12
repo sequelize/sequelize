@@ -4,7 +4,8 @@ import {
   ConnectionError,
   ConnectionRefusedError,
   HostNotFoundError,
-  HostNotReachableError, InvalidConnectionError,
+  HostNotReachableError,
+  InvalidConnectionError,
 } from '../../errors/index.js';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import { assertCaughtError, isErrorWithStringCode, isPlainObject } from '../../utils/check.js';

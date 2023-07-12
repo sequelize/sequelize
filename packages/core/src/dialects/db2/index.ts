@@ -24,6 +24,9 @@ export class Db2Dialect extends AbstractDialect {
       where: true,
       include: true,
     },
+    constraints: {
+      onUpdate: false,
+    },
     tmpTableTrigger: true,
     dataTypes: {
       COLLATE_BINARY: true,
@@ -40,8 +43,6 @@ export class Db2Dialect extends AbstractDialect {
   readonly queryInterface: Db2QueryInterface;
   readonly Query = Db2Query;
 
-  /** @deprecated */
-  readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
 

@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       const json = project.toJSON();
-      expect(json.LovelyUser).to.be.equal(null);
+      expect(json.LovelyUser).to.equal(null);
     });
 
     it('doesn\'t return instances that aren\'t defined', async function () {

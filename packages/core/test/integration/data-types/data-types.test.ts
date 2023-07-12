@@ -12,8 +12,8 @@ import type {
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { DataTypes, fn, Model, QueryTypes, ValidationError } from '@sequelize/core';
-import { beforeAll2, disableDatabaseResetForSuite, sequelize } from '../support';
+import { DataTypes, Model, QueryTypes, ValidationError, fn } from '@sequelize/core';
+import { beforeAll2, sequelize, setResetMode } from '../support';
 import 'moment-timezone';
 
 dayjs.extend(DayjsTimezone);
@@ -29,7 +29,7 @@ enum TestEnum {
 }
 
 describe('DataTypes', () => {
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   // TODO: merge STRING & TEXT: remove default length limit on STRING instead of using 255.
   describe('STRING(<length>)', () => {
@@ -1388,7 +1388,7 @@ describe('DataTypes', () => {
 
       // MariaDB: supports a JSON type, but:
       // - MariaDB 10.5 says it's a JSON col, on which we enabled automatic JSON parsing.
-      // - MariaDB 10.3 says it's a string, so we can't parse it based on the type.
+      // - MariaDB 10.4 says it's a string, so we can't parse it based on the type.
       // TODO [2024-06-18]: Re-enable this test when we drop support for MariaDB < 10.5
       if (dialect.name !== 'mariadb') {
         if (dialect.name === 'mssql' || dialect.name === 'sqlite') {

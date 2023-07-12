@@ -2,9 +2,11 @@
 
 import NodeUtil from 'node:util';
 
+import forOwn from 'lodash/forOwn';
+import zipObject from 'lodash/zipObject';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 const DataTypes = require('../../data-types');
 const { logger } = require('../../utils/logger');
 
@@ -12,6 +14,7 @@ const ER_DUP_ENTRY = 1062;
 const ER_DEADLOCK = 1213;
 const ER_ROW_IS_REFERENCED = 1451;
 const ER_NO_REFERENCED_ROW = 1452;
+const ER_CANT_DROP_FIELD_OR_KEY = 1091;
 
 const debug = logger.debugContext('sql:mariadb');
 
@@ -108,7 +111,7 @@ export class MariaDbQuery extends AbstractQuery {
           const startId = data[this.getInsertIdField()];
           result = new Array(data.affectedRows);
           const pkColumnName = modelDefinition.attributes.get(this.model.primaryKeyAttribute).columnName;
-          for (let i = 0; i < data.affectedRows; i++) {
+          for (let i = 0n; i < data.affectedRows; i++) {
             result[i] = { [pkColumnName]: startId + i };
           }
 
@@ -135,7 +138,6 @@ export class MariaDbQuery extends AbstractQuery {
 
     if (this.isRawQuery()) {
       const meta = data.meta;
-      delete data.meta;
 
       return [data, meta];
     }
@@ -144,7 +146,11 @@ export class MariaDbQuery extends AbstractQuery {
       return this.handleShowIndexesQuery(data);
     }
 
-    if (this.isForeignKeysQuery() || this.isShowConstraintsQuery()) {
+    if (this.isForeignKeysQuery()) {
+      return data;
+    }
+
+    if (this.isShowConstraintsQuery()) {
       return data;
     }
 
@@ -162,17 +168,13 @@ export class MariaDbQuery extends AbstractQuery {
           allowNull: _result.Null === 'YES',
           defaultValue: _result.Default,
           primaryKey: _result.Key === 'PRI',
-          autoIncrement: Object.prototype.hasOwnProperty.call(_result, 'Extra')
+          autoIncrement: Object.hasOwn(_result, 'Extra')
             && _result.Extra.toLowerCase() === 'auto_increment',
           comment: _result.Comment ? _result.Comment : null,
         };
       }
 
       return result;
-    }
-
-    if (this.isVersionQuery()) {
-      return data[0].version;
     }
 
     return result;
@@ -183,14 +185,19 @@ export class MariaDbQuery extends AbstractQuery {
       return;
     }
 
-    for (const _field of Object.keys(this.model.fieldRawAttributesMap)) {
+    const meta = rows.meta;
+    for (const [i, _field] of Object.keys(this.model.fieldRawAttributesMap).entries()) {
       const modelField = this.model.fieldRawAttributesMap[_field];
       if (modelField.type instanceof DataTypes.JSON) {
         // Value is returned as String, not JSON
         rows = rows.map(row => {
-          // JSON fields for MariaDB server 10.5.2+ already results in JSON format, skip JSON.parse
-          // this is due to this https://jira.mariadb.org/browse/MDEV-17832 and how mysql2 connector interacts with MariaDB and JSON fields
-          if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string' && !this.connection.info.hasMinVersion(10, 5, 2)) {
+          // JSON fields for MariaDB server 10.5.2+ already results in JSON format so we can skip JSON.parse
+          // In this case the column type field will be MYSQL_TYPE_STRING, but the extended type will indicate 'json'
+          if (
+            row[modelField.fieldName]
+            && typeof row[modelField.fieldName] === 'string'
+            && (!meta[i] || meta[i].dataTypeFormat !== 'json')
+          ) {
             row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
           }
 
@@ -224,13 +231,13 @@ export class MariaDbQuery extends AbstractQuery {
             message = uniqueKey.msg;
           }
 
-          fields = _.zipObject(uniqueKey.fields, values);
+          fields = zipObject(uniqueKey.fields, values);
         } else {
           fields[fieldKey] = fieldVal;
         }
 
         const errors = [];
-        _.forOwn(fields, (value, field) => {
+        forOwn(fields, (value, field) => {
           errors.push(new sequelizeErrors.ValidationErrorItem(
             this.getUniqueConstraintErrorMessage(field),
             'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -259,6 +266,20 @@ export class MariaDbQuery extends AbstractQuery {
           fields,
           value: fields && fields.length && this.instance && this.instance[fields[0]] || undefined,
           index: match ? match[2] : undefined,
+          cause: err,
+        });
+      }
+
+      case ER_CANT_DROP_FIELD_OR_KEY: {
+        const constraintMatch = err.sql.match(/(?:constraint|index) `(.+?)`/i);
+        const constraint = constraintMatch ? constraintMatch[1] : undefined;
+        const tableMatch = err.sql.match(/table `(.+?)`/i);
+        const table = tableMatch ? tableMatch[1] : undefined;
+
+        return new sequelizeErrors.UnknownConstraintError({
+          message: err.text,
+          constraint,
+          table,
           cause: err,
         });
       }

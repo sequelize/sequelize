@@ -12,7 +12,7 @@ describe('QueryGenerator#dropDatabaseQuery', () => {
     expectsql(() => queryGenerator.dropDatabaseQuery('myDatabase'), {
       default: notSupportedError,
       'postgres snowflake': 'DROP DATABASE IF EXISTS [myDatabase];',
-      mssql: `IF EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN DROP DATABASE [myDatabase] ; END;`,
+      mssql: `IF EXISTS (SELECT * FROM sys.databases WHERE name = N'myDatabase' ) BEGIN DROP DATABASE [myDatabase] ; END;`,
     });
   });
 
@@ -20,8 +20,7 @@ describe('QueryGenerator#dropDatabaseQuery', () => {
     expectsql(() => noQuoteQueryGenerator.dropDatabaseQuery('myDatabase'), {
       default: notSupportedError,
       'postgres snowflake': 'DROP DATABASE IF EXISTS myDatabase;',
-      // TODO: mssql does not respect quoteIdentifiers in this method
-      mssql: `IF EXISTS (SELECT * FROM sys.databases WHERE name = 'myDatabase' ) BEGIN DROP DATABASE [myDatabase] ; END;`,
+      mssql: `IF EXISTS (SELECT * FROM sys.databases WHERE name = N'myDatabase' ) BEGIN DROP DATABASE [myDatabase] ; END;`,
     });
   });
 });

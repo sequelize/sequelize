@@ -135,7 +135,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
       },
     });
 
-    expect(count).to.be.equal(3);
+    expect(count).to.equal(3);
     expect(children.map(v => v.id)).to.have.members([this.mary.id]);
   });
 });

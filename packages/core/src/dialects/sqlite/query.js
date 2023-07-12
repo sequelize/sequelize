@@ -1,9 +1,9 @@
 'use strict';
 
+import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject';
-import { removeTicks } from '../../utils/dialect';
+import merge from 'lodash/merge';
 
-const _ = require('lodash');
 const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
@@ -41,7 +41,7 @@ export class SqliteQuery extends AbstractQuery {
         ret[key] = _include.model;
 
         if (_include.include) {
-          _.merge(ret, this._collectModels(_include.include, key));
+          merge(ret, this._collectModels(_include.include, key));
         }
       }
     }
@@ -80,11 +80,6 @@ export class SqliteQuery extends AbstractQuery {
     }
 
     if (this.isShowConstraintsQuery()) {
-      result = results;
-      if (results && results[0] && results[0].sql) {
-        result = this.parseConstraintsFromSql(results[0].sql);
-      }
-
       return result;
     }
 
@@ -132,7 +127,7 @@ export class SqliteQuery extends AbstractQuery {
         }
 
         if (typeof result[_result.name].defaultValue === 'string') {
-          result[_result.name].defaultValue = result[_result.name].defaultValue.replace(/'/g, '');
+          result[_result.name].defaultValue = result[_result.name].defaultValue.replaceAll('\'', '');
         }
       }
 
@@ -147,16 +142,12 @@ export class SqliteQuery extends AbstractQuery {
       return results;
     }
 
-    if (this.sql.includes('PRAGMA foreign_key_list')) {
+    if (this.options.type === QueryTypes.FOREIGNKEYS) {
       return results;
     }
 
     if ([QueryTypes.BULKUPDATE, QueryTypes.BULKDELETE].includes(this.options.type)) {
       return metaData.changes;
-    }
-
-    if (this.options.type === QueryTypes.VERSION) {
-      return results[0].version;
     }
 
     if (this.options.type === QueryTypes.RAW) {
@@ -244,7 +235,7 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       await Promise.all(tableNames.map(async tableName => {
-        tableName = tableName.replace(/`/g, '');
+        tableName = tableName.replaceAll('`', '');
         columnTypes[tableName] = {};
 
         const { results } = await this.#allSeries(conn, `PRAGMA table_info(\`${tableName}\`)`);
@@ -289,56 +280,6 @@ export class SqliteQuery extends AbstractQuery {
         });
       });
     });
-  }
-
-  parseConstraintsFromSql(sql) {
-    let constraints = sql.split('CONSTRAINT ');
-    let referenceTableName; let referenceTableKeys; let updateAction; let deleteAction;
-    constraints.splice(0, 1);
-    constraints = constraints.map(constraintSql => {
-      // Parse foreign key snippets
-      if (constraintSql.includes('REFERENCES')) {
-        // Parse out the constraint condition form sql string
-        updateAction = constraintSql.match(/ON UPDATE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT)/);
-        deleteAction = constraintSql.match(/ON DELETE (CASCADE|SET NULL|RESTRICT|NO ACTION|SET DEFAULT)/);
-
-        if (updateAction) {
-          updateAction = updateAction[1];
-        }
-
-        if (deleteAction) {
-          deleteAction = deleteAction[1];
-        }
-
-        const referencesRegex = /REFERENCES.+\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/;
-        const referenceConditions = constraintSql.match(referencesRegex)[0].split(' ');
-        referenceTableName = removeTicks(referenceConditions[1]);
-        let columnNames = referenceConditions[2];
-        columnNames = columnNames.replace(/\(|\)/g, '').split(', ');
-        referenceTableKeys = columnNames.map(column => removeTicks(column));
-      }
-
-      const constraintCondition = constraintSql.match(/\((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*\)/)[0];
-      constraintSql = constraintSql.replace(/\(.+\)/, '');
-      const constraint = constraintSql.split(' ');
-
-      if (['PRIMARY', 'FOREIGN'].includes(constraint[1])) {
-        constraint[1] += ' KEY';
-      }
-
-      return {
-        constraintName: removeTicks(constraint[0]),
-        constraintType: constraint[1],
-        updateAction,
-        deleteAction,
-        sql: sql.replace(/"/g, '`'), // Sqlite returns double quotes for table name
-        constraintCondition,
-        referenceTableName,
-        referenceTableKeys,
-      };
-    });
-
-    return constraints;
   }
 
   formatError(err) {
@@ -386,7 +327,7 @@ export class SqliteQuery extends AbstractQuery {
 
         if (this.model) {
           for (const index of this.model.getIndexes()) {
-            if (index.unique && _.isEqual(index.fields, fields) && index.msg) {
+            if (index.unique && isEqual(index.fields, fields) && index.msg) {
               message = index.msg;
               break;
             }

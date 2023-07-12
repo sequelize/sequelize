@@ -1,11 +1,12 @@
 'use strict';
 
+const upperFirst = require('lodash/upperFirst');
+
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
-const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findOne', () => {
@@ -295,7 +296,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             await promise;
             const instance = await model.create(values);
             if (previousInstance) {
-              await previousInstance[`set${_.upperFirst(model.name)}`](instance);
+              await previousInstance[`set${upperFirst(model.name)}`](instance);
               previousInstance = instance;
 
               return;

@@ -53,7 +53,7 @@ describe('Model#update', () => {
     await this.User.sync({ force: true });
   });
 
-  describe('Fake Timers Suite', () => {
+  context('Fake Timers Suite', () => {
     before(function () {
       this.clock = sinon.useFakeTimers();
     });
@@ -86,6 +86,21 @@ describe('Model#update', () => {
       const testDate = new Date();
       testDate.setTime(2100);
       expect(user.get('createdAt')).to.equalTime(testDate);
+    });
+
+    it('does not update timestamps when option "silent=true" is used', async function () {
+      const user = await this.User.create({ username: 'user' });
+      const updatedAt = user.updatedAt;
+
+      this.clock.tick(1000);
+
+      await user.update({
+        username: 'userman',
+      }, {
+        silent: true,
+      });
+
+      expect(user.updatedAt).to.equalTime(updatedAt);
     });
 
     it(`doesn't update primary keys or timestamps`, async function () {
@@ -122,7 +137,7 @@ describe('Model#update', () => {
 
   if (current.dialect.supports.transactions) {
     it('supports transactions', async function () {
-      const sequelize = await Support.prepareTransactionTest(this.sequelize);
+      const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
       await User.sync({ force: true });
@@ -199,7 +214,7 @@ describe('Model#update', () => {
     });
 
     expect(user.changed('validateTest')).to.be.ok;
-    expect(user.validateTest).to.be.equal(5);
+    expect(user.validateTest).to.equal(5);
     await user.reload();
     expect(user.validateTest).to.not.be.equal(5);
   });
@@ -207,9 +222,9 @@ describe('Model#update', () => {
   it('should save attributes affected by setters', async function () {
     const user = await this.User.create();
     await user.update({ validateSideEffect: 5 });
-    expect(user.validateSideEffect).to.be.equal(5);
+    expect(user.validateSideEffect).to.equal(5);
     await user.reload();
-    expect(user.validateSideAffected).to.be.equal(10);
+    expect(user.validateSideAffected).to.equal(10);
     expect(user.validateSideEffect).not.to.be.ok;
   });
 
@@ -283,6 +298,46 @@ describe('Model#update', () => {
       expect(user.get('name')).to.equal('B');
       expect(user.get('bio')).to.equal('B');
       expect(user.get('email')).to.equal('C');
+    });
+
+    it('should work on a model with an attribute named length', async function () {
+      const Box = this.sequelize.define('box', {
+        length: DataTypes.INTEGER,
+        width: DataTypes.INTEGER,
+        height: DataTypes.INTEGER,
+      });
+
+      await Box.sync({ force: true });
+
+      const box0 = await Box.create({
+        length: 1,
+        width: 2,
+        height: 3,
+      });
+
+      await box0.update({
+        length: 4,
+        width: 5,
+        height: 6,
+      });
+
+      const box = await Box.findOne({});
+      expect(box.get('length')).to.equal(4);
+      expect(box.get('width')).to.equal(5);
+      expect(box.get('height')).to.equal(6);
+    });
+
+    it('runs validation', async function () {
+      const user = await this.User.create({ aNumber: 0 });
+
+      const error = await expect(user.update({ validateTest: 'hello' })).to.be.rejectedWith(Sequelize.ValidationError);
+
+      expect(error).to.exist;
+      expect(error).to.be.instanceof(Object);
+      expect(error.get('validateTest')).to.exist;
+      expect(error.get('validateTest')).to.be.instanceof(Array);
+      expect(error.get('validateTest')[1]).to.exist;
+      expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
     });
 
     it('should validate attributes added in hooks when default fields are used', async function () {
@@ -460,5 +515,34 @@ describe('Model#update', () => {
     const user = await this.User.create({});
     await user.update({ username: 'yolo' }, { logging: spy });
     expect(spy.called).to.be.ok;
+  });
+
+  it('supports falsy primary keys', async () => {
+    const Book = current.define('Book', {
+      id: {
+        type: DataTypes.INTEGER,
+        // must have autoIncrement disabled, as mysql treats 0 as "generate next value"
+        autoIncrement: false,
+        primaryKey: true,
+      },
+      title: { type: DataTypes.STRING },
+    });
+
+    await Book.sync();
+
+    const title1 = 'title 1';
+    const title2 = 'title 2';
+
+    const book1 = await Book.create({ id: 0, title: title1 }, { logging: console.log });
+    expect(book1.id).to.equal(0);
+    expect(book1.title).to.equal(title1);
+
+    const book2 = await Book.findByPk(0, { rejectOnEmpty: true });
+    expect(book2.id).to.equal(0);
+    expect(book2.title).to.equal(title1);
+
+    await book2.update({ title: title2 });
+    expect(book2.id).to.equal(0);
+    expect(book2.title).to.equal(title2);
   });
 });

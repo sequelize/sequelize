@@ -4,7 +4,7 @@ import sinon from 'sinon';
 import type { CreationOptional, ModelStatic, NonAttribute } from '@sequelize/core';
 import { DataTypes, Deferrable, Model } from '@sequelize/core';
 import { BelongsTo } from '@sequelize/core/decorators-legacy';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('belongsTo'), () => {
   it('throws when invalid model is passed', () => {
@@ -135,6 +135,22 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     // This would previously fail because the BelongsTo association would create an hasMany association which would
     // then try to create a redundant belongsTo association
     sequelize.addModels([Post, Author]);
+  });
+
+  it(`uses the model's singular name to generate the foreign key name`, () => {
+    const Book = sequelize.define('Book', {}, {
+      name: {
+        singular: 'Singular',
+        plural: 'Plural',
+      },
+    });
+
+    const Log = sequelize.define('Log', {}, {});
+
+    Log.belongsTo(Book);
+
+    expect(Log.getAttributes().PluralId).to.not.exist;
+    expect(Log.getAttributes().SingularId).to.exist;
   });
 
   describe('association hooks', () => {

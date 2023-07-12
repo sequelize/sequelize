@@ -1,22 +1,5 @@
 /**
- * An enum of query types used by `sequelize.query`
- *
- * @see {@link Sequelize#query}
- *
- * @property SELECT
- * @property INSERT
- * @property UPDATE
- * @property BULKUPDATE
- * @property BULKDELETE
- * @property DELETE
- * @property UPSERT
- * @property VERSION
- * @property SHOWTABLES
- * @property SHOWINDEXES
- * @property DESCRIBE
- * @property RAW
- * @property FOREIGNKEYS
- * @property SHOWCONSTRAINTS
+ * An enum of query types used by {@link Sequelize#query}.
  */
 export enum QueryTypes {
   SELECT = 'SELECT',
@@ -26,7 +9,6 @@ export enum QueryTypes {
   BULKDELETE = 'BULKDELETE',
   DELETE = 'DELETE',
   UPSERT = 'UPSERT',
-  VERSION = 'VERSION',
   SHOWTABLES = 'SHOWTABLES',
   SHOWINDEXES = 'SHOWINDEXES',
   DESCRIBE = 'DESCRIBE',

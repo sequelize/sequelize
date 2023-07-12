@@ -1,7 +1,21 @@
 import { expect } from 'chai';
+import omit from 'lodash/omit';
 import type { InferAttributes } from '@sequelize/core';
-import { Model, DataTypes } from '@sequelize/core';
-import { Table, Attribute, Unique, AutoIncrement, PrimaryKey, NotNull, AllowNull, Comment, Default, ColumnName, Index, createIndexDecorator } from '@sequelize/core/decorators-legacy';
+import { DataTypes, Model } from '@sequelize/core';
+import {
+  AllowNull,
+  Attribute,
+  AutoIncrement,
+  ColumnName,
+  Comment,
+  Default,
+  Index,
+  NotNull,
+  PrimaryKey,
+  Table,
+  Unique,
+  createIndexDecorator,
+} from '@sequelize/core/decorators-legacy';
 import { sequelize } from '../../support';
 
 describe(`@Attribute legacy decorator`, () => {
@@ -252,6 +266,66 @@ describe(`@Attribute legacy decorator`, () => {
         name: 'firstName-lastName',
       },
     ]);
+  });
+
+  it('is inherited', () => {
+    class DummyModel extends Model {}
+
+    function validate() {
+      return true;
+    }
+
+    class BaseUser extends Model<InferAttributes<BaseUser>> {
+      @Attribute({
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        columnName: 'id',
+        defaultValue: 42,
+        unique: { name: 'primaryKeyUnique' },
+        index: { name: 'primaryKeyIndex' },
+        primaryKey: true,
+        autoIncrement: true,
+        autoIncrementIdentity: true,
+        comment: 'This is a comment',
+        references: {
+          model: DummyModel,
+          key: 'id',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+        validate: {
+          validate,
+        },
+        get() {
+          return 42;
+        },
+        set() {},
+      })
+      declare primaryKey: number;
+    }
+
+    class User extends BaseUser {}
+
+    sequelize.addModels([DummyModel, User]);
+    // register in two steps to make sure you can register a model without registering its parent (when the parent is abstract)
+    sequelize.addModels([BaseUser]);
+
+    const descendantPrimaryKey = User.modelDefinition.rawAttributes.primaryKey;
+    const parentPrimaryKey = BaseUser.modelDefinition.rawAttributes.primaryKey;
+
+    expect(omit(descendantPrimaryKey, ['type'])).to.deep.equal(omit(parentPrimaryKey, ['type']));
+
+    expect(descendantPrimaryKey.type).to.be.instanceOf(DataTypes.INTEGER);
+
+    // must be different instances:
+    expect(descendantPrimaryKey.type).to.not.equal(parentPrimaryKey.type);
+    expect(descendantPrimaryKey.unique).to.not.equal(parentPrimaryKey.unique);
+    expect(descendantPrimaryKey.index).to.not.equal(parentPrimaryKey.index);
+    expect(descendantPrimaryKey.references).to.not.equal(parentPrimaryKey.references);
+    // model should not be cloned
+    // @ts-expect-error -- typing is broad, not worth checking
+    expect(descendantPrimaryKey.references.model).to.equal(parentPrimaryKey.references.model);
+    expect(descendantPrimaryKey.validate).to.not.equal(parentPrimaryKey.validate);
   });
 });
 

@@ -1,37 +1,17 @@
 'use strict';
 
+import { inspect } from 'node:util';
 import { rejectInvalidOptions } from '../../utils/check';
-import { addTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
-const _ = require('lodash');
+import each from 'lodash/each';
+import isPlainObject from 'lodash/isPlainObject';
+
 const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const { Op } = require('../../operators');
-
-const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
-const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[&|]?|\|{2}|#-)/i;
-const TOKEN_CAPTURE_REGEX = /^\s*((?:(["'`])(?:(?!\2).|\2{2})*\2)|[\s\w]+|[()+,.;-])/i;
-const FOREIGN_KEY_FIELDS = [
-  'CONSTRAINT_NAME as constraint_name',
-  'CONSTRAINT_NAME as constraintName',
-  'CONSTRAINT_SCHEMA as constraintSchema',
-  'CONSTRAINT_SCHEMA as constraintCatalog',
-  'TABLE_NAME as tableName',
-  'TABLE_SCHEMA as tableSchema',
-  'TABLE_SCHEMA as tableCatalog',
-  'COLUMN_NAME as columnName',
-  'REFERENCED_TABLE_SCHEMA as referencedTableSchema',
-  'REFERENCED_TABLE_SCHEMA as referencedTableCatalog',
-  'REFERENCED_TABLE_NAME as referencedTableName',
-  'REFERENCED_COLUMN_NAME as referencedColumnName',
-].join(',');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
@@ -72,10 +52,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     ]);
   }
 
-  versionQuery() {
-    return 'SELECT VERSION() as `version`';
-  }
-
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',
@@ -89,7 +65,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     const attrStr = [];
 
     for (const attr in attributes) {
-      if (!Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (!Object.hasOwn(attributes, attr)) {
         continue;
       }
 
@@ -122,7 +98,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
@@ -137,7 +113,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     }
 
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
+      if (Object.hasOwn(foreignKeys, fkey)) {
         attributesClause += `, FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
       }
     }
@@ -287,27 +263,8 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     return query;
   }
 
-  showConstraintsQuery(table, constraintName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-
-    return joinSQLFragments([
-      'SELECT CONSTRAINT_CATALOG AS constraintCatalog,',
-      'CONSTRAINT_NAME AS constraintName,',
-      'CONSTRAINT_SCHEMA AS constraintSchema,',
-      'CONSTRAINT_TYPE AS constraintType,',
-      'TABLE_NAME AS tableName,',
-      'TABLE_SCHEMA AS tableSchema',
-      'from INFORMATION_SCHEMA.TABLE_CONSTRAINTS',
-      `WHERE table_name='${tableName}'`,
-      constraintName && `AND constraint_name = '${constraintName}'`,
-      schemaName && `AND TABLE_SCHEMA = '${schemaName}'`,
-      ';',
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };
@@ -390,62 +347,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   }
 
   /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param {object} table The table.
-   * @returns {string} The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(table) {
-    const tableName = table.tableName || table;
-    // TODO (https://github.com/sequelize/sequelize/pull/14687): use dialect.getDefaultSchema() instead of this.sequelize.config.database
-    const schemaName = table.schema || this.sequelize.config.database;
-
-    return joinSQLFragments([
-      'SELECT',
-      FOREIGN_KEY_FIELDS,
-      `FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '${tableName}'`,
-      `AND CONSTRAINT_NAME!='PRIMARY' AND CONSTRAINT_SCHEMA='${schemaName}'`,
-      'AND REFERENCED_TABLE_NAME IS NOT NULL',
-      ';',
-    ]);
-  }
-
-  /**
-   * Generates an SQL query that returns the foreign key constraint of a given column.
-   *
-   * @param  {object} table  The table.
-   * @param  {string} columnName The name of the column.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeyQuery(table, columnName) {
-    const quotedSchemaName = table.schema ? wrapSingleQuote(table.schema) : '';
-    const quotedTableName = wrapSingleQuote(table.tableName || table);
-    const quotedColumnName = wrapSingleQuote(columnName);
-
-    return joinSQLFragments([
-      'SELECT',
-      FOREIGN_KEY_FIELDS,
-      'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
-      'WHERE (',
-      [
-        `REFERENCED_TABLE_NAME = ${quotedTableName}`,
-        table.schema && `AND REFERENCED_TABLE_SCHEMA = ${quotedSchemaName}`,
-        `AND REFERENCED_COLUMN_NAME = ${quotedColumnName}`,
-      ],
-      ') OR (',
-      [
-        `TABLE_NAME = ${quotedTableName}`,
-        table.schema && `AND TABLE_SCHEMA = ${quotedSchemaName}`,
-        `AND COLUMN_NAME = ${quotedColumnName}`,
-        'AND REFERENCED_TABLE_NAME IS NOT NULL',
-      ],
-      ')',
-    ]);
-  }
-
-  /**
    * Generates an SQL query that removes a foreign key from a table.
    *
    * @param  {string} tableName  The name of the table.
@@ -462,12 +363,23 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       ';',
     ]);
   }
-}
 
-/**
- * @param {string} identifier
- * @deprecated use "escape" or "escapeString" on QueryGenerator
- */
-function wrapSingleQuote(identifier) {
-  return addTicks(identifier, '\'');
+  _getBeforeSelectAttributesFragment(options) {
+    let fragment = '';
+
+    const MINIMUM_EXECUTION_TIME_VALUE = 0;
+    const MAXIMUM_EXECUTION_TIME_VALUE = 4_294_967_295;
+
+    if (options.maxExecutionTimeHintMs != null) {
+      if (Number.isSafeInteger(options.maxExecutionTimeHintMs)
+        && options.maxExecutionTimeHintMs >= MINIMUM_EXECUTION_TIME_VALUE
+        && options.maxExecutionTimeHintMs <= MAXIMUM_EXECUTION_TIME_VALUE) {
+        fragment += ` /*+ MAX_EXECUTION_TIME(${options.maxExecutionTimeHintMs}) */`;
+      } else {
+        throw new Error(`maxExecutionTimeMs must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}, but it is ${inspect(options.maxExecutionTimeHintMs)}`);
+      }
+    }
+
+    return fragment;
+  }
 }

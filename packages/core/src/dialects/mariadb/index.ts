@@ -1,15 +1,14 @@
-import type { FieldInfo } from 'mariadb';
 import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
-import { registerMySqlDbDataTypeParsers } from '../mysql/data-types.db.js';
 import { escapeMysqlString } from '../mysql/mysql-utils';
-import { MySqlQueryInterface } from '../mysql/query-interface';
 import { MariaDbConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
+import { registerMariaDbDbDataTypeParsers } from './data-types.db.js';
 import { MariaDbQuery } from './query';
 import { MariaDbQueryGenerator } from './query-generator';
+import { MariaDbQueryInterface } from './query-interface';
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,
@@ -37,8 +36,8 @@ export class MariaDbDialect extends AbstractDialect {
         using: 1,
       },
       constraints: {
-        dropConstraint: false,
-        check: false,
+        foreignKeyChecksDisableable: true,
+        removeOptions: { ifExists: true },
       },
       indexViaAlter: true,
       indexHints: true,
@@ -54,19 +53,22 @@ export class MariaDbDialect extends AbstractDialect {
       },
       REGEXP: true,
       jsonOperations: true,
+      jsonExtraction: {
+        unquoted: true,
+        quoted: true,
+      },
       globalTimeZoneConfig: true,
     },
   );
 
-  readonly TICK_CHAR = '`';
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';
-  readonly defaultVersion = '10.1.44'; // minimum supported version
+  readonly defaultVersion = '10.4.30'; // minimum supported version
   readonly dataTypesDocumentationUrl = 'https://mariadb.com/kb/en/library/resultset/#field-types';
 
   readonly queryGenerator: MariaDbQueryGenerator;
   readonly connectionManager: MariaDbConnectionManager;
-  readonly queryInterface: MySqlQueryInterface;
+  readonly queryInterface: MariaDbQueryInterface;
 
   readonly Query = MariaDbQuery;
 
@@ -77,16 +79,12 @@ export class MariaDbDialect extends AbstractDialect {
       dialect: this,
       sequelize,
     });
-    this.queryInterface = new MySqlQueryInterface(
+    this.queryInterface = new MariaDbQueryInterface(
       sequelize,
       this.queryGenerator,
     );
 
-    registerMySqlDbDataTypeParsers(this);
-    // DECIMAL must be returned as a string, the JS number type is not precise enough.
-    this.registerDataTypeParser(['NEWDECIMAL'], (value: FieldInfo) => {
-      return value.string();
-    });
+    registerMariaDbDbDataTypeParsers(this);
   }
 
   createBindCollector() {

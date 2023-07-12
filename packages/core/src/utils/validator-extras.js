@@ -1,7 +1,9 @@
 'use strict';
 
-const _ = require('lodash');
-const validator = _.cloneDeep(require('validator'));
+import cloneDeep from 'lodash/cloneDeep';
+import forEach from 'lodash/forEach';
+
+const validator = cloneDeep(require('validator'));
 const dayjs = require('dayjs');
 
 export const extensions = {
@@ -78,7 +80,7 @@ validator.notNull = function (val) {
 };
 
 // https://github.com/chriso/validator.js/blob/6.2.0/validator.js
-_.forEach(extensions, (extend, key) => {
+forEach(extensions, (extend, key) => {
   validator[key] = extend;
 });
 
