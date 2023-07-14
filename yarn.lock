@@ -1480,7 +1480,6 @@ __metadata:
     chai: 4.3.7
     chai-as-promised: 7.1.1
     chai-datetime: 1.8.0
-    cross-env: ^7.0.3
     dayjs: ^1.11.5
     debug: ^4.3.4
     delay: 5.0.0
@@ -3661,7 +3660,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-env@npm:7.0.3, cross-env@npm:^7.0.3":
+"cross-env@npm:7.0.3":
   version: 7.0.3
   resolution: "cross-env@npm:7.0.3"
   dependencies:
