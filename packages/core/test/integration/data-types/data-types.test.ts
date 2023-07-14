@@ -1543,12 +1543,11 @@ describe('DataTypes', () => {
       await testSimpleInOutRaw(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);
       if (dialect.name === 'cockroachdb') {
         await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], [1, 2, 3]);
-        await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00:00', '2022-01-01 00:00:00+00:00']);
       } else {
         await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], ['1', '2', '3']);
-        await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00']);
       }
 
+      await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00']);
       await testSimpleInOutRaw(vars.User, 'booleanArray', [true, false], [true, false]);
       await testSimpleInOutRaw(vars.User, 'stringArray', ['a,b,c', 'd,e,f'], ['a,b,c', 'd,e,f']);
       if (dialect.name !== 'cockroachdb') {
