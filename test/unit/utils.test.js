@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai');
+const suite = require('mocha').suite;
 const expect = chai.expect;
 const Support = require(__dirname + '/support');
 const DataTypes = require(__dirname + '/../../lib/data-types');

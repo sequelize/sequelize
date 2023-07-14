@@ -3,6 +3,7 @@
 const Support   = require(__dirname + '/../support'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
+  suite = require('mocha').suite,
   sql       = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation

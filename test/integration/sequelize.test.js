@@ -616,22 +616,22 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('reject when key is missing in the passed object', function() {
       return this.sequelize.query('select :one as foo, :two as bar, :three as baz', { raw: true, replacements: { one: 1, two: 2 }})
-        .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
+        .should.be.rejectedWith(Error, 'Named replacement ":three" has no entry in the replacement map.');
     });
 
     it('reject with the passed number', function() {
       return this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 2 })
-        .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
+        .should.be.rejectedWith(Error, '"replacements" must be an array or a plain object, but received 2 instead');
     });
 
     it('reject with the passed empty object', function() {
       return this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: {}})
-        .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
+        .should.be.rejectedWith(Error, 'Named replacement: ":one" has no entry in the replacement map.');
     });
 
     it('reject with the passed string', function() {
       return this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 'foobar'})
-        .should.be.rejectedWith(Error, /Named parameter ":\w+" has no value in the given object\./g);
+        .should.be.rejectedWith(Error, '"replacements" must be an array or a plain object, but received {"type":"Buffer","data":[1]} instead.');
     });
 
     it('reject with the passed date', function() {
@@ -1321,7 +1321,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               self = this;
 
             const count = function(transaction) {
-              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
+              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [[Sequelize.literal('count(*)'), 'cnt']] });
 
               return self.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
                 return result.cnt;
@@ -1349,7 +1349,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               self = this;
 
             const count = function(transaction) {
-              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [['count(*)', 'cnt']] });
+              const sql = self.sequelizeWithTransaction.getQueryInterface().QueryGenerator.selectQuery('TransactionTests', { attributes: [[Sequelize.literal('count(*)'), 'cnt']] });
 
               return self.sequelizeWithTransaction.query(sql, { plain: true, transaction }).then(result => {
                 return parseInt(result.cnt, 10);
