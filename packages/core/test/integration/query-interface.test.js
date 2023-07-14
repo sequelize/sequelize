@@ -542,10 +542,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(Object.keys(foreignKeys[0])).to.have.length(7);
       } else if (['mariadb', 'mysql', 'db2'].includes(dialectName)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(8);
-      } else if (dialectName === 'cockroachdb') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(6);
-        expect(Object.keys(foreignKeys[1])).to.have.length(7);
-        expect(Object.keys(foreignKeys[2])).to.have.length(6);
       } else {
         expect(Object.keys(foreignKeys[0])).to.have.length(11);
       }
@@ -580,8 +576,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       this.User = this.sequelize.define('users', {
         // Db2 does not allow unique constraint for a nullable column, Db2
         // throws SQL0542N error if we create constraint on nullable column.
-        username: dialectName === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
-        email: dialectName === 'db2' ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
+        username: ['db2', 'cockroachdb'].includes(dialectName) ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
+        email: ['db2', 'cockroachdb'].includes(dialectName) ? { type: DataTypes.STRING, allowNull: false } : DataTypes.STRING,
         roles: DataTypes.STRING,
       });
 
@@ -676,27 +672,65 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     describe('primary key', () => {
       it('should add, read & remove primary key constraint', async function () {
-        await this.queryInterface.removeColumn('users', 'id');
-        await this.queryInterface.changeColumn('users', 'username', {
-          type: DataTypes.STRING,
-          allowNull: false,
-        });
+        // CockroachDB does not allow dropping columns referencing primary key unless the constraints are dropped and
+        // a new one is created under the same transaction.
+        if (dialectName === 'cockroachdb') {
+          const transactionSequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+          const t1 = await transactionSequelize.startUnmanagedTransaction();
+          await this.queryInterface.removeConstraint('users', 'users_pkey', { transaction: t1 });
+          await this.queryInterface.addConstraint('users', {
+            fields: ['username'],
+            type: 'PRIMARY KEY',
+            transaction: t1,
+          });
+          await t1.commit();
+          await this.queryInterface.removeColumn('users', 'id');
+          await this.queryInterface.changeColumn('users', 'username', {
+            type: DataTypes.STRING,
+            allowNull: false,
+          });
+          let constraints = await this.queryInterface.showConstraints('users');
+          constraints = constraints.map(constraint => constraint.constraintName);
 
-        await this.queryInterface.addConstraint('users', {
-          fields: ['username'],
-          type: 'PRIMARY KEY',
-        });
-        let constraints = await this.queryInterface.showConstraints('users');
-        constraints = constraints.map(constraint => constraint.constraintName);
+          // The name of primaryKey constraint is always `PRIMARY` in case of MySQL and MariaDB
+          const expectedConstraintName = 'users_username_pk';
 
-        // The name of primaryKey constraint is always `PRIMARY` in case of MySQL and MariaDB
-        const expectedConstraintName = ['mysql', 'mariadb'].includes(dialectName) ? 'PRIMARY' : 'users_username_pk';
+          expect(constraints).to.include(expectedConstraintName);
+          const t2 = await transactionSequelize.startUnmanagedTransaction();
+          await this.queryInterface.removeConstraint('users', expectedConstraintName, { transaction: t2 });
+          await this.queryInterface.addConstraint('users', {
+            fields: ['email'],
+            type: 'PRIMARY KEY',
+            transaction: t2,
+          });
+          await t2.commit();
+          constraints = await this.queryInterface.showConstraints('users');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.not.include(expectedConstraintName);
+        } else {
+          await this.queryInterface.removeColumn('users', 'id');
+          await this.queryInterface.changeColumn('users', 'username', {
+            type: DataTypes.STRING,
+            allowNull: false,
+          });
 
-        expect(constraints).to.include(expectedConstraintName);
-        await this.queryInterface.removeConstraint('users', expectedConstraintName);
-        constraints = await this.queryInterface.showConstraints('users');
-        constraints = constraints.map(constraint => constraint.constraintName);
-        expect(constraints).to.not.include(expectedConstraintName);
+          await this.queryInterface.addConstraint('users', {
+            fields: ['username'],
+            type: 'PRIMARY KEY',
+          });
+          let constraints = await this.queryInterface.showConstraints('users');
+          constraints = constraints.map(constraint => constraint.constraintName);
+
+          // The name of primaryKey constraint is always `PRIMARY` in case of MySQL and MariaDB
+          const expectedConstraintName = ['mysql', 'mariadb'].includes(dialectName) ? 'PRIMARY' : 'users_username_pk';
+
+          expect(constraints).to.include(expectedConstraintName);
+          await this.queryInterface.removeConstraint('users', expectedConstraintName);
+          constraints = await this.queryInterface.showConstraints('users');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.not.include(expectedConstraintName);
+        }
+
       });
 
       // TODO: addConstraint does not support schemas yet.
@@ -735,37 +769,42 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     describe('foreign key', () => {
       it('should add, read & remove foreign key constraint', async function () {
-        await this.queryInterface.removeColumn('users', 'id');
-        await this.queryInterface.changeColumn('users', 'username', {
-          type: DataTypes.STRING,
-          allowNull: false,
-        });
+        // CockroachDB does not allow dropping columns referencing primary key unless the constraints are dropped and
+        // a new one is created under the same transaction.
+        if (dialectName === 'cockroachdb') {
+          const transactionSequelize = await Support.createSingleTestSequelizeInstance();
+          const t1 = await transactionSequelize.startUnmanagedTransaction();
+          await this.queryInterface.removeConstraint('users', 'users_pkey', { transaction: t1 });
+          await this.queryInterface.addConstraint('users', {
+            type: 'PRIMARY KEY',
+            fields: ['username'],
+            transaction: t1,
+          });
+          await t1.commit();
 
-        await this.queryInterface.addConstraint('users', {
-          type: 'PRIMARY KEY',
-          fields: ['username'],
-        });
+          await this.queryInterface.removeColumn('users', 'id');
+          await this.queryInterface.changeColumn('users', 'username', {
+            type: DataTypes.STRING,
+            allowNull: false,
+          });
 
-        await this.queryInterface.addConstraint('posts', {
-          fields: ['username'],
-          references: {
-            table: 'users',
-            field: 'username',
-          },
-          type: 'FOREIGN KEY',
-          onDelete: 'CASCADE',
-        });
-        let constraints = await this.queryInterface.showConstraints('posts');
-        constraints = constraints.map(constraint => constraint.constraintName);
-        expect(constraints).to.include('posts_username_users_fk');
-        await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
-        constraints = await this.queryInterface.showConstraints('posts');
-        constraints = constraints.map(constraint => constraint.constraintName);
-        expect(constraints).to.not.include('posts_username_users_fk');
-      });
-
-      if (current.dialect.supports.constraints.onUpdate) {
-        it('should add, read & remove foreign key constraint', async function () {
+          await this.queryInterface.addConstraint('posts', {
+            fields: ['username'],
+            references: {
+              table: 'users',
+              field: 'username',
+            },
+            type: 'FOREIGN KEY',
+            onDelete: 'CASCADE',
+          });
+          let constraints = await this.queryInterface.showConstraints('posts');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.include('posts_username_users_fk');
+          await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
+          constraints = await this.queryInterface.showConstraints('posts');
+          constraints = constraints.map(constraint => constraint.constraintName);
+          expect(constraints).to.not.include('posts_username_users_fk');
+        } else {
           await this.queryInterface.removeColumn('users', 'id');
           await this.queryInterface.changeColumn('users', 'username', {
             type: DataTypes.STRING,
@@ -783,9 +822,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               table: 'users',
               field: 'username',
             },
-            onDelete: 'CASCADE',
-            onUpdate: 'CASCADE',
             type: 'FOREIGN KEY',
+            onDelete: 'CASCADE',
           });
           let constraints = await this.queryInterface.showConstraints('posts');
           constraints = constraints.map(constraint => constraint.constraintName);
@@ -794,6 +832,78 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           constraints = await this.queryInterface.showConstraints('posts');
           constraints = constraints.map(constraint => constraint.constraintName);
           expect(constraints).to.not.include('posts_username_users_fk');
+        }
+
+      });
+
+      if (current.dialect.supports.constraints.onUpdate) {
+        it('should add, read & remove foreign key constraint', async function () {
+          if (dialectName === 'cockroachdb') {
+            // CockroachDB does not allow dropping columns referencing primary key unless the constraints are dropped and
+            // a new one is created under the same transaction.
+            const transactionSequelize = Support.createSingleTestSequelizeInstance();
+            const t1 = await transactionSequelize.startUnmanagedTransaction();
+            await this.queryInterface.removeConstraint('users', 'users_pkey', { transaction: t1 });
+            await this.queryInterface.addConstraint('users', {
+              type: 'PRIMARY KEY',
+              fields: ['username'],
+              transaction: t1,
+            });
+            await t1.commit();
+            await this.queryInterface.removeColumn('users', 'id');
+            await this.queryInterface.changeColumn('users', 'username', {
+              type: DataTypes.STRING,
+              allowNull: false,
+            });
+
+            await this.queryInterface.addConstraint('posts', {
+              fields: ['username'],
+              references: {
+                table: 'users',
+                field: 'username',
+              },
+              onDelete: 'CASCADE',
+              onUpdate: 'CASCADE',
+              type: 'FOREIGN KEY',
+            });
+            let constraints = await this.queryInterface.showConstraints('posts');
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.include('posts_username_users_fk');
+            await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
+            constraints = await this.queryInterface.showConstraints('posts');
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('posts_username_users_fk');
+          } else {
+            await this.queryInterface.removeColumn('users', 'id');
+            await this.queryInterface.changeColumn('users', 'username', {
+              type: DataTypes.STRING,
+              allowNull: false,
+            });
+
+            await this.queryInterface.addConstraint('users', {
+              type: 'PRIMARY KEY',
+              fields: ['username'],
+            });
+
+            await this.queryInterface.addConstraint('posts', {
+              fields: ['username'],
+              references: {
+                table: 'users',
+                field: 'username',
+              },
+              onDelete: 'CASCADE',
+              onUpdate: 'CASCADE',
+              type: 'FOREIGN KEY',
+            });
+            let constraints = await this.queryInterface.showConstraints('posts');
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.include('posts_username_users_fk');
+            await this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
+            constraints = await this.queryInterface.showConstraints('posts');
+            constraints = constraints.map(constraint => constraint.constraintName);
+            expect(constraints).to.not.include('posts_username_users_fk');
+          }
+
         });
       }
     });

@@ -153,7 +153,7 @@ export class PostgresQuery extends AbstractQuery {
           return {
             attribute: field,
             collate: /COLLATE "(.*?)"/.test(attribute) ? /COLLATE "(.*?)"/.exec(attribute)[1] : undefined,
-            order: attribute?.includes('DESC') ? 'DESC' : attribute?.includes('ASC') ? 'ASC' : undefined,
+            order: attribute.includes('DESC') ? 'DESC' : attribute.includes('ASC') ? 'ASC' : undefined,
             length: undefined,
           };
         }).filter(n => n !== null);

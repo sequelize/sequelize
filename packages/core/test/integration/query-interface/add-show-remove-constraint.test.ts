@@ -189,9 +189,9 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             fields: ['name'],
             transaction: t,
           });
-          const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name', transaction: t });
+          await t.commit();
+          const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
           expect(constraintsAfterRemove).to.have.length(0);
-          await t.rollback();
         } else {
           const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
           expect(constraints).to.have.length(1);
@@ -396,9 +396,9 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
               fields: ['name'],
               transaction: t,
             });
-            const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name', transaction: t });
+            await t.commit();
+            const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
             expect(constraintsAfterRemove).to.have.length(0);
-            await t.rollback();
           } else {
             const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
             expect(constraints).to.have.length(1);

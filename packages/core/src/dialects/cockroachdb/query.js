@@ -357,7 +357,7 @@ export class CockroachDbQuery extends AbstractQuery {
         });
       case '23505':
         if (errDetail && (match = errDetail.replaceAll(/["']/g, '').match(/Key \((.*?)\)=\((.*?)\)/))) {
-          const fields = zipObject(match[1].split(','), match[2].split(','));
+          const fields = zipObject(match[1].split(', '), match[2].split(', '));
           const errors = [];
           let message = 'Validation error';
 
