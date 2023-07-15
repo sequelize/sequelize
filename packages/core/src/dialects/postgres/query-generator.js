@@ -247,8 +247,17 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
       if (attributes[attributeName].startsWith('ENUM(')) {
         attrSql += this.pgEnum(tableName, attributeName, attributes[attributeName]);
-        definition = definition.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attributeName, { schema: false }));
-        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
+        const oldDefinition = definition;
+        definition = definition.replace(
+          /^ENUM\(.+\)/,
+          this.pgEnumName(tableName, attributeName, { schema: false })
+        );
+        definition += ` USING (${this.quoteIdentifier(
+          attributeName
+        )}::${oldDefinition.replace(
+          /^ENUM\(.+\)/,
+          this.pgEnumName(tableName, attributeName, { schema: false })
+        )})`;
       }
 
       if (/UNIQUE;*$/.test(definition)) {
