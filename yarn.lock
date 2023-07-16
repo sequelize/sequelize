@@ -1514,7 +1514,7 @@ __metadata:
     sqlite3: 5.1.6
     tedious: 16.2.0
     toposort-class: ^1.0.1
-    type-fest: ^3.0.0
+    type-fest: ^4.0.0
     uuid: ^9.0.0
     validator: ^13.7.0
     wkx: ^0.5.0
@@ -11947,10 +11947,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^3.0.0":
-  version: 3.12.0
-  resolution: "type-fest@npm:3.12.0"
-  checksum: 11cb6f40e42f92c462a13677eafedf5c48353eaefa8e489a146e55fe0ae5cecd59a2ba03cd6b294345b5ea304361891a6313c23ed959fa0117f63fb71ee6cbab
+"type-fest@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "type-fest@npm:4.0.0"
+  checksum: 716f32ac341b1cf35bf08cc5cc6a11822436333966d3f4d94758112f45829efa3efb643ebc74a53e514e68a1bddab144d0153d654e072b41ba9bd98bcf841d75
   languageName: node
   linkType: hard
 
