@@ -8,7 +8,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize, literal } = require('@sequelize/core');
 
 const dayjs = require('dayjs');
 const promiseProps = require('p-props');
@@ -1370,6 +1370,32 @@ The following associations are defined on "Worker": "ToDos"`);
 
         await Company.findAll({
           order: [this.sequelize.col('name')],
+        });
+      });
+
+      it('should be possible to define attributes at runtime', async function () {
+        await this.User.create();
+
+        const users = await this.User.findAll({
+          attributes: [[dialectName === 'db2' ? literal('(SELECT 7 AS X FROM SYSIBM.SYSDUMMY1)') : literal('(SELECT 7)'), 'runtimeAttribute']],
+          enableRuntimeAttributes: true,
+        });
+
+        users.forEach(user => {
+          // as it is a runtime attribute we do not know its type so we will always get a string
+          expect(parseInt(user.runtimeAttribute, 10)).to.equal(7);
+        });
+      });
+
+      it('should not bring runtime attributes if enableRuntimeAttributes is not set', async function () {
+        await this.User.create();
+
+        const users = await this.User.findAll({
+          attributes: [[dialectName === 'db2' ? literal('(SELECT 7 AS X FROM SYSIBM.SYSDUMMY1)') : literal('(SELECT 7)'), 'runtimeAttribute']],
+        });
+
+        users.forEach(user => {
+          expect(user.runtimeAttribute).to.be.undefined;
         });
       });
 

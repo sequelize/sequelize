@@ -1702,6 +1702,26 @@ ${associationOwner._getAssociationDebugList()}`);
       delete instance[attributeName];
     }
 
+    if (!values || !options?.enableRuntimeAttributes) {
+      return instance;
+    }
+
+    // This allows sequelize to populate custom attributes DEFINED AT RUNTIME (on GraphQL Request for example)
+    // We look for properties that don't exist on the object (associations) or its prototype (attributes),
+    // but are present on the values. We define getters with those values with Object.defineProperty
+    //
+    // The alternative to this would be to define virtual empty fields on each model.
+    // However, since some GraphQL fields could be used multiple times in the same query,
+    // and since we want to potentially sort on these fields in the SQL query, we would need to define multiple
+    // empty virtual fields on each model.
+    const keys = Object.keys(values);
+
+    keys.forEach(key => {
+      if (instance && !(key in instance)) {
+        Object.defineProperty(instance, key, { value: values[key] });
+      }
+    });
+
     return instance;
   }
 
