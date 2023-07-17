@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - name: Install dependencies and build sequelize
+      - name: Install dependencies
         run: yarn install --immutable
       - name: Build sequelize
         run: yarn build
@@ -51,7 +51,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - name: Install dependencies and build sequelize
+      - name: Install dependencies
         run: yarn install --immutable
       - name: Build sequelize
         run: yarn build
