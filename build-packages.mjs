@@ -14,7 +14,7 @@ import glob from 'fast-glob';
 
 const exec = promisify(childProcess.exec);
 
-const rootDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.dirname(fileURLToPath(import.meta.url)).replaceAll('\\', '/');
 const packages = await fs.readdir(`${rootDir}/packages`);
 
 const packageName = process.argv[2];
@@ -34,7 +34,7 @@ const [sourceFiles] = await Promise.all([
   // Find all .js and .ts files from /src.
   // `fast-glob` doesn't find any files when `sourceDir` contains "forward slashes"
   // (Windows) instead of "back slashes" (Linux).
-  glob(`${sourceDir.replaceAll('\\', '/')}/**/*.{mjs,cjs,js,mts,cts,ts}`, { onlyFiles: true, absolute: false }),
+  glob(`${sourceDir}/**/*.{mjs,cjs,js,mts,cts,ts}`, { onlyFiles: true, absolute: false }),
   // Delete /lib for a full rebuild.
   rmDir(libDir),
   // Delete /types for a full rebuild.
