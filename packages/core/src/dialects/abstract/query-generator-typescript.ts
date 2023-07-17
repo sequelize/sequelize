@@ -478,6 +478,8 @@ export class AbstractQueryGeneratorTypeScript {
       for (const hint of options.indexHints) {
         if (IndexHints[hint.type]) {
           sql += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifier(indexName)).join(',')})`;
+        } else {
+          throw new Error(`The index hint type "${hint.type}" is invalid or not supported by dialect "${this.dialect.name}".`);
         }
       }
     }
@@ -487,6 +489,8 @@ export class AbstractQueryGeneratorTypeScript {
       for (const hint of options.tableHints) {
         if (TableHints[hint]) {
           hints.push(TableHints[hint]);
+        } else {
+          throw new Error(`The table hint "${hint}" is invalid or not supported by dialect "${this.dialect.name}".`);
         }
       }
 

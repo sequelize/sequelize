@@ -700,7 +700,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       });
     });
 
-    it('should not add an index hint if the type is not valid', () => {
+    it('should throw an error if an index hint if the type is not valid', () => {
       expectsql(() => queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: ['id'],
@@ -708,7 +708,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         indexHints: [{ type: 'INVALID', values: ['index_project_on_name'] }],
       }, User), {
         default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, ['indexHints']),
-        'mariadb mysql snowflake': 'SELECT [id] FROM [Users] AS [User];',
+        'mariadb mysql snowflake': new Error(`The index hint type "INVALID" is invalid or not supported by dialect "${sequelize.dialect.name}".`),
       });
     });
   });
@@ -762,7 +762,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       });
     });
 
-    it('should not add a table hint if the type is not valid', () => {
+    it('should throw an error if a table hint if the type is not valid', () => {
       expectsql(() => queryGenerator.selectQuery(User.table, {
         model: User,
         attributes: ['id'],
@@ -770,7 +770,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         tableHints: ['INVALID'],
       }, User), {
         default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, ['tableHints']),
-        mssql: 'SELECT [id] FROM [Users] AS [User];',
+        mssql: new Error(`The table hint "INVALID" is invalid or not supported by dialect "${sequelize.dialect.name}".`),
       });
     });
   });
