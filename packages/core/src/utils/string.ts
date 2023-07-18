@@ -1,7 +1,7 @@
 import * as _inflection from 'inflection';
-import stringify from './stringify.js';
 import type { IndexOptions, TableName } from '../dialects/abstract/query-interface.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
+import stringify from './stringify.js';
 
 /* Inflection */
 type Inflection = typeof _inflection;
