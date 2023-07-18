@@ -1,5 +1,6 @@
 import glob from 'fast-glob';
 import uniq from 'lodash/uniq';
+import { pathToFileURL } from 'node:url';
 import type { ModelStatic } from './model.js';
 import { isModelStatic } from './utils/model-utils.js';
 
@@ -32,7 +33,7 @@ export async function importModels(globPaths: string | string[], modelMatch?: Mo
 }
 
 async function importModelNoGlob(path: string, modelMatch?: ModelMatch): Promise<ModelStatic[]> {
-  const module = await import(path);
+  const module = await import(path.startsWith('file://') ? path : pathToFileURL(path).href);
 
   return Object.keys(module)
     .filter(exportName => {
