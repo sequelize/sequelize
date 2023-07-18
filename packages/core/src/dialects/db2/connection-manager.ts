@@ -1,6 +1,6 @@
 import assert from 'node:assert';
-import NodeUtil from 'node:util';
 import type { ConnStr, Database as Db2LibDatabase } from 'ibm_db';
+import stringify from '../../utils/stringify.js';
 import { ConnectionError, ConnectionRefusedError } from '../../errors/index.js';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import type { Connection } from '../abstract/connection-manager';
@@ -78,7 +78,7 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Connectio
         });
       });
     } catch (error) {
-      assert(error instanceof Error, `DB2 threw a non-error value: ${NodeUtil.inspect(error)}`);
+      assert(error instanceof Error, `DB2 threw a non-error value: ${stringify(error)}`);
 
       throw new ConnectionError(error);
     }

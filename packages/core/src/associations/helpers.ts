@@ -1,5 +1,4 @@
 import assert from 'node:assert';
-import NodeUtils from 'node:util';
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject.js';
 import lowerFirst from 'lodash/lowerFirst';
@@ -13,6 +12,7 @@ import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import { pluralize, singularize } from '../utils/string.js';
 import type { OmitConstructors } from '../utils/types.js';
+import stringify from '../utils/stringify.js';
 import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAssociationOptions } from './base';
 import type { ThroughOptions } from './belongs-to-many.js';
 
@@ -116,7 +116,7 @@ export function assertAssociationUnique(
 ${parent ? `The association "${parent.as}" needs to define` : `You are trying to define`} the ${type.name} association "${options.as}" from ${source.name} to ${target.name},
 but that child association has already been defined as ${existingAssociation.associationType}, to ${target.name} by this call:
 
-${existingRoot.source.name}.${lowerFirst(existingRoot.associationType)}(${existingRoot.target.name}, ${NodeUtils.inspect(existingRoot.options)})
+${existingRoot.source.name}.${lowerFirst(existingRoot.associationType)}(${existingRoot.target.name}, ${stringify(existingRoot.options)})
 
 That association would be re-used if compatible, but it is incompatible because ${
   incompatibilityStatus === IncompatibilityStatus.DIFFERENT_TYPES ? `their types are different (${type.name} vs ${existingAssociation.associationType})`
@@ -124,10 +124,10 @@ That association would be re-used if compatible, but it is incompatible because 
     : `their options are not reconcilable:
 
 Options of the association to create:
-${NodeUtils.inspect(omit(options, 'inverse'), { sorted: true })}
+${stringify(omit(options, 'inverse'), { sorted: true })}
 
 Options of the existing association:
-${NodeUtils.inspect(omit(existingAssociation.options as any, 'inverse'), { sorted: true })}
+${stringify(omit(existingAssociation.options as any, 'inverse'), { sorted: true })}
 `}`.trim());
 }
 
@@ -190,7 +190,7 @@ export function defineAssociation<
   construct: (opts: CleanOptions) => T,
 ): T {
   if (!isModelStatic(target)) {
-    throw new Error(`${source.name}.${lowerFirst(type.name)} was called with ${NodeUtils.inspect(target)} as the target model, but it is not a subclass of Sequelize's Model class`);
+    throw new Error(`${source.name}.${lowerFirst(type.name)} was called with ${stringify(target)} as the target model, but it is not a subclass of Sequelize's Model class`);
   }
 
   assertAssociationModelIsDefined(source);

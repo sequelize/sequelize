@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import NodeUtil from 'node:util';
 import isPlainObject from 'lodash/isPlainObject';
 import { v1 as uuidv1 } from 'uuid';
 import * as DataTypes from '../dialects/abstract/data-types.js';
+import stringify from './stringify.js';
 import { isString } from './check.js';
 
 export function toDefaultValue(value: unknown): unknown {
@@ -40,7 +40,7 @@ export function toDefaultValue(value: unknown): unknown {
 
 export function quoteIdentifier(identifier: string, leftTick: string, rightTick: string): string {
   if (!isString(identifier)) {
-    throw new Error(`quoteIdentifier received a non-string identifier: ${NodeUtil.inspect(identifier)}`);
+    throw new Error(`quoteIdentifier received a non-string identifier: ${stringify(identifier)}`);
   }
 
   // TODO [engine:node@>14]: drop regexp, use replaceAll with a string instead.

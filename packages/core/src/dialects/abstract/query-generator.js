@@ -1,6 +1,5 @@
 'use strict';
 
-import NodeUtil from 'node:util';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import { Col } from '../../expression-builders/col.js';
 import { Literal } from '../../expression-builders/literal.js';
@@ -11,6 +10,7 @@ import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/forma
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { nameIndex, spliceStr } from '../../utils/string';
+import stringify from '../../utils/stringify';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
@@ -27,7 +27,6 @@ import pick from 'lodash/pick';
 import reduce from 'lodash/reduce';
 import uniq from 'lodash/uniq';
 
-const util = require('node:util');
 const crypto = require('node:crypto');
 
 const DataTypes = require('../../data-types');
@@ -657,7 +656,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
 
       if (!field.name) {
-        throw new Error(`The following index field has no name: ${util.inspect(field)}`);
+        throw new Error(`The following index field has no name: ${stringify(field)}`);
       }
 
       result += this.quoteIdentifier(field.name);
@@ -944,7 +943,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       throw new Error('The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.');
     }
 
-    throw new Error(`Unknown structure passed to order / group: ${util.inspect(collection)}`);
+    throw new Error(`Unknown structure passed to order / group: ${stringify(collection)}`);
   }
 
   /**
@@ -1710,7 +1709,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           return this.formatSqlExpression(field);
         }
 
-        throw new Error(`Unsupported value in "returning" option: ${NodeUtil.inspect(field)}. This option only accepts true, false, or an array of strings, col() or literal().`);
+        throw new Error(`Unsupported value in "returning" option: ${stringify(field)}. This option only accepts true, false, or an array of strings, col() or literal().`);
       }));
     } else if (modelAttributes) {
       each(modelAttributes, attribute => {

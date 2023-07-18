@@ -1,4 +1,3 @@
-import NodeUtil from 'node:util';
 import { BaseError } from '../../errors/base-error.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
@@ -13,6 +12,7 @@ import type { Expression, ModelStatic, WhereOptions } from '../../index.js';
 import { Op } from '../../operators';
 import type { ParsedJsonPropertyKey } from '../../utils/attribute-syntax.js';
 import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attribute-syntax.js';
+import stringify from '../../utils/stringify.js';
 import { isDictionary, isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
@@ -157,7 +157,7 @@ export class WhereSqlBuilder {
         return this.formatPojoWhere(piece, options);
       });
     } catch (error) {
-      throw new BaseError(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.\nValue: ${NodeUtil.inspect(where)}`, {
+      throw new BaseError(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.\nValue: ${stringify(where)}`, {
         cause: error,
       });
     }
@@ -195,7 +195,7 @@ export class WhereSqlBuilder {
     if (!isPlainObject(input)) {
       // @ts-expect-error -- This catches a scenario where the user did not respect the typing
       if (!(input instanceof BaseSqlExpression)) {
-        throw new TypeError(`Invalid Query: expected a plain object, an array or a sequelize SQL method but got ${NodeUtil.inspect(input)} `);
+        throw new TypeError(`Invalid Query: expected a plain object, an array or a sequelize SQL method but got ${stringify(input)} `);
       }
 
       return handlePart(input);
@@ -225,7 +225,7 @@ export class WhereSqlBuilder {
 
       // it *has* to be an attribute now
       if (typeof operatorOrAttribute === 'symbol') {
-        throw new TypeError(`Invalid Query: ${NodeUtil.inspect(input)} includes the Symbol Operator Op.${operatorOrAttribute.description} but only attributes, Op.and, Op.or, and Op.not are allowed.`);
+        throw new TypeError(`Invalid Query: ${stringify(input)} includes the Symbol Operator Op.${operatorOrAttribute.description} but only attributes, Op.and, Op.or, and Op.not are allowed.`);
       }
 
       let pojoWhereObject;

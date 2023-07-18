@@ -1,7 +1,7 @@
 'use strict';
 
-import NodeUtil from 'node:util';
 import { AbstractDataType } from './data-types';
+import stringify from '../../utils/stringify.js';
 
 import chain from 'lodash/chain';
 import findKey from 'lodash/findKey';
@@ -368,7 +368,7 @@ export class AbstractQuery {
     if (logQueryParameters && parameters) {
       const delimiter = sql.endsWith(';') ? '' : ';';
 
-      logParameter = `${delimiter} with parameters ${NodeUtil.inspect(parameters)}`;
+      logParameter = `${delimiter} with parameters ${stringify(parameters)}`;
     }
 
     const fmt = `(${connection.uuid || 'default'}): ${sql}${logParameter}`;

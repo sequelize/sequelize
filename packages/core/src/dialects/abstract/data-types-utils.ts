@@ -1,6 +1,6 @@
-import NodeUtils from 'node:util';
 import { BaseError, ValidationErrorItem } from '../../errors/index.js';
 import type { Model } from '../../model.js';
+import stringify from '../../utils/stringify.js';
 import type { DataType, DataTypeClass, DataTypeClassOrInstance, DataTypeInstance } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 import type { AbstractDialect } from './index.js';
@@ -32,7 +32,7 @@ export function normalizeDataType(
   }
 
   if (typeof Type !== 'function' && !(Type instanceof AbstractDataType)) {
-    throw new TypeError(`Expected type to be a string, a DataType class, or a DataType instance, but got ${NodeUtils.inspect(Type)}.`);
+    throw new TypeError(`Expected type to be a string, a DataType class, or a DataType instance, but got ${stringify(Type)}.`);
   }
 
   const type = dataTypeClassOrInstanceToInstance(Type);

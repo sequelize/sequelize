@@ -14,6 +14,7 @@ import type { Sequelize } from '../../sequelize.js';
 import { makeBufferFromTypedArray } from '../../utils/buffer.js';
 import { isPlainObject, isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
+import stringify from '../../utils/stringify.js';
 import { doNotUseRealDataType } from '../../utils/deprecations.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
@@ -449,7 +450,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
 
     if (!this.options.binary) {
       ValidationErrorItem.throwDataTypeValidationError(
-        `${util.inspect(value)} is not a valid string. Only the string type is accepted for non-binary strings.`,
+        `${stringify(value)} is not a valid string. Only the string type is accepted for non-binary strings.`,
       );
     }
 
@@ -464,7 +465,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
     }
 
     ValidationErrorItem.throwDataTypeValidationError(
-      `${util.inspect(value)} is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.`,
+      `${stringify(value)} is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.`,
     );
   }
 
@@ -718,7 +719,7 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
 
     if (!Validator.isFloat(String(value))) {
       ValidationErrorItem.throwDataTypeValidationError(
-        `${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`,
+        `${stringify(value)} is not a valid ${this.toString().toLowerCase()}`,
       );
     }
   }
@@ -778,11 +779,11 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
     super.validate(value);
 
     if (typeof value === 'number' && !Number.isInteger(value)) {
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
+      ValidationErrorItem.throwDataTypeValidationError(`${stringify(value)} is not a valid ${this.toString().toLowerCase()}`);
     }
 
     if (!Validator.isInt(String(value))) {
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
+      ValidationErrorItem.throwDataTypeValidationError(`${stringify(value)} is not a valid ${this.toString().toLowerCase()}`);
     }
   }
 
@@ -1028,7 +1029,7 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
         return;
       }
 
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
+      ValidationErrorItem.throwDataTypeValidationError(`${stringify(value)} is not a valid ${this.toString().toLowerCase()}`);
     }
 
     if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
@@ -1040,7 +1041,7 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
         return;
       }
 
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
+      ValidationErrorItem.throwDataTypeValidationError(`${stringify(value)} is not a valid ${this.toString().toLowerCase()}`);
     }
 
     super.validate(value);
@@ -1232,7 +1233,7 @@ export class DECIMAL extends BaseDecimalNumberDataType {
 
       // catch loss of precision issues
       if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
-        throw new Error(`${this.getDataTypeId()} received an integer ${util.inspect(value)} that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`);
+        throw new Error(`${this.getDataTypeId()} received an integer ${stringify(value)} that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`);
       }
     }
 
@@ -1306,7 +1307,7 @@ export class BOOLEAN extends AbstractDataType<boolean> {
       }
     }
 
-    throw new Error(`Received invalid boolean value from DB: ${util.inspect(value)}`);
+    throw new Error(`Received invalid boolean value from DB: ${stringify(value)}`);
   }
 
   escape(value: boolean | Falsy): string {
@@ -1442,7 +1443,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
       return new Date(value);
     }
 
-    throw new TypeError(`${util.inspect(value)} cannot be converted to a Date object, and is not a DayJS nor Moment object`);
+    throw new TypeError(`${stringify(value)} cannot be converted to a Date object, and is not a DayJS nor Moment object`);
   }
 
   parseDatabaseValue(value: unknown): unknown {
@@ -1749,7 +1750,7 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     rejectBlobs(value);
 
     ValidationErrorItem.throwDataTypeValidationError(
-      `${util.inspect(value)} is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.`,
+      `${stringify(value)} is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.`,
     );
   }
 
@@ -1859,7 +1860,7 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
     }
 
     if (!Array.isArray(value)) {
-      throw new Error(`DataTypes.RANGE received a non-range value from the database: ${util.inspect(value)}`);
+      throw new Error(`DataTypes.RANGE received a non-range value from the database: ${stringify(value)}`);
     }
 
     return value.map(part => {
@@ -1903,7 +1904,7 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
   validate(value: any) {
     if (!Array.isArray(value) || (value.length !== 2 && value.length !== 0)) {
       ValidationErrorItem.throwDataTypeValidationError(
-        `A range must either be an array with two elements, or an empty array for the empty range. Got ${util.inspect(value)}.`,
+        `A range must either be an array with two elements, or an empty array for the empty range. Got ${stringify(value)}.`,
       );
     }
   }
@@ -2307,7 +2308,7 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
 
   parseDatabaseValue(value: unknown[]): unknown {
     if (!Array.isArray(value)) {
-      throw new Error(`DataTypes.ARRAY Received a non-array value from database: ${util.inspect(value)}`);
+      throw new Error(`DataTypes.ARRAY Received a non-array value from database: ${stringify(value)}`);
     }
 
     if (isString(this.options.type)) {

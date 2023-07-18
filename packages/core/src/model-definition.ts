@@ -1,4 +1,3 @@
-import NodeUtil from 'node:util';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import type { Association } from './associations/index.js';
@@ -23,6 +22,7 @@ import type {
   NormalizedAttributeReferencesOptions,
 } from './model.js';
 import type { Sequelize } from './sequelize.js';
+import stringify from './utils/stringify.js';
 import { fieldToColumn } from './utils/deprecations.js';
 import { toDefaultValue } from './utils/dialect.js';
 import { MapView, SetView } from './utils/immutability.js';
@@ -361,7 +361,7 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
       const existingAttribute: AttributeOptions<M> | undefined = this.rawAttributes[this.#versionAttributeName];
 
       if (existingAttribute?.type && !(existingAttribute.type instanceof DataTypes.INTEGER)) {
-        throw new Error(`Sequelize is trying to add the version attribute ${NodeUtil.inspect(this.#versionAttributeName)} to Model ${NodeUtil.inspect(this.modelName)},
+        throw new Error(`Sequelize is trying to add the version attribute ${stringify(this.#versionAttributeName)} to Model ${stringify(this.modelName)},
 but an attribute with the same name already exists and declares a data type.
 The "version" attribute is managed automatically by Sequelize, and its type must be DataTypes.INTEGER. Please either:
 - remove the "type" property from your attribute definition,
@@ -370,7 +370,7 @@ The "version" attribute is managed automatically by Sequelize, and its type must
       }
 
       if (existingAttribute?.allowNull === true) {
-        throw new Error(`Sequelize is trying to add the timestamp attribute ${NodeUtil.inspect(this.#versionAttributeName)} to Model ${NodeUtil.inspect(this.modelName)},
+        throw new Error(`Sequelize is trying to add the timestamp attribute ${stringify(this.#versionAttributeName)} to Model ${stringify(this.modelName)},
 but an attribute with the same name already exists and its allowNull option (${existingAttribute.allowNull}) conflicts with the one Sequelize is trying to set (false).
 The "version" attribute is managed automatically by Sequelize, and its nullability is not configurable. Please either:
 - remove the "allowNull" property from your attribute definition,
@@ -394,7 +394,7 @@ The "version" attribute is managed automatically by Sequelize, and its nullabili
     const existingAttribute: AttributeOptions<M> | undefined = this.rawAttributes[attributeName];
 
     if (existingAttribute?.type && !(existingAttribute.type instanceof DataTypes.DATE)) {
-      throw new Error(`Sequelize is trying to add the timestamp attribute ${NodeUtil.inspect(attributeName)} to Model ${NodeUtil.inspect(this.modelName)},
+      throw new Error(`Sequelize is trying to add the timestamp attribute ${stringify(attributeName)} to Model ${stringify(this.modelName)},
 but an attribute with the same name already exists and declares a data type.
 Timestamp attributes are managed automatically by Sequelize, and their data type must be DataTypes.DATE (https://github.com/sequelize/sequelize/issues/2572). Please either:
 - remove the "type" property from your attribute definition,
@@ -403,7 +403,7 @@ Timestamp attributes are managed automatically by Sequelize, and their data type
     }
 
     if (existingAttribute?.allowNull != null && existingAttribute?.allowNull !== allowNull) {
-      throw new Error(`Sequelize is trying to add the timestamp attribute ${NodeUtil.inspect(attributeName)} to Model ${NodeUtil.inspect(this.modelName)},
+      throw new Error(`Sequelize is trying to add the timestamp attribute ${stringify(attributeName)} to Model ${stringify(this.modelName)},
 but an attribute with the same name already exists and its allowNull option (${existingAttribute.allowNull}) conflicts with the one Sequelize is trying to set (${allowNull}).
 Timestamp attributes are managed automatically by Sequelize, and their nullability is not configurable. Please either:
 - remove the "allowNull" property from your attribute definition,
@@ -444,7 +444,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
     for (const [attributeName, rawAttribute] of Object.entries(this.rawAttributes)) {
       if (typeof attributeName !== 'string') {
-        throw new TypeError(`Attribute names must be strings, but "${this.modelName}" declared a non-string attribute: ${NodeUtil.inspect(attributeName)}`);
+        throw new TypeError(`Attribute names must be strings, but "${this.modelName}" declared a non-string attribute: ${stringify(attributeName)}`);
       }
 
       // Checks whether the name is ambiguous with isColString
@@ -601,7 +601,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
         if (builtAttribute.autoIncrement) {
           if (this.#autoIncrementAttributeName) {
-            throw new Error(`Only one autoIncrement attribute is allowed per model, but both ${NodeUtil.inspect(attributeName)} and ${NodeUtil.inspect(this.#autoIncrementAttributeName)} are marked as autoIncrement.`);
+            throw new Error(`Only one autoIncrement attribute is allowed per model, but both ${stringify(attributeName)} and ${stringify(this.#autoIncrementAttributeName)} are marked as autoIncrement.`);
           }
 
           this.#autoIncrementAttributeName = attributeName;
@@ -693,7 +693,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
       }
 
       if (existingIndex[key] !== index[key]) {
-        throw new Error(`Index "${index.name}" has conflicting options: "${key}" was defined with different values ${NodeUtil.inspect(existingIndex[key])} and ${NodeUtil.inspect(index[key])}.`);
+        throw new Error(`Index "${index.name}" has conflicting options: "${key}" was defined with different values ${stringify(existingIndex[key])} and ${stringify(index[key])}.`);
       }
     }
   }
@@ -709,9 +709,9 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
     for (const index of this.getIndexes()) {
       if (index.name === newName) {
         throw new Error(`Sequelize tried to give the name "${newName}" to index:
-${NodeUtil.inspect(newIndex)}
+${stringify(newIndex)}
 on model "${this.#model.name}", but that name is already taken by index:
-${NodeUtil.inspect(index)}
+${stringify(index)}
 
 Specify a different name for either index to resolve this issue.`);
       }

@@ -1,4 +1,3 @@
-import { inspect } from 'node:util';
 import type { MaybeForwardedModelStatic } from '../../associations/helpers.js';
 import { AssociationSecret, getForwardedModel } from '../../associations/helpers.js';
 import type {
@@ -19,6 +18,7 @@ import type { Sequelize } from '../../sequelize.js';
 import { isString } from '../../utils/check.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_ARRAY } from '../../utils/object.js';
+import stringify from '../../utils/stringify.js';
 import { throwMustBeInstanceProperty, throwMustBeModel } from './decorator-utils.js';
 
 export type AssociationType = 'BelongsTo' | 'HasOne' | 'HasMany' | 'BelongsToMany';
@@ -153,7 +153,7 @@ function getDeclaredAssociations(model: ModelStatic): readonly RegisteredAssocia
         throw new Error(
           `Models that use @HasOne, @HasMany, or @BelongsToMany associations cannot be inherited from, as they would add conflicting foreign keys on the target model.
 Only @BelongsTo associations can be inherited, as it will add the foreign key on the source model.
-Remove the ${parentAssociation.type} association ${inspect(parentAssociation.associationName)} from model ${inspect(parentModel.name)} to fix this error.`,
+Remove the ${parentAssociation.type} association ${stringify(parentAssociation.associationName)} from model ${stringify(parentModel.name)} to fix this error.`,
         );
       }
 
@@ -161,7 +161,7 @@ Remove the ${parentAssociation.type} association ${inspect(parentAssociation.ass
         throw new Error(
           `Models that use @BelongsTo associations with the "inverse" option cannot be inherited from, as they would add conflicting associations on the target model.
 Only @BelongsTo associations without the "inverse" option can be inherited, as they do not declare an association on the target model.
-Remove the "inverse" option from association ${inspect(parentAssociation.associationName)} on model ${inspect(parentModel.name)} to fix this error.`,
+Remove the "inverse" option from association ${stringify(parentAssociation.associationName)} on model ${stringify(parentModel.name)} to fix this error.`,
         );
       }
     }

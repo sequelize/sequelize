@@ -1,9 +1,9 @@
-import NodeUtil from 'node:util';
 import type { IndexOptions } from './dialects/abstract/query-interface.js';
 import { EagerLoadingError } from './errors';
 import type { Transactionable } from './model';
 import type { Sequelize } from './sequelize';
 import { isModelStatic } from './utils/model-utils.js';
+import stringify from './utils/stringify.js';
 // TODO: strictly type this file during the TS migration of model.js
 
 // The goal of this file is to include the different private methods that are currently present on the Model class.
@@ -145,7 +145,7 @@ export function combineIncludes(a: any, b: any): any {
 
 export function throwInvalidInclude(include: any): never {
   throw new EagerLoadingError(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
-Got ${NodeUtil.inspect(include)} instead`);
+Got ${stringify(include)} instead`);
 }
 
 export function setTransactionFromCls(options: Transactionable, sequelize: Sequelize): void {

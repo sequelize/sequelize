@@ -1,5 +1,5 @@
-import NodeUtil from 'node:util';
 import * as _inflection from 'inflection';
+import stringify from './stringify.js';
 import type { IndexOptions, TableName } from '../dialects/abstract/query-interface.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 
@@ -93,7 +93,7 @@ export function generateIndexName(tableName: TableName, index: IndexOptions): st
 
   if (!index.fields) {
     throw new Error(`Index on table ${tableName} has not fields:
-${NodeUtil.inspect(index)}`);
+${stringify(index)}`);
   }
 
   const fields = index.fields.map(field => {

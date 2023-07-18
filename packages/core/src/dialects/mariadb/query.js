@@ -1,9 +1,8 @@
 'use strict';
 
-import NodeUtil from 'node:util';
-
 import forOwn from 'lodash/forOwn';
 import zipObject from 'lodash/zipObject';
+import stringify from '../../utils/stringify.js';
 
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
@@ -322,7 +321,7 @@ export class MariaDbQuery extends AbstractQuery {
           // Not sorted
           : item.Collation === null ? null
           : (() => {
-            throw new Error(`Unknown index collation ${NodeUtil.inspect(item.Collation)}`);
+            throw new Error(`Unknown index collation ${stringify(item.Collation)}`);
           })(),
       };
     }

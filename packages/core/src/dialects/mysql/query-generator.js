@@ -1,6 +1,6 @@
 'use strict';
 
-import { inspect } from 'node:util';
+import stringify from '../../utils/stringify.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object.js';
@@ -376,7 +376,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
         && options.maxExecutionTimeHintMs <= MAXIMUM_EXECUTION_TIME_VALUE) {
         fragment += ` /*+ MAX_EXECUTION_TIME(${options.maxExecutionTimeHintMs}) */`;
       } else {
-        throw new Error(`maxExecutionTimeMs must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}, but it is ${inspect(options.maxExecutionTimeHintMs)}`);
+        throw new Error(`maxExecutionTimeMs must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}, but it is ${stringify(options.maxExecutionTimeHintMs)}`);
       }
     }
 

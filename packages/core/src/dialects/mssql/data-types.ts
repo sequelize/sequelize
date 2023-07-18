@@ -1,5 +1,5 @@
-import NodeUtil from 'node:util';
 import maxBy from 'lodash/maxBy';
+import stringify from '../../utils/stringify.js';
 import { BaseError } from '../../errors/index.js';
 import type { Falsy } from '../../generic/falsy.js';
 import * as BaseTypes from '../abstract/data-types.js';
@@ -207,13 +207,13 @@ export class JSON extends BaseTypes.JSON {
   parseDatabaseValue(value: unknown): unknown {
     if (typeof value !== 'string') {
 
-      throw new BaseError(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`);
+      throw new BaseError(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${stringify(value)}.`);
     }
 
     try {
       return globalThis.JSON.parse(value);
     } catch (error) {
-      throw new BaseError(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
+      throw new BaseError(`DataTypes.JSON received a value from the database that it not valid JSON: ${stringify(value)}.`, { cause: error });
     }
   }
 

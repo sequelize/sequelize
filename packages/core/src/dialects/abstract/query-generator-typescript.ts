@@ -1,4 +1,3 @@
-import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
 import { ConstraintChecking, Deferrable } from '../../deferrable.js';
@@ -25,6 +24,7 @@ import { quoteIdentifier } from '../../utils/dialect.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
+import stringify from '../../utils/stringify.js';
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
 import { AbstractDataType } from './data-types.js';
@@ -405,7 +405,7 @@ export class AbstractQueryGeneratorTypeScript {
       : tableNameOrModel;
 
     if (!isPlainObject(tableNameObject)) {
-      throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableNameOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
+      throw new Error(`Invalid input received, got ${stringify(tableNameOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
     }
 
     // @ts-expect-error -- TODO: this is added by getTableName on model, and must be removed

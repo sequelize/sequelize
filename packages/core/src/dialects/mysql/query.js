@@ -1,10 +1,9 @@
 'use strict';
 
-import NodeUtil from 'node:util';
-
 import forOwn from 'lodash/forOwn';
 import map from 'lodash/map';
 import zipObject from 'lodash/zipObject';
+import stringify from '../../utils/stringify.js';
 
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
@@ -269,7 +268,7 @@ export class MySqlQuery extends AbstractQuery {
             // Not sorted
           : item.Collation === null ? null
           : (() => {
-            throw new Error(`Unknown index collation ${NodeUtil.inspect(item.Collation)}`);
+            throw new Error(`Unknown index collation ${stringify(item.Collation)}`);
           })(),
       };
       delete item.column_name;

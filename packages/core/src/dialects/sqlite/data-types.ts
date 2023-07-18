@@ -1,4 +1,4 @@
-import NodeUtil from 'node:util';
+import stringify from '../../utils/stringify.js';
 import { BaseError } from '../../errors/index.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
@@ -229,13 +229,13 @@ export class JSON extends BaseTypes.JSON {
     }
 
     if (typeof value !== 'string') {
-      throw new Error(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`);
+      throw new Error(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${stringify(value)}.`);
     }
 
     try {
       return globalThis.JSON.parse(value);
     } catch (error) {
-      throw new BaseError(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
+      throw new BaseError(`DataTypes.JSON received a value from the database that it not valid JSON: ${stringify(value)}.`, { cause: error });
     }
   }
 

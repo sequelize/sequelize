@@ -1,5 +1,6 @@
 import NodeUtil from 'node:util';
 import type { InspectOptions } from 'node:util';
+import stringify from './stringify.js';
 
 export class SetView<V> {
   #target: Set<V>;
@@ -40,7 +41,7 @@ export class SetView<V> {
       depth: options.depth == null ? null : options.depth - 1,
     });
 
-    return NodeUtil.inspect(this.#target, newOptions).replace(/^Set/, 'SetView');
+    return stringify(this.#target, newOptions).replace(/^Set/, 'SetView');
   }
 }
 
@@ -101,6 +102,6 @@ export class MapView<K, V> {
       depth: options.depth == null ? null : options.depth - 1,
     });
 
-    return NodeUtil.inspect(this.#target, newOptions).replace(/^Map/, 'MapView');
+    return stringify(this.#target, newOptions).replace(/^Map/, 'MapView');
   }
 }

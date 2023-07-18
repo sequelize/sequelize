@@ -2,6 +2,7 @@
 
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
+import stringify from './utils/stringify.js';
 import { intersects } from './utils/array';
 import {
   noDoubleNestedGroup,
@@ -50,7 +51,6 @@ import unionBy from 'lodash/unionBy';
 import without from 'lodash/without';
 
 const assert = require('node:assert');
-const NodeUtil = require('node:util');
 const Dottie = require('dottie');
 const { logger } = require('./utils/logger');
 const { InstanceValidator } = require('./instance-validator');
@@ -333,7 +333,7 @@ ${this._getAssociationDebugList()}`);
     }
 
     if (!associationOwner || !isModelStatic(associationOwner)) {
-      throw new TypeError(`Sequelize sanity check: associationOwner must be a model subclass. Got ${NodeUtil.inspect(associationOwner)} (${typeof associationOwner})`);
+      throw new TypeError(`Sequelize sanity check: associationOwner must be a model subclass. Got ${stringify(associationOwner)} (${typeof associationOwner})`);
     }
 
     if (include._pseudo) {
