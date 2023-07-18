@@ -1476,7 +1476,7 @@ __metadata:
     "@types/tedious": 4.0.9
     "@types/uuid": 9.0.2
     "@types/validator": ^13.7.5
-    bnf-parser: 3.1.6
+    bnf-parser: 4.0.1
     chai: 4.3.7
     chai-as-promised: 7.1.1
     chai-datetime: 1.8.0
@@ -2723,6 +2723,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"binaryen@npm:^113.0.0":
+  version: 113.0.0
+  resolution: "binaryen@npm:113.0.0"
+  bin:
+    wasm-opt: bin/wasm-opt
+    wasm2js: bin/wasm2js
+  checksum: 1068a29b111bb5423749b623a47bb3bc1ef88e8760aa7a0dae5c3dfa6e418eb34763a8688a11cd64b7076c9bb58edab3905c56fab3f3d2a85b3b78b8fff859b1
+  languageName: node
+  linkType: hard
+
 "binascii@npm:0.0.2":
   version: 0.0.2
   resolution: "binascii@npm:0.0.2"
@@ -2785,10 +2795,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bnf-parser@npm:3.1.6":
-  version: 3.1.6
-  resolution: "bnf-parser@npm:3.1.6"
-  checksum: 9668d266e54e888e687008941db6da16065a24e16756c9cc82a7b0f9f3c5b3269b8e9f94a503da669a7f92d73b470166cd4c985280c04cf1e5306c02cfc98687
+"bnf-parser@npm:4.0.1":
+  version: 4.0.1
+  resolution: "bnf-parser@npm:4.0.1"
+  dependencies:
+    binaryen: ^113.0.0
+  bin:
+    bnf-compile: bin/cli.js
+  checksum: da1f3969360a11ab6ab2bbbb00f22e368e918bbe55be6ec25df256c9634084927240a95951a9e13b6d99e4d08794a6b11c575fe5e2cea92c8a06bff321d2eb14
   languageName: node
   linkType: hard
 

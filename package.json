@@ -10,6 +10,7 @@
     "test-unit": "yarn test-unit-esm && lerna run test-unit",
     "test-unit-esm": "mocha test/esm-named-exports.test.js",
     "build": "lerna run build",
+    "build-bnf": "npx bnf-compile ./packages/core/src/utils/bnf/",
     "docs": "typedoc",
     "fix-commit": "export TMPFILE=$(mktemp) && grep -v '^#' $(git rev-parse --git-dir)/COMMIT_EDITMSG > $TMPFILE && git commit -e -F $TMPFILE",
     "------------------------------------- local test dbs --------------------------------------": "",

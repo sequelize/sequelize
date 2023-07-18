@@ -48,7 +48,6 @@
   "dependencies": {
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
-    "bnf-parser": "3.1.6",
     "dayjs": "^1.11.5",
     "debug": "^4.3.4",
     "dottie": "^2.0.2",
@@ -80,6 +79,7 @@
     "@types/snowflake-sdk": "1.6.13",
     "@types/tedious": "4.0.9",
     "@types/uuid": "9.0.2",
+    "bnf-parser": "4.0.1",
     "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",

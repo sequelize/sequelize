@@ -1,0 +1,31 @@
+# Entry points
+
+## Used when parsing the attribute
+attribute ::= ( ...association | ...identifier ) jsonPath? castOrModifiers?;
+
+## Used when parsing a nested JSON path used inside of an attribute
+## Difference with "attribute" is in the first part. Instead of accepting:
+##  $association.attribute$ & attribute
+## It accepts:
+##  key, "quotedKey", and [0] (index access)
+partialJsonPath ::= ( ...indexAccess | ...key ) jsonPath? castOrModifiers? ;
+
+# Internals
+identifier  ::= ( "A"->"Z" | "a"->"z" | digit | "_" )+ ;
+digit       ::= "0"->"9" ;
+number      ::= ...digit+ ;
+association ::= %"$" identifier ("." identifier)* %"$" ;
+jsonPath    ::= ( ...indexAccess | ...keyAccess )+ ;
+indexAccess ::= %"[" number %"]" ;
+keyAccess   ::= %"." key ;
+
+# path segments accept dashes without needing to be quoted
+key ::= nonEmptyString | ( "A"->"Z" | "a"->"z" | digit | "_" | "-" )+ ;
+  nonEmptyString ::= ...(%"\"" (anyExceptQuoteOrBackslash | escapedCharacter)+ %"\"") ;
+  escapedCharacter ::= %"\\" ( "\"" | "\\" );
+  anyExceptQuoteOrBackslash ::= !("\"" | "\\");
+castOrModifiers ::= (...cast | ...modifier)+;
+  cast ::= %"::" identifier ;
+  modifier ::= %":" identifier ;
+
+any ::= !"" ;
