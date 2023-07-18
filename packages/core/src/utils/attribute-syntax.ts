@@ -6,8 +6,8 @@ import { Cast } from '../expression-builders/cast.js';
 import type { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { Unquote } from '../expression-builders/dialect-aware-fn.js';
 import { JsonPath } from '../expression-builders/json-path.js';
-import { ParseError, type SyntaxNode } from './bnf/shared';
-import AttributeParser from './bnf/syntax';
+import { ParseError, type SyntaxNode } from './bnf/shared.js';
+import AttributeParser from './bnf/syntax.js';
 import { noPrototype } from './object.js';
 
 /**
@@ -62,13 +62,13 @@ function parseAttributeSyntaxInternal(
 ): Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn {
   // This function is expensive (parsing produces a lot of objects), but we cache the final result, so it's only
   // going to be slow once per attribute.
-  const parsed = AttributeParser.Parse_Attribute(code);
+  const parsed = AttributeParser.Parse_Attribute(code, false);
   if (parsed instanceof ParseError) {
     throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.ref.start.index}:\n${code}\n${' '.repeat(parsed.ref.start.index)}^`);
   }
 
   if (parsed.isPartial) {
-    throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.reach?.index || 0}:\n${code}\n${' '.repeat(parsed.reach?.index || 0)}^`);
+    throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.reachBytes}:\n${code}\n${' '.repeat(parsed.reachBytes)}^`);
   }
 
   const [attributeNode, jsonPathNodeRaw, castOrModifiersNodeRaw] = parsed.root.value;
@@ -132,7 +132,7 @@ export interface ParsedJsonPropertyKey {
 }
 
 function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
-  const parsed = AttributeParser.Parse_PartialJsonPath(code, true);
+  const parsed = AttributeParser.Parse_PartialJsonPath(code, false);
   if (parsed instanceof ParseError) {
     throw new TypeError(`Failed to parse syntax of json path. Parse error at index ${parsed.ref.start.index}:\n${code}\n${' '.repeat(parsed.ref.start.index)}^`);
   }
