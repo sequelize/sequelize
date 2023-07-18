@@ -62,6 +62,7 @@ function parseAttributeSyntaxInternal(
 ): Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn {
   // This function is expensive (parsing produces a lot of objects), but we cache the final result, so it's only
   // going to be slow once per attribute.
+  console.log(AttributeParser); // TODO: Remove me before merging
   const parsed = AttributeParser.Parse_Attribute(code, false);
   if (parsed instanceof ParseError) {
     throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.ref.start.index}:\n${code}\n${' '.repeat(parsed.ref.start.index)}^`);
@@ -78,7 +79,7 @@ function parseAttributeSyntaxInternal(
   if (accesses.value.length > 0) {
     result = new JsonPath(
       result,
-      parseJsonPathSegments(accesses.value),
+      parseJsonAccesses(accesses.value),
     );
   }
 
@@ -86,7 +87,7 @@ function parseAttributeSyntaxInternal(
     // casts & modifiers can be chained, the last one is applied last
     // foo:upper:lower needs to produce LOWER(UPPER(foo))
     for (const transform of transforms.value) {
-      const option     = transform.value[0];
+      const option = transform.value[0];
       const identifier = option.value[0].value;
 
       if (option.type === 'cast') {
@@ -141,7 +142,7 @@ function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
   }
 
   const [accesses, transforms] = parsed.root.value;
-  const pathSegments = parseJsonPathSegments(accesses.value);
+  const pathSegments = parseJsonAccesses(accesses.value);
 
   const castsAndModifiers: Array<string | Class<DialectAwareFn>> = [];
   if (transforms.value.length > 0) {
@@ -164,7 +165,7 @@ function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
   return { pathSegments, castsAndModifiers };
 }
 
-function parseJsonPathSegments(nodes: AttributeParser.Term_JsonAccess[]): Array<string | number> {
+function parseJsonAccesses(nodes: AttributeParser.Term_JsonAccess[]): Array<string | number> {
   return nodes.map(node => {
     const child = node.value[0];
     if (child.type === 'indexAccess') {
