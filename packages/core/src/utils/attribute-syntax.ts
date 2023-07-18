@@ -7,7 +7,7 @@ import type { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js'
 import { Unquote } from '../expression-builders/dialect-aware-fn.js';
 import { JsonPath } from '../expression-builders/json-path.js';
 import { ParseError, type SyntaxNode } from './bnf/shared.js';
-import AttributeParser from './bnf/syntax.js';
+import * as AttributeParser from './bnf/syntax.js';
 import { noPrototype } from './object.js';
 
 /**
