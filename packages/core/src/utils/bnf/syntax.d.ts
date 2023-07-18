@@ -7,9 +7,9 @@ export type Term_Attribute = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		Term_Attribute_begin,
-		{ type: '(...)?', value: [] | [Term_JsonPath], start: number, end: number, count: number, ref: _Shared.ReferenceRange },
-		{ type: '(...)?', value: [] | [Term_CastOrModifiers], start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		Term_AttributeBegin,
+		{ type: '(...)*', value: Array<Term_JsonAccess>, start: number, end: number, count: number, ref: _Shared.ReferenceRange },
+		{ type: '(...)*', value: Array<Term_Transform>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
 	]
 }
 export declare function Parse_Attribute (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -19,8 +19,8 @@ export declare function Parse_Attribute (i: string, refMapping?: boolean): _Shar
 	isPartial: boolean
 }
 
-export type Term_Attribute_begin = {
-	type: 'attribute_begin',
+export type Term_AttributeBegin = {
+	type: 'attributeBegin',
 	start: number,
 	end: number,
 	count: number,
@@ -29,8 +29,8 @@ export type Term_Attribute_begin = {
 		(Term_Association | _Literal)
 	]
 }
-export declare function Parse_Attribute_begin (i: string, refMapping?: boolean): _Shared.ParseError | {
-	root: _Shared.SyntaxNode & Term_Attribute_begin,
+export declare function Parse_AttributeBegin (i: string, refMapping?: boolean): _Shared.ParseError | {
+	root: _Shared.SyntaxNode & Term_AttributeBegin,
 	reachBytes: number,
 	reach: null | _Shared.Reference,
 	isPartial: boolean
@@ -43,9 +43,8 @@ export type Term_PartialJsonPath = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		Term_JsonPath_Elm,
-		{ type: '(...)?', value: [] | [Term_JsonPath], start: number, end: number, count: number, ref: _Shared.ReferenceRange },
-		{ type: '(...)?', value: [] | [Term_CastOrModifiers], start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		{ type: '(...)+', value: [Term_JsonAccess] & Array<Term_JsonAccess>, start: number, end: number, count: number, ref: _Shared.ReferenceRange },
+		{ type: '(...)*', value: Array<Term_Transform>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
 	]
 }
 export declare function Parse_PartialJsonPath (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -133,25 +132,8 @@ export declare function Parse_Association (i: string, refMapping?: boolean): _Sh
 	isPartial: boolean
 }
 
-export type Term_JsonPath = {
-	type: 'jsonPath',
-	start: number,
-	end: number,
-	count: number,
-	ref: _Shared.ReferenceRange,
-	value: [
-		{ type: '(...)+', value: [Term_JsonPath_Elm] & Array<Term_JsonPath_Elm>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
-	]
-}
-export declare function Parse_JsonPath (i: string, refMapping?: boolean): _Shared.ParseError | {
-	root: _Shared.SyntaxNode & Term_JsonPath,
-	reachBytes: number,
-	reach: null | _Shared.Reference,
-	isPartial: boolean
-}
-
-export type Term_JsonPath_Elm = {
-	type: 'jsonPath_Elm',
+export type Term_JsonAccess = {
+	type: 'jsonAccess',
 	start: number,
 	end: number,
 	count: number,
@@ -160,8 +142,8 @@ export type Term_JsonPath_Elm = {
 		(Term_IndexAccess | Term_KeyAccess)
 	]
 }
-export declare function Parse_JsonPath_Elm (i: string, refMapping?: boolean): _Shared.ParseError | {
-	root: _Shared.SyntaxNode & Term_JsonPath_Elm,
+export declare function Parse_JsonAccess (i: string, refMapping?: boolean): _Shared.ParseError | {
+	root: _Shared.SyntaxNode & Term_JsonAccess,
 	reachBytes: number,
 	reach: null | _Shared.Reference,
 	isPartial: boolean
@@ -269,18 +251,18 @@ export declare function Parse_AnyExceptQuoteOrBackslash (i: string, refMapping?:
 	isPartial: boolean
 }
 
-export type Term_CastOrModifiers = {
-	type: 'castOrModifiers',
+export type Term_Transform = {
+	type: 'transform',
 	start: number,
 	end: number,
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: '(...)+', value: [(Term_Cast | Term_Modifier)] & Array<(Term_Cast | Term_Modifier)>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		(Term_Cast | Term_Modifier)
 	]
 }
-export declare function Parse_CastOrModifiers (i: string, refMapping?: boolean): _Shared.ParseError | {
-	root: _Shared.SyntaxNode & Term_CastOrModifiers,
+export declare function Parse_Transform (i: string, refMapping?: boolean): _Shared.ParseError | {
+	root: _Shared.SyntaxNode & Term_Transform,
 	reachBytes: number,
 	reach: null | _Shared.Reference,
 	isPartial: boolean
@@ -315,23 +297,6 @@ export type Term_Modifier = {
 }
 export declare function Parse_Modifier (i: string, refMapping?: boolean): _Shared.ParseError | {
 	root: _Shared.SyntaxNode & Term_Modifier,
-	reachBytes: number,
-	reach: null | _Shared.Reference,
-	isPartial: boolean
-}
-
-export type Term_Any = {
-	type: 'any',
-	start: number,
-	end: number,
-	count: number,
-	ref: _Shared.ReferenceRange,
-	value: [
-		_Literal
-	]
-}
-export declare function Parse_Any (i: string, refMapping?: boolean): _Shared.ParseError | {
-	root: _Shared.SyntaxNode & Term_Any,
 	reachBytes: number,
 	reach: null | _Shared.Reference,
 	isPartial: boolean

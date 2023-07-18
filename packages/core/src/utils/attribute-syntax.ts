@@ -71,26 +71,25 @@ function parseAttributeSyntaxInternal(
     throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.reachBytes}:\n${code}\n${' '.repeat(parsed.reachBytes)}^`);
   }
 
-  const [attributeNode, jsonPathNodeRaw, castOrModifiersNodeRaw] = parsed.root.value;
+  const [attribute, accesses, transforms] = parsed.root.value;
 
-  let result: Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn = parseAssociationPath(attributeNode);
+  let result: Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn = parseAssociationPath(attribute);
 
-  const jsonPathNodes = jsonPathNodeRaw.value[0]?.value[0];
-  if (jsonPathNodes) {
+  if (accesses.value.length > 0) {
     result = new JsonPath(
       result,
-      jsonPathNodes.value.map(node => parseJsonPathSegment(node)),
+      parseJsonPathSegments(accesses.value),
     );
   }
 
-  const castOrModifierNodes = castOrModifiersNodeRaw.value[0]?.value[0].value;
-  if (castOrModifierNodes) {
+  if (transforms.value.length > 0) {
     // casts & modifiers can be chained, the last one is applied last
     // foo:upper:lower needs to produce LOWER(UPPER(foo))
-    for (const node of castOrModifierNodes) {
-      const identifier = node.value[0].value;
+    for (const transform of transforms.value) {
+      const option     = transform.value[0];
+      const identifier = option.value[0].value;
 
-      if (node.type === 'cast') {
+      if (option.type === 'cast') {
         result = new Cast(result, identifier);
         continue;
       }
@@ -103,7 +102,7 @@ function parseAttributeSyntaxInternal(
   return result;
 }
 
-function parseAssociationPath(syntax: AttributeParser.Term_Attribute_begin): AssociationPath | Attribute {
+function parseAssociationPath(syntax: AttributeParser.Term_AttributeBegin): AssociationPath | Attribute {
   const child = syntax.value[0];
 
   if (child.type === 'literal') {
@@ -115,7 +114,7 @@ function parseAssociationPath(syntax: AttributeParser.Term_Attribute_begin): Ass
     ...child.value[1].value.map(x => x.value[0].value),
   ];
 
-  const attr = path.pop() as string; // path will be at least 1 long
+  const attr = path.pop()!; // path will be at least 1 long
 
   return new AssociationPath(path, attr);
 }
@@ -141,31 +140,22 @@ function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
     throw new TypeError(`Failed to parse syntax of json path. Parse error at index ${parsed.reach?.index || 0}:\n${code}\n${' '.repeat(parsed.reach?.index || 0)}^`);
   }
 
-  const [firstKey, jsonPathNodeRaw, castOrModifiersNodeRaw] = parsed.root.value;
+  const [accesses, transforms] = parsed.root.value;
+  const pathSegments = parseJsonPathSegments(accesses.value);
 
-  const pathSegments: Array<string | number> = [parseJsonPathSegment(firstKey)];
-
-  const jsonPathNodes = jsonPathNodeRaw.value[0]?.value[0].value;
-  if (jsonPathNodes) {
-    for (const pathNode of jsonPathNodes) {
-      pathSegments.push(parseJsonPathSegment(pathNode));
-    }
-  }
-
-  const castOrModifierNodes = castOrModifiersNodeRaw.value[0]?.value[0].value;
   const castsAndModifiers: Array<string | Class<DialectAwareFn>> = [];
-
-  if (castOrModifierNodes) {
+  if (transforms.value.length > 0) {
     // casts & modifiers can be chained, the last one is applied last
     // foo:upper:lower needs to produce LOWER(UPPER(foo))
-    for (const castOrModifierNode of castOrModifierNodes) {
+    for (const transform of transforms.value) {
+      const option = transform.value[0];
 
-      if (castOrModifierNode.type === 'cast') {
-        castsAndModifiers.push(castOrModifierNode.value[0].value);
+      if (option.type === 'cast') {
+        castsAndModifiers.push(option.value[0].value);
         continue;
       }
 
-      const ModifierClass = getModifier(castOrModifierNode.value[0].value);
+      const ModifierClass = getModifier(option.value[0].value);
 
       castsAndModifiers.push(ModifierClass);
     }
@@ -174,11 +164,13 @@ function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
   return { pathSegments, castsAndModifiers };
 }
 
-function parseJsonPathSegment(node: AttributeParser.Term_JsonPath_Elm): string | number {
-  const child = node.value[0];
-  if (child.type === 'indexAccess') {
-    return Number(child.value[0].value);
-  }
+function parseJsonPathSegments(nodes: AttributeParser.Term_JsonAccess[]): Array<string | number> {
+  return nodes.map(node => {
+    const child = node.value[0];
+    if (child.type === 'indexAccess') {
+      return Number(child.value[0].value);
+    }
 
-  return child.value[0].value;
+    return child.value[0].value;
+  });
 }
