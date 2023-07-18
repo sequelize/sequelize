@@ -1,31 +1,37 @@
-# Entry points
+# After updating this file run:
+#   yarn run build-bnf
+#     or
+#   npx bnf-compile ./packages/core/src/utils/bnf/syntax.bnf
+# To update the compiled artifacts
 
 ## Used when parsing the attribute
-attribute ::= ( ...association | ...identifier ) jsonPath? castOrModifiers?;
+attribute ::= attribute_begin jsonPath? castOrModifiers? ;
+  attribute_begin ::= association | ...identifier ;
 
 ## Used when parsing a nested JSON path used inside of an attribute
 ## Difference with "attribute" is in the first part. Instead of accepting:
 ##  $association.attribute$ & attribute
 ## It accepts:
 ##  key, "quotedKey", and [0] (index access)
-partialJsonPath ::= ( ...indexAccess | ...key ) jsonPath? castOrModifiers? ;
+partialJsonPath ::= jsonPath_Elm jsonPath? castOrModifiers? ;
 
 # Internals
 identifier  ::= ( "A"->"Z" | "a"->"z" | digit | "_" )+ ;
 digit       ::= "0"->"9" ;
 number      ::= ...digit+ ;
-association ::= %"$" identifier ("." identifier)* %"$" ;
-jsonPath    ::= ( ...indexAccess | ...keyAccess )+ ;
-indexAccess ::= %"[" number %"]" ;
-keyAccess   ::= %"." key ;
+association ::= %"$" ...identifier (%"." ...identifier)* %"$" ;
+jsonPath    ::= jsonPath_Elm+ ;
+  jsonPath_Elm ::= indexAccess | keyAccess ;
+indexAccess ::= %"[" ...number %"]" ;
+keyAccess   ::= %"." ...key ;
 
 # path segments accept dashes without needing to be quoted
 key ::= nonEmptyString | ( "A"->"Z" | "a"->"z" | digit | "_" | "-" )+ ;
   nonEmptyString ::= ...(%"\"" (anyExceptQuoteOrBackslash | escapedCharacter)+ %"\"") ;
   escapedCharacter ::= %"\\" ( "\"" | "\\" );
   anyExceptQuoteOrBackslash ::= !("\"" | "\\");
-castOrModifiers ::= (...cast | ...modifier)+;
-  cast ::= %"::" identifier ;
-  modifier ::= %":" identifier ;
+castOrModifiers ::= (cast | modifier)+;
+  cast     ::= %"::" ...identifier ;
+  modifier ::= %":"  ...identifier ;
 
 any ::= !"" ;

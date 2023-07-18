@@ -1,4 +1,5 @@
 import type _Shared from './shared.js';
+export type _Literal = { type: "literal", value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange };
 export type Term_Attribute = {
 	type: 'attribute',
 	start: number,
@@ -6,13 +7,30 @@ export type Term_Attribute = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		({ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange }),
+		Term_Attribute_begin,
 		{ type: '(...)?', value: [] | [Term_JsonPath], start: number, end: number, count: number, ref: _Shared.ReferenceRange },
 		{ type: '(...)?', value: [] | [Term_CastOrModifiers], start: number, end: number, count: number, ref: _Shared.ReferenceRange }
 	]
 }
 export declare function Parse_Attribute (i: string, refMapping?: boolean): _Shared.ParseError | {
 	root: _Shared.SyntaxNode & Term_Attribute,
+	reachBytes: number,
+	reach: null | _Shared.Reference,
+	isPartial: boolean
+}
+
+export type Term_Attribute_begin = {
+	type: 'attribute_begin',
+	start: number,
+	end: number,
+	count: number,
+	ref: _Shared.ReferenceRange,
+	value: [
+		(Term_Association | _Literal)
+	]
+}
+export declare function Parse_Attribute_begin (i: string, refMapping?: boolean): _Shared.ParseError | {
+	root: _Shared.SyntaxNode & Term_Attribute_begin,
 	reachBytes: number,
 	reach: null | _Shared.Reference,
 	isPartial: boolean
@@ -25,7 +43,7 @@ export type Term_PartialJsonPath = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		({ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange }),
+		Term_JsonPath_Elm,
 		{ type: '(...)?', value: [] | [Term_JsonPath], start: number, end: number, count: number, ref: _Shared.ReferenceRange },
 		{ type: '(...)?', value: [] | [Term_CastOrModifiers], start: number, end: number, count: number, ref: _Shared.ReferenceRange }
 	]
@@ -44,7 +62,7 @@ export type Term_Identifier = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: '(...)+', value: [({ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | Term_Digit | { type: 'literal', value: '\x5f', start: number, end: number, count: number, ref: _Shared.ReferenceRange })] & Array<({ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | Term_Digit | { type: 'literal', value: '\x5f', start: number, end: number, count: number, ref: _Shared.ReferenceRange })>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		{ type: '(...)+', value: [(_Literal | _Literal | Term_Digit | _Literal & {value: "\x5f"})] & Array<(_Literal | _Literal | Term_Digit | _Literal & {value: "\x5f"})>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
 	]
 }
 export declare function Parse_Identifier (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -61,7 +79,7 @@ export type Term_Digit = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		_Literal
 	]
 }
 export declare function Parse_Digit (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -78,7 +96,7 @@ export type Term_Number = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		_Literal
 	]
 }
 export declare function Parse_Number (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -95,7 +113,7 @@ export type Term_Association = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		Term_Identifier,
+		_Literal,
 		{ type: '(...)*', value: Array<{
 	type: '(...)',
 	start: number,
@@ -103,8 +121,7 @@ export type Term_Association = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: 'literal', value: '\x2e', start: number, end: number, count: number, ref: _Shared.ReferenceRange },
-		Term_Identifier
+		_Literal
 	]
 }>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
 	]
@@ -123,11 +140,28 @@ export type Term_JsonPath = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: '(...)+', value: [({ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange })] & Array<({ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange })>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		{ type: '(...)+', value: [Term_JsonPath_Elm] & Array<Term_JsonPath_Elm>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
 	]
 }
 export declare function Parse_JsonPath (i: string, refMapping?: boolean): _Shared.ParseError | {
 	root: _Shared.SyntaxNode & Term_JsonPath,
+	reachBytes: number,
+	reach: null | _Shared.Reference,
+	isPartial: boolean
+}
+
+export type Term_JsonPath_Elm = {
+	type: 'jsonPath_Elm',
+	start: number,
+	end: number,
+	count: number,
+	ref: _Shared.ReferenceRange,
+	value: [
+		(Term_IndexAccess | Term_KeyAccess)
+	]
+}
+export declare function Parse_JsonPath_Elm (i: string, refMapping?: boolean): _Shared.ParseError | {
+	root: _Shared.SyntaxNode & Term_JsonPath_Elm,
 	reachBytes: number,
 	reach: null | _Shared.Reference,
 	isPartial: boolean
@@ -140,7 +174,7 @@ export type Term_IndexAccess = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		Term_Number
+		_Literal
 	]
 }
 export declare function Parse_IndexAccess (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -157,7 +191,7 @@ export type Term_KeyAccess = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		Term_Key
+		_Literal
 	]
 }
 export declare function Parse_KeyAccess (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -174,7 +208,7 @@ export type Term_Key = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		(Term_NonEmptyString | { type: '(...)+', value: [({ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | Term_Digit | { type: 'literal', value: '\x5f', start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: '\x2d', start: number, end: number, count: number, ref: _Shared.ReferenceRange })] & Array<({ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | Term_Digit | { type: 'literal', value: '\x5f', start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: '\x2d', start: number, end: number, count: number, ref: _Shared.ReferenceRange })>, start: number, end: number, count: number, ref: _Shared.ReferenceRange })
+		(Term_NonEmptyString | { type: '(...)+', value: [(_Literal | _Literal | Term_Digit | _Literal & {value: "\x5f"} | _Literal & {value: "\x2d"})] & Array<(_Literal | _Literal | Term_Digit | _Literal & {value: "\x5f"} | _Literal & {value: "\x2d"})>, start: number, end: number, count: number, ref: _Shared.ReferenceRange })
 	]
 }
 export declare function Parse_Key (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -191,7 +225,7 @@ export type Term_NonEmptyString = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		_Literal
 	]
 }
 export declare function Parse_NonEmptyString (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -208,7 +242,7 @@ export type Term_EscapedCharacter = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		({ type: 'literal', value: '\x22', start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: '\x5c', start: number, end: number, count: number, ref: _Shared.ReferenceRange })
+		(_Literal & {value: "\x22"} | _Literal & {value: "\x5c"})
 	]
 }
 export declare function Parse_EscapedCharacter (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -225,7 +259,7 @@ export type Term_AnyExceptQuoteOrBackslash = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		_Literal
 	]
 }
 export declare function Parse_AnyExceptQuoteOrBackslash (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -242,7 +276,7 @@ export type Term_CastOrModifiers = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: '(...)+', value: [({ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange })] & Array<({ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange } | { type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange })>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		{ type: '(...)+', value: [(Term_Cast | Term_Modifier)] & Array<(Term_Cast | Term_Modifier)>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
 	]
 }
 export declare function Parse_CastOrModifiers (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -259,7 +293,7 @@ export type Term_Cast = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		Term_Identifier
+		_Literal
 	]
 }
 export declare function Parse_Cast (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -276,7 +310,7 @@ export type Term_Modifier = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		Term_Identifier
+		_Literal
 	]
 }
 export declare function Parse_Modifier (i: string, refMapping?: boolean): _Shared.ParseError | {
@@ -293,7 +327,7 @@ export type Term_Any = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: 'literal', value: string, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
+		_Literal
 	]
 }
 export declare function Parse_Any (i: string, refMapping?: boolean): _Shared.ParseError | {
