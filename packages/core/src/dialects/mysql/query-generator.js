@@ -1,10 +1,10 @@
 'use strict';
 
-import stringify from '../../utils/stringify.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import stringify from '../../utils/stringify.js';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 

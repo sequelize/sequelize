@@ -11,8 +11,8 @@ import * as deprecations from '../utils/deprecations.js';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import { pluralize, singularize } from '../utils/string.js';
-import type { OmitConstructors } from '../utils/types.js';
 import stringify from '../utils/stringify.js';
+import type { OmitConstructors } from '../utils/types.js';
 import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAssociationOptions } from './base';
 import type { ThroughOptions } from './belongs-to-many.js';
 

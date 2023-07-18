@@ -22,7 +22,6 @@ import type {
   NormalizedAttributeReferencesOptions,
 } from './model.js';
 import type { Sequelize } from './sequelize.js';
-import stringify from './utils/stringify.js';
 import { fieldToColumn } from './utils/deprecations.js';
 import { toDefaultValue } from './utils/dialect.js';
 import { MapView, SetView } from './utils/immutability.js';
@@ -30,6 +29,7 @@ import { some } from './utils/iterators.js';
 import { isModelStatic } from './utils/model-utils.js';
 import { getAllOwnEntries, noPrototype, removeUndefined } from './utils/object.js';
 import { generateIndexName, pluralize, underscoredIf } from './utils/string.js';
+import stringify from './utils/stringify.js';
 
 export interface TimestampAttributes {
   createdAt?: string;

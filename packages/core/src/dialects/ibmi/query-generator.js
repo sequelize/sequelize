@@ -4,8 +4,8 @@ import { BaseSqlExpression } from '../../expression-builders/base-sql-expression
 import { conformIndex } from '../../model-internals';
 import { rejectInvalidOptions } from '../../utils/check';
 import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
-import stringify from '../../utils/stringify.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import stringify from '../../utils/stringify.js';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,

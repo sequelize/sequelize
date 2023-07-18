@@ -1,7 +1,7 @@
 'use strict';
 
-import { AbstractDataType } from './data-types';
 import stringify from '../../utils/stringify.js';
+import { AbstractDataType } from './data-types';
 
 import chain from 'lodash/chain';
 import findKey from 'lodash/findKey';

@@ -2,7 +2,6 @@
 
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
-import stringify from './utils/stringify.js';
 import { intersects } from './utils/array';
 import {
   noDoubleNestedGroup,
@@ -16,6 +15,7 @@ import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './uti
 import { every, find } from './utils/iterators';
 import { EMPTY_OBJECT, cloneDeep, defaults, flattenObjectDeep, getObjectFromMap, mergeDefaults } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
+import stringify from './utils/stringify.js';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { Association, BelongsTo, BelongsToMany, HasMany, HasOne } from './associations';

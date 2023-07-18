@@ -1,5 +1,5 @@
-import stringify from './utils/stringify.js';
 import { isPlainObject } from './utils/check.js';
+import stringify from './utils/stringify.js';
 import { validator as Validator } from './utils/validator-extras.js';
 
 export enum GeoJsonType {
