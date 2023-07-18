@@ -1,7 +1,8 @@
 'use strict';
 
+import defaults from 'lodash/defaults';
+
 const Toposort = require('toposort-class');
-const _ = require('lodash');
 
 export class ModelManager {
   constructor(sequelize) {
@@ -108,7 +109,7 @@ export class ModelManager {
       throw new Error('Cyclic dependency found.');
     }
 
-    options = _.defaults(options || {}, {
+    options = defaults(options || {}, {
       reverse: true,
     });
 

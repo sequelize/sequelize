@@ -14,7 +14,9 @@ import {
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const _ = require('lodash');
+import each from 'lodash/each';
+import isPlainObject from 'lodash/isPlainObject';
+
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { Op } = require('../../operators');
 
@@ -156,7 +158,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
@@ -369,7 +371,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   }
 
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };

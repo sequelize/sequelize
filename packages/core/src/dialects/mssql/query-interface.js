@@ -3,7 +3,7 @@
 import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
-const _ = require('lodash');
+import intersection from 'lodash/intersection';
 
 const { QueryTypes } = require('../../query-types');
 const { Op } = require('../../operators');
@@ -85,7 +85,7 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
 
     const attributes = Object.keys(insertValues);
     for (const index of uniqueColumnNames) {
-      if (_.intersection(attributes, index).length === index.length) {
+      if (intersection(attributes, index).length === index.length) {
         where = {};
         for (const field of index) {
           where[field] = insertValues[field];

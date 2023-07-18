@@ -1,13 +1,14 @@
 'use strict';
 
-const chai      = require('chai');
+const each = require('lodash/each');
 
-const expect    = chai.expect;
+const chai = require('chai');
+
+const expect = chai.expect;
 const { DataTypes, Sequelize } = require('@sequelize/core');
-const Support   = require('../../support');
+const Support = require('../../support');
 
-const dialect   = Support.getTestDialect();
-const _ = require('lodash');
+const dialect = Support.getTestDialect();
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] ExclusionConstraintError', () => {
@@ -36,7 +37,7 @@ if (dialect.startsWith('postgres')) {
       };
       const err = new Sequelize.ExclusionConstraintError(errDetails);
 
-      _.each(errDetails, (value, key) => {
+      each(errDetails, (value, key) => {
         expect(err[key]).to.be.deep.equal(value, `Value for key ${key} is invalid`);
       });
     });

@@ -1,5 +1,9 @@
 'use strict';
 
+const groupBy = require('lodash/groupBy');
+const invokeMap = require('lodash/invokeMap');
+const property = require('lodash/property');
+
 const chai = require('chai');
 const sinon = require('sinon');
 
@@ -9,7 +13,6 @@ const Support = require('../../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
-const _ = require('lodash');
 
 if (current.dialect.supports['UNION ALL']) {
   describe(Support.getTestDialectTeaser('Model'), () => {
@@ -226,12 +229,12 @@ if (current.dialect.supports['UNION ALL']) {
               },
             });
 
-            const byUser = _.groupBy(tasks, _.property('userId'));
+            const byUser = groupBy(tasks, property('userId'));
             expect(Object.keys(byUser)).to.have.length(3);
 
             expect(byUser[1]).to.have.length(1);
             expect(byUser[2]).to.have.length(3);
-            expect(_.invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
+            expect(invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
             expect(byUser[3]).to.have.length(2);
           });
         });
