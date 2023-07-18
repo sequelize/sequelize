@@ -1,3 +1,4 @@
+import { appendFileSync } from 'node:fs';
 import memoize from 'lodash/memoize.js';
 import type { Class } from 'type-fest';
 import { AssociationPath } from '../expression-builders/association-path.js';
@@ -62,7 +63,7 @@ function parseAttributeSyntaxInternal(
 ): Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn {
   // This function is expensive (parsing produces a lot of objects), but we cache the final result, so it's only
   // going to be slow once per attribute.
-  console.log(AttributeParser); // TODO: Remove me before merging
+  // appendFileSync('dump-attr.txt', `\n\n-----\n\n${code}`);
   const parsed = AttributeParser.Parse_Attribute(code, false);
   if (parsed instanceof ParseError) {
     throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.ref.start.index}:\n${code}\n${' '.repeat(parsed.ref.start.index)}^`);
@@ -132,6 +133,7 @@ export interface ParsedJsonPropertyKey {
 }
 
 function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
+  // appendFileSync('dump-propkey.txt', `\n\n-----\n\n${code}`);
   const parsed = AttributeParser.Parse_PartialJsonPath(code, false);
   if (parsed instanceof ParseError) {
     throw new TypeError(`Failed to parse syntax of json path. Parse error at index ${parsed.ref.start.index}:\n${code}\n${' '.repeat(parsed.ref.start.index)}^`);

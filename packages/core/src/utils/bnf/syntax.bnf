@@ -16,7 +16,7 @@ attribute ::= attributeBegin jsonAccess* transform* ;
 partialJsonPath ::= jsonAccess+ transform* ;
 
 # Internals
-identifier  ::= ( "A"->"Z" | "a"->"z" | digit | "_" )+ ;
+identifier  ::= ( "A"->"Z"+ | "a"->"z"+ | "0"->"9"+ | "_" )+ ;
 digit       ::= "0"->"9" ;
 number      ::= ...digit+ ;
 association ::= %"$" ...identifier (%"." ...identifier)* %"$" ;
@@ -25,7 +25,7 @@ indexAccess ::= %"[" ...number %"]" ;
 keyAccess   ::= %"." ...key ;
 
 # path segments accept dashes without needing to be quoted
-key ::= nonEmptyString | ( "A"->"Z" | "a"->"z" | digit | "_" | "-" )+ ;
+key ::= nonEmptyString | identifier ;
   nonEmptyString ::= ...(%"\"" (anyExceptQuoteOrBackslash | escapedCharacter)+ %"\"") ;
     escapedCharacter          ::= %"\\" ( "\"" | "\\" );
     anyExceptQuoteOrBackslash ::= !("\"" | "\\");

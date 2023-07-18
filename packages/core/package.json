@@ -79,7 +79,7 @@
     "@types/snowflake-sdk": "1.6.13",
     "@types/tedious": "4.0.9",
     "@types/uuid": "9.0.2",
-    "bnf-parser": "4.0.3",
+    "bnf-parser": "4.0.4",
     "chai": "4.3.7",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
