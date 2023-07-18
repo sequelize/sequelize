@@ -1,6 +1,6 @@
+import { pathToFileURL } from 'node:url';
 import glob from 'fast-glob';
 import uniq from 'lodash/uniq';
-import { pathToFileURL } from 'node:url';
 import type { ModelStatic } from './model.js';
 import { isModelStatic } from './utils/model-utils.js';
 
