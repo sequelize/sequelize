@@ -1147,6 +1147,10 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
    conflictAttributes?: Array<keyof TAttributes>;
+  /**
+   * Optional add/override for the default fields
+   */
+   defaults?: Array<keyof TAttributes>;
 }
 
 /**
