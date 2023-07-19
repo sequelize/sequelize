@@ -93,38 +93,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('selectFromTableFragment', function () {
-      // Base case
-      expectsql(this.queryGenerator.selectFromTableFragment({}, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName', 'WHERE id=1'), {
-        mssql: 'SELECT id, name FROM myTable AS myOtherName',
-      });
-
-      // With tableHint - nolock
-      expectsql(this.queryGenerator.selectFromTableFragment({ tableHint: TableHints.NOLOCK }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT id, name FROM myTable AS myOtherName WITH (NOLOCK)',
-      });
-
-      // With tableHint - NOWAIT
-      expectsql(this.queryGenerator.selectFromTableFragment({ tableHint: TableHints.NOWAIT }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT id, name FROM myTable AS myOtherName WITH (NOWAIT)',
-      });
-
-      // With limit
-      expectsql(this.queryGenerator.selectFromTableFragment({ limit: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT id, name FROM myTable AS myOtherName',
-      });
-
-      // With offset
-      expectsql(this.queryGenerator.selectFromTableFragment({ offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT id, name FROM myTable AS myOtherName',
-      });
-
-      // With both limit and offset
-      expectsql(this.queryGenerator.selectFromTableFragment({ limit: 10, offset: 10 }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
-        mssql: 'SELECT id, name FROM myTable AS myOtherName',
-      });
-    });
-
     it('getPrimaryKeyConstraintQuery', function () {
       expectsql(this.queryGenerator.getPrimaryKeyConstraintQuery('myTable', 'myColumnName'), {
         mssql: 'SELECT K.TABLE_NAME AS tableName, K.COLUMN_NAME AS columnName, K.CONSTRAINT_NAME AS constraintName FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON C.TABLE_NAME = K.TABLE_NAME AND C.CONSTRAINT_CATALOG = K.CONSTRAINT_CATALOG AND C.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA AND C.CONSTRAINT_NAME = K.CONSTRAINT_NAME WHERE C.CONSTRAINT_TYPE = \'PRIMARY KEY\' AND K.COLUMN_NAME = N\'myColumnName\' AND K.TABLE_NAME = N\'myTable\';',
