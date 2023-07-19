@@ -2103,11 +2103,11 @@ ${associationOwner._getAssociationDebugList()}`);
         _validateIncludedElements(options);
       }
     }
-    var instances = [];
-    if(this.options.defaults !== null || this.options.defaults !== undefined){
+    let instances = [];
+
+    if (this.options.defaults !== null || this.options.defaults !== undefined) {
       instances = records.map(values => this.build(values, { isNewRecord: true, include: options.include, ...this.options.defaults }));
-    }
-    else{
+    } else {
       instances = records.map(values => this.build(values, { isNewRecord: true, include: options }));
     }
 
