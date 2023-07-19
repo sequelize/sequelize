@@ -140,8 +140,8 @@ function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
     throw new TypeError(`Failed to parse syntax of json path. Parse error at index ${parsed.reach?.index || 0}:\n${code}\n${' '.repeat(parsed.reach?.index || 0)}^`);
   }
 
-  const [accesses, transforms] = parsed.root.value;
-  const pathSegments = parseJsonAccesses(accesses.value);
+  const [base, accesses, transforms] = parsed.root.value;
+  const pathSegments = [base.value, ...parseJsonAccesses(accesses.value)];
 
   const castsAndModifiers: Array<string | Class<DialectAwareFn>> = [];
   if (transforms.value.length > 0) {
