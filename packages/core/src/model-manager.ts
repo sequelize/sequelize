@@ -33,9 +33,9 @@ export class ModelManager {
     return this.models.find(model => model.name === modelName);
   }
 
-  findModel(
+  findModel<T extends ModelStatic>(
     callback: (model: ModelStatic) => boolean,
-  ): ModelStatic | undefined {
+  ): T | undefined {
     return this.models.find(callback);
   }
 
