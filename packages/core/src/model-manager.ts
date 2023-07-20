@@ -36,7 +36,7 @@ export class ModelManager {
   findModel<T extends ModelStatic>(
     callback: (model: ModelStatic) => boolean,
   ): T | undefined {
-    return this.models.find(callback);
+    return this.models.find(callback) as T | undefined;
   }
 
   hasModel(targetModel: ModelStatic): boolean {
@@ -87,7 +87,10 @@ export class ModelManager {
     try {
       sorted = sorter.sort();
     } catch (error: unknown) {
-      if (error instanceof Error && !error.message.startsWith('Cyclic dependency found.')) {
+      if (
+        error instanceof Error
+        && !error.message.startsWith('Cyclic dependency found.')
+      ) {
         throw error;
       }
 

@@ -1,8 +1,13 @@
 'use strict';
 
+import forOwn from 'lodash/forOwn';
+import map from 'lodash/map';
+import mapKeys from 'lodash/mapKeys';
+import reduce from 'lodash/reduce';
+import zipObject from 'lodash/zipObject';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
 const ER_DUP_ENTRY = 1062;
@@ -120,7 +125,7 @@ export class SnowflakeQuery extends AbstractQuery {
           attrsMap[attrName.toLowerCase()] = attrName;
         }
 
-        data = data.map(data => _.reduce(data, (prev, value, key) => {
+        data = data.map(data => reduce(data, (prev, value, key) => {
           if (value !== undefined && attrsMap[key]) {
             prev[attrsMap[key]] = value;
             delete prev[key];
@@ -130,7 +135,7 @@ export class SnowflakeQuery extends AbstractQuery {
         }, data));
       }
 
-      this.options.fieldMap = _.mapKeys(this.options.fieldMap, (v, k) => {
+      this.options.fieldMap = mapKeys(this.options.fieldMap, (v, k) => {
         return k.toUpperCase();
       });
 
@@ -150,7 +155,7 @@ export class SnowflakeQuery extends AbstractQuery {
           allowNull: _result.Null === 'YES',
           defaultValue: _result.Default,
           primaryKey: _result.Key === 'PRI',
-          autoIncrement: Object.prototype.hasOwnProperty.call(_result, 'Extra')
+          autoIncrement: Object.hasOwn(_result, 'Extra')
             && _result.Extra.toLowerCase() === 'auto_increment',
           comment: _result.Comment ? _result.Comment : null,
         };
@@ -169,10 +174,6 @@ export class SnowflakeQuery extends AbstractQuery {
 
     if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery()) {
       return data[0]['number of rows updated'];
-    }
-
-    if (this.isVersionQuery()) {
-      return data[0].version;
     }
 
     if (this.isForeignKeysQuery()) {
@@ -216,13 +217,13 @@ export class SnowflakeQuery extends AbstractQuery {
             message = uniqueKey.msg;
           }
 
-          fields = _.zipObject(uniqueKey.fields, values);
+          fields = zipObject(uniqueKey.fields, values);
         } else {
           fields[fieldKey] = fieldVal;
         }
 
         const errors = [];
-        _.forOwn(fields, (value, field) => {
+        forOwn(fields, (value, field) => {
           errors.push(new sequelizeErrors.ValidationErrorItem(
             this.getUniqueConstraintErrorMessage(field),
             'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -278,7 +279,7 @@ export class SnowflakeQuery extends AbstractQuery {
       return acc;
     }, {});
 
-    return _.map(data, item => ({
+    return map(data, item => ({
       primary: item.Key_name === 'PRIMARY',
       fields: item.fields,
       name: item.Key_name,

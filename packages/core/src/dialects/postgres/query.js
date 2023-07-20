@@ -1,9 +1,16 @@
 'use strict';
 
+import escapeRegExp from 'lodash/escapeRegExp';
+import forOwn from 'lodash/forOwn';
+import isEmpty from 'lodash/isEmpty';
+import isEqual from 'lodash/isEqual';
+import mapKeys from 'lodash/mapKeys';
+import toPairs from 'lodash/toPairs';
+import zipObject from 'lodash/zipObject';
+
 const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:pg');
@@ -12,15 +19,15 @@ export class PostgresQuery extends AbstractQuery {
   async run(sql, parameters, options) {
     const { connection } = this;
 
-    if (!_.isEmpty(this.options.searchPath)) {
+    if (!isEmpty(this.options.searchPath)) {
       sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
     }
 
     if (options?.minifyAliases && this.options.includeAliases) {
-      for (const [alias, original] of _.toPairs(this.options.includeAliases)
+      for (const [alias, original] of toPairs(this.options.includeAliases)
         // Sorting to replace the longest aliases first to prevent alias collision
         .sort((a, b) => b[1].length - a[1].length)) {
-        const reg = new RegExp(_.escapeRegExp(original), 'g');
+        const reg = new RegExp(escapeRegExp(original), 'g');
 
         sql = sql.replace(reg, alias);
       }
@@ -75,7 +82,7 @@ export class PostgresQuery extends AbstractQuery {
 
     if (options?.minifyAliases && this.options.aliasesMapping) {
       rows = rows
-        .map(row => _.toPairs(row)
+        .map(row => toPairs(row)
           .reduce((acc, [key, value]) => {
             const mapping = this.options.aliasesMapping.get(key);
             acc[mapping || key] = value;
@@ -116,16 +123,14 @@ export class PostgresQuery extends AbstractQuery {
     if (this.isShowIndexesQuery()) {
       for (const row of rows) {
         let attributes;
-        let includeColumns = [];
         if (/include \(([^]*)\)/gi.test(row.definition)) {
           attributes = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi.exec(row.definition)[1].split(',');
-          includeColumns = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi.exec(row.definition)[2].split(',');
         } else {
           attributes = /on .*? (?:using .*?\s)?\(([^]*)\)/gi.exec(row.definition)[1].split(',');
         }
 
         // Map column index in table to column name
-        const columns = _.zipObject(
+        const columns = zipObject(
           row.column_indexes,
           this.sequelize.getQueryInterface().queryGenerator.fromArray(row.column_names),
         );
@@ -136,8 +141,7 @@ export class PostgresQuery extends AbstractQuery {
         let attribute;
 
         // Indkey is the order of attributes in the index, specified by a string of attribute indexes
-        const indkeys = row.indkey.split(' ');
-        row.fields = indkeys.slice(0, indkeys.length - includeColumns.length).map((indKey, index) => {
+        row.fields = row.index_fields.map((indKey, index) => {
           field = columns[indKey];
           // for functional indices indKey = 0
           if (!field) {
@@ -153,7 +157,20 @@ export class PostgresQuery extends AbstractQuery {
             length: undefined,
           };
         }).filter(n => n !== null);
+
+        row.includes = row.include_fields.map(indKey => {
+          field = columns[indKey];
+          // for functional indices indKey = 0
+          if (!field) {
+            return null;
+          }
+
+          return field;
+        }).filter(n => n !== null);
         delete row.columns;
+        delete row.definition;
+        delete row.index_fields;
+        delete row.include_fields;
       }
 
       return rows;
@@ -164,7 +181,7 @@ export class PostgresQuery extends AbstractQuery {
       for (const row of rows) {
         let defParts;
         if (row.condef !== undefined && (defParts = row.condef.match(/FOREIGN KEY \((.+)\) REFERENCES (.+)\((.+)\)( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?/))) {
-          row.id = row.constraint_name;
+          row.id = row.constraintName;
           row.table = defParts[2];
           row.from = defParts[1];
           row.to = defParts[3];
@@ -195,7 +212,7 @@ export class PostgresQuery extends AbstractQuery {
         }
 
         result = rows.map(row => {
-          return _.mapKeys(row, (value, key) => {
+          return mapKeys(row, (value, key) => {
             const targetAttr = attrsMap[key];
             if (typeof targetAttr === 'string' && targetAttr !== key) {
               return targetAttr;
@@ -231,7 +248,7 @@ export class PostgresQuery extends AbstractQuery {
         }
 
         if (typeof result[row.Field].defaultValue === 'string') {
-          result[row.Field].defaultValue = result[row.Field].defaultValue.replace(/'/g, '');
+          result[row.Field].defaultValue = result[row.Field].defaultValue.replaceAll('\'', '');
 
           if (result[row.Field].defaultValue.includes('::')) {
             const split = result[row.Field].defaultValue.split('::');
@@ -243,10 +260,6 @@ export class PostgresQuery extends AbstractQuery {
       }
 
       return result;
-    }
-
-    if (this.isVersionQuery()) {
-      return rows[0].server_version;
     }
 
     if (this.isShowOrDescribeQuery()) {
@@ -303,6 +316,10 @@ export class PostgresQuery extends AbstractQuery {
       ];
     }
 
+    if (this.isShowConstraintsQuery()) {
+      return rows;
+    }
+
     if (this.isRawQuery()) {
       return [rows, queryResult];
     }
@@ -339,12 +356,12 @@ export class PostgresQuery extends AbstractQuery {
       case '23505':
         // there are multiple different formats of error messages for this error code
         // this regex should check at least two
-        if (errDetail && (match = errDetail.replace(/"/g, '').match(/Key \((.*?)\)=\((.*?)\)/))) {
-          fields = _.zipObject(match[1].split(', '), match[2].split(', '));
+        if (errDetail && (match = errDetail.replaceAll('"', '').match(/Key \((.*?)\)=\((.*?)\)/))) {
+          fields = zipObject(match[1].split(', '), match[2].split(', '));
           errors = [];
           message = 'Validation error';
 
-          _.forOwn(fields, (value, field) => {
+          forOwn(fields, (value, field) => {
             errors.push(new sequelizeErrors.ValidationErrorItem(
               this.getUniqueConstraintErrorMessage(field),
               'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -357,7 +374,7 @@ export class PostgresQuery extends AbstractQuery {
 
           if (this.model) {
             for (const index of this.model.getIndexes()) {
-              if (index.unique && _.isEqual(index.fields, Object.keys(fields)) && index.msg) {
+              if (index.unique && isEqual(index.fields, Object.keys(fields)) && index.msg) {
                 message = index.msg;
                 break;
               }
@@ -376,7 +393,7 @@ export class PostgresQuery extends AbstractQuery {
         match = errDetail.match(/Key \((.*?)\)=\((.*?)\)/);
 
         if (match) {
-          fields = _.zipObject(match[1].split(', '), match[2].split(', '));
+          fields = zipObject(match[1].split(', '), match[2].split(', '));
         }
 
         message = 'Exclusion constraint error';
@@ -413,7 +430,7 @@ export class PostgresQuery extends AbstractQuery {
   }
 
   isForeignKeysQuery() {
-    return /SELECT conname as constraint_name, pg_catalog\.pg_get_constraintdef\(r\.oid, true\) as condef FROM pg_catalog\.pg_constraint r WHERE r\.conrelid = \(SELECT oid FROM pg_class WHERE relname = '.*' LIMIT 1\) AND r\.contype = 'f' ORDER BY 1;/.test(this.sql);
+    return /SELECT conname as constraintName, pg_catalog\.pg_get_constraintdef\(r\.oid, true\) as condef FROM pg_catalog\.pg_constraint r WHERE r\.conrelid = \(SELECT oid FROM pg_class WHERE relname = '.*' LIMIT 1\) AND r\.contype = 'f' ORDER BY 1;/.test(this.sql);
   }
 
   getInsertIdField() {

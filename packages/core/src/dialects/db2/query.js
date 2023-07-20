@@ -4,8 +4,9 @@ import assert from 'node:assert';
 import { AbstractQuery } from '../abstract/query';
 import { logger } from '../../utils/logger';
 
+import forOwn from 'lodash/forOwn';
+
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 
 const debug = logger.debugContext('sql:db2');
 
@@ -78,7 +79,7 @@ export class Db2Query extends AbstractQuery {
 
     const params = [];
     if (parameters) {
-      _.forOwn(parameters, (value, key) => {
+      forOwn(parameters, (value, key) => {
         const param = this.getSQLTypeFromJsType(value, key);
         params.push(param);
       });
@@ -90,7 +91,7 @@ export class Db2Query extends AbstractQuery {
     // TODO: move this to Db2QueryGenerator
     if ((this.isSelectQuery() || SQL.startsWith('SELECT '))
             && !SQL.includes(' FROM ', 8)) {
-      if (this.sql.charAt(this.sql.length - 1) === ';') {
+      if (this.sql.at(-1) === ';') {
         newSql = this.sql.slice(0, -1);
       }
 
@@ -252,7 +253,7 @@ export class Db2Query extends AbstractQuery {
       result = {};
       for (const _result of data) {
         if (_result.Default) {
-          _result.Default = _result.Default.replace('(\'', '').replace('\')', '').replace(/'/g, '');
+          _result.Default = _result.Default.replace('(\'', '').replace('\')', '').replaceAll('\'', '');
         }
 
         result[_result.Name] = {
@@ -282,14 +283,12 @@ export class Db2Query extends AbstractQuery {
       result = data.length;
     } else if (this.isBulkDeleteQuery()) {
       result = rowCount;
-    } else if (this.isVersionQuery()) {
-      result = data[0].VERSION;
     } else if (this.isForeignKeysQuery()) {
       result = data;
     } else if (this.isInsertQuery() || this.isUpdateQuery()) {
       result = [result, rowCount];
     } else if (this.isShowConstraintsQuery()) {
-      result = this.handleShowConstraintsQuery(data);
+      result = data;
     } else if (this.isRawQuery()) {
       // Db2 returns row data and metadata (affected rows etc) in a single object - let's standarize it, sorta
       result = [data, metadata];
@@ -306,13 +305,6 @@ export class Db2Query extends AbstractQuery {
         tableName: resultSet.TABLE_NAME,
         schema: resultSet.TABLE_SCHEMA,
       };
-    });
-  }
-
-  handleShowConstraintsQuery(data) {
-    // Remove SQL Contraints from constraints list.
-    return _.remove(data, constraint => {
-      return !constraint.constraintName.startsWith('SQL');
     });
   }
 
@@ -362,7 +354,7 @@ export class Db2Query extends AbstractQuery {
       }
 
       const errors = [];
-      _.forOwn(fields, (value, field) => {
+      forOwn(fields, (value, field) => {
         errors.push(new sequelizeErrors.ValidationErrorItem(
           this.getUniqueConstraintErrorMessage(field),
           'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -380,10 +372,15 @@ export class Db2Query extends AbstractQuery {
       || err.message.match(/SQL0530N/)
       || err.message.match(/SQL0531N/);
     if (match && match.length > 0) {
+      const data = err.message.match(/(?:"([\w.]+)")/);
+      const constraintData = data && data.length > 0 ? data[1] : undefined;
+      const [, table, constraint] = constraintData.split('.');
+
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
-        index: match[1],
+        index: constraint,
         cause: err,
+        table,
       });
     }
 
@@ -424,48 +421,43 @@ export class Db2Query extends AbstractQuery {
     return result;
   }
 
-  isShowIndexesQuery() {
-    let result = false;
-
-    result = result || this.sql.toLowerCase().startsWith('exec sys.sp_helpindex @objname');
-    result = result || this.sql.startsWith('SELECT NAME AS "name", TBNAME AS "tableName", UNIQUERULE AS "keyType", COLNAMES, INDEXTYPE AS "type" FROM SYSIBM.SYSINDEXES');
-
-    return result;
-  }
-
   handleShowIndexesQuery(data) {
-    let currItem;
-    const result = [];
-    for (const item of data) {
-      if (!currItem || currItem.name !== item.Key_name) {
-        currItem = {
-          primary: item.keyType === 'P',
-          fields: [],
-          name: item.name,
-          tableName: item.tableName,
-          unique: item.keyType === 'U',
-          type: item.type,
-        };
+    const indexes = data.reduce((acc, curr) => {
+      if (acc.has(curr.name)) {
+        const index = acc.get(curr.name);
+        if (curr.columnOrder === 'I') {
+          index.includes.push(curr.columnName);
+        } else {
+          index.fields.push({
+            attribute: curr.columnName,
+            length: undefined,
+            order: curr.columnOrder === 'D' ? 'DESC' : curr.columnOrder === 'A' ? 'ASC' : undefined,
+            collate: undefined,
+          });
+        }
 
-        _.forEach(item.COLNAMES.replace(/\+|-/g, x => {
-          return ` ${x}`;
-        }).split(' '), column => {
-          let columnName = column.trim();
-          if (columnName) {
-            columnName = columnName.replace(/\+|-/, '');
-            currItem.fields.push({
-              attribute: columnName,
-              length: undefined,
-              order: !column.includes('-') ? 'ASC' : 'DESC',
-              collate: undefined,
-            });
-          }
-        });
-        result.push(currItem);
+        return acc;
       }
-    }
 
-    return result;
+      acc.set(curr.name, {
+        primary: curr.keyType === 'P',
+        fields: curr.columnOrder === 'I' ? [] : [{
+          attribute: curr.columnName,
+          length: undefined,
+          order: curr.columnOrder === 'D' ? 'DESC' : 'ASC',
+          collate: undefined,
+        }],
+        includes: curr.columnOrder === 'I' ? [curr.columnName] : [],
+        name: curr.name,
+        tableName: curr.tableName,
+        unique: curr.keyType === 'U',
+        type: curr.type,
+      });
+
+      return acc;
+    }, new Map());
+
+    return Array.from(indexes.values());
   }
 
   handleInsertQuery(results, metaData) {

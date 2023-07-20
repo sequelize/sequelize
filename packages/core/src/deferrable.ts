@@ -1,10 +1,10 @@
-import type { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
+import isEqual from 'lodash/isEqual';
 import { classToInvokable } from './utils/class-to-invokable.js';
+import { EMPTY_ARRAY } from './utils/object.js';
 
 /**
- * Can be used to
- * make foreign key constraints deferrable and to set the constaints within a
- * transaction. This is only supported in PostgreSQL.
+ * Can be used to make foreign key constraints deferrable.
+ * This is only supported in PostgreSQL.
  *
  * The foreign keys can be configured like this. It will create a foreign key
  * that will check the constraints immediately when the data was inserted.
@@ -22,69 +22,65 @@ import { classToInvokable } from './utils/class-to-invokable.js';
  *   }
  * }, { sequelize });
  * ```
+ */
+export enum Deferrable {
+  INITIALLY_DEFERRED = 'INITIALLY_DEFERRED',
+  INITIALLY_IMMEDIATE = 'INITIALLY_IMMEDIATE',
+  NOT = 'NOT',
+}
+
+/**
+ * Can be used to set constraints deferrable within a transaction.
+ * This is only supported in PostgreSQL.
  *
- * The constraints can be configured in a transaction like this. It will
- * trigger a query once the transaction has been started and set the constraints
+ * The constraints can be configured to be deferrable in a transaction like this.
+ * It will trigger a query once the transaction has been started and set the constraints
  * to be checked at the very end of the transaction.
  *
  * ```js
  * sequelize.transaction({
- *   deferrable: Sequelize.Deferrable.SET_DEFERRED
+ *   constraintChecking: Sequelize.ConstraintChecking.DEFERRED
  * });
  * ```
  */
-export class Deferrable {
-  static toString(queryGenerator: AbstractQueryGenerator) {
-    return new this().toString(queryGenerator);
+export class ConstraintChecking {
+  toString() {
+    return this.constructor.name;
   }
 
-  toString(queryGenerator: AbstractQueryGenerator) {
-    return this.toSql(queryGenerator);
+  isEqual(_other: unknown): boolean {
+    throw new Error('isEqual implementation missing');
   }
 
-  toSql(_queryGenerator: AbstractQueryGenerator) {
-    throw new Error('toSql implementation missing');
+  static toString() {
+    return this.name;
   }
 
-  static readonly INITIALLY_DEFERRED = classToInvokable(class INITIALLY_DEFERRED extends Deferrable {
-    toSql() {
-      return 'DEFERRABLE INITIALLY DEFERRED';
-    }
-  });
-
-  static readonly INITIALLY_IMMEDIATE = classToInvokable(class INITIALLY_IMMEDIATE extends Deferrable {
-    toSql() {
-      return 'DEFERRABLE INITIALLY IMMEDIATE';
-    }
-  });
-
-  /**
-   * Will set the constraints to not deferred. This is the default in PostgreSQL and it make
-   * it impossible to dynamically defer the constraints within a transaction.
-   */
-  static readonly NOT = classToInvokable(class NOT extends Deferrable {
-    toSql() {
-      return 'NOT DEFERRABLE';
-    }
-  });
+  get constraints(): readonly string[] {
+    throw new Error('constraints getter implementation missing');
+  }
 
   /**
    * Will trigger an additional query at the beginning of a
    * transaction which sets the constraints to deferred.
    */
-  static readonly SET_DEFERRED = classToInvokable(class SET_DEFERRED extends Deferrable {
-    readonly #constraints: string[];
+  static readonly DEFERRED = classToInvokable(class DEFERRED extends ConstraintChecking {
+    readonly #constraints: readonly string[];
 
     /**
      * @param constraints An array of constraint names. Will defer all constraints by default.
      */
-    constructor(constraints: string[]) {
+    constructor(constraints: readonly string[] = EMPTY_ARRAY) {
       super();
-      this.#constraints = constraints;
+      this.#constraints = Object.freeze([...constraints]);
     }
 
-    toSql(queryGenerator: AbstractQueryGenerator): string {
-      return queryGenerator.setDeferredQuery(this.#constraints);
+    isEqual(other: unknown): boolean {
+      return other instanceof DEFERRED && isEqual(this.#constraints, other.#constraints);
+    }
+
+    get constraints(): readonly string[] {
+      return this.#constraints;
     }
   });
 
@@ -92,19 +88,23 @@ export class Deferrable {
    * Will trigger an additional query at the beginning of a
    * transaction which sets the constraints to immediately.
    */
-  static readonly SET_IMMEDIATE = classToInvokable(class SET_IMMEDIATE extends Deferrable {
-    readonly #constraints: string[];
+  static readonly IMMEDIATE = classToInvokable(class IMMEDIATE extends ConstraintChecking {
+    readonly #constraints: readonly string[];
 
     /**
      * @param constraints An array of constraint names. Will defer all constraints by default.
      */
-    constructor(constraints: string[]) {
+    constructor(constraints: readonly string[] = EMPTY_ARRAY) {
       super();
-      this.#constraints = constraints;
+      this.#constraints = Object.freeze([...constraints]);
     }
 
-    toSql(queryGenerator: AbstractQueryGenerator): string {
-      return queryGenerator.setImmediateQuery(this.#constraints);
+    isEqual(other: unknown): boolean {
+      return other instanceof IMMEDIATE && isEqual(this.#constraints, other.#constraints);
+    }
+
+    get constraints(): readonly string[] {
+      return this.#constraints;
     }
   });
 }

@@ -1,12 +1,13 @@
 'use strict';
 
+const each = require('lodash/each');
+
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const _ = require('lodash');
 const dayjs = require('dayjs');
 const { SqliteQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/sqlite/query-generator.js');
 const { createSequelizeInstance } = require('../../../support');
@@ -363,13 +364,6 @@ if (dialect === 'sqlite') {
             + 'DROP TABLE `myTable_backup`;',
         },
       ],
-      getForeignKeysQuery: [
-        {
-          title: 'Property quotes table names',
-          arguments: ['myTable'],
-          expectation: 'PRAGMA foreign_key_list(`myTable`)',
-        },
-      ],
       foreignKeyCheckQuery: [
         {
           title: 'Properly quotes table names',
@@ -384,7 +378,7 @@ if (dialect === 'sqlite') {
       ],
     };
 
-    _.each(suites, (tests, suiteTitle) => {
+    each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;

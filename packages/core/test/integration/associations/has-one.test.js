@@ -516,8 +516,11 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         });
 
         expect(Object.keys(InternetOrders.getAttributes()).length).to.equal(2);
-        expect(InternetOrders.getAttributes().OrderId).to.be.ok;
-        expect(InternetOrders.getAttributes().OrdersId).not.to.be.ok;
+
+        // The model is named incorrectly.
+        // The modal name should always be singular, so here sequelize assumes that "Orders" is singular
+        expect(InternetOrders.getAttributes().OrdersId).to.be.ok;
+        expect(InternetOrders.getAttributes().OrderId).not.to.be.ok;
       });
     });
   });

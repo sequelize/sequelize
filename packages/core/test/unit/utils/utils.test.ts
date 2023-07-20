@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { DataTypes, Where, col } from '@sequelize/core';
+import { DataTypes, Where, col, sql } from '@sequelize/core';
 import { canTreatArrayAsAnd } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { toDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { mapFinderOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
@@ -54,16 +54,37 @@ describe('Utils', () => {
   describe('cloneDeep', () => {
     it('should clone objects', () => {
       const obj = { foo: 1 };
-      const clone = cloneDeep(obj);
 
-      expect(obj).to.not.equal(clone);
+      const clone = cloneDeep(obj);
+      expect(clone).to.deep.equal(obj);
+      expect(clone).to.not.equal(obj);
     });
 
     it('should clone nested objects', () => {
       const obj = { foo: { bar: 1 } };
-      const clone = cloneDeep(obj);
 
-      expect(obj.foo).to.not.equal(clone.foo);
+      const clone = cloneDeep(obj);
+      expect(clone).to.deep.equal(obj);
+      expect(clone).to.not.equal(obj);
+    });
+
+    it('clones sql expression builders', () => {
+      const obj = [
+        sql`literal test`,
+        sql.where({ foo: 'bar' }),
+        sql.col('foo'),
+        sql.unquote('foo'),
+        sql.cast('foo', 'bar'),
+        sql.fn('foo', 'bar'),
+        sql.attribute('foo'),
+        sql.identifier('foo'),
+        sql.jsonPath(sql.attribute('foo'), ['foo']),
+        sql.list(['a', 'b']),
+      ];
+
+      const clone = cloneDeep(obj);
+      expect(clone).to.deep.equal(obj);
+      expect(clone).to.not.equal(obj);
     });
 
     it('should not call clone methods on plain objects', () => {

@@ -8,6 +8,7 @@ import type { AbstractConnectionManager } from './connection-manager.js';
 import type { AbstractDataType } from './data-types.js';
 import * as BaseDataTypes from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
+import type { AbstractQueryInterface } from './query-interface.js';
 import type { AbstractQuery } from './query.js';
 
 export interface SupportableNumericOptions {
@@ -108,8 +109,11 @@ export type DialectSupports = {
   },
   constraints: {
     restrict: boolean,
-    addConstraint: boolean,
-    dropConstraint: boolean,
+    /**
+     * This dialect supports marking a column's constraints as deferrable.
+     * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
+     */
+    deferrable: boolean,
     unique: boolean,
     default: boolean,
     check: boolean,
@@ -118,6 +122,12 @@ export type DialectSupports = {
     foreignKeyChecksDisableable: boolean,
     primaryKey: boolean,
     onUpdate: boolean,
+    add: boolean,
+    remove: boolean,
+    removeOptions: {
+      cascade: boolean,
+      ifExists: boolean,
+    },
   },
   index: {
     collate: boolean,
@@ -193,15 +203,15 @@ export type DialectSupports = {
   IREGEXP: boolean,
   /** Whether this dialect supports SQL JSON functions */
   jsonOperations: boolean,
+  /** Whether this dialect supports returning quoted & unquoted JSON strings  */
+  jsonExtraction: {
+    unquoted: boolean,
+    quoted: boolean,
+  },
   tmpTableTrigger: boolean,
   indexHints: boolean,
+  tableHints: boolean,
   searchPath: boolean,
-  /**
-   * This dialect supports marking a column's constraints as deferrable.
-   * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
-   */
-  deferrableConstraints: boolean,
-
   /**
    * This dialect supports E-prefixed strings, e.g. "E'foo'", which
    * enables the ability to use backslash escapes inside of the string.
@@ -272,8 +282,7 @@ export abstract class AbstractDialect {
     },
     constraints: {
       restrict: true,
-      addConstraint: true,
-      dropConstraint: true,
+      deferrable: false,
       unique: true,
       default: false,
       check: true,
@@ -281,6 +290,12 @@ export abstract class AbstractDialect {
       foreignKeyChecksDisableable: false,
       primaryKey: true,
       onUpdate: true,
+      add: true,
+      remove: true,
+      removeOptions: {
+        cascade: false,
+        ifExists: false,
+      },
     },
     index: {
       collate: true,
@@ -330,11 +345,15 @@ export abstract class AbstractDialect {
       },
     },
     jsonOperations: false,
+    jsonExtraction: {
+      unquoted: false,
+      quoted: false,
+    },
     REGEXP: false,
     IREGEXP: false,
-    deferrableConstraints: false,
     tmpTableTrigger: false,
     indexHints: false,
+    tableHints: false,
     searchPath: false,
     escapeStringConstants: false,
     globalTimeZoneConfig: false,
@@ -350,18 +369,17 @@ export abstract class AbstractDialect {
   };
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {
-    return merge(cloneDeep(this.supports), supportsOverwrite);
+    return merge(cloneDeep(this.supports) ?? {}, supportsOverwrite);
   }
 
   readonly sequelize: Sequelize;
 
   abstract readonly defaultVersion: string;
   abstract readonly Query: typeof AbstractQuery;
-  /** @deprecated use {@link TICK_CHAR_RIGHT} & {@link TICK_CHAR_LEFT} */
-  abstract readonly TICK_CHAR: string;
   abstract readonly TICK_CHAR_LEFT: string;
   abstract readonly TICK_CHAR_RIGHT: string;
   abstract readonly queryGenerator: AbstractQueryGenerator;
+  abstract readonly queryInterface: AbstractQueryInterface;
   abstract readonly connectionManager: AbstractConnectionManager<any>;
   abstract readonly dataTypesDocumentationUrl: string;
 
@@ -470,7 +488,7 @@ export abstract class AbstractDialect {
   escapeString(value: string): string {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
-    value = value.replace(/'/g, '\'\'');
+    value = value.replaceAll('\'', '\'\'');
 
     return `'${value}'`;
   }
@@ -498,12 +516,12 @@ export abstract class AbstractDialect {
    * For instance, when implementing "parse" for a Date type,
    * prefer returning a String rather than a Date object.
    *
-   * The {@link AbstractDataType#parseDatabaseValue} method will then be called on the DataType instance defined by the user,
+   * The {@link DataTypes.ABSTRACT#parseDatabaseValue} method will then be called on the DataType instance defined by the user,
    * which can decide on a more specific JS type (e.g. parse the date string & return a Date instance or a Temporal instance).
    *
    * You typically do not need to implement this method. This is used to provide default parsers when no DataType
    * is provided (e.g. raw queries that don't specify a model). Sequelize already provides a default parser for most types.
-   * For a custom Data Type, implementing {@link AbstractDataType#parseDatabaseValue} is typically what you want.
+   * For a custom Data Type, implementing {@link DataTypes.ABSTRACT#parseDatabaseValue} is typically what you want.
    *
    * @param databaseDataTypes Dialect-specific DB data type identifiers that will use this parser.
    * @param parser The parser function to call when parsing the data type. Parameters are dialect-specific.
