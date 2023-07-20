@@ -906,7 +906,7 @@ export interface FindOptions<TAttributes = any>
   /**
    * Use a table hint for the query, only supported in MSSQL.
    */
-  tableHint?: TableHints;
+  tableHints?: TableHints[];
 }
 
 export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttributes> {

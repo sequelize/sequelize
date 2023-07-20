@@ -2,9 +2,11 @@
 
 import { getAttributeName } from '../../utils/format';
 
+import forOwn from 'lodash/forOwn';
+import zipObject from 'lodash/zipObject';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:mssql');
@@ -105,7 +107,7 @@ export class MsSqlQuery extends AbstractQuery {
             request.addParameter(String(i + 1), paramType.type, paramType.value, paramType.typeOptions);
           }
         } else {
-          _.forOwn(parameters, (parameter, parameterName) => {
+          forOwn(parameters, (parameter, parameterName) => {
             const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
             request.addParameter(parameterName, paramType.type, paramType.value, paramType.typeOptions);
           });
@@ -286,12 +288,8 @@ export class MsSqlQuery extends AbstractQuery {
   formatError(err) {
     let match;
 
-    // TODO: err can be an AggregateError. When that happens, we must throw an AggregateError too instead of throwing only the second error,
-    //  or we lose important information
-
-    match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'. Cannot insert duplicate key in object '.*'\.(:? The duplicate key value is \((.*)\).)?/s);
+    match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'\. Cannot insert duplicate key in object '.*'\.(:? The duplicate key value is \((.*)\).)?/s);
     match = match || err.message.match(/Cannot insert duplicate key row in object .* with unique index '(.*)'\.(:? The duplicate key value is \((.*)\).)?/s);
-
     if (match && match.length > 1) {
       let fields = {};
       const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === match[1]);
@@ -305,14 +303,14 @@ export class MsSqlQuery extends AbstractQuery {
       if (match[3]) {
         const values = match[3].split(',').map(part => part.trim());
         if (uniqueKey) {
-          fields = _.zipObject(uniqueKey.fields, values);
+          fields = zipObject(uniqueKey.fields, values);
         } else {
           fields[match[1]] = match[3];
         }
       }
 
       const errors = [];
-      _.forOwn(fields, (value, field) => {
+      forOwn(fields, (value, field) => {
         errors.push(new sequelizeErrors.ValidationErrorItem(
           this.getUniqueConstraintErrorMessage(field),
           'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -323,65 +321,54 @@ export class MsSqlQuery extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
+      const uniqueConstraintError = new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
+      if (err.errors?.length > 0) {
+        return new sequelizeErrors.AggregateError([...err.errors, uniqueConstraintError]);
+      }
+
+      return uniqueConstraintError;
     }
 
-    match = err.message.match(/Failed on step '(.*)'.Could not create constraint. See previous errors./)
-      || err.message.match(/The DELETE statement conflicted with the REFERENCE constraint "(.*)". The conflict occurred in database "(.*)", table "(.*)", column '(.*)'./)
-      || err.message.match(/The (?:INSERT|MERGE|UPDATE) statement conflicted with the FOREIGN KEY constraint "(.*)". The conflict occurred in database "(.*)", table "(.*)", column '(.*)'./);
-    if (match && match.length > 0) {
-      return new sequelizeErrors.ForeignKeyConstraintError({
-        fields: null,
+    match = err.message.match(/The (?:DELETE|INSERT|MERGE|UPDATE) statement conflicted with the (?:FOREIGN KEY|REFERENCE) constraint "(.*)"\. The conflict occurred in database "(.*)", table "(.*)", column '(.*)'\./);
+    if (match && match.length > 1) {
+      const fkConstraintError = new sequelizeErrors.ForeignKeyConstraintError({
         index: match[1],
         cause: err,
+        table: match[3],
+        fields: [match[4]],
       });
-    }
 
-    if (err.errors) {
-      for (const error of err.errors) {
-        match = error.message.match(/Could not create constraint or index. See previous errors./);
-        if (match && match.length > 0) {
-          return new sequelizeErrors.ForeignKeyConstraintError({
-            fields: null,
-            index: match[1],
-            cause: error,
-          });
-        }
+      if (err.errors?.length > 0) {
+        return new sequelizeErrors.AggregateError([...err.errors, fkConstraintError]);
       }
+
+      return fkConstraintError;
     }
 
-    match = err.message.match(/Could not drop constraint. See previous errors./);
-    if (match && match.length > 0) {
-      let constraint = err.sql.match(/(?:constraint|index) \[(.+?)]/i);
-      constraint = constraint ? constraint[1] : undefined;
-      let table = err.sql.match(/table \[(.+?)]/i);
-      table = table ? table[1] : undefined;
-
-      return new sequelizeErrors.UnknownConstraintError({
-        message: match[1],
-        constraint,
-        table,
-        cause: err,
-      });
-    }
-
-    if (err.errors) {
-      for (const error of err.errors) {
-        match = error.message.match(/Could not drop constraint. See previous errors./);
+    if (err.errors?.length > 0) {
+      let firstError;
+      for (const [index, error] of err.errors.entries()) {
+        match = error.message.match(/Could not (?:create|drop) constraint(?: or index)?\. See previous errors\./);
         if (match && match.length > 0) {
           let constraint = err.sql.match(/(?:constraint|index) \[(.+?)]/i);
           constraint = constraint ? constraint[1] : undefined;
           let table = err.sql.match(/table \[(.+?)]/i);
           table = table ? table[1] : undefined;
 
-          return new sequelizeErrors.UnknownConstraintError({
-            message: match[1],
+          firstError = new sequelizeErrors.UnknownConstraintError({
+            message: err.errors[index - 1].message,
             constraint,
             table,
-            cause: error,
+            cause: err,
           });
         }
       }
+
+      if (firstError) {
+        return new sequelizeErrors.AggregateError([...err.errors, firstError]);
+      }
+
+      return new sequelizeErrors.AggregateError(err.errors);
     }
 
     return new sequelizeErrors.DatabaseError(err);

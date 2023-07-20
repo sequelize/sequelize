@@ -1,15 +1,16 @@
 'use strict';
 
+const uniq = require('lodash/uniq');
+
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, Sequelize, AggregateError, UnknownConstraintError } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
 const current = Support.sequelize;
-const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
@@ -234,11 +235,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('adds, reads and removes an index to the table', async function () {
       await this.queryInterface.addIndex('Group', ['username', 'isAdmin']);
       let indexes = await this.queryInterface.showIndex('Group');
-      let indexColumns = _.uniq(indexes.map(index => index.name));
+      let indexColumns = uniq(indexes.map(index => index.name));
       expect(indexColumns).to.include('group_username_is_admin');
       await this.queryInterface.removeIndex('Group', ['username', 'isAdmin']);
       indexes = await this.queryInterface.showIndex('Group');
-      indexColumns = _.uniq(indexes.map(index => index.name));
+      indexColumns = uniq(indexes.map(index => index.name));
       expect(indexColumns).to.be.empty;
     });
 
@@ -795,12 +796,18 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           });
           throw new Error('Error not thrown...');
         } catch (error) {
-          expect(error).to.be.instanceOf(Sequelize.UnknownConstraintError);
-          if (dialectName !== 'ibmi') {
-            expect(error.table).to.equal('users');
-          }
+          let err = error;
+          if (dialectName === 'mssql') {
+            expect(err).to.be.instanceOf(AggregateError);
+            err = error.errors.at(-1);
+          } else {
+            expect(err).to.be.instanceOf(Sequelize.UnknownConstraintError);
+            if (dialectName !== 'ibmi') {
+              expect(err.table).to.equal('users');
+            }
 
-          expect(error.constraint).to.equal('unknown__constraint__name');
+            expect(err.constraint).to.equal('unknown__constraint__name');
+          }
         }
       });
     });

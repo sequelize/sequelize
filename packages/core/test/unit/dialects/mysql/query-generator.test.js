@@ -1,12 +1,13 @@
 'use strict';
 
+const each = require('lodash/each');
+
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const _ = require('lodash');
 const { Op, IndexHints } = require('@sequelize/core');
 const { MySqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mysql/query-generator.js');
 const { createSequelizeInstance } = require('../../../support');
@@ -391,56 +392,9 @@ if (dialect === 'mysql') {
           needsSequelize: true,
         },
       ],
-
-      selectFromTableFragment: [
-        {
-          arguments: [{}, null, ['*'], '`Project`'],
-          expectation: 'SELECT * FROM `Project`',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` USE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` FORCE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.IGNORE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` IGNORE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` USE INDEX (`index_project_on_name`,`index_project_on_name_and_foo`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: 'FOO', values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project`',
-        },
-      ],
     };
 
-    _.each(suites, (tests, suiteTitle) => {
+    each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;

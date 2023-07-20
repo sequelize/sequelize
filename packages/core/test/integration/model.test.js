@@ -1,5 +1,8 @@
 'use strict';
 
+const afterLodash = require('lodash/after');
+const once = require('lodash/once');
+
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -9,7 +12,6 @@ const { DataTypes, Sequelize, Op, AggregateError, col } = require('@sequelize/co
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
 const sinon = require('sinon');
-const _ = require('lodash');
 const dayjs = require('dayjs');
 
 const current = Support.sequelize;
@@ -994,7 +996,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await UserPub.sync({ force: true });
         await ItemPub.sync({
           force: true,
-          logging: _.after(2, _.once(sql => {
+          logging: afterLodash(2, once(sql => {
             test = true;
             switch (dialectName) {
               case 'postgres':
@@ -1275,7 +1277,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           case 'mssql': {
-            expect(error.message).to.match(/Could not create constraint/);
+            expect(error).to.be.instanceOf(AggregateError);
+            expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
 
             break;
           }

@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
 import wkx from 'wkx';
 import { isValidTimeZone } from '../../utils/dayjs.js';
-import type { MariaDbDialect } from '../mariadb/index.js';
 import type { MySqlTypeCastValue } from './connection-manager.js';
 import type { MysqlDialect } from './index.js';
 
@@ -11,7 +10,7 @@ import type { MysqlDialect } from './index.js';
  *
  * @param dialect
  */
-export function registerMySqlDbDataTypeParsers(dialect: MysqlDialect | MariaDbDialect) {
+export function registerMySqlDbDataTypeParsers(dialect: MysqlDialect) {
   /*
   * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
   * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js

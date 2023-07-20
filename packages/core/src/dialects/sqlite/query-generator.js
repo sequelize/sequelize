@@ -4,18 +4,16 @@ import { removeNullishValuesFromHash } from '../../utils/format';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
-import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+
+import defaults from 'lodash/defaults';
+import each from 'lodash/each';
+import isObject from 'lodash/isObject';
 
 const { Transaction } = require('../../transaction');
-const _ = require('lodash');
 const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 // TODO: add support for 'uniqueKeys' by improving the createTableQuery implementation so it also generates a CREATE UNIQUE INDEX query
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
@@ -77,7 +75,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     //  CREATE UNIQUE INDEX does not have this issue, so we're using that instead
     //
     // if (options.uniqueKeys) {
-    //   _.each(options.uniqueKeys, (columns, indexName) => {
+    //   each(options.uniqueKeys, (columns, indexName) => {
     //     if (columns.customIndex) {
     //       if (typeof indexName !== 'string') {
     //         indexName = generateIndexName(tableName, columns);
@@ -144,7 +142,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
   updateQuery(tableName, attrValueHash, where, options, attributes) {
     options = options || {};
-    _.defaults(options, this.options);
+    defaults(options, this.options);
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
@@ -154,7 +152,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
     if (attributes) {
-      _.each(attributes, (attribute, key) => {
+      each(attributes, (attribute, key) => {
         modelAttributeMap[key] = attribute;
         if (attribute.field) {
           modelAttributeMap[attribute.field] = attribute;
@@ -200,7 +198,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    _.defaults(options, this.options);
+    defaults(options, this.options);
 
     let whereClause = this.whereQuery(where, { ...options, model });
     if (whereClause) {
@@ -220,7 +218,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       const attribute = attributes[name];
       const columnName = attribute.field || attribute.columnName || name;
 
-      if (_.isObject(attribute)) {
+      if (isObject(attribute)) {
         let sql = attribute.type.toString();
 
         if (attribute.allowNull === false) {
@@ -274,39 +272,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     }
 
     return result;
-  }
-
-  // TODO: this should not implement `removeColumnQuery` but a new sqlite specific function possibly called `replaceTableQuery`
-  removeColumnQuery(tableName, attributes, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    attributes = this.attributesToSQL(attributes);
-
-    const table = this.extractTableDetails(tableName);
-
-    // TODO: this is unsafe, this table could already exist
-    const backupTableName = {
-      tableName: `${table.tableName}_backup`,
-      schema: table.schema,
-      delimiter: table.delimiter,
-    };
-
-    const quotedTableName = this.quoteTable(tableName);
-    const quotedBackupTableName = this.quoteTable(backupTableName);
-    const attributeNames = Object.keys(attributes).map(attr => this.quoteIdentifier(attr)).join(', ');
-
-    return `${this.createTableQuery(backupTableName, attributes)}`
-      + `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`
-      + `DROP TABLE ${quotedTableName};`
-      + `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`;
   }
 
   renameColumnQuery(tableName, attrNameBefore, attrNameAfter, attributes) {

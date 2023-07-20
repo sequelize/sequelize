@@ -4,8 +4,9 @@ import assert from 'node:assert';
 import { AbstractQuery } from '../abstract/query';
 import { logger } from '../../utils/logger';
 
+import forOwn from 'lodash/forOwn';
+
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 
 const debug = logger.debugContext('sql:db2');
 
@@ -78,7 +79,7 @@ export class Db2Query extends AbstractQuery {
 
     const params = [];
     if (parameters) {
-      _.forOwn(parameters, (value, key) => {
+      forOwn(parameters, (value, key) => {
         const param = this.getSQLTypeFromJsType(value, key);
         params.push(param);
       });
@@ -353,7 +354,7 @@ export class Db2Query extends AbstractQuery {
       }
 
       const errors = [];
-      _.forOwn(fields, (value, field) => {
+      forOwn(fields, (value, field) => {
         errors.push(new sequelizeErrors.ValidationErrorItem(
           this.getUniqueConstraintErrorMessage(field),
           'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -371,10 +372,15 @@ export class Db2Query extends AbstractQuery {
       || err.message.match(/SQL0530N/)
       || err.message.match(/SQL0531N/);
     if (match && match.length > 0) {
+      const data = err.message.match(/(?:"([\w.]+)")/);
+      const constraintData = data && data.length > 0 ? data[1] : undefined;
+      const [, table, constraint] = constraintData.split('.');
+
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
-        index: match[1],
+        index: constraint,
         cause: err,
+        table,
       });
     }
 

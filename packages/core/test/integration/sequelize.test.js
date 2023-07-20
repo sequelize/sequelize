@@ -1,11 +1,12 @@
 'use strict';
 
+const cloneDeep = require('lodash/cloneDeep');
+
 const { expect, assert } = require('chai');
 const Support = require('./support');
 const { DataTypes, Transaction, Sequelize, literal } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
-const _ = require('lodash');
 const { Config: config } = require('../config/config');
 const sinon = require('sinon');
 
@@ -540,7 +541,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       ]) {
 
         it('should be able to override options on the default attributes', async function () {
-          const Picture = this.sequelize.define('picture', _.cloneDeep(customAttributes));
+          const Picture = this.sequelize.define('picture', cloneDeep(customAttributes));
           await Picture.sync({ force: true });
           for (const attribute of Object.keys(customAttributes)) {
             for (const option of Object.keys(customAttributes[attribute])) {
