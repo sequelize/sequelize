@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import type { InferAttributes, Model } from '@sequelize/core';
+import type { CreationOptional, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
 import { DataTypes, IndexHints, Op, TableHints, or, sql as sqlTag } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
@@ -10,19 +10,31 @@ const { attribute, col, cast, where, fn, literal } = sqlTag;
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
-  interface TUser extends Model<InferAttributes<TUser>> {
+  interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
+    id: CreationOptional<number>;
     username: string;
   }
 
   const User = sequelize.define<TUser>('User', {
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
     username: DataTypes.STRING,
   }, { timestamps: true });
 
-  interface TProject extends Model<InferAttributes<TProject>> {
+  interface TProject extends Model<InferAttributes<TProject>, InferCreationAttributes<TProject>> {
+    id: CreationOptional<number>;
     duration: bigint;
   }
 
   const Project = sequelize.define<TProject>('Project', {
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
     duration: DataTypes.BIGINT,
   }, { timestamps: false });
 
@@ -491,7 +503,9 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         attributes: [
           // these used to have special escaping logic, now they're always escaped like any other strings. col, fn, and literal can be used for advanced logic.
           ['count(*)', 'count'],
+          // @ts-expect-error -- test against a vulnerability CVE-2023-22578
           '.*',
+          // @ts-expect-error -- test against a vulnerability CVE-2023-22578
           '*',
           [literal('count(*)'), 'literal_count'],
           [fn('count', '*'), 'fn_count_str'],
@@ -554,7 +568,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     it('raw replacements for where', () => {
       expect(() => {
         queryGenerator.selectQuery('User', {
-          attributes: ['*'],
+          attributes: [[col('*'), 'col_all']],
           // @ts-expect-error -- this is not a valid value anymore
           where: ['name IN (?)', [1, 'test', 3, 'derp']],
         });
@@ -564,7 +578,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     it('raw replacements for nested where', () => {
       expect(() => {
         queryGenerator.selectQuery('User', {
-          attributes: ['*'],
+          attributes: [[col('*'), 'col_all']],
           // @ts-expect-error -- this is not a valid value anymore
           where: [['name IN (?)', [1, 'test', 3, 'derp']]],
         });
@@ -574,7 +588,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     it('raw replacements for having', () => {
       expect(() => {
         queryGenerator.selectQuery('User', {
-          attributes: ['*'],
+          attributes: [[col('*'), 'col_all']],
           // @ts-expect-error -- this is not a valid value anymore
           having: ['name IN (?)', [1, 'test', 3, 'derp']],
         });
@@ -584,7 +598,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     it('raw replacements for nested having', () => {
       expect(() => {
         queryGenerator.selectQuery('User', {
-          attributes: ['*'],
+          attributes: [[col('*'), 'col_all']],
           // @ts-expect-error -- this is not a valid value anymore
           having: [['name IN (?)', [1, 'test', 3, 'derp']]],
         });
@@ -594,7 +608,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     it('raw string from where', () => {
       expect(() => {
         queryGenerator.selectQuery('User', {
-          attributes: ['*'],
+          attributes: [[col('*'), 'col_all']],
           // @ts-expect-error -- this is not a valid value anymore
           where: `name = 'something'`,
         });
@@ -604,7 +618,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     it('raw string from having', () => {
       expect(() => {
         queryGenerator.selectQuery('User', {
-          attributes: ['*'],
+          attributes: [[col('*'), 'col_all']],
           // @ts-expect-error -- this is not a valid value anymore
           having: `name = 'something'`,
         });
@@ -614,7 +628,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     it('rejects where: null', () => {
       expect(() => {
         queryGenerator.selectQuery('User', {
-          attributes: ['*'],
+          attributes: [[col('*'), 'col_all']],
           // @ts-expect-error -- this is not a valid value anymore
           where: null,
         });
@@ -624,7 +638,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     it('rejects where: primitive', () => {
       expect(() => {
         queryGenerator.selectQuery('User', {
-          attributes: ['*'],
+          attributes: [[col('*'), 'col_all']],
           // @ts-expect-error -- this is not a valid value anymore
           where: 1,
         });
@@ -634,7 +648,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     it('rejects where: array of primitives', () => {
       expect(() => {
         queryGenerator.selectQuery('User', {
-          attributes: ['*'],
+          attributes: [[col('*'), 'col_all']],
           // @ts-expect-error -- this is not a valid value anymore
           where: [''],
         });
