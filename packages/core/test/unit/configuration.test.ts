@@ -326,7 +326,9 @@ describe('Sequelize constructor', () => {
       const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', { storage: '/completely/different/path.db' });
       const options = sequelize.options;
       expect(options.dialect).to.equal('sqlite');
-      // this fix is likely not valid, and should be updated to a more proper solution
+      // TODO: Potential issue with storage param not resolving properly on windows
+      //       Hence the difference between the other tests
+      //       See https://github.com/sequelize/sequelize/pull/16283#discussion_r1268796636
       expect(options.storage).to.equal('/completely/different/path.db');
     });
 
