@@ -381,7 +381,10 @@ export interface WhereOperators<AttributeType = any> {
   // https://www.postgresql.org/docs/14/functions-array.html array @> array
   [Op.contains]?:
     // RANGE @> ELEMENT
-    | AttributeType extends Range<infer RangeType> ? OperatorValues<OperatorValues<NonNullable<RangeType>>> : never
+    | AttributeType extends Range<infer RangeType> ? OperatorValues<OperatorValues<NonNullable<RangeType>>>
+      // jsonb @> ELEMENT
+      : AttributeType extends object ? OperatorValues<Partial<AttributeType>>
+      : never
     // ARRAY @> ARRAY ; RANGE @> RANGE
     | WhereOperators<AttributeType>[typeof Op.overlap];
 
