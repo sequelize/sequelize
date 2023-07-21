@@ -109,10 +109,12 @@ jobs:
           cache: yarn
       - name: Install dependencies
         run: yarn install --immutable
-      - name: Lerna Unit Tests
-        run: yarn lerna run test-unit
+      - name: Unit tests (validator.js)
+        run: yarn lerna run test-unit --scope=@sequelize/validator.js
       - name: Unit tests (sqlite)
         run: yarn lerna run test-unit-sqlite --scope=@sequelize/core
+      - name: Integration tests (sqlite)
+        run: yarn lerna run test-integration-sqlite --scope=@sequelize/core
   docs:
     name: Generate TypeDoc
     runs-on: ubuntu-latest
