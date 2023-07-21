@@ -1541,13 +1541,15 @@ describe('DataTypes', () => {
     it(`is deserialized as a parsed array when DataType is not specified`, async () => {
       await testSimpleInOutRaw(vars.User, 'enumArray', [TestEnum.A, TestEnum.B, TestEnum['D,E']], [TestEnum.A, TestEnum.B, TestEnum['D,E']]);
       await testSimpleInOutRaw(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);
+      // Earlier versions of cockroachdb add a +00 at the end of a timestampz array, which is not followed post v23.1.
+      // Cockroachdb parses values smaller than Number.MAX_SAFE_INTEGER as integers and bigger than that as strings.
       if (dialect.name === 'cockroachdb') {
         await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], [1, 2, 3]);
       } else {
         await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], ['1', '2', '3']);
+        await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00']);
       }
 
-      await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00']);
       await testSimpleInOutRaw(vars.User, 'booleanArray', [true, false], [true, false]);
       await testSimpleInOutRaw(vars.User, 'stringArray', ['a,b,c', 'd,e,f'], ['a,b,c', 'd,e,f']);
       if (dialect.name !== 'cockroachdb') {
