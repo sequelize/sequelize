@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('on success', () => {
-      it('hook runs', async () => {
+      it('before hook runs', async () => {
         let beforeHook = false;
 
         this.User.beforeIncrementDecrement(() => {
@@ -40,11 +40,31 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         await user.increment('integer');
         expect(beforeHook).to.be.true;
       });
+
+      it('after hook runs', async () => {
+        let afterHook = false;
+
+        this.User.afterIncrementDecrement(() => {
+          afterHook = true;
+        });
+
+        const user = await this.User.findOne({ where: { username: 'adam' } });
+        await user.increment('integer');
+        expect(afterHook).to.be.true;
+      });
     });
 
     describe('on error', () => {
       it('in beforeIncrement hook returns error', async () => {
         this.User.beforeIncrementDecrement(() => {
+          throw new Error('Oops!');
+        });
+
+        await expect(this.User.increment('integer', { where: { username: 'adam' } })).to.be.rejectedWith('Oops!');
+      });
+
+      it('in afterIncrement hook returns error', async () => {
+        this.User.afterIncrementDecrement(() => {
           throw new Error('Oops!');
         });
 
