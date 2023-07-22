@@ -6,17 +6,17 @@ import type { ModelStatic } from './model';
 import type { Sequelize } from './sequelize';
 
 export class ModelManager {
-  declare sequelize: Sequelize;
+  #sequelize: Sequelize;
   declare models: ModelStatic[];
 
   constructor(sequelize: Sequelize) {
     this.models = [];
-    this.sequelize = sequelize;
+    this.#sequelize = sequelize;
   }
 
   addModel<T extends ModelStatic>(model: T): T {
     this.models.push(model);
-    this.sequelize.models[model.name] = model;
+    this.#sequelize.models[model.name] = model;
 
     return model;
   }
@@ -26,7 +26,7 @@ export class ModelManager {
       model => model.name !== modelToRemove.name,
     );
 
-    delete this.sequelize.models[modelToRemove.name];
+    delete this.#sequelize.models[modelToRemove.name];
   }
 
   getModel(modelName: string): ModelStatic | undefined {
@@ -58,7 +58,7 @@ export class ModelManager {
     const models = new Map();
     const sorter = new Toposort();
 
-    const queryGenerator = this.sequelize.queryInterface.queryGenerator;
+    const queryGenerator = this.#sequelize.queryInterface.queryGenerator;
 
     for (const model of this.models) {
       let deps = [];
