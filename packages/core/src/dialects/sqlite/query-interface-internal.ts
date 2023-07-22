@@ -5,7 +5,7 @@ import { TransactionNestMode } from '../../transaction';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal';
 import type { SqliteQueryGenerator } from './query-generator';
-import type { SQLiteColumnsDescription } from './query-interface';
+import type { SqliteColumnsDescription } from './query-interface.types';
 import { withSqliteForeignKeysOff } from './sqlite-utils';
 
 export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal {
@@ -28,7 +28,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
    */
   async alterTableInternal(
     tableName: TableNameOrModel,
-    columns: SQLiteColumnsDescription,
+    columns: SqliteColumnsDescription,
     options?: QueryRawOptions,
   ): Promise<void> {
     const table = this.#queryGenerator.extractTableDetails(tableName);

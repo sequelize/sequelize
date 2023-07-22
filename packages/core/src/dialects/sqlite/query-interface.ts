@@ -9,7 +9,6 @@ import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import { AbstractQueryInterface } from '../abstract/query-interface';
 import type {
   AddConstraintOptions,
-  ColumnDescription,
   ConstraintDescription,
   ConstraintType,
   DescribeTableOptions,
@@ -20,17 +19,8 @@ import type {
 } from '../abstract/query-interface.types';
 import type { SqliteQueryGenerator } from './query-generator';
 import { SqliteQueryInterfaceInternal } from './query-interface-internal';
+import type { SqliteColumnsDescription } from './query-interface.types';
 import { withSqliteForeignKeysOff } from './sqlite-utils';
-
-export interface SQLiteColumnDescription extends ColumnDescription {
-  unique?: boolean;
-  references?: {
-    table: string,
-    key: string,
-  };
-}
-
-export type SQLiteColumnsDescription = Record<string, SQLiteColumnDescription>;
 
 export class SqliteQueryInterface extends AbstractQueryInterface {
   readonly queryGenerator: SqliteQueryGenerator;
@@ -61,7 +51,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     });
   }
 
-  async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions): Promise<SQLiteColumnsDescription> {
+  async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions): Promise<SqliteColumnsDescription> {
     const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
@@ -83,7 +73,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
 
     const sql = this.queryGenerator.describeTableQuery(table);
     try {
-      const data = await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.DESCRIBE }) as SQLiteColumnsDescription;
+      const data = await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.DESCRIBE }) as SqliteColumnsDescription;
       /*
        * If no data is returned from the query, then the table name may be wrong.
        * Query generators that use information_schema for retrieving table info will just return an empty result set,

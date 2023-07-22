@@ -13,8 +13,7 @@ import type {
   RemoveColumnQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
-import type { ColumnsDescription } from '../abstract/query-interface.types';
-import type { SQLiteColumnsDescription } from './query-interface';
+import type { SqliteColumnsDescription } from './query-interface.types';
 
 const LIST_TABLES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListTablesQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -72,7 +71,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     _tableName: TableNameOrModel,
     _attrNameBefore: string,
     _attrNameAfter: string,
-    _attributes: SQLiteColumnsDescription,
+    _attributes: SqliteColumnsDescription,
   ): string {
     throw new Error(`renameColumnQuery is not supported in ${this.dialect.name}.`);
   }
@@ -116,7 +115,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     tableName: TableNameOrModel,
     attrNameBefore: string,
     attrNameAfter: string,
-    attributes: SQLiteColumnsDescription,
+    attributes: SqliteColumnsDescription,
   ) {
     const table = this.extractTableDetails(tableName);
     const backupTable = this.extractTableDetails(`${table.tableName}_${randomBytes(8).toString('hex')}`, table);
@@ -138,7 +137,9 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ];
   }
 
-  _replaceTableQuery(tableName: TableNameOrModel, attributes: ColumnsDescription, createTableSql?: string) {
+  // SQLite has limited ALTER TABLE capapibilites which requires the below workaround involving recreating tables.
+  // This leads to issues with losing data or losing foreign key references.
+  _replaceTableQuery(tableName: TableNameOrModel, attributes: SqliteColumnsDescription, createTableSql?: string) {
     const table = this.extractTableDetails(tableName);
     const backupTable = this.extractTableDetails(`${table.tableName}_${randomBytes(8).toString('hex')}`, table);
     const quotedTableName = this.quoteTable(table);
