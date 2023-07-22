@@ -48,7 +48,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     this.#internalQueryInterface = internalQueryInterface;
   }
 
-  async dropAllTables(options?: QiDropAllTablesOptions) {
+  async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
     const skip = options?.skip || [];
     const allTables = await this.listTables(options);
     const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
@@ -420,11 +420,15 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
    * @param removeColumn
    * @param options
    */
-  async removeColumn(tableName: TableNameOrModel, removeColumn: string, options?: RemoveColumnOptions) {
+  async removeColumn(
+    tableName: TableNameOrModel,
+    removeColumn: string,
+    options?: RemoveColumnOptions,
+  ): Promise<void> {
     const fields = await this.describeTable(tableName, { ...options });
     delete fields[removeColumn];
 
-    return this.#internalQueryInterface.alterTableInternal(tableName, fields, { ...options });
+    await this.#internalQueryInterface.alterTableInternal(tableName, fields, { ...options });
   }
 
   /**
@@ -442,7 +446,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     columnName: string,
     dataTypeOrOptions: DataType | AttributeOptions,
     options?: QueryRawOptions,
-  ) {
+  ): Promise<void> {
     const columns = await this.describeTable(tableName, { ...options });
     for (const column of Object.values(columns)) {
       // This is handled by copying indexes over,
@@ -453,7 +457,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
 
     Object.assign(columns[columnName], this.sequelize.normalizeAttribute(dataTypeOrOptions));
 
-    return this.#internalQueryInterface.alterTableInternal(tableName, columns, { ...options });
+    await this.#internalQueryInterface.alterTableInternal(tableName, columns, { ...options });
   }
 
   /**
@@ -466,7 +470,12 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
    * @param attrNameAfter
    * @param options
    */
-  async renameColumn(tableName: TableNameOrModel, attrNameBefore: string, attrNameAfter: string, options?: QueryRawOptions) {
+  async renameColumn(
+    tableName: TableNameOrModel,
+    attrNameBefore: string,
+    attrNameAfter: string,
+    options?: QueryRawOptions,
+  ): Promise<void> {
     const fields = await this.assertTableHasColumn(tableName, attrNameBefore, options);
 
     fields[attrNameAfter] = { ...fields[attrNameBefore] };
