@@ -8,6 +8,7 @@ import type {
   CreateOptions,
   DestroyOptions,
   FindOptions,
+  IncrementDecrementOptions,
   InstanceDestroyOptions,
   InstanceRestoreOptions,
   InstanceUpdateOptions,
@@ -91,6 +92,22 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterAssociate(data: AfterAssociateEventData, options: AssociationOptions<any>): AsyncHookReturn;
 
   /**
+   * A hook that is run at the start of {@link Model.increment} and {@link Model.decrement}
+   */
+  beforeIncrementDecrement(
+    fields: { [key in keyof TAttributes]?: number },
+    options: IncrementDecrementOptions<TAttributes>
+  ): AsyncHookReturn;
+
+  /**
+   * A hook that is run at the end of {@link Model.increment} and {@link Model.decrement}
+   */
+  afterIncrementDecrement(
+    fields: { [key in keyof TAttributes]?: number },
+    options: IncrementDecrementOptions<TAttributes>
+  ): AsyncHookReturn;
+
+  /**
    * Runs before the definition of the model changes because {@link ModelDefinition#refreshAttributes} was called.
    */
   beforeDefinitionRefresh(): void;
@@ -113,6 +130,7 @@ export const validModelHooks: Array<keyof ModelHooks> = [
   'beforeBulkDestroy', 'afterBulkDestroy',
   'beforeBulkRestore', 'afterBulkRestore',
   'beforeBulkUpdate', 'afterBulkUpdate',
+  'beforeIncrementDecrement', 'afterIncrementDecrement',
   'beforeCount',
   'beforeFind', 'beforeFindAfterExpandIncludeAll', 'beforeFindAfterOptions', 'afterFind',
   'beforeSync', 'afterSync',

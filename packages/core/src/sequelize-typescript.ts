@@ -246,6 +246,9 @@ export abstract class SequelizeTypeScript {
   beforeAssociate = legacyBuildAddHook(instanceSequelizeHooks, 'beforeAssociate');
   afterAssociate = legacyBuildAddHook(instanceSequelizeHooks, 'afterAssociate');
 
+  beforeIncrementDecrement = legacyBuildAddHook(instanceSequelizeHooks, 'beforeIncrementDecrement');
+  afterIncrementDecrement = legacyBuildAddHook(instanceSequelizeHooks, 'afterIncrementDecrement');
+
   #transactionCls: AsyncLocalStorage<Transaction> | undefined;
 
   /**

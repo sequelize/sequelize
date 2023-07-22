@@ -2999,6 +2999,7 @@ Instead of specifying a Model, either:
       by: 1,
       where: {},
       increment: true,
+      hooks: true,
     });
     const isSubtraction = !options.increment;
 
@@ -3018,6 +3019,10 @@ Instead of specifying a Model, either:
       // If the `fields` argument is not an array, then we assume it already has the
       // form necessary to be placed directly in the `incrementAmountsByField` variable.
       incrementAmountsByField = fields;
+    }
+
+    if (options.hooks) {
+      await this.hooks.runAsync('beforeIncrementDecrement', incrementAmountsByField, options);
     }
 
     // If optimistic locking is enabled, we can take advantage that this is an
@@ -3045,6 +3050,10 @@ Instead of specifying a Model, either:
       affectedRows = await this.queryInterface.increment(
         this, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options,
       );
+    }
+
+    if (options.hooks) {
+      await this.hooks.runAsync('afterIncrementDecrement', incrementAmountsByField, options);
     }
 
     if (options.returning) {
