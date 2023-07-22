@@ -547,6 +547,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
+  // TODO: rename to "describeColumn"
   assertTableHasColumn(
     tableName: TableNameOrModel,
     columnName: string,
