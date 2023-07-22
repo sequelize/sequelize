@@ -1,14 +1,12 @@
 import isEmpty from 'lodash/isEmpty';
-import { BaseError, ForeignKeyConstraintError, UnknownConstraintError } from '../../errors';
+import { BaseError, UnknownConstraintError } from '../../errors';
 import type { AttributeOptions } from '../../model';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, Sequelize } from '../../sequelize';
-import { TransactionNestMode } from '../../transaction';
 import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import type { DataType } from '../abstract/data-types';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import { AbstractQueryInterface } from '../abstract/query-interface';
-import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal';
 import type {
   AddConstraintOptions,
   ColumnDescription,
@@ -21,6 +19,7 @@ import type {
   ShowConstraintsOptions,
 } from '../abstract/query-interface.types';
 import type { SqliteQueryGenerator } from './query-generator';
+import { SqliteQueryInterfaceInternal } from './query-interface-internal';
 import { withSqliteForeignKeysOff } from './sqlite-utils';
 
 export interface SQLiteColumnDescription extends ColumnDescription {
@@ -35,14 +34,14 @@ export type SQLiteColumnsDescription = Record<string, SQLiteColumnDescription>;
 
 export class SqliteQueryInterface extends AbstractQueryInterface {
   readonly queryGenerator: SqliteQueryGenerator;
-  readonly #internalQueryInterface: AbstractQueryInterfaceInternal;
+  readonly #internalQueryInterface: SqliteQueryInterfaceInternal;
 
   constructor(
     sequelize: Sequelize,
     queryGenerator: SqliteQueryGenerator,
-    internalQueryInterface?: AbstractQueryInterfaceInternal,
+    internalQueryInterface?: SqliteQueryInterfaceInternal,
   ) {
-    internalQueryInterface ??= new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+    internalQueryInterface ??= new SqliteQueryInterfaceInternal(sequelize, queryGenerator);
 
     super(sequelize, queryGenerator, internalQueryInterface);
     this.queryGenerator = queryGenerator;
@@ -425,7 +424,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     const fields = await this.describeTable(tableName, { ...options });
     delete fields[removeColumn];
 
-    return this.alterTableInternal(tableName, fields, { ...options });
+    return this.#internalQueryInterface.alterTableInternal(tableName, fields, { ...options });
   }
 
   /**
@@ -454,7 +453,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
 
     Object.assign(columns[columnName], this.sequelize.normalizeAttribute(dataTypeOrOptions));
 
-    return this.alterTableInternal(tableName, columns, { ...options });
+    return this.#internalQueryInterface.alterTableInternal(tableName, columns, { ...options });
   }
 
   /**
@@ -475,76 +474,5 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
 
     const sql = this.queryGenerator._replaceColumnQuery(tableName, attrNameBefore, attrNameAfter, fields);
     await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
-  }
-
-  /**
-   * Alters a table in sqlite.
-   * Workaround for sqlite's limited alter table support.
-   *
-   * @param tableName
-   * @param columns
-   * @param options
-   */
-  private async alterTableInternal(
-    tableName: TableNameOrModel,
-    columns: SQLiteColumnsDescription,
-    options?: QueryRawOptions,
-  ) {
-    const table = this.queryGenerator.extractTableDetails(tableName);
-
-    return withSqliteForeignKeysOff(this.sequelize, options ?? {}, async () => {
-      await this.sequelize.transaction({
-        nestMode: TransactionNestMode.savepoint,
-        transaction: options?.transaction,
-      }, async () => {
-        const indexes = await this.showIndex(tableName, options);
-        for (const index of indexes) {
-          // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
-          if (!index.name.startsWith('sqlite_autoindex_')) {
-            continue;
-          }
-
-          if (!index.unique) {
-            continue;
-          }
-
-          for (const field of index.fields) {
-            if (columns[field.attribute]) {
-              columns[field.attribute].unique = true;
-            }
-          }
-        }
-
-        const sql = this.queryGenerator._replaceTableQuery(tableName, columns);
-        await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
-
-        // Run a foreign keys integrity check
-        const foreignKeyCheckResult = await this.sequelize.queryRaw(this.queryGenerator.foreignKeyCheckQuery(tableName), {
-          ...options,
-          type: QueryTypes.SELECT,
-        });
-
-        if (foreignKeyCheckResult.length > 0) {
-          // There are foreign key violations, exit
-          throw new ForeignKeyConstraintError({
-            message: `Foreign key violations detected: ${JSON.stringify(foreignKeyCheckResult, null, 2)}`,
-            table: table.tableName,
-          });
-        }
-
-        await Promise.all(indexes.map(async index => {
-          // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
-          if (index.name.startsWith('sqlite_autoindex_')) {
-            return;
-          }
-
-          return this.addIndex(tableName, {
-            ...index,
-            type: undefined,
-            fields: index.fields.map(field => field.attribute),
-          });
-        }));
-      });
-    });
   }
 }
