@@ -1,13 +1,14 @@
 import { expect } from 'chai';
 import type { InferAttributes, Model } from '@sequelize/core';
-import { DataTypes, Op, or, sql as sqlTag } from '@sequelize/core';
+import { DataTypes, IndexHints, Op, TableHints, or, sql as sqlTag } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
+import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const { attribute, col, cast, where, fn, literal } = sqlTag;
 
 describe('QueryGenerator#selectQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   interface TUser extends Model<InferAttributes<TUser>> {
     username: string;
@@ -672,6 +673,104 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       }, User), {
         default: notSupportedError,
         mysql: 'SELECT /*+ MAX_EXECUTION_TIME(1000) */ `id` FROM `Users` AS `User`;',
+      });
+    });
+  });
+
+  describe('index hints', () => {
+    it('should add an index hint', () => {
+      expectsql(() => queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }],
+      }, User), {
+        default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, ['indexHints']),
+        'mariadb mysql snowflake': 'SELECT [id] FROM [Users] AS [User] FORCE INDEX ([index_project_on_name]);',
+      });
+    });
+
+    it('should add an index hint with multiple values', () => {
+      expectsql(() => queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        indexHints: [{ type: IndexHints.IGNORE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }],
+      }, User), {
+        default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, ['indexHints']),
+        'mariadb mysql snowflake': 'SELECT [id] FROM [Users] AS [User] IGNORE INDEX ([index_project_on_name],[index_project_on_name_and_foo]);',
+      });
+    });
+
+    it('should throw an error if an index hint if the type is not valid', () => {
+      expectsql(() => queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        // @ts-expect-error -- we are testing invalid values
+        indexHints: [{ type: 'INVALID', values: ['index_project_on_name'] }],
+      }, User), {
+        default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, ['indexHints']),
+        'mariadb mysql snowflake': new Error(`The index hint type "INVALID" is invalid or not supported by dialect "${sequelize.dialect.name}".`),
+      });
+    });
+  });
+
+  describe('table hints', () => {
+    it('support an array of table hints', () => {
+      expectsql(() => queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        tableHints: [TableHints.UPDLOCK, TableHints.PAGLOCK],
+      }, User), {
+        default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, ['tableHints']),
+        mssql: `SELECT [id] FROM [Users] AS [User] WITH (UPDLOCK, PAGLOCK);`,
+      });
+    });
+
+    it('should be able to use table hints on joins', () => {
+      expectsql(() => queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        tableHints: [TableHints.NOLOCK],
+        include: _validateIncludedElements({
+          model: User,
+          include: [{
+            association: User.associations.projects,
+            attributes: ['id'],
+          }],
+        }).include,
+      }, User), {
+        default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, ['tableHints']),
+        mssql: `SELECT [User].[id], [projects].[id] AS [projects.id] FROM [Users] AS [User] WITH (NOLOCK) LEFT OUTER JOIN [Projects] AS [projects] WITH (NOLOCK) ON [User].[id] = [projects].[UserId];`,
+      });
+    });
+
+    it('should be able to use separate table hints on joins', () => {
+      expectsql(() => queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        tableHints: [TableHints.NOLOCK],
+        include: _validateIncludedElements({
+          model: User,
+          include: [{
+            association: User.associations.projects,
+            attributes: ['id'],
+            tableHints: [TableHints.READPAST],
+          }],
+        }).include,
+      }, User), {
+        default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, ['tableHints']),
+        mssql: `SELECT [User].[id], [projects].[id] AS [projects.id] FROM [Users] AS [User] WITH (NOLOCK) LEFT OUTER JOIN [Projects] AS [projects] WITH (READPAST) ON [User].[id] = [projects].[UserId];`,
+      });
+    });
+
+    it('should throw an error if a table hint if the type is not valid', () => {
+      expectsql(() => queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        // @ts-expect-error -- we are testing invalid values
+        tableHints: ['INVALID'],
+      }, User), {
+        default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, ['tableHints']),
+        mssql: new Error(`The table hint "INVALID" is invalid or not supported by dialect "${sequelize.dialect.name}".`),
       });
     });
   });
