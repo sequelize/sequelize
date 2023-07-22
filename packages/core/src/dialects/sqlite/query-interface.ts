@@ -34,7 +34,6 @@ export interface SQLiteColumnDescription extends ColumnDescription {
 export type SQLiteColumnsDescription = Record<string, SQLiteColumnDescription>;
 
 export class SqliteQueryInterface extends AbstractQueryInterface {
-  readonly sequelize: Sequelize;
   readonly queryGenerator: SqliteQueryGenerator;
   readonly #internalQueryInterface: AbstractQueryInterfaceInternal;
 
@@ -43,10 +42,11 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     queryGenerator: SqliteQueryGenerator,
     internalQueryInterface?: AbstractQueryInterfaceInternal,
   ) {
+    internalQueryInterface ??= new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+
     super(sequelize, queryGenerator, internalQueryInterface);
-    this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
-    this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+    this.#internalQueryInterface = internalQueryInterface;
   }
 
   async dropAllTables(options?: QiDropAllTablesOptions) {
