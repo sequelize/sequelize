@@ -304,6 +304,10 @@ describe('Model', () => {
         // must use a new sequelize instance because warnings are only logged once per instance.
         const newSequelize = createSequelizeInstance();
 
+        // @ts-expect-error -- only used in testing
+        // Needed due to "experimental" warning for ibmi and snowflake dialects
+        console.warn.restore();
+
         newSequelize.define('A', {
           age: {
             type: DataTypes.FLOAT(10, 2),
