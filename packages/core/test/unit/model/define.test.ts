@@ -306,7 +306,7 @@ describe('Model', () => {
 
         // @ts-expect-error -- only used in testing
         // Needed due to "experimental" warning for ibmi and snowflake dialects
-        console.warn.restore();
+        console.warn.reset();
 
         newSequelize.define('A', {
           age: {
