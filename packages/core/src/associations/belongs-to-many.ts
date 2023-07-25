@@ -593,6 +593,7 @@ Add your own primary key to the through model, on different attributes than the 
       ...this.through.scope,
     };
 
+    // @ts-expect-error -- the findAll call is raw, no model here
     const currentThroughRows: ThroughModel[] = await this.through.model.findAll({
       ...options,
       where,
@@ -661,6 +662,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     let currentRows: any[] = [];
     if (this.through?.unique ?? true) {
+      // @ts-expect-error -- the findAll call is raw, no model here
       currentRows = await this.through.model.findAll({
         ...options,
         raw: true,
@@ -1025,7 +1027,7 @@ export interface BelongsToManyGetAssociationsMixinOptions<T extends Model> exten
   /**
    * A list of the attributes from the join table that you want to select.
    */
-  joinTableAttributes?: FindAttributeOptions;
+  joinTableAttributes?: FindAttributeOptions<Attributes<T>>;
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */

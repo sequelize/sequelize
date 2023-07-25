@@ -210,6 +210,7 @@ export type DialectSupports = {
   },
   tmpTableTrigger: boolean,
   indexHints: boolean,
+  tableHints: boolean,
   searchPath: boolean,
   /**
    * This dialect supports E-prefixed strings, e.g. "E'foo'", which
@@ -352,6 +353,7 @@ export abstract class AbstractDialect {
     IREGEXP: false,
     tmpTableTrigger: false,
     indexHints: false,
+    tableHints: false,
     searchPath: false,
     escapeStringConstants: false,
     globalTimeZoneConfig: false,

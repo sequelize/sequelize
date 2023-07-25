@@ -372,10 +372,15 @@ export class Db2Query extends AbstractQuery {
       || err.message.match(/SQL0530N/)
       || err.message.match(/SQL0531N/);
     if (match && match.length > 0) {
+      const data = err.message.match(/(?:"([\w.]+)")/);
+      const constraintData = data && data.length > 0 ? data[1] : undefined;
+      const [, table, constraint] = constraintData.split('.');
+
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
-        index: match[1],
+        index: constraint,
         cause: err,
+        table,
       });
     }
 

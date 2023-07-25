@@ -1311,7 +1311,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           case 'mssql': {
-            expect(error.message).to.match(/Could not create constraint/);
+            expect(error).to.be.instanceOf(AggregateError);
+            expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
 
             break;
           }

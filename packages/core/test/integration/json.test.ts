@@ -82,8 +82,10 @@ describe('JSON Querying', () => {
       declare stringJsonAttr: string;
     }
 
-    class Order extends Model<InferAttributes<Order>> {
-      @BelongsTo(User, 'userId')
+    class Order extends Model<InferAttributes<Order>, InferCreationAttributes<Order>> {
+      declare id: CreationOptional<number>;
+
+      @BelongsTo(() => User, 'userId')
       declare user: NonAttribute<User>;
 
       @Attribute(DataTypes.INTEGER)
@@ -366,8 +368,10 @@ describe('JSONB Querying', () => {
       declare stringJsonbAttr: CreationOptional<string>;
     }
 
-    class Order extends Model<InferAttributes<Order>> {
-      @BelongsTo(User, 'userId')
+    class Order extends Model<InferAttributes<Order>, InferCreationAttributes<Order>> {
+      declare id: CreationOptional<number>;
+
+      @BelongsTo(() => User, 'userId')
       declare user: NonAttribute<User>;
 
       @Attribute(DataTypes.INTEGER)
