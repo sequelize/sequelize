@@ -41,6 +41,10 @@ const dialectSupportsJsonOperations = () => sequelize.dialect.supports.jsonOpera
 const dialectSupportsJsonQuotedExtraction = () => sequelize.dialect.supports.jsonExtraction.quoted;
 const dialectSupportsJsonUnquotedExtraction = () => sequelize.dialect.supports.jsonExtraction.unquoted;
 
+interface SomeInterface {
+  foo: string;
+}
+
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
   declare intAttr2: number;
@@ -63,6 +67,9 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare aliasedInt: number;
   declare aliasedJsonAttr: object;
   declare aliasedJsonbAttr: object;
+
+  declare jsonbTypeLiteralAttr: { foo: string };
+  declare jsonbInterfaceAttr: SomeInterface;
 
   declare uuidAttr: string;
 }
@@ -96,6 +103,8 @@ TestModel.init({
   ...(dialectSupportsJsonB() && {
     jsonbAttr: { type: DataTypes.JSONB },
     aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
+    jsonbTypeLiteralAttr: { type: DataTypes.JSONB },
+    jsonbInterfaceAttr: { type: DataTypes.JSONB },
   }),
 
   uuidAttr: DataTypes.UUID,
@@ -2429,6 +2438,32 @@ Caused by: "undefined" cannot be escaped`),
           },
         }, {
           default: `[jsonbAttr] @> '{"company":"Magnafone"}'`,
+        });
+
+        testSql({
+          jsonbTypeLiteralAttr: { [Op.contains]: { foo: 'bar' } },
+        }, {
+          postgres: '"jsonbTypeLiteralAttr" @> \'{"foo":"bar"}\'',
+        });
+
+        testSql({
+          // @ts-expect-error -- key `bad` isn't known
+          jsonbTypeLiteralAttr: { [Op.contains]: { bad: 'bad' } },
+        }, {
+          postgres: '"jsonbTypeLiteralAttr" @> \'{"bad":"bad"}\'',
+        });
+
+        testSql({
+          jsonbInterfaceAttr: { [Op.contains]: { foo: 'bar' } },
+        }, {
+          postgres: '"jsonbInterfaceAttr" @> \'{"foo":"bar"}\'',
+        });
+
+        testSql({
+          // @ts-expect-error -- key `bad` isn't known
+          jsonbInterfaceAttr: { [Op.contains]: { bad: 'bad' } },
+        }, {
+          postgres: '"jsonbInterfaceAttr" @> \'{"bad":"bad"}\'',
         });
 
         // aliases correctly

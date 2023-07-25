@@ -24,7 +24,7 @@ import { User } from './models/user';
   const customUsers = await User.findAll<User, CustomUser>({
     attributes: [
       ['bar', 'foo'],
-      'ignored',
+      'firstName',
       [col('table.id'), 'xyz'],
       [cast(col('createdAt'), 'varchar'), 'abc'],
     ],
