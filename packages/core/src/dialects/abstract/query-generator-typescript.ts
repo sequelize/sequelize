@@ -813,4 +813,10 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   versionQuery(): string {
     throw new Error(`${this.dialect.name} did not implement versionQuery`);
   }
+
+  tableExistsQuery(tableName: TableNameOrModel): string {
+    const table = this.extractTableDetails(tableName);
+
+    return `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = ${this.escape(table.schema)}`;
+  }
 }
