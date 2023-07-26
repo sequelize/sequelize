@@ -55,7 +55,7 @@ describe('QueryInterface#tableExists', () => {
       });
 
       it('should return false if table does not exist', async () => {
-        const exists = await queryInterface.tableExists({ tableName: 'levels', schema: 'public' });
+        const exists = await queryInterface.tableExists({ tableName: 'actors', schema: 'archive' });
         expect(exists).to.be.false;
       });
     });
