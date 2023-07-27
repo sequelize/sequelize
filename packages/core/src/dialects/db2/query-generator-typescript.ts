@@ -16,16 +16,21 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",',
-      'TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",',
-      'NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",',
-      'IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"',
-      'FROM',
-      'SYSIBM.SYSCOLUMNS',
-      `WHERE TBNAME = ${this.escape(table.tableName)}`,
-      'AND TBCREATOR =',
-      table.schema ? this.escape(table.schema) : 'USER',
-      ';',
+      'SELECT COLNAME AS "Name",',
+      'TABNAME AS "Table",',
+      'TABSCHEMA AS "Schema",',
+      'TYPENAME AS "Type",',
+      'LENGTH AS "Length",',
+      'SCALE AS "Scale",',
+      'NULLS AS "IsNull",',
+      'DEFAULT AS "Default",',
+      'COLNO AS "Colno",',
+      'IDENTITY AS "IsIdentity",',
+      'KEYSEQ AS "KeySeq",',
+      'REMARKS AS "Comment"',
+      'FROM SYSCAT.COLUMNS',
+      `WHERE TABNAME = ${this.escape(table.tableName)}`,
+      `AND TABSCHEMA = ${this.escape(table.schema)}`,
     ]);
   }
 
@@ -51,8 +56,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN SYSCAT.KEYCOLUSE fk ON r.REFKEYNAME = fk.CONSTNAME',
       'LEFT JOIN SYSCAT.CHECKS ck ON c.CONSTNAME = ck.CONSTNAME AND c.TABNAME = ck.TABNAME AND c.TABSCHEMA = ck.TABSCHEMA',
       `WHERE c.TABNAME = ${this.escape(table.tableName)}`,
-      'AND c.TABSCHEMA =',
-      table.schema ? this.escape(table.schema) : 'USER',
+      `AND c.TABSCHEMA = ${this.escape(table.schema)}`,
       options?.constraintName ? `AND c.CONSTNAME = ${this.escape(options.constraintName)}` : '',
       'ORDER BY c.CONSTNAME',
     ]);
@@ -72,8 +76,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM SYSCAT.INDEXES i',
       'INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA',
       `WHERE TABNAME = ${this.escape(table.tableName)}`,
-      'AND TABSCHEMA =',
-      table.schema ? this.escape(table.schema) : 'USER',
+      `AND TABSCHEMA = ${this.escape(table.schema)}`,
       'ORDER BY i.INDNAME, c.COLSEQ;',
     ]);
   }
@@ -120,8 +123,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA',
       'AND R.TABNAME = C.TABNAME',
       `AND R.TABNAME = ${this.escape(table.tableName)}`,
-      'AND R.TABSCHEMA =',
-      table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
+      `AND R.TABSCHEMA = ${this.escape(table.schema)}`,
       columnName && `AND C.COLNAME = ${this.escape(columnName)}`,
       'GROUP BY R.REFTABSCHEMA,',
       'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES',
