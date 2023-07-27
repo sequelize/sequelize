@@ -1,7 +1,7 @@
 services:
   db2-oldest:
     container_name: sequelize-db2-oldest
-    image: ibmcom/db2-amd64:11.5.6.0a
+    image: icr.io/db2_community/db2:11.5.5.1
     privileged: true
     env_file: ../.env_list
     environment:
