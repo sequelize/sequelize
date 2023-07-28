@@ -1322,9 +1322,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       if (skipLocked && noWait) {
         throw new Error(`Only one of skipLocked or noWait may be specified for a query`);
       }
+
       if (skipLocked) {
         query += ' SKIP LOCKED';
       }
+      
       if (noWait) {
         query += ' NOWAIT';
       }

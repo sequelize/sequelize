@@ -372,7 +372,7 @@ export class Transaction {
    *   skipLocked: true
    * });
    * ```
-   * 
+   *
    * The query will now return any rows that aren't locked by another transaction
    *
    * @example You can raise an error instead of waiting on a lock:
