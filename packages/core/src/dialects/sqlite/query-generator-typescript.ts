@@ -144,6 +144,6 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   tableExistsQuery(tableName: TableNameOrModel): string {
 
-    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escapeTable(tableName)}`;
+    return `SELECT name FROM sqlite_master WHERE type = 'table' AND name = ${this.escapeTable(tableName)}`;
   }
 }

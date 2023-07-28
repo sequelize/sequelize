@@ -137,6 +137,6 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   tableExistsQuery(tableName: TableNameOrModel): string {
     const table = this.extractTableDetails(tableName);
 
-    return `SELECT TABNAME, TABSCHEMA FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
+    return `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
   }
 }

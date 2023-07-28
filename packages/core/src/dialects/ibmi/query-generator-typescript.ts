@@ -149,7 +149,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      `SELECT TABLE_NAME, TABLE_SCHEMA FROM QSYS2.SYSTABLES WHERE TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = `,
+      `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = `,
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
     ]);
   }
