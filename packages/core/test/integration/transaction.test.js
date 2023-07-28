@@ -982,6 +982,48 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         });
       }
 
+      if (current.dialect.supports.noWait) {
+        it('supports for update with nowait', async function () {
+          const User = this.sequelize.define('user', {
+            username: DataTypes.STRING,
+            awesome: DataTypes.BOOLEAN,
+          });
+
+          await this.sequelize.sync({ force: true });
+
+          await Promise.all([
+            User.create(
+              { username: 'jan' },
+            ),
+            User.create(
+              { username: 'joe' },
+            ),
+          ]);
+
+          const t1 = await this.sequelize.startUnmanagedTransaction();
+
+          await User.findAll({
+            limit: 1,
+            lock: true,
+            transaction: t1,
+          });
+
+          await expect(async () => {
+            const t2 = await this.sequelize.startUnmanagedTransaction();
+            await User.findAll({
+              limit: 1,
+              lock: true,
+              noWait: true,
+              transaction: t2,
+            });
+          }).to.eventually.be.rejected;
+
+          await Promise.all([
+            t1.commit(),
+          ]);
+        });
+      }
+
       it('fail locking with outer joins', async function () {
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });

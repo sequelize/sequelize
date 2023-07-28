@@ -1316,8 +1316,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         query += ` OF ${this.quoteTable(options.lock.of.name)}`;
       }
 
-      if (this.dialect.supports.skipLocked && options.skipLocked) {
+      // Add NO WAIT / SKIP LOCKED options to the lock portion of the query
+      const skipLocked = this.dialect.supports.skipLocked && options.skipLocked;
+      const noWait = this.dialect.supports.noWait && options.noWait;
+      if (skipLocked && noWait) {
+        throw new Error(`Only one of skipLocked or noWait may be specified for a query`);
+      }
+      if (skipLocked) {
         query += ' SKIP LOCKED';
+      }
+      if (noWait) {
+        query += ' NOWAIT';
       }
     }
 

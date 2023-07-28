@@ -884,6 +884,12 @@ export interface FindOptions<TAttributes = any>
   skipLocked?: boolean;
 
   /**
+   * Statement reports an error, rather than waiting, if a selected row cannot be locked immediately.
+   * Only supported in Postgres.
+   */
+  noWait?: boolean;
+
+  /**
    * Return raw result. See {@link Sequelize#query} for more information.
    */
   raw?: boolean;
