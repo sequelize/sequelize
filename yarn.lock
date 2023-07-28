@@ -973,7 +973,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@js-joda/core@npm:^5.2.0":
+"@js-joda/core@npm:^5.5.3":
   version: 5.5.3
   resolution: "@js-joda/core@npm:5.5.3"
   checksum: 5a336ad962c9495cd50a7c38a1a84f314ae7b6181662ebb087df103858d1c76202dde172bd698d8611e50a4b05d033ddcee3d5b6e0fa19d562f52e0412c90cd9
@@ -1512,7 +1512,7 @@ __metadata:
     sinon-chai: 3.7.0
     snowflake-sdk: 1.6.23
     sqlite3: 5.1.6
-    tedious: 16.2.0
+    tedious: 16.4.0
     toposort-class: ^1.0.1
     type-fest: ^3.0.0
     uuid: ^9.0.0
@@ -2776,14 +2776,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bl@npm:^5.0.0":
-  version: 5.1.0
-  resolution: "bl@npm:5.1.0"
+"bl@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "bl@npm:6.0.3"
   dependencies:
     buffer: ^6.0.3
     inherits: ^2.0.4
-    readable-stream: ^3.4.0
-  checksum: a7a438ee0bc540e80b8eb68cc1ad759a9c87df06874a99411d701d01cc0b36f30cd20050512ac3e77090138890960e07bfee724f3ee6619bb39a569f5cc3b1bc
+    readable-stream: ^4.2.0
+  checksum: 67a60ccfb7b2378d78a98c56d3d23021a10a9d3aa90c399bdf88979c3faf03c9780fb7e99b85a3acc92b2395b62bd2810d8641a125134fb76278f83442b09e43
   languageName: node
   linkType: hard
 
@@ -4305,7 +4305,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-aggregate-error@npm:^1.0.8":
+"es-aggregate-error@npm:^1.0.9":
   version: 1.0.9
   resolution: "es-aggregate-error@npm:1.0.9"
   dependencies:
@@ -4986,7 +4986,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"events@npm:^3.0.0":
+"events@npm:^3.0.0, events@npm:^3.3.0":
   version: 3.3.0
   resolution: "events@npm:3.3.0"
   checksum: f6f487ad2198aa41d878fa31452f1a3c00958f46e9019286ff4787c84aac329332ab45c9cdc8c445928fc6d7ded294b9e005a7fce9426488518017831b272780
@@ -10015,7 +10015,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"punycode@npm:^2.1.0":
+"punycode@npm:^2.1.0, punycode@npm:^2.3.0":
   version: 2.3.0
   resolution: "punycode@npm:2.3.0"
   checksum: 39f760e09a2a3bbfe8f5287cf733ecdad69d6af2fe6f97ca95f24b8921858b91e9ea3c9eeec6e08cede96181b3bb33f95c6ffd8c77e63986508aa2e8159fa200
@@ -10227,6 +10227,19 @@ __metadata:
     string_decoder: ^1.1.1
     util-deprecate: ^1.0.1
   checksum: bdcbe6c22e846b6af075e32cf8f4751c2576238c5043169a1c221c92ee2878458a816a4ea33f4c67623c0b6827c8a400409bfb3cf0bf3381392d0b1dfb52ac8d
+  languageName: node
+  linkType: hard
+
+"readable-stream@npm:^4.2.0":
+  version: 4.4.2
+  resolution: "readable-stream@npm:4.4.2"
+  dependencies:
+    abort-controller: ^3.0.0
+    buffer: ^6.0.3
+    events: ^3.3.0
+    process: ^0.11.10
+    string_decoder: ^1.3.0
+  checksum: 6f4063763dbdb52658d22d3f49ca976420e1fbe16bbd241f744383715845350b196a2f08b8d6330f8e219153dff34b140aeefd6296da828e1041a7eab1f20d5e
   languageName: node
   linkType: hard
 
@@ -11309,7 +11322,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"string_decoder@npm:^1.1.1":
+"string_decoder@npm:^1.1.1, string_decoder@npm:^1.3.0":
   version: 1.3.0
   resolution: "string_decoder@npm:1.3.0"
   dependencies:
@@ -11572,23 +11585,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:16.2.0":
-  version: 16.2.0
-  resolution: "tedious@npm:16.2.0"
+"tedious@npm:16.4.0":
+  version: 16.4.0
+  resolution: "tedious@npm:16.4.0"
   dependencies:
     "@azure/identity": ^2.0.4
     "@azure/keyvault-keys": ^4.4.0
-    "@js-joda/core": ^5.2.0
-    bl: ^5.0.0
-    es-aggregate-error: ^1.0.8
+    "@js-joda/core": ^5.5.3
+    bl: ^6.0.3
+    es-aggregate-error: ^1.0.9
     iconv-lite: ^0.6.3
     js-md4: ^0.3.2
     jsbi: ^4.3.0
     native-duplexpair: ^1.0.0
     node-abort-controller: ^3.1.1
-    punycode: ^2.1.0
+    punycode: ^2.3.0
     sprintf-js: ^1.1.2
-  checksum: 90b7c564568b8d02863472bbeac92a488a1569d93688ad1578e69d1164396b258a586e8061284aaa8e7cf2c64122092ed5ff1ce1cfe59576681116a09c01f951
+  checksum: 20998029f742bc2037da78364e6907c8143910aba0f45b554497c32960b9dbd7a08c8767125792b41323d4a79459d0fcbbe0fedb84da62d6f76dd77edd30d917
   languageName: node
   linkType: hard
 
