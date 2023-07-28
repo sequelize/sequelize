@@ -64,6 +64,17 @@ describe('mapBindParameters', () => {
     });
   });
 
+  it('parses bind parameters in array literal', () => {
+    const { sql } = mapBindParameters(`SELECT * FROM users WHERE ids = array[$param]::string[]`, dialect);
+
+    expectsql(sql, {
+      default: 'SELECT * FROM users WHERE ids = array[?]::string[]',
+      postgres: `SELECT * FROM users WHERE ids = array[$1]::string[]`,
+      sqlite: `SELECT * FROM users WHERE ids = array[$param]::string[]`,
+      mssql: `SELECT * FROM users WHERE ids = array[@param]::string[]`,
+    });
+  });
+
   it('parses bind parameters following JSON extraction', () => {
     const { sql } = mapBindParameters(`SELECT * FROM users WHERE json_col->>$key`, dialect);
 
@@ -88,12 +99,11 @@ describe('mapBindParameters', () => {
   });
 
   if (sequelize.dialect.supports.dataTypes.ARRAY) {
-    it('does not parse bind parameters inside ARRAY[]', () => {
+    it('parses bind parameters inside ARRAY[]', () => {
       const { sql } = mapBindParameters('SELECT * FROM users WHERE id = ARRAY[$id1]::int[];', dialect);
 
       expectsql(sql, {
-        // it's a syntax error, but we still check because we accept this in replacements.
-        default: 'SELECT * FROM users WHERE id = ARRAY[$id1]::int[];',
+        default: 'SELECT * FROM users WHERE id = ARRAY[$1]::int[];',
       });
     });
   }
