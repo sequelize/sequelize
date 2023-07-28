@@ -131,7 +131,7 @@ If you have Docker installed, use any of the following commands to start fresh l
 - `yarn start-mysql-oldest` (for MySQL 5.7) or `yarn start-mysql-latest` (for MySQL 8.0)
 - `yarn start-postgres-oldest` (for Postgres 11) or `yarn start-postgres-latest` (for Postgres 15)
 - `yarn start-mssql-oldest` (for MSSQL 2017) or `yarn start-mssql-latest` (for MSSQL 2022)
-- `yarn start-db2-oldest` (for db2 11.5.6.0a) or `yarn start-db2-latest` (for db2 11.5.8.0)
+- `yarn start-db2-oldest` (for Db2 11.5.5.1) or `yarn start-db2-latest` (for Db2 11.5.8.0)
 - `yarn start-cockroachdb-oldest` (for Cockroachdb 22.1.11) or `yarn start-cockroachdb-latest` (for Cockroachdb 22.2.7)
 
 _Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).

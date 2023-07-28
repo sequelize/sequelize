@@ -204,17 +204,13 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   }
 
   showTablesQuery() {
-    return 'SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = USER AND TYPE = \'T\' ORDER BY TABSCHEMA, TABNAME';
+    return `SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = ${this.escape(this.dialect.getDefaultSchema())} AND TYPE = 'T' ORDER BY TABSCHEMA, TABNAME`;
   }
 
-  tableExistsQuery(table) {
-    const tableName = table.tableName || table;
-    // The default schema is the authorization ID of the owner of the plan or package.
-    // https://www.ibm.com/docs/en/db2-for-zos/12?topic=concepts-db2-schemas-schema-qualifiers
-    const schemaName = table.schema || this.sequelize.config.username.toUpperCase();
+  tableExistsQuery(tableName) {
+    const table = this.extractTableDetails(tableName);
 
-    // https://www.ibm.com/docs/en/db2-for-zos/11?topic=tables-systables
-    return `SELECT name FROM sysibm.systables WHERE NAME = ${this.escape(tableName)} AND CREATOR = ${this.escape(schemaName)}`;
+    return `SELECT TABNAME as "name" FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
   }
 
   addColumnQuery(table, key, dataType, options) {
@@ -810,16 +806,4 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     return uniqno;
   }
-}
-
-/**
- * @param {string} identifier
- * @deprecated use "escape" or "escapeString" on QueryGenerator
- */
-function wrapSingleQuote(identifier) {
-  if (identifier) {
-    return `'${identifier}'`;
-  }
-
-  return '';
 }

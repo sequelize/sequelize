@@ -101,7 +101,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
         AND R.TABNAME = 'myTable'
-        AND R.TABSCHEMA = CURRENT SCHEMA
+        AND R.TABSCHEMA = 'DB2INST1'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_CAT AS "constraintCatalog",
@@ -216,7 +216,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
         AND R.TABNAME = 'MyModels'
-        AND R.TABSCHEMA = CURRENT SCHEMA
+        AND R.TABSCHEMA = 'DB2INST1'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_CAT AS "constraintCatalog",
@@ -442,7 +442,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
         AND R.TABNAME = 'myTable'
-        AND R.TABSCHEMA = CURRENT SCHEMA
+        AND R.TABSCHEMA = 'DB2INST1'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
       ibmi: `SELECT FK_CAT AS "constraintCatalog",
@@ -685,7 +685,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA
         AND R.TABNAME = C.TABNAME
         AND R.TABNAME = 'myTable'
-        AND R.TABSCHEMA = CURRENT SCHEMA
+        AND R.TABSCHEMA = 'DB2INST1'
         AND C.COLNAME = 'myColumn'
         GROUP BY R.REFTABSCHEMA,
         R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES`,
