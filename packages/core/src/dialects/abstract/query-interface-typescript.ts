@@ -135,9 +135,9 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Returns a promise that will resolve to true if the table exists in the database, false otherwise.
+   * Returns a promise that will resolve to true if the table or model exists in the database, false otherwise.
    *
-   * @param tableName - The name of the table
+   * @param tableName - The name of the table or model
    * @param options - Query options
    */
   async tableExists(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<boolean> {
