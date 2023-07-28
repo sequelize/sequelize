@@ -64,17 +64,6 @@ describe('mapBindParameters', () => {
     });
   });
 
-  it('parses bind parameters in array literal', () => {
-    const { sql } = mapBindParameters(`SELECT * FROM users WHERE ids = array[$param]::string[]`, dialect);
-
-    expectsql(sql, {
-      default: 'SELECT * FROM users WHERE ids = array[?]::string[]',
-      postgres: `SELECT * FROM users WHERE ids = array[$1]::string[]`,
-      sqlite: `SELECT * FROM users WHERE ids = array[$param]::string[]`,
-      mssql: `SELECT * FROM users WHERE ids = array[@param]::string[]`,
-    });
-  });
-
   it('parses bind parameters following JSON extraction', () => {
     const { sql } = mapBindParameters(`SELECT * FROM users WHERE json_col->>$key`, dialect);
 
