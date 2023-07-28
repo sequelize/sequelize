@@ -85,6 +85,39 @@ if (Support.sequelize.dialect.supports.upserts) {
           expect(hookCalled).to.equal(1);
         });
       });
+
+      describe('preserves changes to values on insert', () => {
+        it('beforeUpsert', async function () {
+          let hookCalled = 0;
+          const valuesOriginal = { mood: 'sad', username: 'leafninja' };
+
+          this.User.beforeUpsert(values => {
+            values.mood = 'happy';
+            hookCalled++;
+          });
+
+          const [user] = await this.User.upsert(valuesOriginal);
+          expect(user.mood).to.equal('happy');
+          expect(hookCalled).to.equal(1);
+        });
+      });
+
+      describe('preserves changes to values on update', () => {
+        it('beforeUpsert', async function () {
+          let hookCalled = 0;
+
+          this.User.beforeUpsert(values => {
+            values.mood = 'happy';
+            hookCalled++;
+          });
+
+          const user0 = await this.User.create({ mood: 'sad', username: 'leafninja' });
+          const [user] = await this.User.upsert({ mood: 'upset', username: 'leafninja' });
+
+          expect(user.mood).to.equal('happy');
+          expect(hookCalled).to.equal(1);
+        });
+      });
     });
   });
 }
