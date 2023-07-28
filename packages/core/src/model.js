@@ -2039,6 +2039,7 @@ ${associationOwner._getAssociationDebugList()}`);
       delete insertValues[this.primaryKeyField];
       delete updateValues[this.primaryKeyField];
     }
+
     const result = await this.queryInterface.upsert(
       this.getTableName(options),
       insertValues,
