@@ -515,6 +515,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.errors[0].message).to.equal('username must be unique');
             break;
 
+          case 'cockroachdb':
           case 'postgres':
             expect(error.cause.message).to.equal('duplicate key value violates unique constraint "Users_username_key"');
             expect(error.errors[0].path).to.equal('username');
@@ -578,6 +579,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.cause.message).to.match(/Duplicate entry 'foo' for key '(?:Users.)?users_username_unique'/);
             break;
 
+          case 'cockroachdb':
           case 'postgres':
             expect(error.cause.message).to.equal('duplicate key value violates unique constraint "users_username_unique"');
             break;
@@ -613,7 +615,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         },
       });
 
-      await queryInterface.bulkInsert('Users', [{ username: 'foo' }]);
+      await queryInterface.bulkInsert('Users', [{ username: 'foo', ...(dialect === 'cockroachdb' && { id: 1 }) }]);
       await queryInterface.bulkInsert('Tasks', [{ title: 'task', userId: 1 }]);
       try {
         await queryInterface.bulkDelete('Users', {});
@@ -649,6 +651,12 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
             expect(error.cause.message).to.equal('SQLITE_CONSTRAINT: FOREIGN KEY constraint failed');
+            break;
+
+          case 'cockroachdb':
+            expect(error.table).to.equal('Users');
+            expect(error.fields).to.be.null;
+            expect(error.cause.message).to.equal('delete on table "Users" violates foreign key constraint "Tasks_userId_Users_fk" on table "Tasks"');
             break;
 
           default:
@@ -714,6 +722,12 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
             expect(error.cause.message).to.equal('SQLITE_CONSTRAINT: FOREIGN KEY constraint failed');
+            break;
+
+          case 'cockroachdb':
+            expect(error.table).to.equal('Tasks');
+            expect(error.fields).to.be.null;
+            expect(error.cause.message).to.equal('insert on table "Tasks" violates foreign key constraint "Tasks_userId_Users_fk"');
             break;
 
           default:

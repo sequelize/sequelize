@@ -2444,27 +2444,27 @@ Caused by: "undefined" cannot be escaped`),
         testSql({
           jsonbTypeLiteralAttr: { [Op.contains]: { foo: 'bar' } },
         }, {
-          postgres: '"jsonbTypeLiteralAttr" @> \'{"foo":"bar"}\'',
+          'postgres cockroachdb': '"jsonbTypeLiteralAttr" @> \'{"foo":"bar"}\'',
         });
 
         testSql({
           // @ts-expect-error -- key `bad` isn't known
           jsonbTypeLiteralAttr: { [Op.contains]: { bad: 'bad' } },
         }, {
-          postgres: '"jsonbTypeLiteralAttr" @> \'{"bad":"bad"}\'',
+          'postgres cockroachdb': '"jsonbTypeLiteralAttr" @> \'{"bad":"bad"}\'',
         });
 
         testSql({
           jsonbInterfaceAttr: { [Op.contains]: { foo: 'bar' } },
         }, {
-          postgres: '"jsonbInterfaceAttr" @> \'{"foo":"bar"}\'',
+          'postgres cockroachdb': '"jsonbInterfaceAttr" @> \'{"foo":"bar"}\'',
         });
 
         testSql({
           // @ts-expect-error -- key `bad` isn't known
           jsonbInterfaceAttr: { [Op.contains]: { bad: 'bad' } },
         }, {
-          postgres: '"jsonbInterfaceAttr" @> \'{"bad":"bad"}\'',
+          'postgres cockroachdb': '"jsonbInterfaceAttr" @> \'{"bad":"bad"}\'',
         });
 
         // aliases correctly
