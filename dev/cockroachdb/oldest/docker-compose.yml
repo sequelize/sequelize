@@ -1,7 +1,7 @@
 services:
   cockroachdb-oldest:
     container_name: sequelize-cockroachdb-oldest
-    image: cockroachdb/cockroach:v22.1.11
+    image: cockroachdb/cockroach:v22.2.0
     ports:
       - 26257:26257
       - 8080:8080
