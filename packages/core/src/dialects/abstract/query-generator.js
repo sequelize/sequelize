@@ -1326,7 +1326,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       if (skipLocked) {
         query += ' SKIP LOCKED';
       }
-      
+
       if (noWait) {
         query += ' NOWAIT';
       }
