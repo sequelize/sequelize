@@ -1008,7 +1008,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
             transaction: t1,
           });
 
-          await expect(async () => {
+          await expect((async () => {
             const t2 = await this.sequelize.startUnmanagedTransaction();
             await User.findAll({
               limit: 1,
@@ -1016,7 +1016,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
               noWait: true,
               transaction: t2,
             });
-          }).to.eventually.be.rejected;
+          })()).to.eventually.be.rejected;
 
           await Promise.all([
             t1.commit(),
