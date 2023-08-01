@@ -141,4 +141,9 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   versionQuery() {
     return 'SELECT sqlite_version() as `version`';
   }
+
+  tableExistsQuery(tableName: TableNameOrModel): string {
+
+    return `SELECT name FROM sqlite_master WHERE type = 'table' AND name = ${this.escapeTable(tableName)}`;
+  }
 }

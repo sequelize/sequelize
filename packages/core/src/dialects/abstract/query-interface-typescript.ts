@@ -135,6 +135,19 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
+   * Returns a promise that will resolve to true if the table or model exists in the database, false otherwise.
+   *
+   * @param tableName - The name of the table or model
+   * @param options - Query options
+   */
+  async tableExists(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<boolean> {
+    const sql = this.queryGenerator.tableExistsQuery(tableName);
+    const out = await this.sequelize.query(sql, { ...options, type: QueryTypes.SELECT });
+
+    return out.length === 1;
+  }
+
+  /**
    * Describe a table structure
    *
    * This method returns an array of hashes containing information about all attributes in the table.
