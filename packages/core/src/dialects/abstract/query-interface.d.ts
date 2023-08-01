@@ -315,14 +315,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   showAllTables(options?: QueryRawOptions): Promise<string[]>;
 
   /**
-   * Returns a promise that resolves to true if the table exists in the database, false otherwise.
-   *
-   * @param tableName The name of the table
-   * @param options Options passed to {@link Sequelize#query}
-   */
-  tableExists(tableName: TableName, options?: QueryRawOptions): Promise<boolean>;
-
-  /**
    * Adds a new column to a table
    */
   addColumn(

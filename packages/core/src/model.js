@@ -817,13 +817,8 @@ ${associationOwner._getAssociationDebugList()}`);
           // Check foreign keys. If it's a foreign key, it should remove constraint first.
           const references = currentAttribute.references;
           if (currentAttribute.references) {
-            let database = this.sequelize.config.database;
             const schema = tableName.schema;
-            if (schema && this.sequelize.options.dialect === 'mariadb') {
-              // because for mariadb schema is synonym for database
-              database = schema;
-            }
-
+            const database = this.sequelize.config.database;
             const foreignReferenceSchema = currentAttribute.references.table.schema;
             const foreignReferenceTableName = typeof references.table === 'object'
               ? references.table.tableName : references.table;
@@ -831,7 +826,7 @@ ${associationOwner._getAssociationDebugList()}`);
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
               if ((Boolean(constraintName)
-                && foreignKeyReference.tableCatalog === database
+                && (foreignKeyReference.tableCatalog ? foreignKeyReference.tableCatalog === database : true)
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
                 && foreignKeyReference.referencedTableName === foreignReferenceTableName
                 && foreignKeyReference.referencedColumnName === references.key

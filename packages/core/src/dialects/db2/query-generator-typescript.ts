@@ -133,4 +133,10 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   versionQuery() {
     return 'select service_level as "version" from TABLE (sysproc.env_get_inst_info()) as A';
   }
+
+  tableExistsQuery(tableName: TableNameOrModel): string {
+    const table = this.extractTableDetails(tableName);
+
+    return `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
+  }
 }

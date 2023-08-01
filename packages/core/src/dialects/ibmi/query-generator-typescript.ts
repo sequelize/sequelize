@@ -144,4 +144,13 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
   versionQuery() {
     return 'SELECT CONCAT(OS_VERSION, CONCAT(\'.\', OS_RELEASE)) AS "version" FROM SYSIBMADM.ENV_SYS_INFO';
   }
+
+  tableExistsQuery(tableName: TableNameOrModel): string {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = `,
+      table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
+    ]);
+  }
 }
