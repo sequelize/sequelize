@@ -250,14 +250,14 @@ describe('Model#save', () => {
       expect(book1.pages).to.exist;
       expect(book1.pages!.length).to.equal(2);
 
-      book1.integer1! += 1;
+        book1.integer1! += 1;
 
-      await book1.save();
+        await book1.save();
 
-      expect(book1.title).to.equal('title');
-      expect(book1.integer1).to.equal(2);
-      expect(book1.pages).to.exist;
-      expect(book1.pages!.length).to.equal(2);
+        expect(book1.title).to.equal('title');
+        expect(book1.integer1).to.equal(2);
+        expect(book1.pages).to.exist;
+        expect(book1.pages!.length).to.equal(2);
     });
 
     describe('hooks', () => {

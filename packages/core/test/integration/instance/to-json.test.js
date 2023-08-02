@@ -121,9 +121,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
       });
 
-      // TODO: Find a better way for CRDB
       it('returns a response that can be stringified', async function () {
         const user = await this.User.create({
+          ...(dialectName === 'cockroachdb' && { id: 1 }),
           username: 'test.user',
           age: 99,
           isAdmin: true,
@@ -131,13 +131,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           level: null,
         });
 
-        console.log(JSON.stringify(user), user.get('id'));
-
-        if (dialectName === 'cockroachdb') {
-          expect(JSON.stringify(user)).to.deep.equal(`{"id":"${user.get('id')}","username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`);
-        } else {
-          expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`);
-        }
+        expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"isAdmin":true,"isUser":false,"level":null}`);
       });
 
       it('returns a response that can be stringified and then parsed', async function () {
@@ -182,19 +176,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('returns a response that can be stringified', async function () {
         const user0 = await this.User.create({
+          ...(dialectName === 'cockroachdb' && { id: 1 }),
           username: 'test.user',
           age: 99,
           isAdmin: true,
           isUser: false,
         });
 
-        // TODO: Find a better way for CRDB
         const user = await this.User.findByPk(user0.get('id'));
-        if (dialectName === 'cockroachdb') {
-          expect(JSON.stringify(user)).to.deep.equal(`{"id":"${user.get('id')}","username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
-        } else {
-          expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
-        }
+        expect(JSON.stringify(user)).to.deep.equal(`{"id":${user.get('id')},"username":"test.user","age":99,"level":null,"isUser":false,"isAdmin":true}`);
       });
 
       it('returns a response that can be stringified and then parsed', async function () {

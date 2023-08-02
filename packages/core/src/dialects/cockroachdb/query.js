@@ -334,7 +334,6 @@ export class CockroachDbQuery extends AbstractQuery {
     let table;
     let index;
     let fields;
-    let errors;
     let message;
 
     const code = err.code || err.sqlState;

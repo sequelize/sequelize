@@ -159,7 +159,7 @@ describe('DataTypes.RANGE', () => {
 
 describe('DataTypes.ARRAY(DataTypes.RANGE)', () => {
   // Cockroachdb does not support ranges.
-  if (!dialect.supports.dataTypes.ARRAY || dialect.name === 'cockroachdb') {
+  if (!dialect.supports.dataTypes.ARRAY || !dialect.supports.dataTypes.RANGE) {
     return;
   }
 

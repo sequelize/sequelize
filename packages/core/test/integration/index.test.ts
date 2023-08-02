@@ -69,13 +69,6 @@ describe(getTestDialectTeaser('Indexes'), () => {
           } catch (error: any) {
             expect(error.message).to.equal('DB2 does not support non-unique indexes with INCLUDE syntax.');
           }
-        } else if (dialect === 'cockroachdb') {
-          try {
-            await sequelize.sync({ force: true });
-            expect.fail('This should have failed');
-          } catch (error: any) {
-            expect(error.message).to.equal('This should have failed');
-          }
         } else {
           await sequelize.sync({ force: true });
           const indexes = await sequelize.queryInterface.showIndex(User.getTableName());

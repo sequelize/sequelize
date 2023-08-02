@@ -1031,8 +1031,8 @@ describe('DataTypes', () => {
         dialect.name === 'mssql' ? '2022-01-01 00:00:00.000+00'
           // sqlite decided to have a weird format that is not ISO 8601 compliant
           : dialect.name === 'sqlite' ? '2022-01-01 00:00:00.000 +00:00'
-            : dialect.name === 'db2' ? '2022-01-01 00:00:00.000000+00'
-              : '2022-01-01 00:00:00+00',
+          : dialect.name === 'db2' ? '2022-01-01 00:00:00.000000+00'
+          : '2022-01-01 00:00:00+00',
       );
     });
   });
@@ -1180,13 +1180,13 @@ describe('DataTypes', () => {
         dialect.name === 'mssql' ? '04:05:06.000'
           // sqlite3 does not support restricting the precision of TIME
           : dialect.name === 'sqlite' ? '04:05:06.123456'
-            : '04:05:06');
+          : '04:05:06');
 
       await testSimpleInOut(vars.User, 'timeTwoPrecisionAttr', '04:05:06.123456',
         dialect.name === 'mssql' ? '04:05:06.120'
           // sqlite3 does not support restricting the precision of TIME
           : dialect.name === 'sqlite' ? '04:05:06.123456'
-            : '04:05:06.12');
+          : '04:05:06.12');
 
       // FIXME: Tedious loses precision because it pre-parses TIME as a JS Date object
       //  https://github.com/tediousjs/tedious/issues/678
@@ -1303,7 +1303,7 @@ describe('DataTypes', () => {
           declare jsonArray: any[];
           declare jsonObject: object;
           declare jsonNull: any;
-          declare id?: any;
+          declare id: any;
         }
 
         User.init({

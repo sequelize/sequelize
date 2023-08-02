@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         beforeEach(async function () {
           if (dialect === 'cockroachdb') {
             await this.Comment.bulkCreate([
-              // Added ids to Comment
+              // Added ids to Comment since Cockroachdb does not guarantee sequential ID generation and the test requires to find the comment by primary key.
               { id: 1, notes: 'Number one' },
               { id: 2, notes: 'Number two' },
             ]);

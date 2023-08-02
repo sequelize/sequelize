@@ -56,7 +56,7 @@ describe('Model.findOne', () => {
         await t.rollback();
       });
 
-      // Disabled in sqlitea and cockroachdb because it only supports one connection at a time
+      // Disabled in sqlite and cockroachdb because it only supports one connection at a time
       if (dialectName !== 'sqlite') {
         it('supports concurrent transactions', async function () {
           this.timeout(90_000);

@@ -767,10 +767,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     });
 
+    // CockroachDB does not allow dropping columns referencing primary key unless the constraints are dropped and
+    // a new one is created under the same transaction.
     describe('foreign key', () => {
       it('should add, read & remove foreign key constraint', async function () {
-        // CockroachDB does not allow dropping columns referencing primary key unless the constraints are dropped and
-        // a new one is created under the same transaction.
         if (dialectName === 'cockroachdb') {
           const transactionSequelize = await Support.createSingleTestSequelizeInstance();
           const t1 = await transactionSequelize.startUnmanagedTransaction();

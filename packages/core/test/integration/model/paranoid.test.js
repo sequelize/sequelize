@@ -159,7 +159,6 @@ describe('Paranoid Model', () => {
       { username: 'Tobi', ...(dialectName === 'cockroachdb' && { id: 2 }) },
       { username: 'Max', ...(dialectName === 'cockroachdb' && { id: 3 }) },
     ]);
-
     const user = await User.findByPk(1);
     await user.destroy();
     expect(await User.findByPk(1)).to.be.null;
@@ -180,7 +179,6 @@ describe('Paranoid Model', () => {
       { username: 'Tobi', ...(dialectName === 'cockroachdb' && { id: 2 }) },
       { username: 'Max', ...(dialectName === 'cockroachdb' && { id: 3 }) },
     ]);
-
     const user = await User.findByPk(1);
     await user.destroy();
     expect(await User.findOne({ where: { id: 1 }, paranoid: false })).to.exist;
@@ -210,7 +208,6 @@ describe('Paranoid Model', () => {
       { name: 'Fido', UserId: userId, ...(dialectName === 'cockroachdb' && { id: 1 }) },
       { name: 'Fifi', UserId: userId, ...(dialectName === 'cockroachdb' && { id: 2 }) },
     ]);
-
     const pet = await Pet.findByPk(1);
     await pet.destroy();
     const user = await User.findOne({
