@@ -265,9 +265,7 @@ export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
   for (const schema of schemas) {
     // @ts-expect-error -- TODO: type return value of "showAllSchemas"
     const schemaName = schema.name ? schema.name : schema;
-
-    // This schema should not be cleared since it's a default DB created by CockroachDB
-    if (schemaName !== customSequelize.config.database && (getTestDialect() === 'cockroachdb' && schemaName !== 'crdb_internal')) {
+    if (schemaName !== customSequelize.config.database) {
       const promise = customSequelize.dropSchema(schemaName);
 
       if (getTestDialect() === 'db2') {
