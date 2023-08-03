@@ -2445,6 +2445,55 @@ https://github.com/sequelize/sequelize/discussions/15694`);
       throw new Error(`WHERE parameter "${key}" has invalid "undefined" value`);
     }
 
+    if (typeof key === 'string' && Utils.isColFilter(key) && options.model?.associations) {
+      key = key.substr(1, key.length - 2).split('.');
+      if (key.length > 1) {
+        const [includesAs, fieldName] = [
+          // join the tables by -> to match out internal namings
+          key.slice(0, -1),
+          key[key.length - 1]
+        ];
+
+        const _options = {};
+        let currentInclude = _options;
+        let model = options.model;
+        for (const includeAs of includesAs) {
+          if (model.associations[includeAs] === undefined) {
+            throw new Error(`${model.name} model has no association ${includeAs}. Possibilities : ${Object.keys(model.associations)}`);
+          }
+          const association = model.associations[includeAs];
+          model = association.target;
+          currentInclude.include = [{
+            model,
+            association,
+            as: includeAs,
+            required: true,
+            through: association.through
+          }];
+          currentInclude = currentInclude.include[0];
+        }
+        currentInclude.where = {
+          [fieldName]: value
+        };
+
+        if (_options.include && _options.include.length) {
+          Model._conformIncludes(_options, options.model);
+          const includeAs = {
+            internalAs: _options.include[0].as,
+            externalAs: _options.include[0].as
+          };
+          _options.subQueryFilter = true;
+          _options.include[0].parent = {
+            model: options.model
+          };
+          const topLevelInfo = { subQuery: true, options: { where: {} } };
+          this._generateSubQueryFilter(_options, includeAs, topLevelInfo);
+          return topLevelInfo.options.where[`__${includeAs.internalAs}`].val;
+        }
+        throw Error('Not a nested column');
+      }
+    }
+
     if (typeof key === 'string' && key.includes('.') && options.model) {
       const keyParts = key.split('.');
       if (options.model.rawAttributes[keyParts[0]] && options.model.rawAttributes[keyParts[0]].type instanceof DataTypes.JSON) {

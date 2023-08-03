@@ -48,6 +48,7 @@ export function mapWhereFieldNames(attributes: object, model: ModelType): object
 export function mapValueFieldNames(dataValues: object, fields: string[], model: ModelType): object;
 
 export function isColString(value: string): boolean;
+export function isColFilter(value: string): boolean;
 export function canTreatArrayAsAnd(arr: unknown[]): boolean;
 export function combineTableNames(tableName1: string, tableName2: string): string;
 

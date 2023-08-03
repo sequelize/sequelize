@@ -256,6 +256,11 @@ function isColString(value) {
 }
 exports.isColString = isColString;
 
+function isColFilter(value) {
+  return typeof value === 'string' && value[0] === '#' && value[value.length - 1] === '#';
+}
+exports.isColFilter = isColFilter;
+
 function canTreatArrayAsAnd(arr) {
   return arr.some(arg => _.isPlainObject(arg) || arg instanceof Where);
 }

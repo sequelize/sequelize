@@ -75,6 +75,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         Tag.belongsToMany(Product, { through: 'product_tag' });
         Product.belongsTo(Tag, { as: 'Category' });
         Product.belongsTo(Company);
+        Company.hasMany(Product);
 
         Product.hasMany(Price);
         Price.belongsTo(Product);
@@ -125,11 +126,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ]);
           const products = await Product.findAll({ order: [['id', 'ASC']] });
           const groupMembers  = [
-            { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
-            { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id }
+            { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
+            { UserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id }
           ];
           if (i < 3) {
-            groupMembers.push({ AccUserId: user.id, GroupId: groups[2].id, RankId: ranks[1].id });
+            groupMembers.push({ UserId: user.id, GroupId: groups[2].id, RankId: ranks[1].id });
           }
           await Promise.all([
             GroupMember.bulkCreate(groupMembers),
@@ -1509,6 +1510,54 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         order: [
           ['id', 'ASC']
         ]
+      });
+
+      expect(products.length).to.equal(6);
+
+      products.forEach(product => {
+        expect(product.Tags.length).to.be.ok;
+        expect(product.Prices.length).to.be.ok;
+
+        product.Prices.forEach(price => {
+          expect(price.value).to.be.above(5);
+        });
+      });
+    });
+
+    it('should be possible to use limit and filter columns with additional includes', async function() {
+      await this.fixtureA();
+
+      const products = await this.models.Product.findAll({
+        include: [
+          { model: this.models.Company },
+          { model: this.models.Tag },
+          {
+            model: this.models.Price,
+            where: {
+              value: { [Op.gt]: 5 }
+            }
+          },
+          {
+            model: this.models.User,
+            include: [{
+              model: this.models.GroupMember,
+              as: 'Memberships'
+            }],
+            where: { '#Memberships.Rank.id#': { [Op.gt]: 0 } }
+          }
+        ],
+        limit: 6,
+        order: [
+          ['id', 'ASC']
+        ],
+        where: {
+          '#Prices.value#': {
+            [Op.gt]: 10
+          },
+          '#Company.Products.id#': {
+            [Op.gt]: 2
+          }
+        }
       });
 
       expect(products.length).to.equal(6);
