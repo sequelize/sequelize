@@ -80,7 +80,7 @@ export class CockroachDbDialect extends AbstractDialect {
 
   readonly Query = CockroachDbQuery;
 
-  readonly defaultVersion = '23.1.5';
+  readonly defaultVersion = '4.0.0';
   readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
