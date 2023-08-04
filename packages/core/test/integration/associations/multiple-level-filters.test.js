@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
-const current = Support.sequelize;
+const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
   it('can filter through belongsTo', async function () {
@@ -23,19 +23,19 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     await this.sequelize.sync({ force: true });
 
     await User.bulkCreate([{
-      ...(current.dialect.name === 'cockroachdb' && { id: 1 }),
+      ...(dialect === 'cockroachdb' && { id: 1 }),
       username: 'leia',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 2 }),
+      ...(dialect === 'cockroachdb' && { id: 2 }),
       username: 'vader',
     }]);
 
     await Project.bulkCreate([{
-      ...(current.dialect.name === 'cockroachdb' && { id: 1 }),
+      ...(dialect === 'cockroachdb' && { id: 1 }),
       UserId: 1,
       title: 'republic',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 2 }),
+      ...(dialect === 'cockroachdb' && { id: 2 }),
       UserId: 2,
       title: 'empire',
     }]);
@@ -85,37 +85,37 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     await this.sequelize.sync({ force: true });
 
     await User.bulkCreate([{
-      ...(current.dialect.name === 'cockroachdb' && { id: 1 }),
+      ...(dialect === 'cockroachdb' && { id: 1 }),
       username: 'leia',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 2 }),
+      ...(dialect === 'cockroachdb' && { id: 2 }),
       username: 'vader',
     }]);
 
     await Project.bulkCreate([{
-      ...(current.dialect.name === 'cockroachdb' && { id: 1 }),
+      ...(dialect === 'cockroachdb' && { id: 1 }),
       UserId: 1,
       title: 'republic',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 2 }),
+      ...(dialect === 'cockroachdb' && { id: 2 }),
       UserId: 2,
       title: 'empire',
     }]);
 
     await Task.bulkCreate([{
-      ...(current.dialect.name === 'cockroachdb' && { id: 1 }),
+      ...(dialect === 'cockroachdb' && { id: 1 }),
       ProjectId: 1,
       title: 'fight empire',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 2 }),
+      ...(dialect === 'cockroachdb' && { id: 2 }),
       ProjectId: 1,
       title: 'stablish republic',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 3 }),
+      ...(dialect === 'cockroachdb' && { id: 3 }),
       ProjectId: 2,
       title: 'destroy rebel alliance',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 4 }),
+      ...(dialect === 'cockroachdb' && { id: 4 }),
       ProjectId: 2,
       title: 'rule everything',
     }]);
@@ -156,37 +156,37 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     await this.sequelize.sync({ force: true });
 
     await User.bulkCreate([{
-      ...(current.dialect.name === 'cockroachdb' && { id: 1 }),
+      ...(dialect === 'cockroachdb' && { id: 1 }),
       username: 'leia',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 2 }),
+      ...(dialect === 'cockroachdb' && { id: 2 }),
       username: 'vader',
     }]);
 
     await Project.bulkCreate([{
-      ...(current.dialect.name === 'cockroachdb' && { id: 1 }),
+      ...(dialect === 'cockroachdb' && { id: 1 }),
       UserId: 1,
       title: 'republic',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 2 }),
+      ...(dialect === 'cockroachdb' && { id: 2 }),
       UserId: 2,
       title: 'empire',
     }]);
 
     await Task.bulkCreate([{
-      ...(current.dialect.name === 'cockroachdb' && { id: 1 }),
+      ...(dialect === 'cockroachdb' && { id: 1 }),
       ProjectId: 1,
       title: 'fight empire',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 2 }),
+      ...(dialect === 'cockroachdb' && { id: 2 }),
       ProjectId: 1,
       title: 'stablish republic',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 3 }),
+      ...(dialect === 'cockroachdb' && { id: 3 }),
       ProjectId: 2,
       title: 'destroy rebel alliance',
     }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 4 }),
+      ...(dialect === 'cockroachdb' && { id: 4 }),
       ProjectId: 2,
       title: 'rule everything',
     }]);
@@ -216,25 +216,15 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
 
     await this.sequelize.sync({ force: true });
 
-    await User.bulkCreate([{
-      ...(current.dialect.name === 'cockroachdb' && { id: 1 }),
-      username: 'leia',
-    }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 2 }),
-      username: 'vader',
-    }]);
+    const userList = dialect === 'cockroachdb' ? [{ id: 1, username: 'leia' }, { id: 2, username: 'vader' }] : [{ username: 'leia' }, { usernmae: 'vader' }];
+    await User.bulkCreate(userList);
 
-    await Project.bulkCreate([{
-      ...(current.dialect.name === 'cockroachdb' && { id: 1 }),
-      title: 'republic',
-    }, {
-      ...(current.dialect.name === 'cockroachdb' && { id: 2 }),
-      title: 'empire',
-    }]);
+    const projects = dialect === 'cockroachdb' ? [{ id: 1, title: 'republic' }, { id: 2, title: 'empire' }] : [{ title: 'republic' }, { title: 'empire' }];
+    await Project.bulkCreate(projects);
 
     const user = await User.findByPk(1);
     const project = await Project.findByPk(1);
-    user.setProjects([project]);
+    await user.setProjects([project]);
     const user0 = await User.findByPk(2);
     const project0 = await Project.findByPk(2);
     await user0.setProjects([project0]);
