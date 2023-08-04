@@ -56,21 +56,18 @@ if (current.dialect.supports['UNION ALL']) {
 
           await this.sequelize.sync({ force: true });
 
-          if (dialectName === 'cockroachdb') {
-            this.User.bulkCreate([
-              { age: -5, id: 1 },
-              { age: 45, id: 2 },
-              { age: 7, id: 3 },
-              { age: -9, id: 4 },
-              { age: 8, id: 5 },
-              { age: 15, id: 6 },
-              { age: -9, id: 7 },
-            ]);
-          } else {
-            this.User.bulkCreate([{ age: -5 }, { age: 45 }, { age: 7 }, { age: -9 }, { age: 8 }, { age: 15 }, { age: -9 }]);
-          }
+          const userList = dialectName === 'cockroachdb' ? [
+            { age: -5, id: 1 },
+            { age: 45, id: 2 },
+            { age: 7, id: 3 },
+            { age: -9, id: 4 },
+            { age: 8, id: 5 },
+            { age: 15, id: 6 },
+            { age: -9, id: 7 },
+          ] : [{ age: -5 }, { age: 45 }, { age: 7 }, { age: -9 }, { age: 8 }, { age: 15 }, { age: -9 }];
 
           await Promise.all([
+            this.User.bulkCreate(userList),
             this.Project.bulkCreate([{}, {}]),
             this.Task.bulkCreate([{}, {}]),
           ]);
