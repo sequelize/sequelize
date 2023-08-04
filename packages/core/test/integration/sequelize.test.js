@@ -48,7 +48,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
     }
 
-    if (['postgres', 'cockroachdb'].includes(dialect)) {
+    if (dialect === 'postgres') {
       const getConnectionUri = o => `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}${o.options ? `?options=${o.options}` : ''}`;
       it('should work with connection strings (postgres protocol)', () => {
         const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgres' });

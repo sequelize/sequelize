@@ -62,10 +62,6 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
     return sql;
   }
 
-  _getTechnicalSchemaNames(): string[] {
-    return ['crdb_internal'];
-  }
-
   dropSchemaQuery(schema: string): string | QueryWithBindParams {
     if (schema === 'crdb_internal') {
       throw new Error('Cannot remove crdb_internal schema in Cockroachdb');
@@ -75,10 +71,13 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
   }
 
   listSchemasQuery(options: ListSchemasQueryOptions): string {
-    const schemasToSkip = this._getTechnicalSchemaNames();
-    const listSchemasQueryOptions = options?.skip ? [...schemasToSkip, ...options.skip] : schemasToSkip;
+    const schemasToSkip = ['crdb_internal', 'information_schema', 'public'];
 
-    return super.listSchemasQuery({ skip: listSchemasQueryOptions });
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return super.listSchemasQuery({ skip: schemasToSkip });
   }
 
   showIndexesQuery(tableName: TableNameOrModel): string {
