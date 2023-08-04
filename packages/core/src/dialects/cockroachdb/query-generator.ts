@@ -71,7 +71,7 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
   }
 
   listSchemasQuery(options: ListSchemasQueryOptions): string {
-    const schemasToSkip = ['crdb_internal', 'information_schema', 'public'];
+    const schemasToSkip = ['crdb_internal'];
 
     if (options?.skip) {
       schemasToSkip.push(...options.skip);
