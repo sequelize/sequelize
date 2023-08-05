@@ -1,7 +1,10 @@
 'use strict';
 
 module.exports = BaseTypes => {
-  const warn = BaseTypes.ABSTRACT.warn.bind(undefined, 'https://www.sqlite.org/datatype3.html');
+  const warn = BaseTypes.ABSTRACT.warn.bind(
+    undefined,
+    'https://www.sqlite.org/datatype3.html'
+  );
 
   /**
    * Removes unsupported SQLite options, i.e., UNSIGNED and ZEROFILL, for the integer data types.
@@ -11,7 +14,9 @@ module.exports = BaseTypes => {
    */
   function removeUnsupportedIntegerOptions(dataType) {
     if (dataType._zerofill || dataType._unsigned) {
-      warn(`SQLite does not support '${dataType.key}' with UNSIGNED or ZEROFILL. Plain '${dataType.key}' will be used instead.`);
+      warn(
+        `SQLite does not support '${dataType.key}' with UNSIGNED or ZEROFILL. Plain '${dataType.key}' will be used instead.`
+      );
       dataType._unsigned = undefined;
       dataType._zerofill = undefined;
     }
@@ -51,7 +56,7 @@ module.exports = BaseTypes => {
 
   class DATE extends BaseTypes.DATE {
     static parse(date, options) {
-      if (!date.includes('+')) {
+      if (typeof date === 'string' && !date.includes('+')) {
         // For backwards compat. Dates inserted by sequelize < 2.0dev12 will not have a timestamp set
         return new Date(date + options.timezone);
       }
@@ -77,7 +82,9 @@ module.exports = BaseTypes => {
   class TEXT extends BaseTypes.TEXT {
     toSql() {
       if (this._length) {
-        warn('SQLite does not support TEXT with options. Plain `TEXT` will be used instead.');
+        warn(
+          'SQLite does not support TEXT with options. Plain `TEXT` will be used instead.'
+        );
         this._length = undefined;
       }
       return 'TEXT';
@@ -154,11 +161,9 @@ module.exports = BaseTypes => {
     }
   }
 
-  class FLOAT extends BaseTypes.FLOAT {
-  }
+  class FLOAT extends BaseTypes.FLOAT { }
 
-  class DOUBLE extends BaseTypes.DOUBLE {
-  }
+  class DOUBLE extends BaseTypes.DOUBLE { }
 
   class REAL extends BaseTypes.REAL { }
 
@@ -180,8 +185,16 @@ module.exports = BaseTypes => {
     floating.parse = parseFloating;
   }
 
-
-  for (const num of [FLOAT, DOUBLE, REAL, TINYINT, SMALLINT, MEDIUMINT, INTEGER, BIGINT]) {
+  for (const num of [
+    FLOAT,
+    DOUBLE,
+    REAL,
+    TINYINT,
+    SMALLINT,
+    MEDIUMINT,
+    INTEGER,
+    BIGINT
+  ]) {
     num.prototype.toSql = NUMBER.prototype.toSql;
   }
 
