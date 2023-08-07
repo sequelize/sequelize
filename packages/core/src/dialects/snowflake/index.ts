@@ -19,6 +19,9 @@ export class SnowflakeDialect extends AbstractDialect {
       // disable for now, but could be enable by approach below
       // https://stackoverflow.com/questions/54828745/how-to-migrate-on-conflict-do-nothing-from-postgresql-to-snowflake
       // updateOnDuplicate: true
+      bulkInsert: {
+        ignoreDuplicates: ' IGNORE',
+      },
     },
     index: {
       collate: false,

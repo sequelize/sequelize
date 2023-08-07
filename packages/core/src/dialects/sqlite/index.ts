@@ -18,6 +18,10 @@ export class SqliteDialect extends AbstractDialect {
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
       conflictFields: true,
       onConflictWhere: true,
+      bulkInsert: {
+        ignoreDuplicates: ' OR IGNORE',
+        updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
+      },
     },
     index: {
       using: false,

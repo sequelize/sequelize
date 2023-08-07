@@ -27,6 +27,10 @@ export class MysqlDialect extends AbstractDialect {
       inserts: {
         ignoreDuplicates: ' IGNORE',
         updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
+        bulkInsert: {
+          ignoreDuplicates: ' IGNORE',
+          updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
+        },
       },
       index: {
         collate: false,

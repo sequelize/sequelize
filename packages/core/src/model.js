@@ -2118,11 +2118,11 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
 
-      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi'].includes(dialect)) {
+      if (options.ignoreDuplicates && !this.sequelize.dialect.supports.inserts.bulkInsert.ignoreDuplicates) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
-      if (options.updateOnDuplicate && !['mysql', 'mariadb', 'sqlite', 'postgres', 'ibmi'].includes(dialect)) {
+      if (options.updateOnDuplicate && !this.sequelize.dialect.supports.inserts.bulkInsert.updateOnDuplicate) {
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
