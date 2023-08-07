@@ -21,7 +21,6 @@ import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
 
 const DataTypes = require('../../data-types');
-const { TableHints } = require('../../table-hints');
 const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const randomBytes = require('node:crypto').randomBytes;
 const { Op } = require('../../operators');
@@ -240,13 +239,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   showTablesQuery() {
     return 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';';
-  }
-
-  tableExistsQuery(table) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema || 'dbo';
-
-    return `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(tableName)} AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
   }
 
   dropTableQuery(tableName, options) {
@@ -817,23 +809,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     return 'ROLLBACK TRANSACTION;';
-  }
-
-  selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
-    this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
-
-    // mssql overwrite the abstract selectFromTableFragment function.
-    if (options.maxExecutionTimeHintMs != null) {
-      throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
-    }
-
-    return joinSQLFragments([
-      'SELECT',
-      attributes.join(', '),
-      `FROM ${tables}`,
-      mainTableAs && `AS ${mainTableAs}`,
-      options.tableHint && TableHints[options.tableHint] && `WITH (${TableHints[options.tableHint]})`,
-    ]);
   }
 
   addLimitAndOffset(options, model) {

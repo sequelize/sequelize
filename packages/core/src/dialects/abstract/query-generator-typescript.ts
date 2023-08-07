@@ -15,10 +15,12 @@ import { List } from '../../expression-builders/list.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
+import { IndexHints } from '../../index-hints.js';
 import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
+import { TableHints } from '../../table-hints.js';
 import { isDictionary, isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
@@ -33,6 +35,7 @@ import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
   GetConstraintSnippetQueryOptions,
+  QuoteTableOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types.js';
@@ -50,6 +53,7 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
+export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 
@@ -422,9 +426,20 @@ export class AbstractQueryGeneratorTypeScript {
    * Quote table name with optional alias and schema attribution
    *
    * @param param table string or object
-   * @param alias alias name
+   * @param options options
    */
-  quoteTable(param: TableNameOrModel, alias: boolean | string = false): string {
+  quoteTable(param: TableNameOrModel, options?: QuoteTableOptions): string {
+    const QUOTE_TABLE_SUPPORTED_OPTIONS = new Set<keyof QuoteTableOptions>();
+    if (this.dialect.supports.indexHints) {
+      QUOTE_TABLE_SUPPORTED_OPTIONS.add('indexHints');
+    }
+
+    if (this.dialect.supports.tableHints) {
+      QUOTE_TABLE_SUPPORTED_OPTIONS.add('tableHints');
+    }
+
+    rejectInvalidOptions('quoteTable', this.dialect.name, QUOTE_TABLE_SUPPORTABLE_OPTIONS, QUOTE_TABLE_SUPPORTED_OPTIONS, { ...options });
+
     if (isModelStatic(param)) {
       param = param.getTableName();
     }
@@ -433,10 +448,6 @@ export class AbstractQueryGeneratorTypeScript {
 
     if (isObject(param) && ('as' in param || 'name' in param)) {
       throw new Error('parameters "as" and "name" are not allowed in the first parameter of quoteTable, pass them as the second parameter.');
-    }
-
-    if (alias === true) {
-      alias = tableName.tableName;
     }
 
     let sql = '';
@@ -459,8 +470,33 @@ export class AbstractQueryGeneratorTypeScript {
       sql += this.quoteIdentifier(fakeSchemaPrefix + tableName.tableName);
     }
 
-    if (alias) {
-      sql += ` AS ${this.quoteIdentifier(alias)}`;
+    if (options?.alias) {
+      sql += ` AS ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
+    }
+
+    if (options?.indexHints) {
+      for (const hint of options.indexHints) {
+        if (IndexHints[hint.type]) {
+          sql += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifier(indexName)).join(',')})`;
+        } else {
+          throw new Error(`The index hint type "${hint.type}" is invalid or not supported by dialect "${this.dialect.name}".`);
+        }
+      }
+    }
+
+    if (options?.tableHints) {
+      const hints: TableHints[] = [];
+      for (const hint of options.tableHints) {
+        if (TableHints[hint]) {
+          hints.push(TableHints[hint]);
+        } else {
+          throw new Error(`The table hint "${hint}" is invalid or not supported by dialect "${this.dialect.name}".`);
+        }
+      }
+
+      if (hints.length) {
+        sql += ` WITH (${hints.join(', ')})`;
+      }
     }
 
     return sql;
@@ -776,5 +812,11 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
   versionQuery(): string {
     throw new Error(`${this.dialect.name} did not implement versionQuery`);
+  }
+
+  tableExistsQuery(tableName: TableNameOrModel): string {
+    const table = this.extractTableDetails(tableName);
+
+    return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = ${this.escape(table.schema)}`;
   }
 }

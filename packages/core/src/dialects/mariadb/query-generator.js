@@ -140,13 +140,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     return `${query};`;
   }
 
-  tableExistsQuery(table) {
-    // remove first & last `, then escape as SQL string
-    const tableName = this.escape(this.quoteTable(table).slice(1, -1));
-
-    return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${tableName} AND TABLE_SCHEMA = ${this.escape(this.sequelize.config.database)}`;
-  }
-
   addColumnQuery(table, key, dataType, options = {}) {
     const ifNotExists = options.ifNotExists ? 'IF NOT EXISTS' : '';
 

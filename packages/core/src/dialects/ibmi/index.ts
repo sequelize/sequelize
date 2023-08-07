@@ -45,6 +45,8 @@ export class IBMiDialect extends AbstractDialect {
   readonly TICK_CHAR_RIGHT = '"';
 
   constructor(sequelize: Sequelize) {
+    console.warn('The IBMi dialect is experimental and usage is at your own risk. Its development is exclusively community-driven and not officially supported by the maintainers.');
+
     super(sequelize, DataTypes, 'ibmi');
 
     this.connectionManager = new IBMiConnectionManager(this, sequelize);

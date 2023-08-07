@@ -1041,8 +1041,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     mainTable.quotedAs = mainTable.as && this.quoteIdentifier(mainTable.as);
 
-    mainTable.quotedName = !Array.isArray(mainTable.name) ? this.quoteTable(mainTable.name) : tableName.map(t => {
-      return Array.isArray(t) ? this.quoteTable(t[0], t[1]) : this.quoteTable(t, true);
+    mainTable.quotedName = !Array.isArray(mainTable.name) ? this.quoteTable(mainTable.name, { ...options, alias: mainTable.as ?? false }) : tableName.map(t => {
+      return Array.isArray(t) ? this.quoteTable(t[0], { ...options, alias: t[1] }) : this.quoteTable(t, { ...options, alias: true });
     }).join(', ');
 
     const mainModelDefinition = mainTable.model?.modelDefinition;
@@ -1668,7 +1668,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     return {
       join: include.required ? 'INNER JOIN' : include.right && this.dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN',
-      body: this.quoteTable(tableRight, asRight),
+      body: this.quoteTable(tableRight, { ...topLevelInfo.options, ...include, alias: asRight }),
       condition: joinOn,
       attributes: {
         main: [],
@@ -1835,7 +1835,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
-    joinBody = `( ${this.quoteTable(throughTable, throughAs)} INNER JOIN ${this.quoteTable(include.model.getTableName(), includeAs.internalAs)} ON ${targetJoinOn}`;
+    joinBody = `( ${this.quoteTable(throughTable, { ...topLevelInfo.options, ...include, alias: throughAs })} INNER JOIN ${this.quoteTable(include.model.getTableName(), { ...topLevelInfo.options, ...include, alias: includeAs.internalAs })} ON ${targetJoinOn}`;
     if (throughWhere) {
       joinBody += ` AND ${throughWhere}`;
     }
@@ -2076,16 +2076,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     fragment += this._getBeforeSelectAttributesFragment(options);
     fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
-    if (mainTableAs) {
+    if (options.groupedLimit) {
       fragment += ` AS ${mainTableAs}`;
-    }
-
-    if (options.indexHints && this.dialect.supports.indexHints) {
-      for (const hint of options.indexHints) {
-        if (IndexHints[hint.type]) {
-          fragment += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifiers(indexName)).join(',')})`;
-        }
-      }
     }
 
     return fragment;

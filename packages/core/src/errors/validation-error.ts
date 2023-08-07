@@ -176,15 +176,16 @@ export class ValidationErrorItem extends Error {
    *                    defaults to "." (fullstop). only used and validated if useTypeAsNS is TRUE.
    * @throws {Error}    thrown if NSSeparator is found to be invalid.
    */
-  getValidatorKey(useTypeAsNS: boolean, NSSeparator: string): string {
+  getValidatorKey(useTypeAsNS: false): string;
+  getValidatorKey(useTypeAsNS?: true, NSSeparator?: string): string;
+  getValidatorKey(useTypeAsNS: boolean = true, NSSeparator: string = '.'): string {
     const useTANS = useTypeAsNS === undefined || Boolean(useTypeAsNS);
-    const NSSep = NSSeparator === undefined ? '.' : NSSeparator;
 
     const type = this.origin;
     const key = this.validatorKey || this.validatorName;
     const useNS = useTANS && type && ValidationErrorItemOrigin[type];
 
-    if (useNS && (typeof NSSep !== 'string' || NSSep.length === 0)) {
+    if (useNS && (typeof NSSeparator !== 'string' || NSSeparator.length === 0)) {
       throw new Error('Invalid namespace separator given, must be a non-empty string');
     }
 
@@ -192,7 +193,7 @@ export class ValidationErrorItem extends Error {
       return '';
     }
 
-    return (useNS ? [this.origin, key].join(NSSep) : key).toLowerCase().trim();
+    return (useNS ? [this.origin, key].join(NSSeparator) : key).toLowerCase().trim();
   }
 }
 
