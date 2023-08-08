@@ -1951,9 +1951,9 @@ __metadata:
   linkType: hard
 
 "@types/validator@npm:^13.7.5":
-  version: 13.9.0
-  resolution: "@types/validator@npm:13.9.0"
-  checksum: ff766e3241225b8e2dc06c90bf3a789bd24e44eb3b4cf534fdf67110615668e2bbf5d461ea42c6aec80bb0fe1dcd9624bcb3af699e3190a5e0a50b4ac24a3d9f
+  version: 13.11.0
+  resolution: "@types/validator@npm:13.11.0"
+  checksum: f281af8d43116df25c0c7072c409587903d2850abd8df504b77e4948a0bf205ca026e12cd30a20672a1b4a13b81f0b8c438164464fd937a0414f043a26087d34
   languageName: node
   linkType: hard
 
