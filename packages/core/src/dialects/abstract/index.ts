@@ -106,10 +106,11 @@ export type DialectSupports = {
     onConflictDoNothing: string, /* dialect specific words for ON CONFLICT DO NOTHING */
     onConflictWhere: boolean, /* whether dialect supports ON CONFLICT WHERE */
     conflictFields: boolean, /* whether the dialect supports specifying conflict fields or not */
+    /* bulkInsert specific options for generating query */
     bulkInsert: {
       ignoreDuplicates: string,
       updateOnDuplicate: boolean | string,
-      onConflictDoNothing: string,
+      onConflictDoNothing: string, /* for postgres */
     },
   },
   constraints: {
