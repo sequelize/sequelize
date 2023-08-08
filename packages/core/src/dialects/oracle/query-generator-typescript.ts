@@ -6,10 +6,10 @@ import type { TableNameWithSchema } from "../abstract/query-interface";
 import type { RemoveIndexQueryOptions, TableNameOrModel } from "../abstract/query-generator-typescript";
 
 
-const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set();
+const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
 export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  describeTableQuery(tableName, schema) {
+  describeTableQuery(tableName: TableNameOrModel, schema) {  // TODO: change the signature to remove type errors
     const currTableName = this.getCatalogName(tableName.tableName || tableName);
     schema = this.getCatalogName(schema);
     // name, type, datalength (except number / nvarchar), datalength varchar, datalength number, nullable, default value, primary ?
