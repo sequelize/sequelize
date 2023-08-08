@@ -42,6 +42,7 @@ export class PostgresDialect extends AbstractDialect {
       conflictFields: true,
       onConflictWhere: true,
       bulkInsert: {
+        onConflictDoNothing: ' ON CONFLICT DO NOTHING',
         updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
       },
     },

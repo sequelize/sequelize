@@ -386,8 +386,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
     // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
     // upsert function.
-    if (this.dialect.supports.inserts.updateOnDuplicate && options.updateOnDuplicate) {
-      if (this.dialect.supports.inserts.updateOnDuplicate === ' ON CONFLICT DO UPDATE SET') { // postgres / sqlite
+    if (this.dialect.supports.inserts.bulkInsert.updateOnDuplicate && options.updateOnDuplicate) {
+      if (this.dialect.supports.inserts.bulkInsert.updateOnDuplicate === ' ON CONFLICT DO UPDATE SET') { // postgres / sqlite
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
@@ -421,9 +421,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    const ignoreDuplicates = options.ignoreDuplicates ? this.dialect.supports.inserts.ignoreDuplicates : '';
+    const ignoreDuplicates = options.ignoreDuplicates ? this.dialect.supports.inserts.bulkInsert.ignoreDuplicates : '';
     const attributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
-    const onConflictDoNothing = options.ignoreDuplicates ? this.dialect.supports.inserts.onConflictDoNothing : '';
+    const onConflictDoNothing = options.ignoreDuplicates ? this.dialect.supports.inserts.bulkInsert.onConflictDoNothing : '';
     let returning = '';
 
     if (this.dialect.supports.returnValues && options.returning) {

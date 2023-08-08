@@ -109,6 +109,7 @@ export type DialectSupports = {
     bulkInsert: {
       ignoreDuplicates: string,
       updateOnDuplicate: boolean | string,
+      onConflictDoNothing: string,
     },
   },
   constraints: {
@@ -284,6 +285,7 @@ export abstract class AbstractDialect {
       onConflictWhere: false,
       conflictFields: false,
       bulkInsert: {
+        onConflictDoNothing: '',
         ignoreDuplicates: '',
         updateOnDuplicate: false,
       },

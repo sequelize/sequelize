@@ -2118,7 +2118,7 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
 
-      if (options.ignoreDuplicates && !this.sequelize.dialect.supports.inserts.bulkInsert.ignoreDuplicates) {
+      if (options.ignoreDuplicates && !(this.sequelize.dialect.supports.inserts.bulkInsert.ignoreDuplicates || this.sequelize.dialect.supports.inserts.bulkInsert.onConflictDoNothing)) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
