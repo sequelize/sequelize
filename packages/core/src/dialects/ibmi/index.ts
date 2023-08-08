@@ -31,7 +31,6 @@ export class IBMiDialect extends AbstractDialect {
       dataTypes: {
         COLLATE_BINARY: true,
       },
-      inserts: { bulkInsert: { updateOnDuplicate: ' ON CONFLICT DO UPDATE SET' } },
     },
   );
 
