@@ -236,7 +236,7 @@ We use a simple conventional commits convention:
   - `db2`
   - `ibmi`
   - `snowflake`
-  = `cockroachdb`
+  - `cockroachdb`
   - `types`
 - If your changes impact more than one scope, simply omit the scope.
 

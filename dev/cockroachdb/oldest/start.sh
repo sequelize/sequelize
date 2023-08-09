@@ -7,7 +7,7 @@ docker compose -p sequelize-cockroachdb-oldest up -d
 
 ./../../wait-until-healthy.sh sequelize-cockroachdb-oldest
 
-# Making a few changes to make the local single node cluster a bit more faster
+# Optimising the single node cluster
 # Read more here https://cockroachlabs.com/docs/stable/local-testing.html#use-a-local-single-node-cluster-with-in-memory-storage
 docker exec sequelize-cockroachdb-oldest ./cockroach sql --insecure --execute="
 SET CLUSTER SETTING kv.raft_log.disable_synchronization_unsafe = true;
