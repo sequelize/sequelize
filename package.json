@@ -57,7 +57,7 @@
     "eslint-plugin-mocha": "10.1.0",
     "fast-glob": "3.3.1",
     "husky": "8.0.3",
-    "lerna": "7.1.4",
+    "lerna": "7.1.5",
     "lint-staged": "13.2.3",
     "markdownlint-cli": "0.35.0",
     "mocha": "10.2.0",
