@@ -1621,7 +1621,7 @@ __metadata:
   dependencies:
     "@ephys/eslint-config-typescript": 19.0.2
     "@rushstack/eslint-patch": 1.3.3
-    "@types/node": 20.4.10
+    "@types/node": 20.5.0
     chai: 4.3.7
     concurrently: 8.2.0
     cross-env: 7.0.3
@@ -1925,10 +1925,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.4.10":
-  version: 20.4.10
-  resolution: "@types/node@npm:20.4.10"
-  checksum: 02a1ca415d9cc91144c4250383aa0ef1e48241bd36067ed7d1b239d8bacc2a11139dd90e223e11ac289345eeae624cc5dcf73359e684bd2e5a6c31bdfbab4811
+"@types/node@npm:20.5.0":
+  version: 20.5.0
+  resolution: "@types/node@npm:20.5.0"
+  checksum: 659bc5fc93b5c02bd88ca4bfae4f6b9dc307d45884d1dd9d69df85819a9943cdc00cd3c87eec3048866df6a67f52297f74d170e47a44f61edb3e8f770d94e85e
   languageName: node
   linkType: hard
 
