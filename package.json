@@ -58,7 +58,7 @@
     "fast-glob": "3.3.1",
     "husky": "8.0.3",
     "lerna": "7.1.5",
-    "lint-staged": "13.2.3",
+    "lint-staged": "14.0.0",
     "markdownlint-cli": "0.35.0",
     "mocha": "10.2.0",
     "node-gyp": "9.4.0",
