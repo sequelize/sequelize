@@ -23,7 +23,7 @@ class Query extends AbstractQuery {
     return 'id';
   }
 
-  getSQLTypeFromJsType(value, TYPES) {
+  getSQLTypeFromJsType(value, TYPES, attrType) {
     const paramType = { type: TYPES.NVarChar, typeOptions: {}, value };
     if (typeof value === 'number') {
       if (Number.isInteger(value)) {
@@ -47,13 +47,13 @@ class Query extends AbstractQuery {
     } else if (typeof value === 'boolean') {
       paramType.type = TYPES.Bit;
     }
-    if (Buffer.isBuffer(value)) {
+    if (Buffer.isBuffer(value) || value === null && attrType && attrType.key === 'BLOB') {
       paramType.type = TYPES.VarBinary;
     }
     return paramType;
   }
 
-  async _run(connection, sql, parameters, errStack) {
+  async _run(connection, sql, parameters, errStack, attrTypes) {
     this.sql = sql;
     const { options } = this;
 
@@ -79,7 +79,8 @@ class Query extends AbstractQuery {
 
       if (parameters) {
         _.forOwn(parameters, (value, key) => {
-          const paramType = this.getSQLTypeFromJsType(value, connection.lib.TYPES);
+          const attrType = attrTypes[key] ?? null;
+          const paramType = this.getSQLTypeFromJsType(value, connection.lib.TYPES, attrType);
           request.addParameter(key, paramType.type, value, paramType.typeOptions);
         });
       }
@@ -124,10 +125,10 @@ class Query extends AbstractQuery {
     return this.formatResults(rows, rowCount);
   }
 
-  run(sql, parameters) {
+  run(sql, parameters, attrTypes) {
     const errForStack = new Error();
     return this.connection.queue.enqueue(() =>
-      this._run(this.connection, sql, parameters, errForStack.stack)
+    this._run(this.connection, sql, parameters, errForStack.stack, attrTypes)
     );
   }
 

@@ -121,6 +121,7 @@ class QueryGenerator {
     const quotedTable = this.quoteTable(table);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
     const returnAttributes = [];
+    const attrTypes = [];
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -179,8 +180,10 @@ class QueryGenerator {
             fields.splice(-1, 1);
           } else if (this._dialect.supports.DEFAULT) {
             values.push('DEFAULT');
+            attrTypes.push(modelAttributes[key].type);
           } else {
             values.push(this.escape(null));
+            attrTypes.push(modelAttributes[key].type);
           }
         } else {
           if (modelAttributeMap && modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true) {
@@ -192,6 +195,7 @@ class QueryGenerator {
           } else {
             values.push(this.format(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'INSERT' }, bindParam));
           }
+          attrTypes.push(modelAttributes[key].type);
         }
       }
     }
@@ -302,6 +306,7 @@ class QueryGenerator {
     const result = { query };
     if (options.bindParam !== false) {
       result.bind = bind;
+      result.attrTypes = attrTypes;
     }
 
     return result;
@@ -439,6 +444,7 @@ class QueryGenerator {
 
     const values = [];
     const bind = [];
+    result.attrTypes = attrTypes;
     const modelAttributeMap = {};
     let outputFragment = '';
     let tmpTable = ''; // tmpTable declaration for trigger
@@ -498,6 +504,7 @@ class QueryGenerator {
       }
 
       const value = attrValueHash[key];
+      attrTypes.push(attributes[key].type);
 
       if (value instanceof Utils.SequelizeMethod || options.bindParam === false) {
         values.push(`${this.quoteIdentifier(key)}=${this.escape(value, modelAttributeMap && modelAttributeMap[key] || undefined, { context: 'UPDATE' })}`);
@@ -517,6 +524,7 @@ class QueryGenerator {
     const result = { query };
     if (options.bindParam !== false) {
       result.bind = bind;
+      result.attrTypes = attrTypes;
     }
     return result;
   }

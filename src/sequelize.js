@@ -597,6 +597,10 @@ class Sequelize {
         options.bind = sql.bind;
       }
 
+      if (sql.attrTypes !== undefined) {
+        options.attrTypes = sql.attrTypes;
+      }
+
       if (sql.query !== undefined) {
         sql = sql.query;
       }
@@ -618,6 +622,11 @@ class Sequelize {
       [sql, bindParameters] = this.dialect.Query.formatBindParameters(sql, options.bind, this.options.dialect);
     }
 
+    let attrTypes;
+    if (options.attrTypes) {
+      attrTypes = options.attrTypes;
+    }
+    
     const checkTransaction = () => {
       if (options.transaction && options.transaction.finished && !options.completesTransaction) {
         const error = new Error(`${options.transaction.finished} has been called on this transaction(${options.transaction.id}), you can no longer use it. (The rejected query is attached as the 'sql' property of this error)`);
@@ -647,7 +656,7 @@ class Sequelize {
       try {
         await this.runHooks('beforeQuery', options, query);
         checkTransaction();
-        return await query.run(sql, bindParameters);
+        return await query.run(sql, bindParameters, attrTypes);
       } finally {
         await this.runHooks('afterQuery', options, query);
         if (!options.transaction) {
