@@ -3158,16 +3158,17 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const projects = await this.users[0].getProjects();
 
         expect(projects.length).to.equal(3);
-        const projectsStatus = projects.map(project => project.UserProject.status);
-        const constprojectsData = projects.map(project => project.UserProject.data);
-
-        expect(projectsStatus).to.have.members(['great', 'fine', 'wrong']);
-        expect(constprojectsData).to.have.members([123, 456, 789]);
+        expect((projects.find(project => project.id === this.projects[0].id))?.UserProject).to.exist.and.to.include({ status: 'great', data: 123 });
+        expect((projects.find(project => project.id === this.projects[1].id))?.UserProject).to.exist.and.to.include({ status: 'fine', data: 456 });
+        expect((projects.find(project => project.id === this.projects[2].id))?.UserProject).to.exist.and.to.include({ status: 'wrong', data: 789 });
       });
 
       it('should accept an array to be used for each association accordingly with "set" mixin', async function () {
-        await this.users[0].addProjects(this.projects, {
-          through: { status: 'bad', data: 0 },
+        await this.users[0].setProjects(this.projects.slice(0, 2), {
+          through: [
+            { status: 'bad', data: 0 },
+            { status: 'ok', data: 0 },
+          ],
         });
 
         await this.users[0].setProjects(this.projects, {
@@ -3180,11 +3181,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const projects = await this.users[0].getProjects();
 
         expect(projects.length).to.equal(3);
-        const projectsStatus = projects.map(project => project.UserProject.status);
-        const constprojectsData = projects.map(project => project.UserProject.data);
-
-        expect(projectsStatus).to.have.members(['great', 'fine', 'wrong']);
-        expect(constprojectsData).to.have.members([123, 456, 789]);
+        expect((projects.find(project => project.id === this.projects[0].id))?.UserProject).to.exist.and.to.include({ status: 'great', data: 123 });
+        expect((projects.find(project => project.id === this.projects[1].id))?.UserProject).to.exist.and.to.include({ status: 'fine', data: 456 });
+        expect((projects.find(project => project.id === this.projects[2].id))?.UserProject).to.exist.and.to.include({ status: 'wrong', data: 789 });
       });
     });
   });
