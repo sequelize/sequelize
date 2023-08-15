@@ -121,7 +121,7 @@ User.findOne({ where: { '$include1.$include2.includeAttr$': 'blah2' } });
     raw: true,
   })).toEqualTypeOf<CustomUser>();
 
-  async function passDown(params: FindOptions<User>) {
+  async function passDown(params: FindOptions<Attributes<User>>) {
     // Unknown ahead of time
     // We can't what 'rejectOnEmpty' and 'raw' are set to, so we default to these types:
     expectTypeOf(await User.findOne(params))

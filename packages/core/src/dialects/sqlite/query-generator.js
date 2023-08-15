@@ -330,10 +330,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return sql.replaceAll(/DEFAULT '?false'?/g, 'DEFAULT 0').replaceAll(/DEFAULT '?true'?/g, 'DEFAULT 1');
   }
 
-  tableExistsQuery(tableName) {
-    return `SELECT name FROM sqlite_master WHERE type='table' AND name=${this.escape(this.extractTableDetails(tableName).tableName)};`;
-  }
-
   /**
    * Generates an SQL query to check if there are any foreign key violations in the db schema
    *

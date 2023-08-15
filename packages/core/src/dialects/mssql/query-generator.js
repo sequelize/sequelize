@@ -241,13 +241,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';';
   }
 
-  tableExistsQuery(table) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema || 'dbo';
-
-    return `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(tableName)} AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
-  }
-
   dropTableQuery(tableName, options) {
     if (options) {
       rejectInvalidOptions(
