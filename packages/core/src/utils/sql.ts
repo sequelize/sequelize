@@ -164,7 +164,7 @@ function mapBindParametersAndReplacements(
         }
 
         // detect the bind param if it's a valid identifier and it's followed either by '::' (=cast), ')', whitespace of it's the end of the query.
-        const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\)|,|$|\s|::|;)/i);
+        const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\]|\)|,|$|\s|::|;)/i);
         const bindParamName = match?.groups?.name;
         if (!bindParamName) {
           continue;
@@ -281,7 +281,7 @@ function escapeValueWithBackCompat(value: unknown, dialect: AbstractDialect, esc
 }
 
 function canPrecedeNewToken(char: string | undefined): boolean {
-  return char === undefined || /[\s(>,=]/.test(char);
+  return char === undefined || /[\s([>,=]/.test(char);
 }
 
 /**
