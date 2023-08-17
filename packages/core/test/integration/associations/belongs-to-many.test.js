@@ -1751,7 +1751,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
+      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values
       const data = dialect === 'cockroachdb' ? {
         post: { name: 'post1', id: 1 },
         comment: { name: 'comment1', id: 1 },
@@ -1817,7 +1817,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
+      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values
       const data = dialect === 'cockroachdb' ? {
         post: { name: 'post1', id: 1 },
         comment: { name: 'comment1', id: 1 },
