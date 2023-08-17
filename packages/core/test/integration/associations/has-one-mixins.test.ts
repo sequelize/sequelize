@@ -5,7 +5,6 @@ import { AllowNull, Attribute, HasOne, NotNull } from '@sequelize/core/decorator
 import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
 
 const dialect = sequelize.dialect;
-const dialectName = sequelize.dialect.name;
 
 describe('hasOne Mixins', () => {
   setResetMode('destroy');
@@ -197,13 +196,8 @@ describe('hasOne Mixins + transaction', () => {
 
       await transactionSequelize.transaction(async transaction => {
         await article.setLabel(label, { transaction });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (dialectName !== 'cockroachdb') {
-          const labels0 = await Label.findAll({ where: { articleId: article.id }, transaction: null });
-          expect(labels0.length).to.equal(0);
-        }
+        const labels0 = await Label.findAll({ where: { articleId: article.id }, transaction: null });
+        expect(labels0.length).to.equal(0);
 
         const labels = await Label.findAll({ where: { articleId: article.id }, transaction });
         expect(labels.length).to.equal(1);
@@ -239,15 +233,7 @@ describe('hasOne Mixins + transaction', () => {
 
       await article.setLabel(null, { transaction: t });
       expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(article.id);
-
-      // Cockroachdb uses serailizable transactions, Label.create would not exist under the transaction context
-      // hence it would throw a EmptyResultError
-      if (dialectName === 'cockroachdb') {
-        const label1 = await Label.findOne({ where: { articleId: article.id }, transaction: t });
-        expect(label1).to.be.null;
-      } else {
-        expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
-      }
+      expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
 
       await t.rollback();
     });

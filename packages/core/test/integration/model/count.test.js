@@ -329,15 +329,9 @@ describe('Model.count', () => {
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (dialectName !== 'cockroachdb') {
-          const count1 = await User.count();
-          expect(count1).to.equal(0);
-        }
-
+        const count1 = await User.count();
         const count2 = await User.count({ transaction: t });
+        expect(count1).to.equal(0);
         expect(count2).to.equal(1);
         await t.rollback();
       });

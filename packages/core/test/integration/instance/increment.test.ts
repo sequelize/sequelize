@@ -4,15 +4,7 @@ import sinon from 'sinon';
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { Attribute, NotNull } from '@sequelize/core/decorators-legacy';
-import {
-  beforeAll2,
-  createSingleTransactionalTestSequelizeInstance,
-  getTestDialect,
-  sequelize,
-  setResetMode,
-} from '../support';
-
-const dialectName = getTestDialect();
+import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
 
 describe('Model#increment', () => {
   setResetMode('destroy');
@@ -39,15 +31,9 @@ describe('Model#increment', () => {
 
       try {
         await user.increment('integer', { by: 2, transaction: t });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (dialectName !== 'cockroachdb') {
-          const users1 = await User.findAll();
-          expect(users1[0].integer).to.equal(3);
-        }
-
+        const users1 = await User.findAll();
         const users2 = await User.findAll({ transaction: t });
+        expect(users1[0].integer).to.equal(3);
         expect(users2[0].integer).to.equal(5);
       } finally {
         await t.rollback();

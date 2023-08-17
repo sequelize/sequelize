@@ -1369,29 +1369,16 @@ describe('DataTypes', () => {
       it('properly serializes default values', async () => {
         const createdUser = await vars.User.create();
         await createdUser.reload();
-        if (dialect.name === 'cockroachdb') {
-          const user = createdUser.get();
-          expect(user).to.deep.eq({
-            jsonStr: 'abc',
-            jsonBoolean: true,
-            jsonNumber: 1,
-            jsonNull: null,
-            jsonArray: ['a', 'b'],
-            jsonObject: { key: 'abc' },
-            id: user.id,
-          });
-        } else {
-          expect(createdUser.get()).to.deep.eq({
-            jsonStr: 'abc',
-            jsonBoolean: true,
-            jsonNumber: 1,
-            jsonNull: null,
-            jsonArray: ['a', 'b'],
-            jsonObject: { key: 'abc' },
-            id: 1,
-          });
-        }
-
+        const user = createdUser.get();
+        expect(user).to.deep.eq({
+          jsonStr: 'abc',
+          jsonBoolean: true,
+          jsonNumber: 1,
+          jsonNull: null,
+          jsonArray: ['a', 'b'],
+          jsonObject: { key: 'abc' },
+          id: dialect.name === 'cockroachdb' ? user.id : 1,
+        });
       });
 
       it('properly serializes values', async () => {

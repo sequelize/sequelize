@@ -55,22 +55,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('bulkCreate', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        let count1;
         const User = this.customSequelize.define('User', {
           username: DataTypes.STRING,
         });
         await User.sync({ force: true });
         const transaction = await this.customSequelize.startUnmanagedTransaction();
         await User.bulkCreate([{ username: 'foo' }, { username: 'bar' }], { transaction });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (dialectName !== 'cockroachdb') {
-          count1 = await User.count();
-          expect(count1).to.equal(0);
-        }
-
+        const count1 = await User.count();
         const count2 = await User.count({ transaction });
+        expect(count1).to.equal(0);
         expect(count2).to.equal(2);
         await transaction.rollback();
       });

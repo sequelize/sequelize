@@ -117,26 +117,21 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         for (const i of [0, 1, 2, 3, 4]) {
           const user = await User.create();
 
-          if (current.dialect.name === 'cockroachdb') {
-            // Edited this part because a test expect id to be 3.
-            // This maintains the test procedure, giving Product predictable ids.
-            await Product.bulkCreate([
-              { id: i * 5 + 1, title: 'Chair' },
-              { id: i * 5 + 2, title: 'Desk' },
-              { id: i * 5 + 3, title: 'Bed' },
-              { id: i * 5 + 4, title: 'Pen' },
-              { id: i * 5 + 5, title: 'Monitor' },
-            ]);
-          } else {
-            await Product.bulkCreate([
-              { title: 'Chair' },
-              { title: 'Desk' },
-              { title: 'Bed' },
-              { title: 'Pen' },
-              { title: 'Monitor' },
-            ]);
-          }
+          const data = current.dialect.name === 'cockroachdb' ? [
+            { id: i * 5 + 1, title: 'Chair' },
+            { id: i * 5 + 2, title: 'Desk' },
+            { id: i * 5 + 3, title: 'Bed' },
+            { id: i * 5 + 4, title: 'Pen' },
+            { id: i * 5 + 5, title: 'Monitor' },
+          ] : [
+            { title: 'Chair' },
+            { title: 'Desk' },
+            { title: 'Bed' },
+            { title: 'Pen' },
+            { title: 'Monitor' },
+          ];
 
+          await Product.bulkCreate(data);
           const products = await Product.findAll();
           const groupMembers  = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },

@@ -72,6 +72,7 @@ export class CockroachDbDialect extends AbstractDialect {
       deferrable: false,
       removeOptions: { cascade: true, ifExists: true },
     },
+    transactions: false,
   });
 
   readonly connectionManager: CockroachdbConnectionManager;

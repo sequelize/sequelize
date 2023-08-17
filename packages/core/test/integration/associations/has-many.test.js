@@ -324,7 +324,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
             const result = await User.Tasks.get(users, {
               limit: 2,
-              order: [['title', 'ASC']],
+              order: [
+                ['title', 'ASC'],
+              ],
               include: [Task.Category],
             });
 
@@ -523,14 +525,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const t = await sequelize.startUnmanagedTransaction();
           await article.setLabels([label], { transaction: t });
           const articles0 = await Article.findAll({ transaction: t });
-
-          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-          // This query would wait for the transaction to get committed first.
-          if (current.dialect.name !== 'cockroachdb') {
-            const hasLabel0 = await articles0[0].hasLabel(label);
-            expect(hasLabel0).to.be.false;
-          }
-
+          const hasLabel0 = await articles0[0].hasLabel(label);
+          expect(hasLabel0).to.be.false;
           const articles = await Article.findAll({ transaction: t });
           const hasLabel = await articles[0].hasLabel(label, { transaction: t });
           expect(hasLabel).to.be.true;
@@ -635,19 +631,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           await article.setLabels([label], { transaction: t });
           const articles = await Article.findAll({ transaction: t });
 
-          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-          // This query would wait for the transaction to get committed first.
-          if (current.dialect.name !== 'cockroachdb') {
-            const [hasLabel1, hasLabel2] = await Promise.all([
-              articles[0].hasLabels([label]),
-              articles[0].hasLabels([label], { transaction: t }),
-            ]);
-            expect(hasLabel1).to.be.false;
-            expect(hasLabel2).to.be.true;
-          } else {
-            const hasLabel1 = await articles[0].hasLabels([label], { transaction: t });
-            expect(hasLabel1).to.be.true;
-          }
+          const [hasLabel1, hasLabel2] = await Promise.all([
+            articles[0].hasLabels([label]),
+            articles[0].hasLabels([label], { transaction: t }),
+          ]);
+
+          expect(hasLabel1).to.be.false;
+          expect(hasLabel2).to.be.true;
 
           await t.rollback();
         });
@@ -729,13 +719,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           const t = await sequelize.startUnmanagedTransaction();
           await article.addLabel(label, { transaction: t });
-
-          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-          // This query would wait for the transaction to get committed first.
-          if (current.dialect.name !== 'cockroachdb') {
-            const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
-            expect(labels0.length).to.equal(0);
-          }
+          const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
+          expect(labels0.length).to.equal(0);
 
           const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
           expect(labels.length).to.equal(1);
@@ -868,16 +853,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const article = await Article.create({ title: 'foo' });
           const t = await sequelize.startUnmanagedTransaction();
           await article.createLabel({ text: 'bar' }, { transaction: t });
-
-          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-          // This query would wait for the transaction to get committed first.
-          if (current.dialect.name !== 'cockroachdb') {
-            const labels1 = await Label.findAll();
-            expect(labels1.length).to.equal(0);
-            const labels0 = await Label.findAll({ where: { ArticleId: article.id } });
-            expect(labels0.length).to.equal(0);
-          }
-
+          const labels1 = await Label.findAll();
+          expect(labels1.length).to.equal(0);
+          const labels0 = await Label.findAll({ where: { ArticleId: article.id } });
+          expect(labels0.length).to.equal(0);
           const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
           expect(labels.length).to.equal(1);
           await t.rollback();

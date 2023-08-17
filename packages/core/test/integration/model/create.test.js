@@ -63,13 +63,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           transaction: t,
         });
 
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (dialectName !== 'cockroachdb') {
-          const count = await this.User.count();
-          expect(count).to.equal(0);
-        }
-
+        const count = await this.User.count();
+        expect(count).to.equal(0);
         await t.commit();
         const count0 = await this.User.count();
         expect(count0).to.equal(1);
@@ -448,8 +443,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     }
 
     describe('several concurrent calls', () => {
-      // CockroachDB would throw a write conflict when multiple transaction try to modify the same data.
-      if (current.dialect.supports.transactions && dialectName !== 'cockroachdb') {
+      if (current.dialect.supports.transactions) {
         it('works with a transaction', async function () {
           const transaction = await this.customSequelize.startUnmanagedTransaction();
 
@@ -845,14 +839,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('supports transactions', async function () {
         const t = await this.customSequelize.startUnmanagedTransaction();
         await this.User.create({ username: 'user' }, { transaction: t });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (current.dialect.name !== 'cockroachdb') {
-          const count = await this.User.count();
-          expect(count).to.equal(0);
-        }
-
+        const count = await this.User.count();
+        expect(count).to.equal(0);
         await t.commit();
         const count0 = await this.User.count();
         expect(count0).to.equal(1);

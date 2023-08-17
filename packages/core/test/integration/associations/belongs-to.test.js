@@ -77,15 +77,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (current.dialect.name !== 'cockroachdb') {
-          const groups = await Group.findAll();
-          const associatedUser = await groups[0].getUser();
-          expect(associatedUser).to.be.null;
-        }
-
+        const groups = await Group.findAll();
+        const associatedUser = await groups[0].getUser();
+        expect(associatedUser).to.be.null;
         const groups0 = await Group.findAll({ transaction: t });
         const associatedUser0 = await groups0[0].getUser({ transaction: t });
         expect(associatedUser0).to.be.not.null;
@@ -189,15 +183,9 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (current.dialect.name !== 'cockroachdb') {
-          const groups = await Group.findAll();
-          const associatedUser = await groups[0].getUser();
-          expect(associatedUser).to.be.null;
-        }
-
+        const groups = await Group.findAll();
+        const associatedUser = await groups[0].getUser();
+        expect(associatedUser).to.be.null;
         await t.rollback();
       });
     }
@@ -371,13 +359,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.createUser({ username: 'foo' }, { transaction: t });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (current.dialect.name !== 'cockroachdb') {
-          const user = await group.getUser();
-          expect(user).to.be.null;
-        }
+        const user = await group.getUser();
+        expect(user).to.be.null;
 
         const user0 = await group.getUser({ transaction: t });
         expect(user0).not.to.be.null;
@@ -496,6 +479,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       await this.sequelize.sync({ force: true });
       await User.create(['db2', 'cockroachdb'].includes(dialect) ? { id: 1 } : {});
       const mail = await Mail.create(['db2', 'cockroachdb'].includes(dialect) ? { id: 1 } : {});
+      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
       await Entry.create({ mailId: mail.id, ownerId: 1, ...(dialect === 'cockroachdb' && { id: 1 }) });
       await Entry.create({ mailId: mail.id, ownerId: 1, ...(dialect === 'cockroachdb' && { id: 2 }) });
       // set recipients

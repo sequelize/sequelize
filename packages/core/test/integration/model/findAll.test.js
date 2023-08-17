@@ -41,16 +41,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
+        const users1 = await User.findAll({ where: { username: 'foo' } });
         const users2 = await User.findAll({ transaction: t });
         const users3 = await User.findAll({ where: { username: 'foo' }, transaction: t });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (dialectName !== 'cockroachdb') {
-          const users1 = await User.findAll({ where: { username: 'foo' } });
-          expect(users1.length).to.equal(0);
-        }
-
+        expect(users1.length).to.equal(0);
         expect(users2.length).to.equal(1);
         expect(users3.length).to.equal(1);
         await t.rollback();
@@ -1354,7 +1348,7 @@ The following associations are defined on "Worker": "ToDos"`);
       it('sorts the results via a date column', async function () {
         await this.User.create({ username: 'user3', data: 'bar', theDate: dayjs().add(2, 'hours').toDate() });
         const users = await this.User.findAll({ order: [['theDate', 'DESC']] });
-        // Because we treat BigInt as Strings, Mocha's below and above comparisons do not work, since they expect either number or date.
+        // Because Cockroachdb treats BigInt as Strings, Mocha's below and above comparisons do not work, since they expect either number or date.
         if (dialectName === 'cockroachdb') {
           const userIds = users.map(user => BigInt(user.id));
           expect(userIds[0] > userIds[2]).to.be.true;
@@ -1496,15 +1490,9 @@ The following associations are defined on "Worker": "ToDos"`);
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
+        const info1 = await User.findAndCountAll();
         const info2 = await User.findAndCountAll({ transaction: t });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (dialectName !== 'cockroachdb') {
-          const info1 = await User.findAndCountAll();
-          expect(info1.count).to.equal(0);
-        }
-
+        expect(info1.count).to.equal(0);
         expect(info2.count).to.equal(1);
         await t.rollback();
       });
@@ -1607,15 +1595,9 @@ The following associations are defined on "Worker": "ToDos"`);
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
+        const users1 = await User.findAll();
         const users2 = await User.findAll({ transaction: t });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (dialectName !== 'cockroachdb') {
-          const users1 = await User.findAll();
-          expect(users1.length).to.equal(0);
-        }
-
+        expect(users1.length).to.equal(0);
         expect(users2.length).to.equal(1);
         await t.rollback();
       });

@@ -74,9 +74,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await current.sync({ force: true });
 
         if (dialectName === 'cockroachdb') {
-          // CRDB does not give human readable ids, it's usually a Big Number.
-          // Also, autoIncrement does not guarantee sequentially incremented numbers.
-          // Had to ensure ids are 1 and 2 for this test.
+          // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
           await Post.bulkCreate([
             { id: 1, name: 'post-1' },
             { id: 2, name: 'post-2' },

@@ -216,6 +216,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
 
     await this.sequelize.sync({ force: true });
 
+    // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values
     const userList = dialect === 'cockroachdb' ? [{ id: 1, username: 'leia' }, { id: 2, username: 'vader' }] : [{ username: 'leia' }, { usernmae: 'vader' }];
     await User.bulkCreate(userList);
 

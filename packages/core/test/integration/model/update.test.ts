@@ -370,14 +370,9 @@ describe('Model.update', () => {
           transaction: t,
         });
 
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (dialectName !== 'cockroachdb') {
-          const users1 = await User.findAll();
-          expect(users1[0].username).to.equal('foo');
-        }
-
+        const users1 = await User.findAll();
         const users2 = await User.findAll({ transaction: t });
+        expect(users1[0].username).to.equal('foo');
         expect(users2[0].username).to.equal('bar');
         await t.rollback();
       });

@@ -56,6 +56,7 @@ if (current.dialect.supports['UNION ALL']) {
 
           await this.sequelize.sync({ force: true });
 
+          // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
           const userList = dialectName === 'cockroachdb' ? [
             { age: -5, id: 1 },
             { age: 45, id: 2 },
@@ -124,6 +125,7 @@ if (current.dialect.supports['UNION ALL']) {
 
             expect(users[2].get('tasks')).to.have.length(2);
 
+            // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
             const id1 = dialectName === 'cockroachdb' ? users[2].id : 3;
             for (const u of users.filter(u => u.get('id') !== id1)) {
               expect(u.get('project_user')).to.have.length(1);

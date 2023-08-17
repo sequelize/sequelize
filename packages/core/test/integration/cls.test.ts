@@ -4,15 +4,7 @@ import sinon from 'sinon';
 import { DataTypes, Model, QueryTypes } from '@sequelize/core';
 import type { InferAttributes, InferCreationAttributes, ModelStatic } from '@sequelize/core';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
-import {
-  beforeAll2,
-  createMultiTransactionalTestSequelizeInstance,
-  getTestDialect,
-  sequelize,
-  setResetMode,
-} from './support';
-
-const dialectName = getTestDialect();
+import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from './support';
 
 describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
   if (!sequelize.dialect.supports.transactions) {
@@ -155,28 +147,17 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
       await vars.clsSequelize.transaction(async () => {
         await vars.User.create({ name: 'bob' });
 
-        if (dialectName === 'cockroachdb') {
-          return expect(vars.User.findAll({})).to.eventually.have.length(1);
-        }
-
         return Promise.all([
           expect(vars.User.findAll({ transaction: null })).to.eventually.have.length(0),
           expect(vars.User.findAll({})).to.eventually.have.length(1),
         ]);
-
       });
     });
 
     it('automagically uses the transaction in all calls with async/await', async () => {
       await vars.clsSequelize.transaction(async () => {
         await vars.User.create({ name: 'bob' });
-
-        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
-        // This query would wait for the transaction to get committed first.
-        if (dialectName !== 'cockroachdb') {
-          expect(await vars.User.findAll({ transaction: null })).to.have.length(0);
-        }
-
+        expect(await vars.User.findAll({ transaction: null })).to.have.length(0);
         expect(await vars.User.findAll({})).to.have.length(1);
       });
     });
