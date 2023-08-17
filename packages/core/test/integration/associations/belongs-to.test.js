@@ -479,7 +479,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       await this.sequelize.sync({ force: true });
       await User.create(['db2', 'cockroachdb'].includes(dialect) ? { id: 1 } : {});
       const mail = await Mail.create(['db2', 'cockroachdb'].includes(dialect) ? { id: 1 } : {});
-      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
+      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values
       await Entry.create({ mailId: mail.id, ownerId: 1, ...(dialect === 'cockroachdb' && { id: 1 }) });
       await Entry.create({ mailId: mail.id, ownerId: 1, ...(dialect === 'cockroachdb' && { id: 2 }) });
       // set recipients
