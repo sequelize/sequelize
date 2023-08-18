@@ -29,8 +29,8 @@ import type {
   AllowArray,
   AllowReadonlyArray,
   AnyFunction,
-  MakeNullish,
   MakeNullishOptional,
+  Nullish,
   OmitConstructors,
   StrictRequiredBy,
 } from './utils/types.js';
@@ -699,7 +699,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable<any>, Paran
    *
    * Only available when setting {@link IncludeOptions.separate} to true.
    */
-  limit?: MakeNullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   /**
    * If true, runs a separate query to fetch the associated instances.
@@ -858,7 +858,7 @@ export interface FindOptions<TAttributes = any>
    * });
    * ```
    */
-  limit?: MakeNullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   // TODO: document this - this is an undocumented property but it exists and there are tests for it.
   groupedLimit?: unknown;
@@ -1188,7 +1188,7 @@ export interface TruncateOptions extends Logging, Transactionable, Hookable {
   /**
    * How many rows to delete
    */
-  limit?: MakeNullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   /**
    * Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
@@ -1235,7 +1235,7 @@ export interface RestoreOptions<TAttributes = any> extends Logging, Transactiona
   /**
    * How many rows to undelete
    */
-  limit?: MakeNullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 }
 
 /**
@@ -1288,7 +1288,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    * Only for mysql and mariadb,
    * Implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present
    */
-  limit?: MakeNullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   /**
    * If true, the updatedAt timestamp will not be updated.
@@ -1675,6 +1675,11 @@ export type ReferentialAction = 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NU
  */
 // TODO: Link to Attribute decorator once it's possible to have multiple entry points in the docs: https://github.com/TypeStrong/typedoc/issues/2138
 export interface AttributeOptions<M extends Model = Model> {
+  /**
+   * A string or a data type.
+   *
+   * @see https://sequelize.org/docs/v7/other-topics/other-data-types/
+   */
   type: DataType;
 
   /**

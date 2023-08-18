@@ -252,7 +252,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     }
 
     if (attribute.autoIncrement) {
-      template += ' auto_increment';
+      template += ' AUTO_INCREMENT';
     }
 
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value

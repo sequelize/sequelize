@@ -3369,7 +3369,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       expect(User.belongsToMany.bind(User, User, { as: 'user', through: 'UserUser' })).to
-        .throw(`Naming collision between attribute 'user' and association 'user' on model user. To remedy this, change the "as" options in your association definition`);
+        .throw('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change the "as" options in your association definition');
     });
   });
 

@@ -530,14 +530,14 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 
       Task.belongsTo(User);
 
-      // TODO: deprecate this in favor of sequelize-typescript Repository Mode for multi-tenancy support.
+      // TODO: do we really want to keep this? Shouldn't model schemas be defined and fixed?
       await User.sync({ force: true, schema: SCHEMA_ONE });
       await Task.sync({ force: true, schema: SCHEMA_ONE });
       const user0 = await User.withSchema(SCHEMA_ONE).create({});
       const task = await Task.withSchema(SCHEMA_ONE).create({});
       await task.setUserXYZ(user0);
 
-      // TODO: deprecate this in favor of sequelize-typescript Repository Mode for multi-tenancy support.
+      // TODO: do we really want to keep this? Shouldn't model schemas be defined and fixed?
       const user = await task.getUserXYZ({ schema: SCHEMA_ONE });
       expect(user).to.be.ok;
     });

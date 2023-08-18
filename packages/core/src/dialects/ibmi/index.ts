@@ -66,7 +66,7 @@ export class IBMiDialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    // TODO: set default DB2 schema
+    // TODO: what is the default schema in IBMi?
     return '';
   }
 

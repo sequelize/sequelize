@@ -271,7 +271,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     }
 
     if (attribute.autoIncrement) {
-      template += ' auto_increment';
+      template += ' AUTO_INCREMENT';
     }
 
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value

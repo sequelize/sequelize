@@ -59,7 +59,6 @@ export type MakeNullishOptional<T extends object> = PartialBy<T, NullishProperti
 /**
  * Makes the type accept null & undefined
  */
-export type MakeNullish<T> = T | null | undefined;
 export type Nullish = null | undefined;
 
 export type NonNullish<T> = T extends null | undefined ? never : T;

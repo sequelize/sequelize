@@ -135,8 +135,8 @@ export function removeNullishValuesFromHash(
   forIn(hash, (val: any, key: string) => {
     if (
       allowNull.includes(key)
-      || key.endsWith('Id')
-      || val !== null && val !== undefined
+        || key.endsWith('Id')
+        || val !== null && val !== undefined
     ) {
       _hash[key] = val;
     }

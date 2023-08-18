@@ -1,3 +1,5 @@
+// TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
+
 import type { Col } from '../../expression-builders/col.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type {
@@ -15,8 +17,6 @@ import type { AttributeToSqlOptions, QueryWithBindParams } from './query-generat
 import type { TableName } from './query-interface.js';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
-
-// TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
 type ParameterOptions = {
   // only named replacements are allowed
