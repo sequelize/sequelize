@@ -1,20 +1,63 @@
-import isPlainObject from 'lodash/isPlainObject.js';
 import mapValues from 'lodash/mapValues.js';
-import DataTypes from '../../data-types.js';
-import type { Expression } from '../../sequelize.js';
-import { generateEnumName } from '../../utils/format.js';
+import * as DataTypes from '../../data-types.js';
+import type { Expression, Sequelize } from '../../sequelize.js';
+import { isString } from '../../utils/check.js';
+import { generateEnumName, generateSequenceName } from '../../utils/format.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { defaultValueSchemable } from '../../utils/query-builder-utils.js';
 import { generateIndexName } from '../../utils/string';
+import type { DataTypeInstance } from '../abstract/data-types.js';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
+import { normalizeChangeColumnAttribute } from '../abstract/query-generator-internal.js';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ChangeColumnDefinitions, ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
 import { ENUM } from './data-types.js';
+import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
+
+interface CreateEnumQueryOptions {
+  /**
+   * Drop the existing enum if one exists
+   */
+  force?: boolean;
+}
+
+interface ListEnumQueryOptions {
+  /**
+   * The schema for which to list the enums, defaults to the default schema of the Sequelize instance.
+   */
+  schema?: string;
+
+  /**
+   * The name of the enum to list, defaults to all enums in the schema.
+   */
+  dataTypeOrName?: DataTypeInstance | string;
+}
+
+interface AddValueToEnumQueryOptions {
+  /**
+   * Before which value of the enum the new value should be inserted.
+   */
+  before?: string;
+
+  /**
+   * After which value of the enum the new value should be inserted.
+   */
+  after?: string;
+}
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  readonly #internalQueryGenerator: PostgresQueryGeneratorInternal;
+
+  constructor(sequelize: Sequelize, internalQueryGenerator?: PostgresQueryGeneratorInternal) {
+    internalQueryGenerator = internalQueryGenerator ?? new PostgresQueryGeneratorInternal(sequelize);
+
+    super(sequelize, internalQueryGenerator);
+
+    this.#internalQueryGenerator = internalQueryGenerator;
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -39,7 +82,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.table_name=c.table_name',
       'AND pk.column_name=c.column_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
-      `AND c.table_schema = ${this.escape(table.schema!)}`,
+      `AND c.table_schema = ${this.escape(table.schema)}`,
     ]);
   }
 
@@ -112,7 +155,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'DROP INDEX',
       options?.concurrently ? 'CONCURRENTLY' : '',
       options?.ifExists ? 'IF EXISTS' : '',
-      `${this.quoteIdentifier(table.schema!)}.${this.quoteIdentifier(indexName)}`,
+      `${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(indexName)}`,
       options?.cascade ? 'CASCADE' : '',
     ]);
   }
@@ -154,7 +197,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       '"referenced_column".attrelid = "constraint".confrelid',
       `WHERE "constraint".contype = 'f'`,
       `AND "table".relname = ${this.escape(table.tableName)}`,
-      `AND table_schema.nspname = ${this.escape(table.schema!)}`,
+      `AND table_schema.nspname = ${this.escape(table.schema)}`,
       columnName && `AND "column".attname = ${this.escape(columnName)};`,
     ]);
   }
@@ -185,41 +228,44 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   changeColumnsQuery(tableOrModel: TableNameOrModel, columnDefinitions: ChangeColumnDefinitions): string {
     const sql = super.changeColumnsQuery(tableOrModel, columnDefinitions);
 
-    columnDefinitions = mapValues(columnDefinitions, attribute => this.sequelize.normalizeAttribute(attribute));
-    const tableName = this.extractTableDetails(tableOrModel);
+    const normalizedChangeColumnDefinitions = mapValues(columnDefinitions, attribute => {
+      return normalizeChangeColumnAttribute(this.sequelize, attribute);
+    });
+
+    const table = this.extractTableDetails(tableOrModel);
 
     const out = [];
     if (sql) {
       out.push(sql);
     }
 
-    for (const [columnName, columnDef] of Object.entries(columnDefinitions)) {
+    for (const [columnName, columnDef] of Object.entries(normalizedChangeColumnDefinitions)) {
       if ('comment' in columnDef) {
         if (columnDef.comment == null) {
-          out.push(`COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(columnName)} IS NULL;`);
+          out.push(`COMMENT ON COLUMN ${this.quoteTable(table)}.${this.quoteIdentifier(columnName)} IS NULL;`);
         } else {
-          out.push(`COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(columnName)} IS ${this.escape(columnDef.comment)};`);
+          out.push(`COMMENT ON COLUMN ${this.quoteTable(table)}.${this.quoteIdentifier(columnName)} IS ${this.escape(columnDef.comment)};`);
         }
       }
 
       if (columnDef.autoIncrement) {
-        out.unshift(`CREATE SEQUENCE IF NOT EXISTS ${this.quoteIdentifier(this.#nameSequence(tableName.tableName, columnName))} OWNED BY ${this.quoteTable(tableName)}.${this.quoteIdentifier(columnName)};`);
+        out.unshift(`CREATE SEQUENCE IF NOT EXISTS ${this.quoteIdentifier(generateSequenceName(table.tableName, columnName))} OWNED BY ${this.quoteTable(table)}.${this.quoteIdentifier(columnName)};`);
       }
 
       if (
         columnDef.type instanceof DataTypes.ENUM
-        || columnDef.type instanceof DataTypes.ARRAY && columnDef.type.type instanceof DataTypes.ENUM
+        || columnDef.type instanceof DataTypes.ARRAY && columnDef.type.options.type instanceof DataTypes.ENUM
       ) {
-        const existingEnumName = generateEnumName(tableName.tableName, columnName);
-        const tmpEnumName = generateEnumName(tableName.tableName, columnName, { replacement: true });
+        const existingEnumName = generateEnumName(table.tableName, columnName);
+        const tmpEnumName = generateEnumName(table.tableName, columnName, { replacement: true });
 
         // create enum under a temporary name
-        out.unshift(this.createEnumQuery(tableName, columnName, columnDef.type, { enumName: tmpEnumName }));
+        out.unshift(this.createEnumQuery(table, columnDef.type));
 
-        // rename new enum & drop old one
+        // rename new enum & drop old one (if exists)
         out.push(
-          this.pgEnumDrop(tableName, columnName),
-          `ALTER TYPE ${this.quoteIdentifier(tableName.schema)}.${this.quoteIdentifier(tmpEnumName)} RENAME TO ${this.quoteIdentifier(existingEnumName)};`,
+          this.dropEnumQuery(table.schema, existingEnumName),
+          `ALTER TYPE ${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(tmpEnumName)} RENAME TO ${this.quoteIdentifier(existingEnumName)};`,
         );
       }
     }
@@ -227,244 +273,64 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return out.join(' ');
   }
 
-  // used by changeColumnsQuery
-  _attributeToChangeColumn(tableName, columnName, columnDefinition) {
-    const sql = [];
-
-    const {
-      type, allowNull, unique,
-      autoIncrement, autoIncrementIdentity,
-      defaultValue, dropDefaultValue,
-      references, onUpdate, onDelete,
-    } = columnDefinition;
-
-    if (type !== undefined) {
-      let typeSql;
-      if (
-        columnDefinition.type instanceof DataTypes.ENUM
-        || columnDefinition.type instanceof DataTypes.ARRAY && columnDefinition.type.type instanceof DataTypes.ENUM
-      ) {
-        const enumName = this.pgEnumName(tableName, columnName, { replacement: true });
-
-        // cast enum to text to enum, because postgres won't let you cast from enum to enum
-        typeSql = `${enumName} USING (${this.quoteIdentifier(columnName)}::text::${enumName})`;
-      } else {
-        typeSql = this.attributeTypeToSql(columnDefinition);
-      }
-
-      sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} TYPE ${typeSql}`);
+  createEnumQuery(
+    tableOrModel: TableNameOrModel,
+    dataType: DataTypeInstance,
+    options?: CreateEnumQueryOptions,
+  ): string {
+    if (!(dataType instanceof ENUM)) {
+      throw new TypeError('createEnumQuery expects an instance of the ENUM DataType');
     }
 
-    if (allowNull !== undefined) {
-      sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} ${columnDefinition.allowNull ? 'DROP' : 'SET'} NOT NULL`);
-    }
+    const table = this.extractTableDetails(tableOrModel);
 
-    if (defaultValue !== undefined) {
-      sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} SET DEFAULT ${this.escape(columnDefinition.defaultValue, columnDefinition)}`);
-    }
+    const enumName = dataType.toSql();
+    const values = `ENUM(${dataType.options.values.map(value => this.escape(value))
+      .join(', ')})`;
 
-    if (dropDefaultValue) {
-      sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} DROP DEFAULT`);
-    }
-
-    if (autoIncrement !== undefined) {
-      if (columnDefinition.autoIncrement) {
-        // The sequence needs to be created, it is done as part of changeColumnsQuery
-        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} SET DEFAULT nextval(${this.escape(this.#nameSequence(tableName.tableName, columnName))}::regclass)`);
-      } else if (!('defaultValue' in columnDefinition)) {
-        // we only drop this default if defaultValue is not specified, otherwise the defaultValue takes priority
-        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} DROP DEFAULT`);
-      }
-    }
-
-    if (autoIncrementIdentity !== undefined) {
-      if (columnDefinition.autoIncrementIdentity) {
-        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} ADD GENERATED BY DEFAULT AS IDENTITY`);
-      } else {
-        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} DROP GENERATED BY DEFAULT`);
-      }
-    }
-
-    // only 'true' is accepted for unique in changeColumns, because they're single column uniques.
-    // more complex uniques use addIndex and removing a unique uses removeIndex
-    if (unique === true) {
-      const uniqueName = generateIndexName(tableName.tableName, {
-        fields: [columnName],
-        unique: true,
-      });
-
-      sql.push(`ADD CONSTRAINT ${this.quoteIdentifier(uniqueName)} UNIQUE (${this.quoteIdentifier(columnName)})`);
-    }
-
-    if (references !== undefined) {
-      const targetTable = this.extractTableDetails(references.model);
-
-      let fkSql = `ADD FOREIGN KEY (${this.quoteIdentifier(columnName)}) REFERENCES ${this.quoteTable(targetTable)}(${this.quoteIdentifier(references.key)})`;
-
-      if (onUpdate) {
-        fkSql += ` ON UPDATE ${onUpdate}`;
-      }
-
-      if (onDelete) {
-        fkSql += ` ON DELETE ${onDelete}`;
-      }
-
-      if (references.deferrable) {
-        const deferrable = typeof references.deferrable === 'function'
-          ? new references.deferrable()
-          : references.deferrable;
-
-        fkSql += ` ${deferrable.toSql()}`;
-      }
-
-      sql.push(fkSql);
-    }
-
-    return sql.join(', ');
-  }
-
-  #nameSequence(tableName, columnName) {
-    return `${tableName}_${columnName}_seq`;
-  }
-
-  attributeTypeToSql(attribute) {
-    if (
-      attribute.type instanceof DataTypes.ENUM
-      || attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM
-    ) {
-      const enumType = attribute.type.type || attribute.type;
-      const values = enumType.options.values;
-
-      if (!Array.isArray(values) || values.length <= 0) {
-        throw new Error('Values for ENUM haven\'t been defined.');
-      }
-
-      let type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
-
-      if (attribute.type instanceof DataTypes.ARRAY) {
-        type += '[]';
-      }
-
-      return type;
-    }
-
-    return attribute.type.toString();
-  }
-
-  attributeToSQL(attribute, options) {
-    if (!isPlainObject(attribute)) {
-      attribute = {
-        type: attribute,
-      };
-    }
-
-    let sql = this.attributeTypeToSql(attribute);
-
-    if (attribute.allowNull === false) {
-      sql += ' NOT NULL';
-    }
-
-    if (attribute.autoIncrement) {
-      if (attribute.autoIncrementIdentity) {
-        sql += ' GENERATED BY DEFAULT AS IDENTITY';
-      } else {
-        sql += ' SERIAL';
-      }
-    }
-
-    if (defaultValueSchemable(attribute.defaultValue)) {
-      sql += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
-    }
-
-    if (attribute.unique === true) {
-      sql += ' UNIQUE';
-    }
-
-    if (attribute.primaryKey) {
-      sql += ' PRIMARY KEY';
-    }
-
-    if (attribute.references) {
-      let schema;
-
-      if (options.schema) {
-        schema = options.schema;
-      } else if (
-        (!attribute.references.table || typeof attribute.references.table === 'string')
-        && options.table
-        && options.table.schema
-      ) {
-        schema = options.table.schema;
-      }
-
-      const referencesTable = this.extractTableDetails(attribute.references.table, { schema });
-
-      let referencesKey;
-
-      if (!options.withoutForeignKeyConstraints) {
-        if (attribute.references.key) {
-          referencesKey = this.quoteIdentifiers(attribute.references.key);
-        } else {
-          referencesKey = this.quoteIdentifier('id');
-        }
-
-        sql += ` REFERENCES ${this.quoteTable(referencesTable)} (${referencesKey})`;
-
-        if (attribute.onDelete) {
-          sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-        }
-
-        if (attribute.onUpdate) {
-          sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-        }
-
-        if (attribute.references.deferrable) {
-          sql += ` ${this._getDeferrableConstraintSnippet(attribute.references.deferrable)}`;
-        }
-      }
-    }
-
-    if (attribute.comment && typeof attribute.comment === 'string') {
-      if (options && ['addColumn', 'changeColumn'].includes(options.context)) {
-        const quotedAttr = this.quoteIdentifier(options.key);
-        const escapedCommentText = this.escape(attribute.comment);
-        sql += `; COMMENT ON COLUMN ${this.quoteTable(options.table)}.${quotedAttr} IS ${escapedCommentText}`;
-      } else {
-        // for createTable event which does it's own parsing
-        // TODO: centralize creation of comment statements here
-        sql += ` COMMENT ${attribute.comment}`;
-      }
+    let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(enumName)}  AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
+    if (options?.force === true) {
+      sql = this.dropEnumQuery(table.schema, enumName) + sql;
     }
 
     return sql;
   }
 
-  attributesToSQL(attributes, options) {
-    const result = {};
+  dropEnumQuery(schema: string, dataTypeOrName: DataTypeInstance | string): string {
+    const name = isString(dataTypeOrName) ? dataTypeOrName : dataTypeOrName.toSql();
 
-    for (const key in attributes) {
-      const attribute = attributes[key];
-      result[attribute.field || key] = this.attributeToSQL(attribute, { key, ...options });
-    }
-
-    return result;
+    return `DROP TYPE IF EXISTS ${this.quoteIdentifier(schema)}.${this.quoteIdentifier(name)}; `;
   }
 
-  createEnumQuery(tableName, attr, dataType, options) {
-    if (!(dataType instanceof ENUM)) {
-      throw new TypeError('createEnumQuery expects an instance of the ENUM DataType');
-    }
+  listEnumsQuery(options?: ListEnumQueryOptions) {
+    const enumName = !options?.dataTypeOrName ? ''
+      : isString(options.dataTypeOrName) ? options.dataTypeOrName
+      : options.dataTypeOrName.toSql();
 
-    tableName = this.extractTableDetails(tableName);
+    const enumNameFilter = enumName ? ` AND t.typname=${this.escape(enumName)}` : '';
 
-    const enumName = options?.enumName || this.pgEnumName(tableName, attr, { ...options, noEscape: true, schema: false });
-    const quotedSchema = this.quoteIdentifier(tableName.schema);
-    const values = `ENUM(${dataType.options.values.map(value => this.escape(value))
-      .join(', ')})`;
+    const schema = options?.schema || this.options.schema || this.dialect.getDefaultSchema();
 
-    let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${this.quoteIdentifier(tableName.schema)}.${this.quoteIdentifier(enumName)}  AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
-    if (options?.force === true) {
-      sql = this.pgEnumDrop(tableName, attr) + sql;
+    return 'SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t '
+      + 'JOIN pg_enum e ON t.oid = e.enumtypid '
+      + 'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace '
+      + `WHERE n.nspname = ${this.escape(schema)}${enumNameFilter} GROUP BY 1`;
+  }
+
+  addValueToEnumQuery(
+    schema: string,
+    dataTypeOrName: DataTypeInstance | string,
+    value: string,
+    options?: AddValueToEnumQueryOptions,
+  ): string {
+    const enumName = isString(dataTypeOrName) ? dataTypeOrName : dataTypeOrName.toSql();
+
+    let sql = `ALTER TYPE  ${this.quoteIdentifier(schema)}.${this.quoteIdentifier(enumName)} ADD VALUE IF NOT EXISTS ${this.escape(value)}`;
+
+    if (options?.before) {
+      sql += ` BEFORE ${this.escape(options.before)}`;
+    } else if (options?.after) {
+      sql += ` AFTER ${this.escape(options.after)}`;
     }
 
     return sql;

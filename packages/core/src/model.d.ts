@@ -2232,7 +2232,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withSchema<M extends Model>(
     this: ModelStatic<M>,
-    schema: Nullish<string | SchemaOptions>,
+    schema: string | SchemaOptions | Nullish,
   ): ModelStatic<M>;
 
   /**
@@ -2241,7 +2241,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static schema<M extends Model>(
     this: ModelStatic<M>,
-    schema: Nullish<string>,
+    schema: string | Nullish,
     options?: { schemaDelimiter?: string } | string
   ): ModelStatic<M>;
 
@@ -2267,7 +2267,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withScope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
+    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>> | Nullish,
   ): ModelStatic<M>;
 
   /**
@@ -2276,7 +2276,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
+    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>> | Nullish,
   ): ModelStatic<M>;
 
   /**

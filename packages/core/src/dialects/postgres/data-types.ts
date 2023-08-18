@@ -2,10 +2,12 @@ import assert from 'node:assert';
 import wkx from 'wkx';
 import type { Rangable } from '../../model.js';
 import { isBigInt, isNumber, isString } from '../../utils/check.js';
+import { generateEnumName } from '../../utils/format.js';
 import * as BaseTypes from '../abstract/data-types';
 import type { AbstractDataType, AcceptableTypeOf, AcceptedDate, BindParamOptions } from '../abstract/data-types';
 import { attributeTypeToSql } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
+import type { TableNameWithSchema } from '../abstract/query-interface.js';
 import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
 import * as RangeParser from './range';
@@ -385,15 +387,15 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
       throw new Error('Could not determine the name of this enum because it is not attached to an attribute or a column.');
     }
 
-    let tableName;
+    let table: TableNameWithSchema;
     let columnName;
     if ('model' in context) {
-      tableName = context.model.getTableName();
+      table = context.model.table;
 
       const attribute = context.model.getAttributes()[context.attributeName];
       columnName = attribute.field ?? context.attributeName;
     } else {
-      tableName = context.tableName;
+      table = context.tableName;
       columnName = context.columnName;
     }
 
@@ -401,6 +403,6 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
 
     assert(queryGenerator instanceof PostgresQueryGenerator, 'expected queryGenerator to be PostgresQueryGenerator');
 
-    return queryGenerator.pgEnumName(tableName, columnName);
+    return generateEnumName(table.tableName, columnName);
   }
 }

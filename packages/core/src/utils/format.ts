@@ -170,6 +170,10 @@ export function generateEnumName(
   return out;
 }
 
+export function generateSequenceName(tableName: string, columnName: string) {
+  return `${tableName}_${columnName}_seq`;
+}
+
 export function getColumnName(attribute: NormalizedAttributeOptions): string {
   assert(attribute.attributeName != null, 'getColumnName expects a normalized attribute meta');
 

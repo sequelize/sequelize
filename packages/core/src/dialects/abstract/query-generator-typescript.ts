@@ -28,16 +28,16 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
-import { attributeTypeToSql, isDataType, validateDataType } from './data-types-utils.js';
+import type { RequiredBy } from '../../utils/types.js';
+import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
 import { AbstractDataType } from './data-types.js';
 import type { BindParamOptions, DataType } from './data-types.js';
+import { AbstractQueryGeneratorInternal, normalizeChangeColumnAttribute } from './query-generator-internal.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
-  ChangeColumnDefinition,
   ChangeColumnDefinitions,
   GetConstraintSnippetQueryOptions,
-  NormalizedChangeColumnDefinition,
   QuoteTableOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
@@ -59,11 +59,6 @@ export interface RemoveIndexQueryOptions {
 export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
-
-export interface QueryGeneratorOptions {
-  sequelize: Sequelize;
-  dialect: AbstractDialect;
-}
 
 /**
  * Options accepted by {@link AbstractQueryGeneratorTypeScript#escape}
@@ -115,28 +110,23 @@ export interface Bindable {
  * Always use {@link AbstractQueryGenerator} instead.
  */
 export class AbstractQueryGeneratorTypeScript {
-
   protected readonly whereSqlBuilder: WhereSqlBuilder;
-  readonly dialect: AbstractDialect;
   protected readonly sequelize: Sequelize;
+  readonly #internalQueryGenerator: AbstractQueryGeneratorInternal;
 
-  constructor(options: QueryGeneratorOptions) {
-    if (!options.sequelize) {
-      throw new Error('QueryGenerator initialized without options.sequelize');
-    }
-
-    if (!options.dialect) {
-      throw new Error('QueryGenerator initialized without options.dialect');
-    }
-
-    this.sequelize = options.sequelize;
-    this.dialect = options.dialect;
+  constructor(sequelize: Sequelize, internalQueryGenerator?: AbstractQueryGeneratorInternal) {
+    this.#internalQueryGenerator = internalQueryGenerator ?? new AbstractQueryGeneratorInternal(sequelize);
+    this.sequelize = sequelize;
     // TODO: remove casting once all AbstractQueryGenerator functions are moved here
     this.whereSqlBuilder = new WhereSqlBuilder(this as unknown as AbstractQueryGenerator);
   }
 
   protected get options() {
     return this.sequelize.options;
+  }
+
+  protected get dialect(): AbstractDialect {
+    return this.sequelize.dialect;
   }
 
   changeColumnsQuery(tableOrModel: TableNameOrModel, columnDefinitions: ChangeColumnDefinitions): string {
@@ -158,7 +148,7 @@ export class AbstractQueryGeneratorTypeScript {
         columnName = columnOrAttributeName;
       }
 
-      const columnDefinition = this.#normalizeChangeColumnAttribute(rawColumnDefinition);
+      const columnDefinition = normalizeChangeColumnAttribute(this.sequelize, rawColumnDefinition);
 
       if ('primaryKey' in columnDefinition) {
         throw new Error('changeColumnsQuery does not support adding or removing a column from the primary key because it would need to drop and recreate the constraint but it does not know whether other columns are already part of the primary key. Use dropConstraint and addConstraint instead.');
@@ -176,7 +166,7 @@ export class AbstractQueryGeneratorTypeScript {
         throw new Error('Cannot use both dropDefaultValue and defaultValue on the same column.');
       }
 
-      const columnSql = this._attributeToChangeColumn(tableName, columnName, columnDefinition);
+      const columnSql = this.#internalQueryGenerator.attributeToChangeColumn(tableName, columnName, columnDefinition);
 
       if (columnSql) {
         columnsSql.push(columnSql);
@@ -192,32 +182,6 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     return `ALTER TABLE ${this.quoteTable(tableName)} ${columnsSql.join(', ')};`;
-  }
-
-  #normalizeChangeColumnAttribute(attribute: DataType | ChangeColumnDefinition): NormalizedChangeColumnDefinition {
-    if (isDataType(attribute)) {
-      return { type: this.sequelize.normalizeDataType(attribute) };
-    }
-
-    if (attribute.type == null) {
-      return {
-        ...attribute,
-        type: undefined,
-      };
-    }
-
-    return {
-      ...attribute,
-      type: this.sequelize.normalizeDataType(attribute.type),
-    };
-  }
-
-  protected _attributeToChangeColumn(
-    _tableName: TableNameWithSchema,
-    _columnName: string,
-    _columnDefinition: NormalizedChangeColumnDefinition,
-  ): string {
-    throw new Error(`_attributeToChangeColumn has not been implemented by dialect ${this.dialect.name}`);
   }
 
   describeTableQuery(tableName: TableNameOrModel) {
@@ -487,7 +451,7 @@ export class AbstractQueryGeneratorTypeScript {
   extractTableDetails(
     tableNameOrModel: TableNameOrModel,
     options?: { schema?: string, delimiter?: string },
-  ): TableNameWithSchema {
+  ): RequiredBy<TableNameWithSchema, 'schema'> {
     const tableNameObject = isModelStatic(tableNameOrModel) ? tableNameOrModel.getTableName()
       : isString(tableNameOrModel) ? { tableName: tableNameOrModel }
       : tableNameOrModel;
