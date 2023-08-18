@@ -29,6 +29,14 @@ export function registerCockroachDbDataTypeParsers(dialect: CockroachDbDialect) 
     return value;
   });
 
+  /**
+   * Cockroachdb's ALIAS for INTEGER and BIGINT defaults to int(64-bit value). So while retreiving the values from the database both values are
+   * returned as int8. While parsing them we cannot be sure if the expected behavior is of INTEGER or BIGINT so we make sure if the number is
+   * < than Number.MAX_SAFE_INTEGER --> Parse it as a number
+   * > than Number.MAX_SAFE_INTEGER --> Parse it as a string
+   * Note: Storing INTEGERS as INT4 and BIGINT as int8 would result in an anti-pattern since Cockroachdb uses unique_row_id() to generate a unique ID for
+   * each row by default to ensure global uniqueness, reseliency and consistency.
+   */
   dialect.registerDataTypeParser(['int8'], (value: string) => {
     if (value === null) {
       return null;
