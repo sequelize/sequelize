@@ -74,7 +74,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await current.sync({ force: true });
 
         if (dialectName === 'cockroachdb') {
-          // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
+          // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values
           await Post.bulkCreate([
             { id: 1, name: 'post-1' },
             { id: 2, name: 'post-2' },
