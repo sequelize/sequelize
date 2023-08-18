@@ -1,0 +1,18 @@
+/**
+ * An enum of query types used by {@link Sequelize#query}.
+ */
+export enum QueryTypes {
+  SELECT = 'SELECT',
+  INSERT = 'INSERT',
+  UPDATE = 'UPDATE',
+  BULKUPDATE = 'BULKUPDATE',
+  BULKDELETE = 'BULKDELETE',
+  DELETE = 'DELETE',
+  UPSERT = 'UPSERT',
+  SHOWTABLES = 'SHOWTABLES',
+  SHOWINDEXES = 'SHOWINDEXES',
+  DESCRIBE = 'DESCRIBE',
+  RAW = 'RAW',
+  FOREIGNKEYS = 'FOREIGNKEYS',
+  SHOWCONSTRAINTS = 'SHOWCONSTRAINTS',
+}

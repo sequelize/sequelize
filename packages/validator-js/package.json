@@ -1,0 +1,50 @@
+{
+  "name": "@sequelize/validator.js",
+  "version": "0.0.0-development",
+  "description": "Integration between validator.js and Sequelize",
+  "funding": [
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/sequelize"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:sequelize/sequelize.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sequelize/sequelize/issues"
+  },
+  "scripts": {
+    "test-typings": "tsc --noEmit",
+    "test-unit": "yarn mocha \"test/**/*.test.[tj]s\"",
+    "mocha": "mocha -r ../../test/register-esbuild.js",
+    "build": "../../build-packages.mjs validator-js"
+  },
+  "main": "./lib/index.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@sequelize/core": "workspace:*",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@types/chai": "4.3.5",
+    "@types/chai-as-promised": "7.1.5",
+    "chai": "4.3.7",
+    "chai-as-promised": "7.1.1",
+    "mocha": "10.2.0"
+  }
+}
