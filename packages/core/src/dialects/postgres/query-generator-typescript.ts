@@ -312,9 +312,9 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     const schema = options?.schema || this.options.schema || this.dialect.getDefaultSchema();
 
-    return 'SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t '
-      + 'JOIN pg_enum name ON t.oid = e.enumtypid '
-      + 'JOIN pg_catalog.pg_namespace schema ON n.oid = t.typnamespace '
+    return 'SELECT t.typname name, array_agg(e.enumlabel ORDER BY enumsortorder) values FROM pg_type t '
+      + 'JOIN pg_enum e ON t.oid = e.enumtypid '
+      + 'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace '
       + `WHERE n.nspname = ${this.escape(schema)}${enumNameFilter} GROUP BY 1`;
   }
 

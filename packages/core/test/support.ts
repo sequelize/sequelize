@@ -11,9 +11,6 @@ import type { ExclusiveTestFunction, PendingTestFunction, TestFunction } from 'm
 import sinonChai from 'sinon-chai';
 import { Sequelize } from '@sequelize/core';
 import type { Dialect, Options } from '@sequelize/core';
-import {
-  AbstractQueryGenerator,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
 import { Config } from './config/config';
 
 const expect = chai.expect;
@@ -184,16 +181,6 @@ export function getSequelizeInstance(db: string, user: string, pass: string, opt
 export function getSupportedDialects() {
   return fs.readdirSync(path.join(distDir, 'dialects'))
     .filter(file => !file.includes('.js') && !file.includes('abstract'));
-}
-
-export function getAbstractQueryGenerator(sequelize: Sequelize): AbstractQueryGenerator {
-  class ModdedQueryGenerator extends AbstractQueryGenerator {
-    quoteIdentifier(x: string): string {
-      return x;
-    }
-  }
-
-  return new ModdedQueryGenerator({ sequelize, dialect: sequelize.dialect });
 }
 
 export function getTestDialect(): Dialect {

@@ -151,7 +151,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     );
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
-    // !TODO: adapt ensureEnums
     await this.ensureEnums(tableName, Object.values(attributes), options);
 
     const modelTable = model?.table;

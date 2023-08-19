@@ -27,7 +27,6 @@ interface QiCreateEnumOptions extends CreateEnumQueryOptions, QueryRawOptions {}
 
 interface EnumDescription {
   name: string;
-  schema: string;
   values: string[];
 }
 
@@ -79,10 +78,15 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
    * @param options
    */
   async dropAllEnums(options: QiListEnumsOptions = EMPTY_OBJECT) {
-    const enums = await this.listEnums(options);
+    const schema = options?.schema || this.sequelize.options.schema || this.dialect.getDefaultSchema();
+
+    const enums = await this.listEnums({
+      ...options,
+      schema,
+    });
 
     return Promise.all(enums.map(async enumDescription => {
-      return this.dropEnum(enumDescription.schema, enumDescription.name, options);
+      return this.dropEnum(schema, enumDescription.name, options);
     }));
   }
 
@@ -94,7 +98,7 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
   async listEnums(options: QiListEnumsOptions = EMPTY_OBJECT): Promise<EnumDescription[]> {
     const sql = this.#queryGenerator.listEnumsQuery(options);
 
-    return this.sequelize.queryRaw(sql, { ...options, plain: false, raw: true, type: QueryTypes.SELECT });
+    return this.sequelize.queryRaw<EnumDescription>(sql, { ...options, plain: false, raw: true, type: QueryTypes.SELECT });
   }
 
   async addValueToEnum(
