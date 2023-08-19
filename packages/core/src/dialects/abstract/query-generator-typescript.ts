@@ -266,7 +266,7 @@ export class AbstractQueryGeneratorTypeScript {
         const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_uk`);
         constraintSnippet = `CONSTRAINT ${constraintName} UNIQUE (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
-          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
+          constraintSnippet += ` ${this.#internalQueryGenerator.getDeferrableConstraintSnippet(options.deferrable)}`;
         }
 
         break;
@@ -294,7 +294,7 @@ export class AbstractQueryGeneratorTypeScript {
         const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_pk`);
         constraintSnippet = `CONSTRAINT ${constraintName} PRIMARY KEY (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
-          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
+          constraintSnippet += ` ${this.#internalQueryGenerator.getDeferrableConstraintSnippet(options.deferrable)}`;
         }
 
         break;
@@ -332,7 +332,7 @@ export class AbstractQueryGeneratorTypeScript {
         }
 
         if (options.deferrable) {
-          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
+          constraintSnippet += ` ${this.#internalQueryGenerator.getDeferrableConstraintSnippet(options.deferrable)}`;
         }
 
         break;
