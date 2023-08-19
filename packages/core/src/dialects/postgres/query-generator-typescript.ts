@@ -2,7 +2,7 @@ import mapValues from 'lodash/mapValues.js';
 import * as DataTypes from '../../data-types.js';
 import type { Expression } from '../../sequelize.js';
 import { isString } from '../../utils/check.js';
-import { generateEnumName, generateSequenceName } from '../../utils/format.js';
+import { generateSequenceName } from '../../utils/format.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import type { DataTypeInstance } from '../abstract/data-types.js';
@@ -68,8 +68,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'c.column_name as "Field",',
       'c.column_default as "Default",',
       'c.is_nullable as "Null",',
-      `(CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",`,
-      '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",',
+      `(CASE WHEN c.udt_name = 'hstore' or c.data_type = 'USER-DEFINED' THEN c.udt_name ELSE UPPER(c.data_type) END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",`,
       '(SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"',
       'FROM information_schema.columns c',
       'LEFT JOIN (SELECT tc.table_schema, tc.table_name,',
@@ -253,21 +252,17 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
         out.unshift(`CREATE SEQUENCE IF NOT EXISTS ${this.quoteIdentifier(generateSequenceName(table.tableName, columnName))} OWNED BY ${this.quoteTable(table)}.${this.quoteIdentifier(columnName)};`);
       }
 
-      if (
-        columnDef.type instanceof DataTypes.ENUM
-        || columnDef.type instanceof DataTypes.ARRAY && columnDef.type.options.type instanceof DataTypes.ENUM
-      ) {
-        const existingEnumName = generateEnumName(table.tableName, columnName);
-        const tmpEnumName = generateEnumName(table.tableName, columnName, { replacement: true });
+      const enumType = columnDef.type instanceof DataTypes.ARRAY ? columnDef.type.options.type : columnDef.type;
+      if (enumType instanceof DataTypes.ENUM) {
+        // tell the enum in which context it is used so its name generation has all the necessary information.
+        const typeWithContext = enumType.withUsageContext({
+          columnName,
+          sequelize: this.sequelize,
+          tableName: table,
+        });
 
         // create enum under a temporary name
-        out.unshift(this.createEnumQuery(table, columnDef.type));
-
-        // rename new enum & drop old one (if exists)
-        out.push(
-          this.dropEnumQuery(table.schema, existingEnumName),
-          `ALTER TYPE ${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(tmpEnumName)} RENAME TO ${this.quoteIdentifier(existingEnumName)};`,
-        );
+        out.unshift(this.createEnumQuery(table, typeWithContext));
       }
     }
 

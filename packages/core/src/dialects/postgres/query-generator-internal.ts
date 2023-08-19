@@ -1,6 +1,6 @@
 import * as DataTypes from '../../data-types.js';
 import { normalizeReference } from '../../model-definition.js';
-import { generateEnumName, generateSequenceName } from '../../utils/format.js';
+import { generateSequenceName } from '../../utils/format.js';
 import { generateIndexName } from '../../utils/string.js';
 import { attributeTypeToSql } from '../abstract/data-types-utils.js';
 import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-internal.js';
@@ -38,14 +38,19 @@ export class PostgresQueryGeneratorInternal extends AbstractQueryGeneratorIntern
 
     if (type != null) {
       let typeSql;
-      if (
-        columnDefinition.type instanceof DataTypes.ENUM
-          || columnDefinition.type instanceof DataTypes.ARRAY && columnDefinition.type.options.type instanceof DataTypes.ENUM
-      ) {
-        const enumName = generateEnumName(table.tableName, columnName, { replacement: true });
+
+      const enumType = columnDefinition.type instanceof DataTypes.ARRAY
+        ? columnDefinition.type.options.type
+        : columnDefinition.type;
+      if (enumType instanceof DataTypes.ENUM) {
+        const enumName = enumType.toSql();
+
+        const schema = table?.schema || this.sequelize.options.schema || this.#dialect.getDefaultSchema();
+
+        const quotedEnumName = `${this.#qg.quoteIdentifier(schema)}.${this.#qg.quoteIdentifier(enumName)}`;
 
         // cast enum to text to enum, because postgres won't let you cast from enum to enum
-        typeSql = `${enumName} USING (${this.#qg.quoteIdentifier(columnName)}::text::${enumName})`;
+        typeSql = `${quotedEnumName} USING (${this.#qg.quoteIdentifier(columnName)}::text::${quotedEnumName})`;
       } else {
         typeSql = attributeTypeToSql(type);
       }

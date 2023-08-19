@@ -96,7 +96,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
-  createTableQuery(tableName, attributes, options) {
+  createTableQuery(table, attributes, options) {
     if (options) {
       rejectInvalidOptions(
         'createTableQuery',
@@ -113,7 +113,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let comments = '';
     let columnComments = '';
 
-    const quotedTable = this.quoteTable(tableName);
+    const quotedTable = this.quoteTable(table);
 
     if (options.comment && typeof options.comment === 'string') {
       comments += `; COMMENT ON TABLE ${quotedTable} IS ${this.escape(options.comment)}`;
@@ -129,7 +129,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attributes[attr] = attributes[attr].slice(0, Math.max(0, i));
       }
 
-      const dataType = this.dataTypeMapping(tableName, attr, attributes[attr]);
+      const dataType = this.dataTypeMapping(table, attr, attributes[attr]);
       attrStr.push(`${quotedAttr} ${dataType}`);
     }
 
@@ -138,7 +138,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     if (options.uniqueKeys) {
       each(options.uniqueKeys, (index, indexName) => {
         if (typeof indexName !== 'string') {
-          indexName = generateIndexName(tableName, index);
+          indexName = generateIndexName(table, index);
         }
 
         attributesClause += `, CONSTRAINT ${
@@ -604,7 +604,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     if (dataType.startsWith('ENUM(')) {
-      dataType = dataType.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attr));
+      // TODO: we should not use generateEnumName! Call .toSQL on the enum!
+      dataType = dataType.replace(/^ENUM\(.+\)/, this.quoteIdentifier(generateEnumName(tableName.tableName, attr)));
     }
 
     return dataType;

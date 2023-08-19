@@ -133,7 +133,7 @@ export class AbstractQueryGeneratorTypeScript {
       throw new Error('changeColumnsQuery requires at least one column to be provided.');
     }
 
-    const tableName = this.extractTableDetails(tableOrModel);
+    const table = this.extractTableDetails(tableOrModel);
 
     const columnsSql: string[] = [];
 
@@ -165,7 +165,15 @@ export class AbstractQueryGeneratorTypeScript {
         throw new Error('Cannot use both dropDefaultValue and defaultValue on the same column.');
       }
 
-      const columnSql = this.#internalQueryGenerator.attributeToChangeColumn(tableName, columnName, columnDefinition);
+      if (columnDefinition.type instanceof AbstractDataType) {
+        columnDefinition.type = columnDefinition.type.withUsageContext({
+          columnName,
+          sequelize: this.sequelize,
+          tableName: table,
+        });
+      }
+
+      const columnSql = this.#internalQueryGenerator.attributeToChangeColumn(table, columnName, columnDefinition);
 
       if (columnSql) {
         columnsSql.push(columnSql);
@@ -180,7 +188,7 @@ export class AbstractQueryGeneratorTypeScript {
       return '';
     }
 
-    return `ALTER TABLE ${this.quoteTable(tableName)} ${columnsSql.join(', ')};`;
+    return `ALTER TABLE ${this.quoteTable(table)} ${columnsSql.join(', ')};`;
   }
 
   describeTableQuery(tableName: TableNameOrModel) {

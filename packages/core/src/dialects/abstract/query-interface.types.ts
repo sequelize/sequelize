@@ -7,14 +7,23 @@ import type {
 } from './query-generator.types';
 
 export interface ColumnDescription {
+  // TODO (postgres): for user-defined types, expose schema and catalog
   type: string;
   allowNull: boolean;
+
+  /**
+   * The default value as raw SQL.
+   */
   defaultValue: string;
   primaryKey: boolean;
-  autoIncrement: boolean;
-  comment: string | null;
 
-  // !TODO: unique? special?
+  /**
+   * Only available for MySQL, MariaDB.
+   *
+   * Postgres sets the defaultValue instead.
+   */
+  autoIncrement?: boolean;
+  comment: string | null;
 }
 
 export type ColumnsDescription = Record<string, ColumnDescription>;

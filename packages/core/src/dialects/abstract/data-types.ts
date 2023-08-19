@@ -342,6 +342,7 @@ export abstract class AbstractDataType<
   }
 
   withUsageContext(usageContext: DataTypeUseContext): this {
+    // TODO: if usageContext is the same, return this
     const out = this.clone().attachUsageContext(usageContext);
 
     if (this.#dialect) {

@@ -147,11 +147,25 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     attributes = mapValues(
       attributes,
-      attribute => this.sequelize.normalizeAttribute(attribute),
+      (attribute, attributeName) => {
+        const normalizedAttribute = this.sequelize.normalizeAttribute(attribute);
+
+        if (normalizedAttribute.type instanceof AbstractDataType) {
+          normalizedAttribute.type = normalizedAttribute.type.withUsageContext({
+            tableName,
+            columnName: normalizedAttribute.columnName || attributeName,
+            sequelize: this.sequelize,
+          });
+        }
+
+        return normalizedAttribute;
+      },
     );
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
-    await this.ensureEnums(tableName, Object.values(attributes), options);
+    if ('ensureEnums' in this) {
+      await this.ensureEnums(tableName, Object.values(attributes), options);
+    }
 
     const modelTable = model?.table;
 

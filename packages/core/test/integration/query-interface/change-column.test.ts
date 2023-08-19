@@ -6,6 +6,8 @@ const dialect = sequelize.dialect;
 const dialectName = dialect.name;
 const queryInterface = sequelize.getQueryInterface();
 
+const VARCHAR_TYPE = dialectName === 'postgres' ? 'CHARACTER VARYING(255)' : 'VARCHAR(255)';
+
 describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
   beforeEach(async () => {
     await dropTestSchemas(sequelize);
@@ -36,8 +38,10 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
         allowNull: true,
         defaultValue: null,
         primaryKey: false,
-        autoIncrement: false,
         comment: null,
+        ...(['mysql', 'mariadb'].includes(dialectName) && {
+          autoIncrement: false,
+        }),
       });
     });
   }
@@ -65,8 +69,10 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
       allowNull: true,
       defaultValue: null,
       primaryKey: false,
-      autoIncrement: false,
       comment: null,
+      ...(['mysql', 'mariadb'].includes(dialectName) && {
+        autoIncrement: false,
+      }),
     });
   });
 
@@ -93,20 +99,24 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
     const tableDescription = await queryInterface.describeTable('users');
     expect(tableDescription).to.deep.equal({
       firstName: {
-        type: 'VARCHAR(255)',
+        type: VARCHAR_TYPE,
         allowNull: true,
         defaultValue: null,
         primaryKey: false,
-        autoIncrement: false,
         comment: null,
+        ...(['mysql', 'mariadb'].includes(dialectName) && {
+          autoIncrement: false,
+        }),
       },
       lastName: {
-        type: 'VARCHAR(255)',
+        type: VARCHAR_TYPE,
         allowNull: false,
         defaultValue: null,
         primaryKey: false,
-        autoIncrement: false,
         comment: null,
+        ...(['mysql', 'mariadb'].includes(dialectName) && {
+          autoIncrement: false,
+        }),
       },
     });
   });
@@ -149,14 +159,18 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
     const table = await queryInterface.describeTable('users');
 
     expect(table.status).to.deep.equal({
-      type: 'VARCHAR(255)',
+      type: VARCHAR_TYPE,
       allowNull: false,
       defaultValue: 'active',
       primaryKey: false,
-      autoIncrement: false,
       comment: null,
+      ...(['mysql', 'mariadb'].includes(dialectName) && {
+        autoIncrement: false,
+      }),
     });
   });
+
+  // !TODO: set the defaultValue to raw SQL
 
   it('can remove the defaultValue of a column', async () => {
     await queryInterface.createTable('users', {
@@ -180,12 +194,14 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
     const table = await queryInterface.describeTable('users');
 
     expect(table.status).to.deep.equal({
-      type: 'VARCHAR(255)',
+      type: VARCHAR_TYPE,
       allowNull: false,
       defaultValue: null,
       primaryKey: false,
-      autoIncrement: false,
       comment: null,
+      ...(['mysql', 'mariadb'].includes(dialectName) && {
+        autoIncrement: false,
+      }),
     });
   });
 
@@ -218,20 +234,24 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
     const description = await queryInterface.describeTable('users');
     expect(description).to.deep.equal({
       id: {
-        type: 'BIGINT(20)',
+        type: dialectName === 'postgres' ? 'BIGINT' : 'BIGINT(20)',
         allowNull: false,
         primaryKey: true,
-        autoIncrement: true,
         comment: 'id',
-        defaultValue: null,
+        defaultValue: dialectName === 'postgres' ? 'nextval(users_id_seq::regclass)' : null,
+        ...(['mysql', 'mariadb'].includes(dialectName) && {
+          autoIncrement: true,
+        }),
       },
       firstName: {
-        type: 'CHAR(255)',
+        type: dialectName === 'postgres' ? 'CHARACTER(255)' : 'CHAR(255)',
         defaultValue: 'john',
         allowNull: false,
         comment: 'first name',
-        autoIncrement: false,
         primaryKey: false,
+        ...(['mysql', 'mariadb'].includes(dialectName) && {
+          autoIncrement: false,
+        }),
       },
     });
   });
@@ -253,7 +273,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
       if (dialectName === 'mysql') {
         expect(table.firstName.type).to.equal(`ENUM('value1','value2','value3')`);
       } else if (dialectName === 'postgres') {
-        expect(table.firstName.special).to.deep.equal(['value1', 'value2', 'value3']);
+        expect(table.firstName.type).to.deep.equal('enum_users_firstName');
       }
     });
 
@@ -276,7 +296,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
         if (dialectName === 'mysql') {
           expect(table.firstName.type).to.equal(`ENUM('value1','value2','value3')`);
         } else if (dialectName === 'postgres') {
-          expect(table.firstName.special).to.deep.equal(['value1', 'value2', 'value3']);
+          expect(table.firstName.type).to.deep.equal('enum_users_firstName');
         }
       });
     }
@@ -284,7 +304,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
     it('can replace an enum with a different enum', async () => {
       await queryInterface.createTable({ tableName: 'users' }, {
         firstName: DataTypes.ENUM(['value1', 'value2', 'value3']),
-      }, { logging: true });
+      });
 
       await queryInterface.changeColumn('users', 'firstName', {
         type: DataTypes.ENUM(['value1', 'value3', 'value4', 'value5']),
@@ -295,7 +315,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
       if (dialectName === 'mysql') {
         expect(table.firstName.type).to.equal(`ENUM('value1','value3','value4','value5')`);
       } else if (dialectName === 'postgres') {
-        expect(table.firstName.special).to.deep.eq(['value1', 'value3', 'value4', 'value5']);
+        expect(table.firstName.type).to.deep.equal('enum_users_firstName');
       }
     });
   }
@@ -331,7 +351,7 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
 
       await queryInterface.changeColumn('users', 'level_id', {
         references: {
-          model: 'level',
+          table: 'level',
           key: 'id',
         },
         onUpdate: 'CASCADE',
@@ -351,7 +371,6 @@ describe(getTestDialectTeaser('QueryInterface#changeColumn'), () => {
         allowNull: false,
         defaultValue: null,
         comment: 'Comment',
-        special: [],
         primaryKey: false,
       });
     });
