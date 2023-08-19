@@ -1,3 +1,4 @@
+import type { DbObjectId } from '../dialects/abstract/query-interface';
 import { BaseSqlExpression } from './base-sql-expression.js';
 
 /**
@@ -6,7 +7,7 @@ import { BaseSqlExpression } from './base-sql-expression.js';
 export class Identifier extends BaseSqlExpression {
   declare private readonly brand: 'identifier';
 
-  constructor(readonly value: string) {
+  constructor(readonly value: DbObjectId) {
     super();
   }
 }
@@ -28,6 +29,6 @@ export class Identifier extends BaseSqlExpression {
  * SELECT * FROM users WHERE "firstName" = 'John'
  * ```
  */
-export function identifier(value: string): Identifier {
+export function identifier(value: DbObjectId): Identifier {
   return new Identifier(value);
 }

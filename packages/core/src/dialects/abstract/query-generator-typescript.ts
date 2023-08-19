@@ -41,7 +41,7 @@ import type {
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types.js';
-import type { TableName, TableNameWithSchema } from './query-interface.js';
+import type { DbObjectId, TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import { PojoWhere, WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 import type { AbstractDialect } from './index.js';
@@ -563,9 +563,35 @@ export class AbstractQueryGeneratorTypeScript {
    * @param identifier
    * @param _force
    */
-  // TODO: memoize last result
-  quoteIdentifier(identifier: string, _force?: boolean) {
+  // TODO: memoize
+  // TODO: move to internal class
+  protected _quoteSimpleIdentifier(identifier: string, _force?: boolean) {
     return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
+  }
+
+  quoteIdentifier(identifier: DbObjectId, force?: boolean) {
+    if (!isString(identifier)) {
+      const name = this._quoteSimpleIdentifier(identifier.name, force);
+
+      if (identifier.schema) {
+        return `${this._quoteSimpleIdentifier(identifier.schema, force)}.${name}`;
+      }
+
+      return name;
+    }
+
+    return this._quoteSimpleIdentifier(identifier, force);
+  }
+
+  quoteIdentifierWithDefaults(identifier: DbObjectId) {
+    if (isString(identifier)) {
+      return this.quoteIdentifier({ name: identifier, schema: this.options.schema || this.dialect.getDefaultSchema() });
+    }
+
+    return this.quoteIdentifier({
+      ...identifier,
+      schema: identifier.schema || this.options.schema || this.dialect.getDefaultSchema(),
+    });
   }
 
   isSameTable(tableA: TableNameOrModel, tableB: TableNameOrModel) {

@@ -3,6 +3,9 @@
 import { Deferrable } from '../../deferrable';
 import { camelizeObjectKeys } from '../../utils/object';
 import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.js';
+import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal';
+import { PostgresQueryGenerator } from './query-generator';
+import { PostgresDialect } from './index';
 
 const DataTypes = require('../../data-types');
 const { QueryTypes } = require('../../query-types');
@@ -44,6 +47,8 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
    * @override
    */
   async dropTable(tableName, options) {
+    const table = this.queryGenerator.extractTableDetails(tableName);
+
     await super.dropTable(tableName, options);
     const promises = [];
     // TODO: we support receiving the model class instead of getting it from modelManager. More than one model can use the same table.
@@ -54,8 +59,6 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       return;
     }
 
-    const getTableName = (!options || !options.schema || options.schema === 'public' ? '' : `${options.schema}_`) + tableName;
-
     const attributes = model.modelDefinition.attributes;
 
     for (const attribute of attributes.values()) {
@@ -63,12 +66,7 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
         continue;
       }
 
-      const sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
-      promises.push(this.sequelize.queryRaw(sql, {
-        ...options,
-        raw: true,
-        supportsSearchPath: false,
-      }));
+      await this.dropEnum(table.schema, attribute.type, options);
     }
 
     await Promise.all(promises);

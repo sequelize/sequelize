@@ -7,7 +7,7 @@ import * as BaseTypes from '../abstract/data-types';
 import type { AbstractDataType, AcceptableTypeOf, AcceptedDate, BindParamOptions } from '../abstract/data-types';
 import { attributeTypeToSql } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
-import type { TableNameWithSchema } from '../abstract/query-interface.js';
+import type { DbObjectIdStruct, TableNameWithSchema } from '../abstract/query-interface.js';
 import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
 import * as RangeParser from './range';
@@ -382,8 +382,22 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
 
 export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
   override toSql(): string {
-    if (this.options.name) {
-      return this.options.name;
+    const context = this.usageContext;
+    if (context == null) {
+      throw new Error('This ENUM does not have an usage context.');
+    }
+
+    const queryGenerator = context.sequelize.queryGenerator;
+
+    return queryGenerator.quoteIdentifier(this.getEnumName());
+  }
+
+  getEnumName(): DbObjectIdStruct {
+    if (this.options.name && this.options.schema) {
+      return {
+        name: this.options.name,
+        schema: this.options.schema,
+      };
     }
 
     const context = this.usageContext;
@@ -407,6 +421,12 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
 
     assert(queryGenerator instanceof PostgresQueryGenerator, 'expected queryGenerator to be PostgresQueryGenerator');
 
-    return generateEnumName(table.tableName, columnName);
+    return {
+      // !TODO: Add test to ensure this works in createTable (should use the right enum)
+      // !TODO: Add test where two different tables use this enum, then one is dropped (should not drop the enum), then the other is dropped (should drop the enum)
+      // !TODO: Add test where two different columns use this enum, then one is dropped (should not drop the enum), then the other is dropped (should drop the enum)
+      name: this.options.name || generateEnumName(table.tableName, columnName),
+      schema: this.options.schema || table.schema,
+    };
   }
 }

@@ -502,7 +502,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
    *
    * @returns {string}
    */
-  quoteIdentifier(identifier, force) {
+  _quoteSimpleIdentifier(identifier, force) {
     const optForceQuote = force || false;
     // TODO [>7]: remove "quoteIdentifiers: false" option
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;

@@ -45,12 +45,8 @@ export class PostgresQueryGeneratorInternal extends AbstractQueryGeneratorIntern
       if (enumType instanceof DataTypes.ENUM) {
         const enumName = enumType.toSql();
 
-        const schema = table?.schema || this.sequelize.options.schema || this.#dialect.getDefaultSchema();
-
-        const quotedEnumName = `${this.#qg.quoteIdentifier(schema)}.${this.#qg.quoteIdentifier(enumName)}`;
-
         // cast enum to text to enum, because postgres won't let you cast from enum to enum
-        typeSql = `${quotedEnumName} USING (${this.#qg.quoteIdentifier(columnName)}::text::${quotedEnumName})`;
+        typeSql = `${enumName} USING (${this.#qg.quoteIdentifier(columnName)}::text::${enumName})`;
       } else {
         typeSql = attributeTypeToSql(type);
       }

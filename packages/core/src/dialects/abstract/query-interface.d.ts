@@ -86,6 +86,13 @@ export interface TableNameWithSchema {
   delimiter?: string;
 }
 
+export interface DbObjectIdStruct {
+  name: string;
+  schema?: string | undefined;
+}
+
+export type DbObjectId = string | DbObjectIdStruct;
+
 export type TableName = string | TableNameWithSchema;
 
 export type IndexType = AllowLowercase<'UNIQUE' | 'FULLTEXT' | 'SPATIAL'>;

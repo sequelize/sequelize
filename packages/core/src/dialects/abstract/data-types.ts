@@ -22,6 +22,7 @@ import type { HstoreRecord } from '../postgres/hstore.js';
 import { buildRangeParser } from '../postgres/range.js';
 import {
   attributeTypeToSql,
+  cloneDataType,
   dataTypeClassOrInstanceToInstance,
   isDataType,
   isDataTypeClass,
@@ -338,18 +339,18 @@ export abstract class AbstractDataType<
   clone(): this {
     // there is a convention that all DataTypes must accept a single "options" parameter as one of their signatures, but it's impossible to enforce in typing
     // @ts-expect-error -- see ^
-    return this._construct(this.options);
-  }
-
-  withUsageContext(usageContext: DataTypeUseContext): this {
-    // TODO: if usageContext is the same, return this
-    const out = this.clone().attachUsageContext(usageContext);
+    const out: this = this._construct(this.options);
 
     if (this.#dialect) {
       out.#dialect = this.#dialect;
     }
 
     return out;
+  }
+
+  withUsageContext(usageContext: DataTypeUseContext): this {
+    // TODO: if usageContext is the same, return this
+    return this.clone().attachUsageContext(usageContext);
   }
 
   /**
@@ -2134,6 +2135,13 @@ export interface EnumOptions<Member extends string> {
    * Postgres only.
    */
   name?: string;
+
+  /**
+   * The schema the enum belongs to.
+   * Postgres only.
+   */
+  schema?: string;
+
   values: Member[];
 }
 
@@ -2370,6 +2378,14 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     }
 
     return super.attachUsageContext(usageContext);
+  }
+
+  clone(): this {
+    const out: this = super.clone();
+
+    out.options.type = cloneDataType(out.options.type);
+
+    return out;
   }
 
   static is<T extends AbstractDataType<any>>(

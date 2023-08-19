@@ -6,10 +6,12 @@ import { generateSequenceName } from '../../utils/format.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import type { DataTypeInstance } from '../abstract/data-types.js';
+import { AbstractDataType } from '../abstract/data-types.js';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { normalizeChangeColumnAttribute } from '../abstract/query-generator-internal.js';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ChangeColumnDefinitions, ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { DbObjectId } from '../abstract/query-interface';
 import { ENUM } from './data-types.js';
 import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
 import type { PostgresDialect } from './index.js';
@@ -68,7 +70,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'c.column_name as "Field",',
       'c.column_default as "Default",',
       'c.is_nullable as "Null",',
-      `(CASE WHEN c.udt_name = 'hstore' or c.data_type = 'USER-DEFINED' THEN c.udt_name ELSE UPPER(c.data_type) END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",`,
+      `(CASE WHEN c.udt_name = 'hstore' THEN UPPER(c.udt_name) WHEN c.data_type = 'USER-DEFINED' THEN c.udt_name ELSE UPPER(c.data_type) END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",`,
       '(SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"',
       'FROM information_schema.columns c',
       'LEFT JOIN (SELECT tc.table_schema, tc.table_name,',
@@ -262,7 +264,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
         });
 
         // create enum under a temporary name
-        out.unshift(this.createEnumQuery(table, typeWithContext));
+        out.unshift(this.createEnumQuery(typeWithContext));
       }
     }
 
@@ -270,7 +272,6 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   createEnumQuery(
-    tableOrModel: TableNameOrModel,
     dataType: DataTypeInstance,
     options?: CreateEnumQueryOptions,
   ): string {
@@ -278,24 +279,23 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       throw new TypeError('createEnumQuery expects an instance of the ENUM DataType');
     }
 
-    const table = this.extractTableDetails(tableOrModel);
-
-    const enumName = dataType.toSql();
+    const enumName = dataType.getEnumName();
     const values = `ENUM(${dataType.options.values.map(value => this.escape(value))
       .join(', ')})`;
 
-    let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(enumName)}  AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
+    let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${this.quoteIdentifierWithDefaults(enumName)} AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
     if (options?.force === true) {
-      sql = this.dropEnumQuery(table.schema, enumName) + sql;
+      sql = `${this.dropEnumQuery(enumName)}\n${sql}`;
     }
 
     return sql;
   }
 
-  dropEnumQuery(schema: string, dataTypeOrName: DataTypeInstance | string): string {
-    const name = isString(dataTypeOrName) ? dataTypeOrName : dataTypeOrName.toSql();
+  dropEnumQuery(dataTypeOrName: DataTypeInstance | DbObjectId): string {
+    const enumName = dataTypeOrName instanceof AbstractDataType ? dataTypeOrName.toSql()
+        : this.quoteIdentifierWithDefaults(dataTypeOrName);
 
-    return `DROP TYPE IF EXISTS ${this.quoteIdentifier(schema)}.${this.quoteIdentifier(name)}; `;
+    return `DROP TYPE IF EXISTS ${enumName};`;
   }
 
   listEnumsQuery(options?: ListEnumQueryOptions) {
@@ -314,14 +314,14 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   addValueToEnumQuery(
-    schema: string,
-    dataTypeOrName: DataTypeInstance | string,
+    dataTypeOrName: DataTypeInstance | DbObjectId,
     value: string,
     options?: AddValueToEnumQueryOptions,
   ): string {
-    const enumName = isString(dataTypeOrName) ? dataTypeOrName : dataTypeOrName.toSql();
+    const enumName = dataTypeOrName instanceof AbstractDataType ? dataTypeOrName.toSql()
+      : this.quoteIdentifierWithDefaults(dataTypeOrName);
 
-    let sql = `ALTER TYPE  ${this.quoteIdentifier(schema)}.${this.quoteIdentifier(enumName)} ADD VALUE IF NOT EXISTS ${this.escape(value)}`;
+    let sql = `ALTER TYPE ${enumName} ADD VALUE IF NOT EXISTS ${this.escape(value)}`;
 
     if (options?.before) {
       sql += ` BEFORE ${this.escape(options.before)}`;

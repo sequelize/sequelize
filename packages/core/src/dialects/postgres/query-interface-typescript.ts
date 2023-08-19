@@ -5,12 +5,11 @@ import type { QueryRawOptions } from '../../sequelize.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import type { DataTypeInstance } from '../abstract/data-types.js';
-import type { TableNameOrModel } from '../abstract/query-generator-typescript.js';
 import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal.js';
-import type { TableName } from '../abstract/query-interface.js';
+import type { DbObjectId, TableName } from '../abstract/query-interface.js';
 import { AbstractQueryInterface } from '../abstract/query-interface.js';
 import type { FetchDatabaseVersionOptions } from '../abstract/query-interface.types.js';
-import type { ENUM } from './data-types.js';
+import { ENUM } from './data-types.js';
 import type {
   AddValueToEnumQueryOptions,
   CreateEnumQueryOptions,
@@ -48,12 +47,11 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
   }
 
   async createEnum(
-    tableOrModel: TableNameOrModel,
     dataType: DataTypeInstance,
     options?: QiCreateEnumOptions,
   ): Promise<void> {
     await this.sequelize.queryRaw(
-      this.#queryGenerator.createEnumQuery(tableOrModel, dataType, options),
+      this.#queryGenerator.createEnumQuery(dataType, options),
       options,
     );
   }
@@ -61,13 +59,12 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
   /**
    * Drop specified enum from database (Postgres only)
    *
-   * @param schema
-   * @param enumName
+   * @param enumNameOrType
    * @param options
    */
-  async dropEnum(schema: string, enumName: string, options: Omit<QueryRawOptions, 'raw'> = EMPTY_OBJECT): Promise<void> {
+  async dropEnum(enumNameOrType: DataTypeInstance | DbObjectId, options: Omit<QueryRawOptions, 'raw'> = EMPTY_OBJECT): Promise<void> {
     await this.sequelize.queryRaw(
-      this.#queryGenerator.dropEnumQuery(schema, enumName),
+      this.#queryGenerator.dropEnumQuery(enumNameOrType),
       { ...options, raw: true },
     );
   }
@@ -86,7 +83,7 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
     });
 
     return Promise.all(enums.map(async enumDescription => {
-      return this.dropEnum(schema, enumDescription.name, options);
+      return this.dropEnum(enumDescription.name, options);
     }));
   }
 
@@ -102,12 +99,11 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
   }
 
   async addValueToEnum(
-    schema: string,
-    dataTypeOrEnumName: DataTypeInstance | string,
+    dataTypeOrEnumName: DataTypeInstance | DbObjectId,
     value: string,
     options?: QiAddValueToEnumOptions,
   ): Promise<void> {
-    const sql = this.#queryGenerator.addValueToEnumQuery(schema, dataTypeOrEnumName, value, options);
+    const sql = this.#queryGenerator.addValueToEnumQuery(dataTypeOrEnumName, value, options);
 
     await this.sequelize.queryRaw(sql, options);
   }
@@ -140,7 +136,6 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
         : params[2] as QueryRawOptions | undefined;
 
     const table = this.#queryGenerator.extractTableDetails(rawTable);
-    const schema = table.schema;
 
     const listEnumsPromises: Array<Promise<EnumDescription[]>> = [];
 
@@ -169,20 +164,20 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
       const type = attribute.type;
       const enumType = type instanceof DataTypes.ARRAY ? type.options.type : type;
 
-      if (!(enumType instanceof DataTypes.ENUM)) {
+      if (!(enumType instanceof ENUM)) {
         continue;
       }
 
-      const enumName = enumType.toSql();
-      const existingEnum = existingEnums.get(enumName);
+      const enumName: DbObjectId = enumType.getEnumName();
+      const existingEnum = existingEnums.get(enumName.name);
 
       if (!existingEnum) {
-        modifyEnumPromises.push(this.createEnum(table, enumType, options));
+        modifyEnumPromises.push(this.createEnum(enumType, options));
 
         continue;
       }
 
-      modifyEnumPromises.push(this.#syncExistingEnum(schema, enumName, existingEnum, enumType, options));
+      modifyEnumPromises.push(this.#syncExistingEnum(enumName, existingEnum, enumType, options));
     }
 
     await Promise.all(modifyEnumPromises);
@@ -194,8 +189,7 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
   }
 
   async #syncExistingEnum(
-    schema: string,
-    enumName: string,
+    enumName: DbObjectId,
     existingEnum: EnumDescription,
     enumType: ENUM<string>,
     options?: QueryRawOptions,
@@ -222,13 +216,13 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
 
       const newValuesBefore = newVals.slice(0, newIdx);
       // we go in reverse order so we could stop when we meet old value
-      for (let reverseIdx = newValuesBefore.length - 1; reverseIdx >= 0; reverseIdx--) {
-        if (existingVals.includes(newValuesBefore[reverseIdx])) {
-          break;
+      for (const element of newValuesBefore) {
+        if (existingVals.includes(element)) {
+          continue;
         }
 
         // eslint-disable-next-line no-await-in-loop -- these operations cannot run concurrently
-        await this.addValueToEnum(schema, enumName, newValuesBefore[reverseIdx], {
+        await this.addValueToEnum(enumName, element, {
           ...options,
           before: lastOldEnumValue,
         });
@@ -244,7 +238,7 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
       const remainingEnumValues = newVals.slice(rightestPosition + 1);
       for (let reverseIdx = remainingEnumValues.length - 1; reverseIdx >= 0; reverseIdx--) {
         // eslint-disable-next-line no-await-in-loop -- these operations cannot run concurrently
-        await this.addValueToEnum(schema, enumName, remainingEnumValues[reverseIdx], {
+        await this.addValueToEnum(enumName, remainingEnumValues[reverseIdx], {
           ...options,
           after: lastOldEnumValue,
         });
