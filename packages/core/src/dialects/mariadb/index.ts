@@ -74,12 +74,9 @@ export class MariaDbDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'mariadb');
-    this.connectionManager = new MariaDbConnectionManager(this, sequelize);
-    this.queryGenerator = new MariaDbQueryGenerator(sequelize);
-    this.queryInterface = new MariaDbQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.connectionManager = new MariaDbConnectionManager(this);
+    this.queryGenerator = new MariaDbQueryGenerator(this);
+    this.queryInterface = new MariaDbQueryInterface(this);
 
     registerMariaDbDbDataTypeParsers(this);
   }

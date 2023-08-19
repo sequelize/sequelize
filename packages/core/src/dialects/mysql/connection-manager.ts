@@ -14,7 +14,7 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions } from '../../sequelize.js';
 import { isError, isNodeError } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection as AbstractConnection } from '../abstract/connection-manager';
@@ -54,8 +54,8 @@ export interface MySqlTypeCastValue {
 export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConnection> {
   private readonly lib: Lib;
 
-  constructor(dialect: AbstractDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: AbstractDialect) {
+    super(dialect);
     this.lib = this._loadDialectModule('mysql2') as Lib;
   }
 

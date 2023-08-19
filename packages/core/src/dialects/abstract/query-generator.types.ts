@@ -3,7 +3,7 @@ import type { BaseSqlExpression } from '../../expression-builders/base-sql-expre
 import type { AttributeOptions, IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
-import type { Nullish } from '../../utils/types.js';
+import type { LoosePartial, Nullish } from '../../utils/types.js';
 import type { DataType, DataTypeInstance } from './data-types.js';
 import type { TableNameOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
@@ -114,7 +114,7 @@ export type ChangeColumnDefinitions = {
   [attributeName: string]: DataType | ChangeColumnDefinition,
 };
 
-export type ChangeColumnDefinition = Partial<Omit<AttributeOptions, 'primaryKey' | 'unique'>> & {
+export type ChangeColumnDefinition = LoosePartial<Omit<AttributeOptions, 'primaryKey' | 'unique'>> & {
   /**
    * Only 'true' is allowed, because changeColumns can add a single-column unique, but does not have access to enough information
    * to add a multi-column unique, or removing a column from a unique index.
@@ -130,5 +130,5 @@ export type ChangeColumnDefinition = Partial<Omit<AttributeOptions, 'primaryKey'
 };
 
 export type NormalizedChangeColumnDefinition = Omit<ChangeColumnDefinition, 'type'> & {
-  type?: DataTypeInstance | string | Nullish,
+  type?: DataTypeInstance | string | undefined,
 };

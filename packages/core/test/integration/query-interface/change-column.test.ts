@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { DataTypes, QueryTypes } from '@sequelize/core';
+import { DataTypes } from '@sequelize/core';
 import { dropTestSchemas, getTestDialectTeaser, sequelize } from '../support';
 
 const dialect = sequelize.dialect;

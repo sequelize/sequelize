@@ -13,6 +13,8 @@ import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-inte
 import type { NormalizedChangeColumnDefinition } from '../abstract/query-generator.types.js';
 import type { TableNameWithSchema } from '../abstract/query-interface.js';
 import { PROPERTIES_NEEDING_CHANGE_COLUMN } from './query-generator-typescript.js';
+import type { MySqlQueryGenerator } from './query-generator.js';
+import type { MysqlDialect } from './index.js';
 
 type ColumnDefinition = Pick<
     NonNullishRequiredBy<NormalizedChangeColumnDefinition, 'type'>,
@@ -20,6 +22,18 @@ type ColumnDefinition = Pick<
 >;
 
 export class MySqlQueryGeneratorInternal extends AbstractQueryGeneratorInternal {
+  readonly #dialect: MysqlDialect;
+
+  get #qg(): MySqlQueryGenerator {
+    return this.#dialect.queryGenerator;
+  }
+
+  constructor(dialect: MysqlDialect) {
+    super(dialect);
+
+    this.#dialect = dialect;
+  }
+
   attributeToChangeColumn(
     table: TableNameWithSchema,
     columnName: string,
@@ -33,7 +47,7 @@ export class MySqlQueryGeneratorInternal extends AbstractQueryGeneratorInternal 
     } = columnDefinition;
 
     if (autoIncrementIdentity !== undefined) {
-      throw new Error(`${this.dialect.name} does not support autoIncrementIdentity`);
+      throw new Error(`${this.#dialect.name} does not support autoIncrementIdentity`);
     }
 
     const sql = [];
@@ -44,27 +58,27 @@ export class MySqlQueryGeneratorInternal extends AbstractQueryGeneratorInternal 
     if (fieldsForChangeColumn.some(val => val !== undefined)) {
 
       if (fieldsForChangeColumn.includes(undefined) || (defaultValue === undefined && dropDefaultValue !== true)) {
-        throw new Error(`In ${this.dialect.name}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
+        throw new Error(`In ${this.#dialect.name}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
 To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
 > type, allowNull, autoIncrement, comment
 Then all of the following properties must be specified too (set to a non-undefined value):
 > type, allowNull, autoIncrement, comment, defaultValue (or set dropDefaultValue to true)
-Table: ${this.qg.quoteTable(table)}
-Column: ${this.qg.quoteIdentifier(columnName)}`);
+Table: ${this.#qg.quoteTable(table)}
+Column: ${this.#qg.quoteIdentifier(columnName)}`);
       }
 
       assert(columnDefinition.type != null);
 
-      sql.push(`MODIFY ${this.qg.quoteIdentifier(columnName)} ${this.#getColumnDefinitionFragment(columnDefinition as ColumnDefinition)}`);
+      sql.push(`MODIFY ${this.#qg.quoteIdentifier(columnName)} ${this.#getColumnDefinitionFragment(columnDefinition as ColumnDefinition)}`);
     } else {
       // if MODIFY COLUMN is used, we don't need to include these, as they will be changed by MODIFY COLUMN anyway
 
       if (defaultValue !== undefined) {
-        sql.push(`ALTER COLUMN ${this.qg.quoteIdentifier(columnName)} SET DEFAULT ${this.qg.escape(columnDefinition.defaultValue)}`);
+        sql.push(`ALTER COLUMN ${this.#qg.quoteIdentifier(columnName)} SET DEFAULT ${this.#qg.escape(columnDefinition.defaultValue)}`);
       }
 
       if (dropDefaultValue) {
-        sql.push(`ALTER COLUMN ${this.qg.quoteIdentifier(columnName)} DROP DEFAULT`);
+        sql.push(`ALTER COLUMN ${this.#qg.quoteIdentifier(columnName)} DROP DEFAULT`);
       }
     }
 
@@ -76,18 +90,18 @@ Column: ${this.qg.quoteIdentifier(columnName)}`);
         unique: true,
       });
 
-      sql.push(`ADD CONSTRAINT ${this.qg.quoteIdentifier(uniqueName)} UNIQUE (${this.qg.quoteIdentifier(columnName)})`);
+      sql.push(`ADD CONSTRAINT ${this.#qg.quoteIdentifier(uniqueName)} UNIQUE (${this.#qg.quoteIdentifier(columnName)})`);
     }
 
     if (references !== undefined) {
       const normalizedReferences = normalizeReference(references)!;
 
-      const targetTable = this.qg.extractTableDetails(normalizedReferences.table);
+      const targetTable = this.#qg.extractTableDetails(normalizedReferences.table);
 
-      let fkSql = `ADD FOREIGN KEY (${this.qg.quoteIdentifier(columnName)}) REFERENCES ${this.qg.quoteTable(targetTable)}`;
+      let fkSql = `ADD FOREIGN KEY (${this.#qg.quoteIdentifier(columnName)}) REFERENCES ${this.#qg.quoteTable(targetTable)}`;
       // !TODO: add integration test for this.
       if (normalizedReferences.key) {
-        fkSql += `(${this.qg.quoteIdentifier(normalizedReferences.key)})`;
+        fkSql += `(${this.#qg.quoteIdentifier(normalizedReferences.key)})`;
       }
 
       if (onUpdate) {
@@ -126,7 +140,7 @@ Column: ${this.qg.quoteIdentifier(columnName)}`);
         throw new Error(`Type ${typeSql} cannot have a default value, but one was provided: ${inspect(columnDefinition.defaultValue)}.`);
       }
 
-      out += ` DEFAULT ${this.qg.escape(columnDefinition.defaultValue)}`;
+      out += ` DEFAULT ${this.#qg.escape(columnDefinition.defaultValue)}`;
     }
 
     if (columnDefinition.unique === true) {
@@ -134,7 +148,7 @@ Column: ${this.qg.quoteIdentifier(columnName)}`);
     }
 
     if (columnDefinition.comment) {
-      out += ` COMMENT ${this.qg.escape(columnDefinition.comment)}`;
+      out += ` COMMENT ${this.#qg.escape(columnDefinition.comment)}`;
     }
 
     return out;
@@ -186,15 +200,15 @@ Column: ${this.qg.quoteIdentifier(columnName)}`);
       const normalizedReferences = normalizeReference(attribute.references)!;
 
       if (options?.context === 'addColumn' && options.foreignKey) {
-        const fkName = this.qg.quoteIdentifier(`${this.qg.extractTableDetails(options.table).tableName}_${options.foreignKey}_foreign_idx`);
+        const fkName = this.#qg.quoteIdentifier(`${this.#qg.extractTableDetails(options.table).tableName}_${options.foreignKey}_foreign_idx`);
 
-        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.qg.quoteIdentifier(options.foreignKey)})`;
+        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.#qg.quoteIdentifier(options.foreignKey)})`;
       }
 
-      template += ` REFERENCES ${this.qg.quoteTable(normalizedReferences.table)}`;
+      template += ` REFERENCES ${this.#qg.quoteTable(normalizedReferences.table)}`;
 
       if (normalizedReferences.key) {
-        template += ` (${this.qg.quoteIdentifier(normalizedReferences.key)})`;
+        template += ` (${this.#qg.quoteIdentifier(normalizedReferences.key)})`;
       }
 
       if (attribute.onDelete) {

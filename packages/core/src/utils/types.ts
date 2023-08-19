@@ -69,6 +69,10 @@ export type NonUndefinedKeys<T, K extends keyof T> = {
   [P in keyof T]: P extends K ? NonUndefined<T[P]> : T[P];
 };
 
+export type AllowUndefinedKeys<T, K extends keyof T = keyof T> = {
+  [P in keyof T]: P extends K ? T[P] | undefined : T[P];
+};
+
 export type NonNullishKeys<T, K extends keyof T> = {
   [P in keyof T]: P extends K ? NonNullish<T[P]> : T[P];
 };
@@ -89,6 +93,8 @@ export type OmitConstructors<T> = Pick<T, NonConstructorKeys<T>>;
  * Type helper for making certain fields of an object optional.
  */
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+
+export type LoosePartial<T> = Partial<AllowUndefinedKeys<T>>;
 
 export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 

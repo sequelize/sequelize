@@ -152,7 +152,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
     // !TODO: adapt ensureEnums
-    await this.ensureEnums(tableName, attributes, options, model);
+    await this.ensureEnums(tableName, Object.values(attributes), options);
 
     const modelTable = model?.table;
 
@@ -350,6 +350,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *
    * @returns {string}
    */
+  // TODO: remove
   quoteIdentifier(identifier, force) {
     return this.queryGenerator.quoteIdentifier(identifier, force);
   }
@@ -361,18 +362,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *
    * @returns {string}
    */
+  // TODO: remove
   quoteIdentifiers(identifiers) {
     return this.queryGenerator.quoteIdentifiers(identifiers);
-  }
-
-  async changeColumn(tableOrModel, columnName, dataTypeOrColumnOptions, options) {
-    return this.changeColumns(tableOrModel, { [columnName]: dataTypeOrColumnOptions }, options);
-  }
-
-  async changeColumns(tableOrModel, columnDefinitions, options) {
-    const sql = this.queryGenerator.changeColumnsQuery(tableOrModel, columnDefinitions);
-
-    return this.sequelize.queryRaw(sql, options);
   }
 
   /**

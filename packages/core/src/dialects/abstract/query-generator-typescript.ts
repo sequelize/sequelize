@@ -18,7 +18,7 @@ import { Where } from '../../expression-builders/where.js';
 import { IndexHints } from '../../index-hints.js';
 import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
-import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
+import type { BindOrReplacements, Expression } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { TableHints } from '../../table-hints.js';
 import { isDictionary, isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
@@ -33,7 +33,6 @@ import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
 import { AbstractDataType } from './data-types.js';
 import type { BindParamOptions, DataType } from './data-types.js';
 import { AbstractQueryGeneratorInternal, normalizeChangeColumnAttribute } from './query-generator-internal.js';
-import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
   ChangeColumnDefinitions,
@@ -111,22 +110,22 @@ export interface Bindable {
  */
 export class AbstractQueryGeneratorTypeScript {
   protected readonly whereSqlBuilder: WhereSqlBuilder;
-  readonly sequelize: Sequelize;
+  // TODO: make #private.
+  readonly dialect: AbstractDialect;
   readonly #internalQueryGenerator: AbstractQueryGeneratorInternal;
 
-  constructor(sequelize: Sequelize, internalQueryGenerator?: AbstractQueryGeneratorInternal) {
-    this.#internalQueryGenerator = internalQueryGenerator ?? new AbstractQueryGeneratorInternal(sequelize);
-    this.sequelize = sequelize;
-    // TODO: remove casting once all AbstractQueryGenerator functions are moved here
-    this.whereSqlBuilder = new WhereSqlBuilder(this as unknown as AbstractQueryGenerator);
+  constructor(dialect: AbstractDialect, internalQueryGenerator?: AbstractQueryGeneratorInternal) {
+    this.#internalQueryGenerator = internalQueryGenerator ?? new AbstractQueryGeneratorInternal(dialect);
+    this.dialect = dialect;
+    this.whereSqlBuilder = new WhereSqlBuilder(dialect);
   }
 
   protected get options() {
     return this.sequelize.options;
   }
 
-  get dialect(): AbstractDialect {
-    return this.sequelize.dialect;
+  get sequelize() {
+    return this.dialect.sequelize;
   }
 
   changeColumnsQuery(tableOrModel: TableNameOrModel, columnDefinitions: ChangeColumnDefinitions): string {

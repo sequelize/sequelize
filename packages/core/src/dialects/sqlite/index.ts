@@ -60,13 +60,10 @@ export class SqliteDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'sqlite');
-    this.connectionManager = new SqliteConnectionManager(this, sequelize);
-    this.queryGenerator = new SqliteQueryGenerator(sequelize);
+    this.connectionManager = new SqliteConnectionManager(this);
+    this.queryGenerator = new SqliteQueryGenerator(this);
 
-    this.queryInterface = new SqliteQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.queryInterface = new SqliteQueryInterface(this);
   }
 
   createBindCollector() {

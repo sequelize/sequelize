@@ -1,5 +1,5 @@
 import { Op } from '../../operators.js';
-import type { Expression, Sequelize } from '../../sequelize.js';
+import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json.js';
@@ -8,6 +8,7 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types.js';
+import type { MariaDbDialect } from './index.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -15,8 +16,8 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  constructor(sequelize: Sequelize) {
-    super(sequelize);
+  constructor(dialect: MariaDbDialect) {
+    super(dialect);
 
     this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
     this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');

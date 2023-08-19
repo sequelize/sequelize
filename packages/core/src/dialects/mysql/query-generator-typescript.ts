@@ -1,6 +1,6 @@
 import type { AttributeOptions } from '../../model.js';
 import { Op } from '../../operators.js';
-import type { Expression, Sequelize } from '../../sequelize.js';
+import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json.js';
@@ -9,9 +9,10 @@ import type { DataType } from '../abstract/data-types.js';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types.js';
+import type { ChangeColumnDefinition, ShowConstraintsQueryOptions } from '../abstract/query-generator.types.js';
 import type { TableNameWithSchema } from '../abstract/query-interface.js';
 import { MySqlQueryGeneratorInternal } from './query-generator-internal.js';
+import type { MysqlDialect } from './index.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -21,17 +22,17 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  *
  * @internal
  */
-export const PROPERTIES_NEEDING_CHANGE_COLUMN = ['type', 'allowNull', 'autoIncrement', 'comment'];
+export const PROPERTIES_NEEDING_CHANGE_COLUMN: Array<keyof ChangeColumnDefinition> = ['type', 'allowNull', 'autoIncrement', 'comment'];
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internalQueryGenerator: MySqlQueryGeneratorInternal;
-  constructor(sequelize: Sequelize, internalQueryGenerator?: MySqlQueryGeneratorInternal) {
-    internalQueryGenerator ??= new MySqlQueryGeneratorInternal(sequelize);
+  constructor(dialect: MysqlDialect, internalQueryGenerator?: MySqlQueryGeneratorInternal) {
+    internalQueryGenerator ??= new MySqlQueryGeneratorInternal(dialect);
 
-    super(sequelize, internalQueryGenerator);
+    super(dialect, internalQueryGenerator);
 
     this.#internalQueryGenerator = internalQueryGenerator;
     this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');

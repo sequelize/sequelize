@@ -2128,6 +2128,11 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
 }
 
 export interface EnumOptions<Member extends string> {
+  /**
+   * The name of the ENUM.
+   * Postgres only.
+   */
+  name?: string;
   values: Member[];
 }
 

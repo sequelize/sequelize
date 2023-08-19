@@ -11,13 +11,12 @@ import type {
   ModelStatic,
   NormalizedAttributeOptions,
 } from '../../model';
-import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
+import type { QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { IsolationLevel, Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
-import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
-import type { ChangeColumnDefinition, ChangeColumnDefinitions } from './query-generator.types.js';
+import type { AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { QiDropAllSchemasOptions } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -261,18 +260,6 @@ export type CreateTableAttributes<
 */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
-   * Returns the dialect-specific sql generator.
-   *
-   * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
-   */
-  queryGenerator: AbstractQueryGenerator;
-
-  /**
-   * Returns the current sequelize instance.
-   */
-  sequelize: Sequelize;
-
-  /**
    * Drops all tables
    */
   dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void>;
@@ -332,29 +319,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     table: TableName,
     attribute: string,
     options?: RemoveColumnOptions,
-  ): Promise<void>;
-
-  /**
-   * Changes a column definition
-   */
-  changeColumn(
-    tableOrModel: TableName | ModelStatic,
-    columnName: string,
-    dataTypeOrColumnOption: DataType | ChangeColumnDefinition,
-    options?: QueryRawOptions
-  ): Promise<void>;
-
-  /**
-   * Changes one or more columns on a table.
-   *
-   * @param tableOrModel The table or model that the columns should be changed on.
-   * @param columnDefinitions An object with the names of the columns as keys and an object with the details as values.
-   * @param options The options passed to {@link Sequelize#queryRaw}
-   */
-  changeColumns(
-    tableOrModel: TableName | ModelStatic,
-    columnDefinitions: ChangeColumnDefinitions,
-    options?: QueryRawOptions
   ): Promise<void>;
 
   /**

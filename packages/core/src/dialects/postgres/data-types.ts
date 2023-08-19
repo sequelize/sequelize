@@ -382,9 +382,13 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
 
 export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
   override toSql(): string {
+    if (this.options.name) {
+      return this.options.name;
+    }
+
     const context = this.usageContext;
     if (context == null) {
-      throw new Error('Could not determine the name of this enum because it is not attached to an attribute or a column.');
+      throw new Error('Could not determine the name of this enum because it is not attached to an attribute or a column, and it no name was provided in its options.');
     }
 
     let table: TableNameWithSchema;
@@ -392,8 +396,8 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
     if ('model' in context) {
       table = context.model.table;
 
-      const attribute = context.model.getAttributes()[context.attributeName];
-      columnName = attribute.field ?? context.attributeName;
+      const attribute = context.model.modelDefinition.attributes.getOrThrow(context.attributeName);
+      columnName = attribute.columnName;
     } else {
       table = context.tableName;
       columnName = context.columnName;

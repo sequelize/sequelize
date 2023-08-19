@@ -71,12 +71,9 @@ export class MssqlDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'mssql');
-    this.connectionManager = new MsSqlConnectionManager(this, sequelize);
-    this.queryGenerator = new MsSqlQueryGenerator(sequelize);
-    this.queryInterface = new MsSqlQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.connectionManager = new MsSqlConnectionManager(this);
+    this.queryGenerator = new MsSqlQueryGenerator(this);
+    this.queryInterface = new MsSqlQueryInterface(this);
 
     registerMsSqlDbDataTypeParsers(this);
   }

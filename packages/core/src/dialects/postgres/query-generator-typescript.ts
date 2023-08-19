@@ -1,6 +1,6 @@
 import mapValues from 'lodash/mapValues.js';
 import * as DataTypes from '../../data-types.js';
-import type { Expression, Sequelize } from '../../sequelize.js';
+import type { Expression } from '../../sequelize.js';
 import { isString } from '../../utils/check.js';
 import { generateEnumName, generateSequenceName } from '../../utils/format.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
@@ -12,6 +12,7 @@ import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '.
 import type { ChangeColumnDefinitions, ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
 import { ENUM } from './data-types.js';
 import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
+import type { PostgresDialect } from './index.js';
 
 export interface CreateEnumQueryOptions {
   /**
@@ -50,10 +51,10 @@ export interface AddValueToEnumQueryOptions {
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internalQueryGenerator: PostgresQueryGeneratorInternal;
 
-  constructor(sequelize: Sequelize, internalQueryGenerator?: PostgresQueryGeneratorInternal) {
-    internalQueryGenerator = internalQueryGenerator ?? new PostgresQueryGeneratorInternal(sequelize);
+  constructor(dialect: PostgresDialect, internalQueryGenerator?: PostgresQueryGeneratorInternal) {
+    internalQueryGenerator = internalQueryGenerator ?? new PostgresQueryGeneratorInternal(dialect);
 
-    super(sequelize, internalQueryGenerator);
+    super(dialect, internalQueryGenerator);
 
     this.#internalQueryGenerator = internalQueryGenerator;
   }

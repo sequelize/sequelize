@@ -57,8 +57,8 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
   #oidMap = new Map<number, TypeOids>();
   #oidParserCache = new Map<number, TypeParser<any, any>>();
 
-  constructor(dialect: PostgresDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: PostgresDialect) {
+    super(dialect);
 
     const pgLib = this._loadDialectModule('pg') as Lib;
     this.lib = this.sequelize.config.native ? pgLib.native! : pgLib;

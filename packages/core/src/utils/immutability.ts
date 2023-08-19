@@ -61,6 +61,15 @@ export class MapView<K, V> {
     return this.#target.get(key);
   }
 
+  getOrThrow(key: K): V {
+    const value = this.get(key);
+    if (value === undefined) {
+      throw new Error(`Key ${key} does not exist.`);
+    }
+
+    return value;
+  }
+
   /**
    * @param key
    * @returns boolean indicating whether an element with the specified key exists or not.

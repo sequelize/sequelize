@@ -1,15 +1,15 @@
-import assert from 'node:assert';
 import * as DataTypes from '../../data-types.js';
-import type { ModelStatic } from '../../model.js';
+import type { ModelStatic, NormalizedAttributeOptions } from '../../model.js';
 import { QueryTypes } from '../../query-types.js';
-import type { QueryRawOptions, Sequelize } from '../../sequelize.js';
+import type { QueryRawOptions } from '../../sequelize.js';
+import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import type { DataTypeInstance } from '../abstract/data-types.js';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript.js';
 import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal.js';
+import type { TableName } from '../abstract/query-interface.js';
 import { AbstractQueryInterface } from '../abstract/query-interface.js';
 import type { FetchDatabaseVersionOptions } from '../abstract/query-interface.types.js';
-import { PostgresConnectionManager } from './connection-manager.js';
 import type { ENUM } from './data-types.js';
 import type {
   AddValueToEnumQueryOptions,
@@ -17,6 +17,7 @@ import type {
   ListEnumQueryOptions,
 } from './query-generator-typescript.js';
 import type { PostgresQueryGenerator } from './query-generator.js';
+import type { PostgresDialect } from './index.js';
 
 interface QiListEnumsOptions extends ListEnumQueryOptions, Omit<QueryRawOptions, 'plain' | 'raw' | 'type'> {}
 
@@ -33,17 +34,18 @@ interface EnumDescription {
 export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
   readonly #internalQueryInterface: AbstractQueryInterfaceInternal;
   readonly #queryGenerator: PostgresQueryGenerator;
+  readonly #dialect: PostgresDialect;
 
   constructor(
-    sequelize: Sequelize,
-    queryGenerator: PostgresQueryGenerator,
+    dialect: PostgresDialect,
     internalQueryInterface?: AbstractQueryInterfaceInternal,
   ) {
-    internalQueryInterface ??= new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+    internalQueryInterface ??= new AbstractQueryInterfaceInternal(dialect);
 
-    super(sequelize, queryGenerator, internalQueryInterface);
+    super(dialect, internalQueryInterface);
+    this.#dialect = dialect;
     this.#internalQueryInterface = internalQueryInterface;
-    this.#queryGenerator = queryGenerator;
+    this.#queryGenerator = dialect.queryGenerator;
   }
 
   async createEnum(
@@ -113,24 +115,39 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
    * @param options
    */
   // TODO: add variant for table + attributes
-  async ensureEnums(model: ModelStatic, options: QueryRawOptions): Promise<void> {
-    const connectionManager = this.sequelize.dialect.connectionManager;
-    assert(connectionManager instanceof PostgresConnectionManager);
+  async ensureEnums(model: ModelStatic, options?: QueryRawOptions): Promise<void>;
+  async ensureEnums(table: TableName, columns: NormalizedAttributeOptions[], options?: QueryRawOptions): Promise<void>;
+  async ensureEnums(
+    ...params: [
+        model: ModelStatic | TableName,
+      columnsOrOptions?: NormalizedAttributeOptions[] | QueryRawOptions,
+      options?: QueryRawOptions,
+    ]
+  ): Promise<void> {
+    const connectionManager = this.#dialect.connectionManager;
 
-    const attributes = model.modelDefinition.attributes;
-    const table = model.table;
-    const schema = table.schema!;
+    const isModelMode = isModelStatic(params[0]);
+    const rawTable: TableName = isModelMode ? (params[0] as ModelStatic).table : params[0] as TableName;
+    const attributes: NormalizedAttributeOptions[] = isModelMode
+        ? [...(params[0] as ModelStatic).modelDefinition.attributes.values()]
+        : params[1] as NormalizedAttributeOptions[];
+    const options: QueryRawOptions | undefined = isModelMode
+        ? params[1] as QueryRawOptions | undefined
+        : params[2] as QueryRawOptions | undefined;
+
+    const table = this.#queryGenerator.extractTableDetails(rawTable);
+    const schema = table.schema;
 
     const listEnumsPromises: Array<Promise<EnumDescription[]>> = [];
 
-    for (const attribute of attributes.values()) {
+    for (const attribute of attributes) {
       const type = attribute.type;
 
       if (
         type instanceof DataTypes.ENUM
         || type instanceof DataTypes.ARRAY && type.options.type instanceof DataTypes.ENUM
       ) {
-        listEnumsPromises.push(this.listEnums({ schema: table.schema! }));
+        listEnumsPromises.push(this.listEnums({ schema: table.schema }));
       }
     }
 
@@ -177,7 +194,7 @@ export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
     enumName: string,
     existingEnum: EnumDescription,
     enumType: ENUM<string>,
-    options: QueryRawOptions,
+    options?: QueryRawOptions,
   ): Promise<void> {
     const existingVals = existingEnum.values;
     const newVals = enumType.options.values;
