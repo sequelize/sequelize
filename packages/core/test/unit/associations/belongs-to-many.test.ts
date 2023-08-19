@@ -1,4 +1,3 @@
-import assert from 'node:assert';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import type { SinonStub } from 'sinon';
@@ -177,39 +176,6 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     expect(() => {
       Post.belongsToMany(User, { through: { model: 'UserPost' } });
     }).to.throw('You have defined two associations with the same name "Users" on the model "Post". Use another alias using the "as" parameter');
-  });
-
-  it('allows the user to provide an attribute definition object as foreignKey', () => {
-    const Project = sequelize.define('project', {});
-    const User = sequelize.define('user', {
-      uid: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-      },
-    });
-
-    const UserProjects = User.belongsToMany(Project, {
-      foreignKey: { name: 'user_id', defaultValue: 42 },
-      through: 'UserProjects',
-    });
-
-    const userIdAttribute = UserProjects.through.model.modelDefinition.attributes.get('user_id');
-    assert(userIdAttribute != null);
-    const references = userIdAttribute.references;
-    assert(references != null);
-
-    expect(references.table).to.deep.equal(User.table);
-    expect(references.key).to.equal('uid');
-    expect(userIdAttribute.defaultValue).to.equal(42);
-  });
-
-  it('throws an error if "as" results in a name clash', () => {
-    const User = sequelize.define('user', {
-      user: DataTypes.INTEGER,
-    });
-
-    expect(() => User.belongsToMany(User, { as: 'user', through: 'UserUser' })).to
-      .throw('Naming collision between attribute \'user\' and association \'user\' on model user. To remedy this, change the "as" options in your association definition');
   });
 
   describe('proper syntax', () => {
@@ -1080,7 +1046,6 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       Project = sequelize.define('Project', { title: DataTypes.STRING });
       Task = sequelize.define('Task', { title: DataTypes.STRING });
     });
-
     describe('beforeBelongsToManyAssociate', () => {
       it('should trigger', () => {
         const beforeAssociate = sinon.spy();

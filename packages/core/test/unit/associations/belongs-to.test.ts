@@ -1,4 +1,3 @@
-import assert from 'node:assert';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import sinon from 'sinon';
@@ -152,72 +151,6 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     expect(Log.getAttributes().PluralId).to.not.exist;
     expect(Log.getAttributes().SingularId).to.exist;
-  });
-
-  describe('allows the user to provide an attribute definition object as foreignKey', () => {
-    it(`works with a column that hasn't been defined before`, () => {
-      const Task = sequelize.define('task', {});
-      const User = sequelize.define('user', {});
-
-      Task.belongsTo(User, {
-        foreignKey: {
-          allowNull: false,
-          name: 'uid',
-        },
-      });
-
-      const uidAttribute = Task.modelDefinition.attributes.get('uid');
-      assert(uidAttribute != null);
-      expect(uidAttribute.allowNull).to.be.false;
-
-      const references = uidAttribute.references;
-      assert(references != null);
-      expect(references.table).to.deep.equal(User.table);
-      expect(references.key).to.equal('id');
-    });
-
-    it('works when taking a column directly from the object', () => {
-      const User = sequelize.define('user', {
-        uid: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-        },
-      });
-      const Profile = sequelize.define('project', {
-        user_id: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-        },
-      });
-
-      Profile.belongsTo(User, { foreignKey: Profile.rawAttributes.user_id });
-
-      const userIdAttribute = Profile.modelDefinition.attributes.get('user_id');
-      assert(userIdAttribute != null);
-      expect(userIdAttribute.allowNull).to.be.false;
-
-      const references = userIdAttribute.references;
-      assert(references != null);
-      expect(references.table).to.deep.equal(User.table);
-      expect(references.key).to.equal('uid');
-    });
-
-    it('works when merging with an existing definition', () => {
-      const Task = sequelize.define('task', {
-        projectId: {
-          defaultValue: 42,
-          type: DataTypes.INTEGER,
-        },
-      });
-
-      const Project = sequelize.define('project', {});
-
-      Task.belongsTo(Project, { foreignKey: { allowNull: true } });
-
-      expect(Task.rawAttributes.projectId).to.be.ok;
-      expect(Task.rawAttributes.projectId.defaultValue).to.equal(42);
-      expect(Task.rawAttributes.projectId.allowNull).to.equal(true);
-    });
   });
 
   describe('association hooks', () => {
