@@ -119,7 +119,7 @@ export type ChangeColumnDefinition = Partial<Omit<AttributeOptions, 'primaryKey'
    * Only 'true' is allowed, because changeColumns can add a single-column unique, but does not have access to enough information
    * to add a multi-column unique, or removing a column from a unique index.
    */
-  unique?: true | Nullish,
+  unique?: boolean | Nullish,
 
   /**
    * Set to true to remove the defaultValue.

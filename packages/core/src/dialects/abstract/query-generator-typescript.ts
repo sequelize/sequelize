@@ -111,7 +111,7 @@ export interface Bindable {
  */
 export class AbstractQueryGeneratorTypeScript {
   protected readonly whereSqlBuilder: WhereSqlBuilder;
-  protected readonly sequelize: Sequelize;
+  readonly sequelize: Sequelize;
   readonly #internalQueryGenerator: AbstractQueryGeneratorInternal;
 
   constructor(sequelize: Sequelize, internalQueryGenerator?: AbstractQueryGeneratorInternal) {
@@ -125,7 +125,7 @@ export class AbstractQueryGeneratorTypeScript {
     return this.sequelize.options;
   }
 
-  protected get dialect(): AbstractDialect {
+  get dialect(): AbstractDialect {
     return this.sequelize.dialect;
   }
 

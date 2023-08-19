@@ -1,6 +1,5 @@
 import isEmpty from 'lodash/isEmpty.js';
 import * as DataTypes from '../data-types';
-import type { DataType } from '../dialects/abstract/data-types.js';
 import { getOperators } from './where.js';
 
 /**
@@ -10,7 +9,7 @@ import { getOperators } from './where.js';
  * @param value Any default value.
  * @private
  */
-export function defaultValueSchemable(value: DataType): boolean {
+export function defaultValueSchemable(value: unknown): boolean {
   if (value === undefined) {
     return false;
   }

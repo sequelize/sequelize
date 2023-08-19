@@ -306,13 +306,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   dropAllTables(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
 
   /**
-   * Drops all defined enums
-   *
-   * @param options
-   */
-  dropAllEnums(options?: QueryRawOptions): Promise<void>;
-
-  /**
    * Renames a table
    */
   renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;

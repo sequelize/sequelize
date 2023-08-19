@@ -58,10 +58,7 @@ export class SnowflakeDialect extends AbstractDialect {
 
     super(sequelize, DataTypes, 'snowflake');
     this.connectionManager = new SnowflakeConnectionManager(this, sequelize);
-    this.queryGenerator = new SnowflakeQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
+    this.queryGenerator = new SnowflakeQueryGenerator(sequelize);
     this.queryInterface = new SnowflakeQueryInterface(sequelize, this.queryGenerator);
   }
 

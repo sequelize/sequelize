@@ -4,6 +4,7 @@ import type { DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { ChangeColumnDefinition, NormalizedChangeColumnDefinition } from './query-generator.types.js';
 import type { TableNameWithSchema } from './query-interface.js';
+import type { AbstractDialect } from './index.js';
 
 /**
  * The methods in this class are not part of the public API.
@@ -13,6 +14,10 @@ export class AbstractQueryGeneratorInternal {
 
   protected get qg(): AbstractQueryGenerator {
     return this.sequelize.queryGenerator;
+  }
+
+  protected get dialect(): AbstractDialect {
+    return this.sequelize.dialect;
   }
 
   constructor(sequelize: Sequelize) {

@@ -94,10 +94,7 @@ export class PostgresDialect extends AbstractDialect {
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'postgres');
     this.connectionManager = new PostgresConnectionManager(this, sequelize);
-    this.queryGenerator = new PostgresQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
+    this.queryGenerator = new PostgresQueryGenerator(sequelize);
     this.queryInterface = new PostgresQueryInterface(
       sequelize,
       this.queryGenerator,

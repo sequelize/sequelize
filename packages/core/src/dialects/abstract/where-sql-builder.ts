@@ -818,7 +818,7 @@ export class WhereSqlBuilder {
     return operand;
   }
 
-  #getOperandType(operand: Expression, model: Nullish<ModelStatic>): NormalizedDataType | undefined {
+  #getOperandType(operand: Expression, model: ModelStatic | Nullish): NormalizedDataType | undefined {
     if (operand instanceof Cast) {
       // TODO: if operand.type is a string (= SQL Type), look up a per-dialect mapping of SQL types to Sequelize types?
       return this.dialect.sequelize.normalizeDataType(operand.type);

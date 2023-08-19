@@ -182,6 +182,13 @@ export abstract class AbstractDataType<
   }
 
   /**
+   * Whether this DataType can have a default value.
+   */
+  canHaveDefaultValue(): boolean {
+    return true;
+  }
+
+  /**
    * Called when a value is retrieved from the Database, and its DataType is specified.
    * Used to normalize values from the database.
    *

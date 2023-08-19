@@ -774,7 +774,7 @@ ${associationOwner._getAssociationDebugList()}`);
       await this.queryInterface.createTable(tableName, physicalAttributes, options, this);
     } else {
       // enums are always updated, even if alter is not set. createTable calls it too.
-      await this.queryInterface.ensureEnums(tableName, physicalAttributes, options, this);
+      await this.queryInterface.ensureEnums(this, options);
     }
 
     if (tableExists && options.alter) {

@@ -13,35 +13,35 @@ import type { ChangeColumnDefinitions, ShowConstraintsQueryOptions } from '../ab
 import { ENUM } from './data-types.js';
 import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
 
-interface CreateEnumQueryOptions {
+export interface CreateEnumQueryOptions {
   /**
    * Drop the existing enum if one exists
    */
-  force?: boolean;
+  force?: boolean | undefined;
 }
 
-interface ListEnumQueryOptions {
+export interface ListEnumQueryOptions {
   /**
    * The schema for which to list the enums, defaults to the default schema of the Sequelize instance.
    */
-  schema?: string;
+  schema?: string | undefined;
 
   /**
    * The name of the enum to list, defaults to all enums in the schema.
    */
-  dataTypeOrName?: DataTypeInstance | string;
+  dataTypeOrName?: DataTypeInstance | string | undefined;
 }
 
-interface AddValueToEnumQueryOptions {
+export interface AddValueToEnumQueryOptions {
   /**
    * Before which value of the enum the new value should be inserted.
    */
-  before?: string;
+  before?: string | undefined;
 
   /**
    * After which value of the enum the new value should be inserted.
    */
-  after?: string;
+  after?: string | undefined;
 }
 
 /**
@@ -312,8 +312,8 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const schema = options?.schema || this.options.schema || this.dialect.getDefaultSchema();
 
     return 'SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t '
-      + 'JOIN pg_enum e ON t.oid = e.enumtypid '
-      + 'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace '
+      + 'JOIN pg_enum name ON t.oid = e.enumtypid '
+      + 'JOIN pg_catalog.pg_namespace schema ON n.oid = t.typnamespace '
       + `WHERE n.nspname = ${this.escape(schema)}${enumNameFilter} GROUP BY 1`;
   }
 

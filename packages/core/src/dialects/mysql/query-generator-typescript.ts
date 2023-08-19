@@ -1,20 +1,17 @@
-import pick from 'lodash/pick';
+import type { AttributeOptions } from '../../model.js';
 import { Op } from '../../operators.js';
-import type { Expression } from '../../sequelize.js';
+import type { Expression, Sequelize } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json.js';
 import { generateIndexName } from '../../utils/string';
+import type { DataType } from '../abstract/data-types.js';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import type {
-  EscapeOptions,
-  QueryGeneratorOptions,
-  RemoveIndexQueryOptions,
-  TableNameOrModel,
-} from '../abstract/query-generator-typescript';
-import type { NormalizedChangeColumnDefinition, ShowConstraintsQueryOptions } from '../abstract/query-generator.types.js';
+import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types.js';
 import type { TableNameWithSchema } from '../abstract/query-interface.js';
+import { MySqlQueryGeneratorInternal } from './query-generator-internal.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -30,100 +27,35 @@ export const PROPERTIES_NEEDING_CHANGE_COLUMN = ['type', 'allowNull', 'autoIncre
  * Temporary class to ease the TypeScript migration
  */
 export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  constructor(options: QueryGeneratorOptions) {
-    super(options);
+  readonly #internalQueryGenerator: MySqlQueryGeneratorInternal;
+  constructor(sequelize: Sequelize, internalQueryGenerator?: MySqlQueryGeneratorInternal) {
+    internalQueryGenerator ??= new MySqlQueryGeneratorInternal(sequelize);
 
+    super(sequelize, internalQueryGenerator);
+
+    this.#internalQueryGenerator = internalQueryGenerator;
     this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
     this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
   }
 
-  _attributeToChangeColumn(
-    tableName: TableNameWithSchema,
-    columnName: string,
-    columnDefinition: NormalizedChangeColumnDefinition,
-  ) {
-    const {
-      type, allowNull, unique,
-      autoIncrement, autoIncrementIdentity,
-      defaultValue, dropDefaultValue,
-      references, onUpdate, onDelete,
-      comment,
-    } = columnDefinition;
-
-    if (autoIncrementIdentity !== undefined) {
-      throw new Error(`${this.dialect.name} does not support autoIncrementIdentity`);
-    }
-
-    const sql = [];
-
-    const fieldsForChangeColumn = Object.values(pick(columnDefinition, PROPERTIES_NEEDING_CHANGE_COLUMN));
-
-    // TABLE t1 MODIFY b INT NOT NULL;
-    if (fieldsForChangeColumn.some(val => val !== undefined)) {
-
-      if (fieldsForChangeColumn.includes(undefined) || (defaultValue === undefined && dropDefaultValue !== true)) {
-        throw new Error(`In ${this.dialect.name}, changeColumnsQuery uses CHANGE COLUMN, which requires specifying the complete column definition.
-To prevent unintended changes to the properties of the column, we require that if one of the following properties is specified (set to a non-undefined value):
-> type, allowNull, autoIncrement, comment
-Then all of the following properties must be specified too (set to a non-undefined value):
-> type, allowNull, autoIncrement, comment, defaultValue (or set dropDefaultValue to true)
-Table: ${this.quoteTable(tableName)}
-Column: ${this.quoteIdentifier(columnName)}`);
-      }
-
-      sql.push(`MODIFY ${this.quoteIdentifier(columnName)} ${this.attributeToSQL(columnDefinition, {
-        context: 'changeColumn',
-        tableName,
-        columnName,
-      })}`);
-    } else {
-      // if MODIFY COLUMN is used, we don't need to include these, as they will be changed by MODIFY COLUMN anyway
-
-      if (defaultValue !== undefined) {
-        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} SET DEFAULT ${this.escape(columnDefinition.defaultValue)}`);
-      }
-
-      if (dropDefaultValue) {
-        sql.push(`ALTER COLUMN ${this.quoteIdentifier(columnName)} DROP DEFAULT`);
-      }
-    }
-
-    // only 'true' is accepted for unique in changeColumns, because they're single column uniques.
-    // more complex uniques use addIndex and removing a unique uses removeIndex
-    if (unique === true) {
-      const uniqueName = generateIndexName(tableName.tableName, {
-        fields: [columnName],
-        unique: true,
-      });
-
-      sql.push(`ADD CONSTRAINT ${this.quoteIdentifier(uniqueName)} UNIQUE (${this.quoteIdentifier(columnName)})`);
-    }
-
-    if (references !== undefined) {
-      const targetTable = this.extractTableDetails(references.model);
-
-      let fkSql = `ADD FOREIGN KEY (${this.quoteIdentifier(columnName)}) REFERENCES ${this.quoteTable(targetTable)}(${this.quoteIdentifier(references.key)})`;
-
-      if (onUpdate) {
-        fkSql += ` ON UPDATE ${onUpdate}`;
-      }
-
-      if (onDelete) {
-        fkSql += ` ON DELETE ${onDelete}`;
-      }
-
-      if (references.deferrable) {
-        const deferrable = typeof references.deferrable === 'function'
-          ? new references.deferrable()
-          : references.deferrable;
-
-        fkSql += ` ${deferrable.toSql()}`;
-      }
-
-      sql.push(fkSql);
-    }
-
-    return sql.join(', ');
+  /**
+   * @deprecated should not be used directly. only exposed temporarily until the remaining methods
+   *  that use it are moved inside query-generator-typescript.
+   *
+   * @param attribute
+   * @param options
+   * @param options.withoutForeignKeyConstraints
+   * @param options.foreignKey
+   * @param options.table
+   * @param options.context
+   */
+  attributeToSQL(attribute: AttributeOptions | DataType, options?: {
+    withoutForeignKeyConstraints?: boolean,
+    foreignKey?: string,
+    table: TableNameWithSchema,
+    context: 'addColumn' | 'createTable',
+  }) {
+    return this.#internalQueryGenerator.attributeToSql(attribute, options);
   }
 
   describeTableQuery(tableName: TableNameOrModel) {
@@ -206,7 +138,7 @@ Column: ${this.quoteIdentifier(columnName)}`);
       'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
       'WHERE',
       `TABLE_NAME = ${this.escape(table.tableName)}`,
-      `AND TABLE_SCHEMA = ${this.escape(table.schema!)}`,
+      `AND TABLE_SCHEMA = ${this.escape(table.schema)}`,
       columnName && `AND COLUMN_NAME = ${this.escape(columnName)}`,
       'AND REFERENCED_TABLE_NAME IS NOT NULL',
     ]);
