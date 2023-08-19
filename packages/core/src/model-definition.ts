@@ -30,6 +30,7 @@ import { some } from './utils/iterators.js';
 import { isModelStatic } from './utils/model-utils.js';
 import { getAllOwnEntries, noPrototype, removeUndefined } from './utils/object.js';
 import { generateIndexName, pluralize, underscoredIf } from './utils/string.js';
+import type { NonUndefined } from './utils/types.js';
 
 export interface TimestampAttributes {
   createdAt?: string;
@@ -831,7 +832,9 @@ export function normalizeReference(references: AttributeOptions['references']): 
     }));
   }
 
-  const { model, table, ...referencePassDown } = references;
+  const { table, ...referencePassDown } = references;
+  const model = getReferenceModel(references);
+  delete referencePassDown.model;
 
   if (model && table) {
     throw new Error('"references" cannot contain both "model" and "tableName"');
@@ -862,6 +865,14 @@ function banReferenceModel<T>(reference: T): T {
   });
 
   return reference;
+}
+
+function getReferenceModel(references: NonUndefined<AttributeOptions['references']>) {
+  const descriptor = Object.getOwnPropertyDescriptor(references, 'model');
+
+  // This prevents calling the getter above, which throws an error if we happen to normalize the same reference twice.
+  // This can be removed once we remove the banReferenceModel warning.
+  return descriptor?.value;
 }
 
 /**

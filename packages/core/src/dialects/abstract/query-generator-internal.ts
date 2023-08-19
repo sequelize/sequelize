@@ -1,3 +1,4 @@
+import { Deferrable } from '../../deferrable.js';
 import type { Sequelize } from '../../sequelize.js';
 import { isDataType } from './data-types-utils.js';
 import type { DataType } from './data-types.js';
@@ -32,6 +33,30 @@ export class AbstractQueryGeneratorInternal {
     _columnDefinition: NormalizedChangeColumnDefinition,
   ): string {
     throw new Error(`attributeToChangeColumn has not been implemented in ${this.constructor.name}`);
+  }
+
+  getDeferrableConstraintSnippet(deferrable: Deferrable) {
+    if (!this.#dialect.supports.constraints.deferrable) {
+      throw new Error(`Deferrable constraints are not supported by ${this.#dialect.name} dialect`);
+    }
+
+    switch (deferrable) {
+      case Deferrable.INITIALLY_DEFERRED: {
+        return 'DEFERRABLE INITIALLY DEFERRED';
+      }
+
+      case Deferrable.INITIALLY_IMMEDIATE: {
+        return 'DEFERRABLE INITIALLY IMMEDIATE';
+      }
+
+      case Deferrable.NOT: {
+        return 'NOT DEFERRABLE';
+      }
+
+      default: {
+        throw new Error(`Unknown constraint checking behavior ${deferrable}`);
+      }
+    }
   }
 }
 

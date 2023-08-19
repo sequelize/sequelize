@@ -1,7 +1,8 @@
 import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
-import { ConstraintChecking, Deferrable } from '../../deferrable.js';
+import type { Deferrable } from '../../deferrable.js';
+import { ConstraintChecking } from '../../deferrable.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
@@ -345,28 +346,9 @@ export class AbstractQueryGeneratorTypeScript {
     return constraintSnippet;
   }
 
+  // TODO: remove once not used externally anymore
   protected _getDeferrableConstraintSnippet(deferrable: Deferrable) {
-    if (!this.dialect.supports.constraints.deferrable) {
-      throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
-    }
-
-    switch (deferrable) {
-      case Deferrable.INITIALLY_DEFERRED: {
-        return 'DEFERRABLE INITIALLY DEFERRED';
-      }
-
-      case Deferrable.INITIALLY_IMMEDIATE: {
-        return 'DEFERRABLE INITIALLY IMMEDIATE';
-      }
-
-      case Deferrable.NOT: {
-        return 'NOT DEFERRABLE';
-      }
-
-      default: {
-        throw new Error(`Unknown constraint checking behavior ${deferrable}`);
-      }
-    }
+    return this.#internalQueryGenerator.getDeferrableConstraintSnippet(deferrable);
   }
 
   removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {

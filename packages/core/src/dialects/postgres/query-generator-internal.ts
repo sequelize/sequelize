@@ -115,7 +115,7 @@ export class PostgresQueryGeneratorInternal extends AbstractQueryGeneratorIntern
       }
 
       if (normalizedReferences.deferrable) {
-        fkSql += ` ${normalizedReferences.deferrable}`;
+        fkSql += ` ${this.getDeferrableConstraintSnippet(normalizedReferences.deferrable)}`;
       }
 
       sql.push(fkSql);

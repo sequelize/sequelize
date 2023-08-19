@@ -216,30 +216,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `ALTER TABLE ${quotedTableName} DROP COLUMN ${ifExists} ${quotedAttributeName};`;
   }
 
-  attributeTypeToSql(attribute) {
-    if (
-      attribute.type instanceof DataTypes.ENUM
-      || attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM
-    ) {
-      const enumType = attribute.type.type || attribute.type;
-      const values = enumType.options.values;
-
-      if (!Array.isArray(values) || values.length <= 0) {
-        throw new Error('Values for ENUM haven\'t been defined.');
-      }
-
-      let type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
-
-      if (attribute.type instanceof DataTypes.ARRAY) {
-        type += '[]';
-      }
-
-      return type;
-    }
-
-    return attribute.type.toString();
-  }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {
@@ -247,7 +223,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       };
     }
 
-    let sql = this.attributeTypeToSql(attribute);
+    let sql = attribute.type.toString();
 
     if (attribute.allowNull === false) {
       sql += ' NOT NULL';
