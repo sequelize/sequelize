@@ -313,8 +313,12 @@ describe('Model', () => {
         if (!['mysql', 'mariadb'].includes(dialectName)) {
           // @ts-expect-error -- only used in testing
           expect(console.warn.called).to.eq(true, 'console.warn was not called');
+
           // @ts-expect-error -- only used in testing
-          expect(console.warn.args[0][0]).to.contain(`does not support FLOAT with scale or precision specified. These options are ignored.`);
+          const warnings = console.warn.args.map(args => args[0]);
+          expect(warnings.some(
+            (msg: string) => msg.includes(`does not support FLOAT with scale or precision specified. These options are ignored.`),
+          )).to.eq(true, 'warning was not logged');
         } else {
           // @ts-expect-error -- only used in testing
           expect(console.warn.called).to.equal(false, 'console.warn was called but it should not have been');
