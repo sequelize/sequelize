@@ -1,6 +1,7 @@
 'use strict';
 
 import defaults from 'lodash/defaults';
+// @ts-expect-error -- toposort-class definition will be added to sequelize/toposort later
 import Toposort from 'toposort-class';
 import type { ModelStatic } from './model';
 import type { Sequelize } from './sequelize';
