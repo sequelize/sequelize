@@ -458,6 +458,33 @@ export class Sequelize extends SequelizeTypeScript {
   }
 
   /**
+   * Returns the username.
+   *
+   * @returns {string} The defined username.
+   */
+  getUsername() {
+    return this.config.username;
+  }
+
+  /**
+   * Returns the host.
+   *
+   * @returns {string} The configured host.
+   */
+  getHost() {
+    return this.config.host;
+  }
+
+  /**
+   * Returns the port.
+   *
+   * @returns {string} The using port.
+   */
+  getPort() {
+    return this.config.port;
+  }
+
+  /**
    * Returns an instance of AbstractQueryInterface.
    *
    * @returns {AbstractQueryInterface} An instance (singleton) of AbstractQueryInterface.
