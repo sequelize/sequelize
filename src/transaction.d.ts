@@ -131,7 +131,7 @@ export enum LOCK {
   NO_KEY_UPDATE = 'NO KEY UPDATE',
 }
 
-export interface LOCK {
+interface LOCK {
   UPDATE: LOCK.UPDATE;
   SHARE: LOCK.SHARE;
   KEY_SHARE: LOCK.KEY_SHARE;
