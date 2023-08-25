@@ -727,7 +727,7 @@ Use Sequelize#query if you wish to use replacements.`);
         await this.hooks.runAsync('beforeQuery', options, query);
         checkTransaction();
 
-        return await query.run(sql, bindParameters, { minifyAliases: options.minifyAliases });
+        return await query.run(sql, bindParameters, { minifyAliases: options.minifyAliases, timeout: options.timeout });
       } finally {
         await this.hooks.runAsync('afterQuery', options, query);
         if (!options.transaction && !options.connection) {

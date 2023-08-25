@@ -22,9 +22,9 @@ export class MySqlQuery extends AbstractQuery {
     super(connection, sequelize, { showWarnings: false, ...options });
   }
 
-  async run(sql, parameters) {
+  async run(sql, parameters, options) {
     this.sql = sql;
-    const { connection, options } = this;
+    const { connection, options: { timeout } } = this;
 
     const showWarnings = this.sequelize.options.showWarnings || options.showWarnings;
 
@@ -40,13 +40,13 @@ export class MySqlQuery extends AbstractQuery {
       if (parameters && parameters.length > 0) {
         results = await new Promise((resolve, reject) => {
           connection
-            .execute(sql, parameters, (error, result) => (error ? reject(error) : resolve(result)))
+            .execute({ sql, values: parameters, timeout }, (error, result) => (error ? reject(error) : resolve(result)))
             .setMaxListeners(100);
         });
       } else {
         results = await new Promise((resolve, reject) => {
           connection
-            .query({ sql }, (error, result) => (error ? reject(error) : resolve(result)))
+            .query({ sql, timeout }, (error, result) => (error ? reject(error) : resolve(result)))
             .setMaxListeners(100);
         });
       }
