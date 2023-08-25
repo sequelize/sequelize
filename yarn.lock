@@ -1597,7 +1597,7 @@ __metadata:
     typedoc: 0.24.8
     typedoc-plugin-carbon-ads: 1.4.0
     typedoc-plugin-mdn-links: 3.0.3
-    typedoc-plugin-missing-exports: 2.0.1
+    typedoc-plugin-missing-exports: 2.1.0
     typescript: 5.1.6
   languageName: unknown
   linkType: soft
@@ -11940,12 +11940,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-missing-exports@npm:2.0.1":
-  version: 2.0.1
-  resolution: "typedoc-plugin-missing-exports@npm:2.0.1"
+"typedoc-plugin-missing-exports@npm:2.1.0":
+  version: 2.1.0
+  resolution: "typedoc-plugin-missing-exports@npm:2.1.0"
   peerDependencies:
-    typedoc: 0.24.x
-  checksum: d8c91bc5f192c1d9c04e2b71fad12ee5d133d304a16a9b584aa42224eaef5abd988ba7b0bcf1f93410cd5c9bdd388c20f484efcc1d4ef4384d11acb19ac19ceb
+    typedoc: 0.24.x || 0.25.x
+  checksum: cb9b324c28a68a4ba621f4e3c15ce3b43f75826bdcb09a073aa51c770bbca47b687eb1c0462ba22a09a316573e29c4f9c4f75763b51f8354cce42989dfa68231
   languageName: node
   linkType: hard
 
