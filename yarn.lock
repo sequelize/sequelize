@@ -1536,7 +1536,7 @@ __metadata:
     sequelize-pool: ^8.0.0
     sinon: 15.2.0
     sinon-chai: 3.7.0
-    snowflake-sdk: 1.7.0
+    snowflake-sdk: 1.8.0
     sqlite3: 5.1.6
     tedious: 16.4.0
     toposort-class: ^1.0.1
@@ -10809,9 +10809,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snowflake-sdk@npm:1.7.0":
-  version: 1.7.0
-  resolution: "snowflake-sdk@npm:1.7.0"
+"snowflake-sdk@npm:1.8.0":
+  version: 1.8.0
+  resolution: "snowflake-sdk@npm:1.8.0"
   dependencies:
     "@azure/storage-blob": ^12.11.0
     "@google-cloud/storage": ^6.9.3
@@ -10819,7 +10819,6 @@ __metadata:
     agent-base: ^6.0.2
     asn1.js-rfc2560: ^5.0.0
     asn1.js-rfc5280: ^3.0.0
-    async: ^3.2.3
     aws-sdk: ^2.878.0
     axios: ^0.27.2
     big-integer: ^1.6.43
@@ -10844,10 +10843,10 @@ __metadata:
     simple-lru-cache: ^0.0.2
     string-similarity: ^4.0.4
     tmp: ^0.2.1
-    urllib: ^2.38.0
+    urllib: ^2.41.0
     uuid: ^3.3.2
     winston: ^3.1.0
-  checksum: 8aa3c8bb25b352db9fe1408c019d64ed45c492c1d11feb9e85e007eb24e0f9a87dbcb3b1f9da1c948f9e00f35fc31cfc6b00f24bd5686ae9413c73517b50d073
+  checksum: de57502f8770a07396a7c0831f3bfa9e7c2bc01cc765e811c2f206d439b3d6cb5e8069df7a237c9820b6276f124b81ba233910bf7c2cdf30657ab02f555d7870
   languageName: node
   linkType: hard
 
@@ -12095,7 +12094,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"urllib@npm:^2.38.0":
+"urllib@npm:^2.41.0":
   version: 2.41.0
   resolution: "urllib@npm:2.41.0"
   dependencies:
