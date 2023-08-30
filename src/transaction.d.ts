@@ -29,14 +29,14 @@ export class Transaction {
   /**
    * Returns possible options for row locking
    */
-  static get LOCK(): LOCK;
+  static get LOCK(): Lock;
 
   /**
    * Same as its static version, but can also be called on instances of
    * transactions to get possible options for row locking directly from the
    * instance.
    */
-  get LOCK(): LOCK;
+  get LOCK(): Lock;
 }
 
 // tslint:disable-next-line no-namespace
@@ -131,7 +131,7 @@ export enum LOCK {
   NO_KEY_UPDATE = 'NO KEY UPDATE',
 }
 
-interface LOCK {
+interface Lock {
   UPDATE: LOCK.UPDATE;
   SHARE: LOCK.SHARE;
   KEY_SHARE: LOCK.KEY_SHARE;
