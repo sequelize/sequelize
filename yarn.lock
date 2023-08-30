@@ -1586,6 +1586,7 @@ __metadata:
     mocha: 10.2.0
     node-gyp: 9.4.0
     node-hook: 1.0.0
+    nx: 16.7.4
     source-map-support: 0.5.21
     ts-node: 10.9.1
     typedoc: 0.25.0
