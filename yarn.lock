@@ -1500,7 +1500,7 @@ __metadata:
     "@types/sinon-chai": 3.2.9
     "@types/snowflake-sdk": 1.6.13
     "@types/tedious": 4.0.10
-    "@types/uuid": 9.0.2
+    "@types/uuid": 9.0.3
     "@types/validator": ^13.7.5
     bnf-parser: 3.1.6
     chai: 4.3.8
@@ -1986,10 +1986,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:9.0.2":
-  version: 9.0.2
-  resolution: "@types/uuid@npm:9.0.2"
-  checksum: 1754bcf3444e1e3aeadd6e774fc328eb53bc956665e2e8fb6ec127aa8e1f43d9a224c3d22a9a6233dca8dd81a12dc7fed4d84b8876dd5ec82d40f574f7ff8b68
+"@types/uuid@npm:9.0.3":
+  version: 9.0.3
+  resolution: "@types/uuid@npm:9.0.3"
+  checksum: 3dde198defd71c067dd14b3050a8fe6d1ead5fe94ec318472e2c30a399d13f18941fe66cffabdcac7267177c9de2f975fdee6f0cc87cde610a2578e1ce4cc3af
   languageName: node
   linkType: hard
 
