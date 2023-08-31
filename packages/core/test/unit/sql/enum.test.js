@@ -42,13 +42,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       describe('pgEnum', () => {
         it('uses schema #3171', () => {
-          expectsql(sql.pgEnum(FooUser.getTableName(), 'mood', FooUser.getAttributes().mood.type), {
+          expectsql(sql.createEnumQuery(FooUser.getTableName(), 'mood', FooUser.getAttributes().mood.type), {
             postgres: `DO 'BEGIN CREATE TYPE "foo"."enum_users_mood" AS ENUM(''happy'', ''sad''); EXCEPTION WHEN duplicate_object THEN null; END';`,
           });
         });
 
         it('does add schema when public', () => {
-          expectsql(sql.pgEnum(PublicUser.getTableName(), 'theirMood', PublicUser.getAttributes().mood.type), {
+          expectsql(sql.createEnumQuery(PublicUser.getTableName(), 'theirMood', PublicUser.getAttributes().mood.type), {
             postgres: `DO 'BEGIN CREATE TYPE "public"."enum_users_theirMood" AS ENUM(''happy'', ''sad''); EXCEPTION WHEN duplicate_object THEN null; END';`,
           });
         });

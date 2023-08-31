@@ -3,13 +3,15 @@ import isEmpty from 'lodash/isEmpty';
 import type { ConstraintChecking } from '../../deferrable';
 import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
+import type { ModelStatic } from '../../model.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
 import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import type { Connection } from './connection-manager.js';
+import type { DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
-import type { QueryWithBindParams } from './query-generator.types';
+import type { ChangeColumnDefinition, ChangeColumnDefinitions, QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type {
   AddConstraintOptions,
@@ -24,6 +26,7 @@ import type {
   ShowAllSchemasOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
+import type { AbstractDialect } from './index.js';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
 
@@ -38,25 +41,32 @@ export interface MapConstraintDescription extends Omit<RawConstraintDescription,
  * Always use {@link AbstractQueryInterface} instead.
  */
 export class AbstractQueryInterfaceTypeScript {
-  readonly sequelize: Sequelize;
-  readonly queryGenerator: AbstractQueryGenerator;
+  // TODO: make #private
+  readonly dialect: AbstractDialect;
   readonly #internalQueryInterface: AbstractQueryInterfaceInternal;
 
+  // TODO: make #private
+  get queryGenerator(): AbstractQueryGenerator {
+    return this.dialect.queryGenerator;
+  }
+
+  // TODO: make #private
+  get sequelize(): Sequelize {
+    return this.dialect.sequelize;
+  }
+
   /**
-   * @param sequelize The sequelize instance.
-   * @param queryGenerator The query generator of the dialect used by the current Sequelize instance.
+   * @param dialect The Dialect Instance.
    * @param internalQueryInterface The internal query interface to use.
    *                               Defaults to a new instance of {@link AbstractQueryInterfaceInternal}.
    *                               Your dialect may replace this with a custom implementation.
    */
   constructor(
-    sequelize: Sequelize,
-    queryGenerator: AbstractQueryGenerator,
+    dialect: AbstractDialect,
     internalQueryInterface?: AbstractQueryInterfaceInternal,
   ) {
-    this.sequelize = sequelize;
-    this.queryGenerator = queryGenerator;
-    this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+    this.dialect = dialect;
+    this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(dialect);
   }
 
   /**
@@ -442,5 +452,39 @@ export class AbstractQueryInterfaceTypeScript {
     options?: QueryRawOptions,
   ): Promise<void> {
     await this.sequelize.queryRaw(this.queryGenerator.getToggleForeignKeyChecksQuery(enable), options);
+  }
+
+  /**
+   * Changes a column definition
+   *
+   * @param tableOrModel
+   * @param columnName
+   * @param dataTypeOrColumnOptions
+   * @param options
+   */
+  async changeColumn(
+    tableOrModel: TableNameOrModel,
+    columnName: string,
+    dataTypeOrColumnOptions: DataType | ChangeColumnDefinition,
+    options?: QueryRawOptions,
+  ): Promise<void> {
+    await this.changeColumns(tableOrModel, { [columnName]: dataTypeOrColumnOptions }, options);
+  }
+
+  /**
+   * Changes one or more columns on a table.
+   *
+   * @param tableOrModel The table or model that the columns should be changed on.
+   * @param columnDefinitions An object with the names of the columns as keys and an object with the details as values.
+   * @param options The options passed to {@link Sequelize#queryRaw}
+   */
+  async changeColumns(
+    tableOrModel: TableNameOrModel | ModelStatic,
+    columnDefinitions: ChangeColumnDefinitions,
+    options?: QueryRawOptions,
+  ): Promise<void> {
+    const sql = this.queryGenerator.changeColumnsQuery(tableOrModel, columnDefinitions);
+
+    await this.sequelize.queryRaw(sql, options);
   }
 }

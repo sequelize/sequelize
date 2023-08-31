@@ -10,7 +10,6 @@ const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
-    this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
   });
 
@@ -98,78 +97,5 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
     }
-
-    describe('enums', () => {
-      it('should work with enums (1)', async function () {
-        await this.queryInterface.createTable('SomeTable', {
-          someEnum: DataTypes.ENUM('value1', 'value2', 'value3'),
-        });
-
-        const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres')) {
-          expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
-        }
-      });
-
-      it('should work with enums (2)', async function () {
-        await this.queryInterface.createTable('SomeTable', {
-          someEnum: {
-            type: DataTypes.ENUM(['value1', 'value2', 'value3']),
-          },
-        });
-
-        const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres')) {
-          expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
-        }
-      });
-
-      it('should work with enums (3)', async function () {
-        await this.queryInterface.createTable('SomeTable', {
-          someEnum: {
-            type: DataTypes.ENUM(['value1', 'value2', 'value3']),
-            field: 'otherName',
-          },
-        });
-
-        const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres')) {
-          expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
-        }
-      });
-
-      if (Support.sequelize.dialect.supports.schemas) {
-        it('should work with enums (4, schemas)', async function () {
-          await this.queryInterface.createSchema('archive');
-
-          await this.queryInterface.createTable('SomeTable', {
-            someEnum: {
-              type: DataTypes.ENUM(['value1', 'value2', 'value3']),
-              field: 'otherName',
-            },
-          }, { schema: 'archive' });
-
-          const table = await this.queryInterface.describeTable('SomeTable', { schema: 'archive' });
-          if (dialect.includes('postgres')) {
-            expect(table.otherName.special).to.deep.equal(['value1', 'value2', 'value3']);
-          }
-        });
-      }
-
-      it('should work with enums (5)', async function () {
-        await this.queryInterface.createTable('SomeTable', {
-          someEnum: {
-            type: DataTypes.ENUM(['COMMENT']),
-            comment: 'special enum col',
-          },
-        });
-
-        const table = await this.queryInterface.describeTable('SomeTable');
-        if (dialect.includes('postgres')) {
-          expect(table.someEnum.special).to.deep.equal(['COMMENT']);
-          expect(table.someEnum.comment).to.equal('special enum col');
-        }
-      });
-    });
   });
 });

@@ -147,14 +147,41 @@ export function removeNullishValuesFromHash(
   return result;
 }
 
+/**
+ * Returns ENUM name by joining table and column name
+ *
+ * @param tableName
+ * @param columnName
+ * @param options
+ * @param options.replacement
+ * @private
+ */
+export function generateEnumName(
+  tableName: string,
+  columnName: string,
+  options?: { replacement?: boolean },
+): string {
+  const out = `enum_${tableName}_${columnName}`;
+
+  if (options?.replacement) {
+    return `tmp_${out}`;
+  }
+
+  return out;
+}
+
+export function generateSequenceName(tableName: string, columnName: string) {
+  return `${tableName}_${columnName}_seq`;
+}
+
 export function getColumnName(attribute: NormalizedAttributeOptions): string {
-  assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
+  assert(attribute.attributeName != null, 'getColumnName expects a normalized attribute meta');
 
   // field is the column name alias
   // if no alias is set, fieldName (the JS name) will be used instead.
-  return attribute.field || attribute.fieldName;
+  return attribute.columnName || attribute.attributeName;
 }
 
 export function getAttributeName(model: ModelStatic, columnName: string): string | null {
-  return Object.values(model.getAttributes()).find(attribute => attribute.field === columnName)?.fieldName ?? null;
+  return Object.values(model.getAttributes()).find(attribute => attribute.columnName === columnName)?.attributeName ?? null;
 }

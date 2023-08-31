@@ -2,10 +2,12 @@ import assert from 'node:assert';
 import wkx from 'wkx';
 import type { Rangable } from '../../model.js';
 import { isBigInt, isNumber, isString } from '../../utils/check.js';
+import { generateEnumName } from '../../utils/format.js';
 import * as BaseTypes from '../abstract/data-types';
 import type { AbstractDataType, AcceptableTypeOf, AcceptedDate, BindParamOptions } from '../abstract/data-types';
 import { attributeTypeToSql } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
+import type { DbObjectIdStruct, TableNameWithSchema } from '../abstract/query-interface.js';
 import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
 import * as RangeParser from './range';
@@ -382,18 +384,36 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
   override toSql(): string {
     const context = this.usageContext;
     if (context == null) {
-      throw new Error('Could not determine the name of this enum because it is not attached to an attribute or a column.');
+      throw new Error('This ENUM does not have an usage context.');
     }
 
-    let tableName;
+    const queryGenerator = context.sequelize.queryGenerator;
+
+    return queryGenerator.quoteIdentifier(this.getEnumName());
+  }
+
+  getEnumName(): DbObjectIdStruct {
+    if (this.options.name && this.options.schema) {
+      return {
+        name: this.options.name,
+        schema: this.options.schema,
+      };
+    }
+
+    const context = this.usageContext;
+    if (context == null) {
+      throw new Error('Could not determine the name of this enum because it is not attached to an attribute or a column, and it no name was provided in its options.');
+    }
+
+    let table: TableNameWithSchema;
     let columnName;
     if ('model' in context) {
-      tableName = context.model.getTableName();
+      table = context.model.table;
 
-      const attribute = context.model.getAttributes()[context.attributeName];
-      columnName = attribute.field ?? context.attributeName;
+      const attribute = context.model.modelDefinition.attributes.getOrThrow(context.attributeName);
+      columnName = attribute.columnName;
     } else {
-      tableName = context.tableName;
+      table = context.tableName;
       columnName = context.columnName;
     }
 
@@ -401,6 +421,12 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
 
     assert(queryGenerator instanceof PostgresQueryGenerator, 'expected queryGenerator to be PostgresQueryGenerator');
 
-    return queryGenerator.pgEnumName(tableName, columnName);
+    return {
+      // !TODO: Add test to ensure this works in createTable (should use the right enum)
+      // !TODO: Add test where two different tables use this enum, then one is dropped (should not drop the enum), then the other is dropped (should drop the enum)
+      // !TODO: Add test where two different columns use this enum, then one is dropped (should not drop the enum), then the other is dropped (should drop the enum)
+      name: this.options.name || generateEnumName(table.tableName, columnName),
+      schema: this.options.schema || table.schema,
+    };
   }
 }

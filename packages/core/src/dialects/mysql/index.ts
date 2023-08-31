@@ -78,15 +78,9 @@ export class MysqlDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'mysql');
-    this.connectionManager = new MySqlConnectionManager(this, sequelize);
-    this.queryGenerator = new MySqlQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-    this.queryInterface = new MySqlQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.connectionManager = new MySqlConnectionManager(this);
+    this.queryGenerator = new MySqlQueryGenerator(this);
+    this.queryInterface = new MySqlQueryInterface(this);
 
     registerMySqlDbDataTypeParsers(this);
   }

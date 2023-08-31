@@ -231,11 +231,10 @@ export class PostgresQuery extends AbstractQuery {
 
       for (const row of rows) {
         result[row.Field] = {
-          type: row.Type.toUpperCase(),
+          type: row.Type,
           allowNull: row.Null === 'YES',
           defaultValue: row.Default,
           comment: row.Comment,
-          special: row.special ? this.sequelize.getQueryInterface().queryGenerator.fromArray(row.special) : [],
           primaryKey: row.Constraint === 'PRIMARY KEY',
         };
 

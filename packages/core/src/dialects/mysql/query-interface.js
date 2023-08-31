@@ -2,15 +2,16 @@
 
 import { getObjectFromMap } from '../../utils/object';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+import { MySqlQueryInterfaceTypeScript } from './query-interface-typescript.js';
 
 const sequelizeErrors = require('../../errors');
-const { AbstractQueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
 
 /**
  * The interface that Sequelize uses to talk with MySQL/MariaDB database
  */
-export class MySqlQueryInterface extends AbstractQueryInterface {
+export class MySqlQueryInterface extends MySqlQueryInterfaceTypeScript {
+
   /**
    * A wrapper that fixes MySQL's inability to cleanly remove columns from existing tables if they have a foreign key constraint.
    *

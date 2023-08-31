@@ -1,7 +1,8 @@
 import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
-import { ConstraintChecking, Deferrable } from '../../deferrable.js';
+import type { Deferrable } from '../../deferrable.js';
+import { ConstraintChecking } from '../../deferrable.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
 import { Attribute } from '../../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
@@ -18,7 +19,7 @@ import { Where } from '../../expression-builders/where.js';
 import { IndexHints } from '../../index-hints.js';
 import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
-import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
+import type { BindOrReplacements, Expression } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { TableHints } from '../../table-hints.js';
 import { isDictionary, isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
@@ -28,18 +29,20 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
+import type { RequiredBy } from '../../utils/types.js';
 import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
 import { AbstractDataType } from './data-types.js';
 import type { BindParamOptions, DataType } from './data-types.js';
-import type { AbstractQueryGenerator } from './query-generator.js';
+import { AbstractQueryGeneratorInternal, normalizeChangeColumnAttribute } from './query-generator-internal.js';
 import type {
   AddConstraintQueryOptions,
+  ChangeColumnDefinitions,
   GetConstraintSnippetQueryOptions,
   QuoteTableOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types.js';
-import type { TableName, TableNameWithSchema } from './query-interface.js';
+import type { DbObjectId, TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import { PojoWhere, WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 import type { AbstractDialect } from './index.js';
@@ -56,11 +59,6 @@ export interface RemoveIndexQueryOptions {
 export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
-
-export interface QueryGeneratorOptions {
-  sequelize: Sequelize;
-  dialect: AbstractDialect;
-}
 
 /**
  * Options accepted by {@link AbstractQueryGeneratorTypeScript#escape}
@@ -112,28 +110,86 @@ export interface Bindable {
  * Always use {@link AbstractQueryGenerator} instead.
  */
 export class AbstractQueryGeneratorTypeScript {
-
   protected readonly whereSqlBuilder: WhereSqlBuilder;
+  // TODO: make #private.
   readonly dialect: AbstractDialect;
-  protected readonly sequelize: Sequelize;
+  readonly #internalQueryGenerator: AbstractQueryGeneratorInternal;
 
-  constructor(options: QueryGeneratorOptions) {
-    if (!options.sequelize) {
-      throw new Error('QueryGenerator initialized without options.sequelize');
-    }
-
-    if (!options.dialect) {
-      throw new Error('QueryGenerator initialized without options.dialect');
-    }
-
-    this.sequelize = options.sequelize;
-    this.dialect = options.dialect;
-    // TODO: remove casting once all AbstractQueryGenerator functions are moved here
-    this.whereSqlBuilder = new WhereSqlBuilder(this as unknown as AbstractQueryGenerator);
+  constructor(dialect: AbstractDialect, internalQueryGenerator?: AbstractQueryGeneratorInternal) {
+    this.#internalQueryGenerator = internalQueryGenerator ?? new AbstractQueryGeneratorInternal(dialect);
+    this.dialect = dialect;
+    this.whereSqlBuilder = new WhereSqlBuilder(dialect);
   }
 
   protected get options() {
     return this.sequelize.options;
+  }
+
+  get sequelize() {
+    return this.dialect.sequelize;
+  }
+
+  changeColumnsQuery(tableOrModel: TableNameOrModel, columnDefinitions: ChangeColumnDefinitions): string {
+    if (Object.keys(columnDefinitions).length === 0) {
+      throw new Error('changeColumnsQuery requires at least one column to be provided.');
+    }
+
+    const table = this.extractTableDetails(tableOrModel);
+
+    const columnsSql: string[] = [];
+
+    const isModel = isModelStatic(tableOrModel);
+
+    for (const [columnOrAttributeName, rawColumnDefinition] of Object.entries(columnDefinitions)) {
+      let columnName: string | null;
+      if (isModel) {
+        columnName = tableOrModel.modelDefinition.getColumnName(columnOrAttributeName);
+      } else {
+        columnName = columnOrAttributeName;
+      }
+
+      const columnDefinition = normalizeChangeColumnAttribute(this.sequelize, rawColumnDefinition);
+
+      if ('primaryKey' in columnDefinition) {
+        throw new Error('changeColumnsQuery does not support adding or removing a column from the primary key because it would need to drop and recreate the constraint but it does not know whether other columns are already part of the primary key. Use dropConstraint and addConstraint instead.');
+      }
+
+      if ('unique' in columnDefinition && columnDefinition.unique !== true) {
+        throw new Error('changeColumnsQuery does not support adding or removing a column from a unique index because it would need to drop and recreate the index but it does not know whether other columns are already part of the index. Use dropIndex and addIndex instead.');
+      }
+
+      if (('onUpdate' in columnDefinition || 'onDelete' in columnDefinition) && !('references' in columnDefinition)) {
+        throw new Error('changeColumnsQuery does not support changing onUpdate or onDelete on their own. Use dropConstraint and addConstraint instead.');
+      }
+
+      if (columnDefinition.dropDefaultValue && columnDefinition.defaultValue !== undefined) {
+        throw new Error('Cannot use both dropDefaultValue and defaultValue on the same column.');
+      }
+
+      if (columnDefinition.type instanceof AbstractDataType) {
+        columnDefinition.type = columnDefinition.type.withUsageContext({
+          columnName,
+          sequelize: this.sequelize,
+          tableName: table,
+        });
+      }
+
+      const columnSql = this.#internalQueryGenerator.attributeToChangeColumn(table, columnName, columnDefinition);
+
+      if (columnSql) {
+        columnsSql.push(columnSql);
+      }
+    }
+
+    // it is possible for this query to be empty but still valid if the dialect overrides this method.
+    // for instance, postgres set comments without using ALTER TABLE,
+    // so if the only change is a comment change, this will be empty,
+    // but the postgres dialect will add the necessary SET COMMENT statement.
+    if (columnsSql.length === 0) {
+      return '';
+    }
+
+    return `ALTER TABLE ${this.quoteTable(table)} ${columnsSql.join(', ')};`;
   }
 
   describeTableQuery(tableName: TableNameOrModel) {
@@ -210,7 +266,7 @@ export class AbstractQueryGeneratorTypeScript {
         const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_uk`);
         constraintSnippet = `CONSTRAINT ${constraintName} UNIQUE (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
-          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
+          constraintSnippet += ` ${this.#internalQueryGenerator.getDeferrableConstraintSnippet(options.deferrable)}`;
         }
 
         break;
@@ -238,7 +294,7 @@ export class AbstractQueryGeneratorTypeScript {
         const constraintName = this.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_pk`);
         constraintSnippet = `CONSTRAINT ${constraintName} PRIMARY KEY (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
-          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
+          constraintSnippet += ` ${this.#internalQueryGenerator.getDeferrableConstraintSnippet(options.deferrable)}`;
         }
 
         break;
@@ -276,7 +332,7 @@ export class AbstractQueryGeneratorTypeScript {
         }
 
         if (options.deferrable) {
-          constraintSnippet += ` ${this._getDeferrableConstraintSnippet(options.deferrable)}`;
+          constraintSnippet += ` ${this.#internalQueryGenerator.getDeferrableConstraintSnippet(options.deferrable)}`;
         }
 
         break;
@@ -290,28 +346,9 @@ export class AbstractQueryGeneratorTypeScript {
     return constraintSnippet;
   }
 
+  // TODO: remove once not used externally anymore
   protected _getDeferrableConstraintSnippet(deferrable: Deferrable) {
-    if (!this.dialect.supports.constraints.deferrable) {
-      throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
-    }
-
-    switch (deferrable) {
-      case Deferrable.INITIALLY_DEFERRED: {
-        return 'DEFERRABLE INITIALLY DEFERRED';
-      }
-
-      case Deferrable.INITIALLY_IMMEDIATE: {
-        return 'DEFERRABLE INITIALLY IMMEDIATE';
-      }
-
-      case Deferrable.NOT: {
-        return 'NOT DEFERRABLE';
-      }
-
-      default: {
-        throw new Error(`Unknown constraint checking behavior ${deferrable}`);
-      }
-    }
+    return this.#internalQueryGenerator.getDeferrableConstraintSnippet(deferrable);
   }
 
   removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
@@ -403,7 +440,7 @@ export class AbstractQueryGeneratorTypeScript {
   extractTableDetails(
     tableNameOrModel: TableNameOrModel,
     options?: { schema?: string, delimiter?: string },
-  ): TableNameWithSchema {
+  ): RequiredBy<TableNameWithSchema, 'schema'> {
     const tableNameObject = isModelStatic(tableNameOrModel) ? tableNameOrModel.getTableName()
       : isString(tableNameOrModel) ? { tableName: tableNameOrModel }
       : tableNameOrModel;
@@ -508,9 +545,35 @@ export class AbstractQueryGeneratorTypeScript {
    * @param identifier
    * @param _force
    */
-  // TODO: memoize last result
-  quoteIdentifier(identifier: string, _force?: boolean) {
+  // TODO: memoize
+  // TODO: move to internal class
+  protected _quoteSimpleIdentifier(identifier: string, _force?: boolean) {
     return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
+  }
+
+  quoteIdentifier(identifier: DbObjectId, force?: boolean) {
+    if (!isString(identifier)) {
+      const name = this._quoteSimpleIdentifier(identifier.name, force);
+
+      if (identifier.schema) {
+        return `${this._quoteSimpleIdentifier(identifier.schema, force)}.${name}`;
+      }
+
+      return name;
+    }
+
+    return this._quoteSimpleIdentifier(identifier, force);
+  }
+
+  quoteIdentifierWithDefaults(identifier: DbObjectId) {
+    if (isString(identifier)) {
+      return this.quoteIdentifier({ name: identifier, schema: this.options.schema || this.dialect.getDefaultSchema() });
+    }
+
+    return this.quoteIdentifier({
+      ...identifier,
+      schema: identifier.schema || this.options.schema || this.dialect.getDefaultSchema(),
+    });
   }
 
   isSameTable(tableA: TableNameOrModel, tableB: TableNameOrModel) {

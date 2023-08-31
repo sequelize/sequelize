@@ -59,7 +59,7 @@ export type MakeNullishOptional<T extends object> = PartialBy<T, NullishProperti
 /**
  * Makes the type accept null & undefined
  */
-export type Nullish<T> = T | null | undefined;
+export type Nullish = null | undefined;
 
 export type NonNullish<T> = T extends null | undefined ? never : T;
 
@@ -67,6 +67,14 @@ export type NonUndefined<T> = T extends undefined ? never : T;
 
 export type NonUndefinedKeys<T, K extends keyof T> = {
   [P in keyof T]: P extends K ? NonUndefined<T[P]> : T[P];
+};
+
+export type AllowUndefinedKeys<T, K extends keyof T = keyof T> = {
+  [P in keyof T]: P extends K ? T[P] | undefined : T[P];
+};
+
+export type NonNullishKeys<T, K extends keyof T> = {
+  [P in keyof T]: P extends K ? NonNullish<T[P]> : T[P];
 };
 
 export type AllowArray<T> = T | T[];
@@ -86,8 +94,12 @@ export type OmitConstructors<T> = Pick<T, NonConstructorKeys<T>>;
  */
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
+export type LoosePartial<T> = Partial<AllowUndefinedKeys<T>>;
+
 export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 
 export type StrictRequiredBy<T, K extends keyof T> = NonUndefinedKeys<Omit<T, K> & Required<Pick<T, K>>, K>;
+
+export type NonNullishRequiredBy<T, K extends keyof T> = NonNullishKeys<Omit<T, K> & Required<Pick<T, K>>, K>;
 
 export type ReadOnlyRecord<K extends PropertyKey, V> = Readonly<Record<K, V>>;

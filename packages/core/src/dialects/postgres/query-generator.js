@@ -1,5 +1,7 @@
 'use strict';
 
+import mapValues from 'lodash/mapValues';
+import { generateEnumName } from '../../utils/format.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
@@ -12,7 +14,6 @@ import {
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
-
 import each from 'lodash/each';
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
@@ -95,7 +96,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
-  createTableQuery(tableName, attributes, options) {
+  createTableQuery(table, attributes, options) {
     if (options) {
       rejectInvalidOptions(
         'createTableQuery',
@@ -112,7 +113,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let comments = '';
     let columnComments = '';
 
-    const quotedTable = this.quoteTable(tableName);
+    const quotedTable = this.quoteTable(table);
 
     if (options.comment && typeof options.comment === 'string') {
       comments += `; COMMENT ON TABLE ${quotedTable} IS ${this.escape(options.comment)}`;
@@ -128,7 +129,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attributes[attr] = attributes[attr].slice(0, Math.max(0, i));
       }
 
-      const dataType = this.dataTypeMapping(tableName, attr, attributes[attr]);
+      const dataType = this.dataTypeMapping(table, attr, attributes[attr]);
       attrStr.push(`${quotedAttr} ${dataType}`);
     }
 
@@ -137,7 +138,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     if (options.uniqueKeys) {
       each(options.uniqueKeys, (index, indexName) => {
         if (typeof indexName !== 'string') {
-          indexName = generateIndexName(tableName, index);
+          indexName = generateIndexName(table, index);
         }
 
         attributesClause += `, CONSTRAINT ${
@@ -197,9 +198,9 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 
     if (dataType instanceof DataTypes.ENUM) {
-      query = this.pgEnum(table, key, dataType) + query;
+      query = this.createEnumQuery(table, key, dataType) + query;
     } else if (dataType instanceof DataTypes.ARRAY && dataType.options.type instanceof DataTypes.ENUM) {
-      query = this.pgEnum(table, key, dataType.options.type) + query;
+      query = this.createEnumQuery(table, key, dataType.options.type) + query;
     }
 
     return query;
@@ -213,53 +214,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const ifExists = options.ifExists ? ' IF EXISTS' : '';
 
     return `ALTER TABLE ${quotedTableName} DROP COLUMN ${ifExists} ${quotedAttributeName};`;
-  }
-
-  changeColumnQuery(tableName, attributes) {
-    const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
-    const sql = [];
-    for (const attributeName in attributes) {
-      let definition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
-      let attrSql = '';
-
-      if (definition.includes('NOT NULL')) {
-        attrSql += query(`${this.quoteIdentifier(attributeName)} SET NOT NULL`);
-
-        definition = definition.replace('NOT NULL', '').trim();
-      } else if (!definition.includes('REFERENCES')) {
-        attrSql += query(`${this.quoteIdentifier(attributeName)} DROP NOT NULL`);
-      }
-
-      if (definition.includes('DEFAULT')) {
-        attrSql += query(`${this.quoteIdentifier(attributeName)} SET DEFAULT ${definition.match(/DEFAULT ([^;]+)/)[1]}`);
-
-        definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
-      } else if (!definition.includes('REFERENCES')) {
-        attrSql += query(`${this.quoteIdentifier(attributeName)} DROP DEFAULT`);
-      }
-
-      if (attributes[attributeName].startsWith('ENUM(')) {
-        attrSql += this.pgEnum(tableName, attributeName, attributes[attributeName]);
-        definition = definition.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attributeName, { schema: false }));
-        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
-      }
-
-      if (/UNIQUE;*$/.test(definition)) {
-        definition = definition.replace(/UNIQUE;*$/, '');
-        attrSql += query(`ADD UNIQUE (${this.quoteIdentifier(attributeName)})`).replace('ALTER COLUMN', '');
-      }
-
-      if (definition.includes('REFERENCES')) {
-        definition = definition.replace(/.+?(?=REFERENCES)/, '');
-        attrSql += query(`ADD FOREIGN KEY (${this.quoteIdentifier(attributeName)}) ${definition}`).replace('ALTER COLUMN', '');
-      } else {
-        attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
-      }
-
-      sql.push(attrSql);
-    }
-
-    return sql.join('');
   }
 
   renameColumnQuery(tableName, attrBefore, attributes) {
@@ -343,31 +297,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       };
     }
 
-    let type;
-    if (
-      attribute.type instanceof DataTypes.ENUM
-      || attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM
-    ) {
-      const enumType = attribute.type.type || attribute.type;
-      const values = enumType.options.values;
-
-      if (Array.isArray(values) && values.length > 0) {
-        type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
-
-        if (attribute.type instanceof DataTypes.ARRAY) {
-          type += '[]';
-        }
-
-      } else {
-        throw new Error('Values for ENUM haven\'t been defined.');
-      }
-    }
-
-    if (!type) {
-      type = attribute.type;
-    }
-
-    let sql = type.toString();
+    let sql = attribute.type.toString();
 
     if (attribute.allowNull === false) {
       sql += ' NOT NULL';
@@ -613,79 +543,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }).join(' OR ');
   }
 
-  pgEnumName(tableName, columnName, options = {}) {
-    const tableDetails = this.extractTableDetails(tableName, options);
-
-    const enumName = `enum_${tableDetails.tableName}_${columnName}`;
-    if (options.noEscape) {
-      return enumName;
-    }
-
-    const escapedEnumName = this.quoteIdentifier(enumName);
-
-    if (options.schema !== false && tableDetails.schema) {
-      return this.quoteIdentifier(tableDetails.schema) + tableDetails.delimiter + escapedEnumName;
-    }
-
-    return escapedEnumName;
-  }
-
-  pgListEnums(tableName, attrName, options) {
-    let enumName = '';
-    const tableDetails = tableName != null
-      ? this.extractTableDetails(tableName, options)
-      : { schema: this.options.schema || this.dialect.getDefaultSchema() };
-
-    if (tableDetails.tableName && attrName) {
-      // pgEnumName escapes as an identifier, we want to escape it as a string
-      enumName = ` AND t.typname=${this.escape(this.pgEnumName(tableDetails.tableName, attrName, { noEscape: true }))}`;
-    }
-
-    return 'SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t '
-      + 'JOIN pg_enum e ON t.oid = e.enumtypid '
-      + 'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace '
-      + `WHERE n.nspname = ${this.escape(tableDetails.schema)}${enumName} GROUP BY 1`;
-  }
-
-  pgEnum(tableName, attr, dataType, options) {
-    const enumName = this.pgEnumName(tableName, attr, options);
-    let values;
-
-    if (dataType instanceof ENUM && dataType.options.values) {
-      values = `ENUM(${dataType.options.values.map(value => this.escape(value)).join(', ')})`;
-    } else {
-      values = dataType.toString().match(/^ENUM\(.+\)/)[0];
-    }
-
-    let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${enumName} AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
-    if (Boolean(options) && options.force === true) {
-      sql = this.pgEnumDrop(tableName, attr) + sql;
-    }
-
-    return sql;
-  }
-
-  pgEnumAdd(tableName, attr, value, options) {
-    const enumName = this.pgEnumName(tableName, attr);
-    let sql = `ALTER TYPE ${enumName} ADD VALUE IF NOT EXISTS `;
-
-    sql += this.escape(value);
-
-    if (options.before) {
-      sql += ` BEFORE ${this.escape(options.before)}`;
-    } else if (options.after) {
-      sql += ` AFTER ${this.escape(options.after)}`;
-    }
-
-    return sql;
-  }
-
-  pgEnumDrop(tableName, attr, enumName) {
-    enumName = enumName || this.pgEnumName(tableName, attr);
-
-    return `DROP TYPE IF EXISTS ${enumName}; `;
-  }
-
   fromArray(text) {
     if (Array.isArray(text)) {
       return text;
@@ -723,7 +580,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     if (dataType.startsWith('ENUM(')) {
-      dataType = dataType.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attr));
+      // TODO: we should not use generateEnumName! Call .toSQL on the enum!
+      dataType = dataType.replace(/^ENUM\(.+\)/, this.quoteIdentifier(generateEnumName(tableName.tableName, attr)));
     }
 
     return dataType;
@@ -801,7 +659,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
    *
    * @returns {string}
    */
-  quoteIdentifier(identifier, force) {
+  _quoteSimpleIdentifier(identifier, force) {
     const optForceQuote = force || false;
     // TODO [>7]: remove "quoteIdentifiers: false" option
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;

@@ -11,12 +11,12 @@ import type {
   ModelStatic,
   NormalizedAttributeOptions,
 } from '../../model';
-import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
+import type { QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { IsolationLevel, Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
-import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
+import type { AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { QiDropAllSchemasOptions } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -85,6 +85,13 @@ export interface TableNameWithSchema {
   schema?: string;
   delimiter?: string;
 }
+
+export interface DbObjectIdStruct {
+  name: string;
+  schema?: string | undefined;
+}
+
+export type DbObjectId = string | DbObjectIdStruct;
 
 export type TableName = string | TableNameWithSchema;
 
@@ -199,6 +206,13 @@ export interface FunctionParam {
   direction?: string;
 }
 
+export interface ForeignKeyReference {
+  tableName: string;
+  columnName: string;
+  referencedTableName: string;
+  referencedColumnName: string;
+}
+
 export interface DatabaseDescription {
   name: string;
 }
@@ -253,18 +267,6 @@ export type CreateTableAttributes<
 */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
-   * Returns the dialect-specific sql generator.
-   *
-   * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
-   */
-  queryGenerator: AbstractQueryGenerator;
-
-  /**
-   * Returns the current sequelize instance.
-   */
-  sequelize: Sequelize;
-
-  /**
    * Drops all tables
    */
   dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void>;
@@ -298,13 +300,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   dropAllTables(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
 
   /**
-   * Drops all defined enums
-   *
-   * @param options
-   */
-  dropAllEnums(options?: QueryRawOptions): Promise<void>;
-
-  /**
    * Renames a table
    */
   renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;
@@ -331,16 +326,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     table: TableName,
     attribute: string,
     options?: RemoveColumnOptions,
-  ): Promise<void>;
-
-  /**
-   * Changes a column
-   */
-  changeColumn(
-    tableName: TableName,
-    attributeName: string,
-    dataTypeOrOptions?: DataType | AttributeOptions,
-    options?: QiOptionsWithReplacements
   ): Promise<void>;
 
   /**
@@ -400,7 +385,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Get foreign key references details for the table
    */
-  getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<object>;
+  getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<ForeignKeyReference[]>;
 
   /**
    * Inserts a new record

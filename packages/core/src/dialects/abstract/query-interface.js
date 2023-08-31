@@ -128,7 +128,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * )
    * ```
    *
-   * @param {string} tableName  Name of table to create
+   * @param {TableName} tableName  Name of table to create
    * @param {object} attributes Object representing a list of table attributes to create
    * @param {object} [options] create table and query options
    * @param {Model}  [model] model class
@@ -138,6 +138,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
     options = { ...options };
+    tableName = this.queryGenerator.extractTableDetails(tableName, options);
 
     // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query
     if (model && this.queryGenerator.dialect.name !== 'sqlite') {
@@ -146,11 +147,25 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     attributes = mapValues(
       attributes,
-      attribute => this.sequelize.normalizeAttribute(attribute),
+      (attribute, attributeName) => {
+        const normalizedAttribute = this.sequelize.normalizeAttribute(attribute);
+
+        if (normalizedAttribute.type instanceof AbstractDataType) {
+          normalizedAttribute.type = normalizedAttribute.type.withUsageContext({
+            tableName,
+            columnName: normalizedAttribute.columnName || attributeName,
+            sequelize: this.sequelize,
+          });
+        }
+
+        return normalizedAttribute;
+      },
     );
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
-    await this.ensureEnums(tableName, attributes, options, model);
+    if ('ensureEnums' in this) {
+      await this.ensureEnums(tableName, Object.values(attributes), options);
+    }
 
     const modelTable = model?.table;
 
@@ -348,6 +363,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *
    * @returns {string}
    */
+  // TODO: remove
   quoteIdentifier(identifier, force) {
     return this.queryGenerator.quoteIdentifier(identifier, force);
   }
@@ -359,30 +375,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *
    * @returns {string}
    */
+  // TODO: remove
   quoteIdentifiers(identifiers) {
     return this.queryGenerator.quoteIdentifiers(identifiers);
-  }
-
-  /**
-   * Change a column definition
-   *
-   * @param {string} tableName          Table name to change from
-   * @param {string} attributeName      Column name
-   * @param {object} dataTypeOrOptions  Attribute definition for new column
-   * @param {object} [options]          Query options
-   */
-  async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
-    options = options || {};
-
-    const query = this.queryGenerator.attributesToSQL({
-      [attributeName]: this.normalizeAttribute(dataTypeOrOptions),
-    }, {
-      context: 'changeColumn',
-      table: tableName,
-    });
-    const sql = this.queryGenerator.changeColumnQuery(tableName, query);
-
-    return this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -1075,13 +1070,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   // Helper methods useful for querying
-
-  /**
-   * @private
-   */
-  ensureEnums() {
-    // noop by default
-  }
 
   async setIsolationLevel(transaction, value, options) {
     if (!transaction || !(transaction instanceof Transaction)) {

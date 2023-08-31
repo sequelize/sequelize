@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes, Op, json } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
 describe('[POSTGRES Specific] DAO', () => {
   if (dialect !== 'postgres') {
@@ -239,9 +239,9 @@ describe('[POSTGRES Specific] DAO', () => {
       });
 
       await User.sync();
-      const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
+      const enums = await this.sequelize.getQueryInterface().listEnums({ schema: User.table.schema });
       expect(enums).to.have.length(1);
-      expect(enums[0].enum_value).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
+      expect(enums[0].values).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
     });
 
     it('should be able to add multiple values with different order', async function () {
@@ -255,9 +255,9 @@ describe('[POSTGRES Specific] DAO', () => {
       });
 
       await User.sync();
-      const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
+      const enums = await this.sequelize.getQueryInterface().listEnums({ schema: User.table.schema });
       expect(enums).to.have.length(1);
-      expect(enums[0].enum_value).to.deep.equal(['0', '1', '2', '3', '4', '5', '6', '7']);
+      expect(enums[0].values).to.deep.equal(['0', '1', '2', '3', '4', '5', '6', '7']);
     });
 
     describe('ARRAY(ENUM)', () => {
@@ -309,9 +309,9 @@ describe('[POSTGRES Specific] DAO', () => {
         });
 
         await User.sync();
-        const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
+        const enums = await this.sequelize.getQueryInterface().listEnums({ schema: User.table.schema });
         expect(enums).to.have.length(1);
-        expect(enums[0].enum_value).to.deep.equal(['view', 'access', 'edit', 'write', 'check', 'delete']);
+        expect(enums[0].values).to.deep.equal(['view', 'access', 'edit', 'write', 'check', 'delete']);
       });
 
       it('should be able to insert new record', async function () {

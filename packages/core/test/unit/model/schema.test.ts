@@ -32,7 +32,7 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
       });
 
       it('returns the current model if the schema is identical', () => {
-        assert(Project.withSchema('') === Project);
+        assert(Project.withSchema('') === Project, 'returned project is not identical');
         assert(Project.withSchema('test').withSchema('test') === Project.withSchema('test'));
       });
 

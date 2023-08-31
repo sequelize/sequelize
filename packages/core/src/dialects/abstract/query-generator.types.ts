@@ -1,8 +1,10 @@
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
-import type { IndexHintable, ReferentialAction } from '../../model';
+import type { AttributeOptions, IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
+import type { LoosePartial, Nullish } from '../../utils/types.js';
+import type { DataType, DataTypeInstance } from './data-types.js';
 import type { TableNameOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
@@ -107,3 +109,26 @@ export interface QuoteTableOptions extends IndexHintable {
   alias: boolean | string;
   tableHints?: TableHints[];
 }
+
+export type ChangeColumnDefinitions = {
+  [attributeName: string]: DataType | ChangeColumnDefinition,
+};
+
+export type ChangeColumnDefinition = LoosePartial<Omit<AttributeOptions, 'primaryKey' | 'unique'>> & {
+  /**
+   * Only 'true' is allowed, because changeColumns can add a single-column unique, but does not have access to enough information
+   * to add a multi-column unique, or removing a column from a unique index.
+   */
+  unique?: boolean | Nullish,
+
+  /**
+   * Set to true to remove the defaultValue.
+   *
+   * Cannot be used in conjunction with defaultValue.
+   */
+  dropDefaultValue?: boolean,
+};
+
+export type NormalizedChangeColumnDefinition = Omit<ChangeColumnDefinition, 'type'> & {
+  type?: DataTypeInstance | string | undefined,
+};

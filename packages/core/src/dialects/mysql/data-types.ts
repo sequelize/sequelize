@@ -127,6 +127,10 @@ export class JSON extends BaseTypes.JSON {
   getBindParamSql(value: any, options: BindParamOptions): string {
     return `CAST(${super.getBindParamSql(value, options)} AS JSON)`;
   }
+
+  canHaveDefaultValue(): boolean {
+    return false;
+  }
 }
 
 export class UUID extends BaseTypes.UUID {
@@ -165,6 +169,10 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
 
     return sql;
   }
+
+  canHaveDefaultValue(): boolean {
+    return false;
+  }
 }
 
 export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
@@ -172,5 +180,17 @@ export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
     const dialect = this._getDialect();
 
     return `ENUM(${this.options.values.map(value => dialect.escapeString(value)).join(', ')})`;
+  }
+}
+
+export class TEXT extends BaseTypes.TEXT {
+  canHaveDefaultValue(): boolean {
+    return false;
+  }
+}
+
+export class BLOB extends BaseTypes.BLOB {
+  canHaveDefaultValue(): boolean {
+    return false;
   }
 }

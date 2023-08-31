@@ -774,7 +774,7 @@ ${associationOwner._getAssociationDebugList()}`);
       await this.queryInterface.createTable(tableName, physicalAttributes, options, this);
     } else {
       // enums are always updated, even if alter is not set. createTable calls it too.
-      await this.queryInterface.ensureEnums(tableName, physicalAttributes, options, this);
+      await this.queryInterface.ensureEnums(this, options);
     }
 
     if (tableExists && options.alter) {
@@ -825,6 +825,7 @@ ${associationOwner._getAssociationDebugList()}`);
             // Find existed foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
+
               if ((Boolean(constraintName)
                 && (foreignKeyReference.tableCatalog ? foreignKeyReference.tableCatalog === database : true)
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
@@ -842,7 +843,18 @@ ${associationOwner._getAssociationDebugList()}`);
             }
           }
 
-          await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, options);
+          const changeColumnOptions = {
+            ...currentAttribute,
+            dropDefaultValue: currentAttribute.defaultValue === undefined,
+          };
+
+          // changeColumn is only able to add single-column uniques.
+          // more complex uniques are added via addIndex further in this method.
+          if (changeColumnOptions.unique !== true) {
+            delete changeColumnOptions.unique;
+          }
+
+          await this.queryInterface.changeColumn(tableName, columnName, changeColumnOptions, options);
         }
       }
     }

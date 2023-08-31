@@ -1,14 +1,66 @@
+import mapValues from 'lodash/mapValues.js';
+import * as DataTypes from '../../data-types.js';
 import type { Expression } from '../../sequelize.js';
+import { isString } from '../../utils/check.js';
+import { generateSequenceName } from '../../utils/format.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
+import type { DataTypeInstance } from '../abstract/data-types.js';
+import { AbstractDataType } from '../abstract/data-types.js';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
+import { normalizeChangeColumnAttribute } from '../abstract/query-generator-internal.js';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { ChangeColumnDefinitions, ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { DbObjectId } from '../abstract/query-interface';
+import { ENUM } from './data-types.js';
+import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
+import type { PostgresDialect } from './index.js';
+
+export interface CreateEnumQueryOptions {
+  /**
+   * Drop the existing enum if one exists
+   */
+  force?: boolean | undefined;
+}
+
+export interface ListEnumQueryOptions {
+  /**
+   * The schema for which to list the enums, defaults to the default schema of the Sequelize instance.
+   */
+  schema?: string | undefined;
+
+  /**
+   * The name of the enum to list, defaults to all enums in the schema.
+   */
+  dataTypeOrName?: DataTypeInstance | string | undefined;
+}
+
+export interface AddValueToEnumQueryOptions {
+  /**
+   * Before which value of the enum the new value should be inserted.
+   */
+  before?: string | undefined;
+
+  /**
+   * After which value of the enum the new value should be inserted.
+   */
+  after?: string | undefined;
+}
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  readonly #internalQueryGenerator: PostgresQueryGeneratorInternal;
+
+  constructor(dialect: PostgresDialect, internalQueryGenerator?: PostgresQueryGeneratorInternal) {
+    internalQueryGenerator = internalQueryGenerator ?? new PostgresQueryGeneratorInternal(dialect);
+
+    super(dialect, internalQueryGenerator);
+
+    this.#internalQueryGenerator = internalQueryGenerator;
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -18,8 +70,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'c.column_name as "Field",',
       'c.column_default as "Default",',
       'c.is_nullable as "Null",',
-      `(CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",`,
-      '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",',
+      `(CASE WHEN c.udt_name = 'hstore' THEN UPPER(c.udt_name) WHEN c.data_type = 'USER-DEFINED' THEN c.udt_name ELSE UPPER(c.data_type) END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",`,
       '(SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"',
       'FROM information_schema.columns c',
       'LEFT JOIN (SELECT tc.table_schema, tc.table_name,',
@@ -33,7 +84,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.table_name=c.table_name',
       'AND pk.column_name=c.column_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
-      `AND c.table_schema = ${this.escape(table.schema!)}`,
+      `AND c.table_schema = ${this.escape(table.schema)}`,
     ]);
   }
 
@@ -106,7 +157,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'DROP INDEX',
       options?.concurrently ? 'CONCURRENTLY' : '',
       options?.ifExists ? 'IF EXISTS' : '',
-      `${this.quoteIdentifier(table.schema!)}.${this.quoteIdentifier(indexName)}`,
+      `${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(indexName)}`,
       options?.cascade ? 'CASCADE' : '',
     ]);
   }
@@ -148,7 +199,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       '"referenced_column".attrelid = "constraint".confrelid',
       `WHERE "constraint".contype = 'f'`,
       `AND "table".relname = ${this.escape(table.tableName)}`,
-      `AND table_schema.nspname = ${this.escape(table.schema!)}`,
+      `AND table_schema.nspname = ${this.escape(table.schema)}`,
       columnName && `AND "column".attname = ${this.escape(columnName)};`,
     ]);
   }
@@ -174,5 +225,110 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   versionQuery() {
     return 'SHOW SERVER_VERSION';
+  }
+
+  changeColumnsQuery(tableOrModel: TableNameOrModel, columnDefinitions: ChangeColumnDefinitions): string {
+    const sql = super.changeColumnsQuery(tableOrModel, columnDefinitions);
+
+    const normalizedChangeColumnDefinitions = mapValues(columnDefinitions, attribute => {
+      return normalizeChangeColumnAttribute(this.sequelize, attribute);
+    });
+
+    const table = this.extractTableDetails(tableOrModel);
+
+    const out = [];
+    if (sql) {
+      out.push(sql);
+    }
+
+    for (const [columnName, columnDef] of Object.entries(normalizedChangeColumnDefinitions)) {
+      if ('comment' in columnDef) {
+        if (columnDef.comment == null) {
+          out.push(`COMMENT ON COLUMN ${this.quoteTable(table)}.${this.quoteIdentifier(columnName)} IS NULL;`);
+        } else {
+          out.push(`COMMENT ON COLUMN ${this.quoteTable(table)}.${this.quoteIdentifier(columnName)} IS ${this.escape(columnDef.comment)};`);
+        }
+      }
+
+      if (columnDef.autoIncrement) {
+        out.unshift(`CREATE SEQUENCE IF NOT EXISTS ${this.quoteIdentifier(generateSequenceName(table.tableName, columnName))} OWNED BY ${this.quoteTable(table)}.${this.quoteIdentifier(columnName)};`);
+      }
+
+      const enumType = columnDef.type instanceof DataTypes.ARRAY ? columnDef.type.options.type : columnDef.type;
+      if (enumType instanceof DataTypes.ENUM) {
+        // tell the enum in which context it is used so its name generation has all the necessary information.
+        const typeWithContext = enumType.withUsageContext({
+          columnName,
+          sequelize: this.sequelize,
+          tableName: table,
+        });
+
+        // create enum under a temporary name
+        out.unshift(this.createEnumQuery(typeWithContext));
+      }
+    }
+
+    return out.join(' ');
+  }
+
+  createEnumQuery(
+    dataType: DataTypeInstance,
+    options?: CreateEnumQueryOptions,
+  ): string {
+    if (!(dataType instanceof ENUM)) {
+      throw new TypeError('createEnumQuery expects an instance of the ENUM DataType');
+    }
+
+    const enumName = dataType.getEnumName();
+    const values = `ENUM(${dataType.options.values.map(value => this.escape(value))
+      .join(', ')})`;
+
+    let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${this.quoteIdentifierWithDefaults(enumName)} AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
+    if (options?.force === true) {
+      sql = `${this.dropEnumQuery(enumName)}\n${sql}`;
+    }
+
+    return sql;
+  }
+
+  dropEnumQuery(dataTypeOrName: DataTypeInstance | DbObjectId): string {
+    const enumName = dataTypeOrName instanceof AbstractDataType ? dataTypeOrName.toSql()
+        : this.quoteIdentifierWithDefaults(dataTypeOrName);
+
+    return `DROP TYPE IF EXISTS ${enumName};`;
+  }
+
+  listEnumsQuery(options?: ListEnumQueryOptions) {
+    const enumName = !options?.dataTypeOrName ? ''
+      : isString(options.dataTypeOrName) ? options.dataTypeOrName
+      : options.dataTypeOrName.toSql();
+
+    const enumNameFilter = enumName ? ` AND t.typname=${this.escape(enumName)}` : '';
+
+    const schema = options?.schema || this.options.schema || this.dialect.getDefaultSchema();
+
+    return 'SELECT t.typname name, array_agg(e.enumlabel ORDER BY enumsortorder) values FROM pg_type t '
+      + 'JOIN pg_enum e ON t.oid = e.enumtypid '
+      + 'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace '
+      + `WHERE n.nspname = ${this.escape(schema)}${enumNameFilter} GROUP BY 1`;
+  }
+
+  addValueToEnumQuery(
+    dataTypeOrName: DataTypeInstance | DbObjectId,
+    value: string,
+    options?: AddValueToEnumQueryOptions,
+  ): string {
+    const enumName = dataTypeOrName instanceof AbstractDataType ? dataTypeOrName.toSql()
+      : this.quoteIdentifierWithDefaults(dataTypeOrName);
+
+    let sql = `ALTER TYPE ${enumName} ADD VALUE IF NOT EXISTS ${this.escape(value)}`;
+
+    if (options?.before) {
+      sql += ` BEFORE ${this.escape(options.before)}`;
+    } else if (options?.after) {
+      sql += ` AFTER ${this.escape(options.after)}`;
+    }
+
+    return sql;
   }
 }

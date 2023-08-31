@@ -13,7 +13,6 @@ const { DataTypes } = require('@sequelize/core');
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryInterface', () => {
     beforeEach(function () {
-      this.sequelize.options.quoteIdenifiers = true;
       this.queryInterface = this.sequelize.getQueryInterface();
     });
 

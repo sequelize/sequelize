@@ -20,7 +20,7 @@ type OnRunHook<HookConfig extends {}> = <HookName extends keyof HookConfig>(
 export class HookHandler<HookConfig extends {}> {
   #validHookNames: Array<keyof HookConfig>;
   #eventTarget: object;
-  #listeners = new Multimap<PropertyKey, { listenerName: Nullish<string>, callback: HookConfig[keyof HookConfig] }>();
+  #listeners = new Multimap<PropertyKey, { listenerName: string | Nullish, callback: HookConfig[keyof HookConfig] }>();
   #onRunHook: OnRunHook<HookConfig> | undefined;
 
   constructor(
@@ -61,7 +61,7 @@ export class HookHandler<HookConfig extends {}> {
   #getNamedListener<HookName extends keyof HookConfig>(
     hookName: HookName,
     listenerName: string,
-  ): { listenerName: Nullish<string>, callback: HookConfig[keyof HookConfig] } | null {
+  ): { listenerName: string | Nullish, callback: HookConfig[keyof HookConfig] } | null {
     const listeners = this.#listeners.getAll(hookName);
     for (const listener of listeners) {
       if (listener.listenerName === listenerName) {

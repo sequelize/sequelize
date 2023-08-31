@@ -14,9 +14,8 @@ const customSql = customSequelize.dialect.queryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('addColumn', () => {
-    const User = current.define('User', {}, { timestamps: false });
-
     if (['mysql', 'mariadb'].includes(current.dialect.name)) {
+      const User = current.define('User', {}, { timestamps: false });
       it('properly generate alter queries', () => {
         return expectsql(sql.addColumnQuery(User.getTableName(), 'level_id', current.normalizeAttribute({
           type: DataTypes.FLOAT,

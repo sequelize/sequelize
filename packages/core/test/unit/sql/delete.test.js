@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             options,
           ), {
             ibmi: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
-            postgres: 'TRUNCATE "test_users" CASCADE',
+            postgres: 'TRUNCATE "public"."test_users" CASCADE',
             mssql: 'TRUNCATE TABLE [public].[test_users]',
             mariadb: 'TRUNCATE `public`.`test_users`',
             mysql: 'TRUNCATE `public`.`test_users`',

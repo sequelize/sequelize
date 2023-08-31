@@ -5,6 +5,9 @@ import pTimeout from 'p-timeout';
 import type { Options } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
+import {
+  PostgresQueryInterface,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/query-interface.js';
 import { createSequelizeInstance, getTestDialect, resetSequelizeInstance, sequelize } from '../support';
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
@@ -227,7 +230,7 @@ async function clearDatabaseInternal(customSequelize: Sequelize) {
   customSequelize.modelManager.models = [];
   customSequelize.models = {};
 
-  if (qi.dropAllEnums) {
+  if (qi instanceof PostgresQueryInterface) {
     await qi.dropAllEnums();
   }
 

@@ -699,7 +699,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable<any>, Paran
    *
    * Only available when setting {@link IncludeOptions.separate} to true.
    */
-  limit?: Nullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   /**
    * If true, runs a separate query to fetch the associated instances.
@@ -858,7 +858,7 @@ export interface FindOptions<TAttributes = any>
    * });
    * ```
    */
-  limit?: Nullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   // TODO: document this - this is an undocumented property but it exists and there are tests for it.
   groupedLimit?: unknown;
@@ -1188,7 +1188,7 @@ export interface TruncateOptions extends Logging, Transactionable, Hookable {
   /**
    * How many rows to delete
    */
-  limit?: Nullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   /**
    * Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
@@ -1235,7 +1235,7 @@ export interface RestoreOptions<TAttributes = any> extends Logging, Transactiona
   /**
    * How many rows to undelete
    */
-  limit?: Nullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 }
 
 /**
@@ -1288,7 +1288,7 @@ export interface UpdateOptions<TAttributes = any> extends Logging, Transactionab
    * Only for mysql and mariadb,
    * Implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present
    */
-  limit?: Nullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   /**
    * If true, the updatedAt timestamp will not be updated.
@@ -2232,7 +2232,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withSchema<M extends Model>(
     this: ModelStatic<M>,
-    schema: Nullish<string | SchemaOptions>,
+    schema: string | SchemaOptions | Nullish,
   ): ModelStatic<M>;
 
   /**
@@ -2241,7 +2241,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static schema<M extends Model>(
     this: ModelStatic<M>,
-    schema: Nullish<string>,
+    schema: string | Nullish,
     options?: { schemaDelimiter?: string } | string
   ): ModelStatic<M>;
 
@@ -2267,7 +2267,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static withScope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
+    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>> | Nullish,
   ): ModelStatic<M>;
 
   /**
@@ -2276,7 +2276,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
+    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>> | Nullish,
   ): ModelStatic<M>;
 
   /**

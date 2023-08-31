@@ -38,7 +38,7 @@ if (dialect === 'mariadb') {
         },
         {
           arguments: [{ id: { type: 'INTEGER', primaryKey: true, autoIncrement: true } }],
-          expectation: { id: 'INTEGER auto_increment PRIMARY KEY' },
+          expectation: { id: 'INTEGER AUTO_INCREMENT PRIMARY KEY' },
         },
         {
           arguments: [{ id: { type: 'INTEGER', defaultValue: 0 } }],

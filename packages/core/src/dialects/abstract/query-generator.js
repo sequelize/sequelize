@@ -55,8 +55,6 @@ export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
 
 /**
  * Abstract Query Generator
- *
- * @private
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   createDatabaseQuery() {
