@@ -7,7 +7,7 @@ const dialect = sequelize.getDialect();
 
 describe('QueryInterface#{add,show,removeConstraint}', () => {
   describe('Without schema', () => {
-    const defaultSchema = dialect === 'db2' ? 'DB2INST1' : sequelize.dialect.getDefaultSchema();
+    const defaultSchema = sequelize.dialect.getDefaultSchema();
 
     beforeEach(async () => {
       await queryInterface.createTable('levels', {
@@ -53,8 +53,205 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       });
     });
 
+    it('should add, show and delete a UNIQUE constraint', async () => {
+      await queryInterface.addConstraint('actors', {
+        name: 'custom_constraint_name',
+        type: 'UNIQUE',
+        fields: ['name', 'age'],
+      });
+
+      const constraintType = await queryInterface.showConstraints('actors', { constraintType: 'UNIQUE' });
+      const constraints = constraintType.filter(constraint => constraint.constraintName === 'custom_constraint_name');
+      expect(constraints).to.have.length(1);
+      expect(constraints[0]).to.deep.equal({
+        ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+        constraintSchema: defaultSchema,
+        constraintName: 'custom_constraint_name',
+        constraintType: 'UNIQUE',
+        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+        tableSchema: defaultSchema,
+        tableName: 'actors',
+        columnNames: ['name', 'age'],
+        ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
+      });
+
+      await queryInterface.removeConstraint('actors', 'custom_constraint_name');
+      const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
+      expect(constraintsAfterRemove).to.have.length(0);
+    });
+
+    it('should add, show and delete a PRIMARY & FOREIGN KEY constraint', async () => {
+      await queryInterface.addConstraint('levels', {
+        name: 'pk_levels',
+        type: 'PRIMARY KEY',
+        fields: ['id'],
+      });
+
+      await queryInterface.addConstraint('actors', {
+        name: 'custom_constraint_name',
+        type: 'FOREIGN KEY',
+        fields: ['level_id'],
+        references: {
+          table: 'levels',
+          field: 'id',
+        },
+        onDelete: 'CASCADE',
+      });
+
+      const foreignKeys = await queryInterface.showConstraints('actors', { columnName: 'level_id', constraintType: 'FOREIGN KEY' });
+      expect(foreignKeys).to.have.length(1);
+      expect(foreignKeys[0]).to.deep.equal({
+        ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+        constraintSchema: defaultSchema,
+        constraintName: 'custom_constraint_name',
+        constraintType: 'FOREIGN KEY',
+        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+        tableSchema: defaultSchema,
+        tableName: 'actors',
+        columnNames: ['level_id'],
+        referencedTableName: 'levels',
+        referencedTableSchema: defaultSchema,
+        referencedColumnNames: ['id'],
+        deleteAction: 'CASCADE',
+        updateAction: dialect === 'mariadb'
+          ? 'RESTRICT'
+          : dialect === 'sqlite'
+          ? ''
+          : 'NO ACTION',
+        ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
+      });
+
+      await queryInterface.removeConstraint('actors', 'custom_constraint_name');
+      const fkAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
+      expect(fkAfterRemove).to.have.length(0);
+
+      const primaryKeys = await queryInterface.showConstraints('levels', { columnName: 'id', constraintType: 'PRIMARY KEY' });
+      expect(primaryKeys).to.have.length(1);
+      expect(primaryKeys[0]).to.deep.equal({
+        ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+        constraintSchema: defaultSchema,
+        constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
+        constraintType: 'PRIMARY KEY',
+        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+        tableSchema: defaultSchema,
+        tableName: 'levels',
+        columnNames: ['id'],
+        ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
+      });
+
+      await queryInterface.removeConstraint('levels', ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels');
+      const pkAfterRemove = await queryInterface.showConstraints('levels', { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' });
+      expect(pkAfterRemove).to.have.length(0);
+    });
+
+    it('should add, show and delete a composite PRIMARY & FOREIGN KEY constraint', async () => {
+      await queryInterface.addConstraint('levels', {
+        name: 'pk_levels',
+        type: 'PRIMARY KEY',
+        fields: ['id', 'manager_id'],
+      });
+
+      await queryInterface.addConstraint('actors', {
+        name: 'custom_constraint_name',
+        type: 'FOREIGN KEY',
+        fields: ['level_id', 'manager_id'],
+        references: {
+          table: 'levels',
+          fields: ['id', 'manager_id'],
+        },
+        onDelete: 'CASCADE',
+      });
+
+      const foreignKeys = await queryInterface.showConstraints('actors', { constraintType: 'FOREIGN KEY' });
+      expect(foreignKeys).to.have.length(1);
+      expect(foreignKeys[0]).to.deep.equal({
+        ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+        constraintSchema: defaultSchema,
+        constraintName: 'custom_constraint_name',
+        constraintType: 'FOREIGN KEY',
+        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+        tableSchema: defaultSchema,
+        tableName: 'actors',
+        columnNames: ['level_id', 'manager_id'],
+        referencedTableSchema: defaultSchema,
+        referencedTableName: 'levels',
+        referencedColumnNames: ['id', 'manager_id'],
+        deleteAction: 'CASCADE',
+        updateAction: dialect === 'mariadb'
+          ? 'RESTRICT'
+          : dialect === 'sqlite'
+          ? ''
+          : 'NO ACTION',
+        ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
+      });
+
+      await queryInterface.removeConstraint('actors', 'custom_constraint_name');
+      const fkAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
+      expect(fkAfterRemove).to.have.length(0);
+
+      const primaryKeys = await queryInterface.showConstraints('levels', { constraintType: 'PRIMARY KEY' });
+      expect(primaryKeys).to.have.length(1);
+      expect(primaryKeys[0]).to.deep.equal({
+        ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+        constraintSchema: defaultSchema,
+        constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
+        constraintType: 'PRIMARY KEY',
+        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+        tableSchema: defaultSchema,
+        tableName: 'levels',
+        columnNames: ['id', 'manager_id'],
+        ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
+      });
+
+      await queryInterface.removeConstraint('levels', ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels');
+      const pkAfterRemove = await queryInterface.showConstraints('levels', { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' });
+      expect(pkAfterRemove).to.have.length(0);
+    });
+
+    if (sequelize.dialect.supports.constraints.onUpdate) {
+      it('should add a FOREIGN KEY constraints with onUpdate', async () => {
+        await queryInterface.addConstraint('levels', {
+          name: 'pk_levels',
+          type: 'PRIMARY KEY',
+          fields: ['id'],
+        });
+
+        await queryInterface.addConstraint('actors', {
+          name: 'custom_constraint_name',
+          type: 'FOREIGN KEY',
+          fields: ['level_id'],
+          references: {
+            table: 'levels',
+            field: 'id',
+          },
+          onDelete: 'CASCADE',
+          onUpdate: 'CASCADE',
+        });
+
+        const constraintType = await queryInterface.showConstraints('actors', { columnName: 'level_id', constraintType: 'FOREIGN KEY' });
+        const constraints = constraintType.filter(constraint => constraint.constraintName === 'custom_constraint_name');
+        expect(constraints).to.have.length(1);
+        expect(constraints[0]).to.deep.equal({
+          ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+          constraintSchema: defaultSchema,
+          constraintName: 'custom_constraint_name',
+          constraintType: 'FOREIGN KEY',
+          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+          tableSchema: defaultSchema,
+          tableName: 'actors',
+          columnNames: ['level_id'],
+          referencedTableName: 'levels',
+          referencedTableSchema: defaultSchema,
+          referencedColumnNames: ['id'],
+          deleteAction: 'CASCADE',
+          updateAction: 'CASCADE',
+          ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
+        });
+      });
+    }
+
     if (sequelize.dialect.supports.constraints.check) {
-      it('should add, show, delete CHECK constraint', async () => {
+      it('should add, show and delete a CHECK constraint', async () => {
         await queryInterface.addConstraint('actors', {
           name: 'custom_constraint_name',
           type: 'CHECK',
@@ -76,16 +273,27 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           expect(constraintType[0].constraintType).to.equal('CHECK');
         }
 
-        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
+        const constraints = constraintType.filter(constraint => constraint.constraintName === 'custom_constraint_name');
         expect(constraints).to.have.length(1);
-
-        const [check] = constraints;
-        expect(check.constraintSchema).to.equal(defaultSchema);
-        expect(check.constraintName).to.equal('custom_constraint_name');
-        expect(check.constraintType).to.equal('CHECK');
-        expect(check.tableName).to.equal('actors');
-        expect(check.tableSchema).to.equal(defaultSchema);
-        expect(check.definition).to.not.be.null;
+        expect(constraints[0]).to.deep.equal({
+          ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+          constraintSchema: defaultSchema,
+          constraintName: 'custom_constraint_name',
+          constraintType: 'CHECK',
+          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+          tableSchema: defaultSchema,
+          tableName: 'actors',
+          definition: dialect === 'mssql'
+            ? '([age]>(10))'
+            : dialect === 'db2'
+            ? '"age" > 10'
+            : dialect === 'postgres'
+            ? '((age > 10))'
+            : dialect === 'sqlite'
+            ? '(`age` > 10)'
+            : '`age` > 10',
+          ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
+        });
 
         await queryInterface.removeConstraint('actors', 'custom_constraint_name');
         const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
@@ -94,7 +302,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
     }
 
     if (sequelize.dialect.supports.constraints.default) {
-      it('should add, show, delete DEFAULT constraints', async () => {
+      it('should add, show and delete a DEFAULT constraints', async () => {
         await queryInterface.addConstraint('actors', {
           name: 'custom_constraint_name',
           type: 'DEFAULT',
@@ -102,298 +310,25 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           defaultValue: 'active',
         });
 
-        const [columnName, constraintType] = await Promise.all([
-          queryInterface.showConstraints('actors', { columnName: 'status' }),
-          queryInterface.showConstraints('actors', { constraintType: 'DEFAULT' }),
-        ]);
-        expect(columnName).to.have.length(1);
-        expect(columnName[0].columnNames).to.deep.equal(['status']);
-        expect(constraintType).to.have.length(1);
-        expect(constraintType[0].constraintType).to.equal('DEFAULT');
-
-        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
+        const constraintType = await queryInterface.showConstraints('actors', { columnName: 'status', constraintType: 'DEFAULT' });
+        const constraints = constraintType.filter(constraint => constraint.constraintName === 'custom_constraint_name');
         expect(constraints).to.have.length(1);
-
-        const [_default] = constraints;
-        expect(_default.constraintSchema).to.equal(defaultSchema);
-        expect(_default.constraintName).to.equal('custom_constraint_name');
-        expect(_default.constraintType).to.equal('DEFAULT');
-        expect(_default.tableName).to.equal('actors');
-        expect(_default.tableSchema).to.equal(defaultSchema);
-        expect(_default.columnNames).to.deep.equal(['status']);
-        expect(_default.definition).to.not.be.null;
+        expect(constraints[0]).to.deep.equal({
+          ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+          constraintSchema: defaultSchema,
+          constraintName: 'custom_constraint_name',
+          constraintType: 'DEFAULT',
+          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+          tableSchema: defaultSchema,
+          tableName: 'actors',
+          columnNames: ['status'],
+          definition: dialect === 'mssql' ? `(N'active')` : `DEFAULT 'active'`,
+          ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
+        });
 
         await queryInterface.removeConstraint('actors', 'custom_constraint_name');
         const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
         expect(constraintsAfterRemove).to.have.length(0);
-      });
-    }
-
-    if (sequelize.dialect.supports.constraints.unique) {
-      it('should add, show, delete UNIQUE constraints', async () => {
-        await queryInterface.addConstraint('actors', {
-          name: 'custom_constraint_name',
-          type: 'UNIQUE',
-          fields: ['name', 'age'],
-        });
-
-        const [columnName, constraintType] = await Promise.all([
-          queryInterface.showConstraints('actors', { columnName: 'name' }),
-          queryInterface.showConstraints('actors', { constraintType: 'UNIQUE' }),
-        ]);
-        expect(columnName).to.have.length(1);
-        expect(columnName[0].columnNames).to.deep.equal(['name']);
-        expect(constraintType).to.have.length(1);
-        expect(constraintType[0].constraintType).to.equal('UNIQUE');
-
-        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
-        expect(constraints).to.have.length(1);
-
-        const [unique] = constraints;
-        expect(unique.constraintSchema).to.equal(defaultSchema);
-        expect(unique.constraintName).to.equal('custom_constraint_name');
-        expect(unique.constraintType).to.equal('UNIQUE');
-        expect(unique.tableName).to.equal('actors');
-        expect(unique.tableSchema).to.equal(defaultSchema);
-        expect(unique.columnNames).to.deep.equal(['name', 'age']);
-
-        await queryInterface.removeConstraint('actors', 'custom_constraint_name');
-        const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
-        expect(constraintsAfterRemove).to.have.length(0);
-      });
-    }
-
-    if (sequelize.dialect.supports.constraints.foreignKey) {
-      it('should add, show, delete FOREIGN KEY constraints', async () => {
-        await queryInterface.addConstraint('levels', {
-          name: 'pk_levels',
-          type: 'PRIMARY KEY',
-          fields: ['id'],
-        });
-
-        await queryInterface.addConstraint('actors', {
-          name: 'custom_constraint_name',
-          type: 'FOREIGN KEY',
-          fields: ['level_id'],
-          references: {
-            table: 'levels',
-            field: 'id',
-          },
-          onDelete: 'CASCADE',
-        });
-
-        const [columnName, constraintType] = await Promise.all([
-          queryInterface.showConstraints('actors', { columnName: 'level_id' }),
-          queryInterface.showConstraints('actors', { constraintType: 'FOREIGN KEY' }),
-        ]);
-        expect(columnName).to.have.length(1);
-        expect(columnName[0].columnNames).to.deep.equal(['level_id']);
-        expect(constraintType).to.have.length(1);
-        expect(constraintType[0].constraintType).to.equal('FOREIGN KEY');
-
-        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
-        expect(constraints).to.have.length(1);
-
-        const [foreignKey] = constraints;
-        expect(foreignKey.constraintSchema).to.equal(defaultSchema);
-        expect(foreignKey.constraintName).to.equal('custom_constraint_name');
-        expect(foreignKey.constraintType).to.equal('FOREIGN KEY');
-        expect(foreignKey.tableName).to.equal('actors');
-        expect(foreignKey.tableSchema).to.equal(defaultSchema);
-        expect(foreignKey.columnNames).to.deep.equal(['level_id']);
-        expect(foreignKey.referencedTableName).to.equal('levels');
-        expect(foreignKey.referencedTableSchema).to.equal(defaultSchema);
-        expect(foreignKey.referencedColumnNames).to.deep.equal(['id']);
-        expect(foreignKey.deleteAction).to.equal('CASCADE');
-
-        await queryInterface.removeConstraint('actors', 'custom_constraint_name');
-        const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
-        expect(constraintsAfterRemove).to.have.length(0);
-      });
-
-      it('should add, show, delete composite FOREIGN KEY constraints', async () => {
-        await queryInterface.addConstraint('levels', {
-          name: 'pk_levels',
-          type: 'PRIMARY KEY',
-          fields: ['id', 'manager_id'],
-        });
-
-        await queryInterface.addConstraint('actors', {
-          name: 'custom_constraint_name',
-          type: 'FOREIGN KEY',
-          fields: ['level_id', 'manager_id'],
-          references: {
-            table: 'levels',
-            fields: ['id', 'manager_id'],
-          },
-          onDelete: 'CASCADE',
-        });
-
-        const [columnName, constraintType] = await Promise.all([
-          queryInterface.showConstraints('actors', { columnName: 'manager_id' }),
-          queryInterface.showConstraints('actors', { constraintType: 'FOREIGN KEY' }),
-        ]);
-        expect(columnName).to.have.length(1);
-        expect(columnName[0].columnNames).to.deep.equal(['manager_id']);
-        expect(constraintType).to.have.length(1);
-        expect(constraintType[0].constraintType).to.equal('FOREIGN KEY');
-
-        const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
-        expect(constraints).to.have.length(1);
-
-        const [foreignKey] = constraints;
-        expect(foreignKey.constraintSchema).to.equal(defaultSchema);
-        expect(foreignKey.constraintName).to.equal('custom_constraint_name');
-        expect(foreignKey.constraintType).to.equal('FOREIGN KEY');
-        expect(foreignKey.tableName).to.equal('actors');
-        expect(foreignKey.tableSchema).to.equal(defaultSchema);
-        expect(foreignKey.columnNames).to.deep.equal(['level_id', 'manager_id']);
-        expect(foreignKey.referencedTableName).to.equal('levels');
-        expect(foreignKey.referencedTableSchema).to.equal(defaultSchema);
-        expect(foreignKey.referencedColumnNames).to.deep.equal(['id', 'manager_id']);
-        expect(foreignKey.deleteAction).to.equal('CASCADE');
-
-        await queryInterface.removeConstraint('actors', 'custom_constraint_name');
-        const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
-        expect(constraintsAfterRemove).to.have.length(0);
-      });
-
-      if (sequelize.dialect.supports.constraints.onUpdate) {
-        it('should add, show, delete FOREIGN KEY constraints with onUpdate', async () => {
-          await queryInterface.addConstraint('levels', {
-            name: 'pk_levels',
-            type: 'PRIMARY KEY',
-            fields: ['id'],
-          });
-
-          await queryInterface.addConstraint('actors', {
-            name: 'custom_constraint_name',
-            type: 'FOREIGN KEY',
-            fields: ['level_id'],
-            references: {
-              table: 'levels',
-              field: 'id',
-            },
-            onDelete: 'CASCADE',
-            onUpdate: 'CASCADE',
-          });
-
-          const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
-          expect(constraints).to.have.length(1);
-
-          const [foreignKey] = constraints;
-          expect(foreignKey.constraintSchema).to.equal(defaultSchema);
-          expect(foreignKey.constraintName).to.equal('custom_constraint_name');
-          expect(foreignKey.constraintType).to.equal('FOREIGN KEY');
-          expect(foreignKey.tableName).to.equal('actors');
-          expect(foreignKey.tableSchema).to.equal(defaultSchema);
-          expect(foreignKey.columnNames).to.deep.equal(['level_id']);
-          expect(foreignKey.referencedTableName).to.equal('levels');
-          expect(foreignKey.referencedTableSchema).to.equal(defaultSchema);
-          expect(foreignKey.referencedColumnNames).to.deep.equal(['id']);
-          expect(foreignKey.deleteAction).to.equal('CASCADE');
-          expect(foreignKey.updateAction).to.equal('CASCADE');
-        });
-      }
-    }
-
-    if (sequelize.dialect.supports.constraints.primaryKey) {
-      it('should add, show, delete PRIMARY KEY constraints', async () => {
-        await queryInterface.addConstraint('actors', {
-          name: 'custom_constraint_name',
-          type: 'PRIMARY KEY',
-          fields: ['id'],
-        });
-
-        const [columnName, constraintType] = await Promise.all([
-          queryInterface.showConstraints('actors', { columnName: 'id' }),
-          queryInterface.showConstraints('actors', { constraintType: 'PRIMARY KEY' }),
-        ]);
-        expect(columnName).to.have.length(1);
-        expect(columnName[0].columnNames).to.deep.equal(['id']);
-        expect(constraintType).to.have.length(1);
-        expect(constraintType[0].constraintType).to.equal('PRIMARY KEY');
-
-        if (['mariadb', 'mysql'].includes(dialect)) {
-          const constraints = await queryInterface.showConstraints('actors', { constraintName: 'PRIMARY' });
-          expect(constraints).to.have.length(1);
-
-          const [primaryKey] = constraints;
-          expect(primaryKey.constraintSchema).to.equal(defaultSchema);
-          expect(primaryKey.constraintName).to.equal('PRIMARY');
-          expect(primaryKey.constraintType).to.equal('PRIMARY KEY');
-          expect(primaryKey.tableName).to.equal('actors');
-          expect(primaryKey.tableSchema).to.equal(defaultSchema);
-          expect(primaryKey.columnNames).to.deep.equal(['id']);
-
-          await queryInterface.removeConstraint('actors', 'PRIMARY');
-          const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'PRIMARY' });
-          expect(constraintsAfterRemove).to.have.length(0);
-        } else {
-          const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
-          expect(constraints).to.have.length(1);
-
-          const [primaryKey] = constraints;
-          expect(primaryKey.constraintSchema).to.equal(defaultSchema);
-          expect(primaryKey.constraintName).to.equal('custom_constraint_name');
-          expect(primaryKey.constraintType).to.equal('PRIMARY KEY');
-          expect(primaryKey.tableName).to.equal('actors');
-          expect(primaryKey.tableSchema).to.equal(defaultSchema);
-          expect(primaryKey.columnNames).to.deep.equal(['id']);
-
-          await queryInterface.removeConstraint('actors', 'custom_constraint_name');
-          const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
-          expect(constraintsAfterRemove).to.have.length(0);
-        }
-      });
-
-      it('should add, show, delete composite PRIMARY KEY constraints', async () => {
-        await queryInterface.addConstraint('levels', {
-          name: 'custom_constraint_name',
-          type: 'PRIMARY KEY',
-          fields: ['id', 'manager_id'],
-        });
-
-        const [columnName, constraintType] = await Promise.all([
-          queryInterface.showConstraints('levels', { columnName: 'manager_id' }),
-          queryInterface.showConstraints('levels', { constraintType: 'PRIMARY KEY' }),
-        ]);
-        expect(columnName).to.have.length(1);
-        expect(columnName[0].columnNames).to.deep.equal(['manager_id']);
-        expect(constraintType).to.have.length(1);
-        expect(constraintType[0].constraintType).to.equal('PRIMARY KEY');
-
-        if (['mariadb', 'mysql'].includes(dialect)) {
-          const constraints = await queryInterface.showConstraints('levels', { constraintName: 'PRIMARY' });
-          expect(constraints).to.have.length(1);
-
-          const [primaryKey] = constraints;
-          expect(primaryKey.constraintSchema).to.equal(defaultSchema);
-          expect(primaryKey.constraintName).to.equal('PRIMARY');
-          expect(primaryKey.constraintType).to.equal('PRIMARY KEY');
-          expect(primaryKey.tableName).to.equal('levels');
-          expect(primaryKey.tableSchema).to.equal(defaultSchema);
-          expect(primaryKey.columnNames).to.deep.equal(['id', 'manager_id']);
-
-          await queryInterface.removeConstraint('levels', 'PRIMARY');
-          const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'PRIMARY' });
-          expect(constraintsAfterRemove).to.have.length(0);
-        } else {
-          const constraints = await queryInterface.showConstraints('levels', { constraintName: 'custom_constraint_name' });
-          expect(constraints).to.have.length(1);
-
-          const [primaryKey] = constraints;
-          expect(primaryKey.constraintSchema).to.equal(defaultSchema);
-          expect(primaryKey.constraintName).to.equal('custom_constraint_name');
-          expect(primaryKey.constraintType).to.equal('PRIMARY KEY');
-          expect(primaryKey.tableName).to.equal('levels');
-          expect(primaryKey.tableSchema).to.equal(defaultSchema);
-          expect(primaryKey.columnNames).to.deep.equal(['id', 'manager_id']);
-
-          await queryInterface.removeConstraint('levels', 'custom_constraint_name');
-          const constraintsAfterRemove = await queryInterface.showConstraints('levels', { constraintName: 'custom_constraint_name' });
-          expect(constraintsAfterRemove).to.have.length(0);
-        }
       });
     }
   });
@@ -454,350 +389,69 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         });
       });
 
-      if (sequelize.dialect.supports.constraints.check) {
-        it('should add, show, delete CHECK constraint', async () => {
-          await queryInterface.addConstraint({ tableName: 'actors', schema }, {
-            name: 'custom_constraint_name',
-            type: 'CHECK',
-            fields: ['age'],
-            where: {
-              age: {
-                [Op.gt]: 10,
-              },
-            },
-          });
-
-          const constraintType = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintType: 'CHECK' });
-          if (dialect === 'postgres') {
-            // Postgres adds a CHECK constraint for each column with not null
-            expect(constraintType).to.have.length(6);
-            expect(constraintType[5].constraintType).to.equal('CHECK');
-          } else {
-            expect(constraintType).to.have.length(1);
-            expect(constraintType[0].constraintType).to.equal('CHECK');
-          }
-
-          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-          expect(constraints).to.have.length(1);
-
-          const [check] = constraints;
-          expect(check.constraintSchema).to.equal(schema);
-          expect(check.constraintName).to.equal('custom_constraint_name');
-          expect(check.constraintType).to.equal('CHECK');
-          expect(check.tableName).to.equal('actors');
-          expect(check.tableSchema).to.equal(schema);
-          expect(check.definition).to.not.be.null;
-
-          await queryInterface.removeConstraint({ tableName: 'actors', schema }, 'custom_constraint_name');
-          const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-          expect(constraintsAfterRemove).to.have.length(0);
-        });
-      }
-
-      if (sequelize.dialect.supports.constraints.default) {
-        it('should add, show, delete DEFAULT constraints', async () => {
-          await queryInterface.addConstraint({ tableName: 'actors', schema }, {
-            name: 'custom_constraint_name',
-            type: 'DEFAULT',
-            fields: ['status'],
-            defaultValue: 'active',
-          });
-
-          const [columnName, constraintType] = await Promise.all([
-            queryInterface.showConstraints({ tableName: 'actors', schema }, { columnName: 'status' }),
-            queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintType: 'DEFAULT' }),
-          ]);
-          expect(columnName).to.have.length(1);
-          expect(columnName[0].columnNames).to.deep.equal(['status']);
-          expect(constraintType).to.have.length(1);
-          expect(constraintType[0].constraintType).to.equal('DEFAULT');
-
-          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-          expect(constraints).to.have.length(1);
-
-          const [_default] = constraints;
-          expect(_default.constraintSchema).to.equal(schema);
-          expect(_default.constraintName).to.equal('custom_constraint_name');
-          expect(_default.constraintType).to.equal('DEFAULT');
-          expect(_default.tableName).to.equal('actors');
-          expect(_default.tableSchema).to.equal(schema);
-          expect(_default.columnNames).to.deep.equal(['status']);
-          expect(_default.definition).to.not.be.null;
-
-          await queryInterface.removeConstraint({ tableName: 'actors', schema }, 'custom_constraint_name');
-          const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-          expect(constraintsAfterRemove).to.have.length(0);
-        });
-      }
-
-      if (sequelize.dialect.supports.constraints.unique) {
-        it('should add, show, delete UNIQUE constraints', async () => {
-          await queryInterface.addConstraint({ tableName: 'actors', schema }, {
-            name: 'custom_constraint_name',
-            type: 'UNIQUE',
-            fields: ['name', 'age'],
-          });
-
-          const [columnName, constraintType] = await Promise.all([
-            queryInterface.showConstraints({ tableName: 'actors', schema }, { columnName: 'name' }),
-            queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintType: 'UNIQUE' }),
-          ]);
-          expect(columnName).to.have.length(1);
-          expect(columnName[0].columnNames).to.deep.equal(['name']);
-          expect(constraintType).to.have.length(1);
-          expect(constraintType[0].constraintType).to.equal('UNIQUE');
-
-          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-          expect(constraints).to.have.length(1);
-
-          const [unique] = constraints;
-          expect(unique.constraintSchema).to.equal(schema);
-          expect(unique.constraintName).to.equal('custom_constraint_name');
-          expect(unique.constraintType).to.equal('UNIQUE');
-          expect(unique.tableName).to.equal('actors');
-          expect(unique.tableSchema).to.equal(schema);
-          expect(unique.columnNames).to.deep.equal(['name', 'age']);
-
-          await queryInterface.removeConstraint({ tableName: 'actors', schema }, 'custom_constraint_name');
-          const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-          expect(constraintsAfterRemove).to.have.length(0);
-        });
-      }
-
-      if (sequelize.dialect.supports.constraints.foreignKey) {
-        it('should add, show, delete FOREIGN KEY constraints', async () => {
-          await queryInterface.addConstraint({ tableName: 'levels', schema }, {
-            name: 'pk_levels',
-            type: 'PRIMARY KEY',
-            fields: ['id'],
-          });
-
-          await queryInterface.addConstraint({ tableName: 'actors', schema }, {
-            name: 'custom_constraint_name',
-            type: 'FOREIGN KEY',
-            fields: ['level_id'],
-            references: {
-              table: { tableName: 'levels', schema },
-              field: 'id',
-            },
-            onDelete: 'CASCADE',
-          });
-
-          const [columnName, constraintType] = await Promise.all([
-            queryInterface.showConstraints({ tableName: 'actors', schema }, { columnName: 'level_id' }),
-            queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintType: 'FOREIGN KEY' }),
-          ]);
-          expect(columnName).to.have.length(1);
-          expect(columnName[0].columnNames).to.deep.equal(['level_id']);
-          expect(constraintType).to.have.length(1);
-          expect(constraintType[0].constraintType).to.equal('FOREIGN KEY');
-
-          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-          expect(constraints).to.have.length(1);
-
-          const [foreignKey] = constraints;
-          expect(foreignKey.constraintSchema).to.equal(schema);
-          expect(foreignKey.constraintName).to.equal('custom_constraint_name');
-          expect(foreignKey.constraintType).to.equal('FOREIGN KEY');
-          expect(foreignKey.tableName).to.equal('actors');
-          expect(foreignKey.tableSchema).to.equal(schema);
-          expect(foreignKey.columnNames).to.deep.equal(['level_id']);
-          expect(foreignKey.referencedTableName).to.equal('levels');
-          expect(foreignKey.referencedTableSchema).to.equal(schema);
-          expect(foreignKey.referencedColumnNames).to.deep.equal(['id']);
-          expect(foreignKey.deleteAction).to.equal('CASCADE');
-
-          await queryInterface.removeConstraint({ tableName: 'actors', schema }, 'custom_constraint_name');
-          const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-          expect(constraintsAfterRemove).to.have.length(0);
+      it('should add, show and delete a PRIMARY & FOREIGN KEY constraint', async () => {
+        await queryInterface.addConstraint({ tableName: 'levels', schema }, {
+          name: 'pk_levels',
+          type: 'PRIMARY KEY',
+          fields: ['id'],
         });
 
-        it('should add, show, delete composite FOREIGN KEY constraints', async () => {
-          await queryInterface.addConstraint({ tableName: 'levels', schema }, {
-            name: 'pk_levels',
-            type: 'PRIMARY KEY',
-            fields: ['id', 'manager_id'],
-          });
-
-          await queryInterface.addConstraint({ tableName: 'actors', schema }, {
-            name: 'custom_constraint_name',
-            type: 'FOREIGN KEY',
-            fields: ['level_id', 'manager_id'],
-            references: {
-              table: { tableName: 'levels', schema },
-              fields: ['id', 'manager_id'],
-            },
-            onDelete: 'CASCADE',
-          });
-
-          const [columnName, constraintType] = await Promise.all([
-            queryInterface.showConstraints({ tableName: 'actors', schema }, { columnName: 'manager_id' }),
-            queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintType: 'FOREIGN KEY' }),
-          ]);
-          expect(columnName).to.have.length(1);
-          expect(columnName[0].columnNames).to.deep.equal(['manager_id']);
-          expect(constraintType).to.have.length(1);
-          expect(constraintType[0].constraintType).to.equal('FOREIGN KEY');
-
-          const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-          expect(constraints).to.have.length(1);
-
-          const [foreignKey] = constraints;
-          expect(foreignKey.constraintSchema).to.equal(schema);
-          expect(foreignKey.constraintName).to.equal('custom_constraint_name');
-          expect(foreignKey.constraintType).to.equal('FOREIGN KEY');
-          expect(foreignKey.tableName).to.equal('actors');
-          expect(foreignKey.tableSchema).to.equal(schema);
-          expect(foreignKey.columnNames).to.deep.equal(['level_id', 'manager_id']);
-          expect(foreignKey.referencedTableName).to.equal('levels');
-          expect(foreignKey.referencedTableSchema).to.equal(schema);
-          expect(foreignKey.referencedColumnNames).to.deep.equal(['id', 'manager_id']);
-          expect(foreignKey.deleteAction).to.equal('CASCADE');
-
-          await queryInterface.removeConstraint({ tableName: 'actors', schema }, 'custom_constraint_name');
-          const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-          expect(constraintsAfterRemove).to.have.length(0);
+        await queryInterface.addConstraint({ tableName: 'actors', schema }, {
+          name: 'custom_constraint_name',
+          type: 'FOREIGN KEY',
+          fields: ['level_id'],
+          references: {
+            table: { tableName: 'levels', schema },
+            field: 'id',
+          },
+          onDelete: 'CASCADE',
         });
 
-        if (sequelize.dialect.supports.constraints.onUpdate) {
-          it('should add, show, delete FOREIGN KEY constraints with onUpdate', async () => {
-            await queryInterface.addConstraint({ tableName: 'levels', schema }, {
-              name: 'pk_levels',
-              type: 'PRIMARY KEY',
-              fields: ['id'],
-            });
-
-            await queryInterface.addConstraint({ tableName: 'actors', schema }, {
-              name: 'custom_constraint_name',
-              type: 'FOREIGN KEY',
-              fields: ['level_id'],
-              references: {
-                table: { tableName: 'levels', schema },
-                field: 'id',
-              },
-              onDelete: 'CASCADE',
-              onUpdate: 'CASCADE',
-            });
-
-            const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-            expect(constraints).to.have.length(1);
-
-            const [foreignKey] = constraints;
-            expect(foreignKey.constraintSchema).to.equal(schema);
-            expect(foreignKey.constraintName).to.equal('custom_constraint_name');
-            expect(foreignKey.constraintType).to.equal('FOREIGN KEY');
-            expect(foreignKey.tableName).to.equal('actors');
-            expect(foreignKey.tableSchema).to.equal(schema);
-            expect(foreignKey.columnNames).to.deep.equal(['level_id']);
-            expect(foreignKey.referencedTableName).to.equal('levels');
-            expect(foreignKey.referencedTableSchema).to.equal(schema);
-            expect(foreignKey.referencedColumnNames).to.deep.equal(['id']);
-            expect(foreignKey.deleteAction).to.equal('CASCADE');
-            expect(foreignKey.updateAction).to.equal('CASCADE');
-          });
-        }
-      }
-
-      if (sequelize.dialect.supports.constraints.primaryKey) {
-        it('should add, show, delete PRIMARY KEY constraints', async () => {
-          await queryInterface.addConstraint({ tableName: 'actors', schema }, {
-            name: 'custom_constraint_name',
-            type: 'PRIMARY KEY',
-            fields: ['id'],
-          });
-
-          const [columnName, constraintType] = await Promise.all([
-            queryInterface.showConstraints({ tableName: 'actors', schema }, { columnName: 'id' }),
-            queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintType: 'PRIMARY KEY' }),
-          ]);
-          expect(columnName).to.have.length(1);
-          expect(columnName[0].columnNames).to.deep.equal(['id']);
-          expect(constraintType).to.have.length(1);
-          expect(constraintType[0].constraintType).to.equal('PRIMARY KEY');
-
-          // MariaDB and MySQL do not support named primary keys
-          if (['mariadb', 'mysql'].includes(dialect)) {
-            const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'PRIMARY' });
-            expect(constraints).to.have.length(1);
-
-            const [primaryKey] = constraints;
-            expect(primaryKey.constraintSchema).to.equal(schema);
-            expect(primaryKey.constraintName).to.equal('PRIMARY');
-            expect(primaryKey.constraintType).to.equal('PRIMARY KEY');
-            expect(primaryKey.tableName).to.equal('actors');
-            expect(primaryKey.tableSchema).to.equal(schema);
-            expect(primaryKey.columnNames).to.deep.equal(['id']);
-
-            await queryInterface.removeConstraint({ tableName: 'actors', schema }, 'PRIMARY');
-            const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'PRIMARY' });
-            expect(constraintsAfterRemove).to.have.length(0);
-          } else {
-            const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-            expect(constraints).to.have.length(1);
-
-            const [primaryKey] = constraints;
-            expect(primaryKey.constraintSchema).to.equal(schema);
-            expect(primaryKey.constraintName).to.equal('custom_constraint_name');
-            expect(primaryKey.constraintType).to.equal('PRIMARY KEY');
-            expect(primaryKey.tableName).to.equal('actors');
-            expect(primaryKey.tableSchema).to.equal(schema);
-            expect(primaryKey.columnNames).to.deep.equal(['id']);
-
-            await queryInterface.removeConstraint({ tableName: 'actors', schema }, 'custom_constraint_name');
-            const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
-            expect(constraintsAfterRemove).to.have.length(0);
-          }
+        const foreignKeys = await queryInterface.showConstraints({ tableName: 'actors', schema }, { columnName: 'level_id', constraintType: 'FOREIGN KEY' });
+        expect(foreignKeys).to.have.length(1);
+        expect(foreignKeys[0]).to.deep.equal({
+          ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+          constraintSchema: schema,
+          constraintName: 'custom_constraint_name',
+          constraintType: 'FOREIGN KEY',
+          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+          tableSchema: schema,
+          tableName: 'actors',
+          columnNames: ['level_id'],
+          referencedTableSchema: schema,
+          referencedTableName: 'levels',
+          referencedColumnNames: ['id'],
+          deleteAction: 'CASCADE',
+          updateAction: dialect === 'mariadb'
+            ? 'RESTRICT'
+            : dialect === 'sqlite'
+            ? ''
+            : 'NO ACTION',
+          ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
         });
 
-        it('should add, show, delete composite PRIMARY KEY constraints', async () => {
-          await queryInterface.addConstraint({ tableName: 'levels', schema }, {
-            name: 'custom_constraint_name',
-            type: 'PRIMARY KEY',
-            fields: ['id', 'manager_id'],
-          });
+        await queryInterface.removeConstraint({ tableName: 'actors', schema }, 'custom_constraint_name');
+        const fkAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema }, { constraintName: 'custom_constraint_name' });
+        expect(fkAfterRemove).to.have.length(0);
 
-          const [columnName, constraintType] = await Promise.all([
-            queryInterface.showConstraints({ tableName: 'levels', schema }, { columnName: 'manager_id' }),
-            queryInterface.showConstraints({ tableName: 'levels', schema }, { constraintType: 'PRIMARY KEY' }),
-          ]);
-          expect(columnName).to.have.length(1);
-          expect(columnName[0].columnNames).to.deep.equal(['manager_id']);
-          expect(constraintType).to.have.length(1);
-          expect(constraintType[0].constraintType).to.equal('PRIMARY KEY');
-
-          if (['mariadb', 'mysql'].includes(dialect)) {
-            const constraints = await queryInterface.showConstraints({ tableName: 'levels', schema }, { constraintName: 'PRIMARY' });
-            expect(constraints).to.have.length(1);
-
-            const [primaryKey] = constraints;
-            expect(primaryKey.constraintSchema).to.equal(schema);
-            expect(primaryKey.constraintName).to.equal('PRIMARY');
-            expect(primaryKey.constraintType).to.equal('PRIMARY KEY');
-            expect(primaryKey.tableName).to.equal('levels');
-            expect(primaryKey.tableSchema).to.equal(schema);
-            expect(primaryKey.columnNames).to.deep.equal(['id', 'manager_id']);
-
-            await queryInterface.removeConstraint({ tableName: 'levels', schema }, 'PRIMARY');
-            const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'levels', schema }, { constraintName: 'PRIMARY' });
-            expect(constraintsAfterRemove).to.have.length(0);
-          } else {
-            const constraints = await queryInterface.showConstraints({ tableName: 'levels', schema }, { constraintName: 'custom_constraint_name' });
-            expect(constraints).to.have.length(1);
-
-            const [primaryKey] = constraints;
-            expect(primaryKey.constraintSchema).to.equal(schema);
-            expect(primaryKey.constraintName).to.equal('custom_constraint_name');
-            expect(primaryKey.constraintType).to.equal('PRIMARY KEY');
-            expect(primaryKey.tableName).to.equal('levels');
-            expect(primaryKey.tableSchema).to.equal(schema);
-            expect(primaryKey.columnNames).to.deep.equal(['id', 'manager_id']);
-
-            await queryInterface.removeConstraint({ tableName: 'levels', schema }, 'custom_constraint_name');
-            const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'levels', schema }, { constraintName: 'custom_constraint_name' });
-            expect(constraintsAfterRemove).to.have.length(0);
-          }
+        const primaryKeys = await queryInterface.showConstraints({ tableName: 'levels', schema }, { columnName: 'id', constraintType: 'PRIMARY KEY' });
+        expect(primaryKeys).to.have.length(1);
+        expect(primaryKeys[0]).to.deep.equal({
+          ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+          constraintSchema: schema,
+          constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
+          constraintType: 'PRIMARY KEY',
+          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+          tableSchema: schema,
+          tableName: 'levels',
+          columnNames: ['id'],
+          ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
         });
-      }
+
+        await queryInterface.removeConstraint({ tableName: 'levels', schema }, ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels');
+        const pkAfterRemove = await queryInterface.showConstraints({ tableName: 'levels', schema }, { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' });
+        expect(pkAfterRemove).to.have.length(0);
+      });
     });
   }
 });
