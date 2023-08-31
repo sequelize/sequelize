@@ -165,7 +165,6 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           type: 'PRIMARY KEY',
           fields: ['id'],
         });
-
         if (['mariadb', 'mysql'].includes(dialect)) {
           const constraints = await queryInterface.showConstraints('actors', { constraintName: 'PRIMARY' });
           expect(constraints).to.have.length(1);
@@ -174,6 +173,24 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
 
           await queryInterface.removeConstraint('actors', 'PRIMARY');
           const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'PRIMARY' });
+          expect(constraintsAfterRemove).to.have.length(0);
+        } else if (dialect === 'cockroachdb') {
+          // Cockroachdb does not allow dropping primary key constraints without subsequently creating a new one.
+          const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
+          expect(constraints).to.have.length(1);
+          expect(constraints[0].constraintName).to.equal('custom_constraint_name');
+          expect(constraints[0].constraintType).to.equal('PRIMARY KEY');
+
+          const t = await sequelize.startUnmanagedTransaction();
+          await queryInterface.removeConstraint('actors', 'custom_constraint_name', { transaction: t });
+          await queryInterface.addConstraint('actors', {
+            name: 'custom_constraint_name_2',
+            type: 'PRIMARY KEY',
+            fields: ['name'],
+            transaction: t,
+          });
+          await t.commit();
+          const constraintsAfterRemove = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
           expect(constraintsAfterRemove).to.have.length(0);
         } else {
           const constraints = await queryInterface.showConstraints('actors', { constraintName: 'custom_constraint_name' });
@@ -363,6 +380,24 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
 
             await queryInterface.removeConstraint({ tableName: 'actors', schema: 'archive' }, 'PRIMARY');
             const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'PRIMARY' });
+            expect(constraintsAfterRemove).to.have.length(0);
+          } else if (dialect === 'cockroachdb') {
+            // Cockroachdb does not allow dropping primary key constraints without subsequently creating a new one.
+            const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
+            expect(constraints).to.have.length(1);
+            expect(constraints[0].constraintName).to.equal('custom_constraint_name');
+            expect(constraints[0].constraintType).to.equal('PRIMARY KEY');
+
+            const t = await sequelize.startUnmanagedTransaction();
+            await queryInterface.removeConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name', { transaction: t });
+            await queryInterface.addConstraint({ tableName: 'actors', schema: 'archive' }, {
+              name: 'custom_constraint_name_2',
+              type: 'PRIMARY KEY',
+              fields: ['name'],
+              transaction: t,
+            });
+            await t.commit();
+            const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
             expect(constraintsAfterRemove).to.have.length(0);
           } else {
             const constraints = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });

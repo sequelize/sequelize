@@ -11,7 +11,15 @@ import type {
 } from '@sequelize/core';
 import { DataTypes, InstanceError, Model } from '@sequelize/core';
 import { Attribute, BelongsTo, HasMany, NotNull, Table } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
+import {
+  beforeAll2,
+  createSingleTransactionalTestSequelizeInstance,
+  getTestDialect,
+  sequelize,
+  setResetMode,
+} from '../support';
+
+const dialectName = getTestDialect();
 
 describe('Model#reload', () => {
   context('test-shared models', () => {
@@ -286,10 +294,15 @@ describe('Model#reload', () => {
         const t = await transactionSequelize.startUnmanagedTransaction();
         try {
           await User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t });
-          const user1 = await user.reload();
-          expect(user1.username).to.equal('foo');
-          const user0 = await user1.reload({ transaction: t });
-          expect(user0.username).to.equal('bar');
+          if (dialectName === 'cockroachdb') {
+            const user1 = await user.reload({ transaction: t });
+            expect(user1.username).to.equal('bar');
+          } else {
+            const user1 = await user.reload();
+            expect(user1.username).to.equal('foo');
+            const user0 = await user1.reload({ transaction: t });
+            expect(user0.username).to.equal('bar');
+          }
         } finally {
           await t.rollback();
         }

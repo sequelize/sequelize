@@ -15,6 +15,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('destroy', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
+        let count1;
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
@@ -22,9 +23,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const user = await User.create({ username: 'foo' });
         const t = await sequelize.startUnmanagedTransaction();
         await user.destroy({ transaction: t });
-        const count1 = await User.count();
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (current.dialect.name !== 'cockroachdb') {
+          count1 = await User.count();
+          expect(count1).to.equal(1);
+        }
+
         const count2 = await User.count({ transaction: t });
-        expect(count1).to.equal(1);
         expect(count2).to.equal(0);
         await t.rollback();
       });

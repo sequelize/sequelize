@@ -7,7 +7,7 @@ describe('DataTypes.BLOB', () => {
     default: 'BLOB',
     'ibmi db2': 'BLOB(1M)',
     mssql: 'VARBINARY(MAX)',
-    postgres: 'BYTEA',
+    'postgres cockroachdb': 'BYTEA',
   });
 
   testDataTypeSql('BLOB("tiny")', DataTypes.BLOB('tiny'), {
@@ -15,7 +15,7 @@ describe('DataTypes.BLOB', () => {
     ibmi: 'BLOB(255)',
     mssql: 'VARBINARY(256)',
     db2: 'BLOB(255)',
-    postgres: 'BYTEA',
+    'postgres cockroachdb': 'BYTEA',
     sqlite: 'BLOB',
   });
 
@@ -24,7 +24,7 @@ describe('DataTypes.BLOB', () => {
     ibmi: 'BLOB(16M)',
     mssql: 'VARBINARY(MAX)',
     db2: 'BLOB(16M)',
-    postgres: 'BYTEA',
+    'postgres cockroachdb': 'BYTEA',
     sqlite: 'BLOB',
   });
 
@@ -33,7 +33,7 @@ describe('DataTypes.BLOB', () => {
     ibmi: 'BLOB(16M)',
     mssql: 'VARBINARY(MAX)',
     db2: 'BLOB(16M)',
-    postgres: 'BYTEA',
+    'postgres cockroachdb': 'BYTEA',
     sqlite: 'BLOB',
   });
 
@@ -42,7 +42,7 @@ describe('DataTypes.BLOB', () => {
     ibmi: 'BLOB(2G)',
     mssql: 'VARBINARY(MAX)',
     db2: 'BLOB(2G)',
-    postgres: 'BYTEA',
+    'postgres cockroachdb': 'BYTEA',
     sqlite: 'BLOB',
   });
 

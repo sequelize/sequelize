@@ -14,6 +14,8 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
+const dialectName = Support.getTestDialect();
+
 if (current.dialect.supports['UNION ALL']) {
   describe(Support.getTestDialectTeaser('Model'), () => {
     describe('findAll', () => {
@@ -54,8 +56,18 @@ if (current.dialect.supports['UNION ALL']) {
 
           await this.sequelize.sync({ force: true });
 
+          const userList = dialectName === 'cockroachdb' ? [
+            { age: -5, id: 1 },
+            { age: 45, id: 2 },
+            { age: 7, id: 3 },
+            { age: -9, id: 4 },
+            { age: 8, id: 5 },
+            { age: 15, id: 6 },
+            { age: -9, id: 7 },
+          ] : [{ age: -5 }, { age: 45 }, { age: 7 }, { age: -9 }, { age: 8 }, { age: 15 }, { age: -9 }];
+
           await Promise.all([
-            this.User.bulkCreate([{ age: -5 }, { age: 45 }, { age: 7 }, { age: -9 }, { age: 8 }, { age: 15 }, { age: -9 }]),
+            this.User.bulkCreate(userList),
             this.Project.bulkCreate([{}, {}]),
             this.Task.bulkCreate([{}, {}]),
           ]);
@@ -111,13 +123,16 @@ if (current.dialect.supports['UNION ALL']) {
             expect(users.map(u => u.get('id'))).to.deep.equal([1, 2, 3, 4, 5]);
 
             expect(users[2].get('tasks')).to.have.length(2);
-            for (const u of users.filter(u => u.get('id') !== 3)) {
+
+            const id1 = dialectName === 'cockroachdb' ? users[2].id : 3;
+            for (const u of users.filter(u => u.get('id') !== id1)) {
               expect(u.get('project_user')).to.have.length(1);
             }
 
-            for (const u of users.filter(u => u.get('id') === 3)) {
+            for (const u of users.filter(u => u.get('id') === id1)) {
               expect(u.get('project_user')).to.have.length(2);
             }
+
           });
 
           it('works with computed orders', async function () {
@@ -230,12 +245,22 @@ if (current.dialect.supports['UNION ALL']) {
             });
 
             const byUser = groupBy(tasks, property('userId'));
-            expect(Object.keys(byUser)).to.have.length(3);
+            const userKeys = Object.keys(byUser);
+            expect(userKeys).to.have.length(3);
 
-            expect(byUser[1]).to.have.length(1);
-            expect(byUser[2]).to.have.length(3);
-            expect(invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
-            expect(byUser[3]).to.have.length(2);
+            expect(byUser[userKeys[0]]).to.have.length(1);
+            expect(byUser[userKeys[1]]).to.have.length(3);
+            if (dialectName === 'cockroachdb') {
+              expect(invokeMap(byUser[userKeys[1]], 'get', 'id')).to.deep.equal([
+                4,
+                3,
+                2,
+              ]);
+              expect(byUser[userKeys[2]]).to.have.length(2);
+            } else {
+              expect(invokeMap(byUser[2], 'get', 'id')).to.deep.equal([4, 3, 2]);
+              expect(byUser[3]).to.have.length(2);
+            }
           });
         });
       });

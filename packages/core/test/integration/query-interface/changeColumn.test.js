@@ -16,7 +16,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   describe('changeColumn', () => {
-    if (Support.sequelize.dialect.supports.schemas) {
+    // In CockroachDB ALTER COLUMN TYPE is prohibited in cockroachdb and only supported experimentally
+    // https://github.com/cockroachdb/cockroach/issues/49329
+    if (Support.sequelize.dialect.supports.schemas && dialect !== 'cockroachdb') {
       it('should support schemas', async function () {
         await this.sequelize.createSchema('archive');
 
@@ -52,42 +54,48 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    it('should change columns', async function () {
-      await this.queryInterface.createTable({
-        tableName: 'users',
-      }, {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        currency: DataTypes.INTEGER,
-      });
-      if (dialect === 'db2') { // DB2 can change only one attr of a column
-        await this.queryInterface.changeColumn('users', 'currency', {
-          type: DataTypes.FLOAT,
+    // ALTER COLUMN TYPE is prohibited in Cockroachdb and only supported experimentally
+    // https://github.com/cockroachdb/cockroach/issues/49329
+    if (dialect !== 'cockroachdb') {
+      it('should change columns', async function () {
+        await this.queryInterface.createTable({
+          tableName: 'users',
+        }, {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          currency: DataTypes.INTEGER,
         });
-      } else {
-        await this.queryInterface.changeColumn('users', 'currency', {
-          type: DataTypes.FLOAT,
-          allowNull: true,
+        if (dialect === 'db2') { // DB2 can change only one attr of a column
+          await this.queryInterface.changeColumn('users', 'currency', {
+            type: DataTypes.FLOAT,
+          });
+        } else {
+          await this.queryInterface.changeColumn('users', 'currency', {
+            type: DataTypes.FLOAT,
+            allowNull: true,
+          });
+        }
+
+        const table = await this.queryInterface.describeTable({
+          tableName: 'users',
         });
-      }
 
-      const table = await this.queryInterface.describeTable({
-        tableName: 'users',
+        if (['postgres', 'postgres-native', 'mssql', 'sqlite', 'db2'].includes(dialect)) {
+          expect(table.currency.type).to.equal('REAL');
+        } else {
+          expect(table.currency.type).to.equal('FLOAT');
+        }
       });
-
-      if (['postgres', 'postgres-native', 'mssql', 'sqlite', 'db2'].includes(dialect)) {
-        expect(table.currency.type).to.equal('REAL');
-      } else {
-        expect(table.currency.type).to.equal('FLOAT');
-      }
-    });
+    }
 
     // MSSQL doesn't support using a modified column in a check constraint.
     // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
-    if (dialect !== 'mssql' && dialect !== 'db2') {
+    // ALTER COLUMN TYPE is prohibited until v21.1 in cockroachdb and only supported experimentally
+    // https://github.com/cockroachdb/cockroach/issues/49329
+    if (dialect !== 'mssql' && dialect !== 'db2' && dialect !== 'cockroachdb') {
       it('should work with enums (case 1)', async function () {
         await this.queryInterface.createTable({
           tableName: 'users',

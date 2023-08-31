@@ -8,6 +8,8 @@ const Support = require('../support');
 
 const { DataTypes, Op } = require('@sequelize/core');
 
+const current = Support.sequelize;
+
 describe(Support.getTestDialectTeaser('Include'), () => {
   before(function () {
     this.clock = sinon.useFakeTimers();
@@ -99,11 +101,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       // Create an enviroment
 
       await Promise.all([User.bulkCreate([
-        { name: 'Youtube' },
-        { name: 'Facebook' },
-        { name: 'Google' },
-        { name: 'Yahoo' },
-        { name: '404' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 1 }), name: 'Youtube' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 2 }), name: 'Facebook' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 3 }), name: 'Google' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 4 }), name: 'Yahoo' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 5 }), name: '404' },
       ]), SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
         { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
         { u: 2, m: 'A', fk: 1 },
@@ -130,11 +132,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         { u: 1, m: 'A', fk: 4 }, // 4
         { u: 4, m: 'A', fk: 2 },
       ]), A.bulkCreate([
-        { name: 'Just' },
-        { name: 'for' },
-        { name: 'testing' },
-        { name: 'proposes' },
-        { name: 'only' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 1 }), name: 'Just' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 2 }), name: 'for' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 3 }), name: 'testing' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 4 }), name: 'proposes' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 5 }), name: 'only' },
       ]), B.bulkCreate([
         { name: 'this should not' },
         { name: 'be loaded' },
@@ -297,13 +299,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       // Create an enviroment
       await User.bulkCreate([
-        { name: 'user-name-1' },
-        { name: 'user-name-2' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 1 }), name: 'user-name-1' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 2 }), name: 'user-name-2' },
       ]);
 
       await Project.bulkCreate([
-        { m: 'A', UserId: 1 },
-        { m: 'A', UserId: 2 },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 1 }), m: 'A', UserId: 1 },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 2 }), m: 'A', UserId: 2 },
       ]);
 
       await Task.bulkCreate([
@@ -354,9 +356,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       await User.bulkCreate([
-        { first_name: 'user-fname-1', last_name: 'user-lname-1' },
-        { first_name: 'user-fname-2', last_name: 'user-lname-2' },
-        { first_name: 'user-xfname-1', last_name: 'user-xlname-1' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 1 }), first_name: 'user-fname-1', last_name: 'user-lname-1' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 2 }), first_name: 'user-fname-2', last_name: 'user-lname-2' },
+        { ...(current.dialect.name === 'cockroachdb' && { id: 3 }), first_name: 'user-xfname-1', last_name: 'user-xlname-1' },
       ]);
 
       await Project.bulkCreate([

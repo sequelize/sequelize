@@ -17,7 +17,7 @@ describe('QueryGenerator#dropTableQuery', () => {
   it('produces a query that drops a table with cascade', () => {
     expectsql(() => queryGenerator.dropTableQuery('myTable', { cascade: true }), {
       default: buildInvalidOptionReceivedError('dropTableQuery', dialectName, ['cascade']),
-      postgres: `DROP TABLE IF EXISTS "myTable" CASCADE;`,
+      'postgres cockroachdb': `DROP TABLE IF EXISTS "myTable" CASCADE;`,
     });
   });
 

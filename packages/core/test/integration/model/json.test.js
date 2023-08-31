@@ -8,6 +8,7 @@ const { DataTypes, Op } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
+const dialectName = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('JSON', () => {
@@ -19,10 +20,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Event = this.sequelize.define('Event', {
         data: {
           // TODO: JSON & JSONB tests should be split
-          type: dialect.name === 'postgres' ? DataTypes.JSONB : DataTypes.JSON,
+          type: ['postgres', 'cockroachdb'].includes(dialect.name) ? DataTypes.JSONB : DataTypes.JSON,
           field: 'event_data',
           // This is only available on JSONB
-          index: dialect.name === 'postgres',
+          index: ['postgres', 'cockroachdb'].includes(dialect.name),
         },
         json: DataTypes.JSON,
       });
@@ -51,8 +52,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        const count = await this.Event.count();
-        expect(count).to.equal(0);
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (dialectName !== 'cockroachdb') {
+          const count = await this.Event.count();
+          expect(count).to.equal(0);
+        }
+
         await transaction.commit();
         const count0 = await this.Event.count();
         expect(count0).to.equal(1);
@@ -154,74 +160,77 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       });
 
-      it('should be possible to query a nested value and order results', async function () {
-        await this.Event.create({
-          data: {
-            name: {
-              first: 'Homer',
-              last: 'Simpson',
+      // CockroachDB does not support ordering in queries by JSONB columns Ref: https://github.com/cockroachdb/cockroach/issues/35706
+      if (dialectName !== 'cockroachdb') {
+        it('should be possible to query a nested value and order results', async function () {
+          await this.Event.create({
+            data: {
+              name: {
+                first: 'Homer',
+                last: 'Simpson',
+              },
+              employment: 'Nuclear Safety Inspector',
             },
-            employment: 'Nuclear Safety Inspector',
-          },
-        });
+          });
 
-        await Promise.all([this.Event.create({
-          data: {
-            name: {
-              first: 'Marge',
-              last: 'Simpson',
+          await Promise.all([this.Event.create({
+            data: {
+              name: {
+                first: 'Marge',
+                last: 'Simpson',
+              },
+              employment: 'Housewife',
             },
-            employment: 'Housewife',
-          },
-        }), this.Event.create({
-          data: {
+          }), this.Event.create({
+            data: {
+              name: {
+                first: 'Bart',
+                last: 'Simpson',
+              },
+              employment: 'None',
+            },
+          })]);
+
+          const events = await this.Event.findAll({
+            where: {
+              data: {
+                name: {
+                  last: 'Simpson',
+                },
+              },
+            },
+            order: [
+              ['data.name.first'],
+            ],
+          });
+
+          expect(events.length).to.equal(3);
+
+          expect(events[0].get('data')).to.eql({
             name: {
               first: 'Bart',
               last: 'Simpson',
             },
             employment: 'None',
-          },
-        })]);
+          });
 
-        const events = await this.Event.findAll({
-          where: {
-            data: {
-              name: {
-                last: 'Simpson',
-              },
+          expect(events[1].get('data')).to.eql({
+            name: {
+              first: 'Homer',
+              last: 'Simpson',
             },
-          },
-          order: [
-            ['data.name.first'],
-          ],
-        });
+            employment: 'Nuclear Safety Inspector',
+          });
 
-        expect(events.length).to.equal(3);
-
-        expect(events[0].get('data')).to.eql({
-          name: {
-            first: 'Bart',
-            last: 'Simpson',
-          },
-          employment: 'None',
+          expect(events[2].get('data')).to.eql({
+            name: {
+              first: 'Marge',
+              last: 'Simpson',
+            },
+            employment: 'Housewife',
+          });
         });
-
-        expect(events[1].get('data')).to.eql({
-          name: {
-            first: 'Homer',
-            last: 'Simpson',
-          },
-          employment: 'Nuclear Safety Inspector',
-        });
-
-        expect(events[2].get('data')).to.eql({
-          name: {
-            first: 'Marge',
-            last: 'Simpson',
-          },
-          employment: 'Housewife',
-        });
-      });
+      }
     });
 
     describe('destroy', () => {
@@ -279,7 +288,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.sequelize.sync({ force: true });
       });
 
-      if (dialect.supports.jsonOperations && dialect.supports.jsonExtraction.quoted) {
+      // CockroachDB does not support ordering in queries by JSONB columns Ref: https://github.com/cockroachdb/cockroach/issues/35706
+      if (dialect.supports.jsonOperations && dialect.supports.jsonExtraction.quoted && dialectName !== 'cockroachdb') {
         it('should query an instance with JSONB data and order while trying to inject', async function () {
           await this.Event.create({
             data: {

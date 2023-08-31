@@ -1,12 +1,12 @@
 'use strict';
 
-const Support   = require('../../support');
+const Support = require('../../support');
 const { QueryTypes, DataTypes } = require('@sequelize/core');
 const util = require('node:util');
 
 const expectsql = Support.expectsql;
-const current   = Support.sequelize;
-const sql       = current.dialect.queryGenerator;
+const current = Support.sequelize;
+const sql = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -28,13 +28,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       };
 
       it(util.inspect(options, { depth: 2 }), () => {
+
         return expectsql(
           sql.truncateTableQuery(
             options.table,
             options,
           ), {
             ibmi: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
-            postgres: 'TRUNCATE "test_users" CASCADE',
+            'postgres cockroachdb': 'TRUNCATE "test_users" CASCADE',
             mssql: 'TRUNCATE TABLE [public].[test_users]',
             mariadb: 'TRUNCATE `public`.`test_users`',
             mysql: 'TRUNCATE `public`.`test_users`',
@@ -65,6 +66,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ), {
             ibmi: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
             postgres: 'TRUNCATE "test_users" RESTART IDENTITY CASCADE',
+            cockroachdb: 'TRUNCATE "test_users" CASCADE',
             mssql: 'TRUNCATE TABLE [public].[test_users]',
             mariadb: 'TRUNCATE `public`.`test_users`',
             mysql: 'TRUNCATE `public`.`test_users`',
@@ -93,7 +95,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             User,
           ), {
             default: `DELETE FROM [public].[test_users] WHERE [name] = 'foo'`,
-            postgres: `DELETE FROM "test_users" WHERE "name" = 'foo'`,
+            'postgres cockroachdb': `DELETE FROM "test_users" WHERE "name" = 'foo'`,
             mariadb: 'DELETE FROM `public`.`test_users` WHERE `name` = \'foo\'',
             sqlite: 'DELETE FROM `public.test_users` WHERE `name` = \'foo\'',
             db2: `DELETE FROM "public"."test_users" WHERE "name" = 'foo'`,
@@ -123,7 +125,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ), {
             default: `DELETE FROM [public].[test_users] WHERE [name] = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10`,
             ibmi: `DELETE FROM "public"."test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' FETCH NEXT 10 ROWS ONLY`,
-            postgres: `DELETE FROM "test_users" WHERE "id" IN (SELECT "id" FROM "test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)`,
+            'postgres cockroachdb': `DELETE FROM "test_users" WHERE "id" IN (SELECT "id" FROM "test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' LIMIT 10)`,
             sqlite: 'DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
             mssql: `DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N'foo'';DROP TABLE mySchema.myTable;'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
             db2: `DELETE FROM "public"."test_users" WHERE "name" = 'foo'';DROP TABLE mySchema.myTable;' FETCH NEXT 10 ROWS ONLY`,
@@ -158,7 +160,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query, {
             default: `DELETE FROM [public].[test_users] WHERE [name] = 'foo\\';DROP TABLE mySchema.myTable;' LIMIT 10`,
             ibmi: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
-            postgres: new Error('Cannot LIMIT delete without a model.'),
+            'postgres cockroachdb': new Error('Cannot LIMIT delete without a model.'),
             sqlite: 'DELETE FROM `public.test_users` WHERE rowid IN (SELECT rowid FROM `public.test_users` WHERE `name` = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
             mssql: 'DELETE TOP(10) FROM [public].[test_users] WHERE [name] = N\'foo\'\';DROP TABLE mySchema.myTable;\'; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
             db2: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' FETCH NEXT 10 ROWS ONLY',
@@ -195,7 +197,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             User,
           ), {
             ibmi: 'DELETE FROM "test_user" WHERE "test_user_id" = 100',
-            postgres: 'DELETE FROM "test_user" WHERE "test_user_id" = 100',
+            'postgres cockroachdb': 'DELETE FROM "test_user" WHERE "test_user_id" = 100',
             sqlite: 'DELETE FROM `test_user` WHERE `test_user_id` = 100',
             mssql: 'DELETE FROM [test_user] WHERE [test_user_id] = 100; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
             snowflake: 'DELETE FROM "test_user" WHERE "test_user_id" = 100',

@@ -258,6 +258,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         case 'db2':
+        case 'cockroachdb':
         case 'mssql': {
           expect(index.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }]);
 
@@ -527,6 +528,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(idx3.fields).to.deep.equal([
             { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined },
+          ]);
+
+          break;
+        }
+
+        case 'cockroachdb': {
+          primary = args[2];
+          idx1 = args[0];
+          idx2 = args[1];
+          idx3 = args[2];
+
+          expect(idx1.fields).to.deep.equal([
+            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
+          ]);
+
+          expect(idx2.fields).to.deep.equal([
+            { attribute: 'fieldC', length: undefined, order: 'ASC', collate: undefined },
+          ]);
+
+          expect(idx3.fields).to.deep.equal([
+            { attribute: 'fieldD', length: undefined, order: 'ASC', collate: undefined },
           ]);
 
           break;
@@ -925,6 +948,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           mssql: ['schema_test', 'special'],
           postgres: ['schema_test', 'special'],
           db2: ['schema_test', 'special '],
+          cockroachdb: ['schema_test', 'special'],
         };
 
         expect(schemas.sort()).to.deep.equal(expectedSchemas[dialectName].sort());
@@ -952,7 +976,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        if (dialectName === 'postgres') {
+        if (['postgres', 'cockroachdb'].includes(dialectName)) {
           test++;
           expect(table.id.defaultValue).to.not.contain('special');
         }
@@ -972,6 +996,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         if (dialectName === 'postgres') {
           test++;
           expect(table.id.defaultValue).to.contain('special');
+        }
+
+        if (dialectName === 'cockroachdb') {
+          test++;
+          expect(table.id.defaultValue).to.contain('unique_rowid()');
         }
 
         expect(test).to.equal(2);
@@ -1001,6 +1030,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
+              case 'cockroachdb':
               case 'ibmi': {
                 expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
 
@@ -1040,6 +1070,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
+              case 'cockroachdb':
               case 'ibmi': {
                 expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
                 expect(UserPublic).to.include('INSERT INTO "UserPublics"');
@@ -1079,6 +1110,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
+              case 'cockroachdb':
               case 'ibmi': {
                 expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
 
@@ -1114,6 +1146,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
+              case 'cockroachdb':
               case 'ibmi': {
                 expect(user).to.include('UPDATE "special"."UserSpecials"');
 
@@ -1270,6 +1303,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             break;
           }
 
+          case 'cockroachdb':
           case 'postgres': {
             expect(error.message).to.match(/relation "4uth0r5" does not exist/);
 
@@ -1399,10 +1433,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.sequelize.sync({ force: true });
 
       await this.User.bulkCreate([{
+        ...(dialectName === 'cockroachdb' && { id: 1 }),
         username: 'leia',
       }, {
+        ...(dialectName === 'cockroachdb' && { id: 2 }),
         username: 'luke',
       }, {
+        ...(dialectName === 'cockroachdb' && { id: 3 }),
         username: 'vader',
       }]);
 

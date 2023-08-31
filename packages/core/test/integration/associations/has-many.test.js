@@ -281,64 +281,66 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
         });
 
-        it('should fetch associations for multiple instances with limit and order and a belongsTo relation', async function () {
-          const User = this.sequelize.define('User', {});
-          const Task = this.sequelize.define('Task', {
-            title: DataTypes.STRING,
-            categoryId: {
-              type: DataTypes.INTEGER,
-              field: 'category_id',
-            },
+        // Cockroachdb does only preserves orderby for top level statements, Need to add support or ORDINALITY for this test.
+        // Reference: https://www.cockroachlabs.com/docs/stable/order-by.html#order-preservation
+        if (dialect !== 'cockroachdb') {
+          it('should fetch associations for multiple instances with limit and order and a belongsTo relation', async function () {
+            const User = this.sequelize.define('User', {});
+            const Task = this.sequelize.define('Task', {
+              title: DataTypes.STRING,
+              categoryId: {
+                type: DataTypes.INTEGER,
+                field: 'category_id',
+              },
+            });
+            const Category = this.sequelize.define('Category', {});
+
+            User.Tasks = User.hasMany(Task, { as: 'tasks' });
+            Task.Category = Task.belongsTo(Category, { as: 'category', foreignKey: 'categoryId' });
+
+            await this.sequelize.sync({ force: true });
+
+            const users = await Promise.all([
+              User.create({
+                tasks: [
+                  { title: 'b', category: {} },
+                  { title: 'd', category: {} },
+                  { title: 'c', category: {} },
+                  { title: 'a', category: {} },
+                ],
+              }, {
+                include: [{ association: User.Tasks, include: [Task.Category] }],
+              }),
+              User.create({
+                tasks: [
+                  { title: 'a', category: {} },
+                  { title: 'c', category: {} },
+                  { title: 'b', category: {} },
+                ],
+              }, {
+                include: [{ association: User.Tasks, include: [Task.Category] }],
+              }),
+            ]);
+
+            const result = await User.Tasks.get(users, {
+              limit: 2,
+              order: [['title', 'ASC']],
+              include: [Task.Category],
+            });
+
+            expect(result.get(users[0].id).length).to.equal(2);
+            expect(result.get(users[0].id)[0].title).to.equal('a');
+            expect(result.get(users[0].id)[0].category).to.be.ok;
+            expect(result.get(users[0].id)[1].title).to.equal('b');
+            expect(result.get(users[0].id)[1].category).to.be.ok;
+
+            expect(result.get(users[1].id).length).to.equal(2);
+            expect(result.get(users[1].id)[0].title).to.equal('a');
+            expect(result.get(users[1].id)[0].category).to.be.ok;
+            expect(result.get(users[1].id)[1].title).to.equal('b');
+            expect(result.get(users[1].id)[1].category).to.be.ok;
           });
-          const Category = this.sequelize.define('Category', {});
-
-          User.Tasks = User.hasMany(Task, { as: 'tasks' });
-          Task.Category = Task.belongsTo(Category, { as: 'category', foreignKey: 'categoryId' });
-
-          await this.sequelize.sync({ force: true });
-
-          const users = await Promise.all([
-            User.create({
-              tasks: [
-                { title: 'b', category: {} },
-                { title: 'd', category: {} },
-                { title: 'c', category: {} },
-                { title: 'a', category: {} },
-              ],
-            }, {
-              include: [{ association: User.Tasks, include: [Task.Category] }],
-            }),
-            User.create({
-              tasks: [
-                { title: 'a', category: {} },
-                { title: 'c', category: {} },
-                { title: 'b', category: {} },
-              ],
-            }, {
-              include: [{ association: User.Tasks, include: [Task.Category] }],
-            }),
-          ]);
-
-          const result = await User.Tasks.get(users, {
-            limit: 2,
-            order: [
-              ['title', 'ASC'],
-            ],
-            include: [Task.Category],
-          });
-
-          expect(result.get(users[0].id).length).to.equal(2);
-          expect(result.get(users[0].id)[0].title).to.equal('a');
-          expect(result.get(users[0].id)[0].category).to.be.ok;
-          expect(result.get(users[0].id)[1].title).to.equal('b');
-          expect(result.get(users[0].id)[1].category).to.be.ok;
-
-          expect(result.get(users[1].id).length).to.equal(2);
-          expect(result.get(users[1].id)[0].title).to.equal('a');
-          expect(result.get(users[1].id)[0].category).to.be.ok;
-          expect(result.get(users[1].id)[1].title).to.equal('b');
-          expect(result.get(users[1].id)[1].category).to.be.ok;
-        });
+        }
 
         it('supports schemas', async function () {
           const User = this.sequelize.define('User', {}).schema('work');
@@ -521,8 +523,14 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const t = await sequelize.startUnmanagedTransaction();
           await article.setLabels([label], { transaction: t });
           const articles0 = await Article.findAll({ transaction: t });
-          const hasLabel0 = await articles0[0].hasLabel(label);
-          expect(hasLabel0).to.be.false;
+
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
+          if (current.dialect.name !== 'cockroachdb') {
+            const hasLabel0 = await articles0[0].hasLabel(label);
+            expect(hasLabel0).to.be.false;
+          }
+
           const articles = await Article.findAll({ transaction: t });
           const hasLabel = await articles[0].hasLabel(label, { transaction: t });
           expect(hasLabel).to.be.true;
@@ -627,13 +635,19 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           await article.setLabels([label], { transaction: t });
           const articles = await Article.findAll({ transaction: t });
 
-          const [hasLabel1, hasLabel2] = await Promise.all([
-            articles[0].hasLabels([label]),
-            articles[0].hasLabels([label], { transaction: t }),
-          ]);
-
-          expect(hasLabel1).to.be.false;
-          expect(hasLabel2).to.be.true;
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
+          if (current.dialect.name !== 'cockroachdb') {
+            const [hasLabel1, hasLabel2] = await Promise.all([
+              articles[0].hasLabels([label]),
+              articles[0].hasLabels([label], { transaction: t }),
+            ]);
+            expect(hasLabel1).to.be.false;
+            expect(hasLabel2).to.be.true;
+          } else {
+            const hasLabel1 = await articles[0].hasLabels([label], { transaction: t });
+            expect(hasLabel1).to.be.true;
+          }
 
           await t.rollback();
         });
@@ -715,8 +729,13 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           const t = await sequelize.startUnmanagedTransaction();
           await article.addLabel(label, { transaction: t });
-          const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
-          expect(labels0.length).to.equal(0);
+
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
+          if (current.dialect.name !== 'cockroachdb') {
+            const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
+            expect(labels0.length).to.equal(0);
+          }
 
           const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
           expect(labels.length).to.equal(1);
@@ -849,10 +868,16 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const article = await Article.create({ title: 'foo' });
           const t = await sequelize.startUnmanagedTransaction();
           await article.createLabel({ text: 'bar' }, { transaction: t });
-          const labels1 = await Label.findAll();
-          expect(labels1.length).to.equal(0);
-          const labels0 = await Label.findAll({ where: { ArticleId: article.id } });
-          expect(labels0.length).to.equal(0);
+
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
+          if (current.dialect.name !== 'cockroachdb') {
+            const labels1 = await Label.findAll();
+            expect(labels1.length).to.equal(0);
+            const labels0 = await Label.findAll({ where: { ArticleId: article.id } });
+            expect(labels0.length).to.equal(0);
+          }
+
           const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
           expect(labels.length).to.equal(1);
           await t.rollback();
@@ -1320,6 +1345,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       await this.sequelize.sync({ force: true });
 
       await User.create({
+        ...(dialect === 'cockroachdb' && { userId: 1 }),
         username: 'John Doe',
         tasks: [
           { title: 'Task #1', jobs: [{ title: 'Job #1' }, { title: 'Job #2' }] },

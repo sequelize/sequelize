@@ -8,6 +8,8 @@ const { DataTypes } = require('@sequelize/core');
 
 const dialect = Support.sequelize.dialect;
 
+const dialectName = Support.getTestDialect();
+
 describe('Model', () => {
   beforeEach(async function () {
     this.Payment = this.sequelize.define('Payment', {
@@ -61,9 +63,15 @@ describe('Model', () => {
           await User.sync({ force: true });
           const t = await sequelize.startUnmanagedTransaction();
           await User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t });
-          const val1 = await User[methodName]('age');
+
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
+          if (dialectName !== 'cockroachdb') {
+            const val1 = await User[methodName]('age');
+            expect(val1).to.be.not.ok;
+          }
+
           const val2 = await User[methodName]('age', { transaction: t });
-          expect(val1).to.be.not.ok;
           expect(val2).to.equal(methodName === 'min' ? 2 : 5);
           await t.rollback();
         });

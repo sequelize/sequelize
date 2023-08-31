@@ -61,9 +61,15 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
-        const groups = await Group.findAll();
-        const associatedUser = await groups[0].getUser();
-        expect(associatedUser).to.be.null;
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (current.dialect.name !== 'cockroachdb') {
+          const groups = await Group.findAll();
+          const associatedUser = await groups[0].getUser();
+          expect(associatedUser).to.be.null;
+        }
+
         const groups0 = await Group.findAll({ transaction: t });
         const associatedUser0 = await groups0[0].getUser({ transaction: t });
         expect(associatedUser0).not.to.be.null;
@@ -114,7 +120,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         expect(associatedUser.id).not.to.equal(fakeUser.id);
         await this.sequelize.dropSchema('admin');
         const schemas = await this.sequelize.showAllSchemas();
-        if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
+        if (['postgres', 'mssql', 'mariadb', 'cockroachdb'].includes(dialect)) {
           expect(schemas).to.not.have.property('admin');
         }
       });
@@ -148,9 +154,15 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const user = await User.create({ username: 'bob' });
         const t = await sequelize.startUnmanagedTransaction();
         await user.createGroup({ name: 'testgroup' }, { transaction: t });
-        const users = await User.findAll();
-        const group = await users[0].getGroup();
-        expect(group).to.be.null;
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (current.dialect.name !== 'cockroachdb') {
+          const users = await User.findAll();
+          const group = await users[0].getGroup();
+          expect(group).to.be.null;
+        }
+
         const users0 = await User.findAll({ transaction: t });
         const group0 = await users0[0].getGroup({ transaction: t });
         expect(group0).to.be.not.null;

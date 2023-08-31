@@ -4,7 +4,15 @@ import sinon from 'sinon';
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { Attribute, NotNull } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
+import {
+  beforeAll2,
+  createSingleTransactionalTestSequelizeInstance,
+  getTestDialect,
+  sequelize,
+  setResetMode,
+} from '../support';
+
+const dialectName = getTestDialect();
 
 describe('Model#decrement', () => {
   setResetMode('destroy');
@@ -31,9 +39,15 @@ describe('Model#decrement', () => {
 
       try {
         await user.decrement('integer', { by: 2, transaction: t });
-        const users1 = await User.findAll();
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (dialectName !== 'cockroachdb') {
+          const users1 = await User.findAll();
+          expect(users1[0].integer).to.equal(3);
+        }
+
         const users2 = await User.findAll({ transaction: t });
-        expect(users1[0].integer).to.equal(3);
         expect(users2[0].integer).to.equal(1);
       } finally {
         await t.rollback();

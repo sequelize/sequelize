@@ -17,6 +17,7 @@ import { isValidTimeZone } from '../../utils/dayjs';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
+import type { CockroachDbDialect } from '../cockroachdb';
 import type { PostgresDialect } from './index.js';
 
 const debug = logger.debugContext('connection:pg');
@@ -57,7 +58,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
   #oidMap = new Map<number, TypeOids>();
   #oidParserCache = new Map<number, TypeParser<any, any>>();
 
-  constructor(dialect: PostgresDialect, sequelize: Sequelize) {
+  constructor(dialect: PostgresDialect | CockroachDbDialect, sequelize: Sequelize) {
     super(dialect, sequelize);
 
     const pgLib = this._loadDialectModule('pg') as Lib;

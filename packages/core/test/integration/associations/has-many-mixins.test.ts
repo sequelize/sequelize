@@ -11,6 +11,7 @@ import { AllowNull, Attribute, HasMany, NotNull } from '@sequelize/core/decorato
 import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
 
 const dialect = sequelize.dialect;
+const dialectName = dialect.name;
 
 describe('hasMany Mixins', () => {
   setResetMode('destroy');
@@ -245,8 +246,13 @@ describe('hasMany Mixins + transaction', () => {
 
       await transactionSequelize.transaction(async transaction => {
         await article.setLabels([label], { transaction });
-        const labels0 = await Label.findAll({ where: { articleId: article.id }, transaction: null });
-        expect(labels0.length).to.equal(0);
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (dialectName !== 'cockroachdb') {
+          const labels0 = await Label.findAll({ where: { articleId: article.id }, transaction: null });
+          expect(labels0.length).to.equal(0);
+        }
 
         const labels = await Label.findAll({ where: { articleId: article.id }, transaction });
         expect(labels.length).to.equal(1);
@@ -285,7 +291,15 @@ describe('hasMany Mixins + transaction', () => {
 
         await article.setLabels(null, { transaction: t });
         expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(article.id);
-        expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
+
+        // Cockroachdb uses serailizable transactions, Label.create would not exist under the transaction context
+        // hence it would throw a EmptyResultError
+        if (dialectName === 'cockroachdb') {
+          const label1 = await Label.findOne({ where: { articleId: article.id }, transaction: t });
+          expect(label1).to.be.null;
+        } else {
+          expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
+        }
       } finally {
         await t.rollback();
       }
@@ -306,7 +320,15 @@ describe('hasMany Mixins + transaction', () => {
 
         await article.removeLabels([label], { transaction: t });
         expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(article.id);
-        expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
+
+        // Cockroachdb uses serailizable transactions, Label.create would not exist under the transaction context
+        // hence it would throw a EmptyResultError
+        if (dialectName === 'cockroachdb') {
+          const label1 = await Label.findOne({ where: { articleId: article.id }, transaction: t });
+          expect(label1).to.be.null;
+        } else {
+          expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
+        }
       } finally {
         await t.rollback();
       }

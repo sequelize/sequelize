@@ -20,7 +20,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
     expectsql(() => queryGenerator.removeColumnQuery('myTable', 'myColumn', { ifExists: true }), {
       default: buildInvalidOptionReceivedError('removeColumnQuery', dialectName, ['ifExists']),
       mariadb: 'ALTER TABLE `myTable` DROP IF EXISTS `myColumn`;',
-      'postgres mssql': 'ALTER TABLE [myTable] DROP COLUMN IF EXISTS [myColumn];',
+      'postgres mssql cockroachdb': 'ALTER TABLE [myTable] DROP COLUMN IF EXISTS [myColumn];',
       sqlite: notSupportedError,
     });
   });

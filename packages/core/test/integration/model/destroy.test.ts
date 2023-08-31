@@ -2,7 +2,15 @@ import { expect } from 'chai';
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
 import { Attribute, Table } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
+import {
+  beforeAll2,
+  createSingleTransactionalTestSequelizeInstance,
+  getTestDialect,
+  sequelize,
+  setResetMode,
+} from '../support';
+
+const dialectName = getTestDialect();
 
 describe('destroy', () => {
   context('test-shared models', () => {
@@ -179,9 +187,15 @@ describe('destroy', () => {
             where: {},
             transaction,
           });
-          const count1 = await User.count();
+
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
+          if (dialectName !== 'cockroachdb') {
+            const count1 = await User.count();
+            expect(count1).to.equal(1);
+          }
+
           const count2 = await User.count({ transaction });
-          expect(count1).to.equal(1);
           expect(count2).to.equal(0);
         } finally {
           await transaction.rollback();

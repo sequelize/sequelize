@@ -16,18 +16,18 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         title: 'TINYINT',
         dataType: DataTypes.TINYINT,
         expect: {
-        // TINYINT in mssql is UNSIGNED. For the signed version, we fallback to TINYINT + check constraint
-          'mssql postgres db2 ibmi': 'SMALLINT',
+          // TINYINT in mssql is UNSIGNED. For the signed version, we fallback to TINYINT + check constraint
+          'mssql postgres db2 ibmi cockroachdb': 'SMALLINT',
           'mysql mariadb': 'TINYINT',
           'sqlite snowflake': 'INTEGER',
         },
       },
       {
-      // This option (length) is ignored when unavailable.
+        // This option (length) is ignored when unavailable.
         title: 'TINYINT(2)',
         dataType: DataTypes.TINYINT(2),
         expect: {
-          'mssql postgres db2 ibmi': 'SMALLINT',
+          'mssql postgres db2 ibmi cockroachdb': 'SMALLINT',
           'mysql mariadb': 'TINYINT(2)',
           'sqlite snowflake': 'INTEGER',
         },
@@ -36,7 +36,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         title: 'TINYINT({ length: 2 })',
         dataType: DataTypes.TINYINT({ length: 2 }),
         expect: {
-          'mssql postgres db2 ibmi': 'SMALLINT',
+          'mssql postgres db2 ibmi cockroachdb': 'SMALLINT',
           'mysql mariadb': 'TINYINT(2)',
           'sqlite snowflake': 'INTEGER',
         },
@@ -45,8 +45,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         title: 'TINYINT.UNSIGNED',
         dataType: DataTypes.TINYINT.UNSIGNED,
         expect: {
-        // Fallback to bigger type + check constraint
-          'postgres db2 ibmi': 'SMALLINT',
+          // Fallback to bigger type + check constraint
+          'postgres db2 ibmi cockroachdb': 'SMALLINT',
           'mysql mariadb': 'TINYINT UNSIGNED',
           // sqlite & snowflake only supports INTEGER as a column type
           'sqlite snowflake': 'INTEGER',
@@ -58,7 +58,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         title: 'TINYINT(2).UNSIGNED',
         dataType: DataTypes.TINYINT(2).UNSIGNED,
         expect: {
-          'postgres db2 ibmi': 'SMALLINT',
+          'postgres db2 ibmi cockroachdb': 'SMALLINT',
           'mysql mariadb': 'TINYINT(2) UNSIGNED',
           'sqlite snowflake': 'INTEGER',
           mssql: 'TINYINT',
@@ -180,7 +180,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
           'mysql mariadb': 'SMALLINT UNSIGNED',
           // sqlite & snowflake only supports INTEGER as a column type
           'sqlite snowflake': 'INTEGER',
-          'postgres db2 ibmi': 'INTEGER',
+          'postgres db2 ibmi cockroachdb': 'INTEGER',
           mssql: 'INT',
         },
       },
@@ -190,7 +190,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         expect: {
           'mysql mariadb': 'SMALLINT(4) UNSIGNED',
           'sqlite snowflake': 'INTEGER',
-          'postgres db2 ibmi': 'INTEGER',
+          'postgres db2 ibmi cockroachdb': 'INTEGER',
           mssql: 'INT',
         },
       },
@@ -283,7 +283,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         expect: {
           'mariadb mysql': 'MEDIUMINT',
           // falls back to larger type + CHECK constraint
-          'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
+          'db2 ibmi mssql postgres snowflake sqlite cockroachdb': 'INTEGER',
         },
       },
       {
@@ -291,7 +291,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.MEDIUMINT(2),
         expect: {
           'mariadb mysql': 'MEDIUMINT(2)',
-          'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
+          'db2 ibmi mssql postgres snowflake sqlite cockroachdb': 'INTEGER',
         },
       },
       {
@@ -299,7 +299,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.MEDIUMINT({ length: 2 }),
         expect: {
           'mariadb mysql': 'MEDIUMINT(2)',
-          'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
+          'db2 ibmi mssql postgres snowflake sqlite cockroachdb': 'INTEGER',
         },
       },
       {
@@ -307,7 +307,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.MEDIUMINT.UNSIGNED,
         expect: {
           'mariadb mysql': 'MEDIUMINT UNSIGNED',
-          'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
+          'db2 ibmi mssql postgres snowflake sqlite cockroachdb': 'INTEGER',
         },
       },
       {
@@ -315,7 +315,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.MEDIUMINT(2).UNSIGNED,
         expect: {
           'mariadb mysql': 'MEDIUMINT(2) UNSIGNED',
-          'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
+          'db2 ibmi mssql postgres snowflake sqlite cockroachdb': 'INTEGER',
         },
       },
       {
@@ -408,7 +408,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       // sqlite & snowflake are both 64 bits integers (actually snowflake accepts up to 99999999999999999999999999999999999999)
       'sqlite snowflake': 'INTEGER',
       'mysql mariadb': 'INTEGER UNSIGNED',
-      'ibmi postgres db2 mssql': 'BIGINT',
+      'ibmi postgres db2 mssql cockroachdb': 'BIGINT',
     });
 
     testDataTypeSql('INTEGER.UNSIGNED.ZEROFILL', DataTypes.INTEGER.UNSIGNED.ZEROFILL, {
@@ -429,7 +429,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     testDataTypeSql('INTEGER(11).UNSIGNED', DataTypes.INTEGER(11).UNSIGNED, {
       'mysql mariadb': 'INTEGER(11) UNSIGNED',
       'sqlite snowflake': 'INTEGER',
-      'ibmi postgres db2 mssql': 'BIGINT',
+      'ibmi postgres db2 mssql cockroachdb': 'BIGINT',
     });
 
     testDataTypeSql('INTEGER(11).UNSIGNED.ZEROFILL', DataTypes.INTEGER(11).UNSIGNED.ZEROFILL, {

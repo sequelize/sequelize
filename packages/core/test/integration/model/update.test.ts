@@ -370,9 +370,14 @@ describe('Model.update', () => {
           transaction: t,
         });
 
-        const users1 = await User.findAll();
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (dialectName !== 'cockroachdb') {
+          const users1 = await User.findAll();
+          expect(users1[0].username).to.equal('foo');
+        }
+
         const users2 = await User.findAll({ transaction: t });
-        expect(users1[0].username).to.equal('foo');
         expect(users2[0].username).to.equal('bar');
         await t.rollback();
       });
@@ -426,7 +431,7 @@ describe('Model.update', () => {
 
           expectsql(sqlQuery, {
             default: `UPDATE [users1] SET [secretValue]=$sequelize_1,[updatedAt]=$sequelize_2 WHERE [id] = $sequelize_3`,
-            postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
+            'postgres cockroachdb': `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
             mysql: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
             mariadb: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
             mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 OUTPUT INSERTED.* WHERE [id] = @sequelize_3`,

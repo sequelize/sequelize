@@ -131,7 +131,7 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE REFERENCES "Bar" ("id") COMMENT Foo' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE REFERENCES "Bar" ("id") COMMENT Foo);',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, FOREIGN KEY (`myColumn`) REFERENCES "Bar" ("id") COMMENT Foo) ENGINE=InnoDB;',
-      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE REFERENCES "Bar" ("id")); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
+      'postgres cockroachdb': `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE REFERENCES "Bar" ("id")); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));
         EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = 'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
@@ -154,7 +154,7 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo', secondColumn: 'DATE COMMENT Foo Bar' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE COMMENT Foo, [secondColumn] DATE COMMENT Foo Bar);',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo, `secondColumn` DATE COMMENT Foo Bar) ENGINE=InnoDB;',
-      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo'; COMMENT ON COLUMN "myTable"."secondColumn" IS 'Foo Bar';`,
+      'postgres cockroachdb': `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo'; COMMENT ON COLUMN "myTable"."secondColumn" IS 'Foo Bar';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] DATE);
         EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = 'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];
@@ -170,7 +170,7 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo COMMENT Bar' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE COMMENT Foo COMMENT Bar);',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo COMMENT Bar) ENGINE=InnoDB;',
-      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo COMMENT Bar';`,
+      'postgres cockroachdb': `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo COMMENT Bar';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE COMMENT Foo);
         EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Bar', @level0type = N'Schema', @level0name = 'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
@@ -183,7 +183,7 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo PRIMARY KEY' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE COMMENT Foo, PRIMARY KEY ([myColumn]));',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
-      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo PRIMARY KEY';`,
+      'postgres cockroachdb': `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo PRIMARY KEY';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);
         EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo PRIMARY KEY', @level0type = N'Schema', @level0name = 'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
@@ -197,7 +197,7 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo' }, { comment: 'Bar' }), {
       default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['comment']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo) ENGINE=InnoDB COMMENT \'Bar\';',
-      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Bar'; COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
+      'postgres cockroachdb': `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Bar'; COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
       snowflake: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo) COMMENT 'Bar';`,
     });
   });
@@ -207,7 +207,7 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'ENUM("foo", "bar")' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] ENUM("foo", "bar"));',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` ENUM("foo", "bar")) ENGINE=InnoDB;',
-      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" "public"."enum_myTable_myColumn");',
+      'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" "public"."enum_myTable_myColumn");',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] ENUM("foo", "bar"));`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" ENUM("foo", "bar")); END`,
     });
@@ -226,7 +226,7 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER SERIAL', secondColumn: 'BIGINT SERIAL', thirdColumn: 'SMALLINT SERIAL' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER SERIAL, [secondColumn] BIGINT SERIAL, [thirdColumn] SMALLINT SERIAL);',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER SERIAL, `secondColumn` BIGINT SERIAL, `thirdColumn` SMALLINT SERIAL) ENGINE=InnoDB;',
-      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" SERIAL, "secondColumn" BIGSERIAL, "thirdColumn" SMALLSERIAL);',
+      'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" SERIAL, "secondColumn" BIGSERIAL, "thirdColumn" SMALLSERIAL);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER SERIAL, [secondColumn] BIGINT SERIAL, [thirdColumn] SMALLINT SERIAL);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER SERIAL, "secondColumn" BIGINT SERIAL, "thirdColumn" SMALLINT SERIAL); END`,
     });
@@ -236,7 +236,7 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'INTEGER SERIAL NOT NULL' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] INTEGER SERIAL NOT NULL);',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER SERIAL NOT NULL) ENGINE=InnoDB;',
-      postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" SERIAL);',
+      'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" SERIAL);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER SERIAL NOT NULL);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER SERIAL NOT NULL); END`,
     });
@@ -355,7 +355,7 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { comment: 'Foo' }), {
       default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['comment']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB COMMENT \'Foo\';',
-      postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Foo';`,
+      'postgres cockroachdb': `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Foo';`,
       snowflake: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE) COMMENT 'Foo';`,
     });
   });
@@ -377,7 +377,7 @@ describe('QueryGenerator#createTableQuery', () => {
       expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
         default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
-        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"));',
+        'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]));`,
         snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"));',
         db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT NOT NULL, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',
@@ -389,7 +389,7 @@ describe('QueryGenerator#createTableQuery', () => {
       expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }, { uniqueKeys: { myIndex: { fields: ['myColumn', 'secondColumn'] } } }), {
         default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `myIndex` (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
-        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn"));',
+        'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [myIndex] UNIQUE ([myColumn], [secondColumn]));`,
         snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "myIndex" ("myColumn", "secondColumn"));',
         db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT NOT NULL, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn"));',
@@ -401,7 +401,7 @@ describe('QueryGenerator#createTableQuery', () => {
       expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { uniqueKeys: [{ fields: ['myColumn'] }] }), {
         default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, UNIQUE `uniq_myTable_myColumn` (`myColumn`)) ENGINE=InnoDB;',
-        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, CONSTRAINT "my_table_my_column" UNIQUE ("myColumn"));',
+        'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, CONSTRAINT "my_table_my_column" UNIQUE ("myColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, CONSTRAINT [my_table_my_column] UNIQUE ([myColumn]));`,
         snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, UNIQUE "uniq_myTable_myColumn" ("myColumn"));',
         db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, CONSTRAINT "uniq_myTable_myColumn" UNIQUE ("myColumn"));',
@@ -413,7 +413,7 @@ describe('QueryGenerator#createTableQuery', () => {
       expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY', secondColumn: 'TEXT PRIMARY KEY' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
         default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`), PRIMARY KEY (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
-        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
+        'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]), PRIMARY KEY ([myColumn], [secondColumn]));`,
         snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
         db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
@@ -425,7 +425,7 @@ describe('QueryGenerator#createTableQuery', () => {
       expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE NOT NULL', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
         default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
-        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"));',
+        'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE NOT NULL, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]));`,
         snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"));',
         db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT NOT NULL, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',
@@ -437,7 +437,7 @@ describe('QueryGenerator#createTableQuery', () => {
       expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY REFERENCES "Bar" ("id")', secondColumn: 'TEXT' }, { uniqueKeys: [{ fields: ['myColumn', 'secondColumn'] }] }), {
         default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, UNIQUE `uniq_myTable_myColumn_secondColumn` (`myColumn`, `secondColumn`), PRIMARY KEY (`myColumn`), FOREIGN KEY (`myColumn`) REFERENCES "Bar" ("id")) ENGINE=InnoDB;',
-        postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"));',
+        'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), "secondColumn" TEXT, CONSTRAINT "my_table_my_column_second_column" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"));',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, CONSTRAINT [my_table_my_column_second_column] UNIQUE ([myColumn], [secondColumn]), PRIMARY KEY ([myColumn]), FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));`,
         snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
         db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT NOT NULL, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',

@@ -12,7 +12,15 @@ import type {
   NonAttribute,
 } from '@sequelize/core';
 import { Attribute, BelongsTo, ColumnName, Default, PrimaryKey, Table } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
+import {
+  beforeAll2,
+  createSingleTransactionalTestSequelizeInstance,
+  getTestDialect,
+  sequelize,
+  setResetMode,
+} from '../support';
+
+const dialectName = getTestDialect();
 
 describe('Model#save', () => {
   context('test-shared models', () => {
@@ -339,9 +347,15 @@ describe('Model#save', () => {
         const transaction = await transactionSequelize.startUnmanagedTransaction();
         try {
           await User.build({ username: 'foo' }).save({ transaction });
-          const count1 = await User.count();
+
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
+          if (dialectName !== 'cockroachdb') {
+            const count1 = await User.count();
+            expect(count1).to.equal(0);
+          }
+
           const count2 = await User.count({ transaction });
-          expect(count1).to.equal(0);
           expect(count2).to.equal(1);
         } finally {
           await transaction.rollback();

@@ -38,6 +38,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
+        let article; let label; let t;
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const Article = sequelize.define('Article', { title: DataTypes.STRING });
         const Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -47,23 +48,33 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         await sequelize.sync({ force: true });
 
-        const [article, label, t] = await Promise.all([
-          Article.create({ title: 'foo' }),
-          Label.create({ text: 'bar' }),
-          sequelize.startUnmanagedTransaction(),
-        ]);
+        if (dialect === 'cockroachdb') {
+          [article, label] = await Promise.all([
+            Article.create({ title: 'foo' }),
+            Label.create({ text: 'bar' }),
+          ]);
+          t = await sequelize.startUnmanagedTransaction();
+        } else {
+          [article, label, t] = await Promise.all([
+            Article.create({ title: 'foo' }),
+            Label.create({ text: 'bar' }),
+            sequelize.startUnmanagedTransaction(),
+          ]);
+        }
 
-        try {
-          await article.setLabels([label], { transaction: t });
+        await article.setLabels([label], { transaction: t });
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (dialect !== 'cockroachdb') {
           const articles0 = await Article.findAll({ transaction: t });
           const labels0 = await articles0[0].getLabels();
           expect(labels0).to.have.length(0);
-          const articles = await Article.findAll({ transaction: t });
-          const labels = await articles[0].getLabels({ transaction: t });
-          expect(labels).to.have.length(1);
-        } finally {
-          await t.rollback();
         }
+
+        const articles = await Article.findAll({ transaction: t });
+        const labels = await articles[0].getLabels({ transaction: t });
+        expect(labels).to.have.length(1);
+        await t.rollback();
       });
     }
 
@@ -202,7 +213,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(project.UserProject.status).to.equal('active');
         await this.sequelize.dropSchema('acme');
         const schemas = await this.sequelize.showAllSchemas();
-        if (['postgres', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
+        if (['postgres', 'mssql', 'mariadb', 'ibmi', 'cockroachdb'].includes(dialect)) {
           expect(schemas).to.not.have.property('acme');
         }
       });
@@ -1269,6 +1280,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
+        let article; let label; let t;
+
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const Article = sequelize.define('Article', { title: DataTypes.STRING });
         const Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -1278,17 +1291,31 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         await sequelize.sync({ force: true });
 
-        const [article, label, t] = await Promise.all([
-          Article.create({ title: 'foo' }),
-          Label.create({ text: 'bar' }),
-          sequelize.startUnmanagedTransaction(),
-        ]);
+        if (dialect === 'cockroachdb') {
+          [article, label] = await Promise.all([
+            Article.create({ title: 'foo' }),
+            Label.create({ text: 'bar' }),
+          ]);
+          t = await sequelize.startUnmanagedTransaction();
+        } else {
+          [article, label, t] = await Promise.all([
+            Article.create({ title: 'foo' }),
+            Label.create({ text: 'bar' }),
+            sequelize.startUnmanagedTransaction(),
+          ]);
+        }
 
         try {
           await article.setLabels([label], { transaction: t });
-          const articles0 = await Article.findAll({ transaction: t });
-          const labels0 = await articles0[0].getLabels();
-          expect(labels0).to.have.length(0);
+
+          // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+          // This query would wait for the transaction to get committed first.
+          if (dialect !== 'cockroachdb') {
+            const articles0 = await Article.findAll({ transaction: t });
+            const labels0 = await articles0[0].getLabels();
+            expect(labels0).to.have.length(0);
+          }
+
           const articles = await Article.findAll({ transaction: t });
           const labels = await articles[0].getLabels({ transaction: t });
           expect(labels).to.have.length(1);
@@ -1751,11 +1778,21 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      const [post, comment, tag] = await Promise.all([
-        Post.create({ name: 'post1' }),
-        Comment.create({ name: 'comment1' }),
-        Tag.create({ name: 'tag1' }),
-      ]);
+      let post; let comment; let tag;
+      // CockroachDB does not assign integer based ids as other dialects do.
+      if (dialect === 'cockroachdb') {
+        [post, comment, tag] = await Promise.all([
+          Post.create({ name: 'post1', id: 1 }),
+          Comment.create({ name: 'comment1', id: 1 }),
+          Tag.create({ name: 'tag1', id: 1 }),
+        ]);
+      } else {
+        [post, comment, tag] = await Promise.all([
+          Post.create({ name: 'post1' }),
+          Comment.create({ name: 'comment1' }),
+          Tag.create({ name: 'tag1' }),
+        ]);
+      }
 
       this.post = post;
       this.comment = comment;
@@ -1806,12 +1843,23 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      const [post, comment, tag, secondTag] = await Promise.all([
-        Post.create({ name: 'post1' }),
-        Comment.create({ name: 'comment1' }),
-        Tag.create({ name: 'tag1' }),
-        Tag.create({ name: 'tag2' }),
-      ]);
+      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values,
+      let post; let comment; let tag; let secondTag;
+      if (dialect === 'cockroachdb') {
+        [post, comment, tag, secondTag] = await Promise.all([
+          Post.create({ name: 'post1', id: 1 }),
+          Comment.create({ name: 'comment1', id: 1 }),
+          Tag.create({ name: 'tag1', id: 1 }),
+          Tag.create({ name: 'tag2', id: 2 }),
+        ]);
+      } else {
+        [post, comment, tag, secondTag] = await Promise.all([
+          Post.create({ name: 'post1' }),
+          Comment.create({ name: 'comment1' }),
+          Tag.create({ name: 'tag1' }),
+          Tag.create({ name: 'tag2' }),
+        ]);
+      }
 
       await post.setTags([tag, secondTag]);
       await comment.setTags([tag, secondTag]);
@@ -1884,14 +1932,25 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         await sequelize.sync({ force: true });
 
-        const [task, t] = await Promise.all([
-          Task.create({ title: 'task' }),
-          sequelize.startUnmanagedTransaction(),
-        ]);
+        let task; let  t;
+        if (dialect === 'cockroachdb') {
+          task = await Task.create({ title: 'task' });
+          t = await sequelize.startUnmanagedTransaction();
+        } else {
+          [task, t] = await Promise.all([
+            Task.create({ title: 'task' }),
+            sequelize.startUnmanagedTransaction(),
+          ]);
+        }
 
         await task.createUser({ username: 'foo' }, { transaction: t });
-        const users0 = await task.getUsers();
-        expect(users0).to.have.length(0);
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (dialect !== 'cockroachdb') {
+          const users0 = await task.getUsers();
+          expect(users0).to.have.length(0);
+        }
 
         const users = await task.getUsers({ transaction: t });
         expect(users).to.have.length(1);
@@ -1974,6 +2033,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
+        let user; let task; let t;
+
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Task = sequelize.define('Task', { title: DataTypes.STRING });
@@ -1983,21 +2044,37 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         await sequelize.sync({ force: true });
 
-        const [user, task, t] = await Promise.all([
-          User.create({ username: 'foo' }),
-          Task.create({ title: 'task' }),
-          sequelize.startUnmanagedTransaction(),
-        ]);
+        if (dialect === 'cockroachdb') {
+          [user, task] = await Promise.all([
+            User.create({ username: 'foo' }),
+            Task.create({ title: 'task' }),
+          ]);
+          t = await sequelize.startUnmanagedTransaction();
+        } else {
+          [user, task, t] = await Promise.all([
+            User.create({ username: 'foo' }),
+            Task.create({ title: 'task' }),
+            sequelize.startUnmanagedTransaction(),
+          ]);
+        }
 
         await task.addUser(user, { transaction: t });
-        const hasUser0 = await task.hasUser(user);
-        expect(hasUser0).to.be.false;
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (dialect !== 'cockroachdb') {
+          const hasUser0 = await task.hasUser(user);
+          expect(hasUser0).to.be.false;
+        }
+
         const hasUser = await task.hasUser(user, { transaction: t });
         expect(hasUser).to.be.true;
         await t.rollback();
       });
 
       it('supports transactions when updating a through model', async function () {
+        let user; let task; let t;
+
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Task = sequelize.define('Task', { title: DataTypes.STRING });
@@ -2010,25 +2087,43 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         Task.belongsToMany(User, { through: UserTask });
         await sequelize.sync({ force: true });
 
-        const [user, task, t] = await Promise.all([
-          User.create({ username: 'foo' }),
-          Task.create({ title: 'task' }),
-          sequelize.startUnmanagedTransaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED }),
-        ]);
+        if (dialect === 'cockroachdb') {
+          [user, task] = await Promise.all([
+            User.create({ username: 'foo' }),
+            Task.create({ title: 'task' }),
+          ]);
+          t = await sequelize.startUnmanagedTransaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED });
+        } else {
+          [user, task, t] = await Promise.all([
+            User.create({ username: 'foo' }),
+            Task.create({ title: 'task' }),
+            sequelize.startUnmanagedTransaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED }),
+          ]);
+        }
 
-        await task.addUser(user, { through: { status: 'pending' } }); // Create without transaction, so the old value is
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (dialect !== 'cockroachdb') {
+          await task.addUser(user, { through: { status: 'pending' } }); // Create without transaction, so the old value is
+        }
+
         // accesible from outside the transaction
         await task.addUser(user, { transaction: t, through: { status: 'completed' } }); // Add an already exisiting user in
         // a transaction, updating a value
         // in the join table
 
-        const [tasks, transactionTasks] = await Promise.all([
-          user.getTasks(),
-          user.getTasks({ transaction: t }),
-        ]);
+        if (dialect === 'cockroachdb') {
+          const transactionTasks = await user.getTasks({ transaction: t });
+          expect(transactionTasks[0].UserTask.status).to.equal('completed');
+        } else {
+          const [tasks, transactionTasks] = await Promise.all([
+            user.getTasks(),
+            user.getTasks({ transaction: t }),
+          ]);
 
-        expect(tasks[0].UserTask.status).to.equal('pending');
-        expect(transactionTasks[0].UserTask.status).to.equal('completed');
+          expect(tasks[0].UserTask.status).to.equal('pending');
+          expect(transactionTasks[0].UserTask.status).to.equal('completed');
+        }
 
         await t.rollback();
       });

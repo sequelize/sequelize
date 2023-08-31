@@ -8,6 +8,6 @@ const dialectName = sequelize.dialect.name;
 describe('GEOGRAPHY', () => {
   testDataTypeSql('GEOGRAPHY', DataTypes.GEOGRAPHY, {
     default: new Error(`${dialectName} does not support the GEOGRAPHY data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
-    postgres: 'GEOGRAPHY',
+    'postgres cockroachdb': 'GEOGRAPHY',
   });
 });

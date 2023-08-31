@@ -77,9 +77,15 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
-        const groups = await Group.findAll();
-        const associatedUser = await groups[0].getUser();
-        expect(associatedUser).to.be.null;
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (current.dialect.name !== 'cockroachdb') {
+          const groups = await Group.findAll();
+          const associatedUser = await groups[0].getUser();
+          expect(associatedUser).to.be.null;
+        }
+
         const groups0 = await Group.findAll({ transaction: t });
         const associatedUser0 = await groups0[0].getUser({ transaction: t });
         expect(associatedUser0).to.be.not.null;
@@ -130,7 +136,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         expect(user).to.be.ok;
         await this.sequelize.dropSchema('archive');
         const schemas = await this.sequelize.showAllSchemas();
-        if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
+        if (['postgres', 'mssql', 'mariadb', 'cockroachdb'].includes(dialect)) {
           expect(schemas).to.not.have.property('archive');
         }
       });
@@ -183,9 +189,15 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.setUser(user, { transaction: t });
-        const groups = await Group.findAll();
-        const associatedUser = await groups[0].getUser();
-        expect(associatedUser).to.be.null;
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (current.dialect.name !== 'cockroachdb') {
+          const groups = await Group.findAll();
+          const associatedUser = await groups[0].getUser();
+          expect(associatedUser).to.be.null;
+        }
+
         await t.rollback();
       });
     }
@@ -359,8 +371,13 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const group = await Group.create({ name: 'bar' });
         const t = await sequelize.startUnmanagedTransaction();
         await group.createUser({ username: 'foo' }, { transaction: t });
-        const user = await group.getUser();
-        expect(user).to.be.null;
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (current.dialect.name !== 'cockroachdb') {
+          const user = await group.getUser();
+          expect(user).to.be.null;
+        }
 
         const user0 = await group.getUser({ transaction: t });
         expect(user0).not.to.be.null;
@@ -477,10 +494,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      await User.create(dialect === 'db2' ? { id: 1 } : {});
-      const mail = await Mail.create(dialect === 'db2' ? { id: 1 } : {});
-      await Entry.create({ mailId: mail.id, ownerId: 1 });
-      await Entry.create({ mailId: mail.id, ownerId: 1 });
+      await User.create(['db2', 'cockroachdb'].includes(dialect) ? { id: 1 } : {});
+      const mail = await Mail.create(['db2', 'cockroachdb'].includes(dialect) ? { id: 1 } : {});
+      await Entry.create({ mailId: mail.id, ownerId: 1, ...(dialect === 'cockroachdb' && { id: 1 }) });
+      await Entry.create({ mailId: mail.id, ownerId: 1, ...(dialect === 'cockroachdb' && { id: 2 }) });
       // set recipients
       await mail.setRecipients([1]);
 

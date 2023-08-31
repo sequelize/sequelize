@@ -16,7 +16,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         default: notSupportedError,
         mariadb: `json_compact(json_extract(\`profile\`,'$.id'))`,
         'mysql sqlite': `json_extract(\`profile\`,'$.id')`,
-        postgres: `"profile"->'id'`,
+        'postgres cockroachdb': `"profile"->'id'`,
       });
     });
 
@@ -25,7 +25,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         default: notSupportedError,
         mariadb: `json_compact(json_extract(\`profile\`,'$[0]'))`,
         'mysql sqlite': `json_extract(\`profile\`,'$[0]')`,
-        postgres: `"profile"->0`,
+        'postgres cockroachdb': `"profile"->0`,
       });
     });
 
@@ -34,7 +34,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         default: notSupportedError,
         mariadb: `json_compact(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
         'mysql sqlite': `json_extract(\`profile\`,'$.id.username[0]."0".name')`,
-        postgres: `"profile"#>ARRAY['id','username','0','0','name']`,
+        'postgres cockroachdb': `"profile"#>ARRAY['id','username','0','0','name']`,
       });
     });
 
@@ -44,7 +44,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         mysql: `json_extract(\`profile\`,'$."\\\\""."\\'"."$"')`,
         mariadb: `json_compact(json_extract(\`profile\`,'$."\\\\""."\\'"."$"'))`,
         sqlite: `json_extract(\`profile\`,'$."\\""."''"."$"')`,
-        postgres: `"profile"#>ARRAY['"','''','$']`,
+        'postgres cockroachdb': `"profile"#>ARRAY['"','''','$']`,
       });
     });
   }
@@ -57,7 +57,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         default: notSupportedError,
         mssql: `JSON_VALUE([profile], N'$.id')`,
         'mariadb mysql sqlite': `json_unquote(json_extract(\`profile\`,'$.id'))`,
-        postgres: `"profile"->>'id'`,
+        'postgres cockroachdb': `"profile"->>'id'`,
       });
     });
 
@@ -66,7 +66,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         default: notSupportedError,
         mssql: `JSON_VALUE([profile], N'$[0]')`,
         'mariadb mysql sqlite': `json_unquote(json_extract(\`profile\`,'$[0]'))`,
-        postgres: `"profile"->>0`,
+        'postgres cockroachdb': `"profile"->>0`,
       });
     });
 
@@ -75,7 +75,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         default: notSupportedError,
         mssql: `JSON_VALUE([profile], N'$.id.username[0]."0".name')`,
         'mysql mariadb sqlite': `json_unquote(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
-        postgres: `"profile"#>>ARRAY['id','username','0','0','name']`,
+        'postgres cockroachdb': `"profile"#>>ARRAY['id','username','0','0','name']`,
       });
     });
   }

@@ -9,7 +9,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
   it('produces a query to drop a foreign key', () => {
     expectsql(() => queryGenerator.dropForeignKeyQuery('myTable', 'myColumnKey'), {
       default: 'ALTER TABLE [myTable] DROP FOREIGN KEY [myColumnKey];',
-      postgres: 'ALTER TABLE "myTable" DROP CONSTRAINT "myColumnKey";',
+      'postgres cockroachdb': 'ALTER TABLE "myTable" DROP CONSTRAINT "myColumnKey";',
       mssql: 'ALTER TABLE [myTable] DROP [myColumnKey]',
       sqlite: notSupportedError,
     });
@@ -20,7 +20,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
 
     expectsql(() => queryGenerator.dropForeignKeyQuery(MyModel, 'myColumnKey'), {
       default: 'ALTER TABLE [MyModels] DROP FOREIGN KEY [myColumnKey];',
-      postgres: 'ALTER TABLE "MyModels" DROP CONSTRAINT "myColumnKey";',
+      'postgres cockroachdb': 'ALTER TABLE "MyModels" DROP CONSTRAINT "myColumnKey";',
       mssql: 'ALTER TABLE [MyModels] DROP [myColumnKey]',
       sqlite: notSupportedError,
     });
@@ -29,7 +29,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
   it('produces a query to drop a foreign key with schema in tableName object', () => {
     expectsql(() => queryGenerator.dropForeignKeyQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myColumnKey'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP FOREIGN KEY [myColumnKey];',
-      postgres: 'ALTER TABLE "mySchema"."myTable" DROP CONSTRAINT "myColumnKey";',
+      'postgres cockroachdb': 'ALTER TABLE "mySchema"."myTable" DROP CONSTRAINT "myColumnKey";',
       mssql: 'ALTER TABLE [mySchema].[myTable] DROP [myColumnKey]',
       sqlite: notSupportedError,
     });
@@ -38,7 +38,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
   it('produces a query to drop a foreign key with default schema in tableName object', () => {
     expectsql(() => queryGenerator.dropForeignKeyQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }, 'myColumnKey'), {
       default: 'ALTER TABLE [myTable] DROP FOREIGN KEY [myColumnKey];',
-      postgres: 'ALTER TABLE "myTable" DROP CONSTRAINT "myColumnKey";',
+      'postgres cockroachdb': 'ALTER TABLE "myTable" DROP CONSTRAINT "myColumnKey";',
       mssql: 'ALTER TABLE [myTable] DROP [myColumnKey]',
       sqlite: notSupportedError,
     });
@@ -50,7 +50,7 @@ describe('QueryGenerator#dropForeignKeyQuery', () => {
 
     expectsql(() => queryGeneratorSchema.dropForeignKeyQuery('myTable', 'myColumnKey'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP FOREIGN KEY [myColumnKey];',
-      postgres: 'ALTER TABLE "mySchema"."myTable" DROP CONSTRAINT "myColumnKey";',
+      'postgres cockroachdb': 'ALTER TABLE "mySchema"."myTable" DROP CONSTRAINT "myColumnKey";',
       mssql: 'ALTER TABLE [mySchema].[myTable] DROP [myColumnKey]',
       sqlite: notSupportedError,
     });

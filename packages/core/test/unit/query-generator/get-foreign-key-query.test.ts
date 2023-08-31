@@ -23,7 +23,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `WITH unnested_pg_constraint AS (
+      'postgres cockroachdb': `WITH unnested_pg_constraint AS (
         SELECT conname, confrelid, connamespace, conrelid, contype, oid,
         unnest(conkey) AS conkey, unnest(confkey) AS confkey
         FROM pg_constraint)
@@ -138,7 +138,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TABLE_NAME = 'MyModels'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `WITH unnested_pg_constraint AS (
+      'postgres cockroachdb': `WITH unnested_pg_constraint AS (
         SELECT conname, confrelid, connamespace, conrelid, contype, oid,
         unnest(conkey) AS conkey, unnest(confkey) AS confkey
         FROM pg_constraint)
@@ -251,7 +251,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'mySchema'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `WITH unnested_pg_constraint AS (
+      'postgres cockroachdb': `WITH unnested_pg_constraint AS (
         SELECT conname, confrelid, connamespace, conrelid, contype, oid,
         unnest(conkey) AS conkey, unnest(confkey) AS confkey
         FROM pg_constraint)
@@ -364,7 +364,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'sequelize_test'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `WITH unnested_pg_constraint AS (
+      'postgres cockroachdb': `WITH unnested_pg_constraint AS (
         SELECT conname, confrelid, connamespace, conrelid, contype, oid,
         unnest(conkey) AS conkey, unnest(confkey) AS confkey
         FROM pg_constraint)
@@ -480,7 +480,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         WHERE TABLE_NAME = 'myTable'
         AND TABLE_SCHEMA = 'mySchema'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `WITH unnested_pg_constraint AS (
+      'postgres cockroachdb': `WITH unnested_pg_constraint AS (
         SELECT conname, confrelid, connamespace, conrelid, contype, oid,
         unnest(conkey) AS conkey, unnest(confkey) AS confkey
         FROM pg_constraint)
@@ -612,7 +612,7 @@ describe('QueryGenerator#getForeignKeyQuery', () => {
         AND TABLE_SCHEMA = 'sequelize_test'
         AND COLUMN_NAME = 'myColumn'
         AND REFERENCED_TABLE_NAME IS NOT NULL`,
-      postgres: `WITH unnested_pg_constraint AS (
+      'postgres cockroachdb': `WITH unnested_pg_constraint AS (
         SELECT conname, confrelid, connamespace, conrelid, contype, oid,
         unnest(conkey) AS conkey, unnest(confkey) AS confkey
         FROM pg_constraint)

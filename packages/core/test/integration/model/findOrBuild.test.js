@@ -6,6 +6,8 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
+const dialectName = Support.getTestDialect();
+
 describe('Model#findOrBuild', () => {
   context('test-shared models', () => {
     beforeEach(async function () {
@@ -105,9 +107,16 @@ describe('Model#findOrBuild', () => {
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
-        const [user1] = await User.findOrBuild({
-          where: { username: 'foo' },
-        });
+
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (dialectName !== 'cockroachdb') {
+          const [user1] = await User.findOrBuild({
+            where: { username: 'foo' },
+          });
+          expect(user1.isNewRecord).to.be.true;
+        }
+
         const [user2] = await User.findOrBuild({
           where: { username: 'foo' },
           transaction: t,
@@ -117,7 +126,6 @@ describe('Model#findOrBuild', () => {
           defaults: { foo: 'asd' },
           transaction: t,
         });
-        expect(user1.isNewRecord).to.be.true;
         expect(user2.isNewRecord).to.be.false;
         expect(user3.isNewRecord).to.be.false;
         await t.commit();

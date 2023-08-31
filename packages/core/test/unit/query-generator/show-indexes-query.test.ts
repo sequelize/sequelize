@@ -29,6 +29,12 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+      cockroachdb: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, MAX(ix.indnkeyatts) as index_fields_length,
+        array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,
+        pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
+        WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
+        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public'
+        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;`,
     });
   });
 
@@ -56,8 +62,13 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME and QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME where
         QSYS2.SYSCSTCOL.TABLE_SCHEMA = CURRENT SCHEMA and QSYS2.SYSCSTCOL.TABLE_NAME = 'MyModels' union select QSYS2.SYSKEYS.INDEX_NAME AS NAME,
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
-        left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
-        and QSYS2.SYSINDEXES.TABLE_NAME = 'MyModels'`,
+        left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA and QSYS2.SYSINDEXES.TABLE_NAME = 'MyModels'`,
+      cockroachdb: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, MAX(ix.indnkeyatts) as index_fields_length,
+        array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,
+        pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
+        WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
+        t.relkind = 'r' and t.relname = 'MyModels' AND s.oid = t.relnamespace AND s.nspname = 'public'
+        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;`,
     });
   });
 
@@ -85,6 +96,12 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = 'mySchema'
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+      cockroachdb: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, MAX(ix.indnkeyatts) as index_fields_length,
+        array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,
+        pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
+        WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
+        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'mySchema'
+        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;`,
     });
   });
 
@@ -112,6 +129,12 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+      cockroachdb: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, MAX(ix.indnkeyatts) as index_fields_length,
+        array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,
+        pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
+        WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
+        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'public'
+        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;`,
     });
   });
 
@@ -142,6 +165,12 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = 'mySchema'
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+      cockroachdb: `SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey AS indkey, MAX(ix.indnkeyatts) as index_fields_length,
+        array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,
+        pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a, pg_namespace s
+        WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND
+        t.relkind = 'r' and t.relname = 'myTable' AND s.oid = t.relnamespace AND s.nspname = 'mySchema'
+        GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;`,
     });
   });
 

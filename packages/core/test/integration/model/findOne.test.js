@@ -37,21 +37,26 @@ describe('Model.findOne', () => {
         const t = await sequelize.startUnmanagedTransaction();
         await User.create({ username: 'foo' }, { transaction: t });
 
-        const user1 = await User.findOne({
-          where: { username: 'foo' },
-        });
-
         const user2 = await User.findOne({
           where: { username: 'foo' },
           transaction: t,
         });
 
-        expect(user1).to.be.null;
+        // Cockroachdb only supports SERIALIZABLE transaction isolation level.
+        // This query would wait for the transaction to get committed first.
+        if (dialectName !== 'cockroachdb') {
+          const user1 = await User.findOne({
+            where: { username: 'foo' },
+          });
+
+          expect(user1).to.be.null;
+        }
+
         expect(user2).to.not.be.null;
         await t.rollback();
       });
 
-      // Disabled in sqlite because it only supports one connection at a time
+      // Disabled in sqlite and cockroachdb because it only supports one connection at a time
       if (dialectName !== 'sqlite') {
         it('supports concurrent transactions', async function () {
           this.timeout(90_000);
@@ -66,13 +71,15 @@ describe('Model.findOne', () => {
               transaction: t0,
             });
 
-            const users0 = await User.findAll({
-              where: {
-                username: 'foo',
-              },
-            });
+            if (dialectName !== 'cockroachdb') {
+              const users0 = await User.findAll({
+                where: {
+                  username: 'foo',
+                },
+              });
 
-            expect(users0).to.have.length(0);
+              expect(users0).to.have.length(0);
+            }
 
             const users = await User.findAll({
               where: {
@@ -172,19 +179,28 @@ describe('Model.findOne', () => {
         const user = await this.User.findByPk(this.user.id);
         expect(Array.isArray(user)).to.not.be.ok;
         expect(user.id).to.equal(this.user.id);
-        expect(user.id).to.equal(1);
+
+        // Cockroachdb does not support sequential ID generation.
+        if (dialectName !== 'cockroachdb') {
+          expect(user.id).to.equal(1);
+        }
       });
 
       it('returns a single dao given a string id', async function () {
         const user = await this.User.findByPk(this.user.id.toString());
         expect(Array.isArray(user)).to.not.be.ok;
         expect(user.id).to.equal(this.user.id);
-        expect(user.id).to.equal(1);
+
+        // Cockroachdb does not support sequential ID generation.
+        if (dialectName !== 'cockroachdb') {
+          expect(user.id).to.equal(1);
+        }
       });
 
       it('should make aliased attributes available', async function () {
+        const where = dialectName === 'cockroachdb' ? { id: this.user.id } : { id: 1 };
         const user = await this.User.findOne({
-          where: { id: 1 },
+          where,
           attributes: ['id', ['username', 'name']],
         });
 
@@ -357,7 +373,12 @@ describe('Model.findOne', () => {
         });
 
         await User.sync({ force: true });
-        await User.create({ Login: 'foo' });
+        if (dialectName === 'cockroachdb') {
+          await User.create({ ID: 1, Login: 'foo' });
+        } else {
+          await User.create({ Login: 'foo' });
+        }
+
         const user = await User.findByPk(1);
         expect(user).to.exist;
         expect(user.ID).to.equal(1);

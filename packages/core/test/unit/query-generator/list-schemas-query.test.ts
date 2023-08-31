@@ -18,6 +18,8 @@ describe('QueryGenerator#listSchemasQuery', () => {
       db2: `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN ('NULLID', 'SQLJ', 'ERRORSCHEMA');`,
       snowflake: `SHOW SCHEMAS;`,
       sqlite: notSupportedError,
+      cockroachdb: `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('information_schema', 'public', 'crdb_internal');`,
+
     });
   });
 
@@ -31,6 +33,7 @@ describe('QueryGenerator#listSchemasQuery', () => {
       ibmi: `SELECT DISTINCT SCHEMA_NAME AS "schema_name" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER AND SCHEMA_NAME != 'test' AND SCHEMA_NAME != 'Te''st2'`,
       db2: `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN ('NULLID', 'SQLJ', 'ERRORSCHEMA', 'test', 'Te''st2');`,
       sqlite: notSupportedError,
+      cockroachdb: `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('information_schema', 'public', 'crdb_internal', 'test', 'Te''st2');`,
     });
   });
 });

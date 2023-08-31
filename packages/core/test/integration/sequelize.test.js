@@ -13,7 +13,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi', 'cockroachdb'].includes(dialect)) {
     return `"${str}"`;
   }
 
@@ -289,7 +289,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      const project = await Project.create({ title: 'bla' });
+      const project = await Project.create({ title: 'bla', ...(dialect === 'cockroachdb' && { id: 1 }) });
+
       expect(project).to.exist;
       expect(project.title).to.equal('bla');
       expect(project.id).to.equal(1);
@@ -364,6 +365,18 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
                 'FATAL:  role "bar" does not exist',
                 'password authentication failed for user "bar"',
                 'SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string',
+              ].some(fragment => error.message.includes(fragment)));
+
+              break;
+            }
+
+            case 'cockroachdb': {
+              assert([
+                'fe_sendauth: no password supplied',
+                'role "bar" does not exist',
+                'FATAL:  role "bar" does not exist',
+                'password authentication failed for user "bar"',
+                'password authentication failed for user bar',
               ].some(fragment => error.message.includes(fragment)));
 
               break;
@@ -600,7 +613,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
             await expect(count()).to.eventually.equal(1);
           });
-        } else {
+        } else if (dialect !== 'cockroachdb') {
+          // TODO: Find a better way for CRDB
           it('correctly handles multiple transactions', async function () {
             const TransactionTest = vars.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false });
             const aliasesMapping = new Map([['_0', 'cnt']]);

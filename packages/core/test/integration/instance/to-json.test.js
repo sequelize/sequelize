@@ -6,6 +6,7 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
+const dialectName = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {
     beforeEach(async function () {
@@ -122,6 +123,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('returns a response that can be stringified', async function () {
         const user = await this.User.create({
+          ...(dialectName === 'cockroachdb' && { id: 1 }),
           username: 'test.user',
           age: 99,
           isAdmin: true,
@@ -174,6 +176,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('returns a response that can be stringified', async function () {
         const user0 = await this.User.create({
+          ...(dialectName === 'cockroachdb' && { id: 1 }),
           username: 'test.user',
           age: 99,
           isAdmin: true,
