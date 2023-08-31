@@ -102,8 +102,8 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
       constraintSnippet += ` REFERENCES ${referenceTableName} (${referenceTableColumns})`;
       constraintSnippet += constraint.updateAction ? ` ON UPDATE ${constraint.updateAction}` : '';
       constraintSnippet += constraint.deleteAction ? ` ON DELETE ${constraint.deleteAction}` : '';
-    } else if (constraint.constraintType === 'PRIMARY KEY') {
-      constraintSnippet = `, CONSTRAINT ${constraint.constraintName} PRIMARY KEY`;
+    } else if (['PRIMARY KEY', 'UNIQUE'].includes(constraint.constraintType)) {
+      constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType}`;
       const columns = constraint.columnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName)).join(', ');
       constraintSnippet += ` (${columns})`;
     }
@@ -246,8 +246,8 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
             constraintType: constraintType as ConstraintType,
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnsMatch.map(col => col[1]),
-            definition,
+            ...constraintType !== 'CHECK' && { columnNames: columnsMatch.map(col => col[1]) },
+            ...constraintType !== 'UNIQUE' && { definition },
           });
         }
       }

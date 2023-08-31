@@ -389,11 +389,11 @@ export class AbstractQueryInterfaceTypeScript {
         }
 
         if (deleteAction) {
-          constraintData.deleteAction = deleteAction;
+          constraintData.deleteAction = deleteAction.replaceAll('_', ' ');
         }
 
         if (updateAction) {
-          constraintData.updateAction = updateAction;
+          constraintData.updateAction = updateAction.replaceAll('_', ' ');
         }
 
         if (definition) {

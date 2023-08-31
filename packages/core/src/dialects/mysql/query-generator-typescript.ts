@@ -35,8 +35,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT c.CONSTRAINT_CATALOG AS constraintCatalog,',
-      'c.CONSTRAINT_SCHEMA AS constraintSchema,',
+      'SELECT c.CONSTRAINT_SCHEMA AS constraintSchema,',
       'c.CONSTRAINT_NAME AS constraintName,',
       'c.CONSTRAINT_TYPE AS constraintType,',
       'c.TABLE_SCHEMA AS tableSchema,',
