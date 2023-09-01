@@ -64,8 +64,11 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
   }
 
   /**
+   * A wrapper that fixes MySQL's lack of support for DROP CONSTRAINT in MySQL < 8.0.
+   *
    * @override
    */
+  // TODO [>=2023-11-01]: remove this override when MySQL 8.0 is the minimum supported version
   async removeConstraint(tableName, constraintName, options) {
     const queryOptions = { ...options, raw: true, constraintName };
     const constraints = await this.showConstraints(tableName, queryOptions);

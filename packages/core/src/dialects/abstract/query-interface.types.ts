@@ -1,3 +1,4 @@
+import type { Deferrable } from '../../deferrable';
 import type { QueryRawOptions } from '../../sequelize';
 import type { CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
 import type {
@@ -20,7 +21,7 @@ export type ColumnsDescription = Record<string, ColumnDescription>;
 export type ConstraintType = 'CHECK' | 'DEFAULT' | 'FOREIGN KEY' | 'PRIMARY KEY' | 'UNIQUE';
 
 export interface RawConstraintDescription {
-  constrainCatalog?: string;
+  constraintCatalog?: string;
   constraintSchema: string;
   constraintName: string;
   constraintType: ConstraintType;
@@ -39,7 +40,7 @@ export interface RawConstraintDescription {
 }
 
 export interface ConstraintDescription {
-  constrainCatalog?: string;
+  constraintCatalog?: string;
   constraintSchema: string;
   constraintName: string;
   constraintType: ConstraintType;
@@ -53,8 +54,7 @@ export interface ConstraintDescription {
   deleteAction?: string;
   updateAction?: string;
   definition?: string;
-  isDeferrable?: string;
-  initiallyDeferred?: string;
+  deferrable?: Deferrable;
 }
 
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
