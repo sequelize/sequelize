@@ -1,6 +1,6 @@
 import { assert, expect } from 'chai';
 import { lt } from 'semver';
-import { DataTypes, Op, UnknownConstraintError } from '@sequelize/core';
+import { AggregateError, DataTypes, Op, UnknownConstraintError } from '@sequelize/core';
 import { sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;
@@ -72,12 +72,10 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       } catch (error) {
         let err = error;
         if (dialect === 'mssql') {
-          expect(error).to.be.instanceOf(AggregateError);
-          assert(error instanceof AggregateError);
+          assert(error instanceof AggregateError, 'Expected error to be an instance of AggregateError');
           err = error.errors.at(-1);
         } else {
-          expect(err).to.be.instanceOf(UnknownConstraintError);
-          assert(err instanceof UnknownConstraintError);
+          assert(err instanceof UnknownConstraintError, 'Expected error to be an instance of UnknownConstraintError');
           if (dialect !== 'ibmi') {
             expect(err.table).to.equal('levels');
           }
