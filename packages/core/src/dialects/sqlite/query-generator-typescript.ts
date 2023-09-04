@@ -50,10 +50,6 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `PRAGMA foreign_keys = ${enable ? 'ON' : 'OFF'}`;
   }
 
-  dropForeignKeyQuery(_tableName: TableNameOrModel, _foreignKey: string): string {
-    throw new Error(`dropForeignKeyQuery is not supported in ${this.dialect.name}.`);
-  }
-
   removeColumnQuery(_table: TableNameOrModel, _attributeName: string, _options?: RemoveColumnQueryOptions): string {
     throw new Error(`removeColumnQuery is not supported in ${this.dialect.name}.`);
   }
@@ -85,25 +81,6 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'DROP INDEX',
       options?.ifExists ? 'IF EXISTS' : '',
       this.quoteIdentifier(indexName),
-    ]);
-  }
-
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    if (columnName) {
-      throw new Error(`Providing a columnName in getForeignKeyQuery is not supported by ${this.dialect.name}.`);
-    }
-
-    const escapedTable = this.escapeTable(tableName);
-
-    return joinSQLFragments([
-      'SELECT id as `constraintName`,',
-      `${escapedTable} as \`tableName\`,`,
-      'pragma.`from` AS `columnName`,',
-      'pragma.`table` AS `referencedTableName`,',
-      'pragma.`to` AS `referencedColumnName`,',
-      'pragma.`on_update`,',
-      'pragma.`on_delete`',
-      `FROM pragma_foreign_key_list(${escapedTable}) AS pragma;`,
     ]);
   }
 

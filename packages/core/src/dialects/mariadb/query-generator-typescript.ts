@@ -103,27 +103,6 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `SET FOREIGN_KEY_CHECKS=${enable ? '1' : '0'}`;
   }
 
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      'SELECT CONSTRAINT_NAME as constraintName,',
-      'CONSTRAINT_SCHEMA as constraintSchema,',
-      'TABLE_NAME as tableName,',
-      'TABLE_SCHEMA as tableSchema,',
-      'COLUMN_NAME as columnName,',
-      'REFERENCED_TABLE_SCHEMA as referencedTableSchema,',
-      'REFERENCED_TABLE_NAME as referencedTableName,',
-      'REFERENCED_COLUMN_NAME as referencedColumnName',
-      'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
-      'WHERE',
-      `TABLE_NAME = ${this.escape(table.tableName)}`,
-      `AND TABLE_SCHEMA = ${this.escape(table.schema!)}`,
-      columnName && `AND COLUMN_NAME = ${this.escape(columnName)}`,
-      'AND REFERENCED_TABLE_NAME IS NOT NULL',
-    ]);
-  }
-
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
     const extractQuery = `json_extract(${sqlExpression},${this.escape(buildJsonPath(path))})`;
 

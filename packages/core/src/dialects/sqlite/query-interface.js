@@ -79,33 +79,6 @@ export class SqliteQueryInterface extends SqliteQueryInterfaceTypeScript {
   /**
    * @override
    */
-  async getForeignKeyReferencesForTable(tableName, options) {
-    const queryOptions = {
-      ...options,
-      type: QueryTypes.FOREIGNKEYS,
-    };
-
-    const query = this.queryGenerator.getForeignKeyQuery(tableName);
-
-    const result = await this.sequelize.queryRaw(query, queryOptions);
-
-    // Mapping the result for the constraints is the only change
-    return result.map(row => ({
-      tableName: row.tableName,
-      constraintName: row.constraintName,
-      columnName: row.columnName,
-      referencedTableName: row.referencedTableName,
-      referencedColumnName: row.referencedColumnName,
-      constraints: {
-        onUpdate: row.on_update,
-        onDelete: row.on_delete,
-      },
-    }));
-  }
-
-  /**
-   * @override
-   */
   async dropAllTables(options) {
     options = options || {};
     const skip = options.skip || [];

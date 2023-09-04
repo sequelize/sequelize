@@ -166,37 +166,6 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    // TODO: get the database from the provided tableName (see #12449)
-    const catalogName = this.sequelize.config.database;
-    const escapedCatalogName = this.escape(catalogName);
-
-    return joinSQLFragments([
-      `SELECT OBJ.NAME AS 'constraintName',`,
-      `${escapedCatalogName} AS 'constraintCatalog',`,
-      `SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',`,
-      `TB.NAME AS 'tableName',`,
-      `SCHEMA_NAME(TB.SCHEMA_ID) AS 'tableSchema',`,
-      `${escapedCatalogName} AS 'tableCatalog',`,
-      `COL.NAME AS 'columnName',`,
-      `SCHEMA_NAME(RTB.SCHEMA_ID) AS 'referencedTableSchema',`,
-      `${escapedCatalogName} AS 'referencedTableCatalog',`,
-      `RTB.NAME AS 'referencedTableName',`,
-      `RCOL.NAME AS 'referencedColumnName'`,
-      'FROM sys.foreign_key_columns FKC',
-      'INNER JOIN sys.objects OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID',
-      'INNER JOIN sys.tables TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID',
-      'INNER JOIN sys.columns COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID',
-      'INNER JOIN sys.tables RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID',
-      'INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID',
-      `WHERE TB.NAME = ${this.escape(table.tableName)}`,
-      columnName && `AND COL.NAME = ${this.escape(columnName)}`,
-      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.escape(table.schema!)}`,
-    ]);
-  }
-
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
     if (!unquote) {
       throw new Error(`JSON Paths are not supported in ${this.dialect.name} without unquoting the JSON value.`);

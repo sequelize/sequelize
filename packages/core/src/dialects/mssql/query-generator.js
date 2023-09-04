@@ -740,47 +740,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     throwMethodUndefined('renameFunction');
   }
 
-  getPrimaryKeyConstraintQuery(table, attributeName) {
-    const tableName = this.escape(table.tableName || table);
-
-    return joinSQLFragments([
-      'SELECT K.TABLE_NAME AS tableName,',
-      'K.COLUMN_NAME AS columnName,',
-      'K.CONSTRAINT_NAME AS constraintName',
-      'FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C',
-      'JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K',
-      'ON C.TABLE_NAME = K.TABLE_NAME',
-      'AND C.CONSTRAINT_CATALOG = K.CONSTRAINT_CATALOG',
-      'AND C.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA',
-      'AND C.CONSTRAINT_NAME = K.CONSTRAINT_NAME',
-      'WHERE C.CONSTRAINT_TYPE = \'PRIMARY KEY\'',
-      `AND K.COLUMN_NAME = ${this.escape(attributeName)}`,
-      `AND K.TABLE_NAME = ${tableName}`,
-      ';',
-    ]);
-  }
-
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP',
-      this.quoteIdentifier(foreignKey),
-    ]);
-  }
-
-  getDefaultConstraintQuery(tableName, attributeName) {
-    const quotedTable = this.quoteTable(tableName);
-
-    return joinSQLFragments([
-      'SELECT name FROM sys.default_constraints',
-      `WHERE PARENT_OBJECT_ID = OBJECT_ID('${quotedTable}', 'U')`,
-      `AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('${attributeName}')`,
-      `AND object_id = OBJECT_ID('${quotedTable}', 'U'))`,
-      ';',
-    ]);
-  }
-
   setIsolationLevelQuery() {}
 
   generateTransactionId() {

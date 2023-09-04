@@ -339,24 +339,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     return result;
   }
 
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP FOREIGN KEY',
-      this.quoteIdentifier(foreignKey),
-      ';',
-    ]);
-  }
-
   _getBeforeSelectAttributesFragment(options) {
     let fragment = '';
 

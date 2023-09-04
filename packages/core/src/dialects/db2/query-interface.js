@@ -17,16 +17,6 @@ const { QueryTypes } = require('../../query-types');
  * The interface that Sequelize uses to talk with Db2 database
  */
 export class Db2QueryInterface extends AbstractQueryInterface {
-  async getForeignKeyReferencesForTable(tableName, options) {
-    const queryOptions = {
-      ...options,
-      type: QueryTypes.FOREIGNKEYS,
-    };
-    const query = this.queryGenerator.getForeignKeyQuery(tableName);
-
-    return this.sequelize.queryRaw(query, queryOptions);
-  }
-
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options.bind) {
       assertNoReservedBind(options.bind);

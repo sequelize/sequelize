@@ -484,62 +484,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Returns all foreign key constraints of requested tables
-   *
-   * @param {string[]} tableNames table names
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async getForeignKeysForTables(tableNames, options) {
-    if (tableNames.length === 0) {
-      return {};
-    }
-
-    options = { ...options, type: QueryTypes.FOREIGNKEYS };
-
-    const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeyQuery(tableName), options)));
-
-    const result = {};
-
-    for (let [i, tableName] of tableNames.entries()) {
-      if (isObject(tableName)) {
-        tableName = `${tableName.schema}.${tableName.tableName}`;
-      }
-
-      result[tableName] = Array.isArray(results[i])
-        ? results[i].map(r => r.constraintName)
-        : [results[i] && results[i].constraintName];
-
-      result[tableName] = result[tableName].filter(identity);
-    }
-
-    return result;
-  }
-
-  /**
-   * Get foreign key references details for the table
-   *
-   * Those details contains constraintSchema, constraintName, constraintCatalog
-   * tableCatalog, tableSchema, tableName, columnName,
-   * referencedTableCatalog, referencedTableCatalog, referencedTableSchema, referencedTableName, referencedColumnName.
-   * Remind: constraint informations won't return if it's sqlite.
-   *
-   * @param {string} tableName table name
-   * @param {object} [options]  Query options
-   */
-  async getForeignKeyReferencesForTable(tableName, options) {
-    const queryOptions = {
-      ...options,
-      type: QueryTypes.FOREIGNKEYS,
-    };
-
-    const query = this.queryGenerator.getForeignKeyQuery(tableName);
-
-    return this.sequelize.queryRaw(query, queryOptions);
-  }
-
-  /**
    * Remove an already existing index from a table
    *
    * @param {string} tableName                    Table name to drop index from

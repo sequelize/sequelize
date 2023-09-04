@@ -119,29 +119,6 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      'SELECT FK_CAT AS "constraintCatalog",',
-      'FK_SCHEM AS "constraintSchema",',
-      'FK_NAME AS "constraintName",',
-      'PKTABLE_CAT AS "referencedTableCatalog",',
-      'PKTABLE_SCHEM AS "referencedTableSchema",',
-      'PKTABLE_NAME AS "referencedTableName",',
-      'PKCOLUMN_NAME AS "referencedColumnName",',
-      'FKTABLE_CAT AS "tableCatalog",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKTABLE_NAME AS "tableName",',
-      'FKCOLUMN_NAME AS "columnName"',
-      'FROM SYSIBM.SQLFOREIGNKEYS',
-      'WHERE FKTABLE_SCHEM =',
-      table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
-      `AND FKTABLE_NAME = ${this.escape(table.tableName)}`,
-      columnName && `AND FKCOLUMN_NAME = ${this.escape(columnName)}`,
-    ]);
-  }
-
   // Version queries
   versionQuery() {
     return 'SELECT CONCAT(OS_VERSION, CONCAT(\'.\', OS_RELEASE)) AS "version" FROM SYSIBMADM.ENV_SYS_INFO';
