@@ -76,7 +76,7 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
 
     let query;
     if (constraint.constraintType === 'FOREIGN KEY') {
-      query = `ALTER TABLE ${this.quoteTable(tableName)} DROP FOREIGN KEY ${this.quoteIdentifier(constraint.constraintName)}`;
+      query = `ALTER TABLE ${this.queryGenerator.quoteTable(tableName)} DROP FOREIGN KEY ${this.quoteIdentifier(constraint.constraintName)}`;
     } else {
       query = this.queryGenerator.removeIndexQuery(tableName, constraint.constraintName);
     }
