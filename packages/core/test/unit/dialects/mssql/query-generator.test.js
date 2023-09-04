@@ -87,12 +87,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('showTablesQuery', function () {
-      expectsql(this.queryGenerator.showTablesQuery(), {
-        mssql: 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';',
-      });
-    });
-
     it('addColumnQuery', function () {
       expectsql(this.queryGenerator.addColumnQuery('myTable', 'myColumn', { type: 'VARCHAR(255)' }), {
         mssql: 'ALTER TABLE [myTable] ADD [myColumn] VARCHAR(255) NULL;',

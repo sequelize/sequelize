@@ -237,10 +237,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return `EXEC sp_rename ${this.quoteTable(before)}, ${this.quoteTable(after)};`;
   }
 
-  showTablesQuery() {
-    return 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';';
-  }
-
   dropTableQuery(tableName, options) {
     if (options) {
       rejectInvalidOptions(

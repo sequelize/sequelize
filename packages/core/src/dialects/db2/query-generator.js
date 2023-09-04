@@ -203,10 +203,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     });
   }
 
-  showTablesQuery() {
-    return `SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = ${this.escape(this.dialect.getDefaultSchema())} AND TYPE = 'T' ORDER BY TABSCHEMA, TABNAME`;
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(

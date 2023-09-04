@@ -155,10 +155,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}`;
   }
 
-  showTablesQuery(schema) {
-    return `SELECT TABLE_NAME FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}`;
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(

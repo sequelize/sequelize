@@ -4,12 +4,16 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { RemoveColumnQueryOptions } from '../abstract/query-generator';
-import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import {
+  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  SHOW_TABLES_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { ShowConstraintsQueryOptions, ShowTablesQueryOptions } from '../abstract/query-generator.types';
 import type { ColumnsDescription } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
+const SHOW_TABLES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowTablesQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -33,6 +37,20 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   describeCreateTableQuery(tableName: TableNameOrModel) {
     return `SELECT sql FROM sqlite_master WHERE tbl_name = ${this.escapeTable(tableName)};`;
+  }
+
+  showTablesQuery(options?: ShowTablesQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'showTablesQuery',
+        this.dialect.name,
+        SHOW_TABLES_QUERY_SUPPORTABLE_OPTIONS,
+        SHOW_TABLES_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return 'SELECT name AS `tableName` FROM sqlite_master WHERE type=\'table\' AND name NOT LIKE \'sqlite_%\'';
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions) {

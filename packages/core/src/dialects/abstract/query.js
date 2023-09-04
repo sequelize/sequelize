@@ -177,14 +177,6 @@ export class AbstractQuery {
     this.instance[autoIncrementAttribute] = id;
   }
 
-  isShowTablesQuery() {
-    return this.options.type === QueryTypes.SHOWTABLES;
-  }
-
-  handleShowTablesQuery(results) {
-    return results.flatMap(resultSet => Object.values(resultSet));
-  }
-
   isShowIndexesQuery() {
     return this.options.type === QueryTypes.SHOWINDEXES;
   }

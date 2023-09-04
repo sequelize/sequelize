@@ -38,6 +38,7 @@ import type {
   QuoteTableOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
+  ShowTablesQueryOptions,
 } from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -57,6 +58,7 @@ export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
+export const SHOW_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowTablesQueryOptions>(['schema']);
 
 export interface QueryGeneratorOptions {
   sequelize: Sequelize;
@@ -139,6 +141,10 @@ export class AbstractQueryGeneratorTypeScript {
 
   describeTableQuery(tableName: TableNameOrModel) {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
+  }
+
+  showTablesQuery(_options?: ShowTablesQueryOptions): string {
+    throw new Error(`showTablesQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions): string {

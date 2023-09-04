@@ -12,6 +12,11 @@ export interface QueryWithBindParams {
   bind: BindOrReplacements;
 }
 
+// Keeep SHOW_TABLES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface ShowTablesQueryOptions {
+  schema?: string;
+}
+
 export interface BaseConstraintQueryOptions {
   name?: string;
   type: ConstraintType;

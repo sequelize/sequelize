@@ -310,11 +310,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;
 
   /**
-   * Returns all tables
-   */
-  showAllTables(options?: QueryRawOptions): Promise<string[]>;
-
-  /**
    * Adds a new column to a table
    */
   addColumn(

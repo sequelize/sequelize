@@ -245,29 +245,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Get all tables in current database
-   *
-   * @param {object}    [options] Query options
-   * @param {boolean}   [options.raw=true] Run query in raw mode
-   * @param {QueryType} [options.type=QueryType.SHOWTABLE] query type
-   *
-   * @returns {Promise<Array>}
-   * @private
-   */
-  async showAllTables(options) {
-    options = {
-      ...options,
-      raw: true,
-      type: QueryTypes.SHOWTABLES,
-    };
-
-    const showTablesSql = this.queryGenerator.showTablesQuery(this.sequelize.config.database);
-    const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
-
-    return tableNames.flat();
-  }
-
-  /**
    * Add a new column to a table
    *
    * ```js

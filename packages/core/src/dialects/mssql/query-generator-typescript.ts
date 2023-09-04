@@ -6,7 +6,7 @@ import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { ShowConstraintsQueryOptions, ShowTablesQueryOptions } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -49,6 +49,16 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `AND prop.name = 'MS_Description'`,
       `WHERE t.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND t.TABLE_SCHEMA = ${this.escape(table.schema!)}`,
+    ]);
+  }
+
+  showTablesQuery(options?: ShowTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT TABLE_NAME AS [tableName],',
+      'TABLE_SCHEMA AS [schema]',
+      `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`,
+      options?.schema ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}` : '',
+      'ORDER BY TABLE_SCHEMA, TABLE_NAME',
     ]);
   }
 

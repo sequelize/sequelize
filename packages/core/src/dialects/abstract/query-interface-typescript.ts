@@ -12,6 +12,7 @@ import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
+import type { TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
   ColumnsDescription,
@@ -20,6 +21,7 @@ import type {
   DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
+  QiShowAllTablesOptions,
   RemoveConstraintOptions,
   ShowAllSchemasOptions,
   ShowConstraintsOptions,
@@ -127,6 +129,21 @@ export class AbstractQueryInterfaceTypeScript {
     const schemaNames = await this.sequelize.queryRaw(showSchemasSql, queryRawOptions);
 
     return schemaNames.flatMap((value: any) => (value.schema_name ? value.schema_name : value));
+  }
+
+  /**
+   * Show all tables.
+   *
+   * @param options
+   */
+  async showAllTables(options?: QiShowAllTablesOptions): Promise<TableNameWithSchema[]> {
+    const showTablesSql = this.queryGenerator.showTablesQuery(options);
+
+    return this.sequelize.queryRaw<TableNameWithSchema>(showTablesSql, {
+      ...options,
+      raw: true,
+      type: QueryTypes.SELECT,
+    });
   }
 
   /**

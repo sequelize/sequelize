@@ -4,7 +4,7 @@ import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { ShowConstraintsQueryOptions, ShowTablesQueryOptions } from '../abstract/query-generator.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -12,6 +12,10 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalSchemaNames() {
+    return ['SYSIBM'];
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -31,6 +35,18 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
       'AND QSYS2.SYSCOLUMNS.TABLE_NAME =',
       this.escape(table.tableName),
+    ]);
+  }
+
+  showTablesQuery(options?: ShowTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT TABLE_NAME AS "tableName",',
+      'TABLE_SCHEM AS "schema"',
+      `FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE'`,
+      options?.schema
+        ? `AND TABLE_SCHEM = ${this.escape(options.schema)}`
+        : `AND TABLE_SCHEM NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY TABLE_SCHEM, TABLE_NAME',
     ]);
   }
 

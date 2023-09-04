@@ -32,11 +32,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
   }
 
-  // TODO: typescript - protected
-  _getTechnicalSchemaNames() {
-    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys'];
-  }
-
   listSchemasQuery(options) {
     const schemasToSkip = this._getTechnicalSchemaNames();
 
@@ -130,19 +125,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
       ';',
     ]);
-  }
-
-  showTablesQuery(schemaName) {
-    let query = 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
-    if (schemaName) {
-      query += ` AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
-    } else {
-      const technicalSchemas = this._getTechnicalSchemaNames();
-
-      query += ` AND TABLE_SCHEMA NOT IN (${technicalSchemas.map(schema => this.escape(schema)).join(', ')})`;
-    }
-
-    return `${query};`;
   }
 
   addColumnQuery(table, key, dataType, options) {

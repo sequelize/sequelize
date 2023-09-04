@@ -12,7 +12,7 @@ import type {
   RemoveIndexQueryOptions,
   TableNameOrModel,
 } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types.js';
+import type { ShowConstraintsQueryOptions, ShowTablesQueryOptions } from '../abstract/query-generator.types.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -27,8 +27,24 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
   }
 
+  protected _getTechnicalSchemaNames() {
+    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema'];
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
+  }
+
+  showTablesQuery(options?: ShowTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT TABLE_NAME AS `tableName`,',
+      'TABLE_SCHEMA AS `schema`',
+      `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`,
+      options?.schema
+        ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
+        : `AND TABLE_SCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY TABLE_SCHEMA, TABLE_NAME',
+    ]);
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
@@ -110,9 +126,9 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
       return `json_unquote(${extractQuery})`;
     }
 
-    // MariaDB has a very annoying behavior with json_extract: It returns the JSON value as a proper JSON string (e.g. "true" or "null" instead true or null)
+    // MariaDB has a very annoying behavior with json_extract: It returns the JSON value as a proper JSON string (e.g. `true` or `null` instead true or null)
     // Except if the value is going to be used in a comparison, in which case it unquotes it automatically (even if we did not call JSON_UNQUOTE).
-    // This is a problem because it makes it impossible to distinguish between a JSON text "true" and a JSON boolean true.
+    // This is a problem because it makes it impossible to distinguish between a JSON text `true` and a JSON boolean true.
     // This useless function call is here to make mariadb not think the value will be used in a comparison, and thus not unquote it.
     // We could replace it with a custom function that does nothing, but this would require a custom function to be created on the database ahead of time.
     return `json_compact(${extractQuery})`;
