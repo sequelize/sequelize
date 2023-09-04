@@ -160,10 +160,6 @@ export class MySqlQuery extends AbstractQuery {
       return data.affectedRows;
     }
 
-    if (this.isForeignKeysQuery()) {
-      return data;
-    }
-
     if (this.isUpsertQuery()) {
       return [result, data.affectedRows === 1];
     }

@@ -129,10 +129,6 @@ export class IBMiQuery extends AbstractQuery {
       return data.count;
     }
 
-    if (this.isForeignKeysQuery()) {
-      return data;
-    }
-
     if (this.isInsertQuery(data)) {
       // insert queries can't call count, because they are actually select queries wrapped around insert queries to get the inserted id. Need to count the number of results instead.
       return [result, data.length];

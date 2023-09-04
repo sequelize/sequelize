@@ -209,10 +209,6 @@ export class AbstractQuery {
     return this.options.type === QueryTypes.BULKDELETE;
   }
 
-  isForeignKeysQuery() {
-    return this.options.type === QueryTypes.FOREIGNKEYS;
-  }
-
   isUpdateQuery() {
     return this.options.type === QueryTypes.UPDATE;
   }
