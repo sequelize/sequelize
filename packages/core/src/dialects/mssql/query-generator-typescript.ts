@@ -32,7 +32,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       'SELECT [name] AS [schema] FROM sys.schemas',
-      `WHERE [name] NOT LIKE 'db_%' AND [name] NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+      `WHERE [name] NOT LIKE 'db[_]%' AND [name] NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
     ]);
   }
 
@@ -79,7 +79,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
       options?.schema
         ? `AND s.name = ${this.escape(options.schema)}`
-        : `AND s.name NOT LIKE 'db_%' AND s.name NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND s.name NOT LIKE 'db[_]%' AND s.name NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY s.name, t.name',
     ]);
   }
