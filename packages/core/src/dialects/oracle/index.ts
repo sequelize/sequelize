@@ -1,10 +1,11 @@
 import type { Sequelize } from '../../sequelize';
-import { AbstractDialect, SupportableNumericOptions } from '../abstract';
+import { AbstractDialect, BindCollector, SupportableNumericOptions } from '../abstract';
 import * as DataTypes from './data-types';
 import { OracleConnectionManager } from './connection-manager'
 import { OracleQueryGenerator } from './query-generator';
 import { OracleQueryInterface } from './query-interface';
 import { OracleQuery } from './query';
+import { createNamedParamBindCollector } from 'src/utils/sql';
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: false,
@@ -49,7 +50,7 @@ export class OracleDialect extends AbstractDialect {
   readonly connectionManager: OracleConnectionManager;
   readonly queryGenerator: OracleQueryGenerator;
   readonly queryInterface: OracleQueryInterface;
-  readonly query = OracleQuery;
+  readonly Query = OracleQuery;
   readonly dataTypesDocumentationUrl = 'https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Data-Types.html#GUID-A3C0D836-BADB-44E5-A5D4-265BA5968483';
 
   // minimum supported version
@@ -69,5 +70,14 @@ export class OracleDialect extends AbstractDialect {
     this.queryInterface = new OracleQueryInterface(
       sequelize,
       this.queryGenerator);
+  }
+
+  getDefaultSchema(): string {
+    // TODO: what is the default schema in oracle?
+    return '';
+  }
+
+  createBindCollector() {
+    return createNamedParamBindCollector(':');
   }
 }

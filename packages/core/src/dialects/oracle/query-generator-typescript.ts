@@ -9,9 +9,10 @@ import type { RemoveIndexQueryOptions, TableNameOrModel } from "../abstract/quer
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
 export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  describeTableQuery(tableName: TableNameOrModel, schema) {  // TODO: change the signature to remove type errors
-    const currTableName = this.getCatalogName(tableName.tableName || tableName);
-    schema = this.getCatalogName(schema);
+  describeTableQuery(tableName: TableNameOrModel) {
+    const table = this.extractTableDetails(tableName);
+    const currTableName = this.getCatalogName(table.tableName);
+    const schema = this.getCatalogName(table.schema);
     // name, type, datalength (except number / nvarchar), datalength varchar, datalength number, nullable, default value, primary ?
     return [
       'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type ',
@@ -57,7 +58,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
    *
    * @param {string} value
    */
-  getCatalogName(value: string) {
+  getCatalogName(value: string | undefined) {
     if (value) {
       if (this.options.quoteIdentifiers === false) {
         const quotedValue = this.quoteIdentifier(value);
@@ -92,7 +93,8 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
    *
    * @param {object|string} table
    */
-  getSchemaNameAndTableName(table: TableNameWithSchema) {
+  getSchemaNameAndTableName(table: any) {
+    table = this.extractTableDetails(table);
     const tableName = this.getCatalogName(table.tableName || table);
     const schemaName = this.getCatalogName(table.schema);
     return [tableName, schemaName];

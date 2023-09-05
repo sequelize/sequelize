@@ -8,6 +8,7 @@ import type { Lib } from './connection-manager.js'
 export class STRING extends Basetypes.STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
+     // @ts-ignore: Object is possibly 'null'.
     if (this.options.length > 4000 || this.options.binary && this.options.length > 2000) {
       dialect.warnDataTypeIssue(`Oracle supports length up to 32764 bytes or characters; Be sure that your administrator has extended the MAX_STRING_SIZE parameter. Check https://docs.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7B72E154-677A-4342-A1EA-C74C1EA928E6`);
     }
@@ -210,7 +211,7 @@ export class BIGINT extends Basetypes.BIGINT { // TODO:check for constructor
     return { type: oracledb.DB_TYPE_NUMBER };
   }
 
-  sanitize(value) {
+  sanitize(value: any) {
     if (typeof value === 'bigint' || typeof value === 'number') {
       return value.toString();
     }

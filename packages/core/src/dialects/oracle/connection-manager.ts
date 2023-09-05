@@ -1,4 +1,4 @@
-import { AbstractConnectionManager } from '../abstract/connection-manager';
+import type { Connection as oracledbConnection } from 'oracledb';
 import {
   AccessDeniedError,
   ConnectionError,
@@ -6,28 +6,30 @@ import {
   ConnectionTimedOutError,
   HostNotReachableError,
   InvalidConnectionError,
-} from '../../errors';
+} from '../../errors/index.js';
 import semver from 'semver';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import { isError, isNodeError } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
-import type { Connection as AbstractConnection } from '../abstract/connection-manager';
-import { AbstractDialect } from '../abstract';
-import { Connection } from '../abstract/connection-manager';
+import { AbstractConnectionManager } from '../abstract/connection-manager';
+import { OracleDialect } from './index.js';
+import type { Connection  } from '../abstract/connection-manager';
 
 const debug = logger.debugContext('connection:oracle');
 
+const event = require('events');
+
 export type Lib = typeof import('oracledb');
 
-export interface OracleConnection extends Connection {
-  lib: Lib;
+export interface OracleConnection extends Connection, oracledbConnection {
+  isHealthy(): boolean;
+  on(event: 'error', listener: (err: any) => void):this;
 }
 
-export class OracleConnectionManager extends AbstractConnectionManager {
-  private readonly lib: Lib;
-  constructor(dialect: AbstractDialect, sequelize: Sequelize) {
+export class OracleConnectionManager extends AbstractConnectionManager<OracleConnection> {
+  lib: Lib;
+  constructor(dialect: OracleDialect, sequelize: Sequelize) {
     super(dialect, sequelize);
-
     this.lib = this._loadDialectModule('oracledb') as Lib;
   }
 
@@ -55,7 +57,8 @@ export class OracleConnectionManager extends AbstractConnectionManager {
     };
 
     try {
-      const connection = await this.lib.getConnection(connectionConfig);
+      const connection: OracleConnection = await this.lib.getConnection(connectionConfig) as OracleConnection; 
+      // @ts-ignore: Object is possibly 'null'.
       this.sequelize.options.databaseVersion = semver.coerce(connection.oracleServerVersionString).version;
 
       debug('connection acquired');
@@ -70,7 +73,7 @@ export class OracleConnectionManager extends AbstractConnectionManager {
       });
 
       return connection;
-    } catch (err: unknown) {
+    } catch (err: any) {
       let errorCode = err.message.split(':');
       errorCode = errorCode[0];
 
