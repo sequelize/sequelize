@@ -68,7 +68,7 @@
   },
   "devDependencies": {
     "@types/chai": "4.3.6",
-    "@types/chai-as-promised": "7.1.5",
+    "@types/chai-as-promised": "7.1.6",
     "@types/chai-datetime": "0.0.37",
     "@types/ibm_db": "2.0.13",
     "@types/lodash": "4.14.197",
