@@ -63,7 +63,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM SYSCAT.TABLES WHERE TYPE = 'T'`,
       options?.schema
         ? `AND TABSCHEMA = ${this.escape(options.schema)}`
-        : `AND TABSCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY TABSCHEMA, TABNAME',
     ]);
   }

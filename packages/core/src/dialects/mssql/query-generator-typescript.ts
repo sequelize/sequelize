@@ -75,11 +75,12 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   showTablesQuery(options?: ShowTablesQueryOptions) {
     return joinSQLFragments([
-      'SELECT TABLE_NAME AS [tableName],',
-      'TABLE_SCHEMA AS [schema]',
-      `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`,
-      options?.schema ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}` : '',
-      'ORDER BY TABLE_SCHEMA, TABLE_NAME',
+      'SELECT t.name AS [tableName], s.name AS [schema]',
+      `FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
+      options?.schema
+        ? `AND s.name = ${this.escape(options.schema)}`
+        : `AND s.name NOT LIKE 'db_%' AND s.name NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY s.name, t.name',
     ]);
   }
 

@@ -58,12 +58,12 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
   showTablesQuery(options?: ShowTablesQueryOptions) {
     return joinSQLFragments([
       'SELECT TABLE_NAME AS "tableName",',
-      'TABLE_SCHEM AS "schema"',
-      `FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE'`,
+      'TABLE_SCHEMA AS "schema"',
+      `FROM QSYS2.SYSTABLES WHERE TABLE_TYPE = 'T'`,
       options?.schema
-        ? `AND TABLE_SCHEM = ${this.escape(options.schema)}`
-        : `AND TABLE_SCHEM NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
-      'ORDER BY TABLE_SCHEM, TABLE_NAME',
+        ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
+        : `AND TABLE_SCHEMA NOT LIKE 'SYS%' TABLE_SCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY TABLE_SCHEMA, TABLE_NAME',
     ]);
   }
 

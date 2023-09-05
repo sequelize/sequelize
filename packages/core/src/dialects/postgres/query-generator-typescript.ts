@@ -59,13 +59,12 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   showTablesQuery(options?: ShowTablesQueryOptions) {
     return joinSQLFragments([
-      'SELECT TABLE_NAME AS "tableName",',
-      'TABLE_SCHEMA AS "schema"',
-      `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME != 'spatial_ref_sys'`,
+      'SELECT table_name AS "tableName", table_schema AS "schema"',
+      `FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys'`,
       options?.schema
-        ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
-        : `AND TABLE_SCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
-      'ORDER BY TABLE_SCHEMA, TABLE_NAME',
+        ? `AND table_schema = ${this.escape(options.schema)}`
+        : `AND table_schema !~ E'^pg_' AND table_schema NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY table_schema, table_name',
     ]);
   }
 
