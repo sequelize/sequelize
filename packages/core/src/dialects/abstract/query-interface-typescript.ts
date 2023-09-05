@@ -164,9 +164,9 @@ export class AbstractQueryInterfaceTypeScript {
       const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
       // eslint-disable-next-line no-await-in-loop
       await Promise.all(foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)));
+      // eslint-disable-next-line no-await-in-loop
+      await this.dropTable(tableName, dropOptions);
     }
-
-    await Promise.all(tableNames.map(async tableName => this.dropTable(tableName, dropOptions)));
   }
 
   /**
