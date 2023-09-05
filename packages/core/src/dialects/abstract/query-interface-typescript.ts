@@ -21,6 +21,8 @@ import type {
   DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
+  QiDropAllTablesOptions,
+  QiDropTableOptions,
   QiShowAllTablesOptions,
   RemoveConstraintOptions,
   ShowAllSchemasOptions,
@@ -127,6 +129,44 @@ export class AbstractQueryInterfaceTypeScript {
     });
 
     return schemaNames.map(schemaName => schemaName.schema);
+  }
+
+  /**
+   * Drop a table from database
+   *
+   * @param tableName Table name to drop
+   * @param options   Query options
+   */
+  async dropTable(tableName: TableNameOrModel, options?: QiDropTableOptions): Promise<void> {
+    const sql = this.queryGenerator.dropTableQuery(tableName, options);
+
+    await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Drop all tables
+   *
+   * @param options
+   */
+  async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
+    const skip = options?.skip || [];
+    const allTables = await this.showAllTables(options);
+    const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
+
+    const dropOptions = { ...options };
+    // enable "cascade" by default if supported by this dialect
+    if (this.sequelize.dialect.supports.dropTable.cascade && dropOptions.cascade === undefined) {
+      dropOptions.cascade = true;
+    }
+
+    for (const tableName of tableNames) {
+      // eslint-disable-next-line no-await-in-loop
+      const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.all(foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)));
+    }
+
+    await Promise.all(tableNames.map(async tableName => this.dropTable(tableName, dropOptions)));
   }
 
   /**

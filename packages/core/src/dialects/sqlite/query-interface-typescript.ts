@@ -7,10 +7,12 @@ import type {
   AddConstraintOptions,
   ConstraintDescription,
   ConstraintType,
+  QiDropAllTablesOptions,
   RemoveConstraintOptions,
   ShowConstraintsOptions,
 } from '../abstract/query-interface.types';
 import type { SqliteQueryGenerator } from './query-generator';
+import { withSqliteForeignKeysOff } from './sqlite-utils';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -23,6 +25,21 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
     super(sequelize, queryGenerator);
     this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
+  }
+
+  /**
+   * Drop all tables
+   *
+   * @param options
+   */
+  async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
+    const skip = options?.skip || [];
+    const allTables = await this.showAllTables(options);
+    const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
+
+    await withSqliteForeignKeysOff(this.sequelize, options, async () => {
+      await Promise.all(tableNames.map(async tableName => this.dropTable(tableName, options)));
+    });
   }
 
   async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions): Promise<void> {

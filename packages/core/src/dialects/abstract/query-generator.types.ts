@@ -17,6 +17,11 @@ export interface ListSchemasQueryOptions {
   skip?: string[];
 }
 
+// keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface DropTableQueryOptions {
+  cascade?: boolean;
+}
+
 // Keeep SHOW_TABLES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface ShowTablesQueryOptions {
   schema?: string;

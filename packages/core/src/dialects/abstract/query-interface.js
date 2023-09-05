@@ -176,59 +176,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Drop a table from database
-   *
-   * @param {string} tableName Table name to drop
-   * @param {object} options   Query options
-   *
-   * @returns {Promise}
-   */
-  async dropTable(tableName, options = {}) {
-    options.cascade = options.cascade != null ? options.cascade
-      // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
-      : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
-        : undefined;
-
-    const sql = this.queryGenerator.dropTableQuery(tableName, options);
-
-    await this.sequelize.queryRaw(sql, options);
-  }
-
-  async _dropAllTables(tableNames, skip, options) {
-    for (const tableName of tableNames) {
-      // if tableName is not in the Array of tables names then don't drop it
-      if (!skip.includes(tableName.tableName || tableName)) {
-        await this.dropTable(tableName, {
-          // enable "cascade" by default if supported by this dialect,
-          // but let the user override the default
-          cascade: this.queryGenerator.dialect.supports.dropTable.cascade ? true : undefined,
-          ...options,
-        });
-      }
-    }
-  }
-
-  /**
-   * Drop all tables from database
-   *
-   * @param {object} [options] query options
-   * @param {Array}  [options.skip] List of table to skip
-   *
-   * @returns {Promise}
-   */
-  async dropAllTables(options) {
-    options = options || {};
-    const skip = options.skip || [];
-    const tableNames = await this.showAllTables(options);
-    for (const tableName of tableNames) {
-      const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
-      await Promise.all(foreignKeys.map(foreignKey => this.removeConstraint(tableName, foreignKey.constraintName, options)));
-    }
-
-    await this._dropAllTables(tableNames, skip, options);
-  }
-
-  /**
    * Rename a table
    *
    * @param {string} before    Current name of table

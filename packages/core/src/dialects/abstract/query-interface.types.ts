@@ -3,6 +3,7 @@ import type { QueryRawOptions } from '../../sequelize';
 import type { CreateSchemaQueryOptions } from './query-generator';
 import type {
   AddConstraintQueryOptions,
+  DropTableQueryOptions,
   ListSchemasQueryOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
@@ -86,6 +87,14 @@ export interface DescribeTableOptions extends QueryRawOptions {
    * @deprecated Use a TableNameWithSchema object to specify the schemaDelimiter.
    */
   schemaDelimiter?: string;
+}
+
+/** Options accepted by {@link AbstractQueryInterface#dropTable} */
+export interface QiDropTableOptions extends DropTableQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#dropAllTables} */
+export interface QiDropAllTablesOptions extends QiDropTableOptions {
+  skip?: string[];
 }
 
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}

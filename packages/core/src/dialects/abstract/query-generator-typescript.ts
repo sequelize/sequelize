@@ -34,6 +34,7 @@ import type { BindParamOptions, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
+  DropTableQueryOptions,
   GetConstraintSnippetQueryOptions,
   ListSchemasQueryOptions,
   QuoteTableOptions,
@@ -55,6 +56,7 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
+export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>(['cascade']);
 export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
@@ -150,6 +152,30 @@ export class AbstractQueryGeneratorTypeScript {
 
   describeTableQuery(tableName: TableNameOrModel) {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
+  }
+
+  dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string {
+    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropTableQueryOptions>();
+
+    if (this.dialect.supports.dropTable.cascade) {
+      DROP_TABLE_QUERY_SUPPORTED_OPTIONS.add('cascade');
+    }
+
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'DROP TABLE IF EXISTS',
+      this.quoteTable(tableName),
+      options?.cascade ? 'CASCADE' : '',
+    ]);
   }
 
   showTablesQuery(_options?: ShowTablesQueryOptions): string {

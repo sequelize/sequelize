@@ -79,19 +79,6 @@ export class SqliteQueryInterface extends SqliteQueryInterfaceTypeScript {
   /**
    * @override
    */
-  async dropAllTables(options) {
-    options = options || {};
-    const skip = options.skip || [];
-
-    const tableNames = await this.showAllTables(options);
-    await this.sequelize.queryRaw('PRAGMA foreign_keys = OFF', options);
-    await this._dropAllTables(tableNames, skip, options);
-    await this.sequelize.queryRaw('PRAGMA foreign_keys = ON', options);
-  }
-
-  /**
-   * @override
-   */
   async describeTable(tableName, options) {
     let table = {};
 

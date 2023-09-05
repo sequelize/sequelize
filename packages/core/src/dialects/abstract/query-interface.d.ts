@@ -71,15 +71,6 @@ export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, Colla
   uniqueKeys?: { [indexName: string]: { fields: string[] } };
 }
 
-export interface QueryInterfaceDropTableOptions extends QueryRawOptions {
-  cascade?: boolean;
-  force?: boolean;
-}
-
-export interface QueryInterfaceDropAllTablesOptions extends QueryRawOptions {
-  skip?: string[];
-}
-
 export interface TableNameWithSchema {
   tableName: string;
   schema?: string;
@@ -281,21 +272,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     attributes: CreateTableAttributes<M, CreationAttributes<M>>,
     options?: QueryInterfaceCreateTableOptions
   ): Promise<void>;
-
-  /**
-   * Drops the specified table.
-   *
-   * @param tableName Table name.
-   * @param options   Query options, particularly "force".
-   */
-  dropTable(tableName: TableName, options?: QueryInterfaceDropTableOptions): Promise<void>;
-
-  /**
-   * Drops all tables.
-   *
-   * @param options
-   */
-  dropAllTables(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
 
   /**
    * Drops all defined enums
