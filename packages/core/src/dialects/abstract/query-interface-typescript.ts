@@ -412,6 +412,29 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
+   * Returns all foreign key constraints of requested tables
+   *
+   * @deprecated Use {@link showConstraints} instead.
+   * @param _tableNames
+   * @param _options
+   */
+  getForeignKeysForTables(_tableNames: TableNameOrModel[], _options?: QueryRawOptions): Error {
+    throw new Error(`getForeignKeysForTables has been deprecated. Use showConstraints instead.`);
+
+  }
+
+  /**
+   * Get foreign key references details for the table
+   *
+   * @deprecated Use {@link showConstraints} instead.
+   * @param _tableName
+   * @param _options
+   */
+  getForeignKeyReferencesForTable(_tableName: TableNameOrModel, _options?: QueryRawOptions): Error {
+    throw new Error(`getForeignKeyReferencesForTable has been deprecated. Use showConstraints instead.`);
+  }
+
+  /**
    * Disables foreign key checks for the duration of the callback.
    * The foreign key checks are only disabled for the current connection.
    * To specify the connection, you can either use the "connection" or the "transaction" option.

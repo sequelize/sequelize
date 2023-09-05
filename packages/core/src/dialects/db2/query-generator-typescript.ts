@@ -125,29 +125,6 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `DROP INDEX ${this.quoteIdentifier(indexName)}`;
   }
 
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      'SELECT R.CONSTNAME AS "constraintName",',
-      'TRIM(R.TABSCHEMA) AS "constraintSchema",',
-      'R.TABNAME AS "tableName",',
-      `TRIM(R.TABSCHEMA) AS "tableSchema", LISTAGG(C.COLNAME,', ')`,
-      'WITHIN GROUP (ORDER BY C.COLNAME) AS "columnName",',
-      'TRIM(R.REFTABSCHEMA) AS "referencedTableSchema",',
-      'R.REFTABNAME AS "referencedTableName",',
-      'TRIM(R.PK_COLNAMES) AS "referencedColumnName"',
-      'FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C',
-      'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA',
-      'AND R.TABNAME = C.TABNAME',
-      `AND R.TABNAME = ${this.escape(table.tableName)}`,
-      `AND R.TABSCHEMA = ${this.escape(table.schema)}`,
-      columnName && `AND C.COLNAME = ${this.escape(columnName)}`,
-      'GROUP BY R.REFTABSCHEMA,',
-      'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES',
-    ]);
-  }
-
   versionQuery() {
     return 'select service_level as "version" from TABLE (sysproc.env_get_inst_info()) as A';
   }

@@ -539,19 +539,19 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     await sequelize.sync();
 
     const [aFks, bFks] = await Promise.all([
-      sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName()),
-      sequelize.queryInterface.getForeignKeyReferencesForTable(B.getTableName()),
+      sequelize.queryInterface.showConstraints(A, { constraintType: 'FOREIGN KEY' }),
+      sequelize.queryInterface.showConstraints(B, { constraintType: 'FOREIGN KEY' }),
     ]);
 
     expect(aFks.length).to.eq(1);
     expect(aFks[0].referencedTableName).to.eq('Bs');
-    expect(aFks[0].referencedColumnName).to.eq('id');
-    expect(aFks[0].columnName).to.eq('BId');
+    expect(aFks[0].referencedColumnNames).to.deep.eq(['id']);
+    expect(aFks[0].columnNames).to.deep.eq(['BId']);
 
     expect(bFks.length).to.eq(1);
     expect(bFks[0].referencedTableName).to.eq('As');
-    expect(bFks[0].referencedColumnName).to.eq('id');
-    expect(bFks[0].columnName).to.eq('AId');
+    expect(bFks[0].referencedColumnNames).to.deep.eq(['id']);
+    expect(bFks[0].columnNames).to.deep.eq(['AId']);
   });
 
   // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column
@@ -573,23 +573,19 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 
       await sequelize.sync();
 
-      {
-        const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.getTableName());
+      const aFks = await sequelize.queryInterface.showConstraints(A, { constraintType: 'FOREIGN KEY' });
 
-        expect(aFks).to.have.length(1);
-        expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_IMMEDIATE);
-      }
+      expect(aFks).to.have.length(1);
+      expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_IMMEDIATE);
 
       A.modelDefinition.rawAttributes.BId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
       A.modelDefinition.refreshAttributes();
       await sequelize.sync({ alter: true });
 
-      {
-        const aFks = await sequelize.queryInterface.getForeignKeyReferencesForTable(A.table);
+      const aFks2 = await sequelize.queryInterface.showConstraints(A, { constraintType: 'FOREIGN KEY' });
 
-        expect(aFks).to.have.length(1);
-        expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_DEFERRED);
-      }
+      expect(aFks2).to.have.length(1);
+      expect(aFks2[0].deferrable).to.eq(Deferrable.INITIALLY_DEFERRED);
     });
   }
 
@@ -606,7 +602,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 
       const results = await sequelize
         .getQueryInterface()
-        .getForeignKeyReferencesForTable(BelongsToUser.getTableName());
+        .showConstraints(BelongsToUser, { constraintType: 'FOREIGN KEY' });
       expect(results).to.have.length(1);
       await sequelize.dropSchema(schema);
     });
@@ -633,7 +629,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       await sequelize.sync({ alter: true });
       const results = await sequelize
         .getQueryInterface()
-        .getForeignKeyReferencesForTable(BelongsToUser.getTableName());
+        .showConstraints(BelongsToUser, { constraintType: 'FOREIGN KEY' });
       expect(results).to.have.length(1);
     });
   }

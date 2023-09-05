@@ -79,33 +79,6 @@ export class SqliteQueryInterface extends SqliteQueryInterfaceTypeScript {
   /**
    * @override
    */
-  async getForeignKeyReferencesForTable(tableName, options) {
-    const queryOptions = {
-      ...options,
-      type: QueryTypes.FOREIGNKEYS,
-    };
-
-    const query = this.queryGenerator.getForeignKeyQuery(tableName);
-
-    const result = await this.sequelize.queryRaw(query, queryOptions);
-
-    // Mapping the result for the constraints is the only change
-    return result.map(row => ({
-      tableName: row.tableName,
-      constraintName: row.constraintName,
-      columnName: row.columnName,
-      referencedTableName: row.referencedTableName,
-      referencedColumnName: row.referencedColumnName,
-      constraints: {
-        onUpdate: row.on_update,
-        onDelete: row.on_delete,
-      },
-    }));
-  }
-
-  /**
-   * @override
-   */
   async dropAllTables(options) {
     options = options || {};
     const skip = options.skip || [];
@@ -174,18 +147,19 @@ export class SqliteQueryInterface extends SqliteQueryInterfaceTypeScript {
         }
       }
 
-      const foreignKeys = await this.getForeignKeyReferencesForTable(tableName, options);
+      const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
       for (const foreignKey of foreignKeys) {
-        data[foreignKey.columnName].references = {
-          table: foreignKey.referencedTableName,
-          key: foreignKey.referencedColumnName,
-        };
-
-        // Add constraints to column definition
-        Object.assign(data[foreignKey.columnName], {
-          onUpdate: foreignKey.constraints.onUpdate,
-          onDelete: foreignKey.constraints.onDelete,
-        });
+        for (const [index, columnName] of foreignKey.columnNames.entries()) {
+          // Add constraints to column definition
+          Object.assign(data[columnName], {
+            references: {
+              table: foreignKey.referencedTableName,
+              key: foreignKey.referencedColumnNames.at(index),
+            },
+            onUpdate: foreignKey.updateAction,
+            onDelete: foreignKey.deleteAction,
+          });
+        }
       }
 
       return data;

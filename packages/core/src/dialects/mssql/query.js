@@ -245,10 +245,6 @@ export class MsSqlQuery extends AbstractQuery {
       return data[0] ? data[0].AFFECTEDROWS : 0;
     }
 
-    if (this.isForeignKeysQuery()) {
-      return data;
-    }
-
     if (this.isUpsertQuery()) {
       // if this was an upsert and no data came back, that means the record exists, but the update was a noop.
       // return the current instance and mark it as an "not an insert".

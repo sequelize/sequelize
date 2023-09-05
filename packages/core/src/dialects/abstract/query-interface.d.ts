@@ -393,16 +393,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   nameIndexes(indexes: string[], rawTablename: string): Promise<void>;
 
   /**
-   * Returns all foreign key constraints of requested tables
-   */
-  getForeignKeysForTables(tableNames: string[], options?: QueryRawOptions): Promise<object>;
-
-  /**
-   * Get foreign key references details for the table
-   */
-  getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<object>;
-
-  /**
    * Inserts a new record
    */
   insert(instance: Model | null, tableName: TableName, values: object, options?: QiInsertOptions): Promise<object>;
