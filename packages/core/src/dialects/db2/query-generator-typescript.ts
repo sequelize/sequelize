@@ -5,6 +5,7 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { ConstraintType } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -34,31 +35,48 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
+  private _getConstraintType(type: ConstraintType): string {
+    switch (type) {
+      case 'CHECK':
+        return 'K';
+      case 'FOREIGN KEY':
+        return 'F';
+      case 'PRIMARY KEY':
+        return 'P';
+      case 'UNIQUE':
+        return 'U';
+      default:
+        throw new Error(`Constraint type ${type} is not supported`);
+    }
+  }
+
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT c.TABSCHEMA AS "constraintSchema",',
+      'SELECT TRIM(c.TABSCHEMA) AS "constraintSchema",',
       'c.CONSTNAME AS "constraintName",',
       `CASE c.TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'F' THEN 'FOREIGN KEY' WHEN 'K' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END AS "constraintType",`,
-      'c.TABSCHEMA AS "tableSchema",',
+      'TRIM(c.TABSCHEMA) AS "tableSchema",',
       'c.TABNAME AS "tableName",',
       'k.COLNAME AS "columnNames",',
-      'r.REFTABSCHEMA AS "referencedTableSchema",',
+      'TRIM(r.REFTABSCHEMA) AS "referencedTableSchema",',
       'r.REFTABNAME AS "referencedTableName",',
       'fk.COLNAME AS "referencedColumnNames",',
-      `CASE r.DELETERULE WHEN 'A' THEN 'NO ACTION' WHEN 'C' THEN 'CASCADE' WHEN 'N' THEN 'SET NULL' WHEN 'R' THEN 'RESTRICT' ELSE NULL END AS "deleteRule",`,
-      `CASE r.UPDATERULE WHEN 'A' THEN 'NO ACTION' WHEN 'R' THEN 'RESTRICT' ELSE NULL END AS "updateRule",`,
+      `CASE r.DELETERULE WHEN 'A' THEN 'NO ACTION' WHEN 'C' THEN 'CASCADE' WHEN 'N' THEN 'SET NULL' WHEN 'R' THEN 'RESTRICT' ELSE NULL END AS "deleteAction",`,
+      `CASE r.UPDATERULE WHEN 'A' THEN 'NO ACTION' WHEN 'R' THEN 'RESTRICT' ELSE NULL END AS "updateAction",`,
       'ck.TEXT AS "definition"',
       'FROM SYSCAT.TABCONST c',
       'LEFT JOIN SYSCAT.REFERENCES r ON c.CONSTNAME = r.CONSTNAME AND c.TABNAME = r.TABNAME AND c.TABSCHEMA = r.TABSCHEMA',
-      'LEFT JOIN SYSCAT.KEYCOLUSE k ON r.CONSTNAME = k.CONSTNAME AND r.TABNAME = k.TABNAME AND r.TABSCHEMA = k.TABSCHEMA',
+      'LEFT JOIN SYSCAT.KEYCOLUSE k ON c.CONSTNAME = k.CONSTNAME AND c.TABNAME = k.TABNAME AND c.TABSCHEMA = k.TABSCHEMA',
       'LEFT JOIN SYSCAT.KEYCOLUSE fk ON r.REFKEYNAME = fk.CONSTNAME',
       'LEFT JOIN SYSCAT.CHECKS ck ON c.CONSTNAME = ck.CONSTNAME AND c.TABNAME = ck.TABNAME AND c.TABSCHEMA = ck.TABSCHEMA',
       `WHERE c.TABNAME = ${this.escape(table.tableName)}`,
       `AND c.TABSCHEMA = ${this.escape(table.schema)}`,
+      options?.columnName ? `AND k.COLNAME = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.CONSTNAME = ${this.escape(options.constraintName)}` : '',
-      'ORDER BY c.CONSTNAME',
+      options?.constraintType ? `AND c.TYPE = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
+      'ORDER BY c.CONSTNAME, k.COLSEQ',
     ]);
   }
 
