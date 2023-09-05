@@ -82,15 +82,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     };
   }
 
-  listSchemasQuery(options) {
-    const schemasToSkip = ['NULLID', 'SQLJ', 'ERRORSCHEMA'];
-    if (options?.skip) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(

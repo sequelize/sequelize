@@ -93,12 +93,6 @@ export interface DropTableQueryOptions {
   cascade?: boolean;
 }
 
-// keep LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface ListSchemasQueryOptions {
-  /** List of schemas to exclude from output */
-  skip?: string[];
-}
-
 // keep ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface AddColumnQueryOptions {
   ifNotExists?: boolean;
@@ -183,8 +177,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
-
-  listSchemasQuery(options?: ListSchemasQueryOptions): string;
 
   createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
   dropDatabaseQuery(databaseName: string): string;

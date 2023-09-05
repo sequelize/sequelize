@@ -27,10 +27,6 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
-  listSchemasQuery(): string {
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
   describeTableQuery(tableName: TableNameOrModel) {
     return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)})`;
   }

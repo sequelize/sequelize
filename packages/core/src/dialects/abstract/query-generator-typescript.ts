@@ -35,6 +35,7 @@ import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
   GetConstraintSnippetQueryOptions,
+  ListSchemasQueryOptions,
   QuoteTableOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
@@ -137,6 +138,14 @@ export class AbstractQueryGeneratorTypeScript {
 
   protected get options() {
     return this.sequelize.options;
+  }
+
+  listSchemasQuery(_options?: ListSchemasQueryOptions): string {
+    if (this.dialect.supports.schemas) {
+      throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
   describeTableQuery(tableName: TableNameOrModel) {

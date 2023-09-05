@@ -32,21 +32,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
   }
 
-  listSchemasQuery(options) {
-    const schemasToSkip = this._getTechnicalSchemaNames();
-
-    if (Array.isArray(options?.skip)) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return joinSQLFragments([
-      'SELECT SCHEMA_NAME as schema_name',
-      'FROM INFORMATION_SCHEMA.SCHEMATA',
-      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
-      ';',
-    ]);
-  }
-
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',

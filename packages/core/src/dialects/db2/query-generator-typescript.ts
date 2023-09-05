@@ -4,7 +4,11 @@ import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions, ShowTablesQueryOptions } from '../abstract/query-generator.types';
+import type {
+  ListSchemasQueryOptions,
+  ShowConstraintsQueryOptions,
+  ShowTablesQueryOptions,
+} from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
@@ -14,7 +18,20 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  */
 export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   protected _getTechnicalSchemaNames() {
-    return ['SYSIBM'];
+    return ['ERRORSCHEMA', 'NULLID', 'SQLJ'];
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = this._getTechnicalSchemaNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT SCHEMANAME AS "schema" FROM SYSCAT.SCHEMATA',
+      `WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
   }
 
   describeTableQuery(tableName: TableNameOrModel) {

@@ -6,7 +6,11 @@ import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions, ShowTablesQueryOptions } from '../abstract/query-generator.types';
+import type {
+  ListSchemasQueryOptions,
+  ShowConstraintsQueryOptions,
+  ShowTablesQueryOptions,
+} from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -15,6 +19,23 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalSchemaNames() {
+    return ['INFORMATION_SCHEMA', 'sys'];
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = ['dbo', 'guest', ...this._getTechnicalSchemaNames()];
+
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT [name] AS [schema] FROM sys.schemas',
+      `WHERE [name] NOT LIKE 'db_%' AND [name] NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 

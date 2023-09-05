@@ -3,14 +3,30 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions, ShowTablesQueryOptions } from '../abstract/query-generator.types';
+import type {
+  ListSchemasQueryOptions,
+  ShowConstraintsQueryOptions,
+  ShowTablesQueryOptions,
+} from '../abstract/query-generator.types';
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   protected _getTechnicalSchemaNames() {
-    return ['pg_catalog', 'tiger', 'topology'];
+    return ['information_schema', 'tiger', 'topology'];
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = ['public', ...this._getTechnicalSchemaNames()];
+
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      `SELECT schema_name AS "schema" FROM information_schema.schemata`,
+      `WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`]);
   }
 
   describeTableQuery(tableName: TableNameOrModel) {

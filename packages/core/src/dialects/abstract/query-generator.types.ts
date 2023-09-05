@@ -12,6 +12,11 @@ export interface QueryWithBindParams {
   bind: BindOrReplacements;
 }
 
+export interface ListSchemasQueryOptions {
+  /** List of schemas to exclude from output */
+  skip?: string[];
+}
+
 // Keeep SHOW_TABLES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface ShowTablesQueryOptions {
   schema?: string;

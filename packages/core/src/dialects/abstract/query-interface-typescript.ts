@@ -120,15 +120,13 @@ export class AbstractQueryInterfaceTypeScript {
    */
   async showAllSchemas(options?: ShowAllSchemasOptions): Promise<string[]> {
     const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
-    const queryRawOptions = {
+    const schemaNames = await this.sequelize.queryRaw<{ schema: string }>(showSchemasSql, {
       ...options,
       raw: true,
       type: QueryTypes.SELECT,
-    };
+    });
 
-    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, queryRawOptions);
-
-    return schemaNames.flatMap((value: any) => (value.schema_name ? value.schema_name : value));
+    return schemaNames.map(schemaName => schemaName.schema);
   }
 
   /**

@@ -12,7 +12,11 @@ import type {
   RemoveIndexQueryOptions,
   TableNameOrModel,
 } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions, ShowTablesQueryOptions } from '../abstract/query-generator.types.js';
+import type {
+  ListSchemasQueryOptions,
+  ShowConstraintsQueryOptions,
+  ShowTablesQueryOptions,
+} from '../abstract/query-generator.types.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -29,6 +33,20 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   protected _getTechnicalSchemaNames() {
     return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys'];
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = this._getTechnicalSchemaNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT SCHEMA_NAME AS `schema`',
+      'FROM INFORMATION_SCHEMA.SCHEMATA',
+      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
   }
 
   describeTableQuery(tableName: TableNameOrModel) {
