@@ -6,8 +6,8 @@ import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-genera
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   ListSchemasQueryOptions,
+  ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
-  ShowTablesQueryOptions,
 } from '../abstract/query-generator.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -55,7 +55,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showTablesQuery(options?: ShowTablesQueryOptions) {
+  listTablesQuery(options?: ListTablesQueryOptions) {
     return joinSQLFragments([
       'SELECT TABLE_NAME AS "tableName",',
       'TABLE_SCHEMA AS "schema"',

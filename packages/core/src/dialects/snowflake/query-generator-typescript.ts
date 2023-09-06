@@ -4,8 +4,8 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS, type TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   ListSchemasQueryOptions,
+  ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
-  ShowTablesQueryOptions,
 } from '../abstract/query-generator.types';
 
 const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['constraintName', 'constraintType']);
@@ -36,7 +36,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
-  showTablesQuery(options?: ShowTablesQueryOptions) {
+  listTablesQuery(options?: ListTablesQueryOptions) {
     return joinSQLFragments([
       'SELECT TABLE_NAME AS "tableName",',
       'TABLE_SCHEMA AS "schema"',

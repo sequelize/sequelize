@@ -5,15 +5,15 @@ import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { RemoveColumnQueryOptions } from '../abstract/query-generator';
 import {
+  LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-  SHOW_TABLES_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions, ShowTablesQueryOptions } from '../abstract/query-generator.types';
+import type { ListTablesQueryOptions, ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
 import type { ColumnsDescription } from '../abstract/query-interface.types';
 
+const LIST_TABLES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListTablesQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
-const SHOW_TABLES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowTablesQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -35,13 +35,13 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `SELECT sql FROM sqlite_master WHERE tbl_name = ${this.escapeTable(tableName)};`;
   }
 
-  showTablesQuery(options?: ShowTablesQueryOptions) {
+  listTablesQuery(options?: ListTablesQueryOptions) {
     if (options) {
       rejectInvalidOptions(
-        'showTablesQuery',
+        'listTablesQuery',
         this.dialect.name,
-        SHOW_TABLES_QUERY_SUPPORTABLE_OPTIONS,
-        SHOW_TABLES_QUERY_SUPPORTED_OPTIONS,
+        LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
+        LIST_TABLES_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }

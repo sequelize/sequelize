@@ -6,8 +6,8 @@ import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-genera
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   ListSchemasQueryOptions,
+  ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
-  ShowTablesQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
@@ -56,7 +56,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showTablesQuery(options?: ShowTablesQueryOptions) {
+  listTablesQuery(options?: ListTablesQueryOptions) {
     return joinSQLFragments([
       'SELECT TABNAME AS "tableName",',
       'TRIM(TABSCHEMA) AS "schema"',

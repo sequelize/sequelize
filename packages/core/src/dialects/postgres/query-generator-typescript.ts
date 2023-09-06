@@ -5,8 +5,8 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   ListSchemasQueryOptions,
+  ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
-  ShowTablesQueryOptions,
 } from '../abstract/query-generator.types';
 
 /**
@@ -57,7 +57,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showTablesQuery(options?: ShowTablesQueryOptions) {
+  listTablesQuery(options?: ListTablesQueryOptions) {
     return joinSQLFragments([
       'SELECT table_name AS "tableName", table_schema AS "schema"',
       `FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys'`,

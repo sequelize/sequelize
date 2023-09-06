@@ -8,8 +8,8 @@ import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-genera
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   ListSchemasQueryOptions,
+  ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
-  ShowTablesQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
@@ -73,7 +73,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showTablesQuery(options?: ShowTablesQueryOptions) {
+  listTablesQuery(options?: ListTablesQueryOptions) {
     return joinSQLFragments([
       'SELECT t.name AS [tableName], s.name AS [schema]',
       `FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,

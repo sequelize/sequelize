@@ -180,13 +180,9 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options
    */
   async showAllTables(options?: QiShowAllTablesOptions): Promise<TableNameWithSchema[]> {
-    const showTablesSql = this.queryGenerator.showTablesQuery(options);
+    const sql = this.queryGenerator.listTablesQuery(options);
 
-    return this.sequelize.queryRaw<TableNameWithSchema>(showTablesSql, {
-      ...options,
-      raw: true,
-      type: QueryTypes.SELECT,
-    });
+    return this.sequelize.queryRaw<TableNameWithSchema>(sql, { ...options, raw: true, type: QueryTypes.SELECT });
   }
 
   /**

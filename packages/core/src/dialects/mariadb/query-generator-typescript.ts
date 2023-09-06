@@ -14,8 +14,8 @@ import type {
 } from '../abstract/query-generator-typescript';
 import type {
   ListSchemasQueryOptions,
+  ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
-  ShowTablesQueryOptions,
 } from '../abstract/query-generator.types.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -53,7 +53,7 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
-  showTablesQuery(options?: ShowTablesQueryOptions) {
+  listTablesQuery(options?: ListTablesQueryOptions) {
     return joinSQLFragments([
       'SELECT TABLE_NAME AS `tableName`,',
       'TABLE_SCHEMA AS `schema`',

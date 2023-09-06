@@ -22,8 +22,8 @@ export interface DropTableQueryOptions {
   cascade?: boolean;
 }
 
-// Keeep SHOW_TABLES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface ShowTablesQueryOptions {
+// Keeep LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface ListTablesQueryOptions {
   schema?: string;
 }
 

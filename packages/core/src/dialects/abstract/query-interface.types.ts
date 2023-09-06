@@ -5,9 +5,9 @@ import type {
   AddConstraintQueryOptions,
   DropTableQueryOptions,
   ListSchemasQueryOptions,
+  ListTablesQueryOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
-  ShowTablesQueryOptions,
 } from './query-generator.types';
 
 export interface ColumnDescription {
@@ -75,7 +75,7 @@ export interface QiDropAllSchemasOptions extends QueryRawOptions {
 }
 
 /** Options accepted by {@link AbstractQueryInterface#showAllTables} */
-export interface QiShowAllTablesOptions extends ShowTablesQueryOptions, QueryRawOptions { }
+export interface QiShowAllTablesOptions extends ListTablesQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#describeTable} */
 export interface DescribeTableOptions extends QueryRawOptions {
