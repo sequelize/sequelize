@@ -14,7 +14,7 @@ import type {
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   protected _getTechnicalSchemaNames() {
-    return ['information_schema', 'tiger', 'topology'];
+    return ['information_schema', 'tiger', 'tiger_data', 'topology'];
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {

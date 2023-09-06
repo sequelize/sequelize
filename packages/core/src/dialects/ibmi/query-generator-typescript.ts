@@ -16,20 +16,13 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  protected _getTechnicalSchemaNames() {
-    return ['QSYS', 'QSYS2'];
-  }
-
   listSchemasQuery(options?: ListSchemasQueryOptions) {
-    const schemasToSkip = this._getTechnicalSchemaNames();
-
-    if (options && Array.isArray(options?.skip)) {
-      schemasToSkip.push(...options.skip);
-    }
-
     return joinSQLFragments([
       `SELECT DISTINCT SCHEMA_NAME AS "schema" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER`,
-      `AND SCHEMA_NAME NOT LIKE 'SYS%' AND SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+      `AND SCHEMA_NAME NOT LIKE 'Q%' AND SCHEMA_NAME NOT LIKE 'SYS%'`,
+      options?.skip && Array.isArray(options.skip) && options.skip.length > 0
+        ? `AND SCHEMA_NAME NOT IN (${options?.skip.map(schema => this.escape(schema)).join(', ')})`
+        : '',
     ]);
   }
 
@@ -62,7 +55,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM QSYS2.SYSTABLES WHERE TABLE_TYPE = 'T'`,
       options?.schema
         ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
-        : `AND TABLE_SCHEMA NOT LIKE 'SYS%' TABLE_SCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND TABLE_SCHEMA NOT LIKE 'Q%' AND TABLE_SCHEMA NOT LIKE 'SYS%'`,
       'ORDER BY TABLE_SCHEMA, TABLE_NAME',
     ]);
   }

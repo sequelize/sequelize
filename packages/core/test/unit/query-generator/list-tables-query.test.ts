@@ -7,12 +7,12 @@ describe('QueryGenerator#listTablesQuery', () => {
   it('produces a query that lists all tables', () => {
     expectsql(() => queryGenerator.listTablesQuery(), {
       db2: `SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "schema" FROM SYSCAT.TABLES WHERE TYPE = 'T' AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN ('ERRORSCHEMA', 'NULLID', 'SQLJ') ORDER BY TABSCHEMA, TABNAME`,
-      ibmi: `SELECT TABLE_NAME AS "tableName", TABLE_SCHEMA AS "schema" FROM QSYS2.SYSTABLES WHERE TABLE_TYPE = 'T' AND TABLE_SCHEMA NOT LIKE 'SYS%' TABLE_SCHEMA NOT IN ('QSYS', 'QSYS2') ORDER BY TABLE_SCHEMA, TABLE_NAME`,
-      mssql: `SELECT t.name AS [tableName], s.name AS [schema] FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U' AND s.name NOT LIKE 'db[_]%' AND s.name NOT IN (N'INFORMATION_SCHEMA', N'sys') ORDER BY s.name, t.name`,
+      ibmi: `SELECT TABLE_NAME AS "tableName", TABLE_SCHEMA AS "schema" FROM QSYS2.SYSTABLES WHERE TABLE_TYPE = 'T' AND TABLE_SCHEMA NOT LIKE 'Q%' AND TABLE_SCHEMA NOT LIKE 'SYS%' ORDER BY TABLE_SCHEMA, TABLE_NAME`,
+      mssql: `SELECT t.name AS [tableName], s.name AS [schema] FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U' AND s.name NOT IN (N'db_accessadmin', N'db_backupoperator', N'db_datareader', N'db_datawriter', N'db_ddladmin', N'db_denydatareader', N'db_denydatawriter', N'db_owner', N'db_securityadmin', N'INFORMATION_SCHEMA', N'sys') ORDER BY s.name, t.name`,
       mysql: `SELECT TABLE_NAME AS \`tableName\`, TABLE_SCHEMA AS \`schema\` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys') ORDER BY TABLE_SCHEMA, TABLE_NAME`,
-      sqlite: `SELECT name AS \`tableName\` FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`,
+      sqlite: `SELECT name AS \`tableName\` FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'`,
       mariadb: `SELECT TABLE_NAME AS \`tableName\`, TABLE_SCHEMA AS \`schema\` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys') ORDER BY TABLE_SCHEMA, TABLE_NAME`,
-      postgres: `SELECT table_name AS "tableName", table_schema AS "schema" FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys' AND table_schema !~ E'^pg_' AND table_schema NOT IN ('information_schema', 'tiger', 'topology') ORDER BY table_schema, table_name`,
+      postgres: `SELECT table_name AS "tableName", table_schema AS "schema" FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys' AND table_schema !~ E'^pg_' AND table_schema NOT IN ('information_schema', 'tiger', 'tiger_data', 'topology') ORDER BY table_schema, table_name`,
       snowflake: `SELECT TABLE_NAME AS "tableName", TABLE_SCHEMA AS "schema" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA NOT IN ('INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys') ORDER BY TABLE_SCHEMA, TABLE_NAME`,
     });
   });

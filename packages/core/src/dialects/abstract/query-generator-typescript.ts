@@ -142,6 +142,10 @@ export class AbstractQueryGeneratorTypeScript {
     return this.sequelize.options;
   }
 
+  protected _getTechnicalSchemaNames(): string[] {
+    return [];
+  }
+
   listSchemasQuery(_options?: ListSchemasQueryOptions): string {
     if (this.dialect.supports.schemas) {
       throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);

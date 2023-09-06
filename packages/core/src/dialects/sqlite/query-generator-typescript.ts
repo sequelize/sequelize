@@ -46,7 +46,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       );
     }
 
-    return 'SELECT name AS `tableName` FROM sqlite_master WHERE type=\'table\' AND name NOT LIKE \'sqlite_%\'';
+    return 'SELECT name AS `tableName` FROM sqlite_master WHERE type=\'table\' AND name != \'sqlite_sequence\'';
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions) {
