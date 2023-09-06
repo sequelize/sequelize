@@ -159,11 +159,16 @@ export class AbstractQueryInterfaceTypeScript {
       dropOptions.cascade = true;
     }
 
+    // Remove all the foreign keys first in a loop to avoid deadlocks and timeouts
     for (const tableName of tableNames) {
       // eslint-disable-next-line no-await-in-loop
       const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
       // eslint-disable-next-line no-await-in-loop
       await Promise.all(foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)));
+    }
+
+    // Drop all the tables loop to avoid deadlocks and timeouts
+    for (const tableName of tableNames) {
       // eslint-disable-next-line no-await-in-loop
       await this.dropTable(tableName, dropOptions);
     }
