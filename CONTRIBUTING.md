@@ -153,6 +153,12 @@ You will have to manually install and configure each of database engines you wan
 
 ### 4. Running tests
 
+You will have to first build the project:
+
+```
+yarn build
+```
+
 Sequelize is a monorepo and uses `lerna` to run scripts in each of the packages. The syntax for the commands is: `yarn lerna run` followed by the script name. For example:
 
 ```
