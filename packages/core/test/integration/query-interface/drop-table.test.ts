@@ -44,8 +44,11 @@ describe('QueryInterface#dropTable', () => {
         });
 
         await queryInterface.dropTable('levels', { cascade: true });
-        const exists = await queryInterface.tableExists('levels');
-        expect(exists).to.be.false;
+        const allTables = await queryInterface.showAllTables();
+        const tableNames = allTables.map(table => table.tableName);
+        // Cascade only removes the foreign key constraint, not the related table
+        expect(tableNames).to.deep.equal(['actors']);
+
       });
     }
   });

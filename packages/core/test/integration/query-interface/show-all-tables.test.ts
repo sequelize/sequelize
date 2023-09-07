@@ -81,7 +81,7 @@ describe('QueryInterface#showAllTables', () => {
 
   if (sequelize.dialect.supports.schemas) {
     describe('with schemas', () => {
-      it('should show all tables selected schemas', async () => {
+      it('should show all tables in the specified schema', async () => {
         await queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
         await queryInterface.createSchema('my_test_schema');
         await queryInterface.createTable({ tableName: 'my_test_table2', schema: 'my_test_schema' }, { name: DataTypes.STRING });
