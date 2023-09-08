@@ -805,7 +805,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.force) {
-      await this.drop(options);
+      await this.drop({ ...options, cascade: this.dialect.supports.dropTable.cascade || undefined });
     }
 
     // no models defined, just authenticate

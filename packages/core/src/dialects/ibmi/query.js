@@ -96,10 +96,6 @@ export class IBMiQuery extends AbstractQuery {
       return this.handleSelectQuery(data);
     }
 
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
-    }
-
     if (this.isShowIndexesQuery()) {
       return this.handleShowIndexesQuery(data);
     }

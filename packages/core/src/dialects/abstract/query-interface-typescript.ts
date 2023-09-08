@@ -12,6 +12,7 @@ import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
+import type { TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
   ColumnsDescription,
@@ -20,6 +21,9 @@ import type {
   DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
+  QiDropAllTablesOptions,
+  QiDropTableOptions,
+  QiShowAllTablesOptions,
   RemoveConstraintOptions,
   ShowAllSchemasOptions,
   ShowConstraintsOptions,
@@ -118,15 +122,67 @@ export class AbstractQueryInterfaceTypeScript {
    */
   async showAllSchemas(options?: ShowAllSchemasOptions): Promise<string[]> {
     const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
-    const queryRawOptions = {
+    const schemaNames = await this.sequelize.queryRaw<{ schema: string }>(showSchemasSql, {
       ...options,
       raw: true,
       type: QueryTypes.SELECT,
-    };
+    });
 
-    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, queryRawOptions);
+    return schemaNames.map(schemaName => schemaName.schema);
+  }
 
-    return schemaNames.flatMap((value: any) => (value.schema_name ? value.schema_name : value));
+  /**
+   * Drop a table from database
+   *
+   * @param tableName Table name to drop
+   * @param options   Query options
+   */
+  async dropTable(tableName: TableNameOrModel, options?: QiDropTableOptions): Promise<void> {
+    const sql = this.queryGenerator.dropTableQuery(tableName, options);
+
+    await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Drop all tables
+   *
+   * @param options
+   */
+  async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
+    const skip = options?.skip || [];
+    const allTables = await this.showAllTables(options);
+    const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
+
+    const dropOptions = { ...options };
+    // enable "cascade" by default if supported by this dialect
+    if (this.sequelize.dialect.supports.dropTable.cascade && dropOptions.cascade === undefined) {
+      dropOptions.cascade = true;
+    }
+
+    // Remove all the foreign keys first in a loop to avoid deadlocks and timeouts
+    for (const tableName of tableNames) {
+      // eslint-disable-next-line no-await-in-loop
+      const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.all(foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)));
+    }
+
+    // Drop all the tables loop to avoid deadlocks and timeouts
+    for (const tableName of tableNames) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.dropTable(tableName, dropOptions);
+    }
+  }
+
+  /**
+   * Show all tables.
+   *
+   * @param options
+   */
+  async showAllTables(options?: QiShowAllTablesOptions): Promise<TableNameWithSchema[]> {
+    const sql = this.queryGenerator.listTablesQuery(options);
+
+    return this.sequelize.queryRaw<TableNameWithSchema>(sql, { ...options, raw: true, type: QueryTypes.SELECT });
   }
 
   /**

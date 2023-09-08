@@ -764,7 +764,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     let tableExists;
     if (options.force) {
-      await this.drop(options);
+      await this.drop({ ...options, cascade: this.sequelize.dialect.supports.dropTable.cascade || undefined });
       tableExists = false;
     } else {
       tableExists = await this.queryInterface.tableExists(tableName, options);
@@ -884,7 +884,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async drop(options) {
-    return await this.queryInterface.dropTable(this.getTableName(options), options);
+    return await this.queryInterface.dropTable(this, options);
   }
 
   /**

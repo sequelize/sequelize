@@ -833,33 +833,5 @@ if (dialect.startsWith('postgres')) {
         });
       });
     });
-
-    describe('With custom schema in Sequelize options', () => {
-      beforeEach(function () {
-        this.queryGenerator = new QueryGenerator({
-          sequelize: customSequelize,
-          dialect: customSequelize.dialect,
-        });
-      });
-
-      const customSchemaSuites = {
-        showTablesQuery: [
-          {
-            title: 'showTablesQuery defaults to the schema set in Sequelize options',
-            arguments: [],
-            expectation: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'custom' AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`,
-          },
-        ],
-      };
-
-      each(customSchemaSuites, (customSchemaTests, customSchemaSuiteTitle) => {
-        for (const customSchemaTest of customSchemaTests) {
-          it(customSchemaTest.title, function () {
-            const convertedText = customSchemaTest.arguments ? this.queryGenerator[customSchemaSuiteTitle](...customSchemaTest.arguments) : this.queryGenerator[customSchemaSuiteTitle]();
-            expect(convertedText).to.equal(customSchemaTest.expectation);
-          });
-        }
-      });
-    });
   });
 }

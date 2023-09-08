@@ -247,9 +247,7 @@ export class Db2Query extends AbstractQuery {
       }
     }
 
-    if (this.isShowTablesQuery()) {
-      result = data;
-    } else if (this.isDescribeQuery()) {
+    if (this.isDescribeQuery()) {
       result = {};
       for (const _result of data) {
         if (_result.Default) {
@@ -295,15 +293,6 @@ export class Db2Query extends AbstractQuery {
     }
 
     return result;
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => {
-      return {
-        tableName: resultSet.TABLE_NAME,
-        schema: resultSet.TABLE_SCHEMA,
-      };
-    });
   }
 
   formatError(err, conn, parameters) {

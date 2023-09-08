@@ -125,10 +125,6 @@ export class MySqlQuery extends AbstractQuery {
       return this.handleSelectQuery(data);
     }
 
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
-    }
-
     if (this.isDescribeQuery()) {
       result = {};
 
@@ -240,13 +236,6 @@ export class MySqlQuery extends AbstractQuery {
       default:
         return new sequelizeErrors.DatabaseError(err);
     }
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => ({
-      tableName: resultSet.TABLE_NAME,
-      schema: resultSet.TABLE_SCHEMA,
-    }));
   }
 
   handleShowIndexesQuery(data) {
