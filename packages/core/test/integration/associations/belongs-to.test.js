@@ -680,11 +680,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundTask = await Task.findOne({ where: { title: 'some task' } });
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
-      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'username',
+      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().showConstraints(Task, { constraintType: 'FOREIGN KEY' });
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedColumnNames: ['username'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        columnNames: ['user_name'],
       });
     });
 
@@ -709,11 +709,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundTask = await Task.findOne({ where: { title: 'some task' } });
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
-      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'user_name',
+      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().showConstraints(Task, { constraintType: 'FOREIGN KEY' });
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedColumnNames: ['user_name'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        columnNames: ['user_name'],
       });
     });
 
@@ -737,11 +737,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundTask = await Task.findOne({ where: { title: 'some task' } });
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
-      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'the_user_name_field',
+      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().showConstraints(Task, { constraintType: 'FOREIGN KEY' });
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedColumnNames: ['the_user_name_field'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        columnNames: ['user_name'],
       });
     });
 
@@ -774,11 +774,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundTask = await Task.findOne({ where: { title: 'some task' } });
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
-      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'the_user_name_field',
+      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().showConstraints(Task, { constraintType: 'FOREIGN KEY' });
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedColumnNames: ['the_user_name_field'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        columnNames: ['user_name'],
       });
     });
   });

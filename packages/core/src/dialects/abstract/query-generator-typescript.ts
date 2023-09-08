@@ -56,6 +56,7 @@ export interface RemoveIndexQueryOptions {
 export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
+export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
 
 export interface QueryGeneratorOptions {
   sequelize: Sequelize;
@@ -391,12 +392,24 @@ export class AbstractQueryGeneratorTypeScript {
   /**
    * Generates an SQL query that returns all foreign keys of a table or the foreign key constraint of a given column.
    *
+   * @deprecated Use {@link showConstraintsQuery} instead.
    * @param _tableName The table or associated model.
    * @param _columnName The name of the column. Not supported by SQLite.
    * @returns The generated SQL query.
    */
-  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): string {
-    throw new Error(`getForeignKeyQuery has not been implemented in ${this.dialect.name}.`);
+  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): Error {
+    throw new Error(`getForeignKeyQuery has been deprecated. Use showConstraintsQuery instead.`);
+  }
+
+  /**
+   * Generates an SQL query that drops a foreign key constraint.
+   *
+   * @deprecated Use {@link removeConstraintQuery} instead.
+   * @param _tableName The table or associated model.
+   * @param _foreignKey The name of the foreign key constraint.
+   */
+  dropForeignKeyQuery(_tableName: TableNameOrModel, _foreignKey: string): Error {
+    throw new Error(`dropForeignKeyQuery has been deprecated. Use removeConstraintQuery instead.`);
   }
 
   // TODO: rename to "normalizeTable" & move to sequelize class

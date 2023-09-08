@@ -1,5 +1,6 @@
 import assert from 'node:assert';
 import isEmpty from 'lodash/isEmpty';
+import { Deferrable } from '../../deferrable';
 import type { ConstraintChecking } from '../../deferrable';
 import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
@@ -19,18 +20,12 @@ import type {
   DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
-  RawConstraintDescription,
   RemoveConstraintOptions,
   ShowAllSchemasOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
-
-export interface MapConstraintDescription extends Omit<RawConstraintDescription, 'columnNames' | 'referencedColumnNames'> {
-  columnNames: Set<string>;
-  referencedColumnNames: Set<string>;
-}
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -349,26 +344,94 @@ export class AbstractQueryInterfaceTypeScript {
   async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
     const sql = this.queryGenerator.showConstraintsQuery(tableName, options);
     const rawConstraints = await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.SHOWCONSTRAINTS });
-    const constraintMap = new Map<string, MapConstraintDescription>();
-    for (const rawConstraint of rawConstraints) {
+    const constraintMap = new Map<string, ConstraintDescription>();
+    for (const {
+      columnNames,
+      definition,
+      deleteAction,
+      initiallyDeferred,
+      isDeferrable,
+      referencedColumnNames,
+      referencedTableName,
+      referencedTableSchema,
+      updateAction,
+      ...rawConstraint
+    } of rawConstraints) {
       const constraint = constraintMap.get(rawConstraint.constraintName)!;
       if (constraint) {
-        rawConstraint.columnNames && constraint.columnNames.add(rawConstraint.columnNames);
-        rawConstraint.referencedColumnNames && constraint.referencedColumnNames.add(rawConstraint.referencedColumnNames);
+        if (columnNames) {
+          constraint.columnNames = constraint.columnNames
+          ? [...new Set([...constraint.columnNames, columnNames])]
+          : [columnNames];
+        }
+
+        if (referencedColumnNames) {
+          constraint.referencedColumnNames = constraint.referencedColumnNames
+          ? [...new Set([...constraint.referencedColumnNames, referencedColumnNames])]
+          : [referencedColumnNames];
+        }
       } else {
-        constraintMap.set(rawConstraint.constraintName, {
-          ...rawConstraint,
-          columnNames: new Set(rawConstraint.columnNames ? [rawConstraint.columnNames] : []),
-          referencedColumnNames: new Set(rawConstraint.referencedColumnNames ? [rawConstraint.referencedColumnNames] : []),
-        });
+        const constraintData: ConstraintDescription = { ...rawConstraint };
+        if (columnNames) {
+          constraintData.columnNames = [columnNames];
+        }
+
+        if (referencedTableSchema) {
+          constraintData.referencedTableSchema = referencedTableSchema;
+        }
+
+        if (referencedTableName) {
+          constraintData.referencedTableName = referencedTableName;
+        }
+
+        if (referencedColumnNames) {
+          constraintData.referencedColumnNames = [referencedColumnNames];
+        }
+
+        if (deleteAction) {
+          constraintData.deleteAction = deleteAction.replaceAll('_', ' ');
+        }
+
+        if (updateAction) {
+          constraintData.updateAction = updateAction.replaceAll('_', ' ');
+        }
+
+        if (definition) {
+          constraintData.definition = definition;
+        }
+
+        if (this.sequelize.dialect.supports.constraints.deferrable) {
+          constraintData.deferrable = isDeferrable ? (initiallyDeferred === 'YES' ? Deferrable.INITIALLY_DEFERRED : Deferrable.INITIALLY_IMMEDIATE) : Deferrable.NOT;
+        }
+
+        constraintMap.set(rawConstraint.constraintName, constraintData);
       }
     }
 
-    return [...constraintMap.values()].map(({ columnNames, referencedColumnNames, ...constraint }) => ({
-      ...constraint,
-      columnNames: [...columnNames],
-      referencedColumnNames: [...referencedColumnNames],
-    }));
+    return [...constraintMap.values()];
+  }
+
+  /**
+   * Returns all foreign key constraints of requested tables
+   *
+   * @deprecated Use {@link showConstraints} instead.
+   * @param _tableNames
+   * @param _options
+   */
+  getForeignKeysForTables(_tableNames: TableNameOrModel[], _options?: QueryRawOptions): Error {
+    throw new Error(`getForeignKeysForTables has been deprecated. Use showConstraints instead.`);
+
+  }
+
+  /**
+   * Get foreign key references details for the table
+   *
+   * @deprecated Use {@link showConstraints} instead.
+   * @param _tableName
+   * @param _options
+   */
+  getForeignKeyReferencesForTable(_tableName: TableNameOrModel, _options?: QueryRawOptions): Error {
+    throw new Error(`getForeignKeyReferencesForTable has been deprecated. Use showConstraints instead.`);
   }
 
   /**

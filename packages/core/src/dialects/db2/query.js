@@ -283,8 +283,6 @@ export class Db2Query extends AbstractQuery {
       result = data.length;
     } else if (this.isBulkDeleteQuery()) {
       result = rowCount;
-    } else if (this.isForeignKeysQuery()) {
-      result = data;
     } else if (this.isInsertQuery() || this.isUpdateQuery()) {
       result = [result, rowCount];
     } else if (this.isShowConstraintsQuery()) {

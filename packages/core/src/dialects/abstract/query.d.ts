@@ -177,11 +177,6 @@ export class AbstractQuery {
   isBulkDeleteQuery(): boolean;
 
   /**
-   * Checks if the query type is FOREIGNKEYS
-   */
-  isForeignKeysQuery(): boolean;
-
-  /**
    * Checks if the query type is UPDATE
    */
   isUpdateQuery(): boolean;

@@ -54,14 +54,16 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'c.INITIALLY_DEFERRED AS "initiallyDeferred"',
       'FROM QSYS2.SYSCST c',
       'LEFT JOIN QSYS2.SYSREFCST r ON c.CONSTRAINT_NAME = r.CONSTRAINT_NAME AND c.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA',
-      'LEFT JOIN QSYS2.SYSKEYCST k ON r.CONSTRAINT_NAME = k.CONSTRAINT_NAME AND r.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA',
+      'LEFT JOIN QSYS2.SYSKEYCST k ON c.CONSTRAINT_NAME = k.CONSTRAINT_NAME AND c.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA',
       'LEFT JOIN QSYS2.SYSKEYCST fk ON r.UNIQUE_CONSTRAINT_NAME = k.CONSTRAINT_NAME AND r.UNIQUE_CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA',
       'LEFT JOIN QSYS2.SYSCHKCST ch ON c.CONSTRAINT_NAME = ch.CONSTRAINT_NAME AND c.CONSTRAINT_SCHEMA = ch.CONSTRAINT_SCHEMA',
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       'AND c.TABLE_SCHEMA =',
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
+      options?.columnName ? `AND k.COLUMN_NAME = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
-      'ORDER BY c.CONSTRAINT_NAME',
+      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
+      'ORDER BY c.CONSTRAINT_NAME, k.ORDINAL_POSITION',
     ]);
   }
 
@@ -114,29 +116,6 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'COMMIT;',
       options?.ifExists ? 'END IF;' : '',
       'END',
-    ]);
-  }
-
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      'SELECT FK_CAT AS "constraintCatalog",',
-      'FK_SCHEM AS "constraintSchema",',
-      'FK_NAME AS "constraintName",',
-      'PKTABLE_CAT AS "referencedTableCatalog",',
-      'PKTABLE_SCHEM AS "referencedTableSchema",',
-      'PKTABLE_NAME AS "referencedTableName",',
-      'PKCOLUMN_NAME AS "referencedColumnName",',
-      'FKTABLE_CAT AS "tableCatalog",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKTABLE_NAME AS "tableName",',
-      'FKCOLUMN_NAME AS "columnName"',
-      'FROM SYSIBM.SQLFOREIGNKEYS',
-      'WHERE FKTABLE_SCHEM =',
-      table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
-      `AND FKTABLE_NAME = ${this.escape(table.tableName)}`,
-      columnName && `AND FKCOLUMN_NAME = ${this.escape(columnName)}`,
     ]);
   }
 

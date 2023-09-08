@@ -726,13 +726,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     throwMethodUndefined('renameFunction');
   }
 
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return template('ALTER TABLE <%= table %> DROP FOREIGN KEY <%= key %>;', this._templateSettings)({
-      table: this.quoteTable(tableName),
-      key: this.quoteIdentifier(foreignKey),
-    });
-  }
-
   setAutocommitQuery() {
     return '';
   }

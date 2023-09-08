@@ -19,18 +19,8 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
   async removeColumn(tableName, columnName, options) {
     options = options || {};
 
-    const [results] = await this.sequelize.queryRaw(
-      this.queryGenerator.getForeignKeyQuery(tableName, columnName),
-      { raw: true, ...options },
-    );
-
-    // Exclude primary key constraint
-    if (results.length > 0 && results[0].constraintName !== 'PRIMARY') {
-      await Promise.all(results.map(constraint => this.sequelize.queryRaw(
-        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraintName),
-        { raw: true, ...options },
-      )));
-    }
+    const foreignKeys = await this.showConstraints(tableName, { ...options, columnName, constraintType: 'FOREIGN KEY' });
+    await Promise.all(foreignKeys.map(constraint => this.removeConstraint(tableName, constraint.constraintName, options)));
 
     return await this.sequelize.queryRaw(
       this.queryGenerator.removeColumnQuery(tableName, columnName),
@@ -64,8 +54,11 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
   }
 
   /**
+   * A wrapper that fixes MySQL's lack of support for DROP CONSTRAINT in MySQL < 8.0.
+   *
    * @override
    */
+  // TODO [>=2023-11-01]: remove this override when MySQL 8.0 is the minimum supported version
   async removeConstraint(tableName, constraintName, options) {
     const queryOptions = { ...options, raw: true, constraintName };
     const constraints = await this.showConstraints(tableName, queryOptions);
@@ -83,7 +76,7 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
 
     let query;
     if (constraint.constraintType === 'FOREIGN KEY') {
-      query = this.queryGenerator.dropForeignKeyQuery(tableName, constraintName);
+      query = `ALTER TABLE ${this.queryGenerator.quoteTable(tableName)} DROP FOREIGN KEY ${this.quoteIdentifier(constraint.constraintName)}`;
     } else {
       query = this.queryGenerator.removeIndexQuery(tableName, constraint.constraintName);
     }

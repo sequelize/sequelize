@@ -7,6 +7,7 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { ConstraintType } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -51,6 +52,23 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
+  private _getConstraintType(type: ConstraintType): string {
+    switch (type) {
+      case 'CHECK':
+        return 'CHECK_CONSTRAINT';
+      case 'DEFAULT':
+        return 'DEFAULT_CONSTRAINT';
+      case 'FOREIGN KEY':
+        return 'FOREIGN_KEY_CONSTRAINT';
+      case 'PRIMARY KEY':
+        return 'PRIMARY_KEY_CONSTRAINT';
+      case 'UNIQUE':
+        return 'UNIQUE_CONSTRAINT';
+      default:
+        throw new Error(`Constraint type ${type} is not supported`);
+    }
+  }
+
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
@@ -63,6 +81,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       's.[name] AS tableSchema,',
       't.[name] AS tableName,',
       'c.columnNames,',
+      'c.referencedTableSchema,',
       'c.referencedTableName,',
       'c.referencedColumnNames,',
       'c.deleteAction,',
@@ -70,20 +89,26 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'c.definition',
       'FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id',
       'INNER JOIN (',
-      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null AS referencedTableName',
-      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, null AS definition FROM sys.key_constraints UNION ALL',
-      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null AS referencedTableName',
+      'SELECT kc.[name] AS constraintName, kc.[type_desc] AS constraintType, kc.[parent_object_id] AS constraintTableId, c.[name] AS columnNames, null as referencedTableSchema, null AS referencedTableName',
+      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, null AS definition',
+      'FROM sys.key_constraints kc LEFT JOIN sys.indexes i ON kc.name = i.name',
+      'LEFT JOIN sys.index_columns ic ON ic.index_id = i.index_id AND ic.object_id = kc.parent_object_id',
+      'LEFT JOIN sys.columns c ON c.column_id = ic.column_id AND c.object_id = kc.parent_object_id UNION ALL',
+      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null as referencedTableSchema, null AS referencedTableName',
       ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.check_constraints c UNION ALL',
-      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null AS referencedTableName',
-      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.default_constraints UNION ALL',
-      'SELECT k.[name] AS constraintName, k.[type_desc] AS constraintType, k.[parent_object_id] AS constraintTableId, fcol.[name] AS columnNames',
+      'SELECT dc.[name] AS constraintName, dc.[type_desc] AS constraintType, dc.[parent_object_id] AS constraintTableId, c.[name] AS columnNames, null as referencedTableSchema, null AS referencedTableName',
+      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.default_constraints dc',
+      'INNER JOIN sys.columns c ON dc.parent_column_id = c.column_id AND dc.parent_object_id = c.object_id UNION ALL',
+      'SELECT k.[name] AS constraintName, k.[type_desc] AS constraintType, k.[parent_object_id] AS constraintTableId, fcol.[name] AS columnNames, OBJECT_SCHEMA_NAME(k.[referenced_object_id]) as referencedTableSchema',
       ', OBJECT_NAME(k.[referenced_object_id]) AS referencedTableName, rcol.[name] AS referencedColumnNames, k.[delete_referential_action_desc] AS deleteAction',
       ', k.[update_referential_action_desc] AS updateAction, null AS definition FROM sys.foreign_keys k INNER JOIN sys.foreign_key_columns c ON k.[object_id] = c.constraint_object_id',
       'INNER JOIN sys.columns fcol ON c.parent_column_id = fcol.column_id AND c.parent_object_id = fcol.object_id',
       'INNER JOIN sys.columns rcol ON c.referenced_column_id = rcol.column_id AND c.referenced_object_id = rcol.object_id',
       ') c ON t.object_id = c.constraintTableId',
       `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
+      options?.columnName ? `AND c.columnNames = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.constraintName = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.constraintType = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
       'ORDER BY c.constraintName',
     ]);
   }
@@ -138,37 +163,6 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       this.quoteIdentifier(indexName),
       'ON',
       this.quoteTable(tableName),
-    ]);
-  }
-
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    // TODO: get the database from the provided tableName (see #12449)
-    const catalogName = this.sequelize.config.database;
-    const escapedCatalogName = this.escape(catalogName);
-
-    return joinSQLFragments([
-      `SELECT OBJ.NAME AS 'constraintName',`,
-      `${escapedCatalogName} AS 'constraintCatalog',`,
-      `SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',`,
-      `TB.NAME AS 'tableName',`,
-      `SCHEMA_NAME(TB.SCHEMA_ID) AS 'tableSchema',`,
-      `${escapedCatalogName} AS 'tableCatalog',`,
-      `COL.NAME AS 'columnName',`,
-      `SCHEMA_NAME(RTB.SCHEMA_ID) AS 'referencedTableSchema',`,
-      `${escapedCatalogName} AS 'referencedTableCatalog',`,
-      `RTB.NAME AS 'referencedTableName',`,
-      `RCOL.NAME AS 'referencedColumnName'`,
-      'FROM sys.foreign_key_columns FKC',
-      'INNER JOIN sys.objects OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID',
-      'INNER JOIN sys.tables TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID',
-      'INNER JOIN sys.columns COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID',
-      'INNER JOIN sys.tables RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID',
-      'INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID',
-      `WHERE TB.NAME = ${this.escape(table.tableName)}`,
-      columnName && `AND COL.NAME = ${this.escape(columnName)}`,
-      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.escape(table.schema!)}`,
     ]);
   }
 

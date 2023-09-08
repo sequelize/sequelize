@@ -1,7 +1,10 @@
+import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableNameOrModel } from '../abstract/query-generator-typescript';
+import { SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS, type TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+
+const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['constraintName', 'constraintType']);
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -12,6 +15,16 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'showConstraintsQuery',
+        this.dialect.name,
+        SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
+        SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -34,6 +47,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
       options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
       'ORDER BY c.CONSTRAINT_NAME',
     ]);
   }

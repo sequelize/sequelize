@@ -35,13 +35,13 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT c.CONSTRAINT_CATALOG AS constraintCatalog,',
-      'c.CONSTRAINT_SCHEMA AS constraintSchema,',
+      'SELECT c.CONSTRAINT_SCHEMA AS constraintSchema,',
       'c.CONSTRAINT_NAME AS constraintName,',
       'c.CONSTRAINT_TYPE AS constraintType,',
       'c.TABLE_SCHEMA AS tableSchema,',
       'c.TABLE_NAME AS tableName,',
       'kcu.COLUMN_NAME AS columnNames,',
+      'kcu.REFERENCED_TABLE_SCHEMA AS referencedTableSchema,',
       'kcu.REFERENCED_TABLE_NAME AS referencedTableName,',
       'kcu.REFERENCED_COLUMN_NAME AS referencedColumnNames,',
       'r.DELETE_RULE AS deleteAction,',
@@ -49,12 +49,14 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS c',
       'LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS r ON c.CONSTRAINT_CATALOG = r.CONSTRAINT_CATALOG',
       'AND c.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = r.CONSTRAINT_NAME AND c.TABLE_NAME = r.TABLE_NAME',
-      'LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON r.CONSTRAINT_CATALOG = kcu.CONSTRAINT_CATALOG',
-      'AND r.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA AND r.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND r.TABLE_NAME = kcu.TABLE_NAME',
+      'LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON c.CONSTRAINT_CATALOG = kcu.CONSTRAINT_CATALOG',
+      'AND c.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND c.TABLE_NAME = kcu.TABLE_NAME',
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
+      options?.columnName ? `AND kcu.COLUMN_NAME = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
-      'ORDER BY c.CONSTRAINT_NAME',
+      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
+      'ORDER BY c.CONSTRAINT_NAME, kcu.ORDINAL_POSITION',
     ]);
   }
 
@@ -90,27 +92,6 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return `DROP INDEX ${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableName)}`;
-  }
-
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      'SELECT CONSTRAINT_NAME as constraintName,',
-      'CONSTRAINT_SCHEMA as constraintSchema,',
-      'TABLE_NAME as tableName,',
-      'TABLE_SCHEMA as tableSchema,',
-      'COLUMN_NAME as columnName,',
-      'REFERENCED_TABLE_SCHEMA as referencedTableSchema,',
-      'REFERENCED_TABLE_NAME as referencedTableName,',
-      'REFERENCED_COLUMN_NAME as referencedColumnName',
-      'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
-      'WHERE',
-      `TABLE_NAME = ${this.escape(table.tableName)}`,
-      `AND TABLE_SCHEMA = ${this.escape(table.schema!)}`,
-      columnName && `AND COLUMN_NAME = ${this.escape(columnName)}`,
-      'AND REFERENCED_TABLE_NAME IS NOT NULL',
-    ]);
   }
 
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {

@@ -902,11 +902,10 @@ Use Sequelize#query if you wish to use replacements.`);
 
     // has cyclic dependency: we first remove each foreign key, then delete each model.
     for (const model of this.modelManager.models) {
-      const tableName = model.getTableName();
-      const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable(tableName, options);
+      const foreignKeys = await this.queryInterface.showConstraints(model, { ...options, constraintType: 'FOREIGN KEY' });
 
       await Promise.all(foreignKeys.map(foreignKey => {
-        return this.queryInterface.removeConstraint(tableName, foreignKey.constraintName, options);
+        return this.queryInterface.removeConstraint(model, foreignKey.constraintName, options);
       }));
     }
 
