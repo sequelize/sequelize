@@ -131,20 +131,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ].join(' ');
   }
 
-  listSchemasQuery(options) {
-    const schemasToSkip = ['INFORMATION_SCHEMA', 'dbo', 'guest', 'sys', 'archive'];
-    if (options?.skip) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return [
-      'SELECT "name" as "schema_name" FROM sys.schemas as s',
-      'WHERE "s"."name" NOT IN (',
-      schemasToSkip.map(schema => this.escape(schema)).join(', '),
-      `) AND "s"."name" NOT LIKE 'db_%'`,
-    ].join(' ');
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -235,31 +221,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   renameTableQuery(before, after) {
     return `EXEC sp_rename ${this.quoteTable(before)}, ${this.quoteTable(after)};`;
-  }
-
-  showTablesQuery() {
-    return 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';';
-  }
-
-  dropTableQuery(tableName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    const quoteTbl = this.quoteTable(tableName);
-
-    return joinSQLFragments([
-      `IF OBJECT_ID('${quoteTbl}', 'U') IS NOT NULL`,
-      'DROP TABLE',
-      quoteTbl,
-      ';',
-    ]);
   }
 
   addColumnQuery(table, key, dataType, options) {

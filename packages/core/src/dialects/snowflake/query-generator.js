@@ -10,7 +10,6 @@ import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
@@ -89,20 +88,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
   dropSchemaQuery(schema) {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
-  }
-
-  listSchemasQuery(options) {
-    if (options) {
-      rejectInvalidOptions(
-        'listSchemasQuery',
-        this.dialect.name,
-        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
-        LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `SHOW SCHEMAS;`;
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -185,14 +170,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
-      ';',
-    ]);
-  }
-
-  showTablesQuery(database) {
-    return joinSQLFragments([
-      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
       ';',
     ]);
   }

@@ -186,10 +186,6 @@ export class MsSqlQuery extends AbstractQuery {
       return [this.instance || data, rowCount];
     }
 
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
-    }
-
     if (this.isDescribeQuery()) {
       const result = {};
       for (const _result of data) {
@@ -270,15 +266,6 @@ export class MsSqlQuery extends AbstractQuery {
     }
 
     return data;
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => {
-      return {
-        tableName: resultSet.TABLE_NAME,
-        schema: resultSet.TABLE_SCHEMA,
-      };
-    });
   }
 
   formatError(err) {

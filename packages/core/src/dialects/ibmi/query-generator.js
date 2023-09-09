@@ -49,17 +49,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return `BEGIN IF EXISTS (SELECT * FROM SYSIBM.SQLSCHEMAS WHERE TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}) THEN SET TRANSACTION ISOLATION LEVEL NO COMMIT; DROP SCHEMA "${schema ? `${schema}` : 'CURRENT SCHEMA'}"; COMMIT; END IF; END`;
   }
 
-  listSchemasQuery(options) {
-    let skippedSchemas = '';
-    if (options?.skip) {
-      for (let i = 0; i < options.skip.length; i++) {
-        skippedSchemas += ` AND SCHEMA_NAME != ${this.escape(options.skip[i])}`;
-      }
-    }
-
-    return `SELECT DISTINCT SCHEMA_NAME AS "schema_name" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER${skippedSchemas}`;
-  }
-
   // Table queries
   createTableQuery(tableName, attributes, options) {
     if (options) {
@@ -139,24 +128,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       BEGIN END;
       CREATE TABLE ${quotedTable} (${attributesClause});
       END`;
-  }
-
-  dropTableQuery(tableName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}`;
-  }
-
-  showTablesQuery(schema) {
-    return `SELECT TABLE_NAME FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}`;
   }
 
   addColumnQuery(table, key, dataType, options) {

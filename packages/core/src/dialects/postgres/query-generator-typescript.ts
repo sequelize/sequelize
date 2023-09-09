@@ -3,12 +3,32 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type {
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalSchemaNames() {
+    return ['information_schema', 'tiger', 'tiger_data', 'topology'];
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = ['public', ...this._getTechnicalSchemaNames()];
+
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      `SELECT schema_name AS "schema" FROM information_schema.schemata`,
+      `WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -34,6 +54,17 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.column_name=c.column_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
       `AND c.table_schema = ${this.escape(table.schema!)}`,
+    ]);
+  }
+
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT table_name AS "tableName", table_schema AS "schema"',
+      `FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys'`,
+      options?.schema
+        ? `AND table_schema = ${this.escape(options.schema)}`
+        : `AND table_schema !~ E'^pg_' AND table_schema NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY table_schema, table_name',
     ]);
   }
 

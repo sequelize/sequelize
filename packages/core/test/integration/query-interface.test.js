@@ -41,90 +41,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
   }
 
-  describe('showAllTables', () => {
-    it('should not contain views', async function () {
-      async function cleanup(sequelize) {
-        if (dialectName === 'db2') {
-          // DB2 does not support DROP VIEW IF EXISTS
-          try {
-            await sequelize.query('DROP VIEW V_Fail');
-          } catch (error) {
-            // -204 means V_Fail does not exist
-            // https://www.ibm.com/docs/en/db2-for-zos/11?topic=sec-204
-            if (error.cause.sqlcode !== -204) {
-              throw error;
-            }
-          }
-        } else {
-          await sequelize.query('DROP VIEW IF EXISTS V_Fail');
-        }
-      }
-
-      await this.queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
-      await cleanup(this.sequelize);
-      const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${['db2', 'ibmi'].includes(dialectName) ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
-      await this.sequelize.query(sql);
-      let tableNames = await this.queryInterface.showAllTables();
-      await cleanup(this.sequelize);
-      if (tableNames[0] && tableNames[0].tableName) {
-        tableNames = tableNames.map(v => v.tableName);
-      }
-
-      expect(tableNames).to.deep.equal(['my_test_table']);
-    });
-
-    if (!['sqlite', 'postgres', 'db2', 'ibmi'].includes(dialectName)) {
-      // NOTE: sqlite doesn't allow querying between databases and
-      // postgres requires creating a new connection to create a new table.
-      it('should not show tables in other databases', async function () {
-        await this.queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
-        await this.sequelize.query('CREATE DATABASE my_test_db');
-        await this.sequelize.query(`CREATE TABLE my_test_db${dialectName === 'mssql' ? '.dbo' : ''}.my_test_table2 (id INT)`);
-        let tableNames = await this.queryInterface.showAllTables();
-        await this.sequelize.query('DROP DATABASE my_test_db');
-        if (tableNames[0] && tableNames[0].tableName) {
-          tableNames = tableNames.map(v => v.tableName);
-        }
-
-        expect(tableNames).to.deep.equal(['my_test_table1']);
-      });
-    }
-
-    if (['mysql', 'mariadb'].includes(dialectName)) {
-      it('should show all tables in all databases', async function () {
-        await this.queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
-        await this.sequelize.query('CREATE DATABASE my_test_db');
-        await this.sequelize.query('CREATE TABLE my_test_db.my_test_table2 (id INT)');
-        let tableNames = await this.sequelize.query(
-          this.queryInterface.queryGenerator.showTablesQuery(),
-          {
-            raw: true,
-            type: this.sequelize.QueryTypes.SHOWTABLES,
-          },
-        );
-        await this.sequelize.query('DROP DATABASE my_test_db');
-        if (tableNames[0] && tableNames[0].tableName) {
-          tableNames = tableNames.map(v => v.tableName);
-        }
-
-        tableNames.sort();
-
-        expect(tableNames).to.include('my_test_table1');
-        expect(tableNames).to.include('my_test_table2');
-      });
-    }
-  });
-
   describe('renameTable', () => {
     it('should rename table', async function () {
       await this.queryInterface.createTable('my_test_table', {
         name: DataTypes.STRING,
       });
       await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
-      let tableNames = await this.queryInterface.showAllTables();
-      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialectName)) {
-        tableNames = tableNames.map(v => v.tableName);
-      }
+      const result = await this.queryInterface.showAllTables();
+      const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.contain('my_test_table_new');
       expect(tableNames).to.not.contain('my_test_table');
@@ -133,30 +57,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('dropAllTables', () => {
     it('should drop all tables', async function () {
-      // MSSQL includes `spt_values` table which is system defined, hence can't be dropped
-      const showAllTablesIgnoringSpecialMSSQLTable = async () => {
-        const tableNames = await this.queryInterface.showAllTables();
-
-        return tableNames.filter(t => t.tableName !== 'spt_values');
-      };
-
       await this.queryInterface.dropAllTables();
-
-      expect(
-        await showAllTablesIgnoringSpecialMSSQLTable(),
-      ).to.be.empty;
+      const tableNames = await this.queryInterface.showAllTables();
+      expect(tableNames).to.be.empty;
 
       await this.queryInterface.createTable('table', { name: DataTypes.STRING });
-
-      expect(
-        await showAllTablesIgnoringSpecialMSSQLTable(),
-      ).to.have.length(1);
+      const tableNames1 = await this.queryInterface.showAllTables();
+      expect(tableNames1).to.have.length(1);
 
       await this.queryInterface.dropAllTables();
-
-      expect(
-        await showAllTablesIgnoringSpecialMSSQLTable(),
-      ).to.be.empty;
+      const tableNames2 = await this.queryInterface.showAllTables();
+      expect(tableNames2).to.be.empty;
     });
 
     it('should be able to skip given tables', async function () {
@@ -164,27 +75,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         name: DataTypes.STRING,
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
-      let tableNames = await this.queryInterface.showAllTables();
-      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialectName)) {
-        tableNames = tableNames.map(v => v.tableName);
-      }
+      const result = await this.queryInterface.showAllTables();
+      const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.contain('skipme');
     });
 
     it('should be able to drop a foreign key', async function () {
-      // MSSQL includes `spt_values` table which is system defined, hence can't be dropped
-      const showAllTablesIgnoringSpecialMSSQLTable = async () => {
-        const tableNames = await this.queryInterface.showAllTables();
-
-        return tableNames.filter(t => t.tableName !== 'spt_values');
-      };
-
       await this.queryInterface.dropAllTables();
 
-      expect(
-        await showAllTablesIgnoringSpecialMSSQLTable(),
-      ).to.be.empty;
+      const tableNames = await this.queryInterface.showAllTables();
+      expect(tableNames).to.be.empty;
 
       await this.queryInterface.createTable('users', {
         id: {
@@ -210,15 +111,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         onDelete: 'set null',
       });
 
-      expect(
-        await showAllTablesIgnoringSpecialMSSQLTable(),
-      ).to.have.length(2);
+      const tableNames1 = await this.queryInterface.showAllTables();
+      expect(tableNames1).to.have.length(2);
 
       await this.queryInterface.dropAllTables();
 
-      expect(
-        await showAllTablesIgnoringSpecialMSSQLTable(),
-      ).to.be.empty;
+      const tableNames2 = await this.queryInterface.showAllTables();
+      expect(tableNames2).to.be.empty;
     });
   });
 

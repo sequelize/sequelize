@@ -6,7 +6,11 @@ import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type {
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -15,6 +19,35 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalSchemaNames() {
+    return [
+      'db_accessadmin',
+      'db_backupoperator',
+      'db_datareader',
+      'db_datawriter',
+      'db_ddladmin',
+      'db_denydatareader',
+      'db_denydatawriter',
+      'db_owner',
+      'db_securityadmin',
+      'INFORMATION_SCHEMA',
+      'sys',
+    ];
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = ['dbo', 'guest', ...this._getTechnicalSchemaNames()];
+
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT [name] AS [schema] FROM sys.schemas',
+      `WHERE [name] NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -49,6 +82,17 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `AND prop.name = 'MS_Description'`,
       `WHERE t.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND t.TABLE_SCHEMA = ${this.escape(table.schema!)}`,
+    ]);
+  }
+
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT t.name AS [tableName], s.name AS [schema]',
+      `FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
+      options?.schema
+        ? `AND s.name = ${this.escape(options.schema)}`
+        : `AND s.name NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY s.name, t.name',
     ]);
   }
 

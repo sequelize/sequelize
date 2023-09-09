@@ -75,10 +75,6 @@ export class SqliteQuery extends AbstractQuery {
       }
     }
 
-    if (this.isShowTablesQuery()) {
-      return results.map(row => row.name);
-    }
-
     if (this.isShowConstraintsQuery()) {
       return result;
     }

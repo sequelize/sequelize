@@ -1,4 +1,4 @@
-import type { AbstractQueryInterface } from '@sequelize/core';
+import type { AbstractQueryInterface, TableNameWithSchema } from '@sequelize/core';
 import { DataTypes, Model, col, fn, literal } from '@sequelize/core';
 
 declare let queryInterface: AbstractQueryInterface;
@@ -80,7 +80,7 @@ async function test() {
     { schema: '<schema>', tableName: 'User' },
   );
 
-  const tableNames: string[] = await queryInterface.showAllTables();
+  const tableNames: TableNameWithSchema[] = await queryInterface.showAllTables();
 
   /*
   attributes will be something like:

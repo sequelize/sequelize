@@ -268,10 +268,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('uses the passed tableName', async function () {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       await Photo.sync({ force: true });
-      let tableNames = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialect)) {
-        tableNames = tableNames.map(v => v.tableName);
-      }
+      const result = await this.sequelize.getQueryInterface().showAllTables();
+      const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.include('photos');
     });

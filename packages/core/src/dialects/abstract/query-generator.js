@@ -6,7 +6,6 @@ import { Col } from '../../expression-builders/col.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
-import { rejectInvalidOptions } from '../../utils/check';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
@@ -37,7 +36,6 @@ const { BelongsToMany } = require('../../associations/belongs-to-many');
 const { HasMany } = require('../../associations/has-many');
 const { Op } = require('../../operators');
 const sequelizeError = require('../../errors');
-const { IndexHints } = require('../../index-hints');
 const { _validateIncludedElements } = require('../../model-internals');
 
 /**
@@ -47,9 +45,7 @@ const { _validateIncludedElements } = require('../../model-internals');
  */
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
 export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
-export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS = new Set(['skip']);
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'engine', 'rowFormat', 'comment', 'initialAutoIncrement', 'uniqueKeys']);
-export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['cascade']);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
 export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
 
@@ -97,30 +93,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  listSchemasQuery() {
-    if (this.dialect.supports.schemas) {
-      throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);
-    }
-
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  dropTableQuery(tableName, options) {
-    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
-
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)};`;
   }
 
   renameTableQuery(before, after) {
