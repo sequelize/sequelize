@@ -271,19 +271,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
-  removeColumnQuery(tableName, attributeName, options = {}) {
-    const ifExists = options.ifExists ? 'IF EXISTS' : '';
-
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP COLUMN',
-      ifExists,
-      this.quoteIdentifier(attributeName),
-      ';',
-    ]);
-  }
-
   changeColumnQuery(tableName, attributes) {
     const attrString = [];
     const constraintString = [];

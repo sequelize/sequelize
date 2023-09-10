@@ -176,16 +176,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return query;
   }
 
-  removeColumnQuery(tableName, attributeName, options) {
-    options = options || {};
-
-    const quotedTableName = this.quoteTable(tableName);
-    const quotedAttributeName = this.quoteIdentifier(attributeName);
-    const ifExists = options.ifExists ? ' IF EXISTS' : '';
-
-    return `ALTER TABLE ${quotedTableName} DROP COLUMN ${ifExists} ${quotedAttributeName};`;
-  }
-
   changeColumnQuery(tableName, attributes) {
     const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
     const sql = [];
