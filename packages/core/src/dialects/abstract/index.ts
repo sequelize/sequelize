@@ -229,6 +229,10 @@ export type DialectSupports = {
   truncate: {
     cascade: boolean,
   },
+  removeColumn: {
+    cascade: boolean,
+    ifExists: boolean,
+  },
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -365,6 +369,10 @@ export abstract class AbstractDialect {
     },
     truncate: {
       cascade: false,
+    },
+    removeColumn: {
+      cascade: false,
+      ifExists: false,
     },
   };
 

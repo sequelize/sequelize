@@ -6,6 +6,7 @@ import type {
   DropTableQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types';
@@ -98,6 +99,9 @@ export interface QiDropAllTablesOptions extends QiDropTableOptions {
 }
 
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}
+
+/** Options accepted by {@link AbstractQueryInterface#removeColumn} */
+export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#addConstraint} */
 export type AddConstraintOptions = AddConstraintQueryOptions & QueryRawOptions;
