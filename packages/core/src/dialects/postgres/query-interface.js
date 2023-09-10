@@ -149,32 +149,6 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
   }
 
   /**
-   * @override
-   */
-  async getForeignKeyReferencesForTable(table, options) {
-    const queryOptions = {
-      ...options,
-      type: QueryTypes.FOREIGNKEYS,
-    };
-
-    // postgres needs some special treatment as those field names returned are all lowercase
-    // in order to keep same result with other dialects.
-    const query = this.queryGenerator.getForeignKeyReferencesQuery(table.tableName || table, this.sequelize.config.database);
-    const result = await this.sequelize.queryRaw(query, queryOptions);
-
-    return result.map(fkMeta => {
-      const { initiallyDeferred, isDeferrable, ...remaining } = camelizeObjectKeys(fkMeta);
-
-      return {
-        ...remaining,
-        deferrable: isDeferrable === 'NO' ? Deferrable.NOT
-          : initiallyDeferred === 'NO' ? Deferrable.INITIALLY_IMMEDIATE
-          : Deferrable.INITIALLY_DEFERRED,
-      };
-    });
-  }
-
-  /**
    * Drop specified enum from database (Postgres only)
    *
    * @param {string} [enumName]  Enum name to drop

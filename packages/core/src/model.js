@@ -764,7 +764,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     let tableExists;
     if (options.force) {
-      await this.drop(options);
+      await this.drop({ ...options, cascade: this.sequelize.dialect.supports.dropTable.cascade || undefined });
       tableExists = false;
     } else {
       tableExists = await this.queryInterface.tableExists(tableName, options);
@@ -780,7 +780,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (tableExists && options.alter) {
       const tableInfos = await Promise.all([
         this.queryInterface.describeTable(tableName, options),
-        this.queryInterface.getForeignKeyReferencesForTable(tableName, options),
+        this.queryInterface.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' }),
       ]);
 
       const columns = tableInfos[0];
@@ -825,11 +825,11 @@ ${associationOwner._getAssociationDebugList()}`);
             // Find existed foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
-              if ((Boolean(constraintName)
+              if ((constraintName
                 && (foreignKeyReference.tableCatalog ? foreignKeyReference.tableCatalog === database : true)
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
                 && foreignKeyReference.referencedTableName === foreignReferenceTableName
-                && foreignKeyReference.referencedColumnName === references.key
+                && foreignKeyReference.referencedColumnNames.includes(references.key)
                 && (foreignReferenceSchema
                     ? foreignKeyReference.referencedTableSchema === foreignReferenceSchema
                     : true)
@@ -884,7 +884,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async drop(options) {
-    return await this.queryInterface.dropTable(this.getTableName(options), options);
+    return await this.queryInterface.dropTable(this, options);
   }
 
   /**

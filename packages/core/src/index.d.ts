@@ -85,7 +85,7 @@ export { List } from './expression-builders/list.js';
 export { Value } from './expression-builders/value.js';
 export { Identifier } from './expression-builders/identifier.js';
 export { Attribute } from './expression-builders/attribute.js';
-export { JsonPath } from './expression-builders/json-path.js';
+export { JsonPath, jsonPath } from './expression-builders/json-path.js';
 export { AssociationPath } from './expression-builders/association-path.js';
 
 // All functions are available on sql.x, but these are exported for backwards compatibility

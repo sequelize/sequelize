@@ -27,26 +27,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
   }
 
-  // TODO: typescript - protected
-  _getTechnicalSchemaNames() {
-    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema'];
-  }
-
-  listSchemasQuery(options) {
-    const schemasToSkip = this._getTechnicalSchemaNames();
-
-    if (Array.isArray(options?.skip)) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return joinSQLFragments([
-      'SELECT SCHEMA_NAME as schema_name',
-      'FROM INFORMATION_SCHEMA.SCHEMATA',
-      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
-      ';',
-    ]);
-  }
-
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',
@@ -125,19 +105,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
       ';',
     ]);
-  }
-
-  showTablesQuery(schemaName) {
-    let query = 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
-    if (schemaName) {
-      query += ` AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
-    } else {
-      const technicalSchemas = this._getTechnicalSchemaNames();
-
-      query += ` AND TABLE_SCHEMA NOT IN (${technicalSchemas.map(schema => this.escape(schema)).join(', ')})`;
-    }
-
-    return `${query};`;
   }
 
   addColumnQuery(table, key, dataType, options = {}) {
@@ -318,23 +285,5 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     }
 
     return result;
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP FOREIGN KEY',
-      this.quoteIdentifier(foreignKey),
-      ';',
-    ]);
   }
 }
