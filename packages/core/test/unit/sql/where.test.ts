@@ -1,6 +1,4 @@
 import util from 'node:util';
-// eslint-disable-next-line import-newlines/enforce, import/order
-import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
 import attempt from 'lodash/attempt';
@@ -17,6 +15,9 @@ import type {
   WhereOptions,
 } from '@sequelize/core';
 import { DataTypes, Model, Op, and, json, or, sql } from '@sequelize/core';
+import type {
+  FormatWhereOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
 import { createTester, expectsql, getTestDialectTeaser, sequelize } from '../../support';
 
 const { literal, col, where, fn, cast, attribute } = sql;
