@@ -248,7 +248,7 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
         : underscoredIf(this.options.name.plural, this.underscored);
     }
 
-    this.#table = Object.freeze(this.sequelize.queryInterface.queryGenerator.extractTableDetails(removeUndefined({
+    this.#table = Object.freeze(this.sequelize.queryGenerator.extractTableDetails(removeUndefined({
       tableName: this.options.tableName,
       schema: this.options.schema,
       delimiter: this.options.schemaDelimiter,

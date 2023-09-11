@@ -20,7 +20,7 @@ export class PostgresQuery extends AbstractQuery {
     const { connection } = this;
 
     if (!isEmpty(this.options.searchPath)) {
-      sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
+      sql = this.sequelize.queryGenerator.setSearchPath(this.options.searchPath) + sql;
     }
 
     if (options?.minifyAliases && this.options.includeAliases) {
@@ -132,7 +132,7 @@ export class PostgresQuery extends AbstractQuery {
         // Map column index in table to column name
         const columns = zipObject(
           row.column_indexes,
-          this.sequelize.getQueryInterface().queryGenerator.fromArray(row.column_names),
+          this.sequelize.queryGenerator.fromArray(row.column_names),
         );
         delete row.column_indexes;
         delete row.column_names;
@@ -212,7 +212,7 @@ export class PostgresQuery extends AbstractQuery {
           allowNull: row.Null === 'YES',
           defaultValue: row.Default,
           comment: row.Comment,
-          special: row.special ? this.sequelize.getQueryInterface().queryGenerator.fromArray(row.special) : [],
+          special: row.special ? this.sequelize.queryGenerator.fromArray(row.special) : [],
           primaryKey: row.Constraint === 'PRIMARY KEY',
         };
 

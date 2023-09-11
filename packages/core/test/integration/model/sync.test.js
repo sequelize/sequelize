@@ -601,7 +601,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       await sequelize.sync({ alter: true });
 
       const results = await sequelize
-        .getQueryInterface()
+        .queryInterface
         .showConstraints(BelongsToUser, { constraintType: 'FOREIGN KEY' });
       expect(results).to.have.length(1);
       await sequelize.dropSchema(schema);
@@ -628,7 +628,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       await sequelize.sync({ alter: true });
       await sequelize.sync({ alter: true });
       const results = await sequelize
-        .getQueryInterface()
+        .queryInterface
         .showConstraints(BelongsToUser, { constraintType: 'FOREIGN KEY' });
       expect(results).to.have.length(1);
     });
@@ -654,7 +654,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 });
 
 async function getNonPrimaryIndexes(model) {
-  return (await sequelize.getQueryInterface().showIndex(model.getTableName()))
+  return (await sequelize.queryInterface.showIndex(model.getTableName()))
     .filter(r => !r.primary)
     .sort((a, b) => a.name.localeCompare(b.name));
 }

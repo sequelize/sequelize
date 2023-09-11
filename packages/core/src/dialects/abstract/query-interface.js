@@ -73,7 +73,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async dropAllSchemas(options) {
     options = options || {};
 
-    if (!this.queryGenerator.dialect.supports.schemas) {
+    if (!this.sequelize.dialect.supports.schemas) {
       return this.sequelize.drop(options);
     }
 
@@ -140,7 +140,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options = { ...options };
 
     // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query
-    if (model && this.queryGenerator.dialect.name !== 'sqlite') {
+    if (model && this.sequelize.dialect.name !== 'sqlite') {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 

@@ -43,7 +43,7 @@ describe('QueryGenerator#dropTableQuery', () => {
 
   it('produces a query that drops a table from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectsql(() => queryGeneratorSchema.dropTableQuery('myTable'), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,

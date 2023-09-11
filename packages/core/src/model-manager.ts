@@ -59,7 +59,7 @@ export class ModelManager {
     const models = new Map();
     const sorter = new Toposort();
 
-    const queryGenerator = this.#sequelize.queryInterface.queryGenerator;
+    const queryGenerator = this.#sequelize.queryGenerator;
 
     for (const model of this.models) {
       let deps = [];

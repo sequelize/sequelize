@@ -6,7 +6,7 @@ const dialectName = getTestDialect();
 const notSupportedError = new Error(`removeColumnQuery is not supported in ${dialectName}.`);
 
 describe('QueryGenerator#removeColumnQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('generates a query that drops a column', () => {
     expectsql(() => queryGenerator.removeColumnQuery('myTable', 'myColumn'), {
@@ -53,7 +53,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
 
   it('generates a query that drops a column from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectsql(() => queryGeneratorSchema.removeColumnQuery('myTable', 'myColumn'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP COLUMN [myColumn];',
