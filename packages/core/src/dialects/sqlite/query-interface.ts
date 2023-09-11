@@ -83,11 +83,14 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
         throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
-      const indexes = await this.showIndex(tableName, options);
+      // This is handled by copying indexes over,
+      // we don't use "unique" because it creates an index with a name
+      // we can't control
       for (const column of Object.values(data)) {
         column.unique = false;
       }
 
+      const indexes = await this.showIndex(tableName, options);
       for (const index of indexes) {
         for (const field of index.fields) {
           if (index.unique !== undefined) {
@@ -96,6 +99,8 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
         }
       }
 
+      // Sqlite requires the foreign keys added to the column definitions
+      // when describing a table as this is required in the replaceTableQuery
       const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
       for (const foreignKey of foreignKeys) {
         for (const [index, columnName] of foreignKey.columnNames!.entries()) {
