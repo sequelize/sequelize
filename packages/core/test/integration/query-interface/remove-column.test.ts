@@ -148,10 +148,8 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
         },
       });
 
-      await Promise.all([
-        queryInterface.bulkInsert('level', [{ name: 'L1' }, { name: 'L2' }, { name: 'L3' }]),
-        queryInterface.bulkInsert('actors', [{ name: 'Keanu Reeves', level_id: 2 }, { name: 'Laurence Fishburne', level_id: 1 }]),
-      ]);
+      await queryInterface.bulkInsert('level', [{ name: 'L1' }, { name: 'L2' }, { name: 'L3' }]);
+      await queryInterface.bulkInsert('actors', [{ name: 'Keanu Reeves', level_id: 2 }, { name: 'Laurence Fishburne', level_id: 1 }]);
 
       await queryInterface.removeColumn('level', 'name');
 
