@@ -3,13 +3,16 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { RemoveColumnQueryOptions } from '../abstract/query-generator';
 import {
   LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ListTablesQueryOptions, ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type {
+  ListTablesQueryOptions,
+  RemoveColumnQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
 import type { ColumnsDescription } from '../abstract/query-interface.types';
 
 const LIST_TABLES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListTablesQueryOptions>();

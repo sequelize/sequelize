@@ -19,18 +19,11 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
   * @override
   */
   async removeColumn(tableName, columnName, options) {
-    options = { raw: true, ...options };
+    const allConstraints = await this.showConstraints(tableName, { ...options, columnName });
+    const constraints = allConstraints.filter(constraint => ['DEFAULT', 'FOREIGN KEY', 'PRIMARY KEY'].includes(constraint.constraintType));
+    await Promise.all(constraints.map(constraint => this.removeConstraint(tableName, constraint.constraintName, options)));
 
-    const constraints = await this.showConstraints(tableName, { ...options, columnName });
-    for (const constraint of constraints) {
-      if (['DEFAULT', 'FOREIGN KEY', 'PRIMARY KEY'].includes(constraint.constraintType)) {
-        await this.removeConstraint(tableName, constraint.constraintName, options);
-      }
-    }
-
-    const removeSql = this.queryGenerator.removeColumnQuery(tableName, columnName);
-
-    return this.sequelize.queryRaw(removeSql, options);
+    await super.removeColumn(tableName, columnName, options);
   }
 
   /**

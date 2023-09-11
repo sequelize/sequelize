@@ -17,15 +17,10 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
    * @override
    */
   async removeColumn(tableName, columnName, options) {
-    options = options || {};
-
     const foreignKeys = await this.showConstraints(tableName, { ...options, columnName, constraintType: 'FOREIGN KEY' });
     await Promise.all(foreignKeys.map(constraint => this.removeConstraint(tableName, constraint.constraintName, options)));
 
-    return await this.sequelize.queryRaw(
-      this.queryGenerator.removeColumnQuery(tableName, columnName),
-      { raw: true, ...options },
-    );
+    await super.removeColumn(tableName, columnName, options);
   }
 
   /**

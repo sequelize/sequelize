@@ -142,26 +142,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     ]);
   }
 
-  removeColumnQuery(tableName, attributeName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP',
-      this.quoteIdentifier(attributeName),
-      ';',
-    ]);
-  }
-
   changeColumnQuery(tableName, attributes) {
     const attrString = [];
     const constraintString = [];

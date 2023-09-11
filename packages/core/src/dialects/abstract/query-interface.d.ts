@@ -16,7 +16,7 @@ import type { IsolationLevel, Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
-import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
+import type { AbstractQueryGenerator, AddColumnQueryOptions } from './query-generator.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { QiDropAllSchemasOptions } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -213,8 +213,6 @@ export interface IndexDescription {
 
 export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable { }
 
-export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions, Replaceable { }
-
 export interface CreateTableAttributeOptions<M extends Model = Model>
   extends AttributeOptions<M> {
   /**
@@ -293,15 +291,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     key: string,
     attribute: AttributeOptions | DataType,
     options?: AddColumnOptions
-  ): Promise<void>;
-
-  /**
-   * Removes a column from a table
-   */
-  removeColumn(
-    table: TableName,
-    attribute: string,
-    options?: RemoveColumnOptions,
   ): Promise<void>;
 
   /**

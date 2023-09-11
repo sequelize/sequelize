@@ -130,19 +130,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     ]);
   }
 
-  removeColumnQuery(tableName, attributeName, options = {}) {
-    const ifExists = options.ifExists ? 'IF EXISTS' : '';
-
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP',
-      ifExists,
-      this.quoteIdentifier(attributeName),
-      ';',
-    ]);
-  }
-
   changeColumnQuery(tableName, attributes) {
     const attrString = [];
     const constraintString = [];
