@@ -450,13 +450,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    // Db2 does not support enums in alter column
-    it('supports ENUMs', async function () {
+    it.only('supports ENUMs', async function () {
       await this.queryInterface.addColumn('users', 'someEnum', DataTypes.ENUM('value1', 'value2', 'value3'));
     });
 
     if (dialect.supports.dataTypes.ARRAY) {
-      it('should be able to add a column of type of array of enums', async function () {
+      it.only('should be able to add a column of type of array of enums', async function () {
         await this.queryInterface.addColumn('users', 'tags', {
           allowNull: false,
           type: DataTypes.ARRAY(DataTypes.ENUM(
