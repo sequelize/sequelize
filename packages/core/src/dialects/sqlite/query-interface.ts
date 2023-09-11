@@ -83,7 +83,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
         throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
       }
 
-      const indexes = await this.showIndex(tableName, { ...options });
+      const indexes = await this.showIndex(tableName, options);
       for (const column of Object.values(data)) {
         column.unique = false;
       }
@@ -130,8 +130,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
       throw new Error('Constraint type must be specified through options.type');
     }
 
-    const constraintOptions = { ...options };
-    const constraintSnippet = this.queryGenerator._getConstraintSnippet(tableName, constraintOptions);
+    const constraintSnippet = this.queryGenerator._getConstraintSnippet(tableName, options);
     const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
     const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, {
       ...options,
@@ -415,10 +414,10 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     removeColumn: string,
     options?: RemoveColumnOptions,
   ): Promise<void> {
-    const fields = await this.describeTable(tableName, { ...options });
+    const fields = await this.describeTable(tableName, options);
     delete fields[removeColumn];
 
-    await this.#internalQueryInterface.alterTableInternal(tableName, fields, { ...options });
+    await this.#internalQueryInterface.alterTableInternal(tableName, fields, options);
   }
 
   /**
@@ -437,7 +436,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
     dataTypeOrOptions: DataType | AttributeOptions,
     options?: QueryRawOptions,
   ): Promise<void> {
-    const columns = await this.describeTable(tableName, { ...options });
+    const columns = await this.describeTable(tableName, options);
     for (const column of Object.values(columns)) {
       // This is handled by copying indexes over,
       // we don't use "unique" because it creates an index with a name
@@ -447,7 +446,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
 
     Object.assign(columns[columnName], this.sequelize.normalizeAttribute(dataTypeOrOptions));
 
-    await this.#internalQueryInterface.alterTableInternal(tableName, columns, { ...options });
+    await this.#internalQueryInterface.alterTableInternal(tableName, columns, options);
   }
 
   /**
