@@ -3,6 +3,39 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.28](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.27...v7.0.0-alpha.28) (2023-09-11)
+
+
+### Bug Fixes
+
+* allow bind parameters in array literal ([#16328](https://github.com/sequelize/sequelize/issues/16328)) ([4d624fd](https://github.com/sequelize/sequelize/commit/4d624fd37e84a0b9215bac0b0a1ab85892a81cef))
+* build on windows machines ([#16211](https://github.com/sequelize/sequelize/issues/16211)) ([808adeb](https://github.com/sequelize/sequelize/commit/808adebebdaadb81644fd927a3bb146ce472e142))
+* **db2:** use docker compose & set default schema as username ([#16307](https://github.com/sequelize/sequelize/issues/16307)) ([c59011c](https://github.com/sequelize/sequelize/commit/c59011cad93e8fe3ae80c9139de98a541ba9e5c6))
+* **mssql:** return aggregated error instead of last error ([#16188](https://github.com/sequelize/sequelize/issues/16188)) ([dea29f7](https://github.com/sequelize/sequelize/commit/dea29f79e180ac1ec7c0392175c3f38ac156f40a))
+* outaded link on unsupported engines warning ([#16435](https://github.com/sequelize/sequelize/issues/16435)) ([b376ac2](https://github.com/sequelize/sequelize/commit/b376ac22defb9aec7a969c96f22ae01686fc12ae))
+* rename `clsTransactionNestMode` ➡️ `defaultTransactionNestMode`; `ClsTransactionOptions` ➡️ `ManagedTransactionOptions` ([#16174](https://github.com/sequelize/sequelize/issues/16174)) ([8637a46](https://github.com/sequelize/sequelize/commit/8637a4609505de6cecdfd91999c43ae71e7b065d))
+* support array of tableHints and allow joins to use tableHints ([#16242](https://github.com/sequelize/sequelize/issues/16242)) ([c081850](https://github.com/sequelize/sequelize/commit/c081850f6c87728ff25645529c19342419a127fa))
+* **types:** allow Op.contains on a jsonb column ([#16167](https://github.com/sequelize/sequelize/issues/16167)) ([70c2bf5](https://github.com/sequelize/sequelize/commit/70c2bf505a6aa88a43ec46383cbb094f88939385))
+
+
+### Features
+
+* add constraint filters ([#16199](https://github.com/sequelize/sequelize/issues/16199)) ([a734bab](https://github.com/sequelize/sequelize/commit/a734babe0bf989389a4775597b3615404dce9d6c))
+* **mariadb:** split MariaDB from MySQL ([#16200](https://github.com/sequelize/sequelize/issues/16200)) ([7022c48](https://github.com/sequelize/sequelize/commit/7022c48214901aadceca87709835ee1f5bb36bfc))
+* migrate constraints to typescript ([#15962](https://github.com/sequelize/sequelize/issues/15962)) ([0e17c07](https://github.com/sequelize/sequelize/commit/0e17c07b93e139aafbab470f88847affceec23a7))
+* migrate table queries to typescript ([#16452](https://github.com/sequelize/sequelize/issues/16452)) ([c67db53](https://github.com/sequelize/sequelize/commit/c67db5333eff930032ae03a52744600a9fd1b782))
+* migrate tableExists to typescript ([#16320](https://github.com/sequelize/sequelize/issues/16320)) ([5167e88](https://github.com/sequelize/sequelize/commit/5167e880abe9bb6f5338815149a838e7f23a1b59))
+* migrate version queries to typescript ([#16153](https://github.com/sequelize/sequelize/issues/16153)) ([37dbf08](https://github.com/sequelize/sequelize/commit/37dbf081b7514064b53a9b16ae93987e2c5d0264))
+* **sqlite:** split SQLite from MySQL ([#16201](https://github.com/sequelize/sequelize/issues/16201)) ([789b690](https://github.com/sequelize/sequelize/commit/789b6900e5682792382d860a190249c16e4e3931))
+* **types:** migrate model-manager to TypeScript ([#16070](https://github.com/sequelize/sequelize/issues/16070)) ([605150e](https://github.com/sequelize/sequelize/commit/605150e2379f8b141f7b3353c44ac12d348d0883))
+* **types:** restrict attributes typing ([#15607](https://github.com/sequelize/sequelize/issues/15607)) ([0012466](https://github.com/sequelize/sequelize/commit/0012466cc44c364d77b7fa8fd0e251a642375370))
+* unify constraint queries ([#16187](https://github.com/sequelize/sequelize/issues/16187)) ([62a59b0](https://github.com/sequelize/sequelize/commit/62a59b016b77e37c6ffee5b15eaaedde79992fb9))
+* update to TypeScript 5.2, drop support TS 4.8 ([#16412](https://github.com/sequelize/sequelize/issues/16412)) ([875a84e](https://github.com/sequelize/sequelize/commit/875a84e062fafb61f19f657e5e0912988177bd62))
+
+
+
+
+
 # [7.0.0-alpha.27](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.26...v7.0.0-alpha.27) (2023-06-21)
 
 
