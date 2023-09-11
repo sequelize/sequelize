@@ -292,6 +292,14 @@ export interface Options extends Logging {
   keepDefaultTimezone?: boolean;
 
   /**
+   * The precision for the `createdAt`/`updatedAt`/`deletedAt` DATETIME columns that Sequelize adds to models.
+   * Can be a number between 0 and 6, or null to use the default precision of the database. Defaults to 6.
+   *
+   * @default 6
+   */
+  defaultTimestampPrecision?: number | null;
+
+  /**
    * A flag that defines if null values should be passed to SQL queries or not.
    *
    * @default false
@@ -462,6 +470,7 @@ export interface NormalizedOptions extends RequiredBy<Options,
   | 'timezone'
   | 'disableClsTransactions'
   | 'defaultTransactionNestMode'
+  | 'defaultTimestampPrecision'
 > {
   readonly replication: NormalizedReplicationOptions;
 }
