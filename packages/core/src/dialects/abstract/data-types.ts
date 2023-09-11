@@ -1920,7 +1920,6 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
  * __Fallback policy:__
  * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a GUID format.
  *
- *
  * @example
  * ```ts
  * const User = sequelize.define('User', {

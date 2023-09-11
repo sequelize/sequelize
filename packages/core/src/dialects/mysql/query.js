@@ -2,9 +2,12 @@
 
 import NodeUtil from 'node:util';
 
+import forOwn from 'lodash/forOwn';
+import map from 'lodash/map';
+import zipObject from 'lodash/zipObject';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
 const ER_DUP_ENTRY = 1062;
@@ -122,10 +125,6 @@ export class MySqlQuery extends AbstractQuery {
       return this.handleSelectQuery(data);
     }
 
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
-    }
-
     if (this.isDescribeQuery()) {
       result = {};
 
@@ -155,14 +154,6 @@ export class MySqlQuery extends AbstractQuery {
 
     if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery()) {
       return data.affectedRows;
-    }
-
-    if (this.isVersionQuery()) {
-      return data[0].version;
-    }
-
-    if (this.isForeignKeysQuery()) {
-      return data;
     }
 
     if (this.isUpsertQuery()) {
@@ -203,13 +194,13 @@ export class MySqlQuery extends AbstractQuery {
             message = uniqueKey.msg;
           }
 
-          fields = _.zipObject(uniqueKey.fields, values);
+          fields = zipObject(uniqueKey.fields, values);
         } else {
           fields[fieldKey] = fieldVal;
         }
 
         const errors = [];
-        _.forOwn(fields, (value, field) => {
+        forOwn(fields, (value, field) => {
           errors.push(new sequelizeErrors.ValidationErrorItem(
             this.getUniqueConstraintErrorMessage(field),
             'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -247,13 +238,6 @@ export class MySqlQuery extends AbstractQuery {
     }
   }
 
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => ({
-      tableName: resultSet.TABLE_NAME,
-      schema: resultSet.TABLE_SCHEMA,
-    }));
-  }
-
   handleShowIndexesQuery(data) {
     // Group by index name, and collect all fields
     data = data.reduce((acc, item) => {
@@ -278,7 +262,7 @@ export class MySqlQuery extends AbstractQuery {
       return acc;
     }, {});
 
-    return _.map(data, item => {
+    return map(data, item => {
       return ({
         primary: item.Key_name === 'PRIMARY',
         fields: item.fields,

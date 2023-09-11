@@ -6,7 +6,7 @@ const dialectName = dialect.name;
 const notSupportedError = new Error(`JSON Paths are not supported in ${dialectName}.`);
 
 describe('QueryGenerator#jsonPathExtractionQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   if (dialect.supports.jsonExtraction.quoted) {
     it('creates a json extract operation (object)', () => {

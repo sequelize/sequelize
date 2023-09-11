@@ -13,9 +13,14 @@ import {
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
+import each from 'lodash/each';
+import isEmpty from 'lodash/isEmpty';
+import isPlainObject from 'lodash/isPlainObject';
+import map from 'lodash/map';
+import reduce from 'lodash/reduce';
+
 const DataTypes = require('../../data-types');
 const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const _ = require('lodash');
 
 /**
  * list of reserved words in PostgreSQL 10
@@ -81,19 +86,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
-  listSchemasQuery(options) {
-    const schemasToSkip = ['information_schema', 'public'];
-    if (options?.skip) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
-  }
-
-  versionQuery() {
-    return 'SHOW SERVER_VERSION';
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -134,7 +126,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let attributesClause = attrStr.join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (index, indexName) => {
+      each(options.uniqueKeys, (index, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = generateIndexName(tableName, index);
         }
@@ -148,7 +140,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       });
     }
 
-    const pks = _.reduce(attributes, (acc, attribute, key) => {
+    const pks = reduce(attributes, (acc, attribute, key) => {
       if (attribute.includes('PRIMARY KEY')) {
         acc.push(this.quoteIdentifier(key));
       }
@@ -161,33 +153,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return `CREATE TABLE IF NOT EXISTS ${quotedTable} (${attributesClause})${comments}${columnComments};`;
-  }
-
-  dropTableQuery(tableName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}${options?.cascade ? ' CASCADE' : ''};`;
-  }
-
-  showTablesQuery() {
-    const schema = this.options.schema || 'public';
-
-    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`;
-  }
-
-  tableExistsQuery(tableName) {
-    const table = tableName.tableName || tableName;
-    const schema = tableName.schema || 'public';
-
-    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
   }
 
   addColumnQuery(table, key, attribute, options) {
@@ -329,23 +294,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `DELETE FROM ${table}${whereClause}`;
   }
 
-  showConstraintsQuery(tableName) {
-    // Postgres converts camelCased alias to lowercase unless quoted
-    return [
-      'SELECT constraint_catalog AS "constraintCatalog",',
-      'constraint_schema AS "constraintSchema",',
-      'constraint_name AS "constraintName",',
-      'table_catalog AS "tableCatalog",',
-      'table_schema AS "tableSchema",',
-      'table_name AS "tableName",',
-      'constraint_type AS "constraintType",',
-      'is_deferrable AS "isDeferrable",',
-      'initially_deferred AS "initiallyDeferred"',
-      'from INFORMATION_SCHEMA.table_constraints',
-      `WHERE table_name=${this.escape(tableName)};`,
-    ].join(' ');
-  }
-
   addLimitAndOffset(options) {
     let fragment = '';
     if (options.limit != null) {
@@ -360,7 +308,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };
@@ -451,7 +399,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         }
 
         if (attribute.references.deferrable) {
-          sql += ` ${attribute.references.deferrable.toSql(this)}`;
+          sql += ` ${this._getDeferrableConstraintSnippet(attribute.references.deferrable)}`;
         }
       }
     }
@@ -469,28 +417,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return sql;
-  }
-
-  deferConstraintsQuery(options) {
-    return options.deferrable.toSql(this);
-  }
-
-  setConstraintQuery(columns, type) {
-    let columnFragment = 'ALL';
-
-    if (columns?.length) {
-      columnFragment = columns.map(column => this.quoteIdentifier(column)).join(', ');
-    }
-
-    return `SET CONSTRAINTS ${columnFragment} ${type}`;
-  }
-
-  setDeferredQuery(columns) {
-    return this.setConstraintQuery(columns, 'DEFERRED');
-  }
-
-  setImmediateQuery(columns) {
-    return this.setConstraintQuery(columns, 'IMMEDIATE');
   }
 
   attributesToSQL(attributes, options) {
@@ -609,7 +535,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   expandOptions(options) {
-    return options === undefined || _.isEmpty(options)
+    return options === undefined || isEmpty(options)
       ? '' : options.join(' ');
   }
 
@@ -633,11 +559,11 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   expandTriggerEventSpec(fireOnSpec) {
-    if (_.isEmpty(fireOnSpec)) {
+    if (isEmpty(fireOnSpec)) {
       throw new Error('no table change events specified to trigger on');
     }
 
-    return _.map(fireOnSpec, (fireValue, fireKey) => {
+    return map(fireOnSpec, (fireValue, fireKey) => {
       const EVENT_MAP = {
         insert: 'INSERT',
         update: 'UPDATE',
@@ -772,70 +698,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return dataType;
-  }
-
-  /**
-   * Generate common SQL prefix for getForeignKeyReferencesQuery.
-   *
-   * @returns {string}
-   */
-  _getForeignKeyReferencesQueryPrefix() {
-    return 'SELECT '
-      + 'DISTINCT tc.constraint_name as constraint_name, '
-      + 'tc.constraint_schema as constraint_schema, '
-      + 'tc.constraint_catalog as constraint_catalog, '
-      + 'tc.table_name as table_name,'
-      + 'tc.table_schema as table_schema,'
-      + 'tc.table_catalog as table_catalog,'
-      + 'tc.initially_deferred as initially_deferred,'
-      + 'tc.is_deferrable as is_deferrable,'
-      + 'kcu.column_name as column_name,'
-      + 'ccu.table_schema  AS referenced_table_schema,'
-      + 'ccu.table_catalog  AS referenced_table_catalog,'
-      + 'ccu.table_name  AS referenced_table_name,'
-      + 'ccu.column_name AS referenced_column_name '
-      + 'FROM information_schema.table_constraints AS tc '
-      + 'JOIN information_schema.key_column_usage AS kcu '
-      + 'ON tc.constraint_name = kcu.constraint_name '
-      + 'JOIN information_schema.constraint_column_usage AS ccu '
-      + 'ON ccu.constraint_name = tc.constraint_name ';
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys details of a table.
-   *
-   * As for getForeignKeyQuery is not compatible with getForeignKeyReferencesQuery, so add a new function.
-   *
-   * @param {string} tableName
-   * @param {string} catalogName
-   * @param {string} schemaName
-   */
-  getForeignKeyReferencesQuery(tableName, catalogName, schemaName) {
-    return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name = '${tableName}'${
-      catalogName ? ` AND tc.table_catalog = '${catalogName}'` : ''
-    }${schemaName ? ` AND tc.table_schema = '${schemaName}'` : ''}`;
-  }
-
-  getForeignKeyReferenceQuery(table, columnName) {
-    const tableName = table.tableName || table;
-    const schema = table.schema;
-
-    return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='${tableName}' AND  kcu.column_name = '${columnName}'${
-      schema ? ` AND tc.table_schema = '${schema}'` : ''}`;
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return `ALTER TABLE ${this.quoteTable(tableName)} DROP CONSTRAINT ${this.quoteIdentifier(foreignKey)};`;
   }
 
   /**

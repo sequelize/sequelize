@@ -1,11 +1,12 @@
 'use strict';
 
+const cloneDeep = require('lodash/cloneDeep');
+
 const { expect, assert } = require('chai');
 const Support = require('./support');
 const { DataTypes, Transaction, Sequelize, literal } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
-const _ = require('lodash');
 const { Config: config } = require('../config/config');
 const sinon = require('sinon');
 
@@ -267,10 +268,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('uses the passed tableName', async function () {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       await Photo.sync({ force: true });
-      let tableNames = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialect)) {
-        tableNames = tableNames.map(v => v.tableName);
-      }
+      const result = await this.sequelize.queryInterface.showAllTables();
+      const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.include('photos');
     });
@@ -540,7 +539,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       ]) {
 
         it('should be able to override options on the default attributes', async function () {
-          const Picture = this.sequelize.define('picture', _.cloneDeep(customAttributes));
+          const Picture = this.sequelize.define('picture', cloneDeep(customAttributes));
           await Picture.sync({ force: true });
           for (const attribute of Object.keys(customAttributes)) {
             for (const option of Object.keys(customAttributes[attribute])) {
@@ -581,7 +580,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const TransactionTest = vars.sequelizeWithTransaction.define('TransactionTest', { name: DataTypes.STRING }, { timestamps: false });
 
             const count = async transaction => {
-              const sql = vars.sequelizeWithTransaction.getQueryInterface().queryGenerator.selectQuery('TransactionTests', { attributes: [[literal('count(*)'), 'cnt']] });
+              const sql = vars.sequelizeWithTransaction.queryGenerator.selectQuery('TransactionTests', { attributes: [[literal('count(*)'), 'cnt']] });
 
               const result = await vars.sequelizeWithTransaction.query(sql, { plain: true, transaction });
 
@@ -605,7 +604,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             const aliasesMapping = new Map([['_0', 'cnt']]);
 
             const count = async transaction => {
-              const sql = vars.sequelizeWithTransaction.getQueryInterface().queryGenerator.selectQuery('TransactionTests', { attributes: [[literal('count(*)'), 'cnt']] });
+              const sql = vars.sequelizeWithTransaction.queryGenerator.selectQuery('TransactionTests', { attributes: [[literal('count(*)'), 'cnt']] });
 
               const result = await vars.sequelizeWithTransaction.query(sql, { plain: true, transaction, aliasesMapping });
 

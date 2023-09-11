@@ -3,6 +3,8 @@ import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
 import type { AbstractConnectionManager, Connection, GetConnectionOptions } from './dialects/abstract/connection-manager.js';
 import type { AbstractDialect } from './dialects/abstract/index.js';
+import type { EscapeOptions } from './dialects/abstract/query-generator-typescript.js';
+import type { QiDropAllSchemasOptions } from './dialects/abstract/query-interface.types.js';
 import type { AbstractQuery } from './dialects/abstract/query.js';
 import {
   legacyBuildAddAnyHook,
@@ -17,8 +19,8 @@ import type { ModelHooks } from './model-hooks.js';
 import { validModelHooks } from './model-hooks.js';
 import { setTransactionFromCls } from './model-internals.js';
 import type { ModelManager } from './model-manager.js';
-import type { ConnectionOptions, NormalizedOptions, Options, Sequelize } from './sequelize.js';
-import type { ClsTransactionOptions, TransactionOptions } from './transaction.js';
+import type { ConnectionOptions, NormalizedOptions, Options, QueryRawOptions, Sequelize } from './sequelize.js';
+import type { ManagedTransactionOptions, TransactionOptions } from './transaction.js';
 import {
   Transaction,
   TransactionNestMode,
@@ -27,12 +29,13 @@ import {
 } from './transaction.js';
 import type { PartialBy } from './utils/types.js';
 import type {
-  AbstractQueryInterface,
+  CreateSchemaOptions,
   DestroyOptions,
   ModelAttributes,
   ModelOptions,
   ModelStatic,
   QueryOptions,
+  ShowAllSchemasOptions,
   SyncOptions,
   TruncateOptions,
 } from '.';
@@ -152,7 +155,6 @@ export abstract class SequelizeTypeScript {
   // created by the Sequelize subclass. Will eventually be migrated here.
   abstract readonly modelManager: ModelManager;
   abstract readonly dialect: AbstractDialect;
-  abstract readonly queryInterface: AbstractQueryInterface;
   declare readonly connectionManager: AbstractConnectionManager;
   declare readonly options: NormalizedOptions;
 
@@ -246,6 +248,20 @@ export abstract class SequelizeTypeScript {
 
   #transactionCls: AsyncLocalStorage<Transaction> | undefined;
 
+  /**
+   * The QueryInterface instance, dialect dependant.
+   */
+  get queryInterface() {
+    return this.dialect.queryInterface;
+  }
+
+  /**
+   * The QueryGenerator instance, dialect dependant.
+   */
+  get queryGenerator() {
+    return this.dialect.queryGenerator;
+  }
+
   private _setupTransactionCls() {
     this.#transactionCls = new AsyncLocalStorage<Transaction>();
   }
@@ -264,6 +280,19 @@ export abstract class SequelizeTypeScript {
         this,
       );
     }
+  }
+
+  /**
+   * Escape value to be used in raw SQL.
+   *
+   * If you are using this to use the value in a {@link literal}, consider using {@link sql} instead, which automatically
+   * escapes interpolated values.
+   *
+   * @param value The value to escape
+   * @param options
+   */
+  escape(value: unknown, options?: EscapeOptions) {
+    return this.dialect.queryGenerator.escape(value, options);
   }
 
   /**
@@ -317,12 +346,12 @@ export abstract class SequelizeTypeScript {
    * @param options Transaction Options
    * @param callback Async callback during which the transaction will be active
    */
-  transaction<T>(options: ClsTransactionOptions, callback: TransactionCallback<T>): Promise<T>;
+  transaction<T>(options: ManagedTransactionOptions, callback: TransactionCallback<T>): Promise<T>;
   async transaction<T>(
-    optionsOrCallback: ClsTransactionOptions | TransactionCallback<T>,
+    optionsOrCallback: ManagedTransactionOptions | TransactionCallback<T>,
     maybeCallback?: TransactionCallback<T>,
   ): Promise<T> {
-    let options: ClsTransactionOptions;
+    let options: ManagedTransactionOptions;
     let callback: TransactionCallback<T>;
     if (typeof optionsOrCallback === 'function') {
       callback = optionsOrCallback;
@@ -336,7 +365,7 @@ export abstract class SequelizeTypeScript {
       throw new Error('sequelize.transaction requires a callback. If you wish to start an unmanaged transaction, please use sequelize.startUnmanagedTransaction instead');
     }
 
-    const nestMode: TransactionNestMode = options.nestMode ?? this.options.clsTransactionNestMode;
+    const nestMode: TransactionNestMode = options.nestMode ?? this.options.defaultTransactionNestMode;
 
     // @ts-expect-error -- will be fixed once this class has been merged back with the Sequelize class
     const normalizedOptions = normalizeTransactionOptions(this, options);
@@ -528,5 +557,68 @@ export abstract class SequelizeTypeScript {
         this.connectionManager.releaseConnection(connection);
       }
     }
+  }
+
+  /**
+   * Alias of {@link AbstractQueryInterface#createSchema}
+   *
+   * @param schema Name of the schema
+   * @param options
+   */
+  async createSchema(schema: string, options?: CreateSchemaOptions): Promise<void> {
+    return this.queryInterface.createSchema(schema, options);
+  }
+
+  /**
+   * Alias of {@link AbstractQueryInterface#showAllSchemas}
+   *
+   * @param options
+   */
+  async showAllSchemas(options?: ShowAllSchemasOptions) {
+    return this.queryInterface.showAllSchemas(options);
+  }
+
+  /**
+   * Alias of {@link AbstractQueryInterface#dropSchema}
+   *
+   * @param schema
+   * @param options
+   */
+  async dropSchema(schema: string, options?: QueryRawOptions) {
+    return this.queryInterface.dropSchema(schema, options);
+  }
+
+  /**
+   * Alias of {@link AbstractQueryInterface#dropAllSchemas}
+   *
+   * @param options
+   */
+  async dropAllSchemas(options?: QiDropAllSchemasOptions) {
+    return this.queryInterface.dropAllSchemas(options);
+  }
+
+  /**
+   * Throws if the database version hasn't been loaded yet.
+   * It is automatically loaded the first time Sequelize connects to your database.
+   *
+   * You can use {@link Sequelize#authenticate} to cause a first connection.
+   *
+   * @returns current version of the dialect that is internally loaded
+   */
+  getDatabaseVersion(): string {
+    if (this.options.databaseVersion == null) {
+      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
+    }
+
+    return this.options.databaseVersion;
+  }
+
+  /**
+   * Alias of {@link AbstractQueryInterface#fetchDatabaseVersion}
+   *
+   * @param options
+   */
+  async fetchDatabaseVersion(options?: QueryRawOptions) {
+    return this.queryInterface.fetchDatabaseVersion(options);
   }
 }

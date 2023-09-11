@@ -1,5 +1,7 @@
 'use strict';
 
+const range = require('lodash/range');
+
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -9,7 +11,6 @@ const dayjs = require('dayjs');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
-const _ = require('lodash');
 const assert = require('node:assert');
 
 const dialect = Support.getTestDialect();
@@ -772,7 +773,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         Task.hasMany(User);
 
         await this.sequelize.sync({ force: true });
-        const users0 = _.range(1000).map(i => ({ username: `user${i}`, num: i, status: 'live' }));
+        const users0 = range(1000).map(i => ({ username: `user${i}`, num: i, status: 'live' }));
         await User.bulkCreate(users0);
         await Task.create({ title: 'task' });
         const users = await User.findAll();
@@ -1098,7 +1099,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           // `WHERE` clause
 
           const tableName = User.getTableName();
-          await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+          await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           const tasks = await Task.findAll();
           expect(tasks).to.have.length(1);
           expect(tasks[0].UserId).to.equal(999);
@@ -1159,7 +1160,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const tableName = User.getTableName();
 
           try {
-            tasks = await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+            tasks = await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           } catch (error) {
             if (!(error instanceof Sequelize.ForeignKeyConstraintError)) {
               throw error;

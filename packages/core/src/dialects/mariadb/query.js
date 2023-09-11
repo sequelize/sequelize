@@ -2,9 +2,11 @@
 
 import NodeUtil from 'node:util';
 
+import forOwn from 'lodash/forOwn';
+import zipObject from 'lodash/zipObject';
+
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 const DataTypes = require('../../data-types');
 const { logger } = require('../../utils/logger');
 
@@ -12,6 +14,7 @@ const ER_DUP_ENTRY = 1062;
 const ER_DEADLOCK = 1213;
 const ER_ROW_IS_REFERENCED = 1451;
 const ER_NO_REFERENCED_ROW = 1452;
+const ER_CANT_DROP_FIELD_OR_KEY = 1091;
 
 const debug = logger.debugContext('sql:mariadb');
 
@@ -143,12 +146,8 @@ export class MariaDbQuery extends AbstractQuery {
       return this.handleShowIndexesQuery(data);
     }
 
-    if (this.isForeignKeysQuery() || this.isShowConstraintsQuery()) {
+    if (this.isShowConstraintsQuery()) {
       return data;
-    }
-
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
     }
 
     if (this.isDescribeQuery()) {
@@ -168,10 +167,6 @@ export class MariaDbQuery extends AbstractQuery {
       }
 
       return result;
-    }
-
-    if (this.isVersionQuery()) {
-      return data[0].version;
     }
 
     return result;
@@ -228,13 +223,13 @@ export class MariaDbQuery extends AbstractQuery {
             message = uniqueKey.msg;
           }
 
-          fields = _.zipObject(uniqueKey.fields, values);
+          fields = zipObject(uniqueKey.fields, values);
         } else {
           fields[fieldKey] = fieldVal;
         }
 
         const errors = [];
-        _.forOwn(fields, (value, field) => {
+        forOwn(fields, (value, field) => {
           errors.push(new sequelizeErrors.ValidationErrorItem(
             this.getUniqueConstraintErrorMessage(field),
             'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -267,16 +262,23 @@ export class MariaDbQuery extends AbstractQuery {
         });
       }
 
+      case ER_CANT_DROP_FIELD_OR_KEY: {
+        const constraintMatch = err.sql.match(/(?:constraint|index) `(.+?)`/i);
+        const constraint = constraintMatch ? constraintMatch[1] : undefined;
+        const tableMatch = err.sql.match(/table `(.+?)`/i);
+        const table = tableMatch ? tableMatch[1] : undefined;
+
+        return new sequelizeErrors.UnknownConstraintError({
+          message: err.text,
+          constraint,
+          table,
+          cause: err,
+        });
+      }
+
       default:
         return new sequelizeErrors.DatabaseError(err);
     }
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => ({
-      tableName: resultSet.TABLE_NAME,
-      schema: resultSet.TABLE_SCHEMA,
-    }));
   }
 
   handleShowIndexesQuery(data) {

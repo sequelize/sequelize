@@ -3,7 +3,7 @@
 import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
-const _ = require('lodash');
+import intersection from 'lodash/intersection';
 
 const { QueryTypes } = require('../../query-types');
 const { Op } = require('../../operators');
@@ -18,34 +18,17 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
   *
   * @override
   */
-  async removeColumn(tableName, attributeName, options) {
+  async removeColumn(tableName, columnName, options) {
     options = { raw: true, ...options };
 
-    const findConstraintSql = this.queryGenerator.getDefaultConstraintQuery(tableName, attributeName);
-    const [results0] = await this.sequelize.queryRaw(findConstraintSql, options);
-    if (results0.length > 0) {
-      // No default constraint found -- we can cleanly remove the column
-      const dropConstraintSql = this.queryGenerator.dropConstraintQuery(tableName, results0[0].name);
-      await this.sequelize.queryRaw(dropConstraintSql, options);
+    const constraints = await this.showConstraints(tableName, { ...options, columnName });
+    for (const constraint of constraints) {
+      if (['DEFAULT', 'FOREIGN KEY', 'PRIMARY KEY'].includes(constraint.constraintType)) {
+        await this.removeConstraint(tableName, constraint.constraintName, options);
+      }
     }
 
-    const findForeignKeySql = this.queryGenerator.getForeignKeyQuery(tableName, attributeName);
-    const [results] = await this.sequelize.queryRaw(findForeignKeySql, options);
-    if (results.length > 0) {
-      // No foreign key constraints found, so we can remove the column
-      const dropForeignKeySql = this.queryGenerator.dropForeignKeyQuery(tableName, results[0].constraintName);
-      await this.sequelize.queryRaw(dropForeignKeySql, options);
-    }
-
-    // Check if the current column is a primaryKey
-    const primaryKeyConstraintSql = this.queryGenerator.getPrimaryKeyConstraintQuery(tableName, attributeName);
-    const [result] = await this.sequelize.queryRaw(primaryKeyConstraintSql, options);
-    if (result.length > 0) {
-      const dropConstraintSql = this.queryGenerator.dropConstraintQuery(tableName, result[0].constraintName);
-      await this.sequelize.queryRaw(dropConstraintSql, options);
-    }
-
-    const removeSql = this.queryGenerator.removeColumnQuery(tableName, attributeName);
+    const removeSql = this.queryGenerator.removeColumnQuery(tableName, columnName);
 
     return this.sequelize.queryRaw(removeSql, options);
   }
@@ -85,7 +68,7 @@ export class MsSqlQueryInterface extends AbstractQueryInterface {
 
     const attributes = Object.keys(insertValues);
     for (const index of uniqueColumnNames) {
-      if (_.intersection(attributes, index).length === index.length) {
+      if (intersection(attributes, index).length === index.length) {
         where = {};
         for (const field of index) {
           where[field] = insertValues[field];

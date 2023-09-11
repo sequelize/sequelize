@@ -1,11 +1,12 @@
 'use strict';
 
+const omit = require('lodash/omit');
+
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
 const { DataTypes, Sequelize, or, and } = require('@sequelize/core');
-const _ = require('lodash');
 
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
@@ -695,7 +696,7 @@ Instead of specifying a Model, either:
       expect(tasks[0].title).to.equal('FooBar');
       expect(tasks[0].Project.title).to.equal('BarFoo');
 
-      expect(_.omit(tasks[0].get(), 'Project')).to.deep.equal({ title: 'FooBar' });
+      expect(omit(tasks[0].get(), 'Project')).to.deep.equal({ title: 'FooBar' });
       expect(tasks[0].Project.get()).to.deep.equal({ title: 'BarFoo' });
     });
 

@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/nx/schemas/nx-schema.json",
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*"],
+    "prod": ["!{projectRoot}/test/**/*"]
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["prod", "^prod"],
+      "outputs": ["{projectRoot}/lib", "{projectRoot}/types"]
+    },
+    "test-typings": {
+      "inputs": ["default", "^prod"]
+    },
+    "test-unit": {
+      "dependsOn": ["build"],
+      "inputs": ["default", "^prod"]
+    }
+  },
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
+      "options": {
+        "cacheableOperations": ["build", "test-typings", "test-unit"]
+      }
+    }
+  },
+  "workspaceLayout": {
+    "libsDir": "packages"
+  }
+}

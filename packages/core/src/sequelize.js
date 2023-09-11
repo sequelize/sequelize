@@ -1,6 +1,5 @@
 'use strict';
 
-import isPlainObject from 'lodash/isPlainObject';
 import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { AssociationPath } from './expression-builders/association-path';
@@ -28,10 +27,14 @@ import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
 import { importModels } from './import-models.js';
 
-const _ = require('lodash');
+import defaults from 'lodash/defaults';
+import defaultsDeep from 'lodash/defaultsDeep';
+import isPlainObject from 'lodash/isPlainObject';
+import map from 'lodash/map';
+
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
-const { Deferrable } = require('./deferrable');
+const { ConstraintChecking, Deferrable } = require('./deferrable');
 const { ModelManager } = require('./model-manager');
 const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
@@ -208,19 +211,19 @@ export class Sequelize extends SequelizeTypeScript {
   constructor(database, username, password, options) {
     super();
 
-    if (arguments.length === 1 && _.isPlainObject(database)) {
+    if (arguments.length === 1 && isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
-    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && _.isPlainObject(username)) {
+    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && isPlainObject(username)) {
       // new Sequelize(URI, { ... options })
       options = username ? { ...username } : Object.create(null);
 
-      _.defaultsDeep(options, parseConnectionString(arguments[0]));
+      defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
       options = options ? { ...options } : Object.create(null);
 
-      _.defaults(options, {
+      defaults(options, {
         database,
         username,
         password,
@@ -269,9 +272,9 @@ export class Sequelize extends SequelizeTypeScript {
       minifyAliases: false,
       logQueryParameters: false,
       disableClsTransactions: false,
-      clsTransactionNestMode: TransactionNestMode.reuse,
+      defaultTransactionNestMode: TransactionNestMode.reuse,
       ...options,
-      pool: _.defaults(options.pool || {}, {
+      pool: defaults(options.pool || {}, {
         max: 5,
         min: 0,
         idle: 10_000,
@@ -374,7 +377,7 @@ export class Sequelize extends SequelizeTypeScript {
     }
 
     // Map main connection config
-    this.options.replication.write = _.defaults(this.options.replication.write ?? {}, connectionConfig);
+    this.options.replication.write = defaults(this.options.replication.write ?? {}, connectionConfig);
     this.options.replication.write.port = Number(this.options.replication.write.port);
 
     if (!this.options.replication.read) {
@@ -391,7 +394,7 @@ export class Sequelize extends SequelizeTypeScript {
       readEntry.port = Number(readEntry.port);
 
       // Apply defaults to each read config
-      return _.defaults(readEntry, connectionConfig);
+      return defaults(readEntry, connectionConfig);
     });
 
     // ==========================================
@@ -443,14 +446,6 @@ export class Sequelize extends SequelizeTypeScript {
   // TODO [>=8]: rename to getDialectName or remove
   getDialect() {
     return this.options.dialect;
-  }
-
-  get queryInterface() {
-    return this.dialect.queryInterface;
-  }
-
-  get queryGenerator() {
-    return this.dialect.queryGenerator;
   }
 
   /**
@@ -673,7 +668,7 @@ Use Sequelize#query if you wish to use replacements.`);
       options.fieldMap = options.model?.fieldAttributeMap;
     }
 
-    options = _.defaults(options, {
+    options = defaults(options, {
       logging: Object.hasOwn(this.options, 'logging') ? this.options.logging : console.debug,
       searchPath: Object.hasOwn(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT',
     });
@@ -773,86 +768,9 @@ Use Sequelize#query if you wish to use replacements.`);
     // Generate SQL Query
     const query
       = `SET ${
-        _.map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
+        map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
 
     return await this.query(query, options);
-  }
-
-  /**
-   * Escape value.
-   *
-   * @param {string} value string value to escape
-   *
-   * @returns {string}
-   */
-  escape(value) {
-    return this.dialect.queryGenerator.escape(value);
-  }
-
-  /**
-   * Create a new database schema.
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this command will do nothing.
-   *
-   * @see
-   * {@link Model.schema}
-   *
-   * @param {string} schema Name of the schema
-   * @param {object} [options={}] CreateSchemaQueryOptions
-   * @param {string} [options.collate=null]
-   * @param {string} [options.charset=null]
-    *
-   * @returns {Promise}
-   */
-  async createSchema(schema, options) {
-    return await this.getQueryInterface().createSchema(schema, options);
-  }
-
-  /**
-   * Show all defined schemas
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this will show all tables.
-   *
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async showAllSchemas(options) {
-    return await this.getQueryInterface().showAllSchemas(options);
-  }
-
-  /**
-   * Drop a single schema
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this drop a table matching the schema name
-   *
-   * @param {string} schema Name of the schema
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async dropSchema(schema, options) {
-    return await this.getQueryInterface().dropSchema(schema, options);
-  }
-
-  /**
-   * Drop all schemas.
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this is the equivalent of drop all tables.
-   *
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async dropAllSchemas(options) {
-    return await this.getQueryInterface().dropAllSchemas(options);
   }
 
   /**
@@ -887,7 +805,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.force) {
-      await this.drop(options);
+      await this.drop({ ...options, cascade: this.dialect.supports.dropTable.cascade || undefined });
     }
 
     // no models defined, just authenticate
@@ -984,11 +902,10 @@ Use Sequelize#query if you wish to use replacements.`);
 
     // has cyclic dependency: we first remove each foreign key, then delete each model.
     for (const model of this.modelManager.models) {
-      const tableName = model.getTableName();
-      const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable(tableName, options);
+      const foreignKeys = await this.queryInterface.showConstraints(model, { ...options, constraintType: 'FOREIGN KEY' });
 
       await Promise.all(foreignKeys.map(foreignKey => {
-        return this.queryInterface.removeConstraint(tableName, foreignKey.constraintName, options);
+        return this.queryInterface.removeConstraint(model, foreignKey.constraintName, options);
       }));
     }
 
@@ -1014,32 +931,6 @@ Use Sequelize#query if you wish to use replacements.`);
 
     await this.query(`SELECT 1+1 AS result${this.options.dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, options);
 
-  }
-
-  /**
-   * Fetches the version of the database
-   *
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise<string>} current version of the dialect
-   */
-  async fetchDatabaseVersion(options) {
-    return await this.getQueryInterface().databaseVersion(options);
-  }
-
-  /**
-   * Throws if the database version hasn't been loaded yet. It is automatically loaded the first time Sequelize connects to your database.
-   *
-   * You can use {@link Sequelize#authenticate} to cause a first connection.
-   *
-   * @returns {string} current version of the dialect that is internally loaded
-   */
-  getDatabaseVersion() {
-    if (this.options.databaseVersion == null) {
-      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
-    }
-
-    return this.options.databaseVersion;
   }
 
   /**
@@ -1098,7 +989,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
     const last = args.at(-1);
 
-    if (last && _.isPlainObject(last) && Object.hasOwn(last, 'logging')) {
+    if (last && isPlainObject(last) && Object.hasOwn(last, 'logging')) {
       options = last;
 
       // remove options from set of logged arguments if options.logging is equal to console.log or console.debug
@@ -1142,7 +1033,7 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   normalizeAttribute(attribute) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = { type: attribute };
     } else {
       attribute = { ...attribute };
@@ -1279,10 +1170,17 @@ for (const dataTypeName in DataTypes) {
 /**
  * A reference to the deferrable collection. Use this to access the different deferrable options.
  *
+ * @see {@link QueryInterface#addConstraint}
+ */
+Sequelize.Deferrable = Deferrable;
+
+/**
+ * A reference to the deferrable collection. Use this to access the different deferrable options.
+ *
  * @see {@link Transaction.Deferrable}
  * @see {@link Sequelize#transaction}
  */
-Sequelize.Deferrable = Deferrable;
+Sequelize.ConstraintChecking = ConstraintChecking;
 
 /**
  * A reference to the sequelize association class.

@@ -1,5 +1,4 @@
 import type { SetRequired } from 'type-fest';
-import type { Deferrable } from '../../deferrable';
 import type { Col } from '../../expression-builders/col.js';
 import type { Fn } from '../../expression-builders/fn.js';
 import type { Literal } from '../../expression-builders/literal.js';
@@ -19,6 +18,7 @@ import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
+import type { QiDropAllSchemasOptions } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 interface Replaceable {
@@ -69,15 +69,6 @@ export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, Colla
    * Used for compound unique keys.
    */
   uniqueKeys?: { [indexName: string]: { fields: string[] } };
-}
-
-export interface QueryInterfaceDropTableOptions extends QueryRawOptions {
-  cascade?: boolean;
-  force?: boolean;
-}
-
-export interface QueryInterfaceDropAllTablesOptions extends QueryRawOptions {
-  skip?: string[];
 }
 
 export interface TableNameWithSchema {
@@ -189,49 +180,6 @@ export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptions
 
 export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions { }
 
-export interface BaseConstraintOptions {
-  name?: string;
-  fields: string[];
-}
-
-export interface AddUniqueConstraintOptions extends BaseConstraintOptions {
-  type: 'unique';
-  deferrable?: Deferrable;
-}
-
-export interface AddDefaultConstraintOptions extends BaseConstraintOptions {
-  type: 'default';
-  defaultValue?: unknown;
-}
-
-export interface AddCheckConstraintOptions extends BaseConstraintOptions {
-  type: 'check';
-  where?: WhereOptions<any>;
-}
-
-export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
-  type: 'primary key';
-  deferrable?: Deferrable;
-}
-
-export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
-  type: 'foreign key';
-  references?: {
-    table: TableName,
-    field: string,
-  };
-  onDelete: string;
-  onUpdate: string;
-  deferrable?: Deferrable;
-}
-
-export type AddConstraintOptions =
-  | AddUniqueConstraintOptions
-  | AddDefaultConstraintOptions
-  | AddCheckConstraintOptions
-  | AddPrimaryKeyConstraintOptions
-  | AddForeignKeyConstraintOptions;
-
 export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOptions {
   encoding?: string;
 }
@@ -307,17 +255,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   sequelize: Sequelize;
 
-  constructor(sequelize: Sequelize, queryGenerator: AbstractQueryGenerator);
-
-  /**
-   * Return database version
-   */
-  databaseVersion(options?: QueryRawOptions): Promise<string>;
-
   /**
    * Drops all tables
    */
-  dropAllSchemas(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
+  dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void>;
 
   /**
    * Creates a table with specified attributes.
@@ -333,21 +274,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   ): Promise<void>;
 
   /**
-   * Drops the specified table.
-   *
-   * @param tableName Table name.
-   * @param options   Query options, particularly "force".
-   */
-  dropTable(tableName: TableName, options?: QueryInterfaceDropTableOptions): Promise<void>;
-
-  /**
-   * Drops all tables.
-   *
-   * @param options
-   */
-  dropAllTables(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
-
-  /**
    * Drops all defined enums
    *
    * @param options
@@ -358,19 +284,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Renames a table
    */
   renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Returns all tables
-   */
-  showAllTables(options?: QueryRawOptions): Promise<string[]>;
-
-  /**
-   * Returns a promise that resolves to true if the table exists in the database, false otherwise.
-   *
-   * @param tableName The name of the table
-   * @param options Options passed to {@link Sequelize#query}
-   */
-  tableExists(tableName: TableName, options?: QueryRawOptions): Promise<boolean>;
 
   /**
    * Adds a new column to a table
@@ -441,19 +354,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   ): Promise<void>;
 
   /**
-   * Adds constraints to a table
-   */
-  addConstraint(
-    tableName: TableName,
-    options?: AddConstraintOptions & QueryRawOptions
-  ): Promise<void>;
-
-  /**
-   * Removes constraints from a table
-   */
-  removeConstraint(tableName: TableName, constraintName: string, options?: QueryRawOptions): Promise<void>;
-
-  /**
    * Shows the index of a table
    */
   showIndex(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<IndexDescription[]>;
@@ -462,16 +362,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Put a name to an index
    */
   nameIndexes(indexes: string[], rawTablename: string): Promise<void>;
-
-  /**
-   * Returns all foreign key constraints of requested tables
-   */
-  getForeignKeysForTables(tableNames: string[], options?: QueryRawOptions): Promise<object>;
-
-  /**
-   * Get foreign key references details for the table
-   */
-  getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<object>;
 
   /**
    * Inserts a new record
@@ -665,11 +555,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Begin a new transaction
    */
   startTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Defer constraints
-   */
-  deferConstraints(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Commit an already started transaction

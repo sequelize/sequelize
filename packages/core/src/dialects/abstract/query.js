@@ -3,7 +3,11 @@
 import NodeUtil from 'node:util';
 import { AbstractDataType } from './data-types';
 
-const _ = require('lodash');
+import chain from 'lodash/chain';
+import findKey from 'lodash/findKey';
+import isEmpty from 'lodash/isEmpty';
+import reduce from 'lodash/reduce';
+
 const { QueryTypes } = require('../../query-types');
 const Dot = require('dottie');
 const deprecations = require('../../utils/deprecations');
@@ -137,10 +141,6 @@ export class AbstractQuery {
     return this.options.type === QueryTypes.RAW;
   }
 
-  isVersionQuery() {
-    return this.options.type === QueryTypes.VERSION;
-  }
-
   isUpsertQuery() {
     return this.options.type === QueryTypes.UPSERT;
   }
@@ -177,14 +177,6 @@ export class AbstractQuery {
     this.instance[autoIncrementAttribute] = id;
   }
 
-  isShowTablesQuery() {
-    return this.options.type === QueryTypes.SHOWTABLES;
-  }
-
-  handleShowTablesQuery(results) {
-    return results.flatMap(resultSet => Object.values(resultSet));
-  }
-
   isShowIndexesQuery() {
     return this.options.type === QueryTypes.SHOWINDEXES;
   }
@@ -209,10 +201,6 @@ export class AbstractQuery {
     return this.options.type === QueryTypes.BULKDELETE;
   }
 
-  isForeignKeysQuery() {
-    return this.options.type === QueryTypes.FOREIGNKEYS;
-  }
-
   isUpdateQuery() {
     return this.options.type === QueryTypes.UPDATE;
   }
@@ -223,7 +211,7 @@ export class AbstractQuery {
     // Map raw fields to names if a mapping is provided
     if (this.options.fieldMap) {
       const fieldMap = this.options.fieldMap;
-      results = results.map(result => _.reduce(fieldMap, (result, name, field) => {
+      results = results.map(result => reduce(fieldMap, (result, name, field) => {
         if (result[field] !== undefined && name !== field) {
           result[name] = result[field];
           delete result[field];
@@ -547,10 +535,10 @@ export class AbstractQuery {
     };
 
     const getUniqueKeyAttributes = model => {
-      let uniqueKeyAttributes = _.chain(model.uniqueKeys);
+      let uniqueKeyAttributes = chain(model.uniqueKeys);
       uniqueKeyAttributes = uniqueKeyAttributes
         .result(`${uniqueKeyAttributes.findKey()}.fields`)
-        .map(field => _.findKey(model.attributes, chr => chr.field === field))
+        .map(field => findKey(model.attributes, chr => chr.field === field))
         .value();
 
       return uniqueKeyAttributes;
@@ -582,7 +570,7 @@ export class AbstractQuery {
           for ($i = 0; $i < $length; $i++) {
             topHash += stringify(row[includeOptions.model.primaryKeyAttributes[$i]]);
           }
-        } else if (!_.isEmpty(includeOptions.model.uniqueKeys)) {
+        } else if (!isEmpty(includeOptions.model.uniqueKeys)) {
           uniqueKeyAttributes = getUniqueKeyAttributes(includeOptions.model);
           for ($i = 0; $i < uniqueKeyAttributes.length; $i++) {
             topHash += row[uniqueKeyAttributes[$i]];
@@ -633,7 +621,7 @@ export class AbstractQuery {
                   for ($i = 0; $i < $length; $i++) {
                     itemHash += stringify(row[`${prefix}.${primaryKeyAttributes[$i]}`]);
                   }
-                } else if (!_.isEmpty(includeMap[prefix].model.uniqueKeys)) {
+                } else if (!isEmpty(includeMap[prefix].model.uniqueKeys)) {
                   uniqueKeyAttributes = getUniqueKeyAttributes(includeMap[prefix].model);
                   for ($i = 0; $i < uniqueKeyAttributes.length; $i++) {
                     itemHash += row[`${prefix}.${uniqueKeyAttributes[$i]}`];
@@ -721,7 +709,7 @@ export class AbstractQuery {
               for ($i = 0; $i < $length; $i++) {
                 itemHash += stringify(row[`${prefix}.${primaryKeyAttributes[$i]}`]);
               }
-            } else if (!_.isEmpty(includeMap[prefix].model.uniqueKeys)) {
+            } else if (!isEmpty(includeMap[prefix].model.uniqueKeys)) {
               uniqueKeyAttributes = getUniqueKeyAttributes(includeMap[prefix].model);
               for ($i = 0; $i < uniqueKeyAttributes.length; $i++) {
                 itemHash += row[`${prefix}.${uniqueKeyAttributes[$i]}`];

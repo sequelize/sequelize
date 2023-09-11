@@ -4,6 +4,11 @@ import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type {
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -11,6 +16,16 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    return joinSQLFragments([
+      `SELECT DISTINCT SCHEMA_NAME AS "schema" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER`,
+      `AND SCHEMA_NAME NOT LIKE 'Q%' AND SCHEMA_NAME NOT LIKE 'SYS%'`,
+      options?.skip && Array.isArray(options.skip) && options.skip.length > 0
+        ? `AND SCHEMA_NAME NOT IN (${options?.skip.map(schema => this.escape(schema)).join(', ')})`
+        : '',
+    ]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -30,6 +45,51 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
       'AND QSYS2.SYSCOLUMNS.TABLE_NAME =',
       this.escape(table.tableName),
+    ]);
+  }
+
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT TABLE_NAME AS "tableName",',
+      'TABLE_SCHEMA AS "schema"',
+      `FROM QSYS2.SYSTABLES WHERE TABLE_TYPE = 'T'`,
+      options?.schema
+        ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
+        : `AND TABLE_SCHEMA NOT LIKE 'Q%' AND TABLE_SCHEMA NOT LIKE 'SYS%'`,
+      'ORDER BY TABLE_SCHEMA, TABLE_NAME',
+    ]);
+  }
+
+  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT c.CONSTRAINT_SCHEMA AS "constraintSchema",',
+      'c.CONSTRAINT_NAME AS "constraintName",',
+      'c.CONSTRAINT_TYPE AS "constraintType",',
+      'c.TABLE_SCHEMA AS "tableSchema",',
+      'c.TABLE_NAME AS "tableName",',
+      'k.COLUMN_NAME AS "columnNames",',
+      'fk.TABLE_SCHEMA AS "referencedTableSchema",',
+      'fk.TABLE_NAME AS "referencedTableName",',
+      'fk.COLUMN_NAME AS "referencedColumnNames",',
+      'r.DELETE_RULE AS "deleteRule",',
+      'r.UPDATE_RULE AS "updateRule",',
+      'ch.CHECK_CLAUSE AS "definition",',
+      'c.IS_DEFERRABLE AS "isDeferrable",',
+      'c.INITIALLY_DEFERRED AS "initiallyDeferred"',
+      'FROM QSYS2.SYSCST c',
+      'LEFT JOIN QSYS2.SYSREFCST r ON c.CONSTRAINT_NAME = r.CONSTRAINT_NAME AND c.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA',
+      'LEFT JOIN QSYS2.SYSKEYCST k ON c.CONSTRAINT_NAME = k.CONSTRAINT_NAME AND c.CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA',
+      'LEFT JOIN QSYS2.SYSKEYCST fk ON r.UNIQUE_CONSTRAINT_NAME = k.CONSTRAINT_NAME AND r.UNIQUE_CONSTRAINT_SCHEMA = k.CONSTRAINT_SCHEMA',
+      'LEFT JOIN QSYS2.SYSCHKCST ch ON c.CONSTRAINT_NAME = ch.CONSTRAINT_NAME AND c.CONSTRAINT_SCHEMA = ch.CONSTRAINT_SCHEMA',
+      `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
+      'AND c.TABLE_SCHEMA =',
+      table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
+      options?.columnName ? `AND k.COLUMN_NAME = ${this.escape(options.columnName)}` : '',
+      options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
+      'ORDER BY c.CONSTRAINT_NAME, k.ORDINAL_POSITION',
     ]);
   }
 
@@ -85,26 +145,17 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
+  // Version queries
+  versionQuery() {
+    return 'SELECT CONCAT(OS_VERSION, CONCAT(\'.\', OS_RELEASE)) AS "version" FROM SYSIBMADM.ENV_SYS_INFO';
+  }
+
+  tableExistsQuery(tableName: TableNameOrModel): string {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT FK_CAT AS "constraintCatalog",',
-      'FK_SCHEM AS "constraintSchema",',
-      'FK_NAME AS "constraintName",',
-      'PKTABLE_CAT AS "referencedTableCatalog",',
-      'PKTABLE_SCHEM AS "referencedTableSchema",',
-      'PKTABLE_NAME AS "referencedTableName",',
-      'PKCOLUMN_NAME AS "referencedColumnName",',
-      'FKTABLE_CAT AS "tableCatalog",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKTABLE_NAME AS "tableName",',
-      'FKCOLUMN_NAME AS "columnName"',
-      'FROM SYSIBM.SQLFOREIGNKEYS',
-      'WHERE FKTABLE_SCHEM =',
+      `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = `,
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
-      `AND FKTABLE_NAME = ${this.escape(table.tableName)}`,
-      columnName && `AND FKCOLUMN_NAME = ${this.escape(columnName)}`,
     ]);
   }
 }

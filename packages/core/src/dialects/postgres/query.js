@@ -1,9 +1,16 @@
 'use strict';
 
+import escapeRegExp from 'lodash/escapeRegExp';
+import forOwn from 'lodash/forOwn';
+import isEmpty from 'lodash/isEmpty';
+import isEqual from 'lodash/isEqual';
+import mapKeys from 'lodash/mapKeys';
+import toPairs from 'lodash/toPairs';
+import zipObject from 'lodash/zipObject';
+
 const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:pg');
@@ -12,15 +19,15 @@ export class PostgresQuery extends AbstractQuery {
   async run(sql, parameters, options) {
     const { connection } = this;
 
-    if (!_.isEmpty(this.options.searchPath)) {
-      sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
+    if (!isEmpty(this.options.searchPath)) {
+      sql = this.sequelize.queryGenerator.setSearchPath(this.options.searchPath) + sql;
     }
 
     if (options?.minifyAliases && this.options.includeAliases) {
-      for (const [alias, original] of _.toPairs(this.options.includeAliases)
+      for (const [alias, original] of toPairs(this.options.includeAliases)
         // Sorting to replace the longest aliases first to prevent alias collision
         .sort((a, b) => b[1].length - a[1].length)) {
-        const reg = new RegExp(_.escapeRegExp(original), 'g');
+        const reg = new RegExp(escapeRegExp(original), 'g');
 
         sql = sql.replace(reg, alias);
       }
@@ -75,7 +82,7 @@ export class PostgresQuery extends AbstractQuery {
 
     if (options?.minifyAliases && this.options.aliasesMapping) {
       rows = rows
-        .map(row => _.toPairs(row)
+        .map(row => toPairs(row)
           .reduce((acc, [key, value]) => {
             const mapping = this.options.aliasesMapping.get(key);
             acc[mapping || key] = value;
@@ -123,9 +130,9 @@ export class PostgresQuery extends AbstractQuery {
         }
 
         // Map column index in table to column name
-        const columns = _.zipObject(
+        const columns = zipObject(
           row.column_indexes,
-          this.sequelize.getQueryInterface().queryGenerator.fromArray(row.column_names),
+          this.sequelize.queryGenerator.fromArray(row.column_names),
         );
         delete row.column_indexes;
         delete row.column_names;
@@ -169,29 +176,6 @@ export class PostgresQuery extends AbstractQuery {
       return rows;
     }
 
-    if (this.isForeignKeysQuery()) {
-      const result = [];
-      for (const row of rows) {
-        let defParts;
-        if (row.condef !== undefined && (defParts = row.condef.match(/FOREIGN KEY \((.+)\) REFERENCES (.+)\((.+)\)( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?/))) {
-          row.id = row.constraintName;
-          row.table = defParts[2];
-          row.from = defParts[1];
-          row.to = defParts[3];
-          let i;
-          for (i = 5; i <= 8; i += 3) {
-            if (/(UPDATE|DELETE)/.test(defParts[i])) {
-              row[`on_${defParts[i].toLowerCase()}`] = defParts[i + 1];
-            }
-          }
-        }
-
-        result.push(row);
-      }
-
-      return result;
-    }
-
     if (this.isSelectQuery()) {
       let result = rows;
       // Postgres will treat tables as case-insensitive, so fix the case
@@ -205,7 +189,7 @@ export class PostgresQuery extends AbstractQuery {
         }
 
         result = rows.map(row => {
-          return _.mapKeys(row, (value, key) => {
+          return mapKeys(row, (value, key) => {
             const targetAttr = attrsMap[key];
             if (typeof targetAttr === 'string' && targetAttr !== key) {
               return targetAttr;
@@ -228,7 +212,7 @@ export class PostgresQuery extends AbstractQuery {
           allowNull: row.Null === 'YES',
           defaultValue: row.Default,
           comment: row.Comment,
-          special: row.special ? this.sequelize.getQueryInterface().queryGenerator.fromArray(row.special) : [],
+          special: row.special ? this.sequelize.queryGenerator.fromArray(row.special) : [],
           primaryKey: row.Constraint === 'PRIMARY KEY',
         };
 
@@ -253,10 +237,6 @@ export class PostgresQuery extends AbstractQuery {
       }
 
       return result;
-    }
-
-    if (this.isVersionQuery()) {
-      return rows[0].server_version;
     }
 
     if (this.isShowOrDescribeQuery()) {
@@ -313,6 +293,10 @@ export class PostgresQuery extends AbstractQuery {
       ];
     }
 
+    if (this.isShowConstraintsQuery()) {
+      return rows;
+    }
+
     if (this.isRawQuery()) {
       return [rows, queryResult];
     }
@@ -350,11 +334,11 @@ export class PostgresQuery extends AbstractQuery {
         // there are multiple different formats of error messages for this error code
         // this regex should check at least two
         if (errDetail && (match = errDetail.replaceAll('"', '').match(/Key \((.*?)\)=\((.*?)\)/))) {
-          fields = _.zipObject(match[1].split(', '), match[2].split(', '));
+          fields = zipObject(match[1].split(', '), match[2].split(', '));
           errors = [];
           message = 'Validation error';
 
-          _.forOwn(fields, (value, field) => {
+          forOwn(fields, (value, field) => {
             errors.push(new sequelizeErrors.ValidationErrorItem(
               this.getUniqueConstraintErrorMessage(field),
               'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -367,7 +351,7 @@ export class PostgresQuery extends AbstractQuery {
 
           if (this.model) {
             for (const index of this.model.getIndexes()) {
-              if (index.unique && _.isEqual(index.fields, Object.keys(fields)) && index.msg) {
+              if (index.unique && isEqual(index.fields, Object.keys(fields)) && index.msg) {
                 message = index.msg;
                 break;
               }
@@ -386,7 +370,7 @@ export class PostgresQuery extends AbstractQuery {
         match = errDetail.match(/Key \((.*?)\)=\((.*?)\)/);
 
         if (match) {
-          fields = _.zipObject(match[1].split(', '), match[2].split(', '));
+          fields = zipObject(match[1].split(', '), match[2].split(', '));
         }
 
         message = 'Exclusion constraint error';
@@ -420,10 +404,6 @@ export class PostgresQuery extends AbstractQuery {
       default:
         return new sequelizeErrors.DatabaseError(err);
     }
-  }
-
-  isForeignKeysQuery() {
-    return /SELECT conname as constraintName, pg_catalog\.pg_get_constraintdef\(r\.oid, true\) as condef FROM pg_catalog\.pg_constraint r WHERE r\.conrelid = \(SELECT oid FROM pg_class WHERE relname = '.*' LIMIT 1\) AND r\.contype = 'f' ORDER BY 1;/.test(this.sql);
   }
 
   getInsertIdField() {

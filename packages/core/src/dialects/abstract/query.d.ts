@@ -122,11 +122,6 @@ export class AbstractQuery {
   isRawQuery(): boolean;
 
   /**
-   * Checks if the query type is VERSION
-   */
-  isVersionQuery(): boolean;
-
-  /**
    * Checks if the query type is UPSERT
    */
   isUpsertQuery(): boolean;
@@ -140,16 +135,6 @@ export class AbstractQuery {
    * Sets auto increment field values (if applicable).
    */
   handleInsertQuery(results?: unknown[], metaData?: unknown): void;
-
-  /**
-   * Checks if the query type is SHOWTABLES
-   */
-  isShowTablesQuery(): boolean;
-
-  /**
-   * Flattens and plucks values from results.
-   */
-  handleShowTablesQuery(results: unknown[]): unknown[];
 
   /**
    * Checks if the query type is SHOWINDEXES
@@ -180,11 +165,6 @@ export class AbstractQuery {
    * Checks if the query type is BULKDELETE
    */
   isBulkDeleteQuery(): boolean;
-
-  /**
-   * Checks if the query type is FOREIGNKEYS
-   */
-  isForeignKeysQuery(): boolean;
 
   /**
    * Checks if the query type is UPDATE

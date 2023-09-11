@@ -4,8 +4,9 @@ import assert from 'node:assert';
 import { AbstractQuery } from '../abstract/query';
 import { logger } from '../../utils/logger';
 
+import forOwn from 'lodash/forOwn';
+
 const sequelizeErrors = require('../../errors');
-const _ = require('lodash');
 
 const debug = logger.debugContext('sql:db2');
 
@@ -78,7 +79,7 @@ export class Db2Query extends AbstractQuery {
 
     const params = [];
     if (parameters) {
-      _.forOwn(parameters, (value, key) => {
+      forOwn(parameters, (value, key) => {
         const param = this.getSQLTypeFromJsType(value, key);
         params.push(param);
       });
@@ -246,9 +247,7 @@ export class Db2Query extends AbstractQuery {
       }
     }
 
-    if (this.isShowTablesQuery()) {
-      result = data;
-    } else if (this.isDescribeQuery()) {
+    if (this.isDescribeQuery()) {
       result = {};
       for (const _result of data) {
         if (_result.Default) {
@@ -282,14 +281,10 @@ export class Db2Query extends AbstractQuery {
       result = data.length;
     } else if (this.isBulkDeleteQuery()) {
       result = rowCount;
-    } else if (this.isVersionQuery()) {
-      result = data[0].VERSION;
-    } else if (this.isForeignKeysQuery()) {
-      result = data;
     } else if (this.isInsertQuery() || this.isUpdateQuery()) {
       result = [result, rowCount];
     } else if (this.isShowConstraintsQuery()) {
-      result = this.handleShowConstraintsQuery(data);
+      result = data;
     } else if (this.isRawQuery()) {
       // Db2 returns row data and metadata (affected rows etc) in a single object - let's standarize it, sorta
       result = [data, metadata];
@@ -298,22 +293,6 @@ export class Db2Query extends AbstractQuery {
     }
 
     return result;
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => {
-      return {
-        tableName: resultSet.TABLE_NAME,
-        schema: resultSet.TABLE_SCHEMA,
-      };
-    });
-  }
-
-  handleShowConstraintsQuery(data) {
-    // Remove SQL Contraints from constraints list.
-    return _.remove(data, constraint => {
-      return !constraint.constraintName.startsWith('SQL');
-    });
   }
 
   formatError(err, conn, parameters) {
@@ -362,7 +341,7 @@ export class Db2Query extends AbstractQuery {
       }
 
       const errors = [];
-      _.forOwn(fields, (value, field) => {
+      forOwn(fields, (value, field) => {
         errors.push(new sequelizeErrors.ValidationErrorItem(
           this.getUniqueConstraintErrorMessage(field),
           'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
@@ -380,10 +359,15 @@ export class Db2Query extends AbstractQuery {
       || err.message.match(/SQL0530N/)
       || err.message.match(/SQL0531N/);
     if (match && match.length > 0) {
+      const data = err.message.match(/(?:"([\w.]+)")/);
+      const constraintData = data && data.length > 0 ? data[1] : undefined;
+      const [, table, constraint] = constraintData.split('.');
+
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
-        index: match[1],
+        index: constraint,
         cause: err,
+        table,
       });
     }
 

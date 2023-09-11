@@ -53,7 +53,7 @@ export {
   IsolationLevel,
   TransactionNestMode,
   Transaction,
-  type ClsTransactionOptions,
+  type ManagedTransactionOptions,
   type TransactionOptions,
   type NormalizedTransactionOptions,
 } from './transaction';
@@ -72,7 +72,7 @@ export { Sequelize as default } from './sequelize';
 export { useInflection } from './utils/string';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils';
 export type { Validator } from './utils/validator-extras';
-export { Deferrable } from './deferrable';
+export { ConstraintChecking, Deferrable } from './deferrable';
 export { AbstractDialect } from './dialects/abstract/index.js';
 export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 export { importModels } from './import-models.js';
@@ -85,7 +85,7 @@ export { List } from './expression-builders/list.js';
 export { Value } from './expression-builders/value.js';
 export { Identifier } from './expression-builders/identifier.js';
 export { Attribute } from './expression-builders/attribute.js';
-export { JsonPath } from './expression-builders/json-path.js';
+export { JsonPath, jsonPath } from './expression-builders/json-path.js';
 export { AssociationPath } from './expression-builders/association-path.js';
 
 // All functions are available on sql.x, but these are exported for backwards compatibility

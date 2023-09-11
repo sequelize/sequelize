@@ -28,8 +28,9 @@ export class SnowflakeDialect extends AbstractDialect {
       using: 1,
     },
     constraints: {
-      dropConstraint: false,
+      deferrable: true,
       check: false,
+      removeOptions: { cascade: true },
     },
     indexViaAlter: true,
     indexHints: true,
@@ -40,6 +41,9 @@ export class SnowflakeDialect extends AbstractDialect {
     },
     REGEXP: true,
     globalTimeZoneConfig: true,
+    dropTable: {
+      cascade: true,
+    },
   });
 
   readonly dataTypesDocumentationUrl = 'https://docs.snowflake.com/en/sql-reference/data-types.html';
@@ -53,6 +57,8 @@ export class SnowflakeDialect extends AbstractDialect {
   readonly queryInterface: SnowflakeQueryInterface;
 
   constructor(sequelize: Sequelize) {
+    console.warn('The Snowflake dialect is experimental and usage is at your own risk. Its development is exclusively community-driven and not officially supported by the maintainers.');
+
     super(sequelize, DataTypes, 'snowflake');
     this.connectionManager = new SnowflakeConnectionManager(this, sequelize);
     this.queryGenerator = new SnowflakeQueryGenerator({

@@ -1,5 +1,7 @@
 'use strict';
 
+const range = require('lodash/range');
+
 const chai = require('chai');
 const sinon = require('sinon');
 
@@ -7,7 +9,6 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize, Op } = require('@sequelize/core');
 
-const _ = require('lodash');
 const delay = require('delay');
 const assert = require('node:assert');
 
@@ -209,7 +210,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
 
-        await Promise.all(_.range(50).map(i => {
+        await Promise.all(range(50).map(i => {
           return User.findOrCreate({
             where: {
               email: `unique.email.${i}@sequelizejs.com`,
@@ -233,7 +234,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
 
-        await Promise.all(_.range(50).map(i => {
+        await Promise.all(range(50).map(i => {
           return User.findOrCreate({
             where: {
               email: `unique.email.${i}@sequelizejs.com`,
@@ -242,7 +243,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         }));
 
-        await Promise.all(_.range(50).map(i => {
+        await Promise.all(range(50).map(i => {
           return User.findOrCreate({
             where: {
               email: `unique.email.${i}@sequelizejs.com`,
@@ -266,7 +267,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
 
-        await Promise.all(_.range(50).map(() => {
+        await Promise.all(range(50).map(() => {
           return User.findOrCreate({
             where: {
               email: 'unique.email.1@sequelizejs.com',
@@ -1116,7 +1117,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         try {
           await User.sync({ force: true });
-          await this.customSequelize.query(`CREATE UNIQUE INDEX lower_case_username ON ${this.customSequelize.queryInterface.queryGenerator.quoteTable(User)} ((lower("username")))`);
+          await this.customSequelize.query(`CREATE UNIQUE INDEX lower_case_username ON ${this.customSequelize.queryGenerator.quoteTable(User)} ((lower("username")))`);
           await User.create({ username: 'foo' });
           await User.create({ username: 'foo' });
         } catch (error) {

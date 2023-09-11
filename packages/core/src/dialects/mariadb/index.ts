@@ -1,15 +1,14 @@
-import type { FieldInfo } from 'mariadb';
 import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
-import { registerMySqlDbDataTypeParsers } from '../mysql/data-types.db.js';
 import { escapeMysqlString } from '../mysql/mysql-utils';
-import { MySqlQueryInterface } from '../mysql/query-interface';
 import { MariaDbConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
+import { registerMariaDbDbDataTypeParsers } from './data-types.db.js';
 import { MariaDbQuery } from './query';
 import { MariaDbQueryGenerator } from './query-generator';
+import { MariaDbQueryInterface } from './query-interface';
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,
@@ -37,9 +36,8 @@ export class MariaDbDialect extends AbstractDialect {
         using: 1,
       },
       constraints: {
-        dropConstraint: false,
-        check: false,
         foreignKeyChecksDisableable: true,
+        removeOptions: { ifExists: true },
       },
       indexViaAlter: true,
       indexHints: true,
@@ -70,7 +68,7 @@ export class MariaDbDialect extends AbstractDialect {
 
   readonly queryGenerator: MariaDbQueryGenerator;
   readonly connectionManager: MariaDbConnectionManager;
-  readonly queryInterface: MySqlQueryInterface;
+  readonly queryInterface: MariaDbQueryInterface;
 
   readonly Query = MariaDbQuery;
 
@@ -81,17 +79,12 @@ export class MariaDbDialect extends AbstractDialect {
       dialect: this,
       sequelize,
     });
-    this.queryInterface = new MySqlQueryInterface(
+    this.queryInterface = new MariaDbQueryInterface(
       sequelize,
       this.queryGenerator,
     );
 
-    registerMySqlDbDataTypeParsers(this);
-    // For backwards compatibility, we currently return BIGINTs as strings. We will implement bigint support for all
-    // dialects in the future: https://github.com/sequelize/sequelize/issues/10468
-    this.registerDataTypeParser(['BIGINT'], (value: FieldInfo) => {
-      return value.string();
-    });
+    registerMariaDbDbDataTypeParsers(this);
   }
 
   createBindCollector() {

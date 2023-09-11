@@ -14,7 +14,7 @@ module.exports = {
     'jsdoc/check-param-names': 'error',
     'jsdoc/check-tag-names': 'error',
     'jsdoc/check-types': 'off',
-    'jsdoc/newline-after-description': 'error',
+    'jsdoc/tag-lines': ['error', 'any', { startLines: 1 }],
     'jsdoc/no-undefined-types': 'off',
     'jsdoc/require-description-complete-sentence': 'off',
     'jsdoc/require-example': 'off',
@@ -108,9 +108,6 @@ module.exports = {
       // consistency
       'unicorn/filename-case': 'off',
 
-      // This would reduce the amount of things to bundle by eg. webpack.
-      'lodash/import-scope': 'off',
-
       // Passing a function reference to an array callback can accidentally introduce bug
       // due to array methods passing more than one parameter.
       'unicorn/no-array-callback-reference': 'off',
@@ -140,7 +137,7 @@ module.exports = {
       // no need to check jsdoc in tests & docs
       'jsdoc/check-types': 'off',
       'jsdoc/valid-types': 'off',
-      'jsdoc/newline-after-description': 'off',
+      'jsdoc/tag-lines': 'off',
       'jsdoc/check-tag-names': 'off',
 
       // Enable test-specific rules (perf)

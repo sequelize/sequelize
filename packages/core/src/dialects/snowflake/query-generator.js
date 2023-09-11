@@ -10,11 +10,12 @@ import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const _ = require('lodash');
+import each from 'lodash/each';
+import isPlainObject from 'lodash/isPlainObject';
+
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { Op } = require('../../operators');
 
@@ -89,24 +90,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
-  listSchemasQuery(options) {
-    if (options) {
-      rejectInvalidOptions(
-        'listSchemasQuery',
-        this.dialect.name,
-        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
-        LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `SHOW SCHEMAS;`;
-  }
-
-  versionQuery() {
-    return 'SELECT CURRENT_VERSION()';
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -160,7 +143,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
@@ -187,26 +170,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
-      ';',
-    ]);
-  }
-
-  showTablesQuery(database) {
-    return joinSQLFragments([
-      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
-      ';',
-    ]);
-  }
-
-  tableExistsQuery(table) {
-    const tableName = table.tableName ?? table;
-    const schema = table.schema;
-
-    return joinSQLFragments([
-      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      `AND TABLE_SCHEMA = ${schema !== undefined ? this.escape(schema) : 'CURRENT_SCHEMA()'}`,
-      `AND TABLE_NAME = ${this.escape(tableName)}`,
       ';',
     ]);
   }
@@ -372,27 +335,8 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  showConstraintsQuery(table, constraintName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-
-    return joinSQLFragments([
-      'SELECT CONSTRAINT_CATALOG AS constraintCatalog,',
-      'CONSTRAINT_NAME AS constraintName,',
-      'CONSTRAINT_SCHEMA AS constraintSchema,',
-      'CONSTRAINT_TYPE AS constraintType,',
-      'TABLE_NAME AS tableName,',
-      'TABLE_SCHEMA AS tableSchema',
-      'from INFORMATION_SCHEMA.TABLE_CONSTRAINTS',
-      `WHERE table_name='${tableName}'`,
-      constraintName && `AND constraint_name = '${constraintName}'`,
-      schemaName && `AND TABLE_SCHEMA = '${schemaName}'`,
-      ';',
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };
@@ -495,24 +439,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     return dataType;
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP FOREIGN KEY',
-      this.quoteIdentifier(foreignKey),
-      ';',
-    ]);
   }
 
   addLimitAndOffset(options) {

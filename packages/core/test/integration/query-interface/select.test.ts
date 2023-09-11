@@ -18,7 +18,7 @@ describe('QueryInterface#select', () => {
 
       await User.create({ name: 'Sourav' });
 
-      const qi = instance.getQueryInterface();
+      const qi = instance.queryInterface;
 
       const result = await qi.select(User, 'users', { where: { name: 'Sourav' }, minifyAliases: true });
 

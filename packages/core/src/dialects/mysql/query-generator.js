@@ -8,7 +8,9 @@ import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
-const _ = require('lodash');
+import each from 'lodash/each';
+import isPlainObject from 'lodash/isPlainObject';
+
 const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
@@ -28,30 +30,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
 
   dropSchemaQuery(schemaName) {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
-  }
-
-  // TODO: typescript - protected
-  _getTechnicalSchemaNames() {
-    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys'];
-  }
-
-  listSchemasQuery(options) {
-    const schemasToSkip = this._getTechnicalSchemaNames();
-
-    if (Array.isArray(options?.skip)) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return joinSQLFragments([
-      'SELECT SCHEMA_NAME as schema_name',
-      'FROM INFORMATION_SCHEMA.SCHEMATA',
-      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
-      ';',
-    ]);
-  }
-
-  versionQuery() {
-    return 'SELECT VERSION() as `version`';
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -100,7 +78,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
@@ -132,26 +110,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
       ';',
     ]);
-  }
-
-  showTablesQuery(schemaName) {
-    let query = 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
-    if (schemaName) {
-      query += ` AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
-    } else {
-      const technicalSchemas = this._getTechnicalSchemaNames();
-
-      query += ` AND TABLE_SCHEMA NOT IN (${technicalSchemas.map(schema => this.escape(schema)).join(', ')})`;
-    }
-
-    return `${query};`;
-  }
-
-  tableExistsQuery(table) {
-    // remove first & last `, then escape as SQL string
-    const tableName = this.escape(this.quoteTable(table).slice(1, -1));
-
-    return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${tableName} AND TABLE_SCHEMA = ${this.escape(this.sequelize.config.database)}`;
   }
 
   addColumnQuery(table, key, dataType, options) {
@@ -265,27 +223,8 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     return query;
   }
 
-  showConstraintsQuery(table, constraintName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-
-    return joinSQLFragments([
-      'SELECT CONSTRAINT_CATALOG AS constraintCatalog,',
-      'CONSTRAINT_NAME AS constraintName,',
-      'CONSTRAINT_SCHEMA AS constraintSchema,',
-      'CONSTRAINT_TYPE AS constraintType,',
-      'TABLE_NAME AS tableName,',
-      'TABLE_SCHEMA AS tableSchema',
-      'from INFORMATION_SCHEMA.TABLE_CONSTRAINTS',
-      `WHERE table_name='${tableName}'`,
-      constraintName && `AND constraint_name = '${constraintName}'`,
-      schemaName && `AND TABLE_SCHEMA = '${schemaName}'`,
-      ';',
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };
@@ -365,24 +304,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     }
 
     return result;
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP FOREIGN KEY',
-      this.quoteIdentifier(foreignKey),
-      ';',
-    ]);
   }
 
   _getBeforeSelectAttributesFragment(options) {

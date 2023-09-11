@@ -3,11 +3,32 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type {
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalSchemaNames() {
+    return ['information_schema', 'tiger', 'tiger_data', 'topology'];
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = ['public', ...this._getTechnicalSchemaNames()];
+
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      `SELECT schema_name AS "schema" FROM information_schema.schemata`,
+      `WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -33,6 +54,52 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.column_name=c.column_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
       `AND c.table_schema = ${this.escape(table.schema!)}`,
+    ]);
+  }
+
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT table_name AS "tableName", table_schema AS "schema"',
+      `FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys'`,
+      options?.schema
+        ? `AND table_schema = ${this.escape(options.schema)}`
+        : `AND table_schema !~ E'^pg_' AND table_schema NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY table_schema, table_name',
+    ]);
+  }
+
+  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+    const table = this.extractTableDetails(tableName);
+
+    // Postgres converts camelCased alias to lowercase unless quoted
+    return joinSQLFragments([
+      'SELECT c.constraint_catalog AS "constraintCatalog",',
+      'c.constraint_schema AS "constraintSchema",',
+      'c.constraint_name AS "constraintName",',
+      'c.constraint_type AS "constraintType",',
+      'c.table_catalog AS "tableCatalog",',
+      'c.table_schema AS "tableSchema",',
+      'c.table_name AS "tableName",',
+      'kcu.column_name AS "columnNames",',
+      'ccu.table_schema AS "referencedTableSchema",',
+      'ccu.table_name AS "referencedTableName",',
+      'ccu.column_name AS "referencedColumnNames",',
+      'r.delete_rule AS "deleteAction",',
+      'r.update_rule AS "updateAction",',
+      'ch.check_clause AS "definition",',
+      'c.is_deferrable AS "isDeferrable",',
+      'c.initially_deferred AS "initiallyDeferred"',
+      'FROM INFORMATION_SCHEMA.table_constraints c',
+      'LEFT JOIN INFORMATION_SCHEMA.referential_constraints r ON c.constraint_catalog = r.constraint_catalog AND c.constraint_schema = r.constraint_schema AND c.constraint_name = r.constraint_name',
+      'LEFT JOIN INFORMATION_SCHEMA.key_column_usage kcu ON c.constraint_catalog = kcu.constraint_catalog AND c.constraint_schema = kcu.constraint_schema AND c.constraint_name = kcu.constraint_name',
+      'LEFT JOIN information_schema.constraint_column_usage AS ccu ON r.constraint_catalog = ccu.constraint_catalog AND r.constraint_schema = ccu.constraint_schema AND r.constraint_name = ccu.constraint_name',
+      'LEFT JOIN INFORMATION_SCHEMA.check_constraints ch ON c.constraint_catalog = ch.constraint_catalog AND c.constraint_schema = ch.constraint_schema AND c.constraint_name = ch.constraint_name',
+      `WHERE c.table_name = ${this.escape(table.tableName)}`,
+      `AND c.table_schema = ${this.escape(table.schema)}`,
+      options?.columnName ? `AND kcu.column_name = ${this.escape(options.columnName)}` : '',
+      options?.constraintName ? `AND c.constraint_name = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.constraint_type = ${this.escape(options.constraintType)}` : '',
+      'ORDER BY c.constraint_name, kcu.ordinal_position',
     ]);
   }
 
@@ -77,48 +144,6 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      // conkey and confkey are arrays for composite foreign keys.
-      // This splits them as matching separate rows
-      'WITH unnested_pg_constraint AS (',
-      'SELECT conname, confrelid, connamespace, conrelid, contype, oid,',
-      'unnest(conkey) AS conkey, unnest(confkey) AS confkey',
-      'FROM pg_constraint)',
-      'SELECT "constraint".conname as "constraintName",',
-      'constraint_schema.nspname as "constraintSchema",',
-      'current_database() as "constraintCatalog",',
-      '"table".relname as "tableName",',
-      'table_schema.nspname as "tableSchema",',
-      'current_database() as "tableCatalog",',
-      '"column".attname as "columnName",',
-      'referenced_table.relname as "referencedTableName",',
-      'referenced_schema.nspname as "referencedTableSchema",',
-      'current_database() as "referencedTableCatalog",',
-      '"referenced_column".attname as "referencedColumnName"',
-      'FROM unnested_pg_constraint "constraint"',
-      'INNER JOIN pg_catalog.pg_class referenced_table ON',
-      'referenced_table.oid = "constraint".confrelid',
-      'INNER JOIN pg_catalog.pg_namespace referenced_schema ON',
-      'referenced_schema.oid = referenced_table.relnamespace',
-      'INNER JOIN pg_catalog.pg_namespace constraint_schema ON',
-      '"constraint".connamespace = constraint_schema.oid',
-      'INNER JOIN pg_catalog.pg_class "table" ON "constraint".conrelid = "table".oid',
-      'INNER JOIN pg_catalog.pg_namespace table_schema ON "table".relnamespace = table_schema.oid',
-      'INNER JOIN pg_catalog.pg_attribute "column" ON',
-      '"column".attnum = "constraint".conkey AND "column".attrelid = "constraint".conrelid',
-      'INNER JOIN pg_catalog.pg_attribute "referenced_column" ON',
-      '"referenced_column".attnum = "constraint".confkey AND',
-      '"referenced_column".attrelid = "constraint".confrelid',
-      `WHERE "constraint".contype = 'f'`,
-      `AND "table".relname = ${this.escape(table.tableName)}`,
-      `AND table_schema.nspname = ${this.escape(table.schema!)}`,
-      columnName && `AND "column".attname = ${this.escape(columnName)};`,
-    ]);
-  }
-
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
     const operator = path.length === 1
       ? (unquote ? '->>' : '->')
@@ -136,5 +161,9 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
     return `${this.escape(arg, options)}#>>ARRAY[]::TEXT[]`;
+  }
+
+  versionQuery() {
+    return 'SHOW SERVER_VERSION';
   }
 }

@@ -15,9 +15,12 @@ import {
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const _ = require('lodash');
+import each from 'lodash/each';
+import forOwn from 'lodash/forOwn';
+import isPlainObject from 'lodash/isPlainObject';
+import isString from 'lodash/isString';
+
 const DataTypes = require('../../data-types');
-const { TableHints } = require('../../table-hints');
 const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const randomBytes = require('node:crypto').randomBytes;
 const { Op } = require('../../operators');
@@ -128,29 +131,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ].join(' ');
   }
 
-  listSchemasQuery(options) {
-    const schemasToSkip = ['INFORMATION_SCHEMA', 'dbo', 'guest', 'sys', 'archive'];
-    if (options?.skip) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return [
-      'SELECT "name" as "schema_name" FROM sys.schemas as s',
-      'WHERE "s"."name" NOT IN (',
-      schemasToSkip.map(schema => this.escape(schema)).join(', '),
-      `) AND "s"."name" NOT LIKE 'db_%'`,
-    ].join(' ');
-  }
-
-  versionQuery() {
-    // Uses string manipulation to convert the MS Maj.Min.Patch.Build to semver Maj.Min.Patch
-    return [
-      'DECLARE @ms_ver NVARCHAR(20);',
-      'SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY(\'ProductVersion\')));',
-      'SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX(\'.\', @ms_ver)+1, 20)) AS \'version\'',
-    ].join(' ');
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -206,7 +186,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options?.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = generateIndexName(tableName, columns);
         }
@@ -243,38 +223,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return `EXEC sp_rename ${this.quoteTable(before)}, ${this.quoteTable(after)};`;
   }
 
-  showTablesQuery() {
-    return 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';';
-  }
-
-  tableExistsQuery(table) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema || 'dbo';
-
-    return `SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(tableName)} AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
-  }
-
-  dropTableQuery(tableName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    const quoteTbl = this.quoteTable(tableName);
-
-    return joinSQLFragments([
-      `IF OBJECT_ID('${quoteTbl}', 'U') IS NOT NULL`,
-      'DROP TABLE',
-      quoteTbl,
-      ';',
-    ]);
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(
@@ -296,7 +244,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     let commentStr = '';
 
-    if (dataType.comment && _.isString(dataType.comment)) {
+    if (dataType.comment && isString(dataType.comment)) {
       commentStr = this.commentTemplate(dataType.comment, table, key);
       // attributeToSQL will try to include `COMMENT 'Comment Text'` when it returns if the comment key
       // is present. This is needed for createTable statement where that part is extracted with regex.
@@ -411,7 +359,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       }
 
       // normal case
-      _.forOwn(attrValueHash, (value, key) => {
+      forOwn(attrValueHash, (value, key) => {
         if (value !== null && attributes[key] && attributes[key].autoIncrement) {
           needIdentityInsertWrapper = true;
         }
@@ -619,12 +567,8 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ]);
   }
 
-  showConstraintsQuery(tableName) {
-    return `EXEC sp_helpconstraint @objname = ${this.escape(this.quoteTable(tableName))};`;
-  }
-
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };
@@ -757,57 +701,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     throwMethodUndefined('renameFunction');
   }
 
-  getPrimaryKeyConstraintQuery(table, attributeName) {
-    const tableName = this.escape(table.tableName || table);
-
-    return joinSQLFragments([
-      'SELECT K.TABLE_NAME AS tableName,',
-      'K.COLUMN_NAME AS columnName,',
-      'K.CONSTRAINT_NAME AS constraintName',
-      'FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C',
-      'JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K',
-      'ON C.TABLE_NAME = K.TABLE_NAME',
-      'AND C.CONSTRAINT_CATALOG = K.CONSTRAINT_CATALOG',
-      'AND C.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA',
-      'AND C.CONSTRAINT_NAME = K.CONSTRAINT_NAME',
-      'WHERE C.CONSTRAINT_TYPE = \'PRIMARY KEY\'',
-      `AND K.COLUMN_NAME = ${this.escape(attributeName)}`,
-      `AND K.TABLE_NAME = ${tableName}`,
-      ';',
-    ]);
-  }
-
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP',
-      this.quoteIdentifier(foreignKey),
-    ]);
-  }
-
-  getDefaultConstraintQuery(tableName, attributeName) {
-    const quotedTable = this.quoteTable(tableName);
-
-    return joinSQLFragments([
-      'SELECT name FROM sys.default_constraints',
-      `WHERE PARENT_OBJECT_ID = OBJECT_ID('${quotedTable}', 'U')`,
-      `AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('${attributeName}')`,
-      `AND object_id = OBJECT_ID('${quotedTable}', 'U'))`,
-      ';',
-    ]);
-  }
-
-  dropConstraintQuery(tableName, constraintName) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP CONSTRAINT',
-      this.quoteIdentifier(constraintName),
-      ';',
-    ]);
-  }
-
   setIsolationLevelQuery() {}
 
   generateTransactionId() {
@@ -836,23 +729,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     return 'ROLLBACK TRANSACTION;';
-  }
-
-  selectFromTableFragment(options, model, attributes, tables, mainTableAs, where) {
-    this._throwOnEmptyAttributes(attributes, { modelName: model && model.name, as: mainTableAs });
-
-    // mssql overwrite the abstract selectFromTableFragment function.
-    if (options.maxExecutionTimeHintMs != null) {
-      throw new Error(`The maxExecutionTimeMs option is not supported by ${this.dialect.name}`);
-    }
-
-    return joinSQLFragments([
-      'SELECT',
-      attributes.join(', '),
-      `FROM ${tables}`,
-      mainTableAs && `AS ${mainTableAs}`,
-      options.tableHint && TableHints[options.tableHint] && `WITH (${TableHints[options.tableHint]})`,
-    ]);
   }
 
   addLimitAndOffset(options, model) {

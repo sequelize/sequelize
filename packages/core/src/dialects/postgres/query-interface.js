@@ -2,15 +2,15 @@
 
 import { Deferrable } from '../../deferrable';
 import { camelizeObjectKeys } from '../../utils/object';
+import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.js';
 
 const DataTypes = require('../../data-types');
 const { QueryTypes } = require('../../query-types');
-const { AbstractQueryInterface } = require('../abstract/query-interface');
 
 /**
  * The interface that Sequelize uses to talk with Postgres database
  */
-export class PostgresQueryInterface extends AbstractQueryInterface {
+export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
   /**
    * Ensure enum and their values.
    *
@@ -146,32 +146,6 @@ export class PostgresQueryInterface extends AbstractQueryInterface {
     }
 
     return result;
-  }
-
-  /**
-   * @override
-   */
-  async getForeignKeyReferencesForTable(table, options) {
-    const queryOptions = {
-      ...options,
-      type: QueryTypes.FOREIGNKEYS,
-    };
-
-    // postgres needs some special treatment as those field names returned are all lowercase
-    // in order to keep same result with other dialects.
-    const query = this.queryGenerator.getForeignKeyReferencesQuery(table.tableName || table, this.sequelize.config.database);
-    const result = await this.sequelize.queryRaw(query, queryOptions);
-
-    return result.map(fkMeta => {
-      const { initiallyDeferred, isDeferrable, ...remaining } = camelizeObjectKeys(fkMeta);
-
-      return {
-        ...remaining,
-        deferrable: isDeferrable === 'NO' ? Deferrable.NOT
-          : initiallyDeferred === 'NO' ? Deferrable.INITIALLY_IMMEDIATE
-          : Deferrable.INITIALLY_DEFERRED,
-      };
-    });
   }
 
   /**

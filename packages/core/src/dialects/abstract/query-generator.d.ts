@@ -13,8 +13,9 @@ import type {
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
-import type { QueryWithBindParams } from './query-generator.types.js';
+import type { AttributeToSqlOptions, QueryWithBindParams } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
+import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 type ParameterOptions = {
@@ -87,17 +88,6 @@ export interface CreateTableQueryOptions {
    | { [indexName: string]: { fields: string[] } };
 }
 
-// keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface DropTableQueryOptions {
-  cascade?: boolean;
-}
-
-// keep LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface ListSchemasQueryOptions {
-  /** List of schemas to exclude from output */
-  skip?: string[];
-}
-
 // keep ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface AddColumnQueryOptions {
   ifNotExists?: boolean;
@@ -117,8 +107,6 @@ export interface RemoveColumnQueryOptions {
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   constructor(options: QueryGeneratorOptions);
 
-  setImmediateQuery(constraints: readonly string[]): string;
-  setDeferredQuery(constraints: readonly string[]): string;
   generateTransactionId(): string;
   quoteIdentifiers(identifiers: string): string;
 
@@ -179,23 +167,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions
   ): string;
-  dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string;
   renameTableQuery(before: TableNameOrModel, after: TableNameOrModel): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
 
-  listSchemasQuery(options?: ListSchemasQueryOptions): string;
-
   createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
   dropDatabaseQuery(databaseName: string): string;
   listDatabasesQuery(): string;
-
-  dropForeignKeyQuery(tableName: TableNameOrModel, foreignKey: string): string;
-
-  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string): string;
-
-  versionQuery(): string;
 
   /**
    * Creates a function that can be used to collect bind parameters.
@@ -203,4 +182,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    * @param bind A mutable object to which bind parameters will be added.
    */
   bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
+
+  attributesToSQL(attributes: ColumnsDescription, options?: AttributeToSqlOptions): Record<string, string>;
 }
