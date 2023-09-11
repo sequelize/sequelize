@@ -118,6 +118,25 @@ describe('DataTypes.ARRAY', () => {
       return;
     }
 
+    it('does not not add cast to array of TEXT', () => {
+      expectsql(queryGenerator.escape([
+        'foo',
+        'bar',
+      ], { type: DataTypes.ARRAY(DataTypes.TEXT) }), {
+        postgres: `ARRAY['foo','bar']`,
+      });
+    });
+
+    // Regression test for https://github.com/sequelize/sequelize/issues/16391
+    it('adds cast to array of VARCHAR', () => {
+      expectsql(queryGenerator.escape([
+        'foo',
+        'bar',
+      ], { type: DataTypes.ARRAY(DataTypes.STRING(64)) }), {
+        postgres: `ARRAY['foo','bar']::VARCHAR(64)[]`,
+      });
+    });
+
     it('escapes array of JSON', () => {
       expectsql(queryGenerator.escape([
         { some: 'nested', more: { nested: true }, answer: 42 },
