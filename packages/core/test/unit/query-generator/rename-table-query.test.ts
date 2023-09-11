@@ -3,7 +3,7 @@ import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 const dialect = sequelize.dialect;
 
 describe('QueryGenerator#renameTableQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a query that renames the table', () => {
     expectsql(() => queryGenerator.renameTableQuery('oldTable', 'newTable'), {
@@ -43,7 +43,7 @@ describe('QueryGenerator#renameTableQuery', () => {
 
   it('produces a query that renames the table from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectsql(() => queryGeneratorSchema.renameTableQuery('oldTable', 'newTable'), {
       default: 'ALTER TABLE [mySchema].[oldTable] RENAME TO [mySchema].[newTable];',

@@ -1,7 +1,11 @@
+import type { Deferrable } from '../../deferrable';
 import type { QueryRawOptions } from '../../sequelize';
-import type { CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
+import type { CreateSchemaQueryOptions } from './query-generator';
 import type {
   AddConstraintQueryOptions,
+  DropTableQueryOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types';
@@ -20,7 +24,7 @@ export type ColumnsDescription = Record<string, ColumnDescription>;
 export type ConstraintType = 'CHECK' | 'DEFAULT' | 'FOREIGN KEY' | 'PRIMARY KEY' | 'UNIQUE';
 
 export interface RawConstraintDescription {
-  constrainCatalog?: string;
+  constraintCatalog?: string;
   constraintSchema: string;
   constraintName: string;
   constraintType: ConstraintType;
@@ -39,7 +43,7 @@ export interface RawConstraintDescription {
 }
 
 export interface ConstraintDescription {
-  constrainCatalog?: string;
+  constraintCatalog?: string;
   constraintSchema: string;
   constraintName: string;
   constraintType: ConstraintType;
@@ -53,8 +57,7 @@ export interface ConstraintDescription {
   deleteAction?: string;
   updateAction?: string;
   definition?: string;
-  isDeferrable?: string;
-  initiallyDeferred?: string;
+  deferrable?: Deferrable;
 }
 
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
@@ -71,6 +74,9 @@ export interface QiDropAllSchemasOptions extends QueryRawOptions {
   skip?: string[];
 }
 
+/** Options accepted by {@link AbstractQueryInterface#showAllTables} */
+export interface QiShowAllTablesOptions extends ListTablesQueryOptions, QueryRawOptions { }
+
 /** Options accepted by {@link AbstractQueryInterface#describeTable} */
 export interface DescribeTableOptions extends QueryRawOptions {
   /**
@@ -81,6 +87,14 @@ export interface DescribeTableOptions extends QueryRawOptions {
    * @deprecated Use a TableNameWithSchema object to specify the schemaDelimiter.
    */
   schemaDelimiter?: string;
+}
+
+/** Options accepted by {@link AbstractQueryInterface#dropTable} */
+export interface QiDropTableOptions extends DropTableQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#dropAllTables} */
+export interface QiDropAllTablesOptions extends QiDropTableOptions {
+  skip?: string[];
 }
 
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}

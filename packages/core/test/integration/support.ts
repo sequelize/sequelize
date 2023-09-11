@@ -222,7 +222,7 @@ The following methods can be used to mark a sequelize instance for automatic dis
 });
 
 async function clearDatabaseInternal(customSequelize: Sequelize) {
-  const qi = customSequelize.getQueryInterface();
+  const qi = customSequelize.queryInterface;
   await qi.dropAllTables();
   customSequelize.modelManager.models = [];
   customSequelize.models = {};

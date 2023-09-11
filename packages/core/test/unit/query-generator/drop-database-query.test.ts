@@ -5,8 +5,8 @@ const dialectName = getTestDialect();
 const notSupportedError = new Error(`Databases are not supported in ${dialectName}.`);
 
 describe('QueryGenerator#dropDatabaseQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
-  const noQuoteQueryGenerator = createSequelizeInstance({ quoteIdentifiers: false }).getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
+  const noQuoteQueryGenerator = createSequelizeInstance({ quoteIdentifiers: false }).queryGenerator;
 
   it('produces a DROP DATABASE query in supported dialects', () => {
     expectsql(() => queryGenerator.dropDatabaseQuery('myDatabase'), {

@@ -9,7 +9,7 @@ const dialectName = getTestDialect();
 // TODO: see if some logic in handling columns can be moved to attributeToSQL which could make some tests here redundant
 
 describe('QueryGenerator#createTableQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a query to create a table', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }), {
@@ -52,7 +52,7 @@ describe('QueryGenerator#createTableQuery', () => {
 
   it('produces a query to create a table from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectsql(queryGeneratorSchema.createTableQuery('myTable', { myColumn: 'DATE' }), {
       default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([myColumn] DATE);',

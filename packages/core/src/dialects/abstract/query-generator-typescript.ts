@@ -34,7 +34,10 @@ import type { BindParamOptions, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
+  DropTableQueryOptions,
   GetConstraintSnippetQueryOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
   QuoteTableOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
@@ -53,9 +56,12 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
+export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>(['cascade']);
+export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQueryOptions>(['schema']);
 export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
+export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
 
 export interface QueryGeneratorOptions {
   sequelize: Sequelize;
@@ -136,8 +142,48 @@ export class AbstractQueryGeneratorTypeScript {
     return this.sequelize.options;
   }
 
+  protected _getTechnicalSchemaNames(): string[] {
+    return [];
+  }
+
+  listSchemasQuery(_options?: ListSchemasQueryOptions): string {
+    if (this.dialect.supports.schemas) {
+      throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
+  }
+
+  dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string {
+    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropTableQueryOptions>();
+
+    if (this.dialect.supports.dropTable.cascade) {
+      DROP_TABLE_QUERY_SUPPORTED_OPTIONS.add('cascade');
+    }
+
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'DROP TABLE IF EXISTS',
+      this.quoteTable(tableName),
+      options?.cascade ? 'CASCADE' : '',
+    ]);
+  }
+
+  listTablesQuery(_options?: ListTablesQueryOptions): string {
+    throw new Error(`listTablesQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions): string {
@@ -391,12 +437,24 @@ export class AbstractQueryGeneratorTypeScript {
   /**
    * Generates an SQL query that returns all foreign keys of a table or the foreign key constraint of a given column.
    *
+   * @deprecated Use {@link showConstraintsQuery} instead.
    * @param _tableName The table or associated model.
    * @param _columnName The name of the column. Not supported by SQLite.
    * @returns The generated SQL query.
    */
-  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): string {
-    throw new Error(`getForeignKeyQuery has not been implemented in ${this.dialect.name}.`);
+  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): Error {
+    throw new Error(`getForeignKeyQuery has been deprecated. Use showConstraintsQuery instead.`);
+  }
+
+  /**
+   * Generates an SQL query that drops a foreign key constraint.
+   *
+   * @deprecated Use {@link removeConstraintQuery} instead.
+   * @param _tableName The table or associated model.
+   * @param _foreignKey The name of the foreign key constraint.
+   */
+  dropForeignKeyQuery(_tableName: TableNameOrModel, _foreignKey: string): Error {
+    throw new Error(`dropForeignKeyQuery has been deprecated. Use removeConstraintQuery instead.`);
   }
 
   // TODO: rename to "normalizeTable" & move to sequelize class

@@ -1,41 +1,50 @@
 'use strict';
 
 import defaults from 'lodash/defaults';
-
-const Toposort = require('toposort-class');
+// @ts-expect-error -- toposort-class definition will be added to sequelize/toposort later
+import Toposort from 'toposort-class';
+import type { ModelStatic } from './model';
+import type { Sequelize } from './sequelize';
 
 export class ModelManager {
-  constructor(sequelize) {
+  #sequelize: Sequelize;
+  declare models: ModelStatic[];
+
+  constructor(sequelize: Sequelize) {
     this.models = [];
-    this.sequelize = sequelize;
+    this.#sequelize = sequelize;
   }
 
-  addModel(model) {
+  addModel<T extends ModelStatic>(model: T): T {
     this.models.push(model);
-    this.sequelize.models[model.name] = model;
+    this.#sequelize.models[model.name] = model;
 
     return model;
   }
 
-  removeModel(modelToRemove) {
-    this.models = this.models.filter(model => model.name !== modelToRemove.name);
+  removeModel(modelToRemove: ModelStatic): void {
+    this.models = this.models.filter(
+      model => model.name !== modelToRemove.name,
+    );
 
-    delete this.sequelize.models[modelToRemove.name];
+    delete this.#sequelize.models[modelToRemove.name];
   }
 
-  getModel(modelName) {
+  getModel(modelName: string): ModelStatic | undefined {
     return this.models.find(model => model.name === modelName);
   }
 
-  findModel(callback) {
+  findModel(
+    callback: (model: ModelStatic) => boolean,
+  ): ModelStatic | undefined {
     return this.models.find(callback);
   }
 
-  hasModel(targetModel) {
+  hasModel(targetModel: ModelStatic): boolean {
     return this.models.includes(targetModel);
   }
 
-  get all() {
+  get all(): ModelStatic[] {
     return this.models;
   }
 
@@ -46,11 +55,11 @@ export class ModelManager {
    *
    * If there is a cyclic dependency, this returns null.
    */
-  getModelsTopoSortedByForeignKey() {
+  getModelsTopoSortedByForeignKey(): ModelStatic[] | null {
     const models = new Map();
     const sorter = new Toposort();
 
-    const queryGenerator = this.sequelize.queryInterface.queryGenerator;
+    const queryGenerator = this.#sequelize.queryGenerator;
 
     for (const model of this.models) {
       let deps = [];
@@ -62,7 +71,7 @@ export class ModelManager {
       for (const attrName of attributes.keys()) {
         const attribute = attributes.get(attrName);
 
-        if (!attribute.references) {
+        if (!attribute?.references) {
           continue;
         }
 
@@ -78,8 +87,11 @@ export class ModelManager {
     let sorted;
     try {
       sorted = sorter.sort();
-    } catch (error) {
-      if (!error.message.startsWith('Cyclic dependency found.')) {
+    } catch (error: unknown) {
+      if (
+        error instanceof Error
+        && !error.message.startsWith('Cyclic dependency found.')
+      ) {
         throw error;
       }
 
@@ -87,7 +99,7 @@ export class ModelManager {
     }
 
     return sorted
-      .map(modelName => {
+      .map((modelName: string) => {
         return models.get(modelName);
       })
       .filter(Boolean);
@@ -97,13 +109,17 @@ export class ModelManager {
    * Iterate over Models in an order suitable for e.g. creating tables.
    * Will take foreign key constraints into account so that dependencies are visited before dependents.
    *
-   * @param {Function} iterator method to execute on each model
-   * @param {object} options
+   * @param iterator method to execute on each model
+   * @param options
+   * @param options.reverse
    * @private
    *
    * @deprecated
    */
-  forEachModel(iterator, options) {
+  forEachModel(
+    iterator: (model: ModelStatic) => void,
+    options?: { reverse?: boolean },
+  ) {
     const sortedModels = this.getModelsTopoSortedByForeignKey();
     if (sortedModels == null) {
       throw new Error('Cyclic dependency found.');

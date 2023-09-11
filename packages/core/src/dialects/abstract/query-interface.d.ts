@@ -71,15 +71,6 @@ export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, Colla
   uniqueKeys?: { [indexName: string]: { fields: string[] } };
 }
 
-export interface QueryInterfaceDropTableOptions extends QueryRawOptions {
-  cascade?: boolean;
-  force?: boolean;
-}
-
-export interface QueryInterfaceDropAllTablesOptions extends QueryRawOptions {
-  skip?: string[];
-}
-
 export interface TableNameWithSchema {
   tableName: string;
   schema?: string;
@@ -283,21 +274,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   ): Promise<void>;
 
   /**
-   * Drops the specified table.
-   *
-   * @param tableName Table name.
-   * @param options   Query options, particularly "force".
-   */
-  dropTable(tableName: TableName, options?: QueryInterfaceDropTableOptions): Promise<void>;
-
-  /**
-   * Drops all tables.
-   *
-   * @param options
-   */
-  dropAllTables(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
-
-  /**
    * Drops all defined enums
    *
    * @param options
@@ -308,11 +284,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Renames a table
    */
   renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Returns all tables
-   */
-  showAllTables(options?: QueryRawOptions): Promise<string[]>;
 
   /**
    * Adds a new column to a table
@@ -391,16 +362,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Put a name to an index
    */
   nameIndexes(indexes: string[], rawTablename: string): Promise<void>;
-
-  /**
-   * Returns all foreign key constraints of requested tables
-   */
-  getForeignKeysForTables(tableNames: string[], options?: QueryRawOptions): Promise<object>;
-
-  /**
-   * Get foreign key references details for the table
-   */
-  getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<object>;
 
   /**
    * Inserts a new record

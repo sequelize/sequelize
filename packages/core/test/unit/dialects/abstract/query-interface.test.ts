@@ -7,10 +7,10 @@ describe('QueryInterface', () => {
     it('should quote the identifier', () => {
       const identifier = 'identifier';
       const quotedIdentifier = sequelize
-        .getQueryInterface()
+        .queryInterface
         .quoteIdentifier(identifier);
       const expectedQuotedIdentifier = sequelize
-        .getQueryInterface()
+        .queryInterface
         .queryGenerator
         .quoteIdentifier(identifier);
 
@@ -25,10 +25,10 @@ describe('QueryInterface', () => {
     it('should quote the identifiers', () => {
       const identifier = 'table.identifier';
       const quotedIdentifiers = sequelize
-        .getQueryInterface()
+        .queryInterface
         .quoteIdentifiers(identifier);
       const expectedQuotedIdentifiers = sequelize
-        .getQueryInterface()
+        .queryInterface
         .queryGenerator
         .quoteIdentifiers(identifier);
 

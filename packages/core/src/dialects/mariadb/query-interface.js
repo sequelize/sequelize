@@ -16,18 +16,8 @@ export class MariaDbQueryInterface extends AbstractQueryInterface {
    * @override
    */
   async removeColumn(tableName, columnName, options = EMPTY_OBJECT) {
-    const [results] = await this.sequelize.queryRaw(
-      this.queryGenerator.getForeignKeyQuery(tableName, columnName),
-      { raw: true, ...options },
-    );
-
-    // Exclude primary key constraint
-    if (results.length > 0 && results[0].constraintName !== 'PRIMARY') {
-      await Promise.all(results.map(constraint => this.sequelize.queryRaw(
-        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraintName),
-        { raw: true, ...options },
-      )));
-    }
+    const foreignKeys = await this.showConstraints(tableName, { ...options, columnName, constraintType: 'FOREIGN KEY' });
+    await Promise.all(foreignKeys.map(constraint => this.removeConstraint(tableName, constraint.constraintName, options)));
 
     return this.sequelize.queryRaw(
       this.queryGenerator.removeColumnQuery(tableName, columnName),

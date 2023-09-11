@@ -85,7 +85,7 @@ export class Transaction {
     }
 
     try {
-      await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      await this.sequelize.queryInterface.commitTransaction(this, this.options);
 
       await this.#dispatchHooks(this.#afterCommitHooks);
       await this.#dispatchHooks(this.#afterHooks);
@@ -116,7 +116,7 @@ export class Transaction {
     try {
       await this
         .sequelize
-        .getQueryInterface()
+        .queryInterface
         .rollbackTransaction(this, this.options);
 
       await this.#dispatchHooks(this.#afterRollbackHooks);
@@ -179,13 +179,13 @@ export class Transaction {
     if (this.options.constraintChecking) {
       await this
         .sequelize
-        .getQueryInterface()
+        .queryInterface
         .deferConstraints(this.options.constraintChecking, { transaction: this });
     }
   }
 
   async begin() {
-    const queryInterface = this.sequelize.getQueryInterface();
+    const queryInterface = this.sequelize.queryInterface;
 
     if (this.sequelize.dialect.supports.settingIsolationLevelDuringTransaction) {
       await queryInterface.startTransaction(this, this.options);
