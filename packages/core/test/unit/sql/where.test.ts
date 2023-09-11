@@ -1,7 +1,6 @@
 import util from 'node:util';
-import type {
-  FormatWhereOptions,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+// eslint-disable-next-line import-newlines/enforce, import/order
+import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
 import attempt from 'lodash/attempt';
