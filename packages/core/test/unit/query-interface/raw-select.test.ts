@@ -16,7 +16,7 @@ describe('QueryInterface#rawSelect', () => {
   it('does not parse user-provided data as replacements', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().rawSelect(User.table, {
+    await sequelize.queryInterface.rawSelect(User.table, {
       // @ts-expect-error -- we'll fix the typings when we migrate query-generator to TypeScript
       attributes: ['id'],
       where: {

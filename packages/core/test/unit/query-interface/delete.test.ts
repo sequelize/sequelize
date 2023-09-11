@@ -18,7 +18,7 @@ describe('QueryInterface#delete', () => {
 
     const instance = User.build();
 
-    await sequelize.getQueryInterface().delete(
+    await sequelize.queryInterface.delete(
       instance,
       User.table,
       { firstName: ':id' },

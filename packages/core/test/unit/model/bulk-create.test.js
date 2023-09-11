@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     let stub;
 
     before(() => {
-      stub = sinon.stub(current.getQueryInterface(), 'bulkInsert').resolves([]);
+      stub = sinon.stub(current.queryInterface, 'bulkInsert').resolves([]);
     });
 
     afterEach(() => {

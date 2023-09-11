@@ -7,7 +7,7 @@ import { sequelize } from '../support';
 
 const { dialect } = sequelize;
 const testSchema = 'testSchema';
-const queryInterface = sequelize.getQueryInterface();
+const queryInterface = sequelize.queryInterface;
 
 // MySQL and MariaDB view databases and schemas as identical. Other databases consider them separate entities.
 const dialectsWithEqualDBsSchemas = ['mysql', 'mariadb'];
@@ -37,7 +37,7 @@ describe('QueryInterface#{create,drop,showAll}Schema', () => {
       collate: 'en_US.UTF-8',
       charset: 'utf8mb4',
     };
-    const queryGeneratorSpy = spy(queryInterface.queryGenerator, 'createSchemaQuery');
+    const queryGeneratorSpy = spy(sequelize.queryGenerator, 'createSchemaQuery');
 
     try {
       await queryInterface.createSchema(testSchema, options);

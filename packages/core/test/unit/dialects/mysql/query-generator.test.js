@@ -415,7 +415,7 @@ if (dialect === 'mysql') {
               }
             }
 
-            const queryGenerator = sequelize.queryInterface.queryGenerator;
+            const queryGenerator = sequelize.queryGenerator;
 
             const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);

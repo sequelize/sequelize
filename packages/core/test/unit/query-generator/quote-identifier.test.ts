@@ -1,7 +1,7 @@
 import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#quoteIdentifier', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
   const TICK_RIGHT = sequelize.dialect.TICK_CHAR_RIGHT;
   const TICK_LEFT = sequelize.dialect.TICK_CHAR_LEFT;
 

@@ -11,7 +11,7 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
     this.sequelize.options.quoteIdenifiers = true;
-    this.queryInterface = this.sequelize.getQueryInterface();
+    this.queryInterface = this.sequelize.queryInterface;
   });
 
   afterEach(async function () {
@@ -202,7 +202,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
           await this.queryInterface.removeColumn('actors', 'name');
 
-          const constraintsQuery = this.queryInterface.queryGenerator.showConstraintsQuery('actors');
+          const constraintsQuery = this.sequelize.queryGenerator.showConstraintsQuery('actors');
           const [{ sql: actorsSql }] = await this.queryInterface.sequelize.query(constraintsQuery, {
             type: 'SELECT',
           });

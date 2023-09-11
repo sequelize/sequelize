@@ -11,7 +11,7 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
     this.sequelize.options.quoteIdenifiers = true;
-    this.queryInterface = this.sequelize.getQueryInterface();
+    this.queryInterface = this.sequelize.queryInterface;
   });
 
   afterEach(async function () {

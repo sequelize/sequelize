@@ -775,7 +775,7 @@ if (dialect.startsWith('postgres')) {
               ...test.context?.options,
             });
 
-            const queryGenerator = newSequelize.queryInterface.queryGenerator;
+            const queryGenerator = newSequelize.queryGenerator;
 
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {

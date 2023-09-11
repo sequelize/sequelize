@@ -191,7 +191,7 @@ if (dialect.startsWith('mssql')) {
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
-      const metadata = await this.sequelize.getQueryInterface().describeTable('_Users');
+      const metadata = await this.sequelize.queryInterface.describeTable('_Users');
       const username = metadata.username;
       expect(username.type).to.include('(MAX)');
     });
@@ -202,7 +202,7 @@ if (dialect.startsWith('mssql')) {
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
-      const metadata = await this.sequelize.getQueryInterface().describeTable('_Users');
+      const metadata = await this.sequelize.queryInterface.describeTable('_Users');
       const username = metadata.username;
       expect(username.type).to.include('(10)');
     });
