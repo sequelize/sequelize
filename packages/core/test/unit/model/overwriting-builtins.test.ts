@@ -46,4 +46,24 @@ describe('Model', () => {
     expect(user.firstName).to.eq('Zoe');
     expect(user.nonAttribute).to.eq('def');
   });
+
+  it('makes associations take priority over class properties defined on the model', () => {
+    // This is the same issue as above, but for associations
+    class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+      profile?: Profile;
+    }
+
+    class Profile extends Model<InferAttributes<Profile>, InferCreationAttributes<Profile>> {
+      userId: number = 10;
+    }
+
+    User.init({}, { sequelize });
+    Profile.init({}, { sequelize });
+
+    User.hasOne(Profile, { as: 'profile', foreignKey: 'userId' });
+
+    // @ts-expect-error -- TODO: add typing for creating associations in build/create
+    const user = User.build({ profile: {} }, { include: ['profile'] });
+    expect(user.profile).to.be.instanceof(Profile);
+  });
 });
