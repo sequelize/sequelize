@@ -188,18 +188,18 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`listTablesQuery has not been implemented in ${this.dialect.name}.`);
   }
 
-  removeColumnQuery(tableName: TableNameOrModel, attributeName: string, options?: RemoveColumnQueryOptions): string {
-    const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveColumnQueryOptions>();
-
-    if (this.dialect.supports.removeColumn.cascade) {
-      REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS.add('cascade');
-    }
-
-    if (this.dialect.supports.removeColumn.ifExists) {
-      REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS.add('ifExists');
-    }
-
+  removeColumnQuery(tableName: TableNameOrModel, columnName: string, options?: RemoveColumnQueryOptions): string {
     if (options) {
+      const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveColumnQueryOptions>();
+
+      if (this.dialect.supports.removeColumn.cascade) {
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS.add('cascade');
+      }
+
+      if (this.dialect.supports.removeColumn.ifExists) {
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS.add('ifExists');
+      }
+
       rejectInvalidOptions(
         'removeColumnQuery',
         this.dialect.name,
@@ -214,7 +214,7 @@ export class AbstractQueryGeneratorTypeScript {
       this.quoteTable(tableName),
       'DROP COLUMN',
       options?.ifExists ? 'IF EXISTS' : '',
-      this.quoteIdentifier(attributeName),
+      this.quoteIdentifier(columnName),
       options?.cascade ? 'CASCADE' : '',
     ]);
   }
