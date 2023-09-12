@@ -9,6 +9,8 @@ services:
       MYSQL_ROOT_PASSWORD: sequelize_test
     ports:
       - 21103:3306
+    volumes:
+      - mariadb-oldest:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mariadb-admin", "-usequelize_test", "-psequelize_test", "status"]
       interval: 3s
@@ -18,3 +20,7 @@ services:
 networks:
   default:
     name: sequelize-mariadb-oldest-network
+
+volumes:
+  mariadb-oldest:
+    name: sequelize-mariadb-oldest-volume
