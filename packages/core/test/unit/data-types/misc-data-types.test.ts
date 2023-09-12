@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import type { ENUM } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
-import { expectsql, sequelize } from '../../support';
+import { expectsql, sequelize, typeTest } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const { queryGenerator, dialect } = sequelize;
@@ -91,6 +91,14 @@ describe('DataTypes.ENUM', () => {
         anEnum: DataTypes.ENUM({ values: Test }),
       });
     }).to.throwWithCause(Error, 'DataTypes.ENUM has been constructed incorrectly: When specifying values as a TypeScript enum or an object of key-values, the values of the object must be equal to their keys.');
+  });
+
+  typeTest('accepts readonly arrays', () => {
+    const values: readonly string[] = ['value 1', 'value 2'];
+
+    sequelize.define('User', {
+      anEnum: DataTypes.ENUM(values),
+    });
   });
 
   it('raises an error if the legacy "values" property is specified', () => {
