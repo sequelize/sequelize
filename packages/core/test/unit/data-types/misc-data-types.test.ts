@@ -59,6 +59,42 @@ describe('DataTypes.ENUM', () => {
     });
   });
 
+  it('supports TypeScript enums', () => {
+    enum Test {
+      A = 'A',
+      B = 'B',
+      C = 'C',
+    }
+
+    const User = sequelize.define('User', {
+      anEnum: DataTypes.ENUM({ values: Test }),
+    });
+
+    const enumType = User.getAttributes().anEnum.type;
+    assert(typeof enumType !== 'string');
+
+    expectsql(enumType.toSql(), {
+      postgres: '"public"."enum_Users_anEnum"',
+      'mysql mariadb': `ENUM('A', 'B', 'C')`,
+      // SQL Server does not support enums, we use text + a check constraint instead
+      mssql: `NVARCHAR(255)`,
+      sqlite: 'TEXT',
+      'db2 ibmi snowflake': 'VARCHAR(255)',
+    });
+  });
+
+  it('throws if the TS enum values are not equal to their keys', () => {
+    enum Test {
+      A = 'a',
+    }
+
+    expect(() => {
+      sequelize.define('User', {
+        anEnum: DataTypes.ENUM({ values: Test }),
+      });
+    }).to.throwWithCause(Error, 'DataTypes.ENUM has been constructed incorrectly: When specifying values as a TypeScript enum or an object of key-values, the values of the object must be equal to their keys.');
+  });
+
   it('raises an error if the legacy "values" property is specified', () => {
     expect(() => {
       sequelize.define('omnomnom', {
