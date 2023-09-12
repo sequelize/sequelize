@@ -270,16 +270,16 @@ export class AbstractQueryInterfaceTypeScript {
    * Removes a column from a table
    *
    * @param tableName
-   * @param attributeName
+   * @param columnName
    * @param options
    */
   async removeColumn(
     tableName: TableNameOrModel,
-    attributeName: string,
+    columnName: string,
     options?: RemoveColumnOptions,
   ): Promise<void> {
     const queryOptions = { ...options, raw: true };
-    const sql = this.queryGenerator.removeColumnQuery(tableName, attributeName, queryOptions);
+    const sql = this.queryGenerator.removeColumnQuery(tableName, columnName, queryOptions);
 
     await this.sequelize.queryRaw(sql, queryOptions);
   }

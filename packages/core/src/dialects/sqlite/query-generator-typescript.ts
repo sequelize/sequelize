@@ -67,7 +67,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `PRAGMA foreign_keys = ${enable ? 'ON' : 'OFF'}`;
   }
 
-  removeColumnQuery(_table: TableNameOrModel, _attributeName: string, _options?: RemoveColumnQueryOptions): string {
+  removeColumnQuery(_table: TableNameOrModel, _columnName: string, _options?: RemoveColumnQueryOptions): string {
     throw new Error(`removeColumnQuery is not supported in ${this.dialect.name}.`);
   }
 
