@@ -2121,16 +2121,18 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
   }
 }
 
+/**
+ * If an array, each element in the array is a possible value for the ENUM.
+ *
+ * If a record (plain object, typescript enum),
+ * it will use the keys as the list of possible values for the ENUM, in the order specified by the Object.
+ * This is designed to be used with TypeScript enums, but it can be used with plain objects as well.
+ * Because we don't handle any mapping between the enum keys and values, we require that they be the same.
+ */
+type EnumValues<Member extends string> = readonly Member[] | Record<Member, Member>;
+
 export interface EnumOptions<Member extends string> {
-  /**
-   * If an array, each element in the array is a possible value for the ENUM.
-   *
-   * If a record (plain object, typescript enum),
-   * it will use the keys as the list of possible values for the ENUM, in the order specified by the Object.
-   * This is designed to be used with TypeScript enums, but it can be used with plain objects as well.
-   * Because we don't handle any mapping between the enum keys and values, we require that they be the same.
-   */
-  values: readonly Member[] | Record<Member, Member>;
+  values: EnumValues<Member>;
 }
 
 export interface NormalizedEnumOptions<Member extends string> {
@@ -2163,17 +2165,17 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
    * @param options either array of values or options object with values array. It also supports variadic values.
    */
   constructor(options: EnumOptions<Member>);
-  constructor(members: readonly Member[]);
+  constructor(members: EnumValues<Member>);
   constructor(...members: Member[]);
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @hidden */
   constructor(...args:
     | [options: EnumOptions<Member>]
-    | [members: readonly Member[]]
+    | [members: EnumValues<Member>]
     | [...members: Member[]]
   );
-  constructor(...args: [readonly Member[] | Member | EnumOptions<Member>, ...Member[]]) {
+  constructor(...args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]]) {
     super();
 
     const values: readonly Member[] = this.#getEnumValues(args);
@@ -2212,7 +2214,7 @@ sequelize.define('MyModel', {
     };
   }
 
-  #getEnumValues(args: [readonly Member[] | Member | EnumOptions<Member>, ...Member[]]): readonly Member[] {
+  #getEnumValues(args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]]): readonly Member[] {
     if (args.length === 0) {
       return EMPTY_ARRAY;
     }
@@ -2227,14 +2229,15 @@ sequelize.define('MyModel', {
       throw new TypeError('DataTypes.ENUM has been constructed incorrectly: Its first parameter is the option bag or the array of values, but more than one parameter has been provided.');
     }
 
-    if (Array.isArray(first)) {
-      return [...first];
+    let enumOrArray: EnumValues<Member>;
+    if (!Array.isArray(first) && 'values' in first && typeof first.values !== 'string') {
+      // This is the option bag
+      // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
+      enumOrArray = first.values;
+    } else {
+      // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
+      enumOrArray = first;
     }
-
-    // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
-    const options: EnumOptions<Member> = first;
-
-    const enumOrArray = options.values;
 
     if (Array.isArray(enumOrArray)) {
       return [...enumOrArray];

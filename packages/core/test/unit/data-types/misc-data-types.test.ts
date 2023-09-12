@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import type { ENUM } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import { expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -67,20 +68,17 @@ describe('DataTypes.ENUM', () => {
     }
 
     const User = sequelize.define('User', {
-      anEnum: DataTypes.ENUM({ values: Test }),
+      enum1: DataTypes.ENUM({ values: Test }),
+      enum2: DataTypes.ENUM(Test),
     });
 
-    const enumType = User.getAttributes().anEnum.type;
-    assert(typeof enumType !== 'string');
+    const attributes = User.getAttributes();
 
-    expectsql(enumType.toSql(), {
-      postgres: '"public"."enum_Users_anEnum"',
-      'mysql mariadb': `ENUM('A', 'B', 'C')`,
-      // SQL Server does not support enums, we use text + a check constraint instead
-      mssql: `NVARCHAR(255)`,
-      sqlite: 'TEXT',
-      'db2 ibmi snowflake': 'VARCHAR(255)',
-    });
+    const enum1: ENUM<any> = attributes.enum1.type as ENUM<any>;
+    expect(enum1.options.values).to.deep.eq(['A', 'B', 'C']);
+
+    const enum2: ENUM<any> = attributes.enum2.type as ENUM<any>;
+    expect(enum2.options.values).to.deep.eq(['A', 'B', 'C']);
   });
 
   it('throws if the TS enum values are not equal to their keys', () => {
