@@ -9,7 +9,8 @@ services:
       MYSQL_ROOT_PASSWORD: sequelize_test
     ports:
       - 20057:3306
-    # tmpfs: /var/lib/mysql:rw
+    volumes:
+      - mysql-latest:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "-usequelize_test", "-psequelize_test", "status"]
       interval: 3s
@@ -19,3 +20,7 @@ services:
 networks:
   default:
     name: sequelize-mysql-latest-network
+
+volumes:
+  mysql-latest:
+    name: sequelize-mysql-latest-volume
