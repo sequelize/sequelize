@@ -47,7 +47,6 @@ export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'ch
 export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'engine', 'rowFormat', 'comment', 'initialAutoIncrement', 'uniqueKeys']);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
-export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
 
 /**
  * Abstract Query Generator

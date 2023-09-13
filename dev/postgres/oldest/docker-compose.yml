@@ -8,6 +8,8 @@ services:
       POSTGRES_DB: sequelize_test
     ports:
       - 23010:5432
+    volumes:
+      - postgres-oldest:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "sequelize_test"]
       interval: 3s
@@ -17,3 +19,7 @@ services:
 networks:
   default:
     name: sequelize-postgres-oldest-network
+
+volumes:
+  postgres-oldest:
+    name: sequelize-postgres-oldest-volume

@@ -78,7 +78,7 @@
     "@types/sinon": "10.0.16",
     "@types/sinon-chai": "3.2.9",
     "@types/snowflake-sdk": "1.6.13",
-    "@types/tedious": "4.0.11",
+    "@types/tedious": "4.0.12",
     "@types/uuid": "9.0.3",
     "chai": "4.3.8",
     "chai-as-promised": "7.1.1",

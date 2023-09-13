@@ -93,11 +93,6 @@ export interface AddColumnQueryOptions {
   ifNotExists?: boolean;
 }
 
-// keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface RemoveColumnQueryOptions {
-  ifExists?: boolean;
-}
-
 /**
  * The base class for all query generators, used to generate all SQL queries.
  *
@@ -129,12 +124,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     columnName: string,
     columnDefinition: AttributeOptions | DataType,
     options?: AddColumnQueryOptions,
-  ): string;
-
-  removeColumnQuery(
-    table: TableNameOrModel,
-    attributeName: string,
-    options?: RemoveColumnQueryOptions,
   ): string;
 
   updateQuery(

@@ -53,6 +53,10 @@ function decorateAssociation(
     throw new TypeError('Symbol associations are not currently supported. We welcome a PR that implements this feature.');
   }
 
+  if (options.as) {
+    throw new Error('The "as" option is not allowed when using association decorators. The name of the decorated field is used as the association name.');
+  }
+
   const associations = registeredAssociations.get(sourceClass) ?? [];
   registeredAssociations.set(sourceClass, associations);
 
@@ -61,7 +65,7 @@ function decorateAssociation(
 
 export function HasOne<Target extends Model>(
   target: MaybeForwardedModelStatic<Target>,
-  optionsOrForeignKey: HasOneOptions<string, AttributeNames<Target>> | AttributeNames<Target>,
+  optionsOrForeignKey: Omit<HasOneOptions<string, AttributeNames<Target>>, 'as'> | AttributeNames<Target>,
 ) {
   return (source: Model, associationName: string | symbol) => {
     const options = isString(optionsOrForeignKey) ? { foreignKey: optionsOrForeignKey } : optionsOrForeignKey;
@@ -72,7 +76,7 @@ export function HasOne<Target extends Model>(
 
 export function HasMany<Target extends Model>(
   target: MaybeForwardedModelStatic<Target>,
-  optionsOrForeignKey: HasManyOptions<string, AttributeNames<Target>> | AttributeNames<Target>,
+  optionsOrForeignKey: Omit<HasManyOptions<string, AttributeNames<Target>>, 'as'> | AttributeNames<Target>,
 ) {
   return (source: Model, associationName: string | symbol) => {
     const options = isString(optionsOrForeignKey) ? { foreignKey: optionsOrForeignKey } : optionsOrForeignKey;
@@ -83,12 +87,14 @@ export function HasMany<Target extends Model>(
 
 export function BelongsTo<SourceKey extends string, Target extends Model>(
   target: MaybeForwardedModelStatic<Target>,
-  optionsOrForeignKey: BelongsToOptions<SourceKey, AttributeNames<Target>> | SourceKey,
+  optionsOrForeignKey: Omit<BelongsToOptions<SourceKey, AttributeNames<Target>>, 'as'> | SourceKey,
 ) {
   return (
-    // This type is a hack to make sure the source model declares a property named [SourceKey].
-    // The error message is going to be horrendous, but at least it's enforced.
-    source: Model<{ [key in SourceKey]: any }>,
+    // Ideally we'd type this in a way that enforces that the sourceKey is an attribute of the source model,
+    // but that does not work when the model itself receives its attributes as a generic parameter.
+    // We'll revisit this when we have a better solution.
+    // source: Model<{ [key in SourceKey]: any }>,
+    source: Model,
     associationName: string,
   ) => {
     const options = isString(optionsOrForeignKey) ? { foreignKey: optionsOrForeignKey } : optionsOrForeignKey;
@@ -99,7 +105,7 @@ export function BelongsTo<SourceKey extends string, Target extends Model>(
 
 export function BelongsToMany(
   target: MaybeForwardedModelStatic,
-  options: BelongsToManyOptions,
+  options: Omit<BelongsToManyOptions, 'as'>,
 ): PropertyDecorator {
   return (
     source: Object,
