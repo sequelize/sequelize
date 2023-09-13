@@ -26,7 +26,7 @@ import type {
   ListDatabasesOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
-  QiShowAllTablesOptions,
+  QiListTablesOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
   ShowAllSchemasOptions,
@@ -189,7 +189,7 @@ export class AbstractQueryInterfaceTypeScript {
    */
   async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
     const skip = options?.skip || [];
-    const allTables = await this.showAllTables(options);
+    const allTables = await this.listTables(options);
     const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
 
     const dropOptions = { ...options };
@@ -218,7 +218,7 @@ export class AbstractQueryInterfaceTypeScript {
    *
    * @param options
    */
-  async showAllTables(options?: QiShowAllTablesOptions): Promise<TableNameWithSchema[]> {
+  async listTables(options?: QiListTablesOptions): Promise<TableNameWithSchema[]> {
     const sql = this.queryGenerator.listTablesQuery(options);
 
     return this.sequelize.queryRaw<TableNameWithSchema>(sql, { ...options, raw: true, type: QueryTypes.SELECT });

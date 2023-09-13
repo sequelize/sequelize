@@ -87,8 +87,8 @@ export interface QiDropAllSchemasOptions extends QueryRawOptions {
   skip?: string[];
 }
 
-/** Options accepted by {@link AbstractQueryInterface#showAllTables} */
-export interface QiShowAllTablesOptions extends ListTablesQueryOptions, QueryRawOptions { }
+/** Options accepted by {@link AbstractQueryInterface#listTables} */
+export interface QiListTablesOptions extends ListTablesQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#describeTable} */
 export interface DescribeTableOptions extends QueryRawOptions {
