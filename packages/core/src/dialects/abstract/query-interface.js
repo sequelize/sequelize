@@ -23,26 +23,6 @@ const { QueryTypes } = require('../../query-types');
  */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
-   * Create a database
-   *
-   * @param {string} database  Database name to create
-   * @param {object} [options] Query options
-   * @param {string} [options.charset] Database default character set, MYSQL only
-   * @param {string} [options.collate] Database default collation
-   * @param {string} [options.encoding] Database default character set, PostgreSQL only
-   * @param {string} [options.ctype] Database character classification, PostgreSQL only
-   * @param {string} [options.template] The name of the template from which to create the new database, PostgreSQL only
-   *
-   * @returns {Promise}
-   */
-  async createDatabase(database, options) {
-    options = options || {};
-    const sql = this.queryGenerator.createDatabaseQuery(database, options);
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
    * Drop a database
    *
    * @param {string} database  Database name to drop

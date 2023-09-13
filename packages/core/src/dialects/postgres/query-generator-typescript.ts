@@ -1,13 +1,18 @@
 import type { Expression } from '../../sequelize.js';
+import { rejectInvalidOptions } from '../../utils/check.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type {
+  CreateDatabaseQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
+
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate', 'ctype', 'encoding', 'template']);
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -15,6 +20,26 @@ import type {
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   protected _getTechnicalSchemaNames() {
     return ['information_schema', 'tiger', 'tiger_data', 'topology'];
+  }
+
+  createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect.name,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      `CREATE DATABASE ${this.quoteIdentifier(database)}`,
+      options?.encoding ? `ENCODING = ${this.escape(options.encoding)}` : '',
+      options?.collate ? `LC_COLLATE = ${this.escape(options.collate)}` : '',
+      options?.ctype ? `LC_CTYPE = ${this.escape(options.ctype)}` : '',
+      options?.template ? `TEMPLATE = ${this.escape(options.template)}` : '',
+    ]);
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {

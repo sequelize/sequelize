@@ -34,6 +34,7 @@ import type { BindParamOptions, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
+  CreateDatabaseQueryOptions,
   DropTableQueryOptions,
   GetConstraintSnippetQueryOptions,
   ListSchemasQueryOptions,
@@ -57,6 +58,7 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
+export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['charset', 'collate', 'ctype', 'encoding', 'template']);
 export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>(['cascade']);
 export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQueryOptions>(['schema']);
 export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
@@ -146,6 +148,14 @@ export class AbstractQueryGeneratorTypeScript {
 
   protected _getTechnicalSchemaNames(): string[] {
     return [];
+  }
+
+  createDatabaseQuery(_database: string, _options?: CreateDatabaseQueryOptions): string {
+    if (this.dialect.supports.multiDatabases) {
+      throw new Error(`${this.dialect.name} declares supporting databases but createDatabaseQuery is not implemented.`);
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
   }
 
   listSchemasQuery(_options?: ListSchemasQueryOptions): string {

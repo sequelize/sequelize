@@ -3,6 +3,7 @@ import type { QueryRawOptions } from '../../sequelize';
 import type { CreateSchemaQueryOptions } from './query-generator';
 import type {
   AddConstraintQueryOptions,
+  CreateDatabaseQueryOptions,
   DropTableQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -60,6 +61,9 @@ export interface ConstraintDescription {
   definition?: string;
   deferrable?: Deferrable;
 }
+
+/** Options accepted by {@link AbstractQueryInterface#createDatabase} */
+export interface CreateDatabaseOptions extends CreateDatabaseQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }

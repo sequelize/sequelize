@@ -17,6 +17,7 @@ import type {
   AddConstraintOptions,
   ColumnsDescription,
   ConstraintDescription,
+  CreateDatabaseOptions,
   CreateSchemaOptions,
   DeferConstraintsOptions,
   DescribeTableOptions,
@@ -57,6 +58,18 @@ export class AbstractQueryInterfaceTypeScript {
     this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
     this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+  }
+
+  /**
+   * Create a database
+   *
+   * @param database
+   * @param options
+   */
+  async createDatabase(database: string, options?: CreateDatabaseOptions): Promise<void> {
+    const sql = this.queryGenerator.createDatabaseQuery(database, options);
+
+    await this.sequelize.queryRaw(sql, options);
   }
 
   /**

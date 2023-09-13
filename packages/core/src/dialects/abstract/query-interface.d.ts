@@ -180,10 +180,6 @@ export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptions
 
 export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions { }
 
-export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOptions {
-  encoding?: string;
-}
-
 export interface FunctionParam {
   type: string;
   name?: string;
@@ -554,11 +550,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Rollback (revert) a transaction that hasn't been committed
    */
   rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Creates a database
-   */
-  createDatabase(name: string, options?: CreateDatabaseOptions): Promise<void>;
 
   /**
    * Creates a database
