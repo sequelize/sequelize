@@ -152,7 +152,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
 
-  dropDatabaseQuery(databaseName: string): string;
   listDatabasesQuery(): string;
 
   /**

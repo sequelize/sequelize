@@ -158,6 +158,14 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`Databases are not supported in ${this.dialect.name}.`);
   }
 
+  dropDatabaseQuery(database: string): string {
+    if (this.dialect.supports.multiDatabases) {
+      return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(database)}`;
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
+  }
+
   listSchemasQuery(_options?: ListSchemasQueryOptions): string {
     if (this.dialect.supports.schemas) {
       throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);

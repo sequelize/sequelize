@@ -48,14 +48,6 @@ export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
  * @private
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
-  dropDatabaseQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but dropDatabaseQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
   listDatabasesQuery() {
     if (this.dialect.supports.multiDatabases) {
       throw new Error(`${this.dialect.name} declares supporting databases but listDatabasesQuery is not implemented.`);

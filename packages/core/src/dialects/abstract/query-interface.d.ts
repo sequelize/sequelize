@@ -552,11 +552,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
   /**
-   * Creates a database
-   */
-  dropDatabase(name: string, options?: QueryRawOptions): Promise<void>;
-
-  /**
    * Lists all available databases
    */
   listDatabases(options?: QueryRawOptions): Promise<DatabaseDescription[]>;

@@ -33,15 +33,6 @@ const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
-  dropDatabaseQuery(databaseName) {
-    return [
-      'IF EXISTS (SELECT * FROM sys.databases WHERE name =', this.escape(databaseName), ')',
-      'BEGIN',
-      'DROP DATABASE', this.quoteIdentifier(databaseName), ';',
-      'END;',
-    ].join(' ');
-  }
-
   listDatabasesQuery() {
     return `SELECT name FROM sys.databases;`;
   }

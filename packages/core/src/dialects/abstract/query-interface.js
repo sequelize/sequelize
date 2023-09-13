@@ -22,20 +22,6 @@ const { QueryTypes } = require('../../query-types');
  * The interface that Sequelize uses to talk to all databases
  */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
-  /**
-   * Drop a database
-   *
-   * @param {string} database  Database name to drop
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async dropDatabase(database, options) {
-    const sql = this.queryGenerator.dropDatabaseQuery(database);
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
   async listDatabases(options) {
     const sql = this.queryGenerator.listDatabasesQuery();
 

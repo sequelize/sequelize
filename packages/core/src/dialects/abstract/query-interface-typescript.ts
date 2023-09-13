@@ -73,6 +73,18 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
+   * Drop a database
+   *
+   * @param database
+   * @param options
+   */
+  async dropDatabase(database: string, options?: QueryRawOptions): Promise<void> {
+    const sql = this.queryGenerator.dropDatabaseQuery(database);
+
+    await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
    * Returns the database version.
    *
    * @param options Query Options

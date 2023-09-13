@@ -36,10 +36,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `SET search_path to ${searchPath};`;
   }
 
-  dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
-  }
-
   listDatabasesQuery() {
     return `SELECT datname AS name FROM pg_database;`;
   }
