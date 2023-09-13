@@ -235,14 +235,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param {string} attributeName  Column name to remove
    * @param {object} [options]      Query options
    */
-  async removeColumn(tableName, attributeName, options) {
-    options = options || {};
-
-    const { ifExists, ...rawQueryOptions } = options;
-    const removeColumnQueryOptions = ifExists ? { ifExists } : undefined;
-
-    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName, removeColumnQueryOptions), rawQueryOptions);
-  }
 
   normalizeAttribute(dataTypeOrOptions) {
     let attribute;

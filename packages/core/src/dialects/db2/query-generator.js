@@ -227,25 +227,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     });
   }
 
-  removeColumnQuery(tableName, attributeName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    const query = 'ALTER TABLE <%= tableName %> DROP COLUMN <%= attributeName %>;';
-
-    return template(query, this._templateSettings)({
-      tableName: this.quoteTable(tableName),
-      attributeName: this.quoteIdentifier(attributeName),
-    });
-  }
-
   changeColumnQuery(tableName, attributes) {
     const query = 'ALTER TABLE <%= tableName %> <%= query %>;';
     const attrString = [];

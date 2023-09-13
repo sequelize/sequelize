@@ -879,9 +879,8 @@ export function mergeModelOptions(
   overrideOnConflict: boolean,
 ): ModelOptions {
   // merge-able: scopes, indexes
-  for (const [optionName, optionValue] of Object.entries(options)) {
-    if (!(optionName in existingModelOptions)) {
-      // @ts-expect-error -- runtime type checking is enforced by model
+  for (const [optionName, optionValue] of Object.entries(options) as Array<[keyof ModelOptions, any]>) {
+    if (existingModelOptions[optionName] === undefined) {
       existingModelOptions[optionName] = optionValue;
       continue;
     }
@@ -936,12 +935,10 @@ export function mergeModelOptions(
       continue;
     }
 
-    // @ts-expect-error -- dynamic type, not worth typing
     if (!overrideOnConflict && optionValue !== existingModelOptions[optionName]) {
       throw new Error(`Trying to set the option ${optionName}, but a value already exists.`);
     }
 
-    // @ts-expect-error -- dynamic type, not worth typing
     existingModelOptions[optionName] = optionValue;
   }
 

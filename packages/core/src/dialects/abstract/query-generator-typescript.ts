@@ -39,6 +39,7 @@ import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   QuoteTableOptions,
+  RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types.js';
@@ -59,6 +60,7 @@ export interface RemoveIndexQueryOptions {
 export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>(['cascade']);
 export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQueryOptions>(['schema']);
 export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
+export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveColumnQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
@@ -184,6 +186,37 @@ export class AbstractQueryGeneratorTypeScript {
 
   listTablesQuery(_options?: ListTablesQueryOptions): string {
     throw new Error(`listTablesQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  removeColumnQuery(tableName: TableNameOrModel, columnName: string, options?: RemoveColumnQueryOptions): string {
+    if (options) {
+      const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveColumnQueryOptions>();
+
+      if (this.dialect.supports.removeColumn.cascade) {
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS.add('cascade');
+      }
+
+      if (this.dialect.supports.removeColumn.ifExists) {
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS.add('ifExists');
+      }
+
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'DROP COLUMN',
+      options?.ifExists ? 'IF EXISTS' : '',
+      this.quoteIdentifier(columnName),
+      options?.cascade ? 'CASCADE' : '',
+    ]);
   }
 
   addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions): string {

@@ -22,11 +22,9 @@ export class SqliteQueryInterface extends SqliteQueryInterfaceTypeScript {
    *
    * @override
    */
-  async removeColumn(tableName, attributeName, options) {
-    options = options || {};
-
+  async removeColumn(tableName, columnName, options) {
     const fields = await this.describeTable(tableName, options);
-    delete fields[attributeName];
+    delete fields[columnName];
 
     return this.alterTableInternal(tableName, fields, options);
   }

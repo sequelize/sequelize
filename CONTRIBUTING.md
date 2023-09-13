@@ -139,6 +139,8 @@ Each of these commands will start a Docker container with the corresponding data
 
 You can run `yarn stop-X` to stop the servers once you're done.
 
+The docker containers retain storage in volumes to improve startup time. If you run into to any issues with a container, you can run `yarn reset-{dialect}` or `yarn reset-all` to remove the containers and volumes.
+
 ##### Hint for Postgres
 
 You can also easily start a local [pgadmin4](https://www.pgadmin.org/docs/pgadmin4/latest/) instance at `localhost:8888` to inspect the contents of the test Postgres database as follows:

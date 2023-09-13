@@ -7,6 +7,8 @@ services:
       SA_PASSWORD: Password12!
     ports:
       - 22019:1433
+    volumes:
+      - mssql-oldest:/var/opt/mssql
     healthcheck:
       test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "SA", "-P", "Password12!", "-l", "30", "-Q", "SELECT 1"]
       interval: 3s
@@ -16,3 +18,7 @@ services:
 networks:
   default:
     name: sequelize-mssql-oldest-network
+
+volumes:
+  mssql-oldest:
+    name: sequelize-mssql-oldest-volume

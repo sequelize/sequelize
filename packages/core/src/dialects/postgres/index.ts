@@ -78,6 +78,10 @@ export class PostgresDialect extends AbstractDialect {
     truncate: {
       cascade: true,
     },
+    removeColumn: {
+      cascade: true,
+      ifExists: true,
+    },
   });
 
   readonly connectionManager: PostgresConnectionManager;
