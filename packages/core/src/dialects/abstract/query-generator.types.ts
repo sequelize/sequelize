@@ -21,6 +21,7 @@ export interface CreateDatabaseQueryOptions {
   template?: string;
 }
 
+// keep LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface ListDatabasesQueryOptions {
   skip?: string[];
 }
