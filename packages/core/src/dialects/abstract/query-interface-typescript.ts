@@ -150,7 +150,7 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Show all defined schemas
+   * List defined schemas
    *
    * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
    * not a database table. In mysql and mariadb, this will show all databases.
@@ -168,6 +168,16 @@ export class AbstractQueryInterfaceTypeScript {
     });
 
     return schemaNames.map(schemaName => schemaName.schema);
+  }
+
+  /**
+   * Show all defined schemas
+   *
+   * @deprecated Use {@link listSchemas} instead.
+   * @param _options
+   */
+  async showAllSchemas(_options?: QueryRawOptions): Promise<string[]> {
+    throw new Error(`showAllSchemas has been deprecated. Use listSchemas instead.`);
   }
 
   /**
@@ -214,7 +224,7 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Show all tables.
+   * List tables
    *
    * @param options
    */
@@ -222,6 +232,16 @@ export class AbstractQueryInterfaceTypeScript {
     const sql = this.queryGenerator.listTablesQuery(options);
 
     return this.sequelize.queryRaw<TableNameWithSchema>(sql, { ...options, raw: true, type: QueryTypes.SELECT });
+  }
+
+  /**
+   * Show all tables
+   *
+   * @deprecated Use {@link listTables} instead.
+   * @param _options
+   */
+  async showAllTables(_options?: QueryRawOptions): Promise<TableNameWithSchema[]> {
+    throw new Error(`showAllTables has been deprecated. Use listTables instead.`);
   }
 
   /**
@@ -533,7 +553,6 @@ export class AbstractQueryInterfaceTypeScript {
    */
   getForeignKeysForTables(_tableNames: TableNameOrModel[], _options?: QueryRawOptions): Error {
     throw new Error(`getForeignKeysForTables has been deprecated. Use showConstraints instead.`);
-
   }
 
   /**

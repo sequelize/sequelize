@@ -579,6 +579,16 @@ export abstract class SequelizeTypeScript {
   }
 
   /**
+   * Alias of {@link AbstractQueryInterface#showAllSchemas}
+   *
+   * @deprecated Use {@link Sequelize#listSchemas} instead
+   * @param options
+   */
+  async showAllSchemas(options?: QueryRawOptions) {
+    return this.queryInterface.showAllSchemas(options);
+  }
+
+  /**
    * Alias of {@link AbstractQueryInterface#dropSchema}
    *
    * @param schema
