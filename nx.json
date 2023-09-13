@@ -2,7 +2,7 @@
   "$schema": "node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
     "default": ["{projectRoot}/**/*"],
-    "prod": ["!{projectRoot}/test/**/*"]
+    "prod": ["!{projectRoot}/test/**/*", "!{projectRoot}/.mocharc.jsonc"]
   },
   "targetDefaults": {
     "build": {
