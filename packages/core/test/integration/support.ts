@@ -271,7 +271,7 @@ export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
     return;
   }
 
-  const schemas = await customSequelize.showAllSchemas({ skip: [customSequelize.config.database] });
+  const schemas = await customSequelize.listSchemas({ skip: [customSequelize.config.database] });
   const schemasPromise = [];
   for (const schemaName of schemas) {
     const promise = customSequelize.dropSchema(schemaName);

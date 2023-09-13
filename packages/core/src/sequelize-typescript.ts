@@ -570,12 +570,12 @@ export abstract class SequelizeTypeScript {
   }
 
   /**
-   * Alias of {@link AbstractQueryInterface#showAllSchemas}
+   * Alias of {@link AbstractQueryInterface#listSchemas}
    *
    * @param options
    */
-  async showAllSchemas(options?: QiListSchemasOptions) {
-    return this.queryInterface.showAllSchemas(options);
+  async listSchemas(options?: QiListSchemasOptions) {
+    return this.queryInterface.listSchemas(options);
   }
 
   /**

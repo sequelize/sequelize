@@ -159,7 +159,7 @@ export class AbstractQueryInterfaceTypeScript {
    *
    * @returns list of schemas
    */
-  async showAllSchemas(options?: QiListSchemasOptions): Promise<string[]> {
+  async listSchemas(options?: QiListSchemasOptions): Promise<string[]> {
     const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
     const schemaNames = await this.sequelize.queryRaw<{ schema: string }>(showSchemasSql, {
       ...options,

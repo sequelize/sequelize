@@ -76,7 +76,7 @@ export interface ListDatabasesOptions extends ListDatabasesQueryOptions, QueryRa
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
 
-/** Options accepted by {@link AbstractQueryInterface#showAllSchemas} */
+/** Options accepted by {@link AbstractQueryInterface#listSchemas} */
 export interface QiListSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllSchemas} */
