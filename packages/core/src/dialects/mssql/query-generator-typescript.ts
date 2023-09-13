@@ -11,6 +11,7 @@ import {
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   CreateDatabaseQueryOptions,
+  ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
@@ -24,6 +25,10 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
  * Temporary class to ease the TypeScript migration
  */
 export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalDatabaseNames() {
+    return ['master', 'model', 'msdb', 'tempdb'];
+  }
+
   protected _getTechnicalSchemaNames() {
     return [
       'db_accessadmin',
@@ -55,6 +60,19 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = ${this.escape(database)})`,
       `CREATE DATABASE ${this.quoteIdentifier(database)}`,
       options?.collate ? `COLLATE ${this.escape(options.collate)}` : '',
+    ]);
+  }
+
+  listDatabasesQuery(options?: ListDatabasesQueryOptions) {
+    const databasesToSkip = this._getTechnicalDatabaseNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      databasesToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT [name] FROM sys.databases',
+      `WHERE [name] NOT IN (${databasesToSkip.map(database => this.escape(database)).join(', ')})`,
     ]);
   }
 

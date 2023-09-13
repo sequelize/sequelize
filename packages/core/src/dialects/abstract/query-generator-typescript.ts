@@ -37,6 +37,7 @@ import type {
   CreateDatabaseQueryOptions,
   DropTableQueryOptions,
   GetConstraintSnippetQueryOptions,
+  ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   QuoteTableOptions,
@@ -60,6 +61,7 @@ export interface RemoveIndexQueryOptions {
 
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['charset', 'collate', 'ctype', 'encoding', 'template']);
 export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>(['cascade']);
+export const LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListDatabasesQueryOptions>(['skip']);
 export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQueryOptions>(['schema']);
 export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
 export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveColumnQueryOptions>(['ifExists', 'cascade']);
@@ -146,6 +148,10 @@ export class AbstractQueryGeneratorTypeScript {
     return this.sequelize.options;
   }
 
+  protected _getTechnicalDatabaseNames(): string[] {
+    return [];
+  }
+
   protected _getTechnicalSchemaNames(): string[] {
     return [];
   }
@@ -161,6 +167,14 @@ export class AbstractQueryGeneratorTypeScript {
   dropDatabaseQuery(database: string): string {
     if (this.dialect.supports.multiDatabases) {
       return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(database)}`;
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
+  }
+
+  listDatabasesQuery(_options?: ListDatabasesQueryOptions): string {
+    if (this.dialect.supports.multiDatabases) {
+      throw new Error(`${this.dialect.name} declares supporting databases but listDatabasesQuery is not implemented.`);
     }
 
     throw new Error(`Databases are not supported in ${this.dialect.name}.`);

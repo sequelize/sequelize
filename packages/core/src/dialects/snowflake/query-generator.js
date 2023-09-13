@@ -39,10 +39,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
   }
 
-  listDatabasesQuery() {
-    return `SHOW DATABASES;`;
-  }
-
   createSchemaQuery(schema, options) {
     if (options) {
       rejectInvalidOptions(

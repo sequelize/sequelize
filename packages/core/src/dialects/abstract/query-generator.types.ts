@@ -21,6 +21,10 @@ export interface CreateDatabaseQueryOptions {
   template?: string;
 }
 
+export interface ListDatabasesQueryOptions {
+  skip?: string[];
+}
+
 export interface ListSchemasQueryOptions {
   /** List of schemas to exclude from output */
   skip?: string[];

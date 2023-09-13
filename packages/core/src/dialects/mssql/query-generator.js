@@ -33,10 +33,6 @@ const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
-  listDatabasesQuery() {
-    return `SELECT name FROM sys.databases;`;
-  }
-
   createSchemaQuery(schema, options) {
     if (options) {
       rejectInvalidOptions(

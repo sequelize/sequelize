@@ -36,10 +36,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `SET search_path to ${searchPath};`;
   }
 
-  listDatabasesQuery() {
-    return `SELECT datname AS name FROM pg_database;`;
-  }
-
   createSchemaQuery(schema, options) {
     if (options) {
       rejectInvalidOptions(

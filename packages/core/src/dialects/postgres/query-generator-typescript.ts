@@ -7,6 +7,7 @@ import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '.
 import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type {
   CreateDatabaseQueryOptions,
+  ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
@@ -18,8 +19,25 @@ const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQuer
  * Temporary class to ease the TypeScript migration
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalDatabaseNames() {
+    return ['postgres'];
+  }
+
   protected _getTechnicalSchemaNames() {
     return ['information_schema', 'tiger', 'tiger_data', 'topology'];
+  }
+
+  listDatabasesQuery(options?: ListDatabasesQueryOptions) {
+    const databasesToSkip = this._getTechnicalDatabaseNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      databasesToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT datname AS "name" FROM pg_database',
+      `WHERE datistemplate = false AND datname NOT IN (${databasesToSkip.map(database => this.escape(database)).join(', ')})`,
+    ]);
   }
 
   createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {

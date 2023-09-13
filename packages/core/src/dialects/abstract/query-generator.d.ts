@@ -152,8 +152,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
 
-  listDatabasesQuery(): string;
-
   /**
    * Creates a function that can be used to collect bind parameters.
    *

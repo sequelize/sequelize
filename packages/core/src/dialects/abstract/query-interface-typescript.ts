@@ -19,9 +19,11 @@ import type {
   ConstraintDescription,
   CreateDatabaseOptions,
   CreateSchemaOptions,
+  DatabaseDescription,
   DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
+  ListDatabasesOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
   QiShowAllTablesOptions,
@@ -82,6 +84,17 @@ export class AbstractQueryInterfaceTypeScript {
     const sql = this.queryGenerator.dropDatabaseQuery(database);
 
     await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Lists all available databases
+   *
+   * @param options
+   */
+  async listDatabases(options?: ListDatabasesOptions): Promise<DatabaseDescription[]> {
+    const sql = this.queryGenerator.listDatabasesQuery(options);
+
+    return this.sequelize.queryRaw<DatabaseDescription>(sql, { ...options, type: QueryTypes.SELECT });
   }
 
   /**

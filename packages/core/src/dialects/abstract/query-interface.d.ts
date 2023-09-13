@@ -186,10 +186,6 @@ export interface FunctionParam {
   direction?: string;
 }
 
-export interface DatabaseDescription {
-  name: string;
-}
-
 export interface IndexFieldDescription {
   attribute: string;
   length: number | undefined;
@@ -550,9 +546,4 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Rollback (revert) a transaction that hasn't been committed
    */
   rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Lists all available databases
-   */
-  listDatabases(options?: QueryRawOptions): Promise<DatabaseDescription[]>;
 }
