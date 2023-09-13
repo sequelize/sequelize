@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.30](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.29...v7.0.0-alpha.30) (2023-09-13)
+
+
+### Bug Fixes
+
+* fix crash when defining index on child model with decorators ([#16495](https://github.com/sequelize/sequelize/issues/16495)) ([848d933](https://github.com/sequelize/sequelize/commit/848d933f97f67d7a5cbb3584db9d7d9f3bdc7d34))
+
+
+### Features
+
+* drop Node 16 support ([#16487](https://github.com/sequelize/sequelize/issues/16487)) ([d75e3be](https://github.com/sequelize/sequelize/commit/d75e3bec05c707d3acf9b27522fc7cddc6107188))
+
+
+
+
+
 # [7.0.0-alpha.29](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.28...v7.0.0-alpha.29) (2023-09-13)
 
 
