@@ -26,10 +26,10 @@ import type {
   ListDatabasesOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
+  QiListSchemasOptions,
   QiListTablesOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
-  ShowAllSchemasOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
 
@@ -159,7 +159,7 @@ export class AbstractQueryInterfaceTypeScript {
    *
    * @returns list of schemas
    */
-  async showAllSchemas(options?: ShowAllSchemasOptions): Promise<string[]> {
+  async showAllSchemas(options?: QiListSchemasOptions): Promise<string[]> {
     const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
     const schemaNames = await this.sequelize.queryRaw<{ schema: string }>(showSchemasSql, {
       ...options,

@@ -34,8 +34,8 @@ import type {
   ModelAttributes,
   ModelOptions,
   ModelStatic,
+  QiListSchemasOptions,
   QueryOptions,
-  ShowAllSchemasOptions,
   SyncOptions,
   TruncateOptions,
 } from '.';
@@ -574,7 +574,7 @@ export abstract class SequelizeTypeScript {
    *
    * @param options
    */
-  async showAllSchemas(options?: ShowAllSchemasOptions) {
+  async showAllSchemas(options?: QiListSchemasOptions) {
     return this.queryInterface.showAllSchemas(options);
   }
 
