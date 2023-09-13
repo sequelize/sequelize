@@ -58,10 +58,10 @@ declare global {
        * offset changes like Daylight Saving time (DST) transitions.
        *
        * This option is only relevant if a `DateTime` value does not exist in the
-       * destination time zone (e.g. near 'Spring Forward' DST transitions), or
-       * exists more than once (e.g. near 'Fall Back' DST transitions).
+       * destination time zone (e.g. near "Spring Forward" DST transitions), or
+       * exists more than once (e.g. near "Fall Back" DST transitions).
        *
-       * In case of ambiguous or non-existent times, this option controls what
+       * In case of ambiguous or nonexistent times, this option controls what
        * exact time to return:
        * - `'compatible'`: Equivalent to `'earlier'` for backward transitions like
        *   the start of DST in the Spring, and `'later'` for forward transitions
@@ -135,13 +135,7 @@ declare global {
     };
 
     export type DateUnit = 'year' | 'month' | 'week' | 'day';
-    export type TimeUnit =
-      | 'hour'
-      | 'minute'
-      | 'second'
-      | 'millisecond'
-      | 'microsecond'
-      | 'nanosecond';
+    export type TimeUnit = 'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond';
     export type DateTimeUnit = DateUnit | TimeUnit;
 
     /**
@@ -162,10 +156,7 @@ declare global {
       nanosecond: 'nanoseconds',
     }[T];
 
-    export type LargestUnit<T extends DateTimeUnit> =
-      | 'auto'
-      | T
-      | PluralUnit<T>;
+    export type LargestUnit<T extends DateTimeUnit> = 'auto' | T | PluralUnit<T>;
     export type SmallestUnit<T extends DateTimeUnit> = T | PluralUnit<T>;
     export type TotalUnit<T extends DateTimeUnit> = T | PluralUnit<T>;
 
@@ -174,9 +165,7 @@ declare global {
      */
     export type ToStringPrecisionOptions = {
       fractionalSecondDigits?: 'auto' | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9,
-      smallestUnit?: SmallestUnit<
-        'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'
-      >,
+      smallestUnit?: SmallestUnit<'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'>,
 
       /**
        * Controls how rounding is performed:
@@ -196,16 +185,14 @@ declare global {
     };
 
     export type ShowCalendarOption = {
-      calendarName?: 'auto' | 'always' | 'never',
+      calendarName?: 'auto' | 'always' | 'never' | 'critical',
     };
 
-    export type CalendarTypeToStringOptions = Partial<
-      ToStringPrecisionOptions & ShowCalendarOption
-    >;
+    export type CalendarTypeToStringOptions = Partial<ToStringPrecisionOptions & ShowCalendarOption>;
 
     export type ZonedDateTimeToStringOptions = Partial<
       CalendarTypeToStringOptions & {
-        timeZoneName?: 'auto' | 'never',
+        timeZoneName?: 'auto' | 'never' | 'critical',
         offset?: 'auto' | 'never',
       }
     >;
@@ -232,7 +219,7 @@ declare global {
       /**
        * The largest unit to allow in the resulting `Temporal.Duration` object.
        *
-       * Larger units will be 'balanced' into smaller units. For example, if
+       * Larger units will be "balanced" into smaller units. For example, if
        * `largestUnit` is `'minute'` then a two-hour duration will be output as a
        * 120-minute duration.
        *
@@ -339,7 +326,7 @@ declare global {
                * The largest unit to allow in the resulting `Temporal.Duration`
                * object.
                *
-               * Larger units will be 'balanced' into smaller units. For example,
+               * Larger units will be "balanced" into smaller units. For example,
                * if `largestUnit` is `'minute'` then a two-hour duration will be
                * output as a 120-minute duration.
                *
@@ -347,8 +334,8 @@ declare global {
                * `'hour'`, `'minute'`, `'second'`, `'millisecond'`,
                * `'microsecond'`, `'nanosecond'` and `'auto'`.
                *
-               * The default is `'auto'`, which means 'the largest nonzero unit in
-               * the input duration'. This default prevents expanding durations to
+               * The default is `'auto'`, which means "the largest nonzero unit in
+               * the input duration". This default prevents expanding durations to
                * larger units unless the caller opts into this behavior.
                *
                * If `smallestUnit` is larger, then `smallestUnit` will be used as
@@ -369,7 +356,7 @@ declare global {
                * The largest unit to allow in the resulting `Temporal.Duration`
                * object.
                *
-               * Larger units will be 'balanced' into smaller units. For example,
+               * Larger units will be "balanced" into smaller units. For example,
                * if `largestUnit` is `'minute'` then a two-hour duration will be
                * output as a 120-minute duration.
                *
@@ -377,8 +364,8 @@ declare global {
                * `'hour'`, `'minute'`, `'second'`, `'millisecond'`,
                * `'microsecond'`, `'nanosecond'` and `'auto'`.
                *
-               * The default is `'auto'`, which means 'the largest nonzero unit in
-               * the input duration'. This default prevents expanding durations to
+               * The default is `'auto'`, which means "the largest nonzero unit in
+               * the input duration". This default prevents expanding durations to
                * larger units unless the caller opts into this behavior.
                *
                * If `smallestUnit` is larger, then `smallestUnit` will be used as
@@ -408,8 +395,8 @@ declare global {
            * - `floor`: Always round towards negative infinity. This mode acts the
            *   same as `trunc` for positive durations but for negative durations
            *   it will increase the absolute value of the result which may be
-           *   unexpected. For this reason, `trunc` is recommended for most 'round
-           *   down' use cases.
+           *   unexpected. For this reason, `trunc` is recommended for most "round
+           *   down" use cases.
            */
           roundingMode?: RoundingMode,
 
@@ -437,12 +424,7 @@ declare global {
            * time zone transitions and all days will be assumed to be 24 hours
            * long.
            */
-          relativeTo?:
-            | Temporal.PlainDateTime
-            | Temporal.ZonedDateTime
-            | PlainDateTimeLike
-            | ZonedDateTimeLike
-            | string,
+          relativeTo?: Temporal.PlainDateTime | Temporal.ZonedDateTime | PlainDateTimeLike | ZonedDateTimeLike | string,
         });
 
     /**
@@ -478,12 +460,7 @@ declare global {
            * this option is omitted), then the operation will ignore time zone
            * transitions and all days will be assumed to be 24 hours long.
            */
-          relativeTo?:
-            | Temporal.ZonedDateTime
-            | Temporal.PlainDateTime
-            | ZonedDateTimeLike
-            | PlainDateTimeLike
-            | string,
+          relativeTo?: Temporal.ZonedDateTime | Temporal.PlainDateTime | ZonedDateTimeLike | PlainDateTimeLike | string,
         };
 
     /**
@@ -511,12 +488,7 @@ declare global {
        * this option is omitted), then the operation will ignore time zone
        * transitions and all days will be assumed to be 24 hours long.
        */
-      relativeTo?:
-        | Temporal.ZonedDateTime
-        | Temporal.PlainDateTime
-        | ZonedDateTimeLike
-        | PlainDateTimeLike
-        | string;
+      relativeTo?: Temporal.ZonedDateTime | Temporal.PlainDateTime | ZonedDateTimeLike | PlainDateTimeLike | string;
     }
 
     export type DurationLike = {
@@ -540,9 +512,7 @@ declare global {
      * See https://tc39.es/proposal-temporal/docs/duration.html for more details.
      */
     export class Duration {
-      static from(
-        item: Temporal.Duration | DurationLike | string
-      ): Temporal.Duration;
+      static from(item: Temporal.Duration | DurationLike | string): Temporal.Duration;
       static compare(
         one: Temporal.Duration | DurationLike | string,
         two: Temporal.Duration | DurationLike | string,
@@ -575,20 +545,11 @@ declare global {
       negated(): Temporal.Duration;
       abs(): Temporal.Duration;
       with(durationLike: DurationLike): Temporal.Duration;
-      add(
-        other: Temporal.Duration | DurationLike | string,
-        options?: DurationArithmeticOptions
-      ): Temporal.Duration;
-      subtract(
-        other: Temporal.Duration | DurationLike | string,
-        options?: DurationArithmeticOptions
-      ): Temporal.Duration;
+      add(other: Temporal.Duration | DurationLike | string, options?: DurationArithmeticOptions): Temporal.Duration;
+      subtract(other: Temporal.Duration | DurationLike | string, options?: DurationArithmeticOptions): Temporal.Duration;
       round(roundTo: DurationRoundTo): Temporal.Duration;
       total(totalOf: DurationTotalOf): number;
-      toLocaleString(
-        locales?: string | string[],
-        options?: Intl.DateTimeFormatOptions
-      ): string;
+      toLocaleString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
       toJSON(): string;
       toString(options?: ToStringPrecisionOptions): string;
       valueOf(): never;
@@ -615,10 +576,7 @@ declare global {
       static fromEpochMicroseconds(epochMicroseconds: bigint): Temporal.Instant;
       static fromEpochNanoseconds(epochNanoseconds: bigint): Temporal.Instant;
       static from(item: Temporal.Instant | string): Temporal.Instant;
-      static compare(
-        one: Temporal.Instant | string,
-        two: Temporal.Instant | string
-      ): ComparisonResult;
+      static compare(one: Temporal.Instant | string, two: Temporal.Instant | string): ComparisonResult;
       constructor(epochNanoseconds: bigint);
       readonly epochSeconds: number;
       readonly epochMilliseconds: number;
@@ -626,87 +584,38 @@ declare global {
       readonly epochNanoseconds: bigint;
       equals(other: Temporal.Instant | string): boolean;
       add(
-        durationLike:
-          | Omit<
-              Temporal.Duration | DurationLike,
-              'years' | 'months' | 'weeks' | 'days'
-            >
-          | string
+        durationLike: Omit<Temporal.Duration | DurationLike, 'years' | 'months' | 'weeks' | 'days'> | string
       ): Temporal.Instant;
       subtract(
-        durationLike:
-          | Omit<
-              Temporal.Duration | DurationLike,
-              'years' | 'months' | 'weeks' | 'days'
-            >
-          | string
+        durationLike: Omit<Temporal.Duration | DurationLike, 'years' | 'months' | 'weeks' | 'days'> | string
       ): Temporal.Instant;
       until(
         other: Temporal.Instant | string,
-        options?: DifferenceOptions<
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
-        >
+        options?: DifferenceOptions<'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'>
       ): Temporal.Duration;
       since(
         other: Temporal.Instant | string,
-        options?: DifferenceOptions<
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
-        >
+        options?: DifferenceOptions<'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'>
       ): Temporal.Duration;
       round(
-        roundTo: RoundTo<
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
-        >
+        roundTo: RoundTo<'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'>
       ): Temporal.Instant;
-      toZonedDateTime(calendarAndTimeZone: {
-        timeZone: TimeZoneLike,
-        calendar: CalendarLike,
-      }): Temporal.ZonedDateTime;
+      toZonedDateTime(calendarAndTimeZone: { timeZone: TimeZoneLike, calendar: CalendarLike }): Temporal.ZonedDateTime;
       toZonedDateTimeISO(tzLike: TimeZoneLike): Temporal.ZonedDateTime;
-      toLocaleString(
-        locales?: string | string[],
-        options?: Intl.DateTimeFormatOptions
-      ): string;
+      toLocaleString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
       toJSON(): string;
       toString(options?: InstantToStringOptions): string;
       valueOf(): never;
       readonly [Symbol.toStringTag]: 'Temporal.Instant';
     }
 
-    type YearOrEraAndEraYear =
-      | { era: string, eraYear: number }
-      | { year: number };
-    type MonthCodeOrMonthAndYear =
-      | (YearOrEraAndEraYear & { month: number })
-      | { monthCode: string };
+    type YearOrEraAndEraYear = { era: string, eraYear: number } | { year: number };
+    type MonthCodeOrMonthAndYear = (YearOrEraAndEraYear & { month: number }) | { monthCode: string };
     type MonthOrMonthCode = { month: number } | { monthCode: string };
 
     export interface CalendarProtocol {
-      id?: string;
-      calendar?: never;
-      year(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainYearMonth
-          | PlainDateLike
-          | string
-      ): number;
+      id: string;
+      year(date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainYearMonth | PlainDateLike | string): number;
       month(
         date:
           | Temporal.PlainDate
@@ -725,87 +634,25 @@ declare global {
           | PlainDateLike
           | string
       ): string;
-      day(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainMonthDay
-          | PlainDateLike
-          | string
-      ): number;
-      era(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): string | undefined;
-      eraYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): number | undefined;
-      dayOfWeek(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): number;
-      dayOfYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): number;
-      weekOfYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): number;
-      daysInWeek(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): number;
+      day(date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainMonthDay | PlainDateLike | string): number;
+      era(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): string | undefined;
+      eraYear(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number | undefined;
+      dayOfWeek(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number;
+      dayOfYear(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number;
+      weekOfYear(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number;
+      yearOfWeek(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number;
+      daysInWeek(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number;
       daysInMonth(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainYearMonth
-          | PlainDateLike
-          | string
+        date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainYearMonth | PlainDateLike | string
       ): number;
       daysInYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainYearMonth
-          | PlainDateLike
-          | string
+        date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainYearMonth | PlainDateLike | string
       ): number;
       monthsInYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainYearMonth
-          | PlainDateLike
-          | string
+        date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainYearMonth | PlainDateLike | string
       ): number;
       inLeapYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainYearMonth
-          | PlainDateLike
-          | string
+        date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainYearMonth | PlainDateLike | string
       ): boolean;
       dateFromFields(
         fields: YearOrEraAndEraYear & MonthOrMonthCode & { day: number },
@@ -829,19 +676,23 @@ declare global {
         two: Temporal.PlainDate | PlainDateLike | string,
         options?: DifferenceOptions<'year' | 'month' | 'week' | 'day'>
       ): Temporal.Duration;
-      fields?(fields: Iterable<string>): Iterable<string>;
-      mergeFields?(
-        fields: Record<string, unknown>,
-        additionalFields: Record<string, unknown>
-      ): Record<string, unknown>;
-      toString(): string;
+      fields(fields: Iterable<string>): Iterable<string>;
+      mergeFields(fields: Record<string, unknown>, additionalFields: Record<string, unknown>): Record<string, unknown>;
+      toString?(): string;
       toJSON?(): string;
     }
 
+    /**
+     * Any of these types can be passed to Temporal methods instead of a Temporal.Calendar.
+     * */
     export type CalendarLike =
-      | CalendarProtocol
       | string
-      | { calendar: CalendarProtocol | string };
+      | CalendarProtocol
+      | ZonedDateTime
+      | PlainDateTime
+      | PlainDate
+      | PlainYearMonth
+      | PlainMonthDay;
 
     /**
      * A `Temporal.Calendar` is a representation of a calendar system. It includes
@@ -851,19 +702,11 @@ declare global {
      *
      * See https://tc39.es/proposal-temporal/docs/calendar.html for more details.
      */
-    export class Calendar
-    implements Omit<Required<CalendarProtocol>, 'calendar'> {
+    export class Calendar implements CalendarProtocol {
       static from(item: CalendarLike): Temporal.Calendar | CalendarProtocol;
       constructor(calendarIdentifier: string);
       readonly id: string;
-      year(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainYearMonth
-          | PlainDateLike
-          | string
-      ): number;
+      year(date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainYearMonth | PlainDateLike | string): number;
       month(
         date:
           | Temporal.PlainDate
@@ -882,87 +725,25 @@ declare global {
           | PlainDateLike
           | string
       ): string;
-      day(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainMonthDay
-          | PlainDateLike
-          | string
-      ): number;
-      era(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): string | undefined;
-      eraYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): number | undefined;
-      dayOfWeek(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): number;
-      dayOfYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): number;
-      weekOfYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): number;
-      daysInWeek(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | PlainDateLike
-          | string
-      ): number;
+      day(date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainMonthDay | PlainDateLike | string): number;
+      era(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): string | undefined;
+      eraYear(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number | undefined;
+      dayOfWeek(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number;
+      dayOfYear(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number;
+      weekOfYear(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number;
+      yearOfWeek(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number;
+      daysInWeek(date: Temporal.PlainDate | Temporal.PlainDateTime | PlainDateLike | string): number;
       daysInMonth(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainYearMonth
-          | PlainDateLike
-          | string
+        date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainYearMonth | PlainDateLike | string
       ): number;
       daysInYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainYearMonth
-          | PlainDateLike
-          | string
+        date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainYearMonth | PlainDateLike | string
       ): number;
       monthsInYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainYearMonth
-          | PlainDateLike
-          | string
+        date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainYearMonth | PlainDateLike | string
       ): number;
       inLeapYear(
-        date:
-          | Temporal.PlainDate
-          | Temporal.PlainDateTime
-          | Temporal.PlainYearMonth
-          | PlainDateLike
-          | string
+        date: Temporal.PlainDate | Temporal.PlainDateTime | Temporal.PlainYearMonth | PlainDateLike | string
       ): boolean;
       dateFromFields(
         fields: YearOrEraAndEraYear & MonthOrMonthCode & { day: number },
@@ -987,10 +768,7 @@ declare global {
         options?: DifferenceOptions<'year' | 'month' | 'week' | 'day'>
       ): Temporal.Duration;
       fields(fields: Iterable<string>): string[];
-      mergeFields(
-        fields: Record<string, unknown>,
-        additionalFields: Record<string, unknown>
-      ): Record<string, unknown>;
+      mergeFields(fields: Record<string, unknown>, additionalFields: Record<string, unknown>): Record<string, unknown>;
       toString(): string;
       toJSON(): string;
       readonly [Symbol.toStringTag]: 'Temporal.Calendar';
@@ -1010,11 +788,11 @@ declare global {
       isoYear: number,
       isoMonth: number,
       isoDay: number,
-      calendar: CalendarProtocol,
+      calendar: string | CalendarProtocol,
     };
 
     /**
-     * A `Temporal.PlainDate` represents a calendar date. 'Calendar date' refers to the
+     * A `Temporal.PlainDate` represents a calendar date. "Calendar date" refers to the
      * concept of a date as expressed in everyday usage, independent of any time
      * zone. For example, it could be used to represent an event on a calendar
      * which happens during the whole day no matter which time zone it's happening
@@ -1023,49 +801,34 @@ declare global {
      * See https://tc39.es/proposal-temporal/docs/date.html for more details.
      */
     export class PlainDate {
-      static from(
-        item: Temporal.PlainDate | PlainDateLike | string,
-        options?: AssignmentOptions
-      ): Temporal.PlainDate;
+      static from(item: Temporal.PlainDate | PlainDateLike | string, options?: AssignmentOptions): Temporal.PlainDate;
       static compare(
         one: Temporal.PlainDate | PlainDateLike | string,
         two: Temporal.PlainDate | PlainDateLike | string
       ): ComparisonResult;
-      constructor(
-        isoYear: number,
-        isoMonth: number,
-        isoDay: number,
-        calendar?: CalendarLike
-      );
+      constructor(isoYear: number, isoMonth: number, isoDay: number, calendar?: CalendarLike);
       readonly era: string | undefined;
       readonly eraYear: number | undefined;
       readonly year: number;
       readonly month: number;
       readonly monthCode: string;
       readonly day: number;
-      readonly calendar: CalendarProtocol;
+      readonly calendarId: string;
+      getCalendar(): CalendarProtocol;
       readonly dayOfWeek: number;
       readonly dayOfYear: number;
       readonly weekOfYear: number;
+      readonly yearOfWeek: number;
       readonly daysInWeek: number;
       readonly daysInYear: number;
       readonly daysInMonth: number;
       readonly monthsInYear: number;
       readonly inLeapYear: boolean;
       equals(other: Temporal.PlainDate | PlainDateLike | string): boolean;
-      with(
-        dateLike: PlainDateLike,
-        options?: AssignmentOptions
-      ): Temporal.PlainDate;
+      with(dateLike: PlainDateLike, options?: AssignmentOptions): Temporal.PlainDate;
       withCalendar(calendar: CalendarLike): Temporal.PlainDate;
-      add(
-        durationLike: Temporal.Duration | DurationLike | string,
-        options?: ArithmeticOptions
-      ): Temporal.PlainDate;
-      subtract(
-        durationLike: Temporal.Duration | DurationLike | string,
-        options?: ArithmeticOptions
-      ): Temporal.PlainDate;
+      add(durationLike: Temporal.Duration | DurationLike | string, options?: ArithmeticOptions): Temporal.PlainDate;
+      subtract(durationLike: Temporal.Duration | DurationLike | string, options?: ArithmeticOptions): Temporal.PlainDate;
       until(
         other: Temporal.PlainDate | PlainDateLike | string,
         options?: DifferenceOptions<'year' | 'month' | 'week' | 'day'>
@@ -1074,9 +837,7 @@ declare global {
         other: Temporal.PlainDate | PlainDateLike | string,
         options?: DifferenceOptions<'year' | 'month' | 'week' | 'day'>
       ): Temporal.Duration;
-      toPlainDateTime(
-        temporalTime?: Temporal.PlainTime | PlainTimeLike | string
-      ): Temporal.PlainDateTime;
+      toPlainDateTime(temporalTime?: Temporal.PlainTime | PlainTimeLike | string): Temporal.PlainDateTime;
       toZonedDateTime(
         timeZoneAndTime:
           | TimeZoneProtocol
@@ -1089,10 +850,7 @@ declare global {
       toPlainYearMonth(): Temporal.PlainYearMonth;
       toPlainMonthDay(): Temporal.PlainMonthDay;
       getISOFields(): PlainDateISOFields;
-      toLocaleString(
-        locales?: string | string[],
-        options?: Intl.DateTimeFormatOptions
-      ): string;
+      toLocaleString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
       toJSON(): string;
       toString(options?: ShowCalendarOption): string;
       valueOf(): never;
@@ -1125,7 +883,7 @@ declare global {
       isoMillisecond: number,
       isoMicrosecond: number,
       isoNanosecond: number,
-      calendar: CalendarProtocol,
+      calendar: string | CalendarProtocol,
     };
 
     /**
@@ -1171,33 +929,23 @@ declare global {
       readonly millisecond: number;
       readonly microsecond: number;
       readonly nanosecond: number;
-      readonly calendar: CalendarProtocol;
+      readonly calendarId: string;
+      getCalendar(): CalendarProtocol;
       readonly dayOfWeek: number;
       readonly dayOfYear: number;
       readonly weekOfYear: number;
+      readonly yearOfWeek: number;
       readonly daysInWeek: number;
       readonly daysInYear: number;
       readonly daysInMonth: number;
       readonly monthsInYear: number;
       readonly inLeapYear: boolean;
-      equals(
-        other: Temporal.PlainDateTime | PlainDateTimeLike | string
-      ): boolean;
-      with(
-        dateTimeLike: PlainDateTimeLike,
-        options?: AssignmentOptions
-      ): Temporal.PlainDateTime;
-      withPlainTime(
-        timeLike?: Temporal.PlainTime | PlainTimeLike | string
-      ): Temporal.PlainDateTime;
-      withPlainDate(
-        dateLike: Temporal.PlainDate | PlainDateLike | string
-      ): Temporal.PlainDateTime;
+      equals(other: Temporal.PlainDateTime | PlainDateTimeLike | string): boolean;
+      with(dateTimeLike: PlainDateTimeLike, options?: AssignmentOptions): Temporal.PlainDateTime;
+      withPlainTime(timeLike?: Temporal.PlainTime | PlainTimeLike | string): Temporal.PlainDateTime;
+      withPlainDate(dateLike: Temporal.PlainDate | PlainDateLike | string): Temporal.PlainDateTime;
       withCalendar(calendar: CalendarLike): Temporal.PlainDateTime;
-      add(
-        durationLike: Temporal.Duration | DurationLike | string,
-        options?: ArithmeticOptions
-      ): Temporal.PlainDateTime;
+      add(durationLike: Temporal.Duration | DurationLike | string, options?: ArithmeticOptions): Temporal.PlainDateTime;
       subtract(
         durationLike: Temporal.Duration | DurationLike | string,
         options?: ArithmeticOptions
@@ -1205,57 +953,25 @@ declare global {
       until(
         other: Temporal.PlainDateTime | PlainDateTimeLike | string,
         options?: DifferenceOptions<
-          | 'year'
-          | 'month'
-          | 'week'
-          | 'day'
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
+          'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'
         >
       ): Temporal.Duration;
       since(
         other: Temporal.PlainDateTime | PlainDateTimeLike | string,
         options?: DifferenceOptions<
-          | 'year'
-          | 'month'
-          | 'week'
-          | 'day'
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
+          'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'
         >
       ): Temporal.Duration;
       round(
-        roundTo: RoundTo<
-          | 'day'
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
-        >
+        roundTo: RoundTo<'day' | 'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'>
       ): Temporal.PlainDateTime;
-      toZonedDateTime(
-        tzLike: TimeZoneLike,
-        options?: ToInstantOptions
-      ): Temporal.ZonedDateTime;
+      toZonedDateTime(tzLike: TimeZoneLike, options?: ToInstantOptions): Temporal.ZonedDateTime;
       toPlainDate(): Temporal.PlainDate;
       toPlainYearMonth(): Temporal.PlainYearMonth;
       toPlainMonthDay(): Temporal.PlainMonthDay;
       toPlainTime(): Temporal.PlainTime;
       getISOFields(): PlainDateTimeISOFields;
-      toLocaleString(
-        locales?: string | string[],
-        options?: Intl.DateTimeFormatOptions
-      ): string;
+      toLocaleString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
       toJSON(): string;
       toString(options?: CalendarTypeToStringOptions): string;
       valueOf(): never;
@@ -1275,7 +991,7 @@ declare global {
     /**
      * A `Temporal.PlainMonthDay` represents a particular day on the calendar, but
      * without a year. For example, it could be used to represent a yearly
-     * recurring event, like 'Bastille Day is on the 14th of July.'
+     * recurring event, like "Bastille Day is on the 14th of July."
      *
      * See https://tc39.es/proposal-temporal/docs/monthday.html for more details.
      */
@@ -1284,52 +1000,30 @@ declare global {
         item: Temporal.PlainMonthDay | PlainMonthDayLike | string,
         options?: AssignmentOptions
       ): Temporal.PlainMonthDay;
-      constructor(
-        isoMonth: number,
-        isoDay: number,
-        calendar?: CalendarLike,
-        referenceISOYear?: number
-      );
+      constructor(isoMonth: number, isoDay: number, calendar?: CalendarLike, referenceISOYear?: number);
       readonly monthCode: string;
       readonly day: number;
-      readonly calendar: CalendarProtocol;
-      equals(
-        other: Temporal.PlainMonthDay | PlainMonthDayLike | string
-      ): boolean;
-      with(
-        monthDayLike: PlainMonthDayLike,
-        options?: AssignmentOptions
-      ): Temporal.PlainMonthDay;
+      readonly calendarId: string;
+      getCalendar(): CalendarProtocol;
+      equals(other: Temporal.PlainMonthDay | PlainMonthDayLike | string): boolean;
+      with(monthDayLike: PlainMonthDayLike, options?: AssignmentOptions): Temporal.PlainMonthDay;
       toPlainDate(year: { year: number }): Temporal.PlainDate;
       getISOFields(): PlainDateISOFields;
-      toLocaleString(
-        locales?: string | string[],
-        options?: Intl.DateTimeFormatOptions
-      ): string;
+      toLocaleString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
       toJSON(): string;
       toString(options?: ShowCalendarOption): string;
       valueOf(): never;
       readonly [Symbol.toStringTag]: 'Temporal.PlainMonthDay';
     }
 
-    // Temporal.PlainTime's `calendar` field is a Temporal.Calendar, not a
-    // Temporal.CalendarProtocol, because that type's calendar is not customizable
-    // by users. Temporal.ZonedDateTime and Temporal.PlainDateTime are also
-    // 'time-like' but their `calendar` is a Temporal.CalendarProtocol. Therefore,
-    // those types are added below to ensure that their instances are accepted by
-    // methods that take a PlainTimeLike object.
-    export type PlainTimeLike =
-      | {
-          hour?: number,
-          minute?: number,
-          second?: number,
-          millisecond?: number,
-          microsecond?: number,
-          nanosecond?: number,
-          calendar?: Temporal.Calendar | 'iso8601',
-        }
-      | Temporal.ZonedDateTime
-      | Temporal.PlainDateTime;
+    export type PlainTimeLike = {
+      hour?: number,
+      minute?: number,
+      second?: number,
+      millisecond?: number,
+      microsecond?: number,
+      nanosecond?: number,
+    };
 
     type PlainTimeISOFields = {
       isoHour: number,
@@ -1338,12 +1032,11 @@ declare global {
       isoMillisecond: number,
       isoMicrosecond: number,
       isoNanosecond: number,
-      calendar: Temporal.Calendar,
     };
 
     /**
      * A `Temporal.PlainTime` represents a wall-clock time, with a precision in
-     * nanoseconds, and without any time zone. 'Wall-clock time' refers to the
+     * nanoseconds, and without any time zone. "Wall-clock time" refers to the
      * concept of a time as expressed in everyday usage — the time that you read
      * off the clock on the wall. For example, it could be used to represent an
      * event that happens daily at a certain time, no matter what time zone.
@@ -1357,10 +1050,7 @@ declare global {
      * See https://tc39.es/proposal-temporal/docs/time.html for more details.
      */
     export class PlainTime {
-      static from(
-        item: Temporal.PlainTime | PlainTimeLike | string,
-        options?: AssignmentOptions
-      ): Temporal.PlainTime;
+      static from(item: Temporal.PlainTime | PlainTimeLike | string, options?: AssignmentOptions): Temporal.PlainTime;
       static compare(
         one: Temporal.PlainTime | PlainTimeLike | string,
         two: Temporal.PlainTime | PlainTimeLike | string
@@ -1379,64 +1069,28 @@ declare global {
       readonly millisecond: number;
       readonly microsecond: number;
       readonly nanosecond: number;
-      readonly calendar: Temporal.Calendar;
       equals(other: Temporal.PlainTime | PlainTimeLike | string): boolean;
-      with(
-        timeLike: Temporal.PlainTime | PlainTimeLike,
-        options?: AssignmentOptions
-      ): Temporal.PlainTime;
-      add(
-        durationLike: Temporal.Duration | DurationLike | string,
-        options?: ArithmeticOptions
-      ): Temporal.PlainTime;
-      subtract(
-        durationLike: Temporal.Duration | DurationLike | string,
-        options?: ArithmeticOptions
-      ): Temporal.PlainTime;
+      with(timeLike: Temporal.PlainTime | PlainTimeLike, options?: AssignmentOptions): Temporal.PlainTime;
+      add(durationLike: Temporal.Duration | DurationLike | string, options?: ArithmeticOptions): Temporal.PlainTime;
+      subtract(durationLike: Temporal.Duration | DurationLike | string, options?: ArithmeticOptions): Temporal.PlainTime;
       until(
         other: Temporal.PlainTime | PlainTimeLike | string,
-        options?: DifferenceOptions<
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
-        >
+        options?: DifferenceOptions<'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'>
       ): Temporal.Duration;
       since(
         other: Temporal.PlainTime | PlainTimeLike | string,
-        options?: DifferenceOptions<
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
-        >
+        options?: DifferenceOptions<'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'>
       ): Temporal.Duration;
       round(
-        roundTo: RoundTo<
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
-        >
+        roundTo: RoundTo<'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'>
       ): Temporal.PlainTime;
-      toPlainDateTime(
-        temporalDate: Temporal.PlainDate | PlainDateLike | string
-      ): Temporal.PlainDateTime;
+      toPlainDateTime(temporalDate: Temporal.PlainDate | PlainDateLike | string): Temporal.PlainDateTime;
       toZonedDateTime(timeZoneAndDate: {
         timeZone: TimeZoneLike,
         plainDate: Temporal.PlainDate | PlainDateLike | string,
       }): Temporal.ZonedDateTime;
       getISOFields(): PlainTimeISOFields;
-      toLocaleString(
-        locales?: string | string[],
-        options?: Intl.DateTimeFormatOptions
-      ): string;
+      toLocaleString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
       toJSON(): string;
       toString(options?: ToStringPrecisionOptions): string;
       valueOf(): never;
@@ -1447,35 +1101,25 @@ declare global {
      * A plain object implementing the protocol for a custom time zone.
      */
     export interface TimeZoneProtocol {
-      id?: string;
-      timeZone?: never;
+      id: string;
       getOffsetNanosecondsFor(instant: Temporal.Instant | string): number;
       getOffsetStringFor?(instant: Temporal.Instant | string): string;
-      getPlainDateTimeFor?(
-        instant: Temporal.Instant | string,
-        calendar?: CalendarLike
-      ): Temporal.PlainDateTime;
+      getPlainDateTimeFor?(instant: Temporal.Instant | string, calendar?: CalendarLike): Temporal.PlainDateTime;
       getInstantFor?(
         dateTime: Temporal.PlainDateTime | PlainDateTimeLike | string,
         options?: ToInstantOptions
       ): Temporal.Instant;
-      getNextTransition?(
-        startingPoint: Temporal.Instant | string
-      ): Temporal.Instant | null;
-      getPreviousTransition?(
-        startingPoint: Temporal.Instant | string
-      ): Temporal.Instant | null;
-      getPossibleInstantsFor(
-        dateTime: Temporal.PlainDateTime | PlainDateTimeLike | string
-      ): Temporal.Instant[];
-      toString(): string;
+      getNextTransition?(startingPoint: Temporal.Instant | string): Temporal.Instant | null;
+      getPreviousTransition?(startingPoint: Temporal.Instant | string): Temporal.Instant | null;
+      getPossibleInstantsFor(dateTime: Temporal.PlainDateTime | PlainDateTimeLike | string): Temporal.Instant[];
+      toString?(): string;
       toJSON?(): string;
     }
 
-    export type TimeZoneLike =
-      | TimeZoneProtocol
-      | string
-      | { timeZone: TimeZoneProtocol | string };
+    /**
+     * Any of these types can be passed to Temporal methods instead of a Temporal.TimeZone.
+     * */
+    export type TimeZoneLike = string | TimeZoneProtocol | ZonedDateTime;
 
     /**
      * A `Temporal.TimeZone` is a representation of a time zone: either an
@@ -1484,36 +1128,28 @@ declare global {
      * and UTC at a particular time, and daylight saving time (DST) changes; or
      * simply a particular UTC offset with no DST.
      *
-     * Since `Temporal.Instant` and `Temporal.PlainDateTime` do not contain any time
-     * zone information, a `Temporal.TimeZone` object is required to convert
-     * between the two.
+     * `Temporal.ZonedDateTime` is the only Temporal type to contain a time zone.
+     * Other types, like `Temporal.Instant` and `Temporal.PlainDateTime`, do not
+     * contain any time zone information, and a `Temporal.TimeZone` object is
+     * required to convert between them.
      *
      * See https://tc39.es/proposal-temporal/docs/timezone.html for more details.
      */
-    export class TimeZone
-    implements Omit<Required<TimeZoneProtocol>, 'timeZone'> {
+    export class TimeZone implements TimeZoneProtocol {
       static from(timeZone: TimeZoneLike): Temporal.TimeZone | TimeZoneProtocol;
       constructor(timeZoneIdentifier: string);
       readonly id: string;
+      equals(timeZone: TimeZoneLike): boolean;
       getOffsetNanosecondsFor(instant: Temporal.Instant | string): number;
       getOffsetStringFor(instant: Temporal.Instant | string): string;
-      getPlainDateTimeFor(
-        instant: Temporal.Instant | string,
-        calendar?: CalendarLike
-      ): Temporal.PlainDateTime;
+      getPlainDateTimeFor(instant: Temporal.Instant | string, calendar?: CalendarLike): Temporal.PlainDateTime;
       getInstantFor(
         dateTime: Temporal.PlainDateTime | PlainDateTimeLike | string,
         options?: ToInstantOptions
       ): Temporal.Instant;
-      getNextTransition(
-        startingPoint: Temporal.Instant | string
-      ): Temporal.Instant | null;
-      getPreviousTransition(
-        startingPoint: Temporal.Instant | string
-      ): Temporal.Instant | null;
-      getPossibleInstantsFor(
-        dateTime: Temporal.PlainDateTime | PlainDateTimeLike | string
-      ): Temporal.Instant[];
+      getNextTransition(startingPoint: Temporal.Instant | string): Temporal.Instant | null;
+      getPreviousTransition(startingPoint: Temporal.Instant | string): Temporal.Instant | null;
+      getPossibleInstantsFor(dateTime: Temporal.PlainDateTime | PlainDateTimeLike | string): Temporal.Instant[];
       toString(): string;
       toJSON(): string;
       readonly [Symbol.toStringTag]: 'Temporal.TimeZone';
@@ -1531,7 +1167,7 @@ declare global {
     /**
      * A `Temporal.PlainYearMonth` represents a particular month on the calendar. For
      * example, it could be used to represent a particular instance of a monthly
-     * recurring event, like 'the June 2019 meeting'.
+     * recurring event, like "the June 2019 meeting".
      *
      * See https://tc39.es/proposal-temporal/docs/yearmonth.html for more details.
      */
@@ -1544,33 +1180,21 @@ declare global {
         one: Temporal.PlainYearMonth | PlainYearMonthLike | string,
         two: Temporal.PlainYearMonth | PlainYearMonthLike | string
       ): ComparisonResult;
-      constructor(
-        isoYear: number,
-        isoMonth: number,
-        calendar?: CalendarLike,
-        referenceISODay?: number
-      );
+      constructor(isoYear: number, isoMonth: number, calendar?: CalendarLike, referenceISODay?: number);
       readonly era: string | undefined;
       readonly eraYear: number | undefined;
       readonly year: number;
       readonly month: number;
       readonly monthCode: string;
-      readonly calendar: CalendarProtocol;
+      readonly calendarId: string;
+      getCalendar(): CalendarProtocol;
       readonly daysInMonth: number;
       readonly daysInYear: number;
       readonly monthsInYear: number;
       readonly inLeapYear: boolean;
-      equals(
-        other: Temporal.PlainYearMonth | PlainYearMonthLike | string
-      ): boolean;
-      with(
-        yearMonthLike: PlainYearMonthLike,
-        options?: AssignmentOptions
-      ): Temporal.PlainYearMonth;
-      add(
-        durationLike: Temporal.Duration | DurationLike | string,
-        options?: ArithmeticOptions
-      ): Temporal.PlainYearMonth;
+      equals(other: Temporal.PlainYearMonth | PlainYearMonthLike | string): boolean;
+      with(yearMonthLike: PlainYearMonthLike, options?: AssignmentOptions): Temporal.PlainYearMonth;
+      add(durationLike: Temporal.Duration | DurationLike | string, options?: ArithmeticOptions): Temporal.PlainYearMonth;
       subtract(
         durationLike: Temporal.Duration | DurationLike | string,
         options?: ArithmeticOptions
@@ -1585,10 +1209,7 @@ declare global {
       ): Temporal.Duration;
       toPlainDate(day: { day: number }): Temporal.PlainDate;
       getISOFields(): PlainDateISOFields;
-      toLocaleString(
-        locales?: string | string[],
-        options?: Intl.DateTimeFormatOptions
-      ): string;
+      toLocaleString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
       toJSON(): string;
       toString(options?: ShowCalendarOption): string;
       valueOf(): never;
@@ -1624,8 +1245,8 @@ declare global {
       isoMicrosecond: number,
       isoNanosecond: number,
       offset: string,
-      timeZone: TimeZoneProtocol,
-      calendar: CalendarProtocol,
+      timeZone: string | TimeZoneProtocol,
+      calendar: string | CalendarProtocol,
     };
 
     export class ZonedDateTime {
@@ -1637,11 +1258,7 @@ declare global {
         one: Temporal.ZonedDateTime | ZonedDateTimeLike | string,
         two: Temporal.ZonedDateTime | ZonedDateTimeLike | string
       ): ComparisonResult;
-      constructor(
-        epochNanoseconds: bigint,
-        timeZone: TimeZoneLike,
-        calendar?: CalendarLike
-      );
+      constructor(epochNanoseconds: bigint, timeZone: TimeZoneLike, calendar?: CalendarLike);
       readonly era: string | undefined;
       readonly eraYear: number | undefined;
       readonly year: number;
@@ -1654,11 +1271,14 @@ declare global {
       readonly millisecond: number;
       readonly microsecond: number;
       readonly nanosecond: number;
-      readonly timeZone: TimeZoneProtocol;
-      readonly calendar: CalendarProtocol;
+      readonly timeZoneId: string;
+      getTimeZone(): TimeZoneProtocol;
+      readonly calendarId: string;
+      getCalendar(): CalendarProtocol;
       readonly dayOfWeek: number;
       readonly dayOfYear: number;
       readonly weekOfYear: number;
+      readonly yearOfWeek: number;
       readonly hoursInDay: number;
       readonly daysInWeek: number;
       readonly daysInMonth: number;
@@ -1671,25 +1291,13 @@ declare global {
       readonly epochMilliseconds: number;
       readonly epochMicroseconds: bigint;
       readonly epochNanoseconds: bigint;
-      equals(
-        other: Temporal.ZonedDateTime | ZonedDateTimeLike | string
-      ): boolean;
-      with(
-        zonedDateTimeLike: ZonedDateTimeLike,
-        options?: ZonedDateTimeAssignmentOptions
-      ): Temporal.ZonedDateTime;
-      withPlainTime(
-        timeLike?: Temporal.PlainTime | PlainTimeLike | string
-      ): Temporal.ZonedDateTime;
-      withPlainDate(
-        dateLike: Temporal.PlainDate | PlainDateLike | string
-      ): Temporal.ZonedDateTime;
+      equals(other: Temporal.ZonedDateTime | ZonedDateTimeLike | string): boolean;
+      with(zonedDateTimeLike: ZonedDateTimeLike, options?: ZonedDateTimeAssignmentOptions): Temporal.ZonedDateTime;
+      withPlainTime(timeLike?: Temporal.PlainTime | PlainTimeLike | string): Temporal.ZonedDateTime;
+      withPlainDate(dateLike: Temporal.PlainDate | PlainDateLike | string): Temporal.ZonedDateTime;
       withCalendar(calendar: CalendarLike): Temporal.ZonedDateTime;
       withTimeZone(timeZone: TimeZoneLike): Temporal.ZonedDateTime;
-      add(
-        durationLike: Temporal.Duration | DurationLike | string,
-        options?: ArithmeticOptions
-      ): Temporal.ZonedDateTime;
+      add(durationLike: Temporal.Duration | DurationLike | string, options?: ArithmeticOptions): Temporal.ZonedDateTime;
       subtract(
         durationLike: Temporal.Duration | DurationLike | string,
         options?: ArithmeticOptions
@@ -1697,43 +1305,17 @@ declare global {
       until(
         other: Temporal.ZonedDateTime | ZonedDateTimeLike | string,
         options?: Temporal.DifferenceOptions<
-          | 'year'
-          | 'month'
-          | 'week'
-          | 'day'
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
+          'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'
         >
       ): Temporal.Duration;
       since(
         other: Temporal.ZonedDateTime | ZonedDateTimeLike | string,
         options?: Temporal.DifferenceOptions<
-          | 'year'
-          | 'month'
-          | 'week'
-          | 'day'
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
+          'year' | 'month' | 'week' | 'day' | 'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'
         >
       ): Temporal.Duration;
       round(
-        roundTo: RoundTo<
-          | 'day'
-          | 'hour'
-          | 'minute'
-          | 'second'
-          | 'millisecond'
-          | 'microsecond'
-          | 'nanosecond'
-        >
+        roundTo: RoundTo<'day' | 'hour' | 'minute' | 'second' | 'millisecond' | 'microsecond' | 'nanosecond'>
       ): Temporal.ZonedDateTime;
       startOfDay(): Temporal.ZonedDateTime;
       toInstant(): Temporal.Instant;
@@ -1743,10 +1325,7 @@ declare global {
       toPlainMonthDay(): Temporal.PlainMonthDay;
       toPlainTime(): Temporal.PlainTime;
       getISOFields(): ZonedDateTimeISOFields;
-      toLocaleString(
-        locales?: string | string[],
-        options?: Intl.DateTimeFormatOptions
-      ): string;
+      toLocaleString(locales?: string | string[], options?: Intl.DateTimeFormatOptions): string;
       toJSON(): string;
       toString(options?: ZonedDateTimeToStringOptions): string;
       valueOf(): never;
@@ -1792,10 +1371,7 @@ declare global {
        * object implementing the time zone protocol. If omitted, the environment's
        * current time zone will be used.
        */
-      zonedDateTime(
-        calendar: CalendarLike,
-        tzLike?: TimeZoneLike
-      ): Temporal.ZonedDateTime,
+      zonedDateTime(calendar: CalendarLike, tzLike?: TimeZoneLike): Temporal.ZonedDateTime,
 
       /**
        * Get the current calendar date and clock time in a specific time zone,
@@ -1832,10 +1408,7 @@ declare global {
        * object implementing the time zone protocol. If omitted,
        * the environment's current time zone will be used.
        */
-      plainDateTime(
-        calendar: CalendarLike,
-        tzLike?: TimeZoneLike
-      ): Temporal.PlainDateTime,
+      plainDateTime(calendar: CalendarLike, tzLike?: TimeZoneLike): Temporal.PlainDateTime,
 
       /**
        * Get the current date and clock time in a specific time zone, using the
@@ -1870,10 +1443,7 @@ declare global {
        * object implementing the time zone protocol. If omitted,
        * the environment's current time zone will be used.
        */
-      plainDate(
-        calendar: CalendarLike,
-        tzLike?: TimeZoneLike
-      ): Temporal.PlainDate,
+      plainDate(calendar: CalendarLike, tzLike?: TimeZoneLike): Temporal.PlainDate,
 
       /**
        * Get the current date in a specific time zone, using the ISO 8601
@@ -1899,13 +1469,13 @@ declare global {
       plainTimeISO(tzLike?: TimeZoneLike): Temporal.PlainTime,
 
       /**
-       * Get the environment's current time zone.
+       * Get the identifier of the environment's current time zone.
        *
-       * This method gets the current system time zone. This will usually be a
-       * named
+       * This method gets the identifier of the current system time zone. This
+       * will usually be a named
        * {@link https://en.wikipedia.org/wiki/List_of_tz_database_time_zones|IANA time zone}.
        */
-      timeZone(): Temporal.TimeZone,
+      timeZoneId(): string,
 
       readonly [Symbol.toStringTag]: 'Temporal.Now',
     };
