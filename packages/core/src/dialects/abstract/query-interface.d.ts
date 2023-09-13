@@ -180,18 +180,10 @@ export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptions
 
 export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions { }
 
-export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOptions {
-  encoding?: string;
-}
-
 export interface FunctionParam {
   type: string;
   name?: string;
   direction?: string;
-}
-
-export interface DatabaseDescription {
-  name: string;
 }
 
 export interface IndexFieldDescription {
@@ -554,19 +546,4 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Rollback (revert) a transaction that hasn't been committed
    */
   rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Creates a database
-   */
-  createDatabase(name: string, options?: CreateDatabaseOptions): Promise<void>;
-
-  /**
-   * Creates a database
-   */
-  dropDatabase(name: string, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Lists all available databases
-   */
-  listDatabases(options?: QueryRawOptions): Promise<DatabaseDescription[]>;
 }

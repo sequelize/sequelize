@@ -17,10 +17,13 @@ import type {
   AddConstraintOptions,
   ColumnsDescription,
   ConstraintDescription,
+  CreateDatabaseOptions,
   CreateSchemaOptions,
+  DatabaseDescription,
   DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
+  ListDatabasesOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
   QiShowAllTablesOptions,
@@ -57,6 +60,41 @@ export class AbstractQueryInterfaceTypeScript {
     this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
     this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+  }
+
+  /**
+   * Create a database
+   *
+   * @param database
+   * @param options
+   */
+  async createDatabase(database: string, options?: CreateDatabaseOptions): Promise<void> {
+    const sql = this.queryGenerator.createDatabaseQuery(database, options);
+
+    await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Drop a database
+   *
+   * @param database
+   * @param options
+   */
+  async dropDatabase(database: string, options?: QueryRawOptions): Promise<void> {
+    const sql = this.queryGenerator.dropDatabaseQuery(database);
+
+    await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Lists all available databases
+   *
+   * @param options
+   */
+  async listDatabases(options?: ListDatabasesOptions): Promise<DatabaseDescription[]> {
+    const sql = this.queryGenerator.listDatabasesQuery(options);
+
+    return this.sequelize.queryRaw<DatabaseDescription>(sql, { ...options, type: QueryTypes.SELECT });
   }
 
   /**

@@ -3,13 +3,19 @@ import type { QueryRawOptions } from '../../sequelize';
 import type { CreateSchemaQueryOptions } from './query-generator';
 import type {
   AddConstraintQueryOptions,
+  CreateDatabaseQueryOptions,
   DropTableQueryOptions,
+  ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types';
+
+export interface DatabaseDescription {
+  name: string;
+}
 
 export interface ColumnDescription {
   type: string;
@@ -60,6 +66,12 @@ export interface ConstraintDescription {
   definition?: string;
   deferrable?: Deferrable;
 }
+
+/** Options accepted by {@link AbstractQueryInterface#createDatabase} */
+export interface CreateDatabaseOptions extends CreateDatabaseQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#listDatabases} */
+export interface ListDatabasesOptions extends ListDatabasesQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }

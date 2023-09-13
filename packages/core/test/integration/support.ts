@@ -232,6 +232,7 @@ async function clearDatabaseInternal(customSequelize: Sequelize) {
   }
 
   await dropTestSchemas(customSequelize);
+  await dropTestDatabases(customSequelize);
 }
 
 export async function clearDatabase(customSequelize: Sequelize = sequelize) {
@@ -253,6 +254,16 @@ afterEach('no running queries checker', () => {
   }
 });
 
+export async function dropTestDatabases(customSequelize: Sequelize = sequelize) {
+  if (!customSequelize.dialect.supports.multiDatabases) {
+    return;
+  }
+
+  const qi = customSequelize.queryInterface;
+  const databases = await qi.listDatabases({ skip: [customSequelize.config.database] });
+  await Promise.all(databases.map(async db => qi.dropDatabase(db.name)));
+}
+
 export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
   if (!customSequelize.dialect.supports.schemas) {
     await customSequelize.drop({});
@@ -260,22 +271,17 @@ export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
     return;
   }
 
-  const schemas = await customSequelize.showAllSchemas();
+  const schemas = await customSequelize.showAllSchemas({ skip: [customSequelize.config.database] });
   const schemasPromise = [];
-  for (const schema of schemas) {
-    // @ts-expect-error -- TODO: type return value of "showAllSchemas"
-    const schemaName = schema.name ? schema.name : schema;
-    if (schemaName !== customSequelize.config.database) {
-      const promise = customSequelize.dropSchema(schemaName);
-
-      if (getTestDialect() === 'db2') {
-        // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
-        // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
-        // eslint-disable-next-line no-await-in-loop
-        await promise;
-      } else {
-        schemasPromise.push(promise);
-      }
+  for (const schemaName of schemas) {
+    const promise = customSequelize.dropSchema(schemaName);
+    if (getTestDialect() === 'db2') {
+      // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
+      // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
+      // eslint-disable-next-line no-await-in-loop
+      await promise;
+    } else {
+      schemasPromise.push(promise);
     }
   }
 
