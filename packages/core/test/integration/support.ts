@@ -232,6 +232,7 @@ async function clearDatabaseInternal(customSequelize: Sequelize) {
   }
 
   await dropTestSchemas(customSequelize);
+  await dropTestDatabases(customSequelize);
 }
 
 export async function clearDatabase(customSequelize: Sequelize = sequelize) {
@@ -252,6 +253,16 @@ afterEach('no running queries checker', () => {
     }`);
   }
 });
+
+export async function dropTestDatabases(customSequelize: Sequelize = sequelize) {
+  if (!customSequelize.dialect.supports.multiDatabases) {
+    return;
+  }
+
+  const qi = customSequelize.queryInterface;
+  const databases = await qi.listDatabases({ skip: [customSequelize.config.database] });
+  await Promise.all(databases.map(async db => qi.dropDatabase(db.name)));
+}
 
 export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
   if (!customSequelize.dialect.supports.schemas) {
