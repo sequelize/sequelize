@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.29](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.28...v7.0.0-alpha.29) (2023-09-13)
+
+
+### Bug Fixes
+
+* improve association decorators ([#16486](https://github.com/sequelize/sequelize/issues/16486)) ([b8edd52](https://github.com/sequelize/sequelize/commit/b8edd521d3554d6f138cb97498b3d4e3ae315302))
+* **postgres:** cast VARCHAR[] columns ([#16481](https://github.com/sequelize/sequelize/issues/16481)) ([df30331](https://github.com/sequelize/sequelize/commit/df30331fa3ca2070df0e655059532aad07af703c))
+* prevent public class fields from shadowing association values ([#16493](https://github.com/sequelize/sequelize/issues/16493)) ([b66db0b](https://github.com/sequelize/sequelize/commit/b66db0b3f3c4477bddb30c51618422e7a158d1ae))
+
+
+### Features
+
+* add built-in support for TypeScript enums & readonly arrays in `DataTypes.ENUM` ([#16488](https://github.com/sequelize/sequelize/issues/16488)) ([d2a1c2f](https://github.com/sequelize/sequelize/commit/d2a1c2f46b2d139f95d7143c3d14cd2d7c2e4a80))
+* migrate removeColumn to typescript ([#16476](https://github.com/sequelize/sequelize/issues/16476)) ([bc35a52](https://github.com/sequelize/sequelize/commit/bc35a52af967dd49bbc5969450d4d80ad2926d84))
+* option to allow specifying the default precision for auto-generated timestamp columns ([#16330](https://github.com/sequelize/sequelize/issues/16330)) ([db7fe12](https://github.com/sequelize/sequelize/commit/db7fe125d7c76213a4279e540810d6b170c01d44))
+* support iterables in association methods ([#16491](https://github.com/sequelize/sequelize/issues/16491)) ([8acefff](https://github.com/sequelize/sequelize/commit/8acefffbe5c72e7aa911209f66bf38b2b5e8486b))
+
+
+
+
+
 # [7.0.0-alpha.28](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.27...v7.0.0-alpha.28) (2023-09-11)
 
 
