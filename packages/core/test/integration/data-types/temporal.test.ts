@@ -2,13 +2,13 @@ import { expect } from 'chai';
 import { lt } from 'semver';
 import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
-import { beforeAll2, disableDatabaseResetForSuite, sequelize } from '../support';
+import { beforeAll2, sequelize, setResetMode } from '../support';
 import { testSimpleInOut, testSimpleInOutRaw } from './_utils';
 
 const dialect = sequelize.dialect;
 
 describe('Temporal DataTypes', () => {
-  disableDatabaseResetForSuite();
+  setResetMode('none');
 
   if (lt(process.version, 'v19.0.0')) {
     return;
