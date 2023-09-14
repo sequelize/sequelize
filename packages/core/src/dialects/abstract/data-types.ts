@@ -1549,7 +1549,7 @@ export interface DateTimeOptions {
   /**
    * The precision of the date.
    */
-  precision?: string | number | undefined;
+  precision?: number | undefined;
   /**
    * Indicates whether the datetime value has an offset.
    */
