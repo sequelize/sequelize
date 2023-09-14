@@ -1517,7 +1517,7 @@ __metadata:
     inflection: ^2.0.0
     lcov-result-merger: 4.1.0
     lodash: ^4.17.21
-    mariadb: 3.2.0
+    mariadb: 3.2.1
     mocha: 10.2.0
     moment: 2.29.4
     mysql2: 3.6.1
@@ -7757,6 +7757,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lru-cache@npm:^10.0.1, lru-cache@npm:^9.1.1 || ^10.0.0":
+  version: 10.0.1
+  resolution: "lru-cache@npm:10.0.1"
+  checksum: 06f8d0e1ceabd76bb6f644a26dbb0b4c471b79c7b514c13c6856113879b3bf369eb7b497dad4ff2b7e2636db202412394865b33c332100876d838ad1372f0181
+  languageName: node
+  linkType: hard
+
 "lru-cache@npm:^5.1.1":
   version: 5.1.1
   resolution: "lru-cache@npm:5.1.1"
@@ -7775,7 +7782,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lru-cache@npm:^7.14.0, lru-cache@npm:^7.14.1, lru-cache@npm:^7.4.4, lru-cache@npm:^7.5.1, lru-cache@npm:^7.7.1":
+"lru-cache@npm:^7.14.1, lru-cache@npm:^7.4.4, lru-cache@npm:^7.5.1, lru-cache@npm:^7.7.1":
   version: 7.18.3
   resolution: "lru-cache@npm:7.18.3"
   checksum: e550d772384709deea3f141af34b6d4fa392e2e418c1498c078de0ee63670f1f46f5eee746e8ef7e69e1c895af0d4224e62ee33e66a543a14763b0f2e74c1356
@@ -7786,13 +7793,6 @@ __metadata:
   version: 8.0.5
   resolution: "lru-cache@npm:8.0.5"
   checksum: 87d72196d8f46e8299c4ab576ed2ec8a07e3cbef517dc9874399c0b2470bd9bf62aacec3b67f84ed6d74aaa1ef31636d048edf996f76248fd17db72bfb631609
-  languageName: node
-  linkType: hard
-
-"lru-cache@npm:^9.1.1 || ^10.0.0":
-  version: 10.0.1
-  resolution: "lru-cache@npm:10.0.1"
-  checksum: 06f8d0e1ceabd76bb6f644a26dbb0b4c471b79c7b514c13c6856113879b3bf369eb7b497dad4ff2b7e2636db202412394865b33c332100876d838ad1372f0181
   languageName: node
   linkType: hard
 
@@ -7899,16 +7899,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mariadb@npm:3.2.0":
-  version: 3.2.0
-  resolution: "mariadb@npm:3.2.0"
+"mariadb@npm:3.2.1":
+  version: 3.2.1
+  resolution: "mariadb@npm:3.2.1"
   dependencies:
     "@types/geojson": ^7946.0.10
     "@types/node": ^17.0.45
     denque: ^2.1.0
     iconv-lite: ^0.6.3
-    lru-cache: ^7.14.0
-  checksum: 971a84cf42e026ddfd209450cbf98b2af00a6cf9a49fe245b2662e767196a7a8f26ab728cdc6b715aafbb40631f57754e19251f9e38e679106c7d190106d4eee
+    lru-cache: ^10.0.1
+  checksum: 6f167790ad498f842364c9f4f9d2d604f0405336ee922b6077376df2510ce65193b3a1f1815514c9b96b79d76d9999b3806030254463887bc60961ab21b93ccb
   languageName: node
   linkType: hard
 

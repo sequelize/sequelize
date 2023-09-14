@@ -88,7 +88,7 @@
     "fs-jetpack": "5.1.0",
     "ibm_db": "3.2.1",
     "lcov-result-merger": "4.1.0",
-    "mariadb": "3.2.0",
+    "mariadb": "3.2.1",
     "mocha": "10.2.0",
     "moment": "2.29.4",
     "mysql2": "3.6.1",
