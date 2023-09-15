@@ -26,11 +26,14 @@ import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
 import { importModels } from './import-models.js';
-
 import defaults from 'lodash/defaults';
 import defaultsDeep from 'lodash/defaultsDeep';
 import isPlainObject from 'lodash/isPlainObject';
 import map from 'lodash/map';
+import { BelongsToAssociation } from './associations/belongs-to';
+import { HasOneAssociation } from './associations/has-one';
+import { BelongsToManyAssociation } from './associations/belongs-to-many';
+import { HasManyAssociation } from './associations/has-many';
 
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
@@ -45,10 +48,6 @@ const Validator = require('./utils/validator-extras').validator;
 const { Op } = require('./operators');
 const deprecations = require('./utils/deprecations');
 const { AbstractQueryInterface } = require('./dialects/abstract/query-interface');
-const { BelongsTo } = require('./associations/belongs-to');
-const { HasOne } = require('./associations/has-one');
-const { BelongsToMany } = require('./associations/belongs-to-many');
-const { HasMany } = require('./associations/has-many');
 require('./utils/dayjs');
 
 /**
@@ -1153,10 +1152,10 @@ Sequelize.prototype.Validator = Sequelize.Validator = Validator;
 Sequelize.Model = Model;
 
 Sequelize.AbstractQueryInterface = AbstractQueryInterface;
-Sequelize.BelongsTo = BelongsTo;
-Sequelize.HasOne = HasOne;
-Sequelize.HasMany = HasMany;
-Sequelize.BelongsToMany = BelongsToMany;
+Sequelize.BelongsToAssociation = BelongsToAssociation;
+Sequelize.HasOneAssociation = HasOneAssociation;
+Sequelize.HasManyAssociation = HasManyAssociation;
+Sequelize.BelongsToManyAssociation = BelongsToManyAssociation;
 
 Sequelize.DataTypes = DataTypes;
 for (const dataTypeName in DataTypes) {

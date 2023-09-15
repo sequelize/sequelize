@@ -4,14 +4,14 @@ import type {
   Association,
   BelongsToManyGetAssociationsMixin,
   CreationOptional,
-  HasOne,
+  HasOneAssociation,
   InferAttributes,
   InferCreationAttributes,
   ModelDefined,
 } from '@sequelize/core';
 import { DataTypes, Model, Sequelize } from '@sequelize/core';
 
-expectTypeOf<HasOne>().toMatchTypeOf<Association>();
+expectTypeOf<HasOneAssociation>().toMatchTypeOf<Association>();
 
 class MyModel extends Model<InferAttributes<MyModel>, InferCreationAttributes<MyModel>> {
   declare int: number;
@@ -19,7 +19,7 @@ class MyModel extends Model<InferAttributes<MyModel>, InferCreationAttributes<My
   declare virtual: boolean | null;
 
   static associations: {
-    other: HasOne,
+    other: HasOneAssociation,
   };
 
   static async customStuff() {

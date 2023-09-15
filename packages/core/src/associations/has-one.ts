@@ -17,7 +17,7 @@ import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { Association } from './base';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
-import { BelongsTo } from './belongs-to.js';
+import { BelongsToAssociation } from './belongs-to.js';
 import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 
@@ -25,7 +25,7 @@ import type { NormalizeBaseAssociationOptions } from './helpers';
  * One-to-one association.
  * See {@link Model.hasOne}
  *
- * This is almost the same as {@link BelongsTo}, but the foreign key will be defined on the target model.
+ * This is almost the same as {@link BelongsToAssociation}, but the foreign key will be defined on the target model.
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.hasOne(Project)` the getter will be `user.getProject()`.
  *
@@ -35,7 +35,7 @@ import type { NormalizeBaseAssociationOptions } from './helpers';
  * @typeParam TargetKey The name of the Foreign Key attribute on the Target model.
  * @typeParam TargetPrimaryKey The name of the Primary Key attribute of the Target model. Used by {@link HasOneSetAssociationMixin}.
  */
-export class HasOne<
+export class HasOneAssociation<
   S extends Model = Model,
   T extends Model = Model,
   SourceKey extends AttributeNames<S> = any,
@@ -56,7 +56,7 @@ export class HasOne<
 
   /**
    * The name of the attribute the foreign key points to.
-   * In HasOne, it is on the Source Model, instead of the Target Model (unlike {@link BelongsTo.targetKey}).
+   * In HasOne, it is on the Source Model, instead of the Target Model (unlike {@link BelongsToAssociation.targetKey}).
    * The {@link Association.foreignKey} is on the Target Model.
    */
   get sourceKey(): SourceKey {
@@ -77,7 +77,7 @@ export class HasOne<
     return this.sourceKey;
   }
 
-  readonly inverse: BelongsTo<T, S, TargetKey, SourceKey>;
+  readonly inverse: BelongsToAssociation<T, S, TargetKey, SourceKey>;
 
   readonly accessors: SingleAssociationAccessors;
 
@@ -87,7 +87,7 @@ export class HasOne<
     target: ModelStatic<T>,
     options: NormalizedHasOneOptions<SourceKey, TargetKey>,
     parent?: Association,
-    inverse?: BelongsTo<T, S, TargetKey, SourceKey>,
+    inverse?: BelongsToAssociation<T, S, TargetKey, SourceKey>,
   ) {
     if (
       options?.sourceKey
@@ -102,7 +102,7 @@ export class HasOne<
 
     super(secret, source, target, options, parent);
 
-    this.inverse = inverse ?? BelongsTo.associate(secret, target, source, removeUndefined({
+    this.inverse = inverse ?? BelongsToAssociation.associate(secret, target, source, removeUndefined({
       as: options.inverse?.as,
       scope: options.inverse?.scope,
       foreignKey: options.foreignKey,
@@ -138,13 +138,13 @@ export class HasOne<
     target: ModelStatic<T>,
     options: HasOneOptions<SourceKey, TargetKey> = {},
     parent?: Association<any>,
-    inverse?: BelongsTo<T, S, TargetKey, SourceKey>,
-  ): HasOne<S, T, SourceKey, TargetKey> {
+    inverse?: BelongsToAssociation<T, S, TargetKey, SourceKey>,
+  ): HasOneAssociation<S, T, SourceKey, TargetKey> {
     return defineAssociation<
-      HasOne<S, T, SourceKey, TargetKey>,
+      HasOneAssociation<S, T, SourceKey, TargetKey>,
       HasOneOptions<SourceKey, TargetKey>,
       NormalizedHasOneOptions<SourceKey, TargetKey>
-    >(HasOne, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+    >(HasOneAssociation, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
       // self-associations must always set their 'as' parameter
       if (isSameInitialModel(source, target)
         // use 'options' because this will always be set in 'newOptions'
@@ -155,7 +155,7 @@ This is because hasOne associations automatically create the corresponding belon
 If having two associations does not make sense (for instance a "spouse" association from user to user), consider using belongsTo instead of hasOne.`);
       }
 
-      return new HasOne(secret, source, target, normalizedOptions, parent, inverse);
+      return new HasOneAssociation(secret, source, target, normalizedOptions, parent, inverse);
     });
   }
 
@@ -353,7 +353,7 @@ This option is only available in BelongsTo associations.`);
 }
 
 // workaround https://github.com/evanw/esbuild/issues/1260
-Object.defineProperty(HasOne, 'name', {
+Object.defineProperty(HasOneAssociation, 'name', {
   value: 'HasOne',
 });
 
