@@ -28,9 +28,9 @@ import type {
 import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
-import { removeUndefined } from '../utils/object.js';
-import { camelize } from '../utils/string.js';
-import type { AllowIterable } from '../utils/types.js';
+import { EMPTY_ARRAY, EMPTY_OBJECT, removeUndefined } from '../utils/object.js';
+import { camelize, singularize } from '../utils/string.js';
+import type { AllowIterable, RequiredBy } from '../utils/types.js';
 import { MultiAssociation } from './base';
 import type {
   Association,
@@ -233,11 +233,10 @@ export class BelongsToMany<
         source,
         removeUndefined({
           ...options,
-          // note: we can't just use '...options.inverse' because we need to set to underfined if the option wasn't set
+          // note: we can't just use '...options.inverse' because we need to set to undefined if the option wasn't set
           as: options.inverse?.as,
           scope: options.inverse?.scope,
           foreignKeyConstraints: options.inverse?.foreignKeyConstraints,
-
           inverse: removeUndefined({
             as: options.as,
             scope: options.scope,
@@ -247,6 +246,12 @@ export class BelongsToMany<
           targetKey: options.sourceKey,
           foreignKey: options.otherKey,
           otherKey: options.foreignKey,
+          throughAssociations: {
+            toSource: options.throughAssociations.toTarget,
+            fromSource: options.throughAssociations.fromTarget,
+            toTarget: options.throughAssociations.toSource,
+            fromTarget: options.throughAssociations.fromSource,
+          },
           through: removeUndefined({
             ...options.through,
             scope: undefined,
@@ -276,7 +281,7 @@ export class BelongsToMany<
     const sourceKey = options?.sourceKey || (source.primaryKeyAttribute as TargetKey);
 
     this.fromSourceToThrough = HasMany.associate(AssociationSecret, this.source, this.throughModel, removeUndefined({
-      as: `${this.name.plural}${upperFirst(this.pairedWith.name.plural)}`,
+      as: options.throughAssociations.fromSource || `${this.name.plural}${upperFirst(this.pairedWith.name.plural)}`,
       scope: this.through.scope,
       foreignKey: {
         ...this.options.foreignKey,
@@ -290,12 +295,14 @@ export class BelongsToMany<
       foreignKeyConstraints: this.options.foreignKeyConstraints,
       hooks: this.options.hooks,
       inverse: {
-        as: this.pairedWith.name.singular,
+        as: options.throughAssociations.toSource || this.pairedWith.name.singular,
       },
     }), this);
 
     this.fromSourceToThroughOne = HasOne.associate(AssociationSecret, this.source, this.throughModel, removeUndefined({
-      as: `${this.name.singular}${upperFirst(this.pairedWith.name.singular)}`,
+      as: options.throughAssociations.fromSource
+        ? singularize(options.throughAssociations.fromSource)
+        : `${this.name.singular}${upperFirst(this.pairedWith.name.singular)}`,
       scope: this.through.scope,
       // foreignKey: this.options.foreignKey,
       foreignKey: {
@@ -310,7 +317,9 @@ export class BelongsToMany<
       foreignKeyConstraints: this.options.foreignKeyConstraints,
       hooks: this.options.hooks,
       inverse: {
-        as: this.pairedWith.name.singular,
+        as: options.throughAssociations.toSource
+          ? singularize(options.throughAssociations.toSource)
+          : this.pairedWith.name.singular,
       },
     }), this);
 
@@ -602,7 +611,7 @@ Add your own primary key to the through model, on different attributes than the 
         association: this.fromThroughToTarget,
         where: this.scope,
         required: true,
-      }] : [],
+      }] : EMPTY_ARRAY,
     });
 
     const obsoleteTargets: Array<TargetModel | Exclude<TargetModel[TargetKey], any[]>> = [];
@@ -656,7 +665,7 @@ Add your own primary key to the through model, on different attributes than the 
       ...this.through.scope,
     };
 
-    let currentRows: any[] = [];
+    let currentRows: readonly any[] = EMPTY_ARRAY;
     if (this.through?.unique ?? true) {
       // @ts-expect-error -- the findAll call is raw, no model here
       currentRows = await this.through.model.findAll({
@@ -683,8 +692,8 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async #updateAssociations(
     sourceInstance: SourceModel,
-    currentThroughRows: ThroughModel[],
-    newTargets: TargetModel[],
+    currentThroughRows: readonly ThroughModel[],
+    newTargets: readonly TargetModel[],
     options?:
       & { through?: JoinTableAttributes }
       & BulkCreateOptions<Attributes<ThroughModel>>
@@ -695,7 +704,7 @@ Add your own primary key to the through model, on different attributes than the 
     const foreignKey = this.foreignKey;
     const otherKey = this.otherKey;
 
-    const defaultAttributes = options?.through || {};
+    const defaultAttributes = options?.through || EMPTY_OBJECT;
 
     const promises: Array<Promise<any>> = [];
     const unassociatedTargets: TargetModel[] = [];
@@ -893,6 +902,7 @@ function normalizeOptions<SourceKey extends string, TargetKey extends string, Th
 
   return normalizeBaseAssociationOptions(type, {
     ...options,
+    throughAssociations: options?.throughAssociations ? removeUndefined(options.throughAssociations) : EMPTY_OBJECT,
     otherKey: normalizeForeignKeyOptions(options.otherKey),
     through: removeUndefined(isThroughOptions(options.through)
       ? normalizeThroughOptions(source, target, options.through, sequelize)
@@ -954,7 +964,7 @@ type NormalizedBelongsToManyOptions<
   TargetKey extends string,
   ThroughModel extends Model,
 > =
-  & Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'through' | 'as' | 'hooks' | 'foreignKey'>
+  & Omit<RequiredBy<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'throughAssociations'>, 'through' | 'as' | 'hooks' | 'foreignKey'>
   & { through: NormalizedThroughOptions<ThroughModel> }
   & Pick<NormalizedAssociationOptions<string>, 'as' | 'name' | 'hooks' | 'foreignKey'>;
 
@@ -992,12 +1002,48 @@ export interface BelongsToManyOptions<
 
   /**
    * The name of the table that is used to join source and target in n:m associations. Can also be a
-   * sequelize model if you want to define the junction table yourself and add extra attributes to it.
+   * Sequelize model if you want to define the junction table yourself and add extra attributes to it.
    */
   through: MaybeForwardedModelStatic<ThroughModel> | string | ThroughOptions<ThroughModel>;
 
   /**
-   * The name of the foreign key in the join table (representing the target model) or an object representing
+   * Configures the name of the associations that will be defined between the source model and the through model,
+   * as well as between the target model and the through model.
+   */
+  throughAssociations?: {
+    /**
+     * The name of the HasMany association going from the Source model to the Through model.
+     *
+     * By default, the association will be the name of the BelongsToMany association
+     * + the name of the inverse BelongsToMany association.
+     */
+    fromSource?: string | undefined,
+
+    /**
+     * The name of the BelongsTo association going from the Through model to the Source model.
+     *
+     * By default, the association name will be the name of the inverse BelongsToMany association, singularized.
+     */
+    toSource?: string | undefined,
+
+    /**
+     * The name of the HasMany association going from the Target model to the Through model.
+     *
+     * By default, the association will be the name of the Inverse BelongsToMany association
+     * + the name of the BelongsToMany association.
+     */
+    fromTarget?: string | undefined,
+
+    /**
+     * The name of the BelongsTo association going from the Through model to the Target model.
+     *
+     * By default, the association name will be the name of the parent BelongsToMany association, singularized.
+     */
+    toTarget?: string | undefined,
+  };
+
+  /**
+   * The name of the foreign key attribute in the through model (representing the target model) or an object representing
    * the type definition for the other column (see `Sequelize.define` for syntax). When using an object, you
    * can add a `name` property to set the name of the colum. Defaults to the name of target + primary key of
    * target
@@ -1005,14 +1051,14 @@ export interface BelongsToManyOptions<
   otherKey?: AttributeNames<ThroughModel> | ForeignKeyOptions<AttributeNames<ThroughModel>>;
 
   /**
-   * The name of the field to use as the key for the association in the source table. Defaults to the primary
-   * key of the source table
+   * The name of the attribute to use as the key for the association in the source table.
+   * Defaults to the primary key attribute of the source model
    */
   sourceKey?: SourceKey;
 
   /**
-   * The name of the field to use as the key for the association in the target table. Defaults to the primary
-   * key of the target table
+   * The name of the attribute to use as the key for the association in the target table.
+   * Defaults to the primary key attribute of the target model
    */
   targetKey?: TargetKey;
 }
