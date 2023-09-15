@@ -1,20 +1,63 @@
 import type { Expression } from '../../sequelize.js';
+import { rejectInvalidOptions } from '../../utils/check.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type {
+  CreateDatabaseQueryOptions,
+  ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
 
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate', 'ctype', 'encoding', 'template']);
+
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalDatabaseNames() {
+    return ['postgres'];
+  }
+
   protected _getTechnicalSchemaNames() {
     return ['information_schema', 'tiger', 'tiger_data', 'topology'];
+  }
+
+  listDatabasesQuery(options?: ListDatabasesQueryOptions) {
+    const databasesToSkip = this._getTechnicalDatabaseNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      databasesToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT datname AS "name" FROM pg_database',
+      `WHERE datistemplate = false AND datname NOT IN (${databasesToSkip.map(database => this.escape(database)).join(', ')})`,
+    ]);
+  }
+
+  createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect.name,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      `CREATE DATABASE ${this.quoteIdentifier(database)}`,
+      options?.encoding ? `ENCODING = ${this.escape(options.encoding)}` : '',
+      options?.collate ? `LC_COLLATE = ${this.escape(options.collate)}` : '',
+      options?.ctype ? `LC_CTYPE = ${this.escape(options.ctype)}` : '',
+      options?.template ? `TEMPLATE = ${this.escape(options.template)}` : '',
+    ]);
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {

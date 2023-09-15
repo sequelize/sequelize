@@ -26,8 +26,8 @@ import type { AllowIterable } from '../utils/types.js';
 import { MultiAssociation } from './base';
 import type { Association, AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions } from './base';
 import { BelongsTo } from './belongs-to.js';
-import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
-import type { NormalizeBaseAssociationOptions } from './helpers';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions, normalizeInverseAssociation } from './helpers';
+import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-many association.
@@ -160,11 +160,17 @@ export class HasMany<
       HasMany<S, T, SourceKey, TargetKey>,
       HasManyOptions<SourceKey, TargetKey>,
       NormalizedHasManyOptions<SourceKey, TargetKey>
-    >(HasMany, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+    >(HasMany, source, target, options, parent, normalizeHasManyOptions, normalizedOptions => {
       // self-associations must always set their 'as' parameter
-      if (isSameInitialModel(source, target)
-        // use 'options' because this will always be set in 'newOptions'
-        && (!options.as || !options.inverse?.as || options.as === options.inverse.as)) {
+      if (
+        isSameInitialModel(source, target)
+        && (
+          // use 'options' because this will always be set in 'normalizedOptions'
+          !options.as
+          || !normalizedOptions.inverse?.as
+          || options.as === normalizedOptions.inverse.as
+        )
+      ) {
         throw new AssociationError('Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different.');
       }
 
@@ -315,8 +321,10 @@ export class HasMany<
     const where = {
       [Op.or]: normalizedTargets.map(instance => {
         if (instance instanceof this.target) {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
-          return (instance as T).where();
+          // TODO: remove eslint-disable once we drop support for < 5.2
+          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
+          // @ts-ignore
+          return instance.where();
         }
 
         return {
@@ -473,8 +481,7 @@ export class HasMany<
       [this.target.primaryKeyAttribute]: normalizedTargets.map(targetInstance => {
         if (targetInstance instanceof this.target) {
           // @ts-expect-error -- TODO: what if the target has no primary key?
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
-          return (targetInstance as T).get(this.target.primaryKeyAttribute);
+          return targetInstance.get(this.target.primaryKeyAttribute);
         }
 
         // raw entity
@@ -556,7 +563,9 @@ Object.defineProperty(HasMany, 'name', {
 });
 
 export type NormalizedHasManyOptions<SourceKey extends string, TargetKey extends string> =
-  NormalizeBaseAssociationOptions<HasManyOptions<SourceKey, TargetKey>>;
+  NormalizeBaseAssociationOptions<Omit<HasManyOptions<SourceKey, TargetKey>, 'inverse'>> & {
+  inverse?: Exclude<HasManyOptions<SourceKey, TargetKey>['inverse'], string>,
+};
 
 /**
  * Options provided when associating models with hasMany relationship
@@ -570,10 +579,25 @@ export interface HasManyOptions<SourceKey extends string, TargetKey extends stri
    */
   sourceKey?: SourceKey;
 
-  inverse?: {
+  /**
+   * The name of the inverse association, or an object for further association setup.
+   */
+  inverse?: string | undefined | {
     as?: AssociationOptions<any>['as'],
     scope?: AssociationOptions<any>['scope'],
   };
+}
+
+function normalizeHasManyOptions<SourceKey extends string, TargetKey extends string>(
+  type: AssociationStatic<any>,
+  options: HasManyOptions<SourceKey, TargetKey>,
+  source: ModelStatic<Model>,
+  target: ModelStatic<Model>,
+): NormalizedHasManyOptions<SourceKey, TargetKey> {
+  return normalizeBaseAssociationOptions(type, {
+    ...options,
+    inverse: normalizeInverseAssociation(options.inverse),
+  }, source, target);
 }
 
 /**
