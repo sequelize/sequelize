@@ -1,7 +1,8 @@
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
-import type { ReferentialAction } from '../../model';
+import type { IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
+import type { TableHints } from '../../table-hints';
 import type { TableNameOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
@@ -9,6 +10,41 @@ import type { WhereOptions } from './where-sql-builder-types';
 export interface QueryWithBindParams {
   query: string;
   bind: BindOrReplacements;
+}
+
+// keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface CreateDatabaseQueryOptions {
+  charset?: string;
+  collate?: string;
+  ctype?: string;
+  encoding?: string;
+  template?: string;
+}
+
+// keep LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface ListDatabasesQueryOptions {
+  skip?: string[];
+}
+
+export interface ListSchemasQueryOptions {
+  /** List of schemas to exclude from output */
+  skip?: string[];
+}
+
+// keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface DropTableQueryOptions {
+  cascade?: boolean;
+}
+
+// Keeep LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface ListTablesQueryOptions {
+  schema?: string;
+}
+
+// keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface RemoveColumnQueryOptions {
+  cascade?: boolean;
+  ifExists?: boolean;
 }
 
 export interface BaseConstraintQueryOptions {
@@ -91,8 +127,11 @@ export interface RemoveConstraintQueryOptions {
   cascade?: boolean;
 }
 
+// keep SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface ShowConstraintsQueryOptions {
+  columnName?: string;
   constraintName?: string;
+  constraintType?: ConstraintType;
 }
 
 export interface AttributeToSqlOptions {
@@ -100,4 +139,9 @@ export interface AttributeToSqlOptions {
   schema?: string;
   table: string;
   withoutForeignKeyConstraints?: boolean;
+}
+
+export interface QuoteTableOptions extends IndexHintable {
+  alias: boolean | string;
+  tableHints?: TableHints[];
 }

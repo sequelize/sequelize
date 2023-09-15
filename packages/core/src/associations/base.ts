@@ -1,6 +1,8 @@
+import isObject from 'lodash/isObject.js';
 import type { AttributeNames, AttributeOptions, Hookable, Model, ModelStatic } from '../model';
+import { isIterable } from '../utils/check.js';
 import { cloneDeep } from '../utils/object.js';
-import type { AllowArray, PartialBy } from '../utils/types.js';
+import type { AllowIterable, Nullish, PartialBy } from '../utils/types.js';
 import { AssociationSecret } from './helpers';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 
@@ -163,7 +165,9 @@ export abstract class Association<
 
     this.options = cloneDeep(options) ?? {};
 
+    source.modelDefinition.hooks.runSync('beforeDefinitionRefresh');
     source.associations[this.as] = this;
+    source.modelDefinition.hooks.runSync('afterDefinitionRefresh');
   }
 
   /**
@@ -201,6 +205,21 @@ export abstract class MultiAssociation<
     return true;
   }
 
+  protected toInstanceOrPkArray(
+    input: Nullish<AllowIterable<T | Exclude<T[TargetKey], any[]>>>,
+  ): Array<T | Exclude<T[TargetKey], any[]>> {
+    if (input == null) {
+      return [];
+    }
+
+    if (!isIterable(input) || !isObject(input)) {
+      return [input];
+    }
+
+    return [...input];
+
+  }
+
   /**
    * Normalize input
    *
@@ -209,12 +228,10 @@ export abstract class MultiAssociation<
    * @private
    * @returns built objects
    */
-  protected toInstanceArray(input: AllowArray<T | Exclude<T[TargetKey], any[]>>): T[] {
-    if (!Array.isArray(input)) {
-      input = [input];
-    }
+  protected toInstanceArray(input: AllowIterable<T | Exclude<T[TargetKey], any[]>> | null): T[] {
+    const normalizedInput = this.toInstanceOrPkArray(input);
 
-    return input.map(element => {
+    return normalizedInput.map(element => {
       if (element instanceof this.target) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
         return element as T;

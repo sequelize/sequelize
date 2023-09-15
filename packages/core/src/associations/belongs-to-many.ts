@@ -30,7 +30,7 @@ import type { Sequelize } from '../sequelize';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
-import type { AllowArray } from '../utils/types.js';
+import type { AllowIterable } from '../utils/types.js';
 import { MultiAssociation } from './base';
 import type {
   Association,
@@ -528,14 +528,12 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async has(
     sourceInstance: SourceModel,
-    targetInstancesOrPks: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
+    targetInstancesOrPks: AllowIterable<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options?: BelongsToManyHasAssociationMixinOptions<TargetModel>,
   ): Promise<boolean> {
-    if (!Array.isArray(targetInstancesOrPks)) {
-      targetInstancesOrPks = [targetInstancesOrPks];
-    }
+    const targets = this.toInstanceOrPkArray(targetInstancesOrPks);
 
-    const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targetInstancesOrPks.map(instance => {
+    const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targets.map(instance => {
       if (instance instanceof this.target) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
         return (instance as TargetModel).get(this.targetKey);
@@ -578,7 +576,7 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async set(
     sourceInstance: SourceModel,
-    newInstancesOrPrimaryKeys: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
+    newInstancesOrPrimaryKeys: AllowIterable<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options: BelongsToManySetAssociationsMixinOptions<TargetModel> = {},
   ): Promise<void> {
     const sourceKey = this.sourceKey;
@@ -586,13 +584,14 @@ Add your own primary key to the through model, on different attributes than the 
     const foreignKey = this.foreignKey;
     const otherKey = this.otherKey;
 
-    const newInstances = newInstancesOrPrimaryKeys === null ? [] : this.toInstanceArray(newInstancesOrPrimaryKeys);
+    const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
 
     const where: WhereOptions = {
       [foreignKey]: sourceInstance.get(sourceKey),
       ...this.through.scope,
     };
 
+    // @ts-expect-error -- the findAll call is raw, no model here
     const currentThroughRows: ThroughModel[] = await this.through.model.findAll({
       ...options,
       where,
@@ -643,15 +642,13 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async add(
     sourceInstance: SourceModel,
-    newInstancesOrPrimaryKeys: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
+    newInstancesOrPrimaryKeys: AllowIterable<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options?: BelongsToManyAddAssociationsMixinOptions<TargetModel>,
   ): Promise<void> {
-    // If newInstances is null or undefined, no-op
-    if (!newInstancesOrPrimaryKeys) {
+    const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
+    if (newInstances.length === 0) {
       return;
     }
-
-    const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
 
     const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
@@ -661,6 +658,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     let currentRows: any[] = [];
     if (this.through?.unique ?? true) {
+      // @ts-expect-error -- the findAll call is raw, no model here
       currentRows = await this.through.model.findAll({
         ...options,
         raw: true,
@@ -776,10 +774,13 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async remove(
     sourceInstance: SourceModel,
-    targetInstanceOrPks: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
+    targetInstanceOrPks: AllowIterable<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options?: BelongsToManyRemoveAssociationMixinOptions,
   ): Promise<void> {
     const targetInstance = this.toInstanceArray(targetInstanceOrPks);
+    if (targetInstance.length === 0) {
+      return;
+    }
 
     const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
@@ -1025,7 +1026,7 @@ export interface BelongsToManyGetAssociationsMixinOptions<T extends Model> exten
   /**
    * A list of the attributes from the join table that you want to select.
    */
-  joinTableAttributes?: FindAttributeOptions;
+  joinTableAttributes?: FindAttributeOptions<Attributes<T>>;
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -1093,7 +1094,7 @@ export interface BelongsToManySetAssociationsMixinOptions<TargetModel extends Mo
  * @see Model.belongsToMany
  */
 export type BelongsToManySetAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
-  newAssociations?: Array<TModel | TModelPrimaryKey>,
+  newAssociations?: Iterable<TModel | TModelPrimaryKey> | null,
   options?: BelongsToManySetAssociationsMixinOptions<TModel>
 ) => Promise<void>;
 
@@ -1125,7 +1126,7 @@ export interface BelongsToManyAddAssociationsMixinOptions<TModel extends Model>
  * @see Model.belongsToMany
  */
 export type BelongsToManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Array<T | TModelPrimaryKey>,
+  newAssociations?: Iterable<T | TModelPrimaryKey>,
   options?: BelongsToManyAddAssociationsMixinOptions<T>
 ) => Promise<void>;
 
@@ -1238,7 +1239,7 @@ export interface BelongsToManyRemoveAssociationsMixinOptions extends InstanceDes
  * @see Model.belongsToMany
  */
 export type BelongsToManyRemoveAssociationsMixin<TModel, TModelPrimaryKey> = (
-  associationsToRemove?: Array<TModel | TModelPrimaryKey>,
+  associationsToRemove?: Iterable<TModel | TModelPrimaryKey>,
   options?: BelongsToManyRemoveAssociationsMixinOptions
 ) => Promise<void>;
 
@@ -1292,7 +1293,7 @@ export interface BelongsToManyHasAssociationsMixinOptions<T extends Model>
  * @see Model.belongsToMany
  */
 export type BelongsToManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
-  targets: Array<TModel | TModelPrimaryKey>,
+  targets: Iterable<TModel | TModelPrimaryKey>,
   options?: BelongsToManyHasAssociationsMixinOptions<TModel>
 ) => Promise<boolean>;
 

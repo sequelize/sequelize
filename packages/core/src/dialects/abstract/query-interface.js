@@ -23,46 +23,6 @@ const { QueryTypes } = require('../../query-types');
  */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
-   * Create a database
-   *
-   * @param {string} database  Database name to create
-   * @param {object} [options] Query options
-   * @param {string} [options.charset] Database default character set, MYSQL only
-   * @param {string} [options.collate] Database default collation
-   * @param {string} [options.encoding] Database default character set, PostgreSQL only
-   * @param {string} [options.ctype] Database character classification, PostgreSQL only
-   * @param {string} [options.template] The name of the template from which to create the new database, PostgreSQL only
-   *
-   * @returns {Promise}
-   */
-  async createDatabase(database, options) {
-    options = options || {};
-    const sql = this.queryGenerator.createDatabaseQuery(database, options);
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
-   * Drop a database
-   *
-   * @param {string} database  Database name to drop
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async dropDatabase(database, options) {
-    const sql = this.queryGenerator.dropDatabaseQuery(database);
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  async listDatabases(options) {
-    const sql = this.queryGenerator.listDatabasesQuery();
-
-    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SELECT });
-  }
-
-  /**
     * Drop all schemas
     *
     * @param {object} [options] Query options
@@ -73,7 +33,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async dropAllSchemas(options) {
     options = options || {};
 
-    if (!this.queryGenerator.dialect.supports.schemas) {
+    if (!this.sequelize.dialect.supports.schemas) {
       return this.sequelize.drop(options);
     }
 
@@ -140,7 +100,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options = { ...options };
 
     // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query
-    if (model && this.queryGenerator.dialect.name !== 'sqlite') {
+    if (model && this.sequelize.dialect.name !== 'sqlite') {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
@@ -176,86 +136,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Returns a promise that will resolve to true if the table exists in the database, false otherwise.
-   *
-   * @param {TableName} tableName - The name of the table
-   * @param {QueryOptions} options - Query options
-   * @returns {Promise<boolean>}
-   */
-  async tableExists(tableName, options) {
-    const sql = this.queryGenerator.tableExistsQuery(tableName);
-
-    const out = await this.sequelize.query(sql, {
-      ...options,
-      type: QueryTypes.SHOWTABLES,
-    });
-
-    return out.length === 1;
-  }
-
-  /**
-   * Drop a table from database
-   *
-   * @param {string} tableName Table name to drop
-   * @param {object} options   Query options
-   *
-   * @returns {Promise}
-   */
-  async dropTable(tableName, options = {}) {
-    options.cascade = options.cascade != null ? options.cascade
-      // TODO: dropTable should not accept a "force" option, `sync()` should set `cascade` itself if its force option is true
-      : (options.force && this.queryGenerator.dialect.supports.dropTable.cascade) ? true
-        : undefined;
-
-    const sql = this.queryGenerator.dropTableQuery(tableName, options);
-
-    await this.sequelize.queryRaw(sql, options);
-  }
-
-  async _dropAllTables(tableNames, skip, options) {
-    for (const tableName of tableNames) {
-      // if tableName is not in the Array of tables names then don't drop it
-      if (!skip.includes(tableName.tableName || tableName)) {
-        await this.dropTable(tableName, {
-          // enable "cascade" by default if supported by this dialect,
-          // but let the user override the default
-          cascade: this.queryGenerator.dialect.supports.dropTable.cascade ? true : undefined,
-          ...options,
-        });
-      }
-    }
-  }
-
-  /**
-   * Drop all tables from database
-   *
-   * @param {object} [options] query options
-   * @param {Array}  [options.skip] List of table to skip
-   *
-   * @returns {Promise}
-   */
-  async dropAllTables(options) {
-    options = options || {};
-    const skip = options.skip || [];
-
-    const tableNames = await this.showAllTables(options);
-    const foreignKeys = await this.getForeignKeysForTables(tableNames, options);
-
-    for (const tableName of tableNames) {
-      let normalizedTableName = tableName;
-      if (isObject(tableName)) {
-        normalizedTableName = `${tableName.schema}.${tableName.tableName}`;
-      }
-
-      for (const foreignKey of foreignKeys[normalizedTableName]) {
-        await this.sequelize.queryRaw(this.queryGenerator.dropForeignKeyQuery(tableName, foreignKey));
-      }
-    }
-
-    await this._dropAllTables(tableNames, skip, options);
-  }
-
-  /**
    * Rename a table
    *
    * @param {string} before    Current name of table
@@ -269,29 +149,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const sql = this.queryGenerator.renameTableQuery(before, after);
 
     return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
-   * Get all tables in current database
-   *
-   * @param {object}    [options] Query options
-   * @param {boolean}   [options.raw=true] Run query in raw mode
-   * @param {QueryType} [options.type=QueryType.SHOWTABLE] query type
-   *
-   * @returns {Promise<Array>}
-   * @private
-   */
-  async showAllTables(options) {
-    options = {
-      ...options,
-      raw: true,
-      type: QueryTypes.SHOWTABLES,
-    };
-
-    const showTablesSql = this.queryGenerator.showTablesQuery(this.sequelize.config.database);
-    const tableNames = await this.sequelize.queryRaw(showTablesSql, options);
-
-    return tableNames.flat();
   }
 
   /**
@@ -338,14 +195,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param {string} attributeName  Column name to remove
    * @param {object} [options]      Query options
    */
-  async removeColumn(tableName, attributeName, options) {
-    options = options || {};
-
-    const { ifExists, ...rawQueryOptions } = options;
-    const removeColumnQueryOptions = ifExists ? { ifExists } : undefined;
-
-    return this.sequelize.queryRaw(this.queryGenerator.removeColumnQuery(tableName, attributeName, removeColumnQueryOptions), rawQueryOptions);
-  }
 
   normalizeAttribute(dataTypeOrOptions) {
     let attribute;
@@ -508,62 +357,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const sql = this.queryGenerator.showIndexesQuery(tableName, options);
 
     return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWINDEXES });
-  }
-
-  /**
-   * Returns all foreign key constraints of requested tables
-   *
-   * @param {string[]} tableNames table names
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async getForeignKeysForTables(tableNames, options) {
-    if (tableNames.length === 0) {
-      return {};
-    }
-
-    options = { ...options, type: QueryTypes.FOREIGNKEYS };
-
-    const results = await Promise.all(tableNames.map(tableName => this.sequelize.queryRaw(this.queryGenerator.getForeignKeyQuery(tableName), options)));
-
-    const result = {};
-
-    for (let [i, tableName] of tableNames.entries()) {
-      if (isObject(tableName)) {
-        tableName = `${tableName.schema}.${tableName.tableName}`;
-      }
-
-      result[tableName] = Array.isArray(results[i])
-        ? results[i].map(r => r.constraintName)
-        : [results[i] && results[i].constraintName];
-
-      result[tableName] = result[tableName].filter(identity);
-    }
-
-    return result;
-  }
-
-  /**
-   * Get foreign key references details for the table
-   *
-   * Those details contains constraintSchema, constraintName, constraintCatalog
-   * tableCatalog, tableSchema, tableName, columnName,
-   * referencedTableCatalog, referencedTableCatalog, referencedTableSchema, referencedTableName, referencedColumnName.
-   * Remind: constraint informations won't return if it's sqlite.
-   *
-   * @param {string} tableName table name
-   * @param {object} [options]  Query options
-   */
-  async getForeignKeyReferencesForTable(tableName, options) {
-    const queryOptions = {
-      ...options,
-      type: QueryTypes.FOREIGNKEYS,
-    };
-
-    const query = this.queryGenerator.getForeignKeyQuery(tableName);
-
-    return this.sequelize.queryRaw(query, queryOptions);
   }
 
   /**

@@ -15,10 +15,12 @@ import { List } from '../../expression-builders/list.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
+import { IndexHints } from '../../index-hints.js';
 import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
+import { TableHints } from '../../table-hints.js';
 import { isDictionary, isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
@@ -32,7 +34,14 @@ import type { BindParamOptions, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
+  CreateDatabaseQueryOptions,
+  DropTableQueryOptions,
   GetConstraintSnippetQueryOptions,
+  ListDatabasesQueryOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  QuoteTableOptions,
+  RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types.js';
@@ -50,8 +59,15 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
+export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['charset', 'collate', 'ctype', 'encoding', 'template']);
+export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>(['cascade']);
+export const LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListDatabasesQueryOptions>(['skip']);
+export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQueryOptions>(['schema']);
+export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
+export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveColumnQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
+export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
 
 export interface QueryGeneratorOptions {
   sequelize: Sequelize;
@@ -132,8 +148,107 @@ export class AbstractQueryGeneratorTypeScript {
     return this.sequelize.options;
   }
 
+  protected _getTechnicalDatabaseNames(): string[] {
+    return [];
+  }
+
+  protected _getTechnicalSchemaNames(): string[] {
+    return [];
+  }
+
+  createDatabaseQuery(_database: string, _options?: CreateDatabaseQueryOptions): string {
+    if (this.dialect.supports.multiDatabases) {
+      throw new Error(`${this.dialect.name} declares supporting databases but createDatabaseQuery is not implemented.`);
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
+  }
+
+  dropDatabaseQuery(database: string): string {
+    if (this.dialect.supports.multiDatabases) {
+      return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(database)}`;
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
+  }
+
+  listDatabasesQuery(_options?: ListDatabasesQueryOptions): string {
+    if (this.dialect.supports.multiDatabases) {
+      throw new Error(`${this.dialect.name} declares supporting databases but listDatabasesQuery is not implemented.`);
+    }
+
+    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
+  }
+
+  listSchemasQuery(_options?: ListSchemasQueryOptions): string {
+    if (this.dialect.supports.schemas) {
+      throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);
+    }
+
+    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
+  }
+
+  dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string {
+    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropTableQueryOptions>();
+
+    if (this.dialect.supports.dropTable.cascade) {
+      DROP_TABLE_QUERY_SUPPORTED_OPTIONS.add('cascade');
+    }
+
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect.name,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'DROP TABLE IF EXISTS',
+      this.quoteTable(tableName),
+      options?.cascade ? 'CASCADE' : '',
+    ]);
+  }
+
+  listTablesQuery(_options?: ListTablesQueryOptions): string {
+    throw new Error(`listTablesQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  removeColumnQuery(tableName: TableNameOrModel, columnName: string, options?: RemoveColumnQueryOptions): string {
+    if (options) {
+      const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveColumnQueryOptions>();
+
+      if (this.dialect.supports.removeColumn.cascade) {
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS.add('cascade');
+      }
+
+      if (this.dialect.supports.removeColumn.ifExists) {
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS.add('ifExists');
+      }
+
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect.name,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'DROP COLUMN',
+      options?.ifExists ? 'IF EXISTS' : '',
+      this.quoteIdentifier(columnName),
+      options?.cascade ? 'CASCADE' : '',
+    ]);
   }
 
   addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions): string {
@@ -387,12 +502,24 @@ export class AbstractQueryGeneratorTypeScript {
   /**
    * Generates an SQL query that returns all foreign keys of a table or the foreign key constraint of a given column.
    *
+   * @deprecated Use {@link showConstraintsQuery} instead.
    * @param _tableName The table or associated model.
    * @param _columnName The name of the column. Not supported by SQLite.
    * @returns The generated SQL query.
    */
-  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): string {
-    throw new Error(`getForeignKeyQuery has not been implemented in ${this.dialect.name}.`);
+  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): Error {
+    throw new Error(`getForeignKeyQuery has been deprecated. Use showConstraintsQuery instead.`);
+  }
+
+  /**
+   * Generates an SQL query that drops a foreign key constraint.
+   *
+   * @deprecated Use {@link removeConstraintQuery} instead.
+   * @param _tableName The table or associated model.
+   * @param _foreignKey The name of the foreign key constraint.
+   */
+  dropForeignKeyQuery(_tableName: TableNameOrModel, _foreignKey: string): Error {
+    throw new Error(`dropForeignKeyQuery has been deprecated. Use removeConstraintQuery instead.`);
   }
 
   // TODO: rename to "normalizeTable" & move to sequelize class
@@ -422,9 +549,20 @@ export class AbstractQueryGeneratorTypeScript {
    * Quote table name with optional alias and schema attribution
    *
    * @param param table string or object
-   * @param alias alias name
+   * @param options options
    */
-  quoteTable(param: TableNameOrModel, alias: boolean | string = false): string {
+  quoteTable(param: TableNameOrModel, options?: QuoteTableOptions): string {
+    const QUOTE_TABLE_SUPPORTED_OPTIONS = new Set<keyof QuoteTableOptions>();
+    if (this.dialect.supports.indexHints) {
+      QUOTE_TABLE_SUPPORTED_OPTIONS.add('indexHints');
+    }
+
+    if (this.dialect.supports.tableHints) {
+      QUOTE_TABLE_SUPPORTED_OPTIONS.add('tableHints');
+    }
+
+    rejectInvalidOptions('quoteTable', this.dialect.name, QUOTE_TABLE_SUPPORTABLE_OPTIONS, QUOTE_TABLE_SUPPORTED_OPTIONS, { ...options });
+
     if (isModelStatic(param)) {
       param = param.getTableName();
     }
@@ -433,10 +571,6 @@ export class AbstractQueryGeneratorTypeScript {
 
     if (isObject(param) && ('as' in param || 'name' in param)) {
       throw new Error('parameters "as" and "name" are not allowed in the first parameter of quoteTable, pass them as the second parameter.');
-    }
-
-    if (alias === true) {
-      alias = tableName.tableName;
     }
 
     let sql = '';
@@ -459,8 +593,33 @@ export class AbstractQueryGeneratorTypeScript {
       sql += this.quoteIdentifier(fakeSchemaPrefix + tableName.tableName);
     }
 
-    if (alias) {
-      sql += ` AS ${this.quoteIdentifier(alias)}`;
+    if (options?.alias) {
+      sql += ` AS ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
+    }
+
+    if (options?.indexHints) {
+      for (const hint of options.indexHints) {
+        if (IndexHints[hint.type]) {
+          sql += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifier(indexName)).join(',')})`;
+        } else {
+          throw new Error(`The index hint type "${hint.type}" is invalid or not supported by dialect "${this.dialect.name}".`);
+        }
+      }
+    }
+
+    if (options?.tableHints) {
+      const hints: TableHints[] = [];
+      for (const hint of options.tableHints) {
+        if (TableHints[hint]) {
+          hints.push(TableHints[hint]);
+        } else {
+          throw new Error(`The table hint "${hint}" is invalid or not supported by dialect "${this.dialect.name}".`);
+        }
+      }
+
+      if (hints.length) {
+        sql += ` WITH (${hints.join(', ')})`;
+      }
     }
 
     return sql;
@@ -776,5 +935,11 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
   versionQuery(): string {
     throw new Error(`${this.dialect.name} did not implement versionQuery`);
+  }
+
+  tableExistsQuery(tableName: TableNameOrModel): string {
+    const table = this.extractTableDetails(tableName);
+
+    return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = ${this.escape(table.schema)}`;
   }
 }

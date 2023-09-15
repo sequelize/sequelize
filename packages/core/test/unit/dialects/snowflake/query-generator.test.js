@@ -128,17 +128,6 @@ if (dialect === 'snowflake') {
         },
       ],
 
-      tableExistsQuery: [
-        {
-          arguments: ['myTable'],
-          expectation: 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\' AND TABLE_SCHEMA = CURRENT_SCHEMA() AND TABLE_NAME = \'myTable\';',
-        },
-        {
-          arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
-          expectation: 'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\' AND TABLE_SCHEMA = \'mySchema\' AND TABLE_NAME = \'myTable\';',
-        },
-      ],
-
       selectQuery: [
         {
           arguments: ['myTable'],
@@ -723,105 +712,6 @@ if (dialect === 'snowflake') {
             bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-
-      selectFromTableFragment: [
-        {
-          arguments: [{}, null, ['*'], '"Project"'],
-          expectation: 'SELECT * FROM "Project"',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '"Project"',
-          ],
-          expectation: 'SELECT * FROM "Project" USE INDEX ("index_project_on_name")',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '"Project"',
-          ],
-          expectation: 'SELECT * FROM "Project" FORCE INDEX ("index_project_on_name")',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.IGNORE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '"Project"',
-          ],
-          expectation: 'SELECT * FROM "Project" IGNORE INDEX ("index_project_on_name")',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }] },
-            null,
-            ['*'],
-            '"Project"',
-          ],
-          expectation: 'SELECT * FROM "Project" USE INDEX ("index_project_on_name","index_project_on_name_and_foo")',
-        }, {
-          arguments: [
-            { indexHints: [{ type: 'FOO', values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '"Project"',
-          ],
-          expectation: 'SELECT * FROM "Project"',
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: [{}, null, ['*'], 'Project'],
-          expectation: 'SELECT * FROM Project',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            'Project',
-          ],
-          expectation: 'SELECT * FROM Project USE INDEX (index_project_on_name)',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            'Project',
-          ],
-          expectation: 'SELECT * FROM Project FORCE INDEX (index_project_on_name)',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.IGNORE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            'Project',
-          ],
-          expectation: 'SELECT * FROM Project IGNORE INDEX (index_project_on_name)',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }] },
-            null,
-            ['*'],
-            'Project',
-          ],
-          expectation: 'SELECT * FROM Project USE INDEX (index_project_on_name,index_project_on_name_and_foo)',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: [
-            { indexHints: [{ type: 'FOO', values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            'Project',
-          ],
-          expectation: 'SELECT * FROM Project',
           context: { options: { quoteIdentifiers: false } },
         },
       ],

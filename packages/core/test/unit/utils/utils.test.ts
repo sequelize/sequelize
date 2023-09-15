@@ -154,9 +154,9 @@ describe('Utils', () => {
 
   describe('url', () => {
     it('should return the correct options after parsed', () => {
-      const options = parseConnectionString('pg://wpx%20ss:wpx%20ss@21.77.77:4001/database ss');
+      const options = parseConnectionString('pg://wpx%20ss:wpx%20ss@104.129.90.48:4001/database ss');
       expect(options.dialect).to.equal('pg');
-      expect(options.host).to.equal('21.77.77');
+      expect(options.host).to.equal('104.129.90.48');
       expect(options.port).to.equal('4001');
       expect(options.database).to.equal('database ss');
       expect(options.username).to.equal('wpx ss');

@@ -3,7 +3,7 @@ import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 const dialect = sequelize.dialect;
 
 describe('QueryGenerator#showIndexesQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a SHOW INDEX query from a table', () => {
     expectsql(() => queryGenerator.showIndexesQuery('myTable'), {
@@ -21,7 +21,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         WHERE I.[object_id] = OBJECT_ID(N'dbo.myTable') ORDER BY I.[name];`,
       sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
-      db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'myTable' AND TABSCHEMA = USER ORDER BY i.INDNAME, c.COLSEQ;`,
+      db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'myTable' AND TABSCHEMA = 'DB2INST1' ORDER BY i.INDNAME, c.COLSEQ;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,
         QSYS2.SYSCST.TABLE_NAME from QSYS2.SYSCSTCOL left outer join QSYS2.SYSCST on QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA and
         QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME and QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME where
@@ -50,7 +50,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         WHERE I.[object_id] = OBJECT_ID(N'dbo.MyModels') ORDER BY I.[name];`,
       sqlite: 'PRAGMA INDEX_LIST(`MyModels`)',
       snowflake: `SELECT '' FROM DUAL`,
-      db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'MyModels' AND TABSCHEMA = USER ORDER BY i.INDNAME, c.COLSEQ;`,
+      db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'MyModels' AND TABSCHEMA = 'DB2INST1' ORDER BY i.INDNAME, c.COLSEQ;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,
         QSYS2.SYSCST.TABLE_NAME from QSYS2.SYSCSTCOL left outer join QSYS2.SYSCST on QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA and
         QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME and QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME where
@@ -104,7 +104,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         WHERE I.[object_id] = OBJECT_ID(N'dbo.myTable') ORDER BY I.[name];`,
       sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
-      db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'myTable' AND TABSCHEMA = USER ORDER BY i.INDNAME, c.COLSEQ;`,
+      db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'myTable' AND TABSCHEMA = 'DB2INST1' ORDER BY i.INDNAME, c.COLSEQ;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,
         QSYS2.SYSCST.TABLE_NAME from QSYS2.SYSCSTCOL left outer join QSYS2.SYSCST on QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA and
         QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME and QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME where
@@ -117,7 +117,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
 
   it('produces a SHOW INDEX query from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectsql(() => queryGeneratorSchema.showIndexesQuery('myTable'), {
       default: `SHOW INDEX FROM [mySchema].[myTable]`,

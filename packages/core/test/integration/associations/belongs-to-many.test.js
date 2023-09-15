@@ -3105,12 +3105,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { as: 'MyUsers', through: 'group_user' });
 
       await this.sequelize.sync({ force: true });
-      let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialect)) {
-        result = result.map(v => v.tableName);
-      }
+      const result = await this.sequelize.queryInterface.showAllTables();
+      const tableNames = result.map(v => v.tableName);
 
-      expect(result.includes('group_user')).to.be.true;
+      expect(tableNames.includes('group_user')).to.be.true;
     });
 
     it('creates the join table when through is a model', async function () {
@@ -3122,12 +3120,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { as: 'MyUsers', through: UserGroup });
 
       await this.sequelize.sync({ force: true });
-      let result = await this.sequelize.getQueryInterface().showAllTables();
-      if (['mssql', 'mariadb', 'db2', 'mysql'].includes(dialect)) {
-        result = result.map(v => v.tableName);
-      }
+      const result = await this.sequelize.queryInterface.showAllTables();
+      const tableNames = result.map(v => v.tableName);
 
-      expect(result).to.include('user_groups');
+      expect(tableNames).to.include('user_groups');
     });
 
     it('correctly identifies its counterpart when through is a string', function () {

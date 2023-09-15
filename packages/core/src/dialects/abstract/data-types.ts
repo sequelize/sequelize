@@ -16,6 +16,7 @@ import { isPlainObject, isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
 import { doNotUseRealDataType } from '../../utils/deprecations.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_ARRAY } from '../../utils/object.js';
 import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
@@ -2120,8 +2121,22 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
   }
 }
 
+/**
+ * If an array, each element in the array is a possible value for the ENUM.
+ *
+ * If a record (plain object, typescript enum),
+ * it will use the keys as the list of possible values for the ENUM, in the order specified by the Object.
+ * This is designed to be used with TypeScript enums, but it can be used with plain objects as well.
+ * Because we don't handle any mapping between the enum keys and values, we require that they be the same.
+ */
+type EnumValues<Member extends string> = readonly Member[] | Record<Member, Member>;
+
 export interface EnumOptions<Member extends string> {
-  values: Member[];
+  values: EnumValues<Member>;
+}
+
+export interface NormalizedEnumOptions<Member extends string> {
+  values: readonly Member[];
 }
 
 /**
@@ -2144,40 +2159,26 @@ export interface EnumOptions<Member extends string> {
 export class ENUM<Member extends string> extends AbstractDataType<Member> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'ENUM';
-  readonly options: EnumOptions<Member>;
+  readonly options: NormalizedEnumOptions<Member>;
 
   /**
    * @param options either array of values or options object with values array. It also supports variadic values.
    */
   constructor(options: EnumOptions<Member>);
-  constructor(members: Member[]);
+  constructor(members: EnumValues<Member>);
   constructor(...members: Member[]);
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @hidden */
   constructor(...args:
     | [options: EnumOptions<Member>]
-    | [members: Member[]]
+    | [members: EnumValues<Member>]
     | [...members: Member[]]
   );
-  constructor(...args: [Member[] | Member | EnumOptions<Member>, ...Member[]]) {
+  constructor(...args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]]) {
     super();
 
-    let values: Member[];
-    if (isObject(args[0])) {
-      if (args.length > 1) {
-        throw new TypeError('DataTypes.ENUM has been constructed incorrectly: Its first parameter is the option bag or the array of values, but more than one parameter has been provided.');
-      }
-
-      if (Array.isArray(args[0])) {
-        values = args[0];
-      } else {
-        values = args[0].values;
-      }
-    } else {
-      // @ts-expect-error -- we'll assert in the next line whether this is the right type
-      values = args;
-    }
+    const values: readonly Member[] = this.#getEnumValues(args);
 
     if (values.length === 0) {
       throw new TypeError(`
@@ -2211,6 +2212,47 @@ sequelize.define('MyModel', {
     this.options = {
       values,
     };
+  }
+
+  #getEnumValues(args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]]): readonly Member[] {
+    if (args.length === 0) {
+      return EMPTY_ARRAY;
+    }
+
+    const [first, ...rest] = args;
+
+    if (isString(first)) {
+      return [first, ...rest];
+    }
+
+    if (rest.length > 0) {
+      throw new TypeError('DataTypes.ENUM has been constructed incorrectly: Its first parameter is the option bag or the array of values, but more than one parameter has been provided.');
+    }
+
+    let enumOrArray: EnumValues<Member>;
+    if (!Array.isArray(first) && 'values' in first && typeof first.values !== 'string') {
+      // This is the option bag
+      // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
+      enumOrArray = first.values;
+    } else {
+      // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
+      enumOrArray = first;
+    }
+
+    if (Array.isArray(enumOrArray)) {
+      return [...enumOrArray];
+    }
+
+    // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
+    const theEnum: Record<Member, Member> = enumOrArray;
+    const enumKeys = Object.keys(theEnum) as Member[];
+    for (const enumKey of enumKeys) {
+      if (theEnum[enumKey] !== enumKey) {
+        throw new TypeError(`DataTypes.ENUM has been constructed incorrectly: When specifying values as a TypeScript enum or an object of key-values, the values of the object must be equal to their keys.`);
+      }
+    }
+
+    return enumKeys;
   }
 
   validate(value: any): asserts value is Member {

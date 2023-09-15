@@ -1175,8 +1175,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(async function () {
       this.Author = this.sequelize.define('author', { firstName: DataTypes.STRING });
 
-      await this.sequelize.getQueryInterface().dropTable('posts', { force: true });
-      await this.sequelize.getQueryInterface().dropTable('authors', { force: true });
+      await this.sequelize.queryInterface.dropTable('posts', { force: true });
+      await this.sequelize.queryInterface.dropTable('authors', { force: true });
 
       await this.Author.sync();
     });
@@ -1195,12 +1195,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       await Post.sync();
 
-      const foreignKeys = await this.sequelize.queryInterface.getForeignKeyReferencesForTable(Post.getTableName());
+      const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, { constraintType: 'FOREIGN KEY' });
 
       expect(foreignKeys.length).to.eq(1);
-      expect(foreignKeys[0].columnName).to.eq('authorId');
+      expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
       expect(foreignKeys[0].referencedTableName).to.eq('authors');
-      expect(foreignKeys[0].referencedColumnName).to.eq('id');
+      expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
     });
 
     it('uses a table name as a string and references the author table', async function () {
@@ -1214,12 +1214,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       await Post.sync();
 
-      const foreignKeys = await this.sequelize.queryInterface.getForeignKeyReferencesForTable(Post.getTableName());
+      const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, { constraintType: 'FOREIGN KEY' });
 
       expect(foreignKeys.length).to.eq(1);
-      expect(foreignKeys[0].columnName).to.eq('authorId');
+      expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
       expect(foreignKeys[0].referencedTableName).to.eq('authors');
-      expect(foreignKeys[0].referencedColumnName).to.eq('id');
+      expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
     });
 
     it('throws an error if the referenced table name is invalid', async function () {
@@ -1277,7 +1277,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           case 'mssql': {
-            expect(error.message).to.match(/Could not create constraint/);
+            expect(error).to.be.instanceOf(AggregateError);
+            expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
 
             break;
           }
@@ -1438,7 +1439,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not fail with an include', async function () {
       const users = await this.User.findAll({
-        where: this.sequelize.literal(`${this.sequelize.queryInterface.queryGenerator.quoteIdentifiers('Projects.title')} = ${this.sequelize.queryInterface.queryGenerator.escape('republic')}`),
+        where: this.sequelize.literal(`${this.sequelize.queryGenerator.quoteIdentifiers('Projects.title')} = ${this.sequelize.queryGenerator.escape('republic')}`),
         include: [
           { model: this.Project },
         ],
@@ -1451,12 +1452,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should not overwrite a specified deletedAt by setting paranoid: false', async function () {
       let tableName = '';
       if (this.User.name) {
-        tableName = `${this.sequelize.queryInterface.queryGenerator.quoteIdentifier(this.User.name)}.`;
+        tableName = `${this.sequelize.queryGenerator.quoteIdentifier(this.User.name)}.`;
       }
 
       const users = await this.User.findAll({
         paranoid: false,
-        where: this.sequelize.literal(`${tableName + this.sequelize.queryInterface.queryGenerator.quoteIdentifier('deletedAt')} IS NOT NULL `),
+        where: this.sequelize.literal(`${tableName + this.sequelize.queryGenerator.quoteIdentifier('deletedAt')} IS NOT NULL `),
         include: [
           { model: this.Project },
         ],

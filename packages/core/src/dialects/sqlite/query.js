@@ -75,10 +75,6 @@ export class SqliteQuery extends AbstractQuery {
       }
     }
 
-    if (this.isShowTablesQuery()) {
-      return results.map(row => row.name);
-    }
-
     if (this.isShowConstraintsQuery()) {
       return result;
     }
@@ -132,18 +128,6 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       return result;
-    }
-
-    if (this.sql.includes('PRAGMA foreign_keys;')) {
-      return results[0];
-    }
-
-    if (this.sql.includes('PRAGMA foreign_keys')) {
-      return results;
-    }
-
-    if (this.options.type === QueryTypes.FOREIGNKEYS) {
-      return results;
     }
 
     if ([QueryTypes.BULKUPDATE, QueryTypes.BULKDELETE].includes(this.options.type)) {

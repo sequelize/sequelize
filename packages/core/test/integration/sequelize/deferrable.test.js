@@ -128,7 +128,7 @@ if (Support.sequelize.dialect.supports.constraints.deferrable) {
         await User.sync({ force: true });
         await Task.sync({ force: true });
 
-        await sequelize.getQueryInterface().addConstraint(taskTableName, {
+        await sequelize.queryInterface.addConstraint(taskTableName, {
           fields: ['user_id'],
           type: 'FOREIGN KEY',
           name: `${taskTableName}_user_id_fkey`,

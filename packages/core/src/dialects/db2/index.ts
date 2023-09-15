@@ -34,6 +34,9 @@ export class Db2Dialect extends AbstractDialect {
         precision: false,
       },
     },
+    removeColumn: {
+      cascade: true,
+    },
   });
 
   readonly defaultVersion = '1.0.0';
@@ -74,8 +77,7 @@ export class Db2Dialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    // TODO: what is the default schema in DB2?
-    return '';
+    return this.sequelize.config.username.toUpperCase();
   }
 
   static getDefaultPort() {

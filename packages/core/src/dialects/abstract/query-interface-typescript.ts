@@ -1,5 +1,6 @@
 import assert from 'node:assert';
 import isEmpty from 'lodash/isEmpty';
+import { Deferrable } from '../../deferrable';
 import type { ConstraintChecking } from '../../deferrable';
 import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
@@ -11,26 +12,28 @@ import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
+import type { TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
   ColumnsDescription,
   ConstraintDescription,
+  CreateDatabaseOptions,
   CreateSchemaOptions,
+  DatabaseDescription,
   DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
-  RawConstraintDescription,
+  ListDatabasesOptions,
+  QiDropAllTablesOptions,
+  QiDropTableOptions,
+  QiShowAllTablesOptions,
+  RemoveColumnOptions,
   RemoveConstraintOptions,
   ShowAllSchemasOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
-
-export interface MapConstraintDescription extends Omit<RawConstraintDescription, 'columnNames' | 'referencedColumnNames'> {
-  columnNames: Set<string>;
-  referencedColumnNames: Set<string>;
-}
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -57,6 +60,41 @@ export class AbstractQueryInterfaceTypeScript {
     this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
     this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+  }
+
+  /**
+   * Create a database
+   *
+   * @param database
+   * @param options
+   */
+  async createDatabase(database: string, options?: CreateDatabaseOptions): Promise<void> {
+    const sql = this.queryGenerator.createDatabaseQuery(database, options);
+
+    await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Drop a database
+   *
+   * @param database
+   * @param options
+   */
+  async dropDatabase(database: string, options?: QueryRawOptions): Promise<void> {
+    const sql = this.queryGenerator.dropDatabaseQuery(database);
+
+    await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Lists all available databases
+   *
+   * @param options
+   */
+  async listDatabases(options?: ListDatabasesOptions): Promise<DatabaseDescription[]> {
+    const sql = this.queryGenerator.listDatabasesQuery(options);
+
+    return this.sequelize.queryRaw<DatabaseDescription>(sql, { ...options, type: QueryTypes.SELECT });
   }
 
   /**
@@ -123,15 +161,80 @@ export class AbstractQueryInterfaceTypeScript {
    */
   async showAllSchemas(options?: ShowAllSchemasOptions): Promise<string[]> {
     const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
-    const queryRawOptions = {
+    const schemaNames = await this.sequelize.queryRaw<{ schema: string }>(showSchemasSql, {
       ...options,
       raw: true,
       type: QueryTypes.SELECT,
-    };
+    });
 
-    const schemaNames = await this.sequelize.queryRaw(showSchemasSql, queryRawOptions);
+    return schemaNames.map(schemaName => schemaName.schema);
+  }
 
-    return schemaNames.flatMap((value: any) => (value.schema_name ? value.schema_name : value));
+  /**
+   * Drop a table from database
+   *
+   * @param tableName Table name to drop
+   * @param options   Query options
+   */
+  async dropTable(tableName: TableNameOrModel, options?: QiDropTableOptions): Promise<void> {
+    const sql = this.queryGenerator.dropTableQuery(tableName, options);
+
+    await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Drop all tables
+   *
+   * @param options
+   */
+  async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
+    const skip = options?.skip || [];
+    const allTables = await this.showAllTables(options);
+    const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
+
+    const dropOptions = { ...options };
+    // enable "cascade" by default if supported by this dialect
+    if (this.sequelize.dialect.supports.dropTable.cascade && dropOptions.cascade === undefined) {
+      dropOptions.cascade = true;
+    }
+
+    // Remove all the foreign keys first in a loop to avoid deadlocks and timeouts
+    for (const tableName of tableNames) {
+      // eslint-disable-next-line no-await-in-loop
+      const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
+      // eslint-disable-next-line no-await-in-loop
+      await Promise.all(foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)));
+    }
+
+    // Drop all the tables loop to avoid deadlocks and timeouts
+    for (const tableName of tableNames) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.dropTable(tableName, dropOptions);
+    }
+  }
+
+  /**
+   * Show all tables.
+   *
+   * @param options
+   */
+  async showAllTables(options?: QiShowAllTablesOptions): Promise<TableNameWithSchema[]> {
+    const sql = this.queryGenerator.listTablesQuery(options);
+
+    return this.sequelize.queryRaw<TableNameWithSchema>(sql, { ...options, raw: true, type: QueryTypes.SELECT });
+  }
+
+  /**
+   * Returns a promise that will resolve to true if the table or model exists in the database, false otherwise.
+   *
+   * @param tableName - The name of the table or model
+   * @param options - Query options
+   */
+  async tableExists(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<boolean> {
+    const sql = this.queryGenerator.tableExistsQuery(tableName);
+    const out = await this.sequelize.query(sql, { ...options, type: QueryTypes.SELECT });
+
+    return out.length === 1;
   }
 
   /**
@@ -199,6 +302,24 @@ export class AbstractQueryInterfaceTypeScript {
 
       throw error;
     }
+  }
+
+  /**
+   * Removes a column from a table
+   *
+   * @param tableName
+   * @param columnName
+   * @param options
+   */
+  async removeColumn(
+    tableName: TableNameOrModel,
+    columnName: string,
+    options?: RemoveColumnOptions,
+  ): Promise<void> {
+    const queryOptions = { ...options, raw: true };
+    const sql = this.queryGenerator.removeColumnQuery(tableName, columnName, queryOptions);
+
+    await this.sequelize.queryRaw(sql, queryOptions);
   }
 
   /**
@@ -336,26 +457,94 @@ export class AbstractQueryInterfaceTypeScript {
   async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
     const sql = this.queryGenerator.showConstraintsQuery(tableName, options);
     const rawConstraints = await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.SHOWCONSTRAINTS });
-    const constraintMap = new Map<string, MapConstraintDescription>();
-    for (const rawConstraint of rawConstraints) {
+    const constraintMap = new Map<string, ConstraintDescription>();
+    for (const {
+      columnNames,
+      definition,
+      deleteAction,
+      initiallyDeferred,
+      isDeferrable,
+      referencedColumnNames,
+      referencedTableName,
+      referencedTableSchema,
+      updateAction,
+      ...rawConstraint
+    } of rawConstraints) {
       const constraint = constraintMap.get(rawConstraint.constraintName)!;
       if (constraint) {
-        rawConstraint.columnNames && constraint.columnNames.add(rawConstraint.columnNames);
-        rawConstraint.referencedColumnNames && constraint.referencedColumnNames.add(rawConstraint.referencedColumnNames);
+        if (columnNames) {
+          constraint.columnNames = constraint.columnNames
+          ? [...new Set([...constraint.columnNames, columnNames])]
+          : [columnNames];
+        }
+
+        if (referencedColumnNames) {
+          constraint.referencedColumnNames = constraint.referencedColumnNames
+          ? [...new Set([...constraint.referencedColumnNames, referencedColumnNames])]
+          : [referencedColumnNames];
+        }
       } else {
-        constraintMap.set(rawConstraint.constraintName, {
-          ...rawConstraint,
-          columnNames: new Set(rawConstraint.columnNames ? [rawConstraint.columnNames] : []),
-          referencedColumnNames: new Set(rawConstraint.referencedColumnNames ? [rawConstraint.referencedColumnNames] : []),
-        });
+        const constraintData: ConstraintDescription = { ...rawConstraint };
+        if (columnNames) {
+          constraintData.columnNames = [columnNames];
+        }
+
+        if (referencedTableSchema) {
+          constraintData.referencedTableSchema = referencedTableSchema;
+        }
+
+        if (referencedTableName) {
+          constraintData.referencedTableName = referencedTableName;
+        }
+
+        if (referencedColumnNames) {
+          constraintData.referencedColumnNames = [referencedColumnNames];
+        }
+
+        if (deleteAction) {
+          constraintData.deleteAction = deleteAction.replaceAll('_', ' ');
+        }
+
+        if (updateAction) {
+          constraintData.updateAction = updateAction.replaceAll('_', ' ');
+        }
+
+        if (definition) {
+          constraintData.definition = definition;
+        }
+
+        if (this.sequelize.dialect.supports.constraints.deferrable) {
+          constraintData.deferrable = isDeferrable ? (initiallyDeferred === 'YES' ? Deferrable.INITIALLY_DEFERRED : Deferrable.INITIALLY_IMMEDIATE) : Deferrable.NOT;
+        }
+
+        constraintMap.set(rawConstraint.constraintName, constraintData);
       }
     }
 
-    return [...constraintMap.values()].map(({ columnNames, referencedColumnNames, ...constraint }) => ({
-      ...constraint,
-      columnNames: [...columnNames],
-      referencedColumnNames: [...referencedColumnNames],
-    }));
+    return [...constraintMap.values()];
+  }
+
+  /**
+   * Returns all foreign key constraints of requested tables
+   *
+   * @deprecated Use {@link showConstraints} instead.
+   * @param _tableNames
+   * @param _options
+   */
+  getForeignKeysForTables(_tableNames: TableNameOrModel[], _options?: QueryRawOptions): Error {
+    throw new Error(`getForeignKeysForTables has been deprecated. Use showConstraints instead.`);
+
+  }
+
+  /**
+   * Get foreign key references details for the table
+   *
+   * @deprecated Use {@link showConstraints} instead.
+   * @param _tableName
+   * @param _options
+   */
+  getForeignKeyReferencesForTable(_tableName: TableNameOrModel, _options?: QueryRawOptions): Error {
+    throw new Error(`getForeignKeyReferencesForTable has been deprecated. Use showConstraints instead.`);
   }
 
   /**
