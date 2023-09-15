@@ -34,11 +34,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         await Comment.bulkCreate([
-          { text: 'Market', PostId: 1 },
-          { text: 'Text', PostId: 2 },
-          { text: 'Abc', PostId: 2 },
-          { text: 'Semaphor', PostId: 1 },
-          { text: 'Text', PostId: 1 },
+          { text: 'Market', postId: 1 },
+          { text: 'Text', postId: 2 },
+          { text: 'Abc', postId: 2 },
+          { text: 'Semaphor', postId: 1 },
+          { text: 'Text', postId: 1 },
         ]);
 
         const posts = await Post.findAll({
@@ -78,21 +78,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         await Comment.bulkCreate([
-          { text: 'Market', PostId: 1 },
-          { text: 'Text', PostId: 2 },
-          { text: 'Abc', PostId: 2 },
-          { text: 'Semaphor', PostId: 1 },
-          { text: 'Text', PostId: 1 },
+          { text: 'Market', postId: 1 },
+          { text: 'Text', postId: 2 },
+          { text: 'Abc', postId: 2 },
+          { text: 'Semaphor', postId: 1 },
+          { text: 'Text', postId: 1 },
         ]);
 
         const posts = await Comment.findAll({
-          attributes: ['PostId', [Sequelize.fn('COUNT', Sequelize.col('Comment.id')), 'comment_count']],
+          attributes: ['postId', [Sequelize.fn('COUNT', Sequelize.col('Comment.id')), 'comment_count']],
           include: [
             { model: Post, attributes: [] },
           ],
-          group: ['PostId'],
+          group: ['postId'],
           order: [
-            ['PostId'],
+            ['postId'],
           ],
         });
 

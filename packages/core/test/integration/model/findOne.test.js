@@ -464,8 +464,8 @@ Got { association: 1 } instead`);
               });
 
               expect(task).to.exist;
-              expect(task.Worker).to.exist;
-              expect(task.Worker.name).to.equal('worker');
+              expect(task.worker).to.exist;
+              expect(task.worker.name).to.equal('worker');
             });
           });
         });
@@ -517,7 +517,7 @@ Got { association: 1 } instead`);
 
           await this.sequelize.sync({ force: true });
           await this.Group.create({ name: 'people' });
-          await this.User.create({ username: 'someone', GroupPKeagerbelongName: 'people' });
+          await this.User.create({ username: 'someone', groupPKeagerbelongName: 'people' });
 
           const someUser = await this.User.findOne({
             where: {
@@ -528,7 +528,7 @@ Got { association: 1 } instead`);
 
           expect(someUser).to.exist;
           expect(someUser.username).to.equal('someone');
-          expect(someUser.GroupPKeagerbelong.name).to.equal('people');
+          expect(someUser.groupPKeagerbelong.name).to.equal('people');
         });
 
         it('getting parent data in many to one relationship', async function () {
@@ -562,10 +562,10 @@ Got { association: 1 } instead`);
           expect(messages.length).to.equal(2);
 
           expect(messages[0].message).to.equal('hi there!');
-          expect(messages[0].User.username).to.equal('test_testerson');
+          expect(messages[0].user.username).to.equal('test_testerson');
 
           expect(messages[1].message).to.equal('a second message');
-          expect(messages[1].User.username).to.equal('test_testerson');
+          expect(messages[1].user.username).to.equal('test_testerson');
         });
 
         it('allows mulitple assocations of the same model with different alias', async function () {
@@ -607,8 +607,8 @@ Got { association: 1 } instead`);
           });
 
           expect(worker).to.exist;
-          expect(worker.Task).to.exist;
-          expect(worker.Task.title).to.equal('homework');
+          expect(worker.task).to.exist;
+          expect(worker.task.title).to.equal('homework');
         });
 
         it('eager loads with non-id primary keys', async function () {
@@ -628,7 +628,7 @@ Got { association: 1 } instead`);
 
           await this.sequelize.sync({ force: true });
           await this.Group.create({ name: 'people' });
-          await this.User.create({ username: 'someone', GroupPKeageroneName: 'people' });
+          await this.User.create({ username: 'someone', groupPKeageroneName: 'people' });
 
           const someGroup = await this.Group.findOne({
             where: {
@@ -639,7 +639,7 @@ Got { association: 1 } instead`);
 
           expect(someGroup).to.exist;
           expect(someGroup.name).to.equal('people');
-          expect(someGroup.UserPKeagerone.username).to.equal('someone');
+          expect(someGroup.userPKeagerone.username).to.equal('someone');
         });
       });
 
@@ -729,8 +729,8 @@ The following associations are defined on "Worker": "ToDo"`);
           });
 
           expect(worker).to.exist;
-          expect(worker.Tasks).to.exist;
-          expect(worker.Tasks[0].title).to.equal('homework');
+          expect(worker.tasks).to.exist;
+          expect(worker.tasks[0].title).to.equal('homework');
         });
 
         it('including two has many relations should not result in duplicate values', async function () {
@@ -758,7 +758,7 @@ The following associations are defined on "Worker": "ToDo"`);
 
           expect(fetchedContact).to.exist;
           expect(fetchedContact.Photos.length).to.equal(1);
-          expect(fetchedContact.PhoneNumbers.length).to.equal(2);
+          expect(fetchedContact.phoneNumbers.length).to.equal(2);
         });
 
         it('eager loads with non-id primary keys', async function () {
@@ -791,7 +791,7 @@ The following associations are defined on "Worker": "ToDo"`);
 
           expect(someUser0).to.exist;
           expect(someUser0.username).to.equal('someone');
-          expect(someUser0.GroupPKeagerones[0].name).to.equal('people');
+          expect(someUser0.groupPKeagerones[0].name).to.equal('people');
         });
       });
 

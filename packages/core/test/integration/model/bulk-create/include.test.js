@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('bulkCreate', () => {
@@ -16,7 +16,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           hooks: {
             afterBulkCreate(products) {
               for (const product of products) {
-                product.isIncludeCreatedOnAfterCreate = Boolean(product.User && product.User.id);
+                product.isIncludeCreatedOnAfterCreate = Boolean(product.user && product.user.id);
               }
             },
           },
@@ -40,13 +40,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const savedProducts = await Product.bulkCreate([{
           title: 'Chair',
-          User: {
+          user: {
             first_name: 'Mick',
             last_name: 'Broadstone',
           },
         }, {
           title: 'Table',
-          User: {
+          user: {
             first_name: 'John',
             last_name: 'Johnson',
           },
@@ -58,10 +58,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedProducts[0].isIncludeCreatedOnAfterCreate).to.be.true;
-        expect(savedProducts[0].User.createOptions.myOption).to.equal('option');
+        expect(savedProducts[0].user.createOptions.myOption).to.equal('option');
 
         expect(savedProducts[1].isIncludeCreatedOnAfterCreate).to.be.true;
-        expect(savedProducts[1].User.createOptions.myOption).to.equal('option');
+        expect(savedProducts[1].user.createOptions.myOption).to.equal('option');
 
         const persistedProducts = await Promise.all([
           Product.findOne({
@@ -74,13 +74,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }),
         ]);
 
-        expect(persistedProducts[0].User).to.be.ok;
-        expect(persistedProducts[0].User.first_name).to.equal('Mick');
-        expect(persistedProducts[0].User.last_name).to.equal('Broadstone');
+        expect(persistedProducts[0].user).to.be.ok;
+        expect(persistedProducts[0].user.first_name).to.equal('Mick');
+        expect(persistedProducts[0].user.last_name).to.equal('Broadstone');
 
-        expect(persistedProducts[1].User).to.be.ok;
-        expect(persistedProducts[1].User.first_name).to.equal('John');
-        expect(persistedProducts[1].User.last_name).to.equal('Johnson');
+        expect(persistedProducts[1].user).to.be.ok;
+        expect(persistedProducts[1].user.first_name).to.equal('John');
+        expect(persistedProducts[1].user.last_name).to.equal('Johnson');
       });
 
       it('should bulkCreate data for BelongsTo relations with no nullable FK', async function () {
@@ -101,12 +101,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const savedProducts = await Product.bulkCreate([{
           title: 'Chair',
-          User: {
+          user: {
             first_name: 'Mick',
           },
         }, {
           title: 'Table',
-          User: {
+          user: {
             first_name: 'John',
           },
         }], {
@@ -117,13 +117,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(savedProducts[0]).to.exist;
         expect(savedProducts[0].title).to.equal('Chair');
-        expect(savedProducts[0].User).to.exist;
-        expect(savedProducts[0].User.first_name).to.equal('Mick');
+        expect(savedProducts[0].user).to.exist;
+        expect(savedProducts[0].user.first_name).to.equal('Mick');
 
         expect(savedProducts[1]).to.exist;
         expect(savedProducts[1].title).to.equal('Table');
-        expect(savedProducts[1].User).to.exist;
-        expect(savedProducts[1].User.first_name).to.equal('John');
+        expect(savedProducts[1].user).to.exist;
+        expect(savedProducts[1].user.first_name).to.equal('John');
       });
 
       it('should bulkCreate data for BelongsTo relations with alias', async function () {
@@ -182,8 +182,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           hooks: {
             afterBulkCreate(products) {
               for (const product of products) {
-                product.areIncludesCreatedOnAfterCreate = product.Tags
-                  && product.Tags.every(tag => {
+                product.areIncludesCreatedOnAfterCreate = product.tags
+                  && product.tags.every(tag => {
                     return Boolean(tag.id);
                   });
               }
@@ -209,14 +209,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const savedProducts = await Product.bulkCreate([{
           id: 1,
           title: 'Chair',
-          Tags: [
+          tags: [
             { id: 1, name: 'Alpha' },
             { id: 2, name: 'Beta' },
           ],
         }, {
           id: 2,
           title: 'Table',
-          Tags: [
+          tags: [
             { id: 3, name: 'Gamma' },
             { id: 4, name: 'Delta' },
           ],
@@ -228,12 +228,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedProducts[0].areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedProducts[0].Tags[0].createOptions.myOption).to.equal('option');
-        expect(savedProducts[0].Tags[1].createOptions.myOption).to.equal('option');
+        expect(savedProducts[0].tags[0].createOptions.myOption).to.equal('option');
+        expect(savedProducts[0].tags[1].createOptions.myOption).to.equal('option');
 
         expect(savedProducts[1].areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedProducts[1].Tags[0].createOptions.myOption).to.equal('option');
-        expect(savedProducts[1].Tags[1].createOptions.myOption).to.equal('option');
+        expect(savedProducts[1].tags[0].createOptions.myOption).to.equal('option');
+        expect(savedProducts[1].tags[1].createOptions.myOption).to.equal('option');
 
         const persistedProducts = await Promise.all([
           Product.findOne({
@@ -246,11 +246,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }),
         ]);
 
-        expect(persistedProducts[0].Tags).to.be.ok;
-        expect(persistedProducts[0].Tags.length).to.equal(2);
+        expect(persistedProducts[0].tags).to.be.ok;
+        expect(persistedProducts[0].tags.length).to.equal(2);
 
-        expect(persistedProducts[1].Tags).to.be.ok;
-        expect(persistedProducts[1].Tags.length).to.equal(2);
+        expect(persistedProducts[1].tags).to.be.ok;
+        expect(persistedProducts[1].tags.length).to.equal(2);
       });
 
       it('should bulkCreate data for HasMany relations with alias', async function () {
@@ -316,12 +316,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const savedUsers = await User.bulkCreate([{
           username: 'Muzzy',
-          Task: {
+          task: {
             title: 'Eat Clocks',
           },
         }, {
           username: 'Walker',
-          Task: {
+          task: {
             title: 'Walk',
           },
         }], {
@@ -339,8 +339,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }),
         ]);
 
-        expect(persistedUsers[0].Task).to.be.ok;
-        expect(persistedUsers[1].Task).to.be.ok;
+        expect(persistedUsers[0].task).to.be.ok;
+        expect(persistedUsers[1].task).to.be.ok;
       });
 
       it('should bulkCreate data for HasOne relations with alias', async function () {
@@ -392,8 +392,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           hooks: {
             afterBulkCreate(users) {
               for (const user of users) {
-                user.areIncludesCreatedOnAfterCreate = user.Tasks
-                  && user.Tasks.every(task => {
+                user.areIncludesCreatedOnAfterCreate = user.tasks
+                  && user.tasks.every(task => {
                     return Boolean(task.id);
                   });
               }
@@ -421,13 +421,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const savedUsers = await User.bulkCreate([{
           username: 'John',
-          Tasks: [
+          tasks: [
             { title: 'Get rich', active: true },
             { title: 'Die trying', active: false },
           ],
         }, {
           username: 'Jack',
-          Tasks: [
+          tasks: [
             { title: 'Prepare sandwich', active: true },
             { title: 'Each sandwich', active: false },
           ],
@@ -439,12 +439,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedUsers[0].areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedUsers[0].Tasks[0].createOptions.myOption).to.equal('option');
-        expect(savedUsers[0].Tasks[1].createOptions.myOption).to.equal('option');
+        expect(savedUsers[0].tasks[0].createOptions.myOption).to.equal('option');
+        expect(savedUsers[0].tasks[1].createOptions.myOption).to.equal('option');
 
         expect(savedUsers[1].areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedUsers[1].Tasks[0].createOptions.myOption).to.equal('option');
-        expect(savedUsers[1].Tasks[1].createOptions.myOption).to.equal('option');
+        expect(savedUsers[1].tasks[0].createOptions.myOption).to.equal('option');
+        expect(savedUsers[1].tasks[1].createOptions.myOption).to.equal('option');
 
         const persistedUsers = await Promise.all([
           User.findOne({
@@ -457,11 +457,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }),
         ]);
 
-        expect(persistedUsers[0].Tasks).to.be.ok;
-        expect(persistedUsers[0].Tasks.length).to.equal(2);
+        expect(persistedUsers[0].tasks).to.be.ok;
+        expect(persistedUsers[0].tasks.length).to.equal(2);
 
-        expect(persistedUsers[1].Tasks).to.be.ok;
-        expect(persistedUsers[1].Tasks.length).to.equal(2);
+        expect(persistedUsers[1].tasks).to.be.ok;
+        expect(persistedUsers[1].tasks.length).to.equal(2);
       });
 
       it('should bulkCreate data for polymorphic BelongsToMany relations', async function () {

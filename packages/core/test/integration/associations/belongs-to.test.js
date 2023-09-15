@@ -23,7 +23,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       expect(
         Object.keys(Group.associations),
-      ).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers']);
+      ).to.deep.equal(['user', 'primaryUsers', 'secondaryUsers']);
     });
   });
 
@@ -233,10 +233,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Task.belongsTo(User);
 
       await this.sequelize.sync({ force: true });
-      await expect(Task.create({ title: 'task', UserXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      await expect(Task.create({ title: 'task', userXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
       const task = await Task.create({ title: 'task' });
 
-      await expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      await expect(Task.update({ title: 'taskUpdate', userXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
     });
 
     it('supports passing the primary key instead of an object', async function () {
@@ -377,8 +377,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       User.belongsTo(Account);
 
-      expect(User.getAttributes().AccountId).to.exist;
-      expect(User.getAttributes().AccountId.field).to.equal('account_id');
+      expect(User.getAttributes().accountId).to.exist;
+      expect(User.getAttributes().accountId.field).to.equal('account_id');
     });
 
     it('should use model name when using camelcase', function () {
@@ -387,8 +387,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       User.belongsTo(Account);
 
-      expect(User.getAttributes().AccountId).to.exist;
-      expect(User.getAttributes().AccountId.field).to.equal('AccountId');
+      expect(User.getAttributes().accountId).to.exist;
+      expect(User.getAttributes().accountId.field).to.equal('accountId');
     });
 
     it('should support specifying the field of a foreign key', async function () {
@@ -424,7 +424,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       // the sql query should correctly look at account_id instead of AccountId
-      expect(user.Account).to.exist;
+      expect(user.account).to.exist;
     });
 
     it('should set foreignKey on foreign table', async function () {
@@ -542,7 +542,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       await task.setUser(user);
       await user.destroy();
       await task.reload();
-      expect(task.UserId).to.equal(null);
+      expect(task.userId).to.equal(null);
     });
 
     it('should be possible to disable them', async function () {
@@ -557,7 +557,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       await task.setUser(user);
       await user.destroy();
       await task.reload();
-      expect(task.UserId).to.equal(user.id);
+      expect(task.userId).to.equal(user.id);
     });
 
     it('can cascade deletes', async function () {
@@ -640,7 +640,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
         const tasks = await Task.findAll();
         expect(tasks).to.have.length(1);
-        expect(tasks[0].UserId).to.equal(999);
+        expect(tasks[0].userId).to.equal(999);
       });
     }
   });
@@ -663,7 +663,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       User.belongsTo(Group);
 
       await this.sequelize.sync({ force: true });
-      expect(User.getAttributes().GroupPKBTName.type).to.an.instanceof(DataTypes.STRING);
+      expect(User.getAttributes().groupPKBTName.type).to.an.instanceof(DataTypes.STRING);
     });
 
     it('should support a non-primary key as the association column on a target without a primary key', async function () {

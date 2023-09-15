@@ -7,7 +7,7 @@ const dialect = sequelize.getDialect();
 describe('Sequelize#drop', () => {
   it('supports dropping cyclic associations', async () => {
     const A = sequelize.define('A', {
-      BId: {
+      bId: {
         type: DataTypes.INTEGER,
         references: {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
@@ -16,7 +16,7 @@ describe('Sequelize#drop', () => {
     });
 
     const B = sequelize.define('B', {
-      AId: {
+      aId: {
         type: DataTypes.INTEGER,
         references: {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
@@ -44,13 +44,13 @@ describe('Sequelize#drop', () => {
     }
 
     const A = sequelize.define('A', {
-      BId: {
+      bId: {
         type: DataTypes.INTEGER,
       },
     });
 
     const B = sequelize.define('B', {
-      AId: {
+      aId: {
         type: DataTypes.INTEGER,
       },
     });

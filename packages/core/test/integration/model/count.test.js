@@ -136,7 +136,7 @@ describe('Model.count', () => {
       await Post.sync({ force: true });
       await PostComment.sync({ force: true });
       const post = await Post.create({});
-      await PostComment.bulkCreate([{ PostId: post.id }, { PostId: post.id }]);
+      await PostComment.bulkCreate([{ postId: post.id }, { postId: post.id }]);
       const count1 = await Post.count({ distinct: false, include: { model: PostComment, required: false } });
       const count2 = await Post.count({ distinct: true, include: { model: PostComment, required: false } });
       expect(count1).to.equal(2);
