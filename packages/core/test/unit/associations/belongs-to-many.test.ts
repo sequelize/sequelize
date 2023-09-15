@@ -108,6 +108,26 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     });
   });
 
+  it('allows customizing the inverse association name (long form)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.belongsToMany(Task, { through: 'UserTask', as: 'tasks', inverse: { as: 'users' } });
+
+    expect(Task.associations.users).to.be.ok;
+    expect(User.associations.tasks).to.be.ok;
+  });
+
+  it('allows customizing the inverse association name (shorthand)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.belongsToMany(Task, { through: 'UserTask', as: 'tasks', inverse: 'users' });
+
+    expect(Task.associations.users).to.be.ok;
+    expect(User.associations.tasks).to.be.ok;
+  });
+
   it('allows defining two associations with the same through, but with a different scope on the through table', () => {
     const User = sequelize.define('User');
     const Post = sequelize.define('Post', { editing: DataTypes.BOOLEAN });
