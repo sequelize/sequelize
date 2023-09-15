@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.31](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.30...v7.0.0-alpha.31) (2023-09-15)
+
+
+### Features
+
+* add shorthand syntax for association inverse option ([#16512](https://github.com/sequelize/sequelize/issues/16512)) ([3296bcc](https://github.com/sequelize/sequelize/commit/3296bcc7eff832c9a9eb0492c8b44232f2018080))
+* migrate database queries to typescript ([#16496](https://github.com/sequelize/sequelize/issues/16496)) ([7b681b7](https://github.com/sequelize/sequelize/commit/7b681b7dbd1c90c81653be5be314b5c42fd1c85f))
+* support customizing through associations ([#16505](https://github.com/sequelize/sequelize/issues/16505)) ([02bb6b7](https://github.com/sequelize/sequelize/commit/02bb6b7a7211d594a086a2fc7bbe6269e40c8eed))
+
+
+
+
+
 # [7.0.0-alpha.30](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.29...v7.0.0-alpha.30) (2023-09-13)
 
 
