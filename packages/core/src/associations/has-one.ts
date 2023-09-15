@@ -18,8 +18,8 @@ import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { Association } from './base';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { BelongsTo } from './belongs-to.js';
-import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
-import type { NormalizeBaseAssociationOptions } from './helpers';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions, normalizeInverseAssociation } from './helpers';
+import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-one association.
@@ -144,11 +144,17 @@ export class HasOne<
       HasOne<S, T, SourceKey, TargetKey>,
       HasOneOptions<SourceKey, TargetKey>,
       NormalizedHasOneOptions<SourceKey, TargetKey>
-    >(HasOne, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+    >(HasOne, source, target, options, parent, normalizeHasOneOptions, normalizedOptions => {
       // self-associations must always set their 'as' parameter
-      if (isSameInitialModel(source, target)
-        // use 'options' because this will always be set in 'newOptions'
-        && (!options.as || !options.inverse?.as || options.as === options.inverse.as)) {
+      if (
+        isSameInitialModel(source, target)
+        && (
+          // use 'options' because this will always be set in 'normalizedOptions'
+          !options.as
+          || !normalizedOptions.inverse?.as
+          || options.as === normalizedOptions.inverse.as
+        )
+      ) {
         throw new AssociationError(`Both options "as" and "inverse.as" must be defined for hasOne self-associations, and their value must be different.
 This is because hasOne associations automatically create the corresponding belongsTo association, but they cannot share the same name.
 
@@ -358,7 +364,9 @@ Object.defineProperty(HasOne, 'name', {
 });
 
 export type NormalizedHasOneOptions<SourceKey extends string, TargetKey extends string> =
-  NormalizeBaseAssociationOptions<HasOneOptions<SourceKey, TargetKey>>;
+  NormalizeBaseAssociationOptions<Omit<HasOneOptions<SourceKey, TargetKey>, 'inverse'>> & {
+  inverse?: Exclude<HasOneOptions<SourceKey, TargetKey>['inverse'], string>,
+};
 
 /**
  * Options provided when associating models with hasOne relationship
@@ -373,10 +381,25 @@ export interface HasOneOptions<SourceKey extends string, TargetKey extends strin
    */
   sourceKey?: SourceKey;
 
-  inverse?: {
+  /**
+   * The name of the inverse association, or an object for further association setup.
+   */
+  inverse?: string | {
     as?: AssociationOptions<any>['as'],
     scope?: AssociationOptions<any>['scope'],
   };
+}
+
+function normalizeHasOneOptions<SourceKey extends string, TargetKey extends string>(
+  type: AssociationStatic<any>,
+  options: HasOneOptions<SourceKey, TargetKey>,
+  source: ModelStatic<Model>,
+  target: ModelStatic<Model>,
+): NormalizedHasOneOptions<SourceKey, TargetKey> {
+  return normalizeBaseAssociationOptions(type, {
+    ...options,
+    inverse: normalizeInverseAssociation(options.inverse),
+  }, source, target);
 }
 
 /**

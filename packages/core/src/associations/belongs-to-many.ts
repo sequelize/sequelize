@@ -51,6 +51,7 @@ import {
   mixinMethods,
   normalizeBaseAssociationOptions,
   normalizeForeignKeyOptions,
+  normalizeInverseAssociation,
 } from './helpers';
 import type { AssociationStatic, MaybeForwardedModelStatic } from './helpers';
 
@@ -408,11 +409,16 @@ Add your own primary key to the through model, on different attributes than the 
       BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey>,
       BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
       NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
-    >(BelongsToMany, source, target, options, parent, normalizeOptions, newOptions => {
+    >(BelongsToMany, source, target, options, parent, normalizeBelongsToManyOptions, newOptions => {
       // self-associations must always set their 'as' parameter
       if (isSameInitialModel(source, target)
-        // use 'options' because this will always be set in 'newOptions'
-        && (!options.as || !options.inverse?.as || options.as === options.inverse.as)) {
+        && (
+          // use 'options' because this will always be set in 'newOptions'
+          !options.as
+          || !newOptions.inverse?.as
+          || options.as === newOptions.inverse.as
+        )
+      ) {
         throw new AssociationError('Both options "as" and "inverse.as" must be defined for belongsToMany self-associations, and their value must be different.');
       }
 
@@ -874,7 +880,7 @@ function normalizeThroughOptions<M extends Model>(
   });
 }
 
-function normalizeOptions<SourceKey extends string, TargetKey extends string, ThroughModel extends Model>(
+function normalizeBelongsToManyOptions<SourceKey extends string, TargetKey extends string, ThroughModel extends Model>(
   type: AssociationStatic<any>,
   options: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
   source: ModelStatic<Model>,
@@ -893,6 +899,7 @@ function normalizeOptions<SourceKey extends string, TargetKey extends string, Th
 
   return normalizeBaseAssociationOptions(type, {
     ...options,
+    inverse: normalizeInverseAssociation(options.inverse),
     otherKey: normalizeForeignKeyOptions(options.otherKey),
     through: removeUndefined(isThroughOptions(options.through)
       ? normalizeThroughOptions(source, target, options.through, sequelize)
@@ -954,8 +961,11 @@ type NormalizedBelongsToManyOptions<
   TargetKey extends string,
   ThroughModel extends Model,
 > =
-  & Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'through' | 'as' | 'hooks' | 'foreignKey'>
-  & { through: NormalizedThroughOptions<ThroughModel> }
+  & Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'through' | 'as' | 'hooks' | 'foreignKey' | 'inverse'>
+  & {
+    through: NormalizedThroughOptions<ThroughModel>,
+    inverse?: Exclude<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>['inverse'], string>,
+  }
   & Pick<NormalizedAssociationOptions<string>, 'as' | 'name' | 'hooks' | 'foreignKey'>;
 
 type NormalizedThroughOptions<ThroughModel extends Model> = Omit<ThroughOptions<ThroughModel>, 'model'> & {
@@ -973,9 +983,9 @@ export interface BelongsToManyOptions<
   ThroughModel extends Model = Model,
 > extends MultiAssociationOptions<AttributeNames<ThroughModel>> {
   /**
-   * Configures this association on the target model.
+   * The name of the inverse association, or an object for further association setup.
    */
-  inverse?: {
+  inverse?: string | {
     as?: AssociationOptions<string>['as'],
     scope?: MultiAssociationOptions<string>['scope'],
     foreignKeyConstraints?: AssociationOptions<string>['foreignKeyConstraints'],
