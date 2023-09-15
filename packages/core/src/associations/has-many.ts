@@ -321,8 +321,10 @@ export class HasMany<
     const where = {
       [Op.or]: normalizedTargets.map(instance => {
         if (instance instanceof this.target) {
-
-          return (instance as T).where();
+          // TODO: remove eslint-disable once we drop support for < 5.2
+          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
+          // @ts-ignore
+          return instance.where();
         }
 
         return {
@@ -479,8 +481,7 @@ export class HasMany<
       [this.target.primaryKeyAttribute]: normalizedTargets.map(targetInstance => {
         if (targetInstance instanceof this.target) {
           // @ts-expect-error -- TODO: what if the target has no primary key?
-
-          return (targetInstance as T).get(this.target.primaryKeyAttribute);
+          return targetInstance.get(this.target.primaryKeyAttribute);
         }
 
         // raw entity

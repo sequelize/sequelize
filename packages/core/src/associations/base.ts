@@ -231,10 +231,12 @@ export abstract class MultiAssociation<
   protected toInstanceArray(input: AllowIterable<T | Exclude<T[TargetKey], any[]>> | null): T[] {
     const normalizedInput = this.toInstanceOrPkArray(input);
 
+    // TODO: remove eslint-disable once we drop support for < 5.2
+    // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
+    // @ts-ignore
     return normalizedInput.map(element => {
       if (element instanceof this.target) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
-        return element as T;
+        return element;
       }
 
       const tmpInstance = Object.create(null);

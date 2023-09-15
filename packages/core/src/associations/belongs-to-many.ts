@@ -550,8 +550,10 @@ Add your own primary key to the through model, on different attributes than the 
 
     const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targets.map(instance => {
       if (instance instanceof this.target) {
-
-        return (instance as TargetModel).get(this.targetKey);
+        // TODO: remove eslint-disable once we drop support for < 5.2
+        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
+        // @ts-ignore
+        return instance.get(this.targetKey);
       }
 
       return instance as TargetModel[TargetKey];
