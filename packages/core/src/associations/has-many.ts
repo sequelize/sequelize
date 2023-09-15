@@ -321,7 +321,7 @@ export class HasMany<
     const where = {
       [Op.or]: normalizedTargets.map(instance => {
         if (instance instanceof this.target) {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
+
           return (instance as T).where();
         }
 
@@ -479,7 +479,7 @@ export class HasMany<
       [this.target.primaryKeyAttribute]: normalizedTargets.map(targetInstance => {
         if (targetInstance instanceof this.target) {
           // @ts-expect-error -- TODO: what if the target has no primary key?
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
+
           return (targetInstance as T).get(this.target.primaryKeyAttribute);
         }
 
@@ -581,7 +581,7 @@ export interface HasManyOptions<SourceKey extends string, TargetKey extends stri
   /**
    * The name of the inverse association, or an object for further association setup.
    */
-  inverse?: string | {
+  inverse?: string | undefined | {
     as?: AssociationOptions<any>['as'],
     scope?: AssociationOptions<any>['scope'],
   };

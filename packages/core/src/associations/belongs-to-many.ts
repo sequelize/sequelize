@@ -550,7 +550,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targets.map(instance => {
       if (instance instanceof this.target) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
+
         return (instance as TargetModel).get(this.targetKey);
       }
 
@@ -995,7 +995,7 @@ export interface BelongsToManyOptions<
   /**
    * The name of the inverse association, or an object for further association setup.
    */
-  inverse?: string | {
+  inverse?: string | undefined | {
     as?: AssociationOptions<string>['as'],
     scope?: MultiAssociationOptions<string>['scope'],
     foreignKeyConstraints?: AssociationOptions<string>['foreignKeyConstraints'],

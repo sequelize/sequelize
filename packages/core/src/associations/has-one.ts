@@ -384,7 +384,7 @@ export interface HasOneOptions<SourceKey extends string, TargetKey extends strin
   /**
    * The name of the inverse association, or an object for further association setup.
    */
-  inverse?: string | {
+  inverse?: string | undefined | {
     as?: AssociationOptions<any>['as'],
     scope?: AssociationOptions<any>['scope'],
   };
