@@ -163,6 +163,30 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     expect(Association1.pairedWith).to.eq(Association2.pairedWith);
   });
 
+  it('lets you customize the name of the intermediate associations', () => {
+    const User = sequelize.define('User');
+    const Group = sequelize.define('Group');
+    const GroupUser = sequelize.define('GroupUser');
+
+    User.belongsToMany(Group, {
+      through: GroupUser,
+      as: 'groups',
+      throughAssociations: {
+        toSource: 'toSource',
+        toTarget: 'toTarget',
+        fromSource: 'fromSources',
+        fromTarget: 'fromTargets',
+      },
+      inverse: {
+        as: 'members',
+      },
+    });
+
+    expect(Object.keys(User.associations).sort()).to.deep.eq(['fromSource', 'fromSources', 'groups']);
+    expect(Object.keys(Group.associations).sort()).to.deep.eq(['fromTarget', 'fromTargets', 'members']);
+    expect(Object.keys(GroupUser.associations).sort()).to.deep.eq(['toSource', 'toTarget']);
+  });
+
   it('errors when trying to define similar associations with incompatible inverse associations', () => {
     const User = sequelize.define('User');
     const Post = sequelize.define('Post');
