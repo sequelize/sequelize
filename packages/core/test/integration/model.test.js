@@ -915,7 +915,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to list schemas', async function () {
-        const schemas = await this.sequelize.listSchemas();
+        const schemas = await this.sequelize.queryInterface.listSchemas();
 
         const expectedSchemas = {
           // "sequelize_test" is the default schema, which some dialects will not delete
