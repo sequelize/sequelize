@@ -585,7 +585,7 @@ export abstract class SequelizeTypeScript {
    * @deprecated Use {@link Sequelize#listSchemas} instead
    * @param options
    */
-  async showAllSchemas(options?: QueryRawOptions) {
+  async showAllSchemas(options?: QiListSchemasOptions) {
     showAllToListSchemas();
 
     return this.queryInterface.listSchemas(options);

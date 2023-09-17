@@ -181,7 +181,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @deprecated Use {@link listSchemas} instead.
    * @param options
    */
-  async showAllSchemas(options?: QueryRawOptions): Promise<string[]> {
+  async showAllSchemas(options?: QiListSchemasOptions): Promise<string[]> {
     showAllToListSchemas();
 
     return this.listSchemas(options);
@@ -247,7 +247,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @deprecated Use {@link listTables} instead.
    * @param options
    */
-  async showAllTables(options?: QueryRawOptions): Promise<TableNameWithSchema[]> {
+  async showAllTables(options?: QiListTablesOptions): Promise<TableNameWithSchema[]> {
     showAllToListTables();
 
     return this.listTables(options);
