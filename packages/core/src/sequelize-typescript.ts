@@ -573,7 +573,7 @@ export abstract class SequelizeTypeScript {
   /**
    * Alias of {@link AbstractQueryInterface#showAllSchemas}
    *
-   * @deprecated Use {@link Sequelize#listSchemas} instead
+   * @deprecated Use {@link AbstractQueryInterface#listSchemas} instead
    * @param options
    */
   async showAllSchemas(options?: QiListSchemasOptions) {
