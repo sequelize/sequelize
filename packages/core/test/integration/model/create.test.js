@@ -17,6 +17,7 @@ const pTimeout = require('p-timeout');
 const current = Support.sequelize;
 const dialect = current.dialect;
 const dialectName = Support.getTestDialect();
+const isUUID = require('validator').isUUID;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
@@ -1020,11 +1021,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await userWithDefaults.sync({ force: true });
         const user = await userWithDefaults.create({});
-        // uuid validation regex taken from http://stackoverflow.com/a/13653180/800016
-        expect(user.uuid).to.match(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
-        );
-
+        expect(isUUID(user.uuid)).to.be.true;
       }
       // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
     });

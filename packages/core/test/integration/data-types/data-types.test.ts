@@ -656,6 +656,7 @@ describe('DataTypes', () => {
     });
 
     if (['sqlite', 'cockroachdb'].includes(dialect.name)) {
+      // Cockroachdb parses BIGINTs greater than Number.MAX_SAFE_INT as a string and less than Number.MAX_SAFE_INTEGER as an integer.
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
       it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {

@@ -174,7 +174,7 @@ export type DialectSupports = {
      */
     JSON: boolean,
     JSONB: boolean,
-    ARRAY: boolean,
+    ARRAY: boolean | { ARRAY: boolean },
     RANGE: boolean,
     GEOMETRY: boolean,
     GEOGRAPHY: boolean,

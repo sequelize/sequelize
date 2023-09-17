@@ -115,7 +115,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
   // Must be a single-precision floating point if available,
   // or a double-precision fallback if not.
   testDataTypeSql('FLOAT', DataTypes.FLOAT, {
-    // FLOAT in snowflake is double-precision (no single-precision support), but single-precision is all others
+    // FLOAT in snowflake and cockroachdb is double-precision (no single-precision support), but single-precision is all others
     'mysql mariadb snowflake cockroachdb': 'FLOAT',
     // REAL in sqlite is double-precision (no single-precision support), but single-precision in all others
     'postgres mssql sqlite db2 ibmi': 'REAL',

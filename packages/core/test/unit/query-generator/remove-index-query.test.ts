@@ -42,8 +42,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { ifExists: true }), {
       default: `DROP INDEX IF EXISTS [user_foo_bar] ON [myTable]`,
       sqlite: 'DROP INDEX IF EXISTS `user_foo_bar`',
-      postgres: `DROP INDEX IF EXISTS "public"."user_foo_bar"`,
-      cockroachdb: `DROP INDEX IF EXISTS "public"."user_foo_bar"`,
+      'postgres cockroachdb': `DROP INDEX IF EXISTS "public"."user_foo_bar"`,
       ibmi: `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = "user_foo_bar") THEN DROP INDEX "user_foo_bar"; COMMIT; END IF; END`,
       snowflake: notImplementedError,
       'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['ifExists']),

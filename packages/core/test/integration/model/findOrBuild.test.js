@@ -6,8 +6,6 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
-const dialectName = Support.getTestDialect();
-
 describe('Model#findOrBuild', () => {
   context('test-shared models', () => {
     beforeEach(async function () {

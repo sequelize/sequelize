@@ -499,7 +499,6 @@ Caused by: "undefined" cannot be escaped`),
         // when using arrays, Op.in is never included
         // @ts-expect-error -- Omitting the operator with an array attribute is always Op.eq, never Op.in
         testSql({ intArrayAttr: [[1, 2]] }, { default: new Error('[ 1, 2 ] is not a valid integer') });
-        // }
 
         testSql({ intAttr1: { [Op.any]: [2, 3, 4] } }, {
           default: '[intAttr1] = ANY (ARRAY[2,3,4])',

@@ -37,7 +37,7 @@ export class CockroachDbDialect extends AbstractDialect {
       onConflictWhere: true,
     },
     dataTypes: {
-      ARRAY: true,
+      ARRAY: { ARRAY: false },
       GEOMETRY: true,
       GEOGRAPHY: true,
       JSON: true,
@@ -103,13 +103,12 @@ export class CockroachDbDialect extends AbstractDialect {
   escapeBuffer(buffer: Buffer): string {
     const hex = buffer.toString('hex');
 
-    // bytea hex format http://www.postgresql.org/docs/current/static/datatype-binary.html
+    // bytes hex format https://www.cockroachlabs.com/docs/stable/bytes
     return `'\\x${hex}'`;
   }
 
   escapeString(value: string): string {
-    // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
-    // http://stackoverflow.com/q/603572/130598
+    // https://www.cockroachlabs.com/docs/v23.1/sql-constants#standard-sql-string-literals
     value = value.replaceAll('\'', '\'\'')
       // null character is not allowed in Cockroachdb
       .replaceAll('\0', '\\0');

@@ -28,7 +28,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       };
 
       it(util.inspect(options, { depth: 2 }), () => {
-
         return expectsql(
           sql.truncateTableQuery(
             options.table,

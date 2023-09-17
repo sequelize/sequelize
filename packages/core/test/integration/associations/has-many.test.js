@@ -281,6 +281,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
         });
 
+        // TODO: Add ordianlity to this test to support nested order by.
         // Cockroachdb does only preserves orderby for top level statements, Need to add support or ORDINALITY for this test.
         // Reference: https://www.cockroachlabs.com/docs/stable/order-by.html#order-preservation
         if (dialect !== 'cockroachdb') {

@@ -59,13 +59,13 @@ describe('json', () => {
   // TODO: add a way to let `where` know what the type of the value is in raw queries
   // it('accepts a condition object', () => {
   //   expectsql(queryGenerator.escape(json({ id: 1 })), {
-  //     postgres: `"id" = '1'`,
+  //     'postgres cockroachdb': `"id" = '1'`,
   //   });
   // });
   //
   // it('column named "json"', () => {
   //   expectsql(queryGenerator.escape(where(json('json'), Op.eq, {})), {
-  //     postgres: `("json"#>>'{}') = '{}'`,
+  //     'postgres cockroachdb': `("json"#>>'{}') = '{}'`,
   //   });
   // });
 

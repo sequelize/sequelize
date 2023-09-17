@@ -19,7 +19,6 @@ describe('QueryGenerator#listSchemasQuery', () => {
       snowflake: `SHOW SCHEMAS;`,
       sqlite: notSupportedError,
       cockroachdb: `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('information_schema', 'public', 'crdb_internal');`,
-
     });
   });
 
