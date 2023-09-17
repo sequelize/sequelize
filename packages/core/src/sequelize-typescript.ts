@@ -27,6 +27,7 @@ import {
   assertTransactionIsCompatibleWithOptions,
   normalizeTransactionOptions,
 } from './transaction.js';
+import { showAllToListSchemas } from './utils/deprecations.js';
 import type { PartialBy } from './utils/types.js';
 import type {
   CreateSchemaOptions,
@@ -585,7 +586,9 @@ export abstract class SequelizeTypeScript {
    * @param options
    */
   async showAllSchemas(options?: QueryRawOptions) {
-    return this.queryInterface.showAllSchemas(options);
+    showAllToListSchemas();
+
+    return this.queryInterface.listSchemas(options);
   }
 
   /**

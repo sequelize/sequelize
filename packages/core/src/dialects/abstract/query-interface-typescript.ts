@@ -6,7 +6,12 @@ import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
-import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
+import {
+  noSchemaDelimiterParameter,
+  noSchemaParameter,
+  showAllToListSchemas,
+  showAllToListTables,
+} from '../../utils/deprecations';
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
@@ -174,10 +179,12 @@ export class AbstractQueryInterfaceTypeScript {
    * Show all defined schemas
    *
    * @deprecated Use {@link listSchemas} instead.
-   * @param _options
+   * @param options
    */
-  async showAllSchemas(_options?: QueryRawOptions): Promise<string[]> {
-    throw new Error(`showAllSchemas has been deprecated. Use listSchemas instead.`);
+  async showAllSchemas(options?: QueryRawOptions): Promise<string[]> {
+    showAllToListSchemas();
+
+    return this.listSchemas(options);
   }
 
   /**
@@ -238,10 +245,12 @@ export class AbstractQueryInterfaceTypeScript {
    * Show all tables
    *
    * @deprecated Use {@link listTables} instead.
-   * @param _options
+   * @param options
    */
-  async showAllTables(_options?: QueryRawOptions): Promise<TableNameWithSchema[]> {
-    throw new Error(`showAllTables has been deprecated. Use listTables instead.`);
+  async showAllTables(options?: QueryRawOptions): Promise<TableNameWithSchema[]> {
+    showAllToListTables();
+
+    return this.listTables(options);
   }
 
   /**
