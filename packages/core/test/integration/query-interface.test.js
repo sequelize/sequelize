@@ -28,9 +28,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.dropAllSchemas({
           skip: [this.sequelize.config.database],
         });
-        const schemaNames = await this.queryInterface.showAllSchemas();
+        const schemaNames = await this.queryInterface.listSchemas();
         await this.queryInterface.createSchema('newSchema');
-        const newSchemaNames = await this.queryInterface.showAllSchemas();
+        const newSchemaNames = await this.queryInterface.listSchemas();
         if (!current.dialect.supports.schemas) {
           return;
         }
@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         name: DataTypes.STRING,
       });
       await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
-      const result = await this.queryInterface.showAllTables();
+      const result = await this.queryInterface.listTables();
       const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.contain('my_test_table_new');
@@ -58,15 +58,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('dropAllTables', () => {
     it('should drop all tables', async function () {
       await this.queryInterface.dropAllTables();
-      const tableNames = await this.queryInterface.showAllTables();
+      const tableNames = await this.queryInterface.listTables();
       expect(tableNames).to.be.empty;
 
       await this.queryInterface.createTable('table', { name: DataTypes.STRING });
-      const tableNames1 = await this.queryInterface.showAllTables();
+      const tableNames1 = await this.queryInterface.listTables();
       expect(tableNames1).to.have.length(1);
 
       await this.queryInterface.dropAllTables();
-      const tableNames2 = await this.queryInterface.showAllTables();
+      const tableNames2 = await this.queryInterface.listTables();
       expect(tableNames2).to.be.empty;
     });
 
@@ -75,7 +75,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         name: DataTypes.STRING,
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
-      const result = await this.queryInterface.showAllTables();
+      const result = await this.queryInterface.listTables();
       const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.contain('skipme');
@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('should be able to drop a foreign key', async function () {
       await this.queryInterface.dropAllTables();
 
-      const tableNames = await this.queryInterface.showAllTables();
+      const tableNames = await this.queryInterface.listTables();
       expect(tableNames).to.be.empty;
 
       await this.queryInterface.createTable('users', {
@@ -111,12 +111,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         onDelete: 'set null',
       });
 
-      const tableNames1 = await this.queryInterface.showAllTables();
+      const tableNames1 = await this.queryInterface.listTables();
       expect(tableNames1).to.have.length(2);
 
       await this.queryInterface.dropAllTables();
 
-      const tableNames2 = await this.queryInterface.showAllTables();
+      const tableNames2 = await this.queryInterface.listTables();
       expect(tableNames2).to.be.empty;
     });
   });

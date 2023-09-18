@@ -37,7 +37,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       return this.sequelize.drop(options);
     }
 
-    const schemas = await this.showAllSchemas(options);
+    const schemas = await this.listSchemas(options);
 
     return Promise.all(schemas.map(schemaName => this.dropSchema(schemaName, options)));
   }

@@ -34,7 +34,7 @@ export class SqliteQueryInterfaceTypeScript extends AbstractQueryInterface {
    */
   async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
     const skip = options?.skip || [];
-    const allTables = await this.showAllTables(options);
+    const allTables = await this.listTables(options);
     const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
 
     await withSqliteForeignKeysOff(this.sequelize, options, async () => {

@@ -5,12 +5,12 @@ import { createSequelizeInstance, sequelize } from '../support';
 const dialectName = sequelize.dialect.name;
 const queryInterface = sequelize.queryInterface;
 
-describe('QueryInterface#showAllTables', () => {
-  describe('showAllTables', () => {
+describe('QueryInterface#listTables', () => {
+  describe('listTables', () => {
     it('should show all tables', async () => {
       await queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
       await queryInterface.createTable('my_test_table2', { name: DataTypes.STRING });
-      const allTables = await queryInterface.showAllTables();
+      const allTables = await queryInterface.listTables();
       const tableNames = allTables.map(v => v.tableName);
 
       expect(tableNames).to.deep.equal(['my_test_table1', 'my_test_table2']);
@@ -39,7 +39,7 @@ describe('QueryInterface#showAllTables', () => {
       await cleanup();
       const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${['db2', 'ibmi'].includes(dialectName) ? ' FROM SYSIBM.SYSDUMMY1' : ''};`;
       await sequelize.queryRaw(sql);
-      const allTables = await queryInterface.showAllTables();
+      const allTables = await queryInterface.listTables();
       const tableNames = allTables.map(v => v.tableName);
       await cleanup();
 
@@ -55,7 +55,7 @@ describe('QueryInterface#showAllTables', () => {
         await testSequelize.queryInterface.createTable('my_test_table2', { id: DataTypes.INTEGER });
         await testSequelize.close();
 
-        const allTables = await queryInterface.showAllTables();
+        const allTables = await queryInterface.listTables();
         const tableNames = allTables.map(v => v.tableName);
         await queryInterface.dropDatabase('dummy_db');
 
@@ -69,7 +69,7 @@ describe('QueryInterface#showAllTables', () => {
         // In MariaDB and MySQL, schema and database are the same thing
         await queryInterface.createSchema('dummy_db');
         await queryInterface.createTable({ tableName: 'my_test_table2', schema: 'dummy_db' }, { name: DataTypes.STRING });
-        const allTables = await queryInterface.showAllTables();
+        const allTables = await queryInterface.listTables();
 
         expect(allTables).to.deep.equal([
           { tableName: 'my_test_table2', schema: 'dummy_db' },
@@ -86,7 +86,7 @@ describe('QueryInterface#showAllTables', () => {
         await queryInterface.createSchema('my_test_schema');
         await queryInterface.createTable({ tableName: 'my_test_table2', schema: 'my_test_schema' }, { name: DataTypes.STRING });
         await queryInterface.createTable({ tableName: 'my_test_table3', schema: 'my_test_schema' }, { name: DataTypes.STRING });
-        const allTables = await queryInterface.showAllTables({ schema: 'my_test_schema' });
+        const allTables = await queryInterface.listTables({ schema: 'my_test_schema' });
 
         expect(allTables).to.deep.equal([
           { tableName: 'my_test_table2', schema: 'my_test_schema' },
