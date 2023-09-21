@@ -6,7 +6,12 @@ import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
-import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
+import {
+  noSchemaDelimiterParameter,
+  noSchemaParameter,
+  showAllToListSchemas,
+  showAllToListTables,
+} from '../../utils/deprecations';
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
@@ -17,16 +22,19 @@ import type {
   AddConstraintOptions,
   ColumnsDescription,
   ConstraintDescription,
+  CreateDatabaseOptions,
   CreateSchemaOptions,
+  DatabaseDescription,
   DeferConstraintsOptions,
   DescribeTableOptions,
   FetchDatabaseVersionOptions,
+  ListDatabasesOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
-  QiShowAllTablesOptions,
+  QiListSchemasOptions,
+  QiListTablesOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
-  ShowAllSchemasOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
 
@@ -57,6 +65,41 @@ export class AbstractQueryInterfaceTypeScript {
     this.sequelize = sequelize;
     this.queryGenerator = queryGenerator;
     this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+  }
+
+  /**
+   * Create a database
+   *
+   * @param database
+   * @param options
+   */
+  async createDatabase(database: string, options?: CreateDatabaseOptions): Promise<void> {
+    const sql = this.queryGenerator.createDatabaseQuery(database, options);
+
+    await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Drop a database
+   *
+   * @param database
+   * @param options
+   */
+  async dropDatabase(database: string, options?: QueryRawOptions): Promise<void> {
+    const sql = this.queryGenerator.dropDatabaseQuery(database);
+
+    await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Lists all available databases
+   *
+   * @param options
+   */
+  async listDatabases(options?: ListDatabasesOptions): Promise<DatabaseDescription[]> {
+    const sql = this.queryGenerator.listDatabasesQuery(options);
+
+    return this.sequelize.queryRaw<DatabaseDescription>(sql, { ...options, type: QueryTypes.SELECT });
   }
 
   /**
@@ -112,7 +155,7 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Show all defined schemas
+   * List defined schemas
    *
    * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
    * not a database table. In mysql and mariadb, this will show all databases.
@@ -121,7 +164,7 @@ export class AbstractQueryInterfaceTypeScript {
    *
    * @returns list of schemas
    */
-  async showAllSchemas(options?: ShowAllSchemasOptions): Promise<string[]> {
+  async listSchemas(options?: QiListSchemasOptions): Promise<string[]> {
     const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
     const schemaNames = await this.sequelize.queryRaw<{ schema: string }>(showSchemasSql, {
       ...options,
@@ -130,6 +173,18 @@ export class AbstractQueryInterfaceTypeScript {
     });
 
     return schemaNames.map(schemaName => schemaName.schema);
+  }
+
+  /**
+   * Show all defined schemas
+   *
+   * @deprecated Use {@link listSchemas} instead.
+   * @param options
+   */
+  async showAllSchemas(options?: QiListSchemasOptions): Promise<string[]> {
+    showAllToListSchemas();
+
+    return this.listSchemas(options);
   }
 
   /**
@@ -151,7 +206,7 @@ export class AbstractQueryInterfaceTypeScript {
    */
   async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
     const skip = options?.skip || [];
-    const allTables = await this.showAllTables(options);
+    const allTables = await this.listTables(options);
     const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
 
     const dropOptions = { ...options };
@@ -176,14 +231,26 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Show all tables.
+   * List tables
    *
    * @param options
    */
-  async showAllTables(options?: QiShowAllTablesOptions): Promise<TableNameWithSchema[]> {
+  async listTables(options?: QiListTablesOptions): Promise<TableNameWithSchema[]> {
     const sql = this.queryGenerator.listTablesQuery(options);
 
     return this.sequelize.queryRaw<TableNameWithSchema>(sql, { ...options, raw: true, type: QueryTypes.SELECT });
+  }
+
+  /**
+   * Show all tables
+   *
+   * @deprecated Use {@link listTables} instead.
+   * @param options
+   */
+  async showAllTables(options?: QiListTablesOptions): Promise<TableNameWithSchema[]> {
+    showAllToListTables();
+
+    return this.listTables(options);
   }
 
   /**
@@ -495,7 +562,6 @@ export class AbstractQueryInterfaceTypeScript {
    */
   getForeignKeysForTables(_tableNames: TableNameOrModel[], _options?: QueryRawOptions): Error {
     throw new Error(`getForeignKeysForTables has been deprecated. Use showConstraints instead.`);
-
   }
 
   /**

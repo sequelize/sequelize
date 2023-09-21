@@ -243,6 +243,16 @@ export type NormalizeBaseAssociationOptions<T> = Omit<T, 'as' | 'hooks' | 'forei
   foreignKey: ForeignKeyOptions<any>,
 };
 
+export function normalizeInverseAssociation<T extends { as?: unknown }>(
+  inverse: T | string | undefined,
+): T | undefined {
+  if (typeof inverse === 'string') {
+    return { as: inverse } as T;
+  }
+
+  return inverse;
+}
+
 export function normalizeBaseAssociationOptions<T extends AssociationOptions<any>>(
   associationType: AssociationStatic<any>,
   options: T,

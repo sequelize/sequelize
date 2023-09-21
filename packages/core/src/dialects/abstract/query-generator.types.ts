@@ -12,6 +12,20 @@ export interface QueryWithBindParams {
   bind: BindOrReplacements;
 }
 
+// keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface CreateDatabaseQueryOptions {
+  charset?: string;
+  collate?: string;
+  ctype?: string;
+  encoding?: string;
+  template?: string;
+}
+
+// keep LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface ListDatabasesQueryOptions {
+  skip?: string[];
+}
+
 export interface ListSchemasQueryOptions {
   /** List of schemas to exclude from output */
   skip?: string[];

@@ -38,12 +38,6 @@ const { Op } = require('../../operators');
 const sequelizeError = require('../../errors');
 const { _validateIncludedElements } = require('../../model-internals');
 
-/**
- * List of possible options listed in {@link CreateDatabaseQueryOptions}.
- * It is used to validate the options passed to {@link AbstractQueryGenerator#createDatabaseQuery},
- * as not all of them are supported by all dialects.
- */
-export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
 export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'engine', 'rowFormat', 'comment', 'initialAutoIncrement', 'uniqueKeys']);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
@@ -54,30 +48,6 @@ export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
  * @private
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
-  createDatabaseQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but createDatabaseQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
-  dropDatabaseQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but dropDatabaseQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
-  listDatabasesQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but listDatabasesQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
   createSchemaQuery() {
     if (this.dialect.supports.schemas) {
       throw new Error(`${this.dialect.name} declares supporting schema but createSchemaQuery is not implemented.`);

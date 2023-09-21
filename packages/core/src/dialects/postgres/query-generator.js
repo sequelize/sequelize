@@ -7,10 +7,8 @@ import { ENUM } from './data-types';
 import { quoteIdentifier } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 import each from 'lodash/each';
@@ -30,42 +28,12 @@ const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescri
  */
 const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymmetric,authorization,binary,both,case,cast,check,collate,collation,column,concurrently,constraint,create,cross,current_catalog,current_date,current_role,current_schema,current_time,current_timestamp,current_user,default,deferrable,desc,distinct,do,else,end,except,false,fetch,for,foreign,freeze,from,full,grant,group,having,ilike,in,initially,inner,intersect,into,is,isnull,join,lateral,leading,left,like,limit,localtime,localtimestamp,natural,not,notnull,null,offset,on,only,or,order,outer,overlaps,placing,primary,references,returning,right,select,session_user,similar,some,symmetric,table,tablesample,then,to,trailing,true,union,unique,user,using,variadic,verbose,when,where,window,with'.split(',');
 
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['encoding', 'collate', 'ctype', 'template']);
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
-const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['cascade']);
 
 export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   setSearchPath(searchPath) {
     return `SET search_path to ${searchPath};`;
-  }
-
-  createDatabaseQuery(databaseName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createDatabaseQuery',
-        this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    const quotedDatabaseName = this.quoteIdentifier(databaseName);
-    const encoding = options?.encoding ? ` ENCODING = ${this.escape(options.encoding)}` : '';
-    const collation = options?.collate ? ` LC_COLLATE = ${this.escape(options.collate)}` : '';
-    const ctype = options?.ctype ? ` LC_CTYPE = ${this.escape(options.ctype)}` : '';
-    const template = options?.template ? ` TEMPLATE = ${this.escape(options.template)}` : '';
-
-    return `CREATE DATABASE ${quotedDatabaseName}${encoding}${collation}${ctype}${template};`;
-  }
-
-  dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
-  }
-
-  listDatabasesQuery() {
-    return `SELECT datname AS name FROM pg_database;`;
   }
 
   createSchemaQuery(schema, options) {

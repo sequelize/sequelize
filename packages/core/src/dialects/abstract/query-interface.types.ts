@@ -3,13 +3,19 @@ import type { QueryRawOptions } from '../../sequelize';
 import type { CreateSchemaQueryOptions } from './query-generator';
 import type {
   AddConstraintQueryOptions,
+  CreateDatabaseQueryOptions,
   DropTableQueryOptions,
+  ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types';
+
+export interface DatabaseDescription {
+  name: string;
+}
 
 export interface ColumnDescription {
   type: string;
@@ -61,11 +67,17 @@ export interface ConstraintDescription {
   deferrable?: Deferrable;
 }
 
+/** Options accepted by {@link AbstractQueryInterface#createDatabase} */
+export interface CreateDatabaseOptions extends CreateDatabaseQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#listDatabases} */
+export interface ListDatabasesOptions extends ListDatabasesQueryOptions, QueryRawOptions { }
+
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
 
-/** Options accepted by {@link AbstractQueryInterface#showAllSchemas} */
-export interface ShowAllSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
+/** Options accepted by {@link AbstractQueryInterface#listSchemas} */
+export interface QiListSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllSchemas} */
 export interface QiDropAllSchemasOptions extends QueryRawOptions {
@@ -75,8 +87,8 @@ export interface QiDropAllSchemasOptions extends QueryRawOptions {
   skip?: string[];
 }
 
-/** Options accepted by {@link AbstractQueryInterface#showAllTables} */
-export interface QiShowAllTablesOptions extends ListTablesQueryOptions, QueryRawOptions { }
+/** Options accepted by {@link AbstractQueryInterface#listTables} */
+export interface QiListTablesOptions extends ListTablesQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#describeTable} */
 export interface DescribeTableOptions extends QueryRawOptions {

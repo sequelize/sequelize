@@ -58,15 +58,6 @@ type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>,
 };
 
-// keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface CreateDatabaseQueryOptions {
-  collate?: string;
-  charset?: string;
-  encoding?: string;
-  ctype?: string;
-  template?: string;
-}
-
 // keep CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateSchemaQueryOptions {
   collate?: string;
@@ -160,10 +151,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
-
-  createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
-  dropDatabaseQuery(databaseName: string): string;
-  listDatabasesQuery(): string;
 
   /**
    * Creates a function that can be used to collect bind parameters.

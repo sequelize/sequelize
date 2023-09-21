@@ -4,7 +4,8 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: Y
-      SA_PASSWORD: Password12!
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: Password12!
     ports:
       - 22019:1433
     volumes:
