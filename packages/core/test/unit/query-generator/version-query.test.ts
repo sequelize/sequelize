@@ -1,7 +1,7 @@
 import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#versionQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a query that returns the database version', () => {
     expectsql(() => queryGenerator.versionQuery(), {

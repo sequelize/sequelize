@@ -49,6 +49,10 @@ export class MssqlDialect extends AbstractDialect {
       unquoted: true,
       quoted: false,
     },
+    tableHints: true,
+    removeColumn: {
+      ifExists: true,
+    },
   });
 
   readonly connectionManager: MsSqlConnectionManager;

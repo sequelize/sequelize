@@ -32,7 +32,7 @@ const typesDir = path.join(packageDir, 'types');
 
 const [sourceFiles] = await Promise.all([
   // Find all .js and .ts files from /src.
-  glob(`${convertSlashes(sourceDir)}/**/*.{mjs,cjs,js,mts,cts,ts}`, { onlyFiles: true, absolute: false }),
+  glob(`${glob.convertPathToPattern(sourceDir)}/**/*.{mjs,cjs,js,mts,cts,ts}`, { onlyFiles: true, absolute: false }),
   // Delete /lib for a full rebuild.
   rmDir(libDir),
   // Delete /types for a full rebuild.
@@ -65,8 +65,8 @@ await Promise.all([
   build({
     // Adds source mapping
     sourcemap: true,
-    // The compiled code should be usable in node v16
-    target: 'node16',
+    // The compiled code should be usable in node v18
+    target: 'node18',
     // The source code's format is commonjs.
     format: 'cjs',
 
@@ -103,16 +103,4 @@ async function copyFiles(files, fromFolder, toFolder) {
     await fs.mkdir(dir, { recursive: true });
     await fs.copyFile(file, to);
   }));
-}
-
-// On Windows, `fileURLToPath()` returns a path with "back slashes" ("\"),
-// and that's a correct behavior because Windows paths are supposed to be written in that form.
-// But `fast-glob` has an issue with Windows-style paths written with "back slashes" ("\"):
-// https://github.com/mrmlnc/fast-glob/issues/237
-// It doesn't throw any error or provide any indication of the issue.
-// It simply doesn't find any files.
-// To fix that, we manually convert all "back slashes" to "forward slashes"
-// when passing paths to `fast-glob` functions.
-function convertSlashes(fileSystemPath) {
-  return fileSystemPath.replaceAll('\\', '/');
 }

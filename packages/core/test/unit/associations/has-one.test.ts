@@ -40,6 +40,26 @@ describe(getTestDialectTeaser('hasOne'), () => {
     User.hasOne(User, { as: 'mother', inverse: { as: 'child' } });
   });
 
+  it('allows customizing the inverse association name (long form)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.hasMany(Task, { as: 'task', inverse: { as: 'user' } });
+
+    expect(Task.associations.user).to.be.ok;
+    expect(User.associations.task).to.be.ok;
+  });
+
+  it('allows customizing the inverse association name (shorthand)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.hasMany(Task, { as: 'task', inverse: 'user' });
+
+    expect(Task.associations.user).to.be.ok;
+    expect(User.associations.task).to.be.ok;
+  });
+
   it('does not use `as` option to generate foreign key name', () => {
     // See HasOne.inferForeignKey for explanations as to why "as" is not used when inferring the foreign key.
     const User = sequelize.define('User', { username: DataTypes.STRING });

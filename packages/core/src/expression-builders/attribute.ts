@@ -6,7 +6,7 @@ import type { DialectAwareFn } from './dialect-aware-fn.js';
 import type { JsonPath } from './json-path.js';
 
 /**
- * Use {@link @sequelize/core.attribute} instead.
+ * Use {@link attribute} instead.
  */
 export class Attribute extends BaseSqlExpression {
   declare private readonly brand: 'attribute';

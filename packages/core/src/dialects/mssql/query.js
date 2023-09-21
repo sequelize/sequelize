@@ -186,10 +186,6 @@ export class MsSqlQuery extends AbstractQuery {
       return [this.instance || data, rowCount];
     }
 
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
-    }
-
     if (this.isDescribeQuery()) {
       const result = {};
       for (const _result of data) {
@@ -245,10 +241,6 @@ export class MsSqlQuery extends AbstractQuery {
       return data[0] ? data[0].AFFECTEDROWS : 0;
     }
 
-    if (this.isForeignKeysQuery()) {
-      return data;
-    }
-
     if (this.isUpsertQuery()) {
       // if this was an upsert and no data came back, that means the record exists, but the update was a noop.
       // return the current instance and mark it as an "not an insert".
@@ -276,24 +268,11 @@ export class MsSqlQuery extends AbstractQuery {
     return data;
   }
 
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => {
-      return {
-        tableName: resultSet.TABLE_NAME,
-        schema: resultSet.TABLE_SCHEMA,
-      };
-    });
-  }
-
   formatError(err) {
     let match;
 
-    // TODO: err can be an AggregateError. When that happens, we must throw an AggregateError too instead of throwing only the second error,
-    //  or we lose important information
-
-    match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'. Cannot insert duplicate key in object '.*'\.(:? The duplicate key value is \((.*)\).)?/s);
+    match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'\. Cannot insert duplicate key in object '.*'\.(:? The duplicate key value is \((.*)\).)?/s);
     match = match || err.message.match(/Cannot insert duplicate key row in object .* with unique index '(.*)'\.(:? The duplicate key value is \((.*)\).)?/s);
-
     if (match && match.length > 1) {
       let fields = {};
       const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === match[1]);
@@ -325,65 +304,54 @@ export class MsSqlQuery extends AbstractQuery {
         ));
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
+      const uniqueConstraintError = new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
+      if (err.errors?.length > 0) {
+        return new sequelizeErrors.AggregateError([...err.errors, uniqueConstraintError]);
+      }
+
+      return uniqueConstraintError;
     }
 
-    match = err.message.match(/Failed on step '(.*)'.Could not create constraint. See previous errors./)
-      || err.message.match(/The DELETE statement conflicted with the REFERENCE constraint "(.*)". The conflict occurred in database "(.*)", table "(.*)", column '(.*)'./)
-      || err.message.match(/The (?:INSERT|MERGE|UPDATE) statement conflicted with the FOREIGN KEY constraint "(.*)". The conflict occurred in database "(.*)", table "(.*)", column '(.*)'./);
-    if (match && match.length > 0) {
-      return new sequelizeErrors.ForeignKeyConstraintError({
-        fields: null,
+    match = err.message.match(/The (?:DELETE|INSERT|MERGE|UPDATE) statement conflicted with the (?:FOREIGN KEY|REFERENCE) constraint "(.*)"\. The conflict occurred in database "(.*)", table "(.*)", column '(.*)'\./);
+    if (match && match.length > 1) {
+      const fkConstraintError = new sequelizeErrors.ForeignKeyConstraintError({
         index: match[1],
         cause: err,
+        table: match[3],
+        fields: [match[4]],
       });
-    }
 
-    if (err.errors) {
-      for (const error of err.errors) {
-        match = error.message.match(/Could not create constraint or index. See previous errors./);
-        if (match && match.length > 0) {
-          return new sequelizeErrors.ForeignKeyConstraintError({
-            fields: null,
-            index: match[1],
-            cause: error,
-          });
-        }
+      if (err.errors?.length > 0) {
+        return new sequelizeErrors.AggregateError([...err.errors, fkConstraintError]);
       }
+
+      return fkConstraintError;
     }
 
-    match = err.message.match(/Could not drop constraint. See previous errors./);
-    if (match && match.length > 0) {
-      let constraint = err.sql.match(/(?:constraint|index) \[(.+?)]/i);
-      constraint = constraint ? constraint[1] : undefined;
-      let table = err.sql.match(/table \[(.+?)]/i);
-      table = table ? table[1] : undefined;
-
-      return new sequelizeErrors.UnknownConstraintError({
-        message: match[1],
-        constraint,
-        table,
-        cause: err,
-      });
-    }
-
-    if (err.errors) {
-      for (const error of err.errors) {
-        match = error.message.match(/Could not drop constraint. See previous errors./);
+    if (err.errors?.length > 0) {
+      let firstError;
+      for (const [index, error] of err.errors.entries()) {
+        match = error.message.match(/Could not (?:create|drop) constraint(?: or index)?\. See previous errors\./);
         if (match && match.length > 0) {
           let constraint = err.sql.match(/(?:constraint|index) \[(.+?)]/i);
           constraint = constraint ? constraint[1] : undefined;
           let table = err.sql.match(/table \[(.+?)]/i);
           table = table ? table[1] : undefined;
 
-          return new sequelizeErrors.UnknownConstraintError({
-            message: match[1],
+          firstError = new sequelizeErrors.UnknownConstraintError({
+            message: err.errors[index - 1].message,
             constraint,
             table,
-            cause: error,
+            cause: err,
           });
         }
       }
+
+      if (firstError) {
+        return new sequelizeErrors.AggregateError([...err.errors, firstError]);
+      }
+
+      return new sequelizeErrors.AggregateError(err.errors);
     }
 
     return new sequelizeErrors.DatabaseError(err);

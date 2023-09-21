@@ -160,7 +160,7 @@ export class BelongsTo<
         ? (normalizeReference(existingForeignKey.references) ?? existingForeignKey.references) as AttributeReferencesOptions
         : undefined;
 
-      const queryGenerator = this.source.sequelize.getQueryInterface().queryGenerator;
+      const queryGenerator = this.source.sequelize.queryGenerator;
 
       const existingReferencedTable = existingReference?.table
         ? queryGenerator.extractTableDetails(existingReference.table)

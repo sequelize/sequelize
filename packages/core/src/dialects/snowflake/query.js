@@ -142,10 +142,6 @@ export class SnowflakeQuery extends AbstractQuery {
       return this.handleSelectQuery(data);
     }
 
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
-    }
-
     if (this.isDescribeQuery()) {
       result = {};
 
@@ -174,10 +170,6 @@ export class SnowflakeQuery extends AbstractQuery {
 
     if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery()) {
       return data[0]['number of rows updated'];
-    }
-
-    if (this.isForeignKeysQuery()) {
-      return data;
     }
 
     if (this.isUpsertQuery()) {

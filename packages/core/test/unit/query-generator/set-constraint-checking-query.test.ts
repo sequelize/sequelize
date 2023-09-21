@@ -2,7 +2,7 @@ import { ConstraintChecking } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 const { name } = sequelize.dialect;
-const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+const queryGenerator = sequelize.queryGenerator;
 const notSupportedError = new Error(`Deferrable constraints are not supported by ${name} dialect`);
 
 describe('QueryGenerator#setConstraintCheckingQuery', () => {

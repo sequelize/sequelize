@@ -41,6 +41,10 @@ const dialectSupportsJsonOperations = () => sequelize.dialect.supports.jsonOpera
 const dialectSupportsJsonQuotedExtraction = () => sequelize.dialect.supports.jsonExtraction.quoted;
 const dialectSupportsJsonUnquotedExtraction = () => sequelize.dialect.supports.jsonExtraction.unquoted;
 
+interface SomeInterface {
+  foo: string;
+}
+
 class TestModel extends Model<InferAttributes<TestModel>> {
   declare intAttr1: number;
   declare intAttr2: number;
@@ -63,6 +67,9 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare aliasedInt: number;
   declare aliasedJsonAttr: object;
   declare aliasedJsonbAttr: object;
+
+  declare jsonbTypeLiteralAttr: { foo: string };
+  declare jsonbInterfaceAttr: SomeInterface;
 
   declare uuidAttr: string;
 }
@@ -96,6 +103,8 @@ TestModel.init({
   ...(dialectSupportsJsonB() && {
     jsonbAttr: { type: DataTypes.JSONB },
     aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
+    jsonbTypeLiteralAttr: { type: DataTypes.JSONB },
+    jsonbInterfaceAttr: { type: DataTypes.JSONB },
   }),
 
   uuidAttr: DataTypes.UUID,
@@ -238,6 +247,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       for (const [arrayOperator, arraySqlOperator] of arrayOperators) {
         testSql({ [attributeName]: { [operator]: { [arrayOperator]: testWithValues } } }, {
           default: `[${attributeName}] ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}])`,
+          postgres: `"${attributeName}" ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}]${attributeName === 'stringAttr' ? '::VARCHAR(255)[]' : ''})`,
         });
 
         testSql({ [attributeName]: { [operator]: { [arrayOperator]: literal('literal') } } }, {
@@ -2030,7 +2040,7 @@ Caused by: "undefined" cannot be escaped`),
           });
 
           testSql({ 'jsonAttr.nested.twice': 'value' }, {
-            postgres: `"jsonAttr"#>ARRAY['nested','twice'] = '"value"'`,
+            postgres: `"jsonAttr"#>ARRAY['nested','twice']::VARCHAR(255)[] = '"value"'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
@@ -2048,7 +2058,7 @@ Caused by: "undefined" cannot be escaped`),
           testSql({
             'jsonAttr.nested': { twice: 'value' },
           }, {
-            postgres: `"jsonAttr"#>ARRAY['nested','twice'] = '"value"'`,
+            postgres: `"jsonAttr"#>ARRAY['nested','twice']::VARCHAR(255)[] = '"value"'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
@@ -2108,7 +2118,7 @@ Caused by: "undefined" cannot be escaped`),
           testSql({
             '$association.jsonAttr$.nested.deep::STRING': 'value',
           }, {
-            postgres: `CAST("association"."jsonAttr"#>ARRAY['nested','deep'] AS STRING) = 'value'`,
+            postgres: `CAST("association"."jsonAttr"#>ARRAY['nested','deep']::VARCHAR(255)[] AS STRING) = 'value'`,
             mariadb: `CAST(json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep')) AS STRING) = 'value'`,
             'sqlite mysql': `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep') AS STRING) = 'value'`,
           });
@@ -2122,7 +2132,7 @@ Caused by: "undefined" cannot be escaped`),
           });
 
           testSql({ 'jsonAttr.nested.attribute': 4 }, {
-            postgres: `"jsonAttr"#>ARRAY['nested','attribute'] = '4'`,
+            postgres: `"jsonAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] = '4'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = '4'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.attribute')) = '4'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested.attribute') = CAST('4' AS JSON)`,
@@ -2147,7 +2157,7 @@ Caused by: "undefined" cannot be escaped`),
           });
 
           testSql({ 'jsonAttr.0.attribute': 4 }, {
-            postgres: `"jsonAttr"#>ARRAY['0','attribute'] = '4'`,
+            postgres: `"jsonAttr"#>ARRAY['0','attribute']::VARCHAR(255)[] = '4'`,
             sqlite: `json_extract(\`jsonAttr\`,'$."0".attribute') = '4'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0".attribute')) = '4'`,
             mysql: `json_extract(\`jsonAttr\`,'$."0".attribute') = CAST('4' AS JSON)`,
@@ -2170,7 +2180,7 @@ Caused by: "undefined" cannot be escaped`),
           });
 
           testSql({ 'jsonAttr[0].nested.attribute': 4 }, {
-            postgres: `"jsonAttr"#>ARRAY['0','nested','attribute'] = '4'`,
+            postgres: `"jsonAttr"#>ARRAY['0','nested','attribute']::VARCHAR(255)[] = '4'`,
 
             // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
             sqlite: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = '4'`,
@@ -2180,7 +2190,7 @@ Caused by: "undefined" cannot be escaped`),
 
           // aliases attribute -> column correctly
           testSql({ 'aliasedJsonAttr.nested.attribute': 4 }, {
-            postgres: `"aliased_json"#>ARRAY['nested','attribute'] = '4'`,
+            postgres: `"aliased_json"#>ARRAY['nested','attribute']::VARCHAR(255)[] = '4'`,
             sqlite: `json_extract(\`aliased_json\`,'$.nested.attribute') = '4'`,
             mariadb: `json_compact(json_extract(\`aliased_json\`,'$.nested.attribute')) = '4'`,
             mysql: `json_extract(\`aliased_json\`,'$.nested.attribute') = CAST('4' AS JSON)`,
@@ -2201,7 +2211,7 @@ Caused by: "undefined" cannot be escaped`),
           });
 
           testSql({ 'jsonAttr.nested.key:unquote': 0 }, {
-            postgres: `"jsonAttr"#>>ARRAY['nested','key'] = 0`,
+            postgres: `"jsonAttr"#>>ARRAY['nested','key']::VARCHAR(255)[] = 0`,
             mssql: `JSON_VALUE([jsonAttr], N'$.nested.key') = 0`,
             'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.nested.key')) = 0`,
           });
@@ -2342,7 +2352,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"User"."jsonbAttr"#>ARRAY['nested','attribute'] = '"value"'`,
+          postgres: `"User"."jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] = '"value"'`,
         }, {
           mainAlias: 'User',
         });
@@ -2362,7 +2372,7 @@ Caused by: "undefined" cannot be escaped`),
             [Op.in]: [3, 7],
           },
         }, {
-          postgres: `"jsonbAttr"#>ARRAY['nested','attribute'] IN ('3', '7')`,
+          postgres: `"jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] IN ('3', '7')`,
         });
 
         testSql({
@@ -2394,7 +2404,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"User"."jsonbAttr"#>ARRAY['name','last'] = '"Simpson"' AND "User"."jsonbAttr"->'employment' != '"None"'`,
+          postgres: `"User"."jsonbAttr"#>ARRAY['name','last']::VARCHAR(255)[] = '"Simpson"' AND "User"."jsonbAttr"->'employment' != '"None"'`,
         }, {
           mainAlias: 'User',
         });
@@ -2410,7 +2420,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"jsonbAttr"#>ARRAY['nested','attribute'] > ${queryGen.escape(jsonDt)}`,
+          postgres: `"jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] > ${queryGen.escape(jsonDt)}`,
         });
 
         testSql({
@@ -2420,7 +2430,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"jsonbAttr"#>ARRAY['nested','attribute'] = 'true'`,
+          postgres: `"jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] = 'true'`,
         });
 
         testSql({
@@ -2429,6 +2439,32 @@ Caused by: "undefined" cannot be escaped`),
           },
         }, {
           default: `[jsonbAttr] @> '{"company":"Magnafone"}'`,
+        });
+
+        testSql({
+          jsonbTypeLiteralAttr: { [Op.contains]: { foo: 'bar' } },
+        }, {
+          postgres: '"jsonbTypeLiteralAttr" @> \'{"foo":"bar"}\'',
+        });
+
+        testSql({
+          // @ts-expect-error -- key `bad` isn't known
+          jsonbTypeLiteralAttr: { [Op.contains]: { bad: 'bad' } },
+        }, {
+          postgres: '"jsonbTypeLiteralAttr" @> \'{"bad":"bad"}\'',
+        });
+
+        testSql({
+          jsonbInterfaceAttr: { [Op.contains]: { foo: 'bar' } },
+        }, {
+          postgres: '"jsonbInterfaceAttr" @> \'{"foo":"bar"}\'',
+        });
+
+        testSql({
+          // @ts-expect-error -- key `bad` isn't known
+          jsonbInterfaceAttr: { [Op.contains]: { bad: 'bad' } },
+        }, {
+          postgres: '"jsonbInterfaceAttr" @> \'{"bad":"bad"}\'',
         });
 
         // aliases correctly

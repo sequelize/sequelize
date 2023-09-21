@@ -392,53 +392,6 @@ if (dialect === 'mysql') {
           needsSequelize: true,
         },
       ],
-
-      selectFromTableFragment: [
-        {
-          arguments: [{}, null, ['*'], '`Project`'],
-          expectation: 'SELECT * FROM `Project`',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` USE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` FORCE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.IGNORE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` IGNORE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` USE INDEX (`index_project_on_name`,`index_project_on_name_and_foo`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: 'FOO', values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project`',
-        },
-      ],
     };
 
     each(suites, (tests, suiteTitle) => {
@@ -462,7 +415,7 @@ if (dialect === 'mysql') {
               }
             }
 
-            const queryGenerator = sequelize.queryInterface.queryGenerator;
+            const queryGenerator = sequelize.queryGenerator;
 
             const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);

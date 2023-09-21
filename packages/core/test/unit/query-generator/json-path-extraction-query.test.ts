@@ -6,7 +6,7 @@ const dialectName = dialect.name;
 const notSupportedError = new Error(`JSON Paths are not supported in ${dialectName}.`);
 
 describe('QueryGenerator#jsonPathExtractionQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   if (dialect.supports.jsonExtraction.quoted) {
     it('creates a json extract operation (object)', () => {
@@ -34,7 +34,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         default: notSupportedError,
         mariadb: `json_compact(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
         'mysql sqlite': `json_extract(\`profile\`,'$.id.username[0]."0".name')`,
-        postgres: `"profile"#>ARRAY['id','username','0','0','name']`,
+        postgres: `"profile"#>ARRAY['id','username','0','0','name']::VARCHAR(255)[]`,
       });
     });
 
@@ -44,7 +44,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         mysql: `json_extract(\`profile\`,'$."\\\\""."\\'"."$"')`,
         mariadb: `json_compact(json_extract(\`profile\`,'$."\\\\""."\\'"."$"'))`,
         sqlite: `json_extract(\`profile\`,'$."\\""."''"."$"')`,
-        postgres: `"profile"#>ARRAY['"','''','$']`,
+        postgres: `"profile"#>ARRAY['"','''','$']::VARCHAR(255)[]`,
       });
     });
   }
@@ -75,7 +75,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         default: notSupportedError,
         mssql: `JSON_VALUE([profile], N'$.id.username[0]."0".name')`,
         'mysql mariadb sqlite': `json_unquote(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
-        postgres: `"profile"#>>ARRAY['id','username','0','0','name']`,
+        postgres: `"profile"#>>ARRAY['id','username','0','0','name']::VARCHAR(255)[]`,
       });
     });
   }

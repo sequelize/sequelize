@@ -7,7 +7,7 @@ const Support = require('./support');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
-const queryGenerator = Support.sequelize.queryInterface.queryGenerator;
+const queryGenerator = Support.sequelize.queryGenerator;
 
 describe(Support.getTestDialectTeaser('Timezone'), () => {
   if (!dialect.supports.globalTimeZoneConfig) {

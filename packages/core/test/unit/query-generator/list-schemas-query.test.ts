@@ -1,4 +1,3 @@
-import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
@@ -6,31 +5,31 @@ const dialectName = getTestDialect();
 const notSupportedError = new Error(`Schemas are not supported in ${dialectName}.`);
 
 describe('QueryGenerator#listSchemasQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a query used to list schemas in supported dialects', () => {
     expectsql(() => queryGenerator.listSchemasQuery(), {
-      mariadb: `SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema');`,
-      mysql: `SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys');`,
-      mssql: `SELECT "name" as "schema_name" FROM sys.schemas as s WHERE "s"."name" NOT IN (N'INFORMATION_SCHEMA', N'dbo', N'guest', N'sys', N'archive') AND "s"."name" NOT LIKE 'db_%'`,
-      postgres: `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('information_schema', 'public');`,
-      ibmi: 'SELECT DISTINCT SCHEMA_NAME AS "schema_name" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER',
-      db2: `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN ('NULLID', 'SQLJ', 'ERRORSCHEMA');`,
-      snowflake: `SHOW SCHEMAS;`,
+      db2: `SELECT SCHEMANAME AS "schema" FROM SYSCAT.SCHEMATA WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN ('ERRORSCHEMA', 'NULLID', 'SQLJ')`,
+      ibmi: `SELECT DISTINCT SCHEMA_NAME AS "schema" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER AND SCHEMA_NAME NOT LIKE 'Q%' AND SCHEMA_NAME NOT LIKE 'SYS%'`,
+      mssql: `SELECT [name] AS [schema] FROM sys.schemas WHERE [name] NOT IN (N'dbo', N'guest', N'db_accessadmin', N'db_backupoperator', N'db_datareader', N'db_datawriter', N'db_ddladmin', N'db_denydatareader', N'db_denydatawriter', N'db_owner', N'db_securityadmin', N'INFORMATION_SCHEMA', N'sys')`,
+      mysql: `SELECT SCHEMA_NAME AS \`schema\` FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys')`,
+      mariadb: `SELECT SCHEMA_NAME AS \`schema\` FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys')`,
       sqlite: notSupportedError,
+      postgres: `SELECT schema_name AS "schema" FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('public', 'information_schema', 'tiger', 'tiger_data', 'topology')`,
+      snowflake: `SELECT SCHEMA_NAME AS "schema" FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys')`,
     });
   });
 
   it('supports a skip option', () => {
     expectsql(() => queryGenerator.listSchemasQuery({ skip: ['test', 'Te\'st2'] }), {
-      default: buildInvalidOptionReceivedError('listSchemasQuery', dialectName, ['skip']),
-      mariadb: `SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema', 'test', 'Te\\'st2');`,
-      mysql: `SELECT SCHEMA_NAME as schema_name FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys', 'test', 'Te\\'st2');`,
-      mssql: `SELECT "name" as "schema_name" FROM sys.schemas as s WHERE "s"."name" NOT IN (N'INFORMATION_SCHEMA', N'dbo', N'guest', N'sys', N'archive', N'test', N'Te''st2') AND "s"."name" NOT LIKE 'db_%'`,
-      postgres: `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('information_schema', 'public', 'test', 'Te''st2');`,
-      ibmi: `SELECT DISTINCT SCHEMA_NAME AS "schema_name" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER AND SCHEMA_NAME != 'test' AND SCHEMA_NAME != 'Te''st2'`,
-      db2: `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN ('NULLID', 'SQLJ', 'ERRORSCHEMA', 'test', 'Te''st2');`,
+      db2: `SELECT SCHEMANAME AS "schema" FROM SYSCAT.SCHEMATA WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN ('ERRORSCHEMA', 'NULLID', 'SQLJ', 'test', 'Te''st2')`,
+      ibmi: `SELECT DISTINCT SCHEMA_NAME AS "schema" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER AND SCHEMA_NAME NOT LIKE 'Q%' AND SCHEMA_NAME NOT LIKE 'SYS%' AND SCHEMA_NAME NOT IN ('test', 'Te''st2')`,
+      mssql: `SELECT [name] AS [schema] FROM sys.schemas WHERE [name] NOT IN (N'dbo', N'guest', N'db_accessadmin', N'db_backupoperator', N'db_datareader', N'db_datawriter', N'db_ddladmin', N'db_denydatareader', N'db_denydatawriter', N'db_owner', N'db_securityadmin', N'INFORMATION_SCHEMA', N'sys', N'test', N'Te''st2')`,
+      mysql: `SELECT SCHEMA_NAME AS \`schema\` FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys', 'test', 'Te\\'st2')`,
+      mariadb: `SELECT SCHEMA_NAME AS \`schema\` FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys', 'test', 'Te\\'st2')`,
       sqlite: notSupportedError,
+      postgres: `SELECT schema_name AS "schema" FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('public', 'information_schema', 'tiger', 'tiger_data', 'topology', 'test', 'Te''st2')`,
+      snowflake: `SELECT SCHEMA_NAME AS "schema" FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys', 'test', 'Te''st2')`,
     });
   });
 });

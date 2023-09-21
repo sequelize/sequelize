@@ -764,7 +764,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     let tableExists;
     if (options.force) {
-      await this.drop(options);
+      await this.drop({ ...options, cascade: this.sequelize.dialect.supports.dropTable.cascade || undefined });
       tableExists = false;
     } else {
       tableExists = await this.queryInterface.tableExists(tableName, options);
@@ -780,7 +780,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (tableExists && options.alter) {
       const tableInfos = await Promise.all([
         this.queryInterface.describeTable(tableName, options),
-        this.queryInterface.getForeignKeyReferencesForTable(tableName, options),
+        this.queryInterface.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' }),
       ]);
 
       const columns = tableInfos[0];
@@ -817,24 +817,19 @@ ${associationOwner._getAssociationDebugList()}`);
           // Check foreign keys. If it's a foreign key, it should remove constraint first.
           const references = currentAttribute.references;
           if (currentAttribute.references) {
-            let database = this.sequelize.config.database;
             const schema = tableName.schema;
-            if (schema && this.sequelize.options.dialect === 'mariadb') {
-              // because for mariadb schema is synonym for database
-              database = schema;
-            }
-
+            const database = this.sequelize.config.database;
             const foreignReferenceSchema = currentAttribute.references.table.schema;
             const foreignReferenceTableName = typeof references.table === 'object'
               ? references.table.tableName : references.table;
             // Find existed foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
-              if ((Boolean(constraintName)
-                && foreignKeyReference.tableCatalog === database
+              if ((constraintName
+                && (foreignKeyReference.tableCatalog ? foreignKeyReference.tableCatalog === database : true)
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
                 && foreignKeyReference.referencedTableName === foreignReferenceTableName
-                && foreignKeyReference.referencedColumnName === references.key
+                && foreignKeyReference.referencedColumnNames.includes(references.key)
                 && (foreignReferenceSchema
                     ? foreignKeyReference.referencedTableSchema === foreignReferenceSchema
                     : true)
@@ -889,7 +884,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async drop(options) {
-    return await this.queryInterface.dropTable(this.getTableName(options), options);
+    return await this.queryInterface.dropTable(this, options);
   }
 
   /**
@@ -1700,6 +1695,14 @@ ${associationOwner._getAssociationDebugList()}`);
     // This deletes the instance properties, to un-shadow the getters and setters.
     for (const attributeName of this.modelDefinition.attributes.keys()) {
       delete instance[attributeName];
+    }
+
+    // If there are associations in the instance, we assign them as properties on the instance
+    // so that they can be accessed directly, instead of having to call `get` and `set`.
+    // class properties re-assign them to whatever value was set on the class property (or undefined if none)
+    // so this workaround re-assigns the association after the instance was created.
+    for (const associationName of Object.keys(this.modelDefinition.associations)) {
+      instance[associationName] = instance.getDataValue(associationName);
     }
 
     return instance;
@@ -3532,7 +3535,6 @@ Instead of specifying a Model, either:
 
     const include = this._options.includeMap[key];
     const association = include.association;
-    const accessor = key;
     const primaryKeyAttribute = include.model.primaryKeyAttribute;
     const childOptions = {
       isNewRecord: this.isNewRecord,
@@ -3553,10 +3555,10 @@ Instead of specifying a Model, either:
         }
 
         isEmpty = value && value[primaryKeyAttribute] === null || value === null;
-        this[accessor] = this.dataValues[accessor] = isEmpty ? null : include.model.build(value, childOptions);
+        this[key] = this.dataValues[key] = isEmpty ? null : include.model.build(value, childOptions);
       } else {
         isEmpty = value[0] && value[0][primaryKeyAttribute] === null;
-        this[accessor] = this.dataValues[accessor] = isEmpty ? [] : include.model.bulkBuild(value, childOptions);
+        this[key] = this.dataValues[key] = isEmpty ? [] : include.model.bulkBuild(value, childOptions);
       }
     }
   }

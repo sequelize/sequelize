@@ -37,7 +37,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "files": [
     "lib",
@@ -66,21 +66,20 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.5",
-    "@types/chai-as-promised": "7.1.5",
+    "@types/chai": "4.3.6",
+    "@types/chai-as-promised": "7.1.6",
     "@types/chai-datetime": "0.0.37",
-    "@types/ibm_db": "2.0.12",
-    "@types/lodash": "4.14.195",
+    "@types/ibm_db": "2.0.13",
+    "@types/lodash": "4.14.198",
     "@types/mocha": "10.0.1",
     "@types/pg": "8.10.2",
-    "@types/semver": "7.5.0",
-    "@types/sinon": "10.0.15",
+    "@types/semver": "7.5.2",
+    "@types/sinon": "10.0.16",
     "@types/sinon-chai": "3.2.9",
     "@types/snowflake-sdk": "1.6.13",
-    "@types/tedious": "4.0.9",
-    "@types/uuid": "9.0.2",
-    "bnf-parser": "4.0.4",
-    "chai": "4.3.7",
+    "@types/tedious": "4.0.12",
+    "@types/uuid": "9.0.4",
+    "chai": "4.3.8",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
     "delay": "5.0.0",
@@ -88,23 +87,23 @@
     "fs-jetpack": "5.1.0",
     "ibm_db": "3.2.1",
     "lcov-result-merger": "4.1.0",
-    "mariadb": "3.2.0",
+    "mariadb": "3.2.1",
     "mocha": "10.2.0",
     "moment": "2.29.4",
-    "mysql2": "3.5.2",
+    "mysql2": "3.6.1",
     "nyc": "15.1.0",
     "odbc": "2.4.8",
     "p-map": "4.0.0",
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
     "p-timeout": "4.1.0",
-    "pg": "8.11.1",
+    "pg": "8.11.3",
     "rimraf": "5.0.1",
-    "sinon": "15.2.0",
+    "sinon": "16.0.0",
     "sinon-chai": "3.7.0",
-    "snowflake-sdk": "1.6.23",
+    "snowflake-sdk": "1.8.0",
     "sqlite3": "5.1.6",
-    "tedious": "16.2.0"
+    "tedious": "16.4.0"
   },
   "peerDependenciesMeta": {
     "ibm_db": {

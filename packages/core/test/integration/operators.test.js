@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
         timestamps: false,
       });
 
-      await this.sequelize.getQueryInterface().createTable('users', {
+      await this.sequelize.queryInterface.createTable('users', {
         userId: {
           type: DataTypes.INTEGER,
           allowNull: false,

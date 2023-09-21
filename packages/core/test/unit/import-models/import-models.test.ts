@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import glob from 'fast-glob';
 import type { ModelStatic } from '@sequelize/core';
 import { importModels } from '@sequelize/core';
 // @ts-expect-error -- commonjs file
@@ -7,7 +8,7 @@ import Node from './models/node.abstract';
 import User from './models/user';
 
 describe('importModels', () => {
-  const dirname = __dirname.replaceAll('\\', '/');
+  const dirname = glob.convertPathToPattern(__dirname);
 
   it('can import models using a single glob path', async () => {
     const models = await importModels(`${dirname}/models/*.{ts,js}`);

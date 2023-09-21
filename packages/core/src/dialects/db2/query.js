@@ -247,9 +247,7 @@ export class Db2Query extends AbstractQuery {
       }
     }
 
-    if (this.isShowTablesQuery()) {
-      result = data;
-    } else if (this.isDescribeQuery()) {
+    if (this.isDescribeQuery()) {
       result = {};
       for (const _result of data) {
         if (_result.Default) {
@@ -283,8 +281,6 @@ export class Db2Query extends AbstractQuery {
       result = data.length;
     } else if (this.isBulkDeleteQuery()) {
       result = rowCount;
-    } else if (this.isForeignKeysQuery()) {
-      result = data;
     } else if (this.isInsertQuery() || this.isUpdateQuery()) {
       result = [result, rowCount];
     } else if (this.isShowConstraintsQuery()) {
@@ -297,15 +293,6 @@ export class Db2Query extends AbstractQuery {
     }
 
     return result;
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => {
-      return {
-        tableName: resultSet.TABLE_NAME,
-        schema: resultSet.TABLE_SCHEMA,
-      };
-    });
   }
 
   formatError(err, conn, parameters) {
@@ -372,10 +359,15 @@ export class Db2Query extends AbstractQuery {
       || err.message.match(/SQL0530N/)
       || err.message.match(/SQL0531N/);
     if (match && match.length > 0) {
+      const data = err.message.match(/(?:"([\w.]+)")/);
+      const constraintData = data && data.length > 0 ? data[1] : undefined;
+      const [, table, constraint] = constraintData.split('.');
+
       return new sequelizeErrors.ForeignKeyConstraintError({
         fields: null,
-        index: match[1],
+        index: constraint,
         cause: err,
+        table,
       });
     }
 

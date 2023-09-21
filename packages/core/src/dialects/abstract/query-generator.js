@@ -6,7 +6,6 @@ import { Col } from '../../expression-builders/col.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
-import { rejectInvalidOptions } from '../../utils/check';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
@@ -37,21 +36,11 @@ const { BelongsToMany } = require('../../associations/belongs-to-many');
 const { HasMany } = require('../../associations/has-many');
 const { Op } = require('../../operators');
 const sequelizeError = require('../../errors');
-const { IndexHints } = require('../../index-hints');
 const { _validateIncludedElements } = require('../../model-internals');
 
-/**
- * List of possible options listed in {@link CreateDatabaseQueryOptions}.
- * It is used to validate the options passed to {@link AbstractQueryGenerator#createDatabaseQuery},
- * as not all of them are supported by all dialects.
- */
-export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
 export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
-export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS = new Set(['skip']);
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'engine', 'rowFormat', 'comment', 'initialAutoIncrement', 'uniqueKeys']);
-export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['cascade']);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
-export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
 
 /**
  * Abstract Query Generator
@@ -59,30 +48,6 @@ export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
  * @private
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
-  createDatabaseQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but createDatabaseQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
-  dropDatabaseQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but dropDatabaseQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
-  listDatabasesQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but listDatabasesQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
   createSchemaQuery() {
     if (this.dialect.supports.schemas) {
       throw new Error(`${this.dialect.name} declares supporting schema but createSchemaQuery is not implemented.`);
@@ -97,30 +62,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  listSchemasQuery() {
-    if (this.dialect.supports.schemas) {
-      throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);
-    }
-
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  dropTableQuery(tableName, options) {
-    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
-
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)};`;
   }
 
   renameTableQuery(before, after) {
@@ -1041,8 +982,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     mainTable.quotedAs = mainTable.as && this.quoteIdentifier(mainTable.as);
 
-    mainTable.quotedName = !Array.isArray(mainTable.name) ? this.quoteTable(mainTable.name) : tableName.map(t => {
-      return Array.isArray(t) ? this.quoteTable(t[0], t[1]) : this.quoteTable(t, true);
+    mainTable.quotedName = !Array.isArray(mainTable.name) ? this.quoteTable(mainTable.name, { ...options, alias: mainTable.as ?? false }) : tableName.map(t => {
+      return Array.isArray(t) ? this.quoteTable(t[0], { ...options, alias: t[1] }) : this.quoteTable(t, { ...options, alias: true });
     }).join(', ');
 
     const mainModelDefinition = mainTable.model?.modelDefinition;
@@ -1668,7 +1609,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     return {
       join: include.required ? 'INNER JOIN' : include.right && this.dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN',
-      body: this.quoteTable(tableRight, asRight),
+      body: this.quoteTable(tableRight, { ...topLevelInfo.options, ...include, alias: asRight }),
       condition: joinOn,
       attributes: {
         main: [],
@@ -1835,7 +1776,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
-    joinBody = `( ${this.quoteTable(throughTable, throughAs)} INNER JOIN ${this.quoteTable(include.model.getTableName(), includeAs.internalAs)} ON ${targetJoinOn}`;
+    joinBody = `( ${this.quoteTable(throughTable, { ...topLevelInfo.options, ...include, alias: throughAs })} INNER JOIN ${this.quoteTable(include.model.getTableName(), { ...topLevelInfo.options, ...include, alias: includeAs.internalAs })} ON ${targetJoinOn}`;
     if (throughWhere) {
       joinBody += ` AND ${throughWhere}`;
     }
@@ -2076,16 +2017,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     fragment += this._getBeforeSelectAttributesFragment(options);
     fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
-    if (mainTableAs) {
+    if (options.groupedLimit) {
       fragment += ` AS ${mainTableAs}`;
-    }
-
-    if (options.indexHints && this.dialect.supports.indexHints) {
-      for (const hint of options.indexHints) {
-        if (IndexHints[hint.type]) {
-          fragment += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifiers(indexName)).join(',')})`;
-        }
-      }
     }
 
     return fragment;

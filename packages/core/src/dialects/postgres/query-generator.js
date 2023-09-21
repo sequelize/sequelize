@@ -7,10 +7,8 @@ import { ENUM } from './data-types';
 import { quoteIdentifier } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 import each from 'lodash/each';
@@ -30,42 +28,12 @@ const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescri
  */
 const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymmetric,authorization,binary,both,case,cast,check,collate,collation,column,concurrently,constraint,create,cross,current_catalog,current_date,current_role,current_schema,current_time,current_timestamp,current_user,default,deferrable,desc,distinct,do,else,end,except,false,fetch,for,foreign,freeze,from,full,grant,group,having,ilike,in,initially,inner,intersect,into,is,isnull,join,lateral,leading,left,like,limit,localtime,localtimestamp,natural,not,notnull,null,offset,on,only,or,order,outer,overlaps,placing,primary,references,returning,right,select,session_user,similar,some,symmetric,table,tablesample,then,to,trailing,true,union,unique,user,using,variadic,verbose,when,where,window,with'.split(',');
 
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['encoding', 'collate', 'ctype', 'template']);
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
-const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['cascade']);
 
 export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   setSearchPath(searchPath) {
     return `SET search_path to ${searchPath};`;
-  }
-
-  createDatabaseQuery(databaseName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createDatabaseQuery',
-        this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    const quotedDatabaseName = this.quoteIdentifier(databaseName);
-    const encoding = options?.encoding ? ` ENCODING = ${this.escape(options.encoding)}` : '';
-    const collation = options?.collate ? ` LC_COLLATE = ${this.escape(options.collate)}` : '';
-    const ctype = options?.ctype ? ` LC_CTYPE = ${this.escape(options.ctype)}` : '';
-    const template = options?.template ? ` TEMPLATE = ${this.escape(options.template)}` : '';
-
-    return `CREATE DATABASE ${quotedDatabaseName}${encoding}${collation}${ctype}${template};`;
-  }
-
-  dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
-  }
-
-  listDatabasesQuery() {
-    return `SELECT datname AS name FROM pg_database;`;
   }
 
   createSchemaQuery(schema, options) {
@@ -84,15 +52,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
   dropSchemaQuery(schema) {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
-  }
-
-  listSchemasQuery(options) {
-    const schemasToSkip = ['information_schema', 'public'];
-    if (options?.skip) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return `SELECT schema_name FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -164,33 +123,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `CREATE TABLE IF NOT EXISTS ${quotedTable} (${attributesClause})${comments}${columnComments};`;
   }
 
-  dropTableQuery(tableName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}${options?.cascade ? ' CASCADE' : ''};`;
-  }
-
-  showTablesQuery() {
-    const schema = this.options.schema || 'public';
-
-    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`;
-  }
-
-  tableExistsQuery(tableName) {
-    const table = tableName.tableName || tableName;
-    const schema = tableName.schema || 'public';
-
-    return `SELECT table_name FROM information_schema.tables WHERE table_schema = ${this.escape(schema)} AND table_name = ${this.escape(table)}`;
-  }
-
   addColumnQuery(table, key, attribute, options) {
     options = options || {};
 
@@ -210,16 +142,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return query;
-  }
-
-  removeColumnQuery(tableName, attributeName, options) {
-    options = options || {};
-
-    const quotedTableName = this.quoteTable(tableName);
-    const quotedAttributeName = this.quoteIdentifier(attributeName);
-    const ifExists = options.ifExists ? ' IF EXISTS' : '';
-
-    return `ALTER TABLE ${quotedTableName} DROP COLUMN ${ifExists} ${quotedAttributeName};`;
   }
 
   changeColumnQuery(tableName, attributes) {
@@ -734,70 +656,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return dataType;
-  }
-
-  /**
-   * Generate common SQL prefix for getForeignKeyReferencesQuery.
-   *
-   * @returns {string}
-   */
-  _getForeignKeyReferencesQueryPrefix() {
-    return 'SELECT '
-      + 'DISTINCT tc.constraint_name as constraint_name, '
-      + 'tc.constraint_schema as constraint_schema, '
-      + 'tc.constraint_catalog as constraint_catalog, '
-      + 'tc.table_name as table_name,'
-      + 'tc.table_schema as table_schema,'
-      + 'tc.table_catalog as table_catalog,'
-      + 'tc.initially_deferred as initially_deferred,'
-      + 'tc.is_deferrable as is_deferrable,'
-      + 'kcu.column_name as column_name,'
-      + 'ccu.table_schema  AS referenced_table_schema,'
-      + 'ccu.table_catalog  AS referenced_table_catalog,'
-      + 'ccu.table_name  AS referenced_table_name,'
-      + 'ccu.column_name AS referenced_column_name '
-      + 'FROM information_schema.table_constraints AS tc '
-      + 'JOIN information_schema.key_column_usage AS kcu '
-      + 'ON tc.constraint_name = kcu.constraint_name '
-      + 'JOIN information_schema.constraint_column_usage AS ccu '
-      + 'ON ccu.constraint_name = tc.constraint_name ';
-  }
-
-  /**
-   * Generates an SQL query that returns all foreign keys details of a table.
-   *
-   * As for getForeignKeyQuery is not compatible with getForeignKeyReferencesQuery, so add a new function.
-   *
-   * @param {string} tableName
-   * @param {string} catalogName
-   * @param {string} schemaName
-   */
-  getForeignKeyReferencesQuery(tableName, catalogName, schemaName) {
-    return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name = '${tableName}'${
-      catalogName ? ` AND tc.table_catalog = '${catalogName}'` : ''
-    }${schemaName ? ` AND tc.table_schema = '${schemaName}'` : ''}`;
-  }
-
-  getForeignKeyReferenceQuery(table, columnName) {
-    const tableName = table.tableName || table;
-    const schema = table.schema;
-
-    return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='${tableName}' AND  kcu.column_name = '${columnName}'${
-      schema ? ` AND tc.table_schema = '${schema}'` : ''}`;
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return `ALTER TABLE ${this.quoteTable(tableName)} DROP CONSTRAINT ${this.quoteIdentifier(foreignKey)};`;
   }
 
   /**

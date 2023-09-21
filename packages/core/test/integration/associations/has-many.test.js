@@ -457,7 +457,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks[0].title).to.equal('b');
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
           await this.sequelize.dropSchema('work');
-          const schemas = await this.sequelize.showAllSchemas();
+          const schemas = await this.sequelize.queryInterface.listSchemas();
           if (['postgres', 'mssql'].includes(dialect) || schemas === 'mariadb') {
             expect(schemas).to.be.empty;
           }
@@ -1099,7 +1099,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           // `WHERE` clause
 
           const tableName = User.getTableName();
-          await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+          await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           const tasks = await Task.findAll();
           expect(tasks).to.have.length(1);
           expect(tasks[0].UserId).to.equal(999);
@@ -1160,7 +1160,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const tableName = User.getTableName();
 
           try {
-            tasks = await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+            tasks = await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           } catch (error) {
             if (!(error instanceof Sequelize.ForeignKeyConstraintError)) {
               throw error;
