@@ -203,6 +203,7 @@ module.exports = {
   ignorePatterns: [
     'packages/*/lib/**/*',
     'packages/*/types/**/*',
+    'packages/core/src/utils/bnf/*',
     '.typedoc-build',
   ],
   env: {

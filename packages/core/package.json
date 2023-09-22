@@ -79,6 +79,7 @@
     "@types/snowflake-sdk": "1.6.13",
     "@types/tedious": "4.0.12",
     "@types/uuid": "9.0.4",
+    "bnf-parser": "4.0.7",
     "chai": "4.3.8",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
@@ -201,7 +202,8 @@
     "test-db2": "cross-env DIALECT=db2 yarn test",
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
-    "build": "node ../../build-packages.mjs core"
+    "build": "yarn build-bnf && node ../../build-packages.mjs core",
+    "build-bnf": "bnf-compile ./src/utils/bnf/"
   },
   "support": true
 }

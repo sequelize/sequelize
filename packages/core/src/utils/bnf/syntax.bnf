@@ -1,7 +1,5 @@
 # After updating this file run:
-#   yarn run build-bnf
-#     or
-#   npx bnf-compile ./packages/core/src/utils/bnf/syntax.bnf
+#   yarn build
 # To update the compiled artifacts
 
 ## Used when parsing the attribute
