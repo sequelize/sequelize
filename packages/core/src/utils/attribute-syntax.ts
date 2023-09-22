@@ -116,6 +116,11 @@ function parseAssociationPath(syntax: AttributeParser.Term_AttributeBegin): Asso
 
   const attr = path.pop()!; // path will be at least 1 long
 
+  // If association has no child identifiers, convert it to an attribute
+  if (path.length === 0) {
+    return new Attribute(attr);
+  }
+
   return new AssociationPath(path, attr);
 }
 
