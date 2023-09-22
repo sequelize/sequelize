@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.32](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.31...v7.0.0-alpha.32) (2023-09-22)
+
+
+### Bug Fixes
+
+* correct automated test execution on Windows ([#16283](https://github.com/sequelize/sequelize/issues/16283)) ([00d6d99](https://github.com/sequelize/sequelize/commit/00d6d996474234af6bf8e5450cfe8a82cbd6503d))
+* rename and deprecate showAllSchemas and showAllTables ([#16500](https://github.com/sequelize/sequelize/issues/16500)) ([db8fde7](https://github.com/sequelize/sequelize/commit/db8fde75f9b160c31efafdc609e0a53bd9ef5af6))
+
+
+
+
+
 # [7.0.0-alpha.31](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.30...v7.0.0-alpha.31) (2023-09-15)
 
 
