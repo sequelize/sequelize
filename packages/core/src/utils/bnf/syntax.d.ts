@@ -43,8 +43,7 @@ export type Term_PartialJsonPath = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		_Literal,
-		{ type: '(...)*', value: Array<Term_JsonAccess>, start: number, end: number, count: number, ref: _Shared.ReferenceRange },
+		{ type: '(...)+', value: [Term_JsonAccess] & Array<Term_JsonAccess>, start: number, end: number, count: number, ref: _Shared.ReferenceRange },
 		{ type: '(...)*', value: Array<Term_Transform>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
 	]
 }

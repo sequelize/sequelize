@@ -13,7 +13,7 @@ attribute ::= attributeBegin jsonAccess* transform* ;
 ##  $association.attribute$ & attribute
 ## It accepts:
 ##  key, "quotedKey", and [0] (index access)
-partialJsonPath ::= ...key jsonAccess* transform* ;
+partialJsonPath ::= jsonAccess+ transform* ;
 
 # Internals
 identifier  ::= ( "A"->"Z"+ | "a"->"z"+ | "0"->"9"+ | "_" )+ ;
