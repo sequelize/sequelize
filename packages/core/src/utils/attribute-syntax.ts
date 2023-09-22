@@ -145,8 +145,8 @@ function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
     throw new TypeError(`Failed to fully parse syntax of json path. Parse error at index ${parsed.reach?.index || 0}:\n${code}\n${' '.repeat(parsed.reach?.index || 0)}^`);
   }
 
-  const [accesses, transforms] = parsed.root.value;
-  const pathSegments = parseJsonAccesses(accesses.value);
+  const [base, accesses, transforms] = parsed.root.value;
+  const pathSegments = [parseJsonBase(base), ...parseJsonAccesses(accesses.value)];
 
   const castsAndModifiers: Array<string | Class<DialectAwareFn>> = [];
   if (transforms.value.length > 0) {
@@ -167,6 +167,15 @@ function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
   }
 
   return { pathSegments, castsAndModifiers };
+}
+
+function parseJsonBase(node: AttributeParser.Term_JsonBase): string | number {
+  const child = node.value[0];
+  if (child.type === 'indexAccess') {
+    return Number(child.value[0].value);
+  }
+
+  return child.value;
 }
 
 function parseJsonAccesses(nodes: AttributeParser.Term_JsonAccess[]): Array<string | number> {

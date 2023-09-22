@@ -43,12 +43,30 @@ export type Term_PartialJsonPath = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		{ type: '(...)+', value: [Term_JsonAccess] & Array<Term_JsonAccess>, start: number, end: number, count: number, ref: _Shared.ReferenceRange },
+		Term_JsonBase,
+		{ type: '(...)*', value: Array<Term_JsonAccess>, start: number, end: number, count: number, ref: _Shared.ReferenceRange },
 		{ type: '(...)*', value: Array<Term_Transform>, start: number, end: number, count: number, ref: _Shared.ReferenceRange }
 	]
 }
 export declare function Parse_PartialJsonPath (i: string, refMapping?: boolean): _Shared.ParseError | {
 	root: _Shared.SyntaxNode & Term_PartialJsonPath,
+	reachBytes: number,
+	reach: null | _Shared.Reference,
+	isPartial: boolean
+}
+
+export type Term_JsonBase = {
+	type: 'jsonBase',
+	start: number,
+	end: number,
+	count: number,
+	ref: _Shared.ReferenceRange,
+	value: [
+		(Term_IndexAccess | _Literal)
+	]
+}
+export declare function Parse_JsonBase (i: string, refMapping?: boolean): _Shared.ParseError | {
+	root: _Shared.SyntaxNode & Term_JsonBase,
 	reachBytes: number,
 	reach: null | _Shared.Reference,
 	isPartial: boolean
