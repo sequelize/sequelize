@@ -1570,6 +1570,7 @@ __metadata:
     "@ephys/eslint-config-typescript": 19.0.2
     "@rushstack/eslint-patch": 1.4.0
     "@types/node": 20.6.3
+    bnf-parser: ^4.0.7
     chai: 4.3.8
     concurrently: 8.2.1
     cross-env: 7.0.3
@@ -2783,6 +2784,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"binaryen@npm:^113.0.0":
+  version: 113.0.0
+  resolution: "binaryen@npm:113.0.0"
+  bin:
+    wasm-opt: bin/wasm-opt
+    wasm2js: bin/wasm2js
+  checksum: 1068a29b111bb5423749b623a47bb3bc1ef88e8760aa7a0dae5c3dfa6e418eb34763a8688a11cd64b7076c9bb58edab3905c56fab3f3d2a85b3b78b8fff859b1
+  languageName: node
+  linkType: hard
+
 "binascii@npm:0.0.2":
   version: 0.0.2
   resolution: "binascii@npm:0.0.2"
@@ -2842,6 +2853,18 @@ __metadata:
   version: 5.2.1
   resolution: "bn.js@npm:5.2.1"
   checksum: 3dd8c8d38055fedfa95c1d5fc3c99f8dd547b36287b37768db0abab3c239711f88ff58d18d155dd8ad902b0b0cee973747b7ae20ea12a09473272b0201c9edd3
+  languageName: node
+  linkType: hard
+
+"bnf-parser@npm:^4.0.7":
+  version: 4.0.7
+  resolution: "bnf-parser@npm:4.0.7"
+  dependencies:
+    binaryen: ^113.0.0
+    chalk: ^5.3.0
+  bin:
+    bnf-compile: bin/cli.js
+  checksum: 4b0c528ac7f5172aebc0eccbc7dc788bba1070853ae2ae1c6aa8ce5c0198e606f6775178a408d2586685374ac199f887f6dc0472711421796b8c2779bc41275c
   languageName: node
   linkType: hard
 
@@ -3159,7 +3182,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:5.3.0":
+"chalk@npm:5.3.0, chalk@npm:^5.3.0":
   version: 5.3.0
   resolution: "chalk@npm:5.3.0"
   checksum: 623922e077b7d1e9dedaea6f8b9e9352921f8ae3afe739132e0e00c275971bdd331268183b2628cf4ab1727c45ea1f28d7e24ac23ce1db1eb653c414ca8a5a80
