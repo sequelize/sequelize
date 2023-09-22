@@ -64,7 +64,7 @@ function parseAttributeSyntaxInternal(
   // going to be slow once per attribute.
   const parsed = AttributeParser.Parse_Attribute(code, false);
   if (parsed instanceof ParseError) {
-    throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.ref.start.index}:\n${code}\n${' '.repeat(parsed.ref.start.index)}^`);
+    throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.ref.end.index}:\n${code}\n${' '.repeat(parsed.ref.end.index)}^`);
   }
 
   if (parsed.isPartial) {
