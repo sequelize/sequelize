@@ -191,7 +191,7 @@ export type Term_Key = {
 	count: number,
 	ref: _Shared.ReferenceRange,
 	value: [
-		(Term_NonEmptyString | Term_Identifier)
+		(Term_NonEmptyString | { type: '(...)+', value: [(_Literal | _Literal | _Literal | _Literal & {value: "\x5f"} | _Literal & {value: "\x2d"})] & Array<(_Literal | _Literal | _Literal | _Literal & {value: "\x5f"} | _Literal & {value: "\x2d"})>, start: number, end: number, count: number, ref: _Shared.ReferenceRange })
 	]
 }
 export declare function Parse_Key (i: string, refMapping?: boolean): _Shared.ParseError | {

@@ -25,7 +25,7 @@ indexAccess ::= %"[" ...number %"]" ;
 keyAccess   ::= %"." ...key ;
 
 # path segments accept dashes without needing to be quoted
-key ::= nonEmptyString | identifier ;
+key ::= nonEmptyString | ( "A"->"Z"+ | "a"->"z"+ | "0"->"9"+ | "_" | "-" )+ ;
   nonEmptyString ::= ...(%"\"" (anyExceptQuoteOrBackslash | escapedCharacter)+ %"\"") ;
     escapedCharacter          ::= %"\\" ( "\"" | "\\" );
     anyExceptQuoteOrBackslash ::= !("\"" | "\\");
