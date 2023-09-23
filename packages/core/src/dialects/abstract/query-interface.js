@@ -260,6 +260,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param {object} options
    * @private
    */
+  // TODO: rename to "describeColumn"
   async assertTableHasColumn(tableName, columnName, options) {
     const description = await this.describeTable(tableName, options);
     if (description[columnName]) {
