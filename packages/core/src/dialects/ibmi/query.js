@@ -96,10 +96,6 @@ export class IBMiQuery extends AbstractQuery {
       return this.handleSelectQuery(data);
     }
 
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
-    }
-
     if (this.isShowIndexesQuery()) {
       return this.handleShowIndexesQuery(data);
     }
@@ -127,10 +123,6 @@ export class IBMiQuery extends AbstractQuery {
 
     if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery() || this.isUpsertQuery()) {
       return data.count;
-    }
-
-    if (this.isForeignKeysQuery()) {
-      return data;
     }
 
     if (this.isInsertQuery(data)) {

@@ -18,7 +18,7 @@ describe('QueryInterface#update', () => {
 
     const instance = User.build();
 
-    await sequelize.getQueryInterface().update(
+    await sequelize.queryInterface.update(
       instance,
       User.table,
       { firstName: ':name' },
@@ -51,7 +51,7 @@ describe('QueryInterface#update', () => {
 
     const instance = User.build();
 
-    await expect(sequelize.getQueryInterface().update(
+    await expect(sequelize.queryInterface.update(
       instance,
       User.table,
       { firstName: 'newName' },
@@ -69,7 +69,7 @@ describe('QueryInterface#update', () => {
 
     const instance = User.build();
 
-    await sequelize.getQueryInterface().update(
+    await sequelize.queryInterface.update(
       instance,
       User.table,
       { firstName: 'newName' },
@@ -99,7 +99,7 @@ describe('QueryInterface#update', () => {
 
     const instance = User.build();
 
-    await sequelize.getQueryInterface().update(
+    await sequelize.queryInterface.update(
       instance,
       User.table,
       { firstName: 'newName' },

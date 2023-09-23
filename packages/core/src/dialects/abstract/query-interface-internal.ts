@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { QueryTypes } from '../../query-types.js';
-import type { Sequelize } from '../../sequelize.js';
+import type { QueryRawOptions, Sequelize } from '../../sequelize.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { FetchDatabaseVersionOptions } from './query-interface.types.js';
 
@@ -25,5 +25,16 @@ export class AbstractQueryInterfaceInternal {
     assert(out != null);
 
     return out;
+  }
+
+  async executeQueriesSequentially(queries: string[], options?: QueryRawOptions): Promise<unknown> {
+    const results = [];
+    for (const query of queries) {
+      // eslint-disable-next-line no-await-in-loop
+      const result = await this.#sequelize.queryRaw(query, { ...options });
+      results.push(result);
+    }
+
+    return results;
   }
 }

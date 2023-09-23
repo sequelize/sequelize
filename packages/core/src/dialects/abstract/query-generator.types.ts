@@ -12,6 +12,41 @@ export interface QueryWithBindParams {
   bind: BindOrReplacements;
 }
 
+// keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface CreateDatabaseQueryOptions {
+  charset?: string;
+  collate?: string;
+  ctype?: string;
+  encoding?: string;
+  template?: string;
+}
+
+// keep LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface ListDatabasesQueryOptions {
+  skip?: string[];
+}
+
+export interface ListSchemasQueryOptions {
+  /** List of schemas to exclude from output */
+  skip?: string[];
+}
+
+// keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface DropTableQueryOptions {
+  cascade?: boolean;
+}
+
+// Keeep LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface ListTablesQueryOptions {
+  schema?: string;
+}
+
+// keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface RemoveColumnQueryOptions {
+  cascade?: boolean;
+  ifExists?: boolean;
+}
+
 export interface BaseConstraintQueryOptions {
   name?: string;
   type: ConstraintType;
@@ -92,8 +127,11 @@ export interface RemoveConstraintQueryOptions {
   cascade?: boolean;
 }
 
+// keep SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface ShowConstraintsQueryOptions {
+  columnName?: string;
   constraintName?: string;
+  constraintType?: ConstraintType;
 }
 
 export interface AttributeToSqlOptions {

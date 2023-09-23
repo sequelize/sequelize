@@ -16,7 +16,7 @@ describe('QueryInterface#increment', () => {
   it('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().increment(
+    await sequelize.queryInterface.increment(
       User,
       User.table,
       // where

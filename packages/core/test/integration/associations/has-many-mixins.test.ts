@@ -1,6 +1,8 @@
 import { expect } from 'chai';
 import type {
   CreationOptional,
+  HasManyAddAssociationsMixin,
+  HasManyHasAssociationsMixin,
   HasManyRemoveAssociationsMixin,
   HasManySetAssociationsMixin,
   InferAttributes,
@@ -24,6 +26,8 @@ describe('hasMany Mixins', () => {
 
       declare setLabels: HasManySetAssociationsMixin<Label, Label['id']>;
       declare removeLabels: HasManyRemoveAssociationsMixin<Label, Label['id']>;
+      declare hasLabels: HasManyHasAssociationsMixin<Label, Label['id']>;
+      declare addLabels: HasManyAddAssociationsMixin<Label, Label['id']>;
 
       @HasMany(() => NonNullLabel, 'articleId')
       declare nonNullLabels?: NonNullLabel[];
@@ -67,6 +71,23 @@ describe('hasMany Mixins', () => {
       expect(label.articleId).to.beNullish();
 
       await article.setLabels([label]);
+      await label.reload();
+
+      expect(label.articleId).to.equal(article.id);
+    });
+
+    it('supports any iterable', async () => {
+      const { Label, Article } = vars;
+
+      const [article, label] = await Promise.all([
+        Article.create(),
+        Label.create(),
+      ]);
+
+      // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
+      expect(label.articleId).to.beNullish();
+
+      await article.setLabels(new Set([label]));
       await label.reload();
 
       expect(label.articleId).to.equal(article.id);
@@ -140,6 +161,59 @@ describe('hasMany Mixins', () => {
     });
   });
 
+  describe('addAssociations', () => {
+    it('associates target models to the source model', async () => {
+      const { Label, Article } = vars;
+
+      const [article, label] = await Promise.all([
+        Article.create(),
+        Label.create(),
+      ]);
+
+      // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
+      expect(label.articleId).to.beNullish();
+
+      await article.addLabels([label]);
+      await label.reload();
+
+      expect(label.articleId).to.equal(article.id);
+    });
+
+    it('supports any iterable', async () => {
+      const { Label, Article } = vars;
+
+      const [article, label] = await Promise.all([
+        Article.create(),
+        Label.create(),
+      ]);
+
+      // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
+      expect(label.articleId).to.beNullish();
+
+      await article.addLabels(new Set([label]));
+      await label.reload();
+
+      expect(label.articleId).to.equal(article.id);
+    });
+
+    it('supports passing the primary key instead of an object', async () => {
+      const { Label, Article } = vars;
+
+      const [article, label] = await Promise.all([
+        Article.create(),
+        Label.create(),
+      ]);
+
+      // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
+      expect(label.articleId).to.beNullish();
+
+      await article.addLabels([label.id]);
+      await label.reload();
+
+      expect(label.articleId).to.equal(article.id);
+    });
+  });
+
   describe('removeAssociations', () => {
     it('unlinks the target models from the source model', async () => {
       const { Label, Article } = vars;
@@ -150,6 +224,20 @@ describe('hasMany Mixins', () => {
       expect(label.articleId).to.equal(article.id);
 
       await article.removeLabels([label]);
+      await label.reload();
+
+      expect(label.articleId).to.equal(null);
+    });
+
+    it('supports any iterable', async () => {
+      const { Label, Article } = vars;
+
+      const article = await Article.create();
+      const label = await Label.create({ articleId: article.id });
+
+      expect(label.articleId).to.equal(article.id);
+
+      await article.removeLabels(new Set([label]));
       await label.reload();
 
       expect(label.articleId).to.equal(null);
@@ -193,6 +281,35 @@ describe('hasMany Mixins', () => {
       await article.removeNonNullLabels([label]);
 
       expect(await NonNullLabel.count()).to.equal(0);
+    });
+  });
+
+  describe('hasAssociations', () => {
+    it('returns true if the target model is associated to the source model', async () => {
+      const { Label, Article } = vars;
+
+      const article = await Article.create();
+      const label = await Label.create({ articleId: article.id });
+
+      expect(await article.hasLabels([label])).to.equal(true);
+    });
+
+    it('supports any iterable', async () => {
+      const { Label, Article } = vars;
+
+      const article = await Article.create();
+      const label = await Label.create({ articleId: article.id });
+
+      expect(await article.hasLabels(new Set([label]))).to.equal(true);
+    });
+
+    it('supports passing the primary key instead of an object', async () => {
+      const { Label, Article } = vars;
+
+      const article = await Article.create();
+      const label = await Label.create({ articleId: article.id });
+
+      expect(await article.hasLabels([label.id])).to.equal(true);
     });
   });
 });

@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     beforeEach(function () {
-      this.stubUpdate = sinon.stub(current.getQueryInterface(), 'bulkUpdate').resolves([]);
+      this.stubUpdate = sinon.stub(current.queryInterface, 'bulkUpdate').resolves([]);
       this.updates = { name: 'Batman', secretValue: '7' };
       this.cloneUpdates = { ...this.updates };
     });

@@ -51,12 +51,10 @@ if (dialect.startsWith('mssql')) {
 
       await this.sequelize.sync({ force: true });
 
-      const [vyom, shakti, nikita, arya] = await User.bulkCreate([
-        { UserName: 'Vayom' },
-        { UserName: 'Shaktimaan' },
-        { UserName: 'Nikita' },
-        { UserName: 'Aryamaan' },
-      ], { returning: true });
+      const vyom = await User.create({ UserName: 'Vayom' });
+      const shakti = await User.create({ UserName: 'Shaktimaan' });
+      const nikita = await User.create({ UserName: 'Nikita' });
+      const arya = await User.create({ UserName: 'Aryamaan' });
 
       await Promise.all([
         vyom.createLoginLog(),
@@ -191,7 +189,7 @@ if (dialect.startsWith('mssql')) {
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
-      const metadata = await this.sequelize.getQueryInterface().describeTable('_Users');
+      const metadata = await this.sequelize.queryInterface.describeTable('_Users');
       const username = metadata.username;
       expect(username.type).to.include('(MAX)');
     });
@@ -202,7 +200,7 @@ if (dialect.startsWith('mssql')) {
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
-      const metadata = await this.sequelize.getQueryInterface().describeTable('_Users');
+      const metadata = await this.sequelize.queryInterface.describeTable('_Users');
       const username = metadata.username;
       expect(username.type).to.include('(10)');
     });
