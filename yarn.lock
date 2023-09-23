@@ -1602,7 +1602,7 @@ __metadata:
     expect-type: 0.13.0
     fast-glob: ^3.2.12
     fs-jetpack: 5.1.0
-    ibm_db: 3.2.1
+    ibm_db: 3.2.2
     inflection: ^3.0.0
     lcov-result-merger: 4.1.0
     lodash: ^4.17.21
@@ -2785,15 +2785,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^0.26.1":
-  version: 0.26.1
-  resolution: "axios@npm:0.26.1"
-  dependencies:
-    follow-redirects: ^1.14.8
-  checksum: d9eb58ff4bc0b36a04783fc9ff760e9245c829a5a1052ee7ca6013410d427036b1d10d04e7380c02f3508c5eaf3485b1ae67bd2adbfec3683704745c8d7a6e1a
-  languageName: node
-  linkType: hard
-
 "axios@npm:^0.27.2":
   version: 0.27.2
   resolution: "axios@npm:0.27.2"
@@ -2804,7 +2795,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.0.0":
+"axios@npm:^1.0.0, axios@npm:^1.5.0":
   version: 1.5.0
   resolution: "axios@npm:1.5.0"
   dependencies:
@@ -5449,7 +5440,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.8, follow-redirects@npm:^1.14.9, follow-redirects@npm:^1.15.0":
+"follow-redirects@npm:^1.14.9, follow-redirects@npm:^1.15.0":
   version: 1.15.2
   resolution: "follow-redirects@npm:1.15.2"
   peerDependenciesMeta:
@@ -5532,17 +5523,6 @@ __metadata:
     jsonfile: ^6.0.1
     universalify: ^2.0.0
   checksum: fb883c68245b2d777fbc1f2082c9efb084eaa2bbf9fddaa366130d196c03608eebef7fb490541276429ee1ca99f317e2d73e96f5ca0999eefedf5a624ae1edfd
-  languageName: node
-  linkType: hard
-
-"fs-extra@npm:^8.1.0":
-  version: 8.1.0
-  resolution: "fs-extra@npm:8.1.0"
-  dependencies:
-    graceful-fs: ^4.2.0
-    jsonfile: ^4.0.0
-    universalify: ^0.1.0
-  checksum: bf44f0e6cea59d5ce071bba4c43ca76d216f89e402dc6285c128abc0902e9b8525135aa808adad72c9d5d218e9f4bcc63962815529ff2f684ad532172a284880
   languageName: node
   linkType: hard
 
@@ -6311,20 +6291,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:3.2.1":
-  version: 3.2.1
-  resolution: "ibm_db@npm:3.2.1"
+"ibm_db@npm:3.2.2":
+  version: 3.2.2
+  resolution: "ibm_db@npm:3.2.2"
   dependencies:
     adm-zip: ^0.5.10
-    axios: ^0.26.1
+    axios: ^1.5.0
     big-integer: ^1.6.51
     bindings: ^1.5.0
-    fs-extra: ^8.1.0
+    fs-extra: ^11.1.1
     lodash: ^4.17.21
-    nan: ^2.17.0
+    nan: ^2.18.0
     q: ^1.5.1
     targz: ^1.0.1
-  checksum: ebc121b51a079e61bb60e86a7f12c1025806aadb09256997d2aed4959690c0b29b6639d26e34fc2fafbbb15ef0bceaeb164957661516fc6844bb276a1ce92695
+  checksum: 76f5e5f51e3e22f8dba006e1d7f14701f7d814699d02be0dd706f1e897a184a64a67e239ebde16f951474fa34b4e881225c55f0b011314208035430a0aa5731f
   languageName: node
   linkType: hard
 
@@ -7323,18 +7303,6 @@ __metadata:
   version: 3.2.0
   resolution: "jsonc-parser@npm:3.2.0"
   checksum: 946dd9a5f326b745aa326d48a7257e3f4a4b62c5e98ec8e49fa2bdd8d96cef7e6febf1399f5c7016114fd1f68a1c62c6138826d5d90bc650448e3cf0951c53c7
-  languageName: node
-  linkType: hard
-
-"jsonfile@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "jsonfile@npm:4.0.0"
-  dependencies:
-    graceful-fs: ^4.1.6
-  dependenciesMeta:
-    graceful-fs:
-      optional: true
-  checksum: 6447d6224f0d31623eef9b51185af03ac328a7553efcee30fa423d98a9e276ca08db87d71e17f2310b0263fd3ffa6c2a90a6308367f661dc21580f9469897c9e
   languageName: node
   linkType: hard
 
@@ -8570,7 +8538,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.17.0":
+"nan@npm:^2.18.0":
   version: 2.18.0
   resolution: "nan@npm:2.18.0"
   dependencies:
@@ -12300,13 +12268,6 @@ __metadata:
   version: 6.0.0
   resolution: "universal-user-agent@npm:6.0.0"
   checksum: 5092bbc80dd0d583cef0b62c17df0043193b74f425112ea6c1f69bc5eda21eeec7a08d8c4f793a277eb2202ffe9b44bec852fa3faff971234cd209874d1b79ef
-  languageName: node
-  linkType: hard
-
-"universalify@npm:^0.1.0":
-  version: 0.1.2
-  resolution: "universalify@npm:0.1.2"
-  checksum: 40cdc60f6e61070fe658ca36016a8f4ec216b29bf04a55dce14e3710cc84c7448538ef4dad3728d0bfe29975ccd7bfb5f414c45e7b78883567fb31b246f02dff
   languageName: node
   linkType: hard
 
