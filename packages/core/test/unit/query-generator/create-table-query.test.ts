@@ -150,6 +150,20 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
+  it('produces a query to create a table with schema in tableName object and a comment', () => {
+    expectsql(queryGenerator.createTableQuery({ tableName: 'myTable', schema: 'mySchema' }, { myColumn: 'DATE COMMENT Foo' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([myColumn] DATE COMMENT Foo);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`myColumn` DATE COMMENT Foo) ENGINE=InnoDB;',
+      postgres: `CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("myColumn" DATE); COMMENT ON COLUMN "mySchema"."myTable"."myColumn" IS 'Foo';`,
+      mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = N'mySchema',
+        @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE COMMENT Foo);',
+      db2: `CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("myColumn" DATE); -- 'Foo', TableName = "mySchema"."myTable", ColumnName = "myColumn";`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE COMMENT Foo); END`,
+    });
+  });
+
   it('produces a query to create a table with multiple columns with comments', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo', secondColumn: 'DATE COMMENT Foo Bar' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE COMMENT Foo, [secondColumn] DATE COMMENT Foo Bar);',
