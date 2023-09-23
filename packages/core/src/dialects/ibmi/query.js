@@ -210,6 +210,14 @@ export class IBMiQuery extends AbstractQuery {
         -803, // A violation of the constraint imposed by a unique index or a unique constraint occurred.
       ];
 
+      /**
+       * Check for ODBC connection errors by looking at the SQL state. This will allow for an IPL
+       * on the IBM i to be detected and the connection to be re-established.
+       */
+      if (odbcError.state === '08S01') {
+        return new sequelizeErrors.ConnectionRefusedError(err);
+      }
+
       if (foreignKeyConstraintCodes.includes(odbcError.code)) {
         return new sequelizeErrors.ForeignKeyConstraintError({
           cause: err,
