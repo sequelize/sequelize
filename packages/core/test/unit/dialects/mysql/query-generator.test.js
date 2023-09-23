@@ -1,12 +1,13 @@
 'use strict';
 
+const each = require('lodash/each');
+
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const _ = require('lodash');
 const { Op, IndexHints } = require('@sequelize/core');
 const { MySqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mysql/query-generator.js');
 const { createSequelizeInstance } = require('../../../support');
@@ -391,63 +392,9 @@ if (dialect === 'mysql') {
           needsSequelize: true,
         },
       ],
-
-      getForeignKeyQuery: [
-        {
-          arguments: ['User', 'email'],
-          expectation: 'SELECT CONSTRAINT_NAME as constraint_name,CONSTRAINT_NAME as constraintName,CONSTRAINT_SCHEMA as constraintSchema,CONSTRAINT_SCHEMA as constraintCatalog,TABLE_NAME as tableName,TABLE_SCHEMA as tableSchema,TABLE_SCHEMA as tableCatalog,COLUMN_NAME as columnName,REFERENCED_TABLE_SCHEMA as referencedTableSchema,REFERENCED_TABLE_SCHEMA as referencedTableCatalog,REFERENCED_TABLE_NAME as referencedTableName,REFERENCED_COLUMN_NAME as referencedColumnName FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE WHERE (REFERENCED_TABLE_NAME = \'User\' AND REFERENCED_COLUMN_NAME = \'email\') OR (TABLE_NAME = \'User\' AND COLUMN_NAME = \'email\' AND REFERENCED_TABLE_NAME IS NOT NULL)',
-        },
-      ],
-
-      selectFromTableFragment: [
-        {
-          arguments: [{}, null, ['*'], '`Project`'],
-          expectation: 'SELECT * FROM `Project`',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` USE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` FORCE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.IGNORE, values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` IGNORE INDEX (`index_project_on_name`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: IndexHints.USE, values: ['index_project_on_name', 'index_project_on_name_and_foo'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project` USE INDEX (`index_project_on_name`,`index_project_on_name_and_foo`)',
-        }, {
-          arguments: [
-            { indexHints: [{ type: 'FOO', values: ['index_project_on_name'] }] },
-            null,
-            ['*'],
-            '`Project`',
-          ],
-          expectation: 'SELECT * FROM `Project`',
-        },
-      ],
     };
 
-    _.each(suites, (tests, suiteTitle) => {
+    each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;
@@ -468,7 +415,7 @@ if (dialect === 'mysql') {
               }
             }
 
-            const queryGenerator = sequelize.queryInterface.queryGenerator;
+            const queryGenerator = sequelize.queryGenerator;
 
             const conditions = queryGenerator[suiteTitle](...test.arguments);
             expect(conditions).to.deep.equal(test.expectation);

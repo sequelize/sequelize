@@ -1,0 +1,26 @@
+services:
+  db2-oldest:
+    container_name: sequelize-db2-oldest
+    image: icr.io/db2_community/db2:11.5.5.1
+    privileged: true
+    env_file: ../.env_list
+    environment:
+      DBNAME: testdb
+    ports:
+      - 50000:50000
+    volumes:
+      - db2-oldest:/database
+    healthcheck:
+      test: su - db2inst1 -c "db2 connect to testdb; db2 select 1 from sysibm.sysdummy1" || exit 1
+      start_period: 15s
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+networks:
+  default:
+    name: sequelize-db2-oldest-network
+
+volumes:
+  db2-oldest:
+    name: sequelize-db2-oldest-volume

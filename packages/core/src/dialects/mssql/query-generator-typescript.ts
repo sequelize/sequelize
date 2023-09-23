@@ -1,16 +1,94 @@
+import type { Expression } from '../../sequelize';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { buildJsonPath } from '../../utils/json';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator-typescript';
+import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type {
+  CreateDatabaseQueryOptions,
+  ListDatabasesQueryOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
+import type { ConstraintType } from '../abstract/query-interface.types';
 
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate']);
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalDatabaseNames() {
+    return ['master', 'model', 'msdb', 'tempdb'];
+  }
+
+  protected _getTechnicalSchemaNames() {
+    return [
+      'db_accessadmin',
+      'db_backupoperator',
+      'db_datareader',
+      'db_datawriter',
+      'db_ddladmin',
+      'db_denydatareader',
+      'db_denydatawriter',
+      'db_owner',
+      'db_securityadmin',
+      'INFORMATION_SCHEMA',
+      'sys',
+    ];
+  }
+
+  createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect.name,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = ${this.escape(database)})`,
+      `CREATE DATABASE ${this.quoteIdentifier(database)}`,
+      options?.collate ? `COLLATE ${this.escape(options.collate)}` : '',
+    ]);
+  }
+
+  listDatabasesQuery(options?: ListDatabasesQueryOptions) {
+    const databasesToSkip = this._getTechnicalDatabaseNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      databasesToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT [name] FROM sys.databases',
+      `WHERE [name] NOT IN (${databasesToSkip.map(database => this.escape(database)).join(', ')})`,
+    ]);
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = ['dbo', 'guest', ...this._getTechnicalSchemaNames()];
+
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT [name] AS [schema] FROM sys.schemas',
+      `WHERE [name] NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -44,12 +122,101 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND prop.minor_id = sc.column_id',
       `AND prop.name = 'MS_Description'`,
       `WHERE t.TABLE_NAME = ${this.escape(table.tableName)}`,
-      `AND t.TABLE_SCHEMA = ${this.escape(table.schema)}`,
+      `AND t.TABLE_SCHEMA = ${this.escape(table.schema!)}`,
+    ]);
+  }
+
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT t.name AS [tableName], s.name AS [schema]',
+      `FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
+      options?.schema
+        ? `AND s.name = ${this.escape(options.schema)}`
+        : `AND s.name NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY s.name, t.name',
+    ]);
+  }
+
+  private _getConstraintType(type: ConstraintType): string {
+    switch (type) {
+      case 'CHECK':
+        return 'CHECK_CONSTRAINT';
+      case 'DEFAULT':
+        return 'DEFAULT_CONSTRAINT';
+      case 'FOREIGN KEY':
+        return 'FOREIGN_KEY_CONSTRAINT';
+      case 'PRIMARY KEY':
+        return 'PRIMARY_KEY_CONSTRAINT';
+      case 'UNIQUE':
+        return 'UNIQUE_CONSTRAINT';
+      default:
+        throw new Error(`Constraint type ${type} is not supported`);
+    }
+  }
+
+  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT DB_NAME() AS constraintCatalog,',
+      's.[name] AS constraintSchema,',
+      'c.constraintName,',
+      `REPLACE(LEFT(c.constraintType, CHARINDEX('_CONSTRAINT', c.constraintType) - 1), '_', ' ') AS constraintType,`,
+      'DB_NAME() AS tableCatalog,',
+      's.[name] AS tableSchema,',
+      't.[name] AS tableName,',
+      'c.columnNames,',
+      'c.referencedTableSchema,',
+      'c.referencedTableName,',
+      'c.referencedColumnNames,',
+      'c.deleteAction,',
+      'c.updateAction,',
+      'c.definition',
+      'FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id',
+      'INNER JOIN (',
+      'SELECT kc.[name] AS constraintName, kc.[type_desc] AS constraintType, kc.[parent_object_id] AS constraintTableId, c.[name] AS columnNames, null as referencedTableSchema, null AS referencedTableName',
+      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, null AS definition',
+      'FROM sys.key_constraints kc LEFT JOIN sys.indexes i ON kc.name = i.name',
+      'LEFT JOIN sys.index_columns ic ON ic.index_id = i.index_id AND ic.object_id = kc.parent_object_id',
+      'LEFT JOIN sys.columns c ON c.column_id = ic.column_id AND c.object_id = kc.parent_object_id UNION ALL',
+      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null as referencedTableSchema, null AS referencedTableName',
+      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.check_constraints c UNION ALL',
+      'SELECT dc.[name] AS constraintName, dc.[type_desc] AS constraintType, dc.[parent_object_id] AS constraintTableId, c.[name] AS columnNames, null as referencedTableSchema, null AS referencedTableName',
+      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.default_constraints dc',
+      'INNER JOIN sys.columns c ON dc.parent_column_id = c.column_id AND dc.parent_object_id = c.object_id UNION ALL',
+      'SELECT k.[name] AS constraintName, k.[type_desc] AS constraintType, k.[parent_object_id] AS constraintTableId, fcol.[name] AS columnNames, OBJECT_SCHEMA_NAME(k.[referenced_object_id]) as referencedTableSchema',
+      ', OBJECT_NAME(k.[referenced_object_id]) AS referencedTableName, rcol.[name] AS referencedColumnNames, k.[delete_referential_action_desc] AS deleteAction',
+      ', k.[update_referential_action_desc] AS updateAction, null AS definition FROM sys.foreign_keys k INNER JOIN sys.foreign_key_columns c ON k.[object_id] = c.constraint_object_id',
+      'INNER JOIN sys.columns fcol ON c.parent_column_id = fcol.column_id AND c.parent_object_id = fcol.object_id',
+      'INNER JOIN sys.columns rcol ON c.referenced_column_id = rcol.column_id AND c.referenced_object_id = rcol.object_id',
+      ') c ON t.object_id = c.constraintTableId',
+      `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
+      options?.columnName ? `AND c.columnNames = ${this.escape(options.columnName)}` : '',
+      options?.constraintName ? `AND c.constraintName = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.constraintType = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
+      'ORDER BY c.constraintName',
     ]);
   }
 
   showIndexesQuery(tableName: TableNameOrModel) {
-    return `EXEC sys.sp_helpindex @objname = ${this.escape(this.quoteTable(tableName))};`;
+    const table = this.extractTableDetails(tableName);
+    const objectId = table?.schema ? `${table.schema}.${table.tableName}` : `${table.tableName}`;
+
+    return joinSQLFragments([
+      'SELECT',
+      'I.[name] AS [index_name],',
+      'I.[type_desc] AS [index_type],',
+      'C.[name] AS [column_name],',
+      'IC.[is_descending_key],',
+      'IC.[is_included_column],',
+      'I.[is_unique],',
+      'I.[is_primary_key],',
+      'I.[is_unique_constraint]',
+      'FROM sys.indexes I',
+      'INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id',
+      'INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id',
+      `WHERE I.[object_id] = OBJECT_ID(${this.escape(objectId)}) ORDER BY I.[name];`,
+    ]);
   }
 
   removeIndexQuery(
@@ -82,5 +249,24 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'ON',
       this.quoteTable(tableName),
     ]);
+  }
+
+  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
+    if (!unquote) {
+      throw new Error(`JSON Paths are not supported in ${this.dialect.name} without unquoting the JSON value.`);
+    }
+
+    return `JSON_VALUE(${sqlExpression}, ${this.escape(buildJsonPath(path))})`;
+  }
+
+  formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
+    return `JSON_VALUE(${this.escape(arg, options)})`;
+  }
+
+  versionQuery() {
+    // Uses string manipulation to convert the MS Maj.Min.Patch.Build to semver Maj.Min.Patch
+    return `DECLARE @ms_ver NVARCHAR(20);
+SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion')));
+SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
   }
 }

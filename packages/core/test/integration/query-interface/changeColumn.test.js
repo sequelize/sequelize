@@ -11,7 +11,7 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(async function () {
     this.sequelize.options.quoteIdenifiers = true;
-    this.queryInterface = this.sequelize.getQueryInterface();
+    this.queryInterface = this.sequelize.queryInterface;
     await Support.dropTestSchemas(this.sequelize);
   });
 
@@ -157,7 +157,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('able to change column to foreign key', async function () {
-        const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
+        const foreignKeys = await this.queryInterface.showConstraints('users', { constraintType: 'FOREIGN KEY' });
         expect(foreignKeys).to.be.an('array');
         expect(foreignKeys).to.be.empty;
 
@@ -171,10 +171,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           onDelete: 'cascade',
         });
 
-        const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
+        const newForeignKeys = await this.queryInterface.showConstraints('users', { constraintType: 'FOREIGN KEY' });
         expect(newForeignKeys).to.be.an('array');
         expect(newForeignKeys).to.have.lengthOf(1);
-        expect(newForeignKeys[0].columnName).to.be.equal('level_id');
+        expect(newForeignKeys[0].columnNames).to.deep.equal(['level_id']);
       });
 
       it('able to change column property without affecting other properties', async function () {
@@ -199,7 +199,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           onDelete: 'cascade',
         });
 
-        const keys = await this.queryInterface.getForeignKeyReferencesForTable('users');
+        const keys = await this.queryInterface.showConstraints('users', { constraintType: 'FOREIGN KEY' });
         const firstForeignKeys = keys;
 
         await this.queryInterface.changeColumn('users', 'level_id', {
@@ -207,10 +207,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           allowNull: true,
         });
 
-        const newForeignKeys = await this.queryInterface.getForeignKeyReferencesForTable('users');
-        expect(firstForeignKeys.length).to.be.equal(newForeignKeys.length);
-        expect(firstForeignKeys[0].columnName).to.be.equal('level_id');
-        expect(firstForeignKeys[0].columnName).to.be.equal(newForeignKeys[0].columnName);
+        const newForeignKeys = await this.queryInterface.showConstraints('users', { constraintType: 'FOREIGN KEY' });
+        expect(firstForeignKeys.length).to.equal(newForeignKeys.length);
+        expect(firstForeignKeys[0].columnNames).to.deep.equal(['level_id']);
+        expect(firstForeignKeys[0].columnNames).to.deep.equal(newForeignKeys[0].columnNames);
 
         const describedTable = await this.queryInterface.describeTable({
           tableName: 'users',
@@ -218,7 +218,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         expect(describedTable.level_id).to.have.property('allowNull');
         expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
-        expect(describedTable.level_id.allowNull).to.be.equal(true);
+        expect(describedTable.level_id.allowNull).to.equal(true);
       });
 
       if (!['db2', 'ibmi', 'sqlite'].includes(dialect)) {
@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             tableName: 'users',
           });
 
-          expect(describedTable.level_id.comment).to.be.equal(null);
+          expect(describedTable.level_id.comment).to.equal(null);
 
           await this.queryInterface.changeColumn('users', 'level_id', {
             type: DataTypes.INTEGER,
@@ -235,7 +235,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           });
 
           const describedTable2 = await this.queryInterface.describeTable({ tableName: 'users' });
-          expect(describedTable2.level_id.comment).to.be.equal('FooBar');
+          expect(describedTable2.level_id.comment).to.equal('FooBar');
         });
       }
     });
@@ -350,25 +350,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await Task.sync({ force: true });
 
         await this.queryInterface.addColumn('Tasks', 'bar', DataTypes.INTEGER);
-        let refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        let refs = await this.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
         expect(refs.length).to.equal(1, 'should keep foreign key after adding column');
-        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].columnNames).to.deep.equal(['UserId']);
         expect(refs[0].referencedTableName).to.equal('Users');
-        expect(refs[0].referencedColumnName).to.equal('id');
+        expect(refs[0].referencedColumnNames).to.deep.equal(['id']);
 
         await this.queryInterface.changeColumn('Tasks', 'bar', DataTypes.STRING);
-        refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        refs = await this.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
         expect(refs.length).to.equal(1, 'should keep foreign key after changing column');
-        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].columnNames).to.deep.equal(['UserId']);
         expect(refs[0].referencedTableName).to.equal('Users');
-        expect(refs[0].referencedColumnName).to.equal('id');
+        expect(refs[0].referencedColumnNames).to.deep.equal(['id']);
 
         await this.queryInterface.renameColumn('Tasks', 'bar', 'foo');
-        refs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
+        refs = await this.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
         expect(refs.length).to.equal(1, 'should keep foreign key after renaming column');
-        expect(refs[0].columnName).to.equal('UserId');
+        expect(refs[0].columnNames).to.deep.equal(['UserId']);
         expect(refs[0].referencedTableName).to.equal('Users');
-        expect(refs[0].referencedColumnName).to.equal('id');
+        expect(refs[0].referencedColumnNames).to.deep.equal(['id']);
       });
 
       it('should retain ON UPDATE and ON DELETE constraints after a column is changed', async function () {
@@ -422,14 +422,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           onUpdate: 'CASCADE',
         });
 
-        // TODO: replace with queryInterface.showConstraint once it lists foreign keys properly for sqlite
-        const constraintsQuery = this.queryInterface.queryGenerator.showConstraintsQuery('users');
-        const [{ sql: usersSql }] = await this.queryInterface.sequelize.query(constraintsQuery, {
-          type: 'SELECT',
-        });
-
-        expect(usersSql).to.include('ON DELETE CASCADE', 'should include ON DELETE constraint');
-        expect(usersSql).to.include('ON UPDATE CASCADE', 'should include ON UPDATE constraint');
+        const constraints = await this.queryInterface.showConstraints('users');
+        const foreignKey = constraints.find(constraint => constraint.constraintType === 'FOREIGN KEY');
+        expect(foreignKey).to.not.be.undefined;
+        expect(foreignKey).to.have.property('deleteAction', 'CASCADE');
+        expect(foreignKey).to.have.property('updateAction', 'CASCADE');
       });
 
       it('should change columns with foreign key constraints without data loss', async function () {

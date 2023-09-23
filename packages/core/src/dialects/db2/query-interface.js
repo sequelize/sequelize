@@ -1,10 +1,14 @@
 'use strict';
 
-import { AggregateError, DatabaseError, BaseError } from '../../errors';
+import { AggregateError, BaseError, DatabaseError } from '../../errors';
 import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
 
-const _ = require('lodash');
+import clone from 'lodash/clone';
+import intersection from 'lodash/intersection';
+import isPlainObject from 'lodash/isPlainObject';
+import mapValues from 'lodash/mapValues';
+
 const { Op } = require('../../operators');
 const { AbstractQueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
@@ -13,16 +17,6 @@ const { QueryTypes } = require('../../query-types');
  * The interface that Sequelize uses to talk with Db2 database
  */
 export class Db2QueryInterface extends AbstractQueryInterface {
-  async getForeignKeyReferencesForTable(tableName, options) {
-    const queryOptions = {
-      ...options,
-      type: QueryTypes.FOREIGNKEYS,
-    };
-    const query = this.queryGenerator.getForeignKeysQuery(tableName, this.sequelize.config.username.toUpperCase());
-
-    return this.sequelize.queryRaw(query, queryOptions);
-  }
-
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options.bind) {
       assertNoReservedBind(options.bind);
@@ -35,7 +29,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
     const attributes = Object.keys(insertValues);
     let indexFields;
 
-    options = _.clone(options);
+    options = clone(options);
 
     if (!isWhereEmpty(where)) {
       wheres.push(where);
@@ -48,7 +42,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
       if (value.unique) {
         // fields in the index may both the strings or objects with an attribute property - lets sanitize that
         indexFields = value.fields.map(field => {
-          if (_.isPlainObject(field)) {
+          if (isPlainObject(field)) {
             return field.attribute;
           }
 
@@ -59,7 +53,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
     }
 
     for (const index of indexes) {
-      if (_.intersection(attributes, index).length === index.length) {
+      if (intersection(attributes, index).length === index.length) {
         where = {};
         for (const field of index) {
           where[field] = insertValues[field];
@@ -148,7 +142,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
-    attributes = _.mapValues(
+    attributes = mapValues(
       attributes,
       attribute => this.sequelize.normalizeAttribute(attribute),
     );
@@ -171,7 +165,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
 
   async addConstraint(tableName, options) {
     try {
-      return await super.addConstraint(tableName, options);
+      await super.addConstraint(tableName, options);
     } catch (error) {
       if (!error.cause) {
         throw error;

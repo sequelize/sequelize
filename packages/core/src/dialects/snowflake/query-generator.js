@@ -3,37 +3,19 @@
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { addTicks, quoteIdentifier } from '../../utils/dialect.js';
+import { quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
-const _ = require('lodash');
+import each from 'lodash/each';
+import isPlainObject from 'lodash/isPlainObject';
+
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const { Op } = require('../../operators');
-
-const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
-const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[&|]?|\|{2}|#-)/i;
-const TOKEN_CAPTURE_REGEX = /^\s*((?:(["'`])(?:(?!\2).|\2{2})*\2)|[\s\w]+|[()+,.;-])/i;
-const FOREIGN_KEY_FIELDS = [
-  'CONSTRAINT_NAME as constraint_name',
-  'CONSTRAINT_NAME as constraintName',
-  'CONSTRAINT_SCHEMA as constraintSchema',
-  'CONSTRAINT_SCHEMA as constraintCatalog',
-  'TABLE_NAME as tableName',
-  'TABLE_SCHEMA as tableSchema',
-  'TABLE_SCHEMA as tableCatalog',
-  'COLUMN_NAME as columnName',
-  'REFERENCED_TABLE_SCHEMA as referencedTableSchema',
-  'REFERENCED_TABLE_SCHEMA as referencedTableCatalog',
-  'REFERENCED_TABLE_NAME as referencedTableName',
-  'REFERENCED_COLUMN_NAME as referencedColumnName',
-].join(',');
 
 /**
  * list of reserved words in Snowflake
@@ -46,10 +28,8 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
-const LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS = new Set();
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['collate', 'charset', 'rowFormat', 'comment', 'uniqueKeys']);
 
 export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   constructor(options) {
@@ -57,34 +37,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
     this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
     this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
-  }
-
-  createDatabaseQuery(databaseName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createDatabaseQuery',
-        this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return joinSQLFragments([
-      'CREATE DATABASE IF NOT EXISTS',
-      this.quoteIdentifier(databaseName),
-      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
-      ';',
-    ]);
-  }
-
-  dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
-  }
-
-  listDatabasesQuery() {
-    return `SHOW DATABASES;`;
   }
 
   createSchemaQuery(schema, options) {
@@ -105,25 +57,17 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
-  listSchemasQuery(options) {
+  createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
-        'listSchemasQuery',
+        'createTableQuery',
         this.dialect.name,
-        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
-        LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
 
-    return `SHOW SCHEMAS;`;
-  }
-
-  versionQuery() {
-    return 'SELECT CURRENT_VERSION()';
-  }
-
-  createTableQuery(tableName, attributes, options) {
     options = {
       charset: null,
       rowFormat: null,
@@ -135,7 +79,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     const attrStr = [];
 
     for (const attr in attributes) {
-      if (!Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (!Object.hasOwn(attributes, attr)) {
         continue;
       }
 
@@ -166,7 +110,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         if (typeof indexName !== 'string') {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
@@ -180,7 +124,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
+      if (Object.hasOwn(foreignKeys, fkey)) {
         attributesClause += `, FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
       }
     }
@@ -193,26 +137,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
-      ';',
-    ]);
-  }
-
-  showTablesQuery(database, options) {
-    return joinSQLFragments([
-      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database, options)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
-      ';',
-    ]);
-  }
-
-  tableExistsQuery(table) {
-    const tableName = table.tableName ?? table;
-    const schema = table.schema;
-
-    return joinSQLFragments([
-      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      `AND TABLE_SCHEMA = ${schema !== undefined ? this.escape(schema) : 'CURRENT_SCHEMA()'}`,
-      `AND TABLE_NAME = ${this.escape(tableName)}`,
       ';',
     ]);
   }
@@ -238,26 +162,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         tableName: table,
         foreignKey: key,
       }),
-      ';',
-    ]);
-  }
-
-  removeColumnQuery(tableName, attributeName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP',
-      this.quoteIdentifier(attributeName),
       ';',
     ]);
   }
@@ -378,27 +282,8 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  showConstraintsQuery(table, constraintName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-
-    return joinSQLFragments([
-      'SELECT CONSTRAINT_CATALOG AS constraintCatalog,',
-      'CONSTRAINT_NAME AS constraintName,',
-      'CONSTRAINT_SCHEMA AS constraintSchema,',
-      'CONSTRAINT_TYPE AS constraintType,',
-      'TABLE_NAME AS tableName,',
-      'TABLE_SCHEMA AS tableSchema',
-      'from INFORMATION_SCHEMA.TABLE_CONSTRAINTS',
-      `WHERE table_name='${tableName}'`,
-      constraintName && `AND constraint_name = '${constraintName}'`,
-      schemaName && `AND TABLE_SCHEMA = '${schemaName}'`,
-      ';',
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };
@@ -503,79 +388,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     return dataType;
   }
 
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {object} table  The table.
-   * @param  {string} schemaName The name of the schema.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(table, schemaName) {
-    const tableName = table.tableName || table;
-
-    return joinSQLFragments([
-      'SELECT',
-      FOREIGN_KEY_FIELDS,
-      `FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE where TABLE_NAME = '${tableName}'`,
-      `AND CONSTRAINT_NAME!='PRIMARY' AND CONSTRAINT_SCHEMA='${schemaName}'`,
-      'AND REFERENCED_TABLE_NAME IS NOT NULL',
-      ';',
-    ]);
-  }
-
-  /**
-   * Generates an SQL query that returns the foreign key constraint of a given column.
-   *
-   * @param  {object} table  The table.
-   * @param  {string} columnName The name of the column.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeyQuery(table, columnName) {
-    const quotedSchemaName = table.schema ? wrapSingleQuote(table.schema) : '';
-    const quotedTableName = wrapSingleQuote(table.tableName || table);
-    const quotedColumnName = wrapSingleQuote(columnName);
-
-    return joinSQLFragments([
-      'SELECT',
-      FOREIGN_KEY_FIELDS,
-      'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
-      'WHERE (',
-      [
-        `REFERENCED_TABLE_NAME = ${quotedTableName}`,
-        table.schema && `AND REFERENCED_TABLE_SCHEMA = ${quotedSchemaName}`,
-        `AND REFERENCED_COLUMN_NAME = ${quotedColumnName}`,
-      ],
-      ') OR (',
-      [
-        `TABLE_NAME = ${quotedTableName}`,
-        table.schema && `AND TABLE_SCHEMA = ${quotedSchemaName}`,
-        `AND COLUMN_NAME = ${quotedColumnName}`,
-        'AND REFERENCED_TABLE_NAME IS NOT NULL',
-      ],
-      ')',
-    ]);
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP FOREIGN KEY',
-      this.quoteIdentifier(foreignKey),
-      ';',
-    ]);
-  }
-
   addLimitAndOffset(options) {
     if (options.offset) {
       return ` LIMIT ${this.escape(options.limit ?? null, options)} OFFSET ${this.escape(options.offset, options)}`;
@@ -598,11 +410,12 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
    */
   quoteIdentifier(identifier, force) {
     const optForceQuote = force || false;
+    // TODO [>7]: remove "quoteIdentifiers: false" option
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
 
     if (
       optForceQuote === true
-      // TODO: drop this.options.quoteIdentifiers. Always quote identifiers.
+      // TODO [>7]: drop this.options.quoteIdentifiers. Always quote identifiers.
       || optQuoteIdentifiers !== false
       || identifier.includes('.')
       || identifier.includes('->')
@@ -618,12 +431,4 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
     return identifier;
   }
-}
-
-/**
- * @param {string} identifier
- * @deprecated use "escape" or "escapeString" on QueryGenerator
- */
-function wrapSingleQuote(identifier) {
-  return addTicks(identifier, '\'');
 }

@@ -1,29 +1,33 @@
+import isObject from 'lodash/isObject';
 import upperFirst from 'lodash/upperFirst';
 import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
 import { AssociationError } from '../errors/index.js';
 import { col } from '../expression-builders/col.js';
 import { fn } from '../expression-builders/fn.js';
 import type {
-  Model,
+  AttributeNames,
+  Attributes,
   CreateOptions,
   CreationAttributes,
+  DestroyOptions,
   Filterable,
   FindOptions,
   InstanceUpdateOptions,
-  Transactionable,
+  Model,
   ModelStatic,
-  AttributeNames, UpdateValues, Attributes,
+  Transactionable,
+  UpdateValues,
 } from '../model';
 import { Op } from '../operators';
 import { isPlainObject } from '../utils/check.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
-import type { AllowArray } from '../utils/types.js';
-import type { MultiAssociationAccessors, MultiAssociationOptions, Association, AssociationOptions } from './base';
+import type { AllowIterable } from '../utils/types.js';
 import { MultiAssociation } from './base';
+import type { Association, AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions } from './base';
 import { BelongsTo } from './belongs-to.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
-import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions, normalizeInverseAssociation } from './helpers';
+import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-many association.
@@ -156,11 +160,17 @@ export class HasMany<
       HasMany<S, T, SourceKey, TargetKey>,
       HasManyOptions<SourceKey, TargetKey>,
       NormalizedHasManyOptions<SourceKey, TargetKey>
-    >(HasMany, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+    >(HasMany, source, target, options, parent, normalizeHasManyOptions, normalizedOptions => {
       // self-associations must always set their 'as' parameter
-      if (isSameInitialModel(source, target)
-        // use 'options' because this will always be set in 'newOptions'
-        && (!options.as || !options.inverse?.as || options.as === options.inverse.as)) {
+      if (
+        isSameInitialModel(source, target)
+        && (
+          // use 'options' because this will always be set in 'normalizedOptions'
+          !options.as
+          || !normalizedOptions.inverse?.as
+          || options.as === normalizedOptions.inverse.as
+        )
+      ) {
         throw new AssociationError('Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different.');
       }
 
@@ -235,14 +245,14 @@ export class HasMany<
     let Model = this.target;
     if (options.scope != null) {
       if (!options.scope) {
-        Model = Model.unscoped();
+        Model = Model.withoutScope();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
-        Model = Model.scope(options.scope);
+        Model = Model.withScope(options.scope);
       }
     }
 
     if (options.schema != null) {
-      Model = Model.schema(options.schema, options.schemaDelimiter);
+      Model = Model.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
     }
 
     const results = await Model.findAll(findOptions);
@@ -298,26 +308,27 @@ export class HasMany<
    * Check if one or more rows are associated with `this`.
    *
    * @param sourceInstance the source instance
-   * @param targetInstances Can be an array of instances or their primary keys
+   * @param targets A list of instances or their primary keys
    * @param options Options passed to getAssociations
    */
   async has(
     sourceInstance: S,
-    targetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
+    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>>,
     options?: HasManyHasAssociationsMixinOptions<T>,
   ): Promise<boolean> {
-    if (!Array.isArray(targetInstances)) {
-      targetInstances = [targetInstances];
-    }
+    const normalizedTargets = this.toInstanceOrPkArray(targets);
 
     const where = {
-      [Op.or]: targetInstances.map(instance => {
+      [Op.or]: normalizedTargets.map(instance => {
         if (instance instanceof this.target) {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
-          return (instance as T).where();
+          // TODO: remove eslint-disable once we drop support for < 5.2
+          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
+          // @ts-ignore
+          return instance.where();
         }
 
         return {
+          // TODO: support composite foreign keys
           // @ts-expect-error -- TODO: what if the target has no primary key?
           [this.target.primaryKeyAttribute]: instance,
         };
@@ -327,6 +338,7 @@ export class HasMany<
     const findOptions: HasManyGetAssociationsMixinOptions<T> = {
       ...options,
       scope: false,
+      // TODO: support composite foreign keys
       // @ts-expect-error -- TODO: what if the target has no primary key?
       attributes: [this.target.primaryKeyAttribute],
       raw: true,
@@ -341,33 +353,33 @@ export class HasMany<
 
     const associatedObjects = await this.get(sourceInstance, findOptions);
 
-    return associatedObjects.length === targetInstances.length;
+    return associatedObjects.length === normalizedTargets.length;
   }
 
   /**
    * Set the associated models by passing an array of persisted instances or their primary keys. Everything that is not in the passed array will be un-associated
    *
    * @param sourceInstance source instance to associate new instances with
-   * @param rawTargetInstances An array of persisted instances or primary key of instances to associate with this. Pass `null` to remove all associations.
+   * @param targets An array of persisted instances or primary key of instances to associate with this. Pass `null` to remove all associations.
    * @param options Options passed to `target.findAll` and `update`.
    */
   async set(
     sourceInstance: S,
-    rawTargetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>> | null,
+    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>> | null,
     options?: HasManySetAssociationsMixinOptions<T>,
   ): Promise<void> {
-    const targetInstances = rawTargetInstances === null ? [] : this.toInstanceArray(rawTargetInstances);
+    const normalizedTargets = this.toInstanceArray(targets);
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
     const promises: Array<Promise<any>> = [];
     const obsoleteAssociations = oldAssociations.filter(old => {
-      return !targetInstances.some(obj => {
+      return !normalizedTargets.some(obj => {
         // @ts-expect-error -- old is a raw result
         return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
       });
     });
 
-    const unassociatedObjects = targetInstances.filter(obj => {
+    const unassociatedObjects = normalizedTargets.filter(obj => {
       return !oldAssociations.some(old => {
         // @ts-expect-error -- old is a raw result
         return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
@@ -375,8 +387,10 @@ export class HasMany<
     });
 
     if (obsoleteAssociations.length > 0) {
-      // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
-      promises.push(this.remove(sourceInstance, obsoleteAssociations, options));
+      promises.push(this.remove(sourceInstance, obsoleteAssociations, {
+        ...options,
+        destroy: options?.destroyPrevious,
+      }));
     }
 
     if (unassociatedObjects.length > 0) {
@@ -393,7 +407,7 @@ export class HasMany<
         }),
       };
 
-      promises.push(this.target.unscoped().update(
+      promises.push(this.target.withoutScope().update(
         update,
         {
           ...options,
@@ -415,7 +429,7 @@ export class HasMany<
    */
   async add(
     sourceInstance: S,
-    rawTargetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
+    rawTargetInstances: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>>,
     options: HasManyAddAssociationsMixinOptions<T> = {},
   ): Promise<void> {
     const targetInstances = this.toInstanceArray(rawTargetInstances);
@@ -437,46 +451,37 @@ export class HasMany<
       }),
     };
 
-    await this.target.unscoped().update(update, { ...options, where });
+    await this.target.withoutScope().update(update, { ...options, where });
   }
 
   /**
    * Un-associate one or several target rows.
    *
    * @param sourceInstance instance to un associate instances with
-   * @param targetInstances Can be an Instance or its primary key, or a mixed array of instances and primary keys
+   * @param targets Can be an Instance or its primary key, or a mixed array of instances and primary keys
    * @param options Options passed to `target.update`
    */
   async remove(
     sourceInstance: S,
-    targetInstances: AllowArray<T | Exclude<T[TargetPrimaryKey], any[]>>,
+    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>>,
     options: HasManyRemoveAssociationsMixinOptions<T> = {},
   ): Promise<void> {
-    if (targetInstances == null) {
+    if (targets == null) {
       return;
     }
 
-    if (!Array.isArray(targetInstances)) {
-      targetInstances = [targetInstances];
-    }
-
-    if (targetInstances.length === 0) {
+    const normalizedTargets = this.toInstanceOrPkArray(targets);
+    if (normalizedTargets.length === 0) {
       return;
     }
-
-    // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
-    const update = {
-      [this.foreignKey]: null,
-    } as UpdateValues<T>;
 
     const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       // @ts-expect-error -- TODO: what if the target has no primary key?
-      [this.target.primaryKeyAttribute]: targetInstances.map(targetInstance => {
+      [this.target.primaryKeyAttribute]: normalizedTargets.map(targetInstance => {
         if (targetInstance instanceof this.target) {
           // @ts-expect-error -- TODO: what if the target has no primary key?
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
-          return (targetInstance as T).get(this.target.primaryKeyAttribute);
+          return targetInstance.get(this.target.primaryKeyAttribute);
         }
 
         // raw entity
@@ -491,7 +496,23 @@ export class HasMany<
       }),
     };
 
-    await this.target.unscoped().update(update, { ...options, where });
+    const foreignKeyIsNullable = this.target.modelDefinition.attributes.get(this.foreignKey)?.allowNull ?? true;
+
+    if (options.destroy || !foreignKeyIsNullable) {
+      await this.target.withoutScope().destroy({
+        ...(isObject(options.destroy) ? options.destroy : undefined),
+        logging: options.logging,
+        benchmark: options.benchmark,
+        transaction: options.transaction,
+        where,
+      });
+    } else {
+      const update = {
+        [this.foreignKey]: null,
+      } as UpdateValues<T>;
+
+      await this.target.withoutScope().update(update, { ...options, where });
+    }
   }
 
   /**
@@ -542,7 +563,9 @@ Object.defineProperty(HasMany, 'name', {
 });
 
 export type NormalizedHasManyOptions<SourceKey extends string, TargetKey extends string> =
-  NormalizeBaseAssociationOptions<HasManyOptions<SourceKey, TargetKey>>;
+  NormalizeBaseAssociationOptions<Omit<HasManyOptions<SourceKey, TargetKey>, 'inverse'>> & {
+  inverse?: Exclude<HasManyOptions<SourceKey, TargetKey>['inverse'], string>,
+};
 
 /**
  * Options provided when associating models with hasMany relationship
@@ -556,10 +579,25 @@ export interface HasManyOptions<SourceKey extends string, TargetKey extends stri
    */
   sourceKey?: SourceKey;
 
-  inverse?: {
+  /**
+   * The name of the inverse association, or an object for further association setup.
+   */
+  inverse?: string | undefined | {
     as?: AssociationOptions<any>['as'],
     scope?: AssociationOptions<any>['scope'],
   };
+}
+
+function normalizeHasManyOptions<SourceKey extends string, TargetKey extends string>(
+  type: AssociationStatic<any>,
+  options: HasManyOptions<SourceKey, TargetKey>,
+  source: ModelStatic<Model>,
+  target: ModelStatic<Model>,
+): NormalizedHasManyOptions<SourceKey, TargetKey> {
+  return normalizeBaseAssociationOptions(type, {
+    ...options,
+    inverse: normalizeInverseAssociation(options.inverse),
+  }, source, target);
 }
 
 /**
@@ -604,7 +642,16 @@ export type HasManyGetAssociationsMixin<T extends Model> = (options?: HasManyGet
  * @see HasManySetAssociationsMixin
  */
 export interface HasManySetAssociationsMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>>, InstanceUpdateOptions<Attributes<T>> {}
+  extends FindOptions<Attributes<T>>, InstanceUpdateOptions<Attributes<T>> {
+
+  /**
+   * Delete the previous associated model. Default to false.
+   *
+   * Only applies if the foreign key is nullable. If the foreign key is not nullable,
+   * the previous associated model is always deleted.
+   */
+  destroyPrevious?: boolean | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'> | undefined;
+}
 
 /**
  * The setAssociations mixin applied to models with hasMany.
@@ -621,7 +668,7 @@ export interface HasManySetAssociationsMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManySetAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Array<T | TModelPrimaryKey>,
+  newAssociations?: Iterable<T | TModelPrimaryKey> | null,
   options?: HasManySetAssociationsMixinOptions<T>,
 ) => Promise<void>;
 
@@ -648,7 +695,7 @@ export interface HasManyAddAssociationsMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Array<T | TModelPrimaryKey>,
+  newAssociations?: Iterable<T | TModelPrimaryKey>,
   options?: HasManyAddAssociationsMixinOptions<T>
 ) => Promise<void>;
 
@@ -742,7 +789,16 @@ export type HasManyRemoveAssociationMixin<T extends Model, TModelPrimaryKey> = (
  * @see HasManyRemoveAssociationsMixin
  */
 export interface HasManyRemoveAssociationsMixinOptions<T extends Model>
-  extends InstanceUpdateOptions<Attributes<T>> {}
+  extends Omit<InstanceUpdateOptions<Attributes<T>>, 'where'> {
+
+  /**
+   * Delete the associated model. Default to false.
+   *
+   * Only applies if the foreign key is nullable. If the foreign key is not nullable,
+   * the associated model is always deleted.
+   */
+  destroy?: boolean | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'> | undefined;
+}
 
 /**
  * The removeAssociations mixin applied to models with hasMany.
@@ -759,7 +815,7 @@ export interface HasManyRemoveAssociationsMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManyRemoveAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  oldAssociateds?: Array<T | TModelPrimaryKey>,
+  oldAssociateds?: Iterable<T | TModelPrimaryKey>,
   options?: HasManyRemoveAssociationsMixinOptions<T>
 ) => Promise<void>;
 
@@ -816,7 +872,7 @@ export interface HasManyHasAssociationsMixinOptions<T extends Model>
 //       we should also add a "HasManyHasAnyAssociationsMixin"
 //       and "HasManyHasAssociationsMixin" should instead return a Map of id -> boolean or WeakMap of instance -> boolean
 export type HasManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
-  targets: Array<TModel | TModelPrimaryKey>,
+  targets: Iterable<TModel | TModelPrimaryKey>,
   options?: HasManyHasAssociationsMixinOptions<TModel>
 ) => Promise<boolean>;
 

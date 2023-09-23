@@ -4,6 +4,7 @@
 npm-debug.log*
 *~
 test.sqlite
+test.sqlite2
 *.sublime*
 package-lock.json
 pnpm-lock.yaml
@@ -18,3 +19,11 @@ node_modules
 *.log
 /packages/*/lib
 /packages/*/types
+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

@@ -1,5 +1,5 @@
-import type { AbstractQueryInterface } from '@sequelize/core';
-import { DataTypes, Model, fn, literal, col } from '@sequelize/core';
+import type { AbstractQueryInterface, TableNameWithSchema } from '@sequelize/core';
+import { DataTypes, Model, col, fn, literal } from '@sequelize/core';
 
 declare let queryInterface: AbstractQueryInterface;
 
@@ -80,7 +80,7 @@ async function test() {
     { schema: '<schema>', tableName: 'User' },
   );
 
-  const tableNames: string[] = await queryInterface.showAllTables();
+  const tableNames: TableNameWithSchema[] = await queryInterface.listTables();
 
   /*
   attributes will be something like:
@@ -98,7 +98,7 @@ async function test() {
     }
   }
   */
-  const attributes: object = await queryInterface.describeTable('Person');
+  const attributes = await queryInterface.describeTable('Person');
 
   await queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', DataTypes.STRING);
 
@@ -221,7 +221,7 @@ async function test() {
   await queryInterface.sequelize.transaction(async trx => queryInterface.addConstraint('Person', {
     name: 'firstnamexlastname',
     fields: ['firstname', 'lastname'],
-    type: 'unique',
+    type: 'UNIQUE',
     transaction: trx,
   }));
 

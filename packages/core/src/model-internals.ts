@@ -149,12 +149,22 @@ Got ${NodeUtil.inspect(include)} instead`);
 }
 
 export function setTransactionFromCls(options: Transactionable, sequelize: Sequelize): void {
-  if (options.transaction && options.connection) {
-    throw new Error('You cannot use the "transaction" and "connection" options simultaneously. Please pass either one of them.');
+  if (options.transaction && (options.connection && options.connection !== options.transaction.getConnection())) {
+    throw new Error(`You are using mismatching "transaction" and "connection" options. Please pass either one of them, or make sure they're both using the same connection.`);
   }
 
-  if (options.transaction === undefined && options.connection === undefined) {
+  if (options.transaction === undefined && options.connection == null) {
     options.transaction = sequelize.getCurrentClsTransaction();
+  }
+
+  if (options.connection) {
+    const clsTransaction = sequelize.getCurrentClsTransaction();
+    const transactionConnection = clsTransaction?.getConnectionIfExists();
+    if (transactionConnection && transactionConnection === options.connection) {
+      options.transaction = clsTransaction;
+    }
+  } else {
+    options.connection = options.transaction?.getConnectionIfExists();
   }
 }
 

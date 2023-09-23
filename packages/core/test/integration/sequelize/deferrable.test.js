@@ -4,9 +4,9 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { Sequelize, DataTypes } = require('@sequelize/core');
+const { Sequelize, DataTypes, ConstraintChecking, Deferrable } = require('@sequelize/core');
 
-if (Support.sequelize.dialect.supports.deferrableConstraints) {
+if (Support.sequelize.dialect.supports.constraints.deferrable) {
   describe(Support.getTestDialectTeaser('Sequelize'), () => {
     describe('Deferrable', () => {
       const describeDeferrableTest = (title, defineModels) => {
@@ -16,7 +16,7 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
               options = options || {};
 
               const taskTableName      = options.taskTableName || `tasks_${Support.rand()}`;
-              const transactionOptions = { deferrable: Sequelize.Deferrable.SET_DEFERRED, ...options };
+              const transactionOptions = { constraintChecking: ConstraintChecking.DEFERRED, ...options };
               const userTableName      = `users_${Support.rand()}`;
 
               const { Task, User } = await defineModels({ sequelize: this.sequelize, userTableName, deferrable, taskTableName });
@@ -35,22 +35,22 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
 
           describe('NOT', () => {
             it('does not allow the violation of the foreign key constraint', async function () {
-              await expect(this.run(Sequelize.Deferrable.NOT)).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+              await expect(this.run(Deferrable.NOT)).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
             });
           });
 
           describe('INITIALLY_IMMEDIATE', () => {
             it('allows the violation of the foreign key constraint if the transaction is deferred', async function () {
               const task = await this
-                .run(Sequelize.Deferrable.INITIALLY_IMMEDIATE);
+                .run(Deferrable.INITIALLY_IMMEDIATE);
 
               expect(task.title).to.equal('a task');
               expect(task.user_id).to.equal(1);
             });
 
             it('does not allow the violation of the foreign key constraint if the transaction is not deferred', async function () {
-              await expect(this.run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
-                deferrable: undefined,
+              await expect(this.run(Deferrable.INITIALLY_IMMEDIATE, {
+                constraintChecking: undefined,
               })).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
             });
 
@@ -58,8 +58,8 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
               const taskTableName = `tasks_${Support.rand()}`;
 
               const task = await this
-                .run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
-                  deferrable: Sequelize.Deferrable.SET_DEFERRED([`${taskTableName}_user_id_fkey`]),
+                .run(Deferrable.INITIALLY_IMMEDIATE, {
+                  constraintChecking: ConstraintChecking.DEFERRED([`${taskTableName}_user_id_fkey`]),
                   taskTableName,
                 });
 
@@ -71,7 +71,7 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
           describe('INITIALLY_DEFERRED', () => {
             it('allows the violation of the foreign key constraint', async function () {
               const task = await this
-                .run(Sequelize.Deferrable.INITIALLY_DEFERRED);
+                .run(Deferrable.INITIALLY_DEFERRED);
 
               expect(task.title).to.equal('a task');
               expect(task.user_id).to.equal(1);
@@ -128,9 +128,9 @@ if (Support.sequelize.dialect.supports.deferrableConstraints) {
         await User.sync({ force: true });
         await Task.sync({ force: true });
 
-        await sequelize.getQueryInterface().addConstraint(taskTableName, {
+        await sequelize.queryInterface.addConstraint(taskTableName, {
           fields: ['user_id'],
-          type: 'foreign key',
+          type: 'FOREIGN KEY',
           name: `${taskTableName}_user_id_fkey`,
           deferrable,
           references: {

@@ -3,38 +3,33 @@
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import { conformIndex } from '../../model-internals';
 import { rejectInvalidOptions } from '../../utils/check';
-import { addTicks } from '../../utils/dialect';
 import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
+import each from 'lodash/each';
+import isPlainObject from 'lodash/isPlainObject';
+
 const util = require('node:util');
-const _ = require('lodash');
 const { IBMiQueryGeneratorTypeScript } = require('./query-generator-typescript');
 const DataTypes = require('../../data-types');
-const { Model } = require('../../model');
-const SqlString = require('../../sql-string');
 
 const typeWithoutDefault = new Set(['BLOB']);
 
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
-
-  // Version queries
-  versionQuery() {
-    return 'SELECT CONCAT(OS_VERSION, CONCAT(\'.\', OS_RELEASE)) AS VERSION FROM SYSIBMADM.ENV_SYS_INFO';
-  }
-
   // Schema queries
   createSchemaQuery(schema, options) {
     if (options) {
@@ -54,25 +49,24 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return `BEGIN IF EXISTS (SELECT * FROM SYSIBM.SQLSCHEMAS WHERE TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}) THEN SET TRANSACTION ISOLATION LEVEL NO COMMIT; DROP SCHEMA "${schema ? `${schema}` : 'CURRENT SCHEMA'}"; COMMIT; END IF; END`;
   }
 
-  listSchemasQuery(options) {
-    let skippedSchemas = '';
-    if (options?.skip) {
-      for (let i = 0; i < options.skip.length; i++) {
-        skippedSchemas += ` AND SCHEMA_NAME != ${this.escape(options.skip[i])}`;
-      }
-    }
-
-    return `SELECT DISTINCT SCHEMA_NAME AS "schema_name" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER${skippedSchemas}`;
-  }
-
   // Table queries
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const primaryKeys = [];
     const foreignKeys = Object.create(null);
     const attrStr = [];
 
     for (const attr in attributes) {
-      if (!Object.prototype.hasOwnProperty.call(attributes, attr)) {
+      if (!Object.hasOwn(attributes, attr)) {
         continue;
       }
 
@@ -94,7 +88,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       const sortedPrimaryKeys = [...primaryKeys];
       sortedPrimaryKeys.sort();
 
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         // sort the columns for each unique key, so they can be easily compared
         // with the sorted primary key fields
         const sortedColumnFields = [...columns.fields];
@@ -122,7 +116,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     for (const fkey in foreignKeys) {
-      if (Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) {
+      if (Object.hasOwn(foreignKeys, fkey)) {
         attributesClause += `, FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`;
       }
     }
@@ -134,24 +128,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       BEGIN END;
       CREATE TABLE ${quotedTable} (${attributesClause});
       END`;
-  }
-
-  dropTableQuery(tableName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}`;
-  }
-
-  showTablesQuery(schema) {
-    return `SELECT TABLE_NAME FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}`;
   }
 
   addColumnQuery(table, key, dataType, options) {
@@ -180,20 +156,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     });
 
     return `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition}`;
-  }
-
-  removeColumnQuery(tableName, attributeName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `ALTER TABLE ${this.quoteTable(tableName)} DROP COLUMN ${this.quoteIdentifier(attributeName)}`;
   }
 
   changeColumnQuery(tableName, attributes) {
@@ -270,7 +232,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
     options.prefix = options.prefix || rawTablename || tableName;
     if (options.prefix && typeof options.prefix === 'string') {
-      options.prefix = options.prefix.replace(/\./g, '_');
+      options.prefix = options.prefix.replaceAll('.', '_');
     }
 
     const fieldsSql = options.fields.map(field => {
@@ -347,12 +309,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return `CREATE${options.unique ? ' UNIQUE' : ''} INDEX ${schema ? ` ${schema}.` : ''}${this.quoteIdentifiers(options.name)} ON ${tableName} (${fieldsSql.join(', ')}${options.operator ? ` ${options.operator}` : ''})${options.where ? ` ${options.where}` : ''}`;
   }
 
-  addConstraintQuery(tableName, options) {
-    const query = super.addConstraintQuery(tableName, options);
-
-    return query.replace(/;$/, '');
-  }
-
   updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
     const out = super.updateQuery(tableName, attrValueHash, where, options, columnDefinitions);
 
@@ -385,7 +341,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   insertQuery(table, valueHash, modelAttributes, options) {
     // remove the final semi-colon
     const query = super.insertQuery(table, valueHash, modelAttributes, options);
-    if (query.query[query.query.length - 1] === ';') {
+    if (query.query.at(-1) === ';') {
       query.query = query.query.slice(0, -1);
       query.query = `SELECT * FROM FINAL TABLE (${query.query})`;
     }
@@ -396,7 +352,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   selectQuery(tableName, options, model) {
     // remove the final semi-colon
     let query = super.selectQuery(tableName, options, model);
-    if (query[query.length - 1] === ';') {
+    if (query.at(-1) === ';') {
       query = query.slice(0, -1);
     }
 
@@ -406,7 +362,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
     // remove the final semi-colon
     let query = super.bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes);
-    if (query[query.length - 1] === ';') {
+    if (query.at(-1) === ';') {
       query = query.slice(0, -1);
       query = `SELECT * FROM FINAL TABLE (${query})`;
     }
@@ -454,33 +410,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return fragment;
   }
 
-  // Indexes and constraints
-
-  showConstraintsQuery(table, constraintName) {
-    const tableName = table.tableName || table;
-    const schemaName = table.schema;
-
-    let sql = [
-      'SELECT CONSTRAINT_NAME AS "constraintName",',
-      'CONSTRAINT_SCHEMA AS "constraintSchema",',
-      'CONSTRAINT_TYPE AS "constraintType",',
-      'TABLE_NAME AS "tableName",',
-      'TABLE_SCHEMA AS "tableSchema"',
-      'from QSYS2.SYSCST',
-      `WHERE table_name='${tableName}'`,
-    ].join(' ');
-
-    if (constraintName) {
-      sql += ` AND CONSTRAINT_NAME = '${constraintName}'`;
-    }
-
-    if (schemaName) {
-      sql += ` AND TABLE_SCHEMA = '${schemaName}'`;
-    }
-
-    return sql;
-  }
-
   // bindParam(bind) {
   //   return value => {
   //     bind.push(value);
@@ -490,7 +419,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   // }
 
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };
@@ -600,89 +529,4 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
     return result;
   }
-
-  /**
-   * Generates an SQL query that returns all foreign keys of a table.
-   *
-   * @param  {object} table  The table.
-   * @param  {string} schemaName The name of the schema.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeysQuery(table, schemaName) {
-    const quotedSchemaName = schemaName ? wrapSingleQuote(schemaName) : 'CURRENT SCHEMA';
-    const quotedTableName = wrapSingleQuote(table.tableName || table);
-
-    const sql = [
-      'SELECT FK_NAME AS "constraintName",',
-      'PKTABLE_CAT AS "referencedTableCatalog",',
-      'PKTABLE_SCHEM AS "referencedTableSchema",',
-      'PKTABLE_NAME AS "referencedTableName",',
-      'PKCOLUMN_NAME AS "referencedColumnName",',
-      'FKTABLE_CAT AS "tableCatalog",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKTABLE_NAME AS "tableName",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKCOLUMN_NAME AS "columnName"',
-      'FROM SYSIBM.SQLFOREIGNKEYS',
-      `WHERE FKTABLE_SCHEM = ${quotedSchemaName}`,
-      `AND FKTABLE_NAME = ${quotedTableName}`,
-    ].join(' ');
-
-    return sql;
-  }
-
-  /**
-   * Generates an SQL query that returns the foreign key constraint of a given column.
-   *
-   * @param  {object} table  The table.
-   * @param  {string} columnName The name of the column.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  getForeignKeyQuery(table, columnName) {
-    const quotedSchemaName = table.schema ? wrapSingleQuote(table.schema) : 'CURRENT SCHEMA';
-    const quotedTableName = wrapSingleQuote(table.tableName || table);
-    const quotedColumnName = wrapSingleQuote(columnName);
-
-    const sql = [
-      'SELECT FK_NAME AS "constraintName",',
-      'PKTABLE_CAT AS "referencedTableCatalog",',
-      'PKTABLE_SCHEM AS "referencedTableSchema",',
-      'PKTABLE_NAME AS "referencedTableName",',
-      'PKCOLUMN_NAME AS "referencedColumnName",',
-      'FKTABLE_CAT AS "tableCatalog",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKTABLE_NAME AS "tableName",',
-      'FKTABLE_SCHEM AS "tableSchema",',
-      'FKCOLUMN_NAME AS "columnName"',
-      'FROM SYSIBM.SQLFOREIGNKEYS',
-      `WHERE FKTABLE_SCHEM = ${quotedSchemaName}`,
-      `AND FKTABLE_NAME = ${quotedTableName}`,
-      `AND FKCOLUMN_NAME = ${quotedColumnName}`,
-    ].join(' ');
-
-    return sql;
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return `ALTER TABLE ${this.quoteTable(tableName)}
-      DROP FOREIGN KEY ${this.quoteIdentifier(foreignKey)}`;
-  }
-}
-
-/**
- * @param {string} identifier
- * @deprecated use "escape" or "escapeString" on QueryGenerator
- */
-function wrapSingleQuote(identifier) {
-  return addTicks(identifier, '\'');
 }

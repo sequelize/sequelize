@@ -10,6 +10,11 @@ export function isNodeError(val: unknown): val is NodeJS.ErrnoException {
   return val instanceof Error && 'code' in val;
 }
 
+export function isIterable(val: unknown): val is Iterable<unknown> {
+  // @ts-expect-error -- TS does not allow accessing Symbol.iterator like this.
+  return val != null && val[Symbol.iterator];
+}
+
 /**
  * Some dialects emit an Error with a string code, that are not ErrnoException.
  * This serves as a more generic check for those cases.

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
-import { getTestDialect, createSequelizeInstance } from '../support';
+import { createSingleTestSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();
 
@@ -9,7 +9,7 @@ const supportedByDialect = ['postgres'].includes(dialect);
 describe('QueryInterface#select', () => {
   if (supportedByDialect) {
     it('fetches records with alias minification', async () => {
-      const instance = createSequelizeInstance();
+      const instance = createSingleTestSequelizeInstance();
       const User = instance.define('user', {
         name: { type: DataTypes.TEXT },
       }, { timestamps: false });
@@ -18,7 +18,7 @@ describe('QueryInterface#select', () => {
 
       await User.create({ name: 'Sourav' });
 
-      const qi = instance.getQueryInterface();
+      const qi = instance.queryInterface;
 
       const result = await qi.select(User, 'users', { where: { name: 'Sourav' }, minifyAliases: true });
 

@@ -6,22 +6,28 @@ import {
   legacyBuildRemoveHook,
   legacyBuildRunHook,
 } from './hooks-legacy.js';
-import { getModelDefinition, hasModelDefinition, ModelDefinition, registerModelDefinition } from './model-definition.js';
+import { ModelDefinition, getModelDefinition, hasModelDefinition, registerModelDefinition } from './model-definition.js';
 import { staticModelHooks } from './model-hooks.js';
 import type { Model } from './model.js';
 import { noModelTableName } from './utils/deprecations.js';
 import { getObjectFromMap } from './utils/object.js';
 import type { PartialBy } from './utils/types.js';
 import type {
-  ModelStatic,
-  Sequelize,
   AbstractQueryGenerator,
   AbstractQueryInterface,
-  IndexOptions, InitOptions,
-  Attributes, BrandedKeysOf, ForeignKeyBrand, ModelAttributes,
+  Association,
+  AttributeOptions,
+  Attributes,
+  BrandedKeysOf,
+  BuiltModelOptions,
+  ForeignKeyBrand,
+  IndexOptions,
+  InitOptions,
+  ModelAttributes,
+  ModelStatic,
   NormalizedAttributeOptions,
-  BuiltModelOptions, AttributeOptions,
-  Association, TableNameWithSchema,
+  Sequelize,
+  TableNameWithSchema,
 } from '.';
 
 // DO NOT MAKE THIS CLASS PUBLIC!
@@ -35,7 +41,7 @@ export class ModelTypeScript {
   }
 
   static get queryGenerator(): AbstractQueryGenerator {
-    return this.queryInterface.queryGenerator;
+    return this.sequelize.queryGenerator;
   }
 
   /**
@@ -279,7 +285,7 @@ export class ModelTypeScript {
    *   DataType, a string or a type-description object.
    * @param options These options are merged with the default define options provided to the Sequelize constructor
    */
-  static init<MS extends ModelStatic, M extends InstanceType<MS>>(
+  static init<M extends Model, MS extends ModelStatic<M>>(
     this: MS,
     attributes: ModelAttributes<
       M,
@@ -378,7 +384,7 @@ export class ModelTypeScript {
     // TODO no deprecation warning is issued here, as this is still used internally.
     //  Start emitting a warning once we have removed all internal usages.
 
-    const queryGenerator = this.sequelize.queryInterface.queryGenerator;
+    const queryGenerator = this.sequelize.queryGenerator;
 
     return {
       ...this.table,
@@ -393,7 +399,11 @@ export class ModelTypeScript {
   }
 }
 
-export function initModel(model: ModelStatic, attributes: ModelAttributes, options: InitOptions): void {
+export function initModel<M extends Model>(
+  model: ModelStatic<M>,
+  attributes: ModelAttributes<M>,
+  options: InitOptions<M>,
+): void {
   options.modelName ||= model.name;
 
   const modelDefinition = new ModelDefinition(

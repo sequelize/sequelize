@@ -17,28 +17,10 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
    * @override
    */
   async removeColumn(tableName, columnName, options) {
-    options = options || {};
+    const foreignKeys = await this.showConstraints(tableName, { ...options, columnName, constraintType: 'FOREIGN KEY' });
+    await Promise.all(foreignKeys.map(constraint => this.removeConstraint(tableName, constraint.constraintName, options)));
 
-    const [results] = await this.sequelize.queryRaw(
-      this.queryGenerator.getForeignKeyQuery(tableName.tableName ? tableName : {
-        tableName,
-        schema: this.sequelize.config.database,
-      }, columnName),
-      { raw: true, ...options },
-    );
-
-    // Exclude primary key constraint
-    if (results.length > 0 && results[0].constraint_name !== 'PRIMARY') {
-      await Promise.all(results.map(constraint => this.sequelize.queryRaw(
-        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraint_name),
-        { raw: true, ...options },
-      )));
-    }
-
-    return await this.sequelize.queryRaw(
-      this.queryGenerator.removeColumnQuery(tableName, columnName),
-      { raw: true, ...options },
-    );
+    await super.removeColumn(tableName, columnName, options);
   }
 
   /**
@@ -67,23 +49,16 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
   }
 
   /**
+   * A wrapper that fixes MySQL's lack of support for DROP CONSTRAINT in MySQL < 8.0.
+   *
    * @override
    */
+  // TODO [>=2023-11-01]: remove this override when MySQL 8.0 is the minimum supported version
   async removeConstraint(tableName, constraintName, options) {
-    const sql = this.queryGenerator.showConstraintsQuery(
-      tableName.tableName ? tableName : {
-        tableName,
-        schema: this.sequelize.config.database,
-      }, constraintName,
-    );
-
-    const constraints = await this.sequelize.queryRaw(sql, {
-      ...options,
-      type: this.sequelize.QueryTypes.SHOWCONSTRAINTS,
-    });
+    const queryOptions = { ...options, raw: true, constraintName };
+    const constraints = await this.showConstraints(tableName, queryOptions);
 
     const constraint = constraints[0];
-    let query;
     if (!constraint || !constraint.constraintType) {
       throw new sequelizeErrors.UnknownConstraintError(
         {
@@ -94,12 +69,13 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
       );
     }
 
+    let query;
     if (constraint.constraintType === 'FOREIGN KEY') {
-      query = this.queryGenerator.dropForeignKeyQuery(tableName, constraintName);
+      query = `ALTER TABLE ${this.queryGenerator.quoteTable(tableName)} DROP FOREIGN KEY ${this.quoteIdentifier(constraint.constraintName)}`;
     } else {
-      query = this.queryGenerator.removeIndexQuery(constraint.tableName, constraint.constraintName);
+      query = this.queryGenerator.removeIndexQuery(tableName, constraint.constraintName);
     }
 
-    return await this.sequelize.queryRaw(query, options);
+    return this.sequelize.queryRaw(query, queryOptions);
   }
 }

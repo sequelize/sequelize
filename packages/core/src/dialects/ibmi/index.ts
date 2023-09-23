@@ -31,6 +31,9 @@ export class IBMiDialect extends AbstractDialect {
       dataTypes: {
         COLLATE_BINARY: true,
       },
+      removeColumn: {
+        cascade: true,
+      },
     },
   );
 
@@ -41,11 +44,12 @@ export class IBMiDialect extends AbstractDialect {
   readonly dataTypesDocumentationUrl = 'https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_73/db2/rbafzch2data.htm';
   readonly defaultVersion = '7.3.0';
   readonly Query = IBMiQuery;
-  readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
 
   constructor(sequelize: Sequelize) {
+    console.warn('The IBMi dialect is experimental and usage is at your own risk. Its development is exclusively community-driven and not officially supported by the maintainers.');
+
     super(sequelize, DataTypes, 'ibmi');
 
     this.connectionManager = new IBMiConnectionManager(this, sequelize);

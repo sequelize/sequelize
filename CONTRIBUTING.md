@@ -117,7 +117,7 @@ Run `yarn install` within the cloned repository folder.
 
 #### 2.1 Adding and updating dependencies
 
-[Yarn v1](https://classic.yarnpkg.com/en/) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn v1. Depending on the Node version used, you might encounter a `Found incompatible module` error. To solve that, you can pass the `--ignore-engines` flag. This is not needed if you use Node `^14.17.0 || >=16.0.0`.
+[Yarn v3](https://yarnpkg.com//) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn.
 
 ### 3. Prepare local databases to run tests
 
@@ -127,17 +127,19 @@ If you're happy to run tests only against an SQLite database, you can skip this 
 
 If you have Docker installed, use any of the following commands to start fresh local databases of the dialect of your choice:
 
-- `yarn start-mariadb-oldest` (for MariaDB 10.3) or `yarn start-mariadb-latest` (for MariaDB 10.9)
+- `yarn start-mariadb-oldest` (for MariaDB 10.4) or `yarn start-mariadb-latest` (for MariaDB 11.0)
 - `yarn start-mysql-oldest` (for MySQL 5.7) or `yarn start-mysql-latest` (for MySQL 8.0)
 - `yarn start-postgres-oldest` (for Postgres 11) or `yarn start-postgres-latest` (for Postgres 15)
 - `yarn start-mssql-oldest` (for MSSQL 2017) or `yarn start-mssql-latest` (for MSSQL 2022)
-- `yarn start-db2-oldest`
+- `yarn start-db2-oldest` (for Db2 11.5.5.1) or `yarn start-db2-latest` (for Db2 11.5.8.0)
 
 _Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
 Each of these commands will start a Docker container with the corresponding database, ready to run Sequelize tests (or an SSCCE).
 
 You can run `yarn stop-X` to stop the servers once you're done.
+
+The docker containers retain storage in volumes to improve startup time. If you run into to any issues with a container, you can run `yarn reset-{dialect}` or `yarn reset-all` to remove the containers and volumes.
 
 ##### Hint for Postgres
 
@@ -153,27 +155,41 @@ You will have to manually install and configure each of database engines you wan
 
 ### 4. Running tests
 
+Sequelize is a monorepo and uses `lerna` to run scripts in each of the packages. The syntax for the commands is: `yarn lerna run` followed by the script name. For example:
+
+```
+yarn lerna run test-unit
+```
+
+By default, the `yarn lerna run` command will run the script in all packages which have a matching script. By appending `--scope=package_name` to the command (where `package_name` is the name of the package you want to run the script on) you can select a specific package to run the script on. For example:
+
+```
+yarn lerna run test-unit --scope=@sequelize/core
+```
+
+For more information about using `lerna` commands, use the [Lerna Documentation](https://lerna.js.org/docs/api-reference/commands).
+
 Before starting any work, try to run the tests locally in order to be sure your setup is fine. Start by running the SQLite tests:
 
 ```
-yarn test-sqlite
+yarn lerna run test-sqlite
 ```
 
 Then, if you want to run tests for another dialect, assuming you've set it up as written on section 3, run the corresponding command:
 
-- `yarn test-mysql`
-- `yarn test-mariadb`
-- `yarn test-postgres`
-- `yarn test-mssql`
-- `yarn test-db2`
+- `yarn lerna run test-mysql`
+- `yarn lerna run test-mariadb`
+- `yarn lerna run test-postgres`
+- `yarn lerna run test-mssql`
+- `yarn lerna run test-db2`
 
 There are also the `test-unit-*` and `test-integration-*` sets of scripts (for example, `test-integration-postgres`).
 
 #### 4.1. Running only some tests
 
-While you're developing, you may want to execute only a single test (or a few), instead of executing everything (which takes some time). You can easily achieve this by modifying the `.mocharc.jsonc` file (but don't commit those changes!) to use `spec` (and maybe `grep`) from Mocha to specify the desired tests. Then, simply call `DIALECT=some-dialect yarn mocha` from your terminal (example: `DIALECT=postgres yarn mocha`).
+While you're developing, you may want to execute only a single test (or a few), instead of executing everything (which takes some time). You can easily achieve this by modifying the `.mocharc.jsonc` file inside the package's root directory (but don't commit those changes!) to use `spec` (and maybe `grep`) from Mocha to specify the desired tests. Then, from your terminal, navigate to the package's root directory and simply call `DIALECT=some-dialect yarn mocha` (example: `DIALECT=postgres yarn mocha`). The package root directory is where the package.json file for the package is located. For example with the @sequelize/core package, the package root directory is [packages/core](https://github.com/sequelize/sequelize/tree/main/packages/core).
 
-Hint: if you're creating a new test, you can execute only that test locally against all dialects by adapting the `spec` and `grep` options on `.mocharc.jsonc` and running the following from your terminal (assuming you already set up the database instances via the corresponding `yarn setup-*` calls, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended)):
+Hint: if you're creating a new test, you can execute only that test locally against all dialects by adapting the `spec` and `grep` options on `.mocharc.jsonc` and running the following from your terminal (assuming you already set up the database instances via the corresponding `yarn setup-*` calls, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended) and you are in the package's root directory):
 
 ```
 DIALECT=mariadb yarn mocha && DIALECT=mysql yarn mocha && DIALECT=postgres yarn mocha && DIALECT=sqlite yarn mocha && DIALECT=mssql yarn mocha && DIALECT=db2 yarn mocha

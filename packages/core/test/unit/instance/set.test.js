@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('custom setter', () => {
       before(function () {
-        this.stubCreate = sinon.stub(current.getQueryInterface(), 'insert').callsFake(async instance => [instance, 1]);
+        this.stubCreate = sinon.stub(current.queryInterface, 'insert').callsFake(async instance => [instance, 1]);
       });
 
       after(function () {
@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
             if (typeof val === 'string') {
               // Canonicalize phone number
-              val = val.replace(/^\+/, '00').replace(/\(0\)|[\s()+./-]/g, '');
+              val = val.replace(/^\+/, '00').replaceAll(/\(0\)|[\s()+./-]/g, '');
             }
 
             this.setDataValue('phoneNumber', val);

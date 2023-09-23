@@ -1,6 +1,5 @@
 'use strict';
 
-import isPlainObject from 'lodash/isPlainObject';
 import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { AssociationPath } from './expression-builders/association-path';
@@ -19,6 +18,7 @@ import { Where, where } from './expression-builders/where.js';
 import { setTransactionFromCls } from './model-internals.js';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
+import { IsolationLevel, Lock, Transaction, TransactionNestMode, TransactionType } from './transaction.js';
 import { isString } from './utils/check.js';
 import { noSequelizeDataType } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
@@ -27,12 +27,15 @@ import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
 import { importModels } from './import-models.js';
 
-const _ = require('lodash');
+import defaults from 'lodash/defaults';
+import defaultsDeep from 'lodash/defaultsDeep';
+import isPlainObject from 'lodash/isPlainObject';
+import map from 'lodash/map';
+
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
-const { Deferrable } = require('./deferrable');
+const { ConstraintChecking, Deferrable } = require('./deferrable');
 const { ModelManager } = require('./model-manager');
-const { Transaction, TRANSACTION_TYPES } = require('./transaction');
 const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
@@ -99,8 +102,6 @@ export class Sequelize extends SequelizeTypeScript {
    *   // - currently supported: 'mysql', 'postgres', 'mssql'
    *   dialectOptions: {
    *     socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
-   *     supportBigNumbers: true,
-   *     bigNumberStrings: true
    *   },
    *
    *   // the storage engine for sqlite
@@ -174,6 +175,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {object}   [options.sync={}] Default options for sequelize.sync
    * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
    * @param {boolean}  [options.keepDefaultTimezone=false] A flag that defines if the default timezone is used to convert dates from the database.
+   * @param {number|null} [options.defaultTimestampPrecision] The precision for the `createdAt`/`updatedAt`/`deletedAt` DATETIME columns that Sequelize adds to models. Can be a number between 0 and 6, or null to use the default precision of the database. Defaults to 6.
    * @param {string|boolean} [options.clientMinMessages='warning'] (Deprecated) The PostgreSQL `client_min_messages` session parameter. Set to `false` to not override the database's default.
    * @param {boolean}  [options.standardConformingStrings=true] The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option. WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    * @param {Function} [options.logging=console.log] A function that gets executed every time Sequelize would log something. Function may receive multiple parameters but only first one is printed by `console.log`. To print all values use `(...msg) => console.log(msg)`
@@ -210,19 +212,19 @@ export class Sequelize extends SequelizeTypeScript {
   constructor(database, username, password, options) {
     super();
 
-    if (arguments.length === 1 && _.isPlainObject(database)) {
+    if (arguments.length === 1 && isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
-    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && _.isPlainObject(username)) {
+    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && isPlainObject(username)) {
       // new Sequelize(URI, { ... options })
       options = username ? { ...username } : Object.create(null);
 
-      _.defaultsDeep(options, parseConnectionString(arguments[0]));
+      defaultsDeep(options, parseConnectionString(arguments[0]));
     } else {
       // new Sequelize(database, username, password, { ... options })
       options = options ? { ...options } : Object.create(null);
 
-      _.defaults(options, {
+      defaults(options, {
         database,
         username,
         password,
@@ -254,7 +256,7 @@ export class Sequelize extends SequelizeTypeScript {
       native: false,
       replication: false,
       ssl: undefined,
-      // TODO [=7]: print a deprecation warning if quoteIdentifiers is set to false
+      // TODO [>7]: remove this option
       quoteIdentifiers: true,
       hooks: {},
       retry: {
@@ -263,7 +265,7 @@ export class Sequelize extends SequelizeTypeScript {
           'SQLITE_BUSY: database is locked',
         ],
       },
-      transactionType: TRANSACTION_TYPES.DEFERRED,
+      transactionType: TransactionType.DEFERRED,
       isolationLevel: null,
       databaseVersion: null,
       noTypeValidation: false,
@@ -271,8 +273,10 @@ export class Sequelize extends SequelizeTypeScript {
       minifyAliases: false,
       logQueryParameters: false,
       disableClsTransactions: false,
+      defaultTransactionNestMode: TransactionNestMode.reuse,
+      defaultTimestampPrecision: 6,
       ...options,
-      pool: _.defaults(options.pool || {}, {
+      pool: defaults(options.pool || {}, {
         max: 5,
         min: 0,
         idle: 10_000,
@@ -302,6 +306,10 @@ export class Sequelize extends SequelizeTypeScript {
     if (this.options.logging === true) {
       deprecations.noTrueLogging();
       this.options.logging = console.debug;
+    }
+
+    if (this.options.quoteIdentifiers === false) {
+      deprecations.alwaysQuoteIdentifiers();
     }
 
     if (options.hooks) {
@@ -371,7 +379,7 @@ export class Sequelize extends SequelizeTypeScript {
     }
 
     // Map main connection config
-    this.options.replication.write = _.defaults(this.options.replication.write ?? {}, connectionConfig);
+    this.options.replication.write = defaults(this.options.replication.write ?? {}, connectionConfig);
     this.options.replication.write.port = Number(this.options.replication.write.port);
 
     if (!this.options.replication.read) {
@@ -388,7 +396,7 @@ export class Sequelize extends SequelizeTypeScript {
       readEntry.port = Number(readEntry.port);
 
       // Apply defaults to each read config
-      return _.defaults(readEntry, connectionConfig);
+      return defaults(readEntry, connectionConfig);
     });
 
     // ==========================================
@@ -440,14 +448,6 @@ export class Sequelize extends SequelizeTypeScript {
   // TODO [>=8]: rename to getDialectName or remove
   getDialect() {
     return this.options.dialect;
-  }
-
-  get queryInterface() {
-    return this.dialect.queryInterface;
-  }
-
-  get queryGenerator() {
-    return this.dialect.queryGenerator;
   }
 
   /**
@@ -670,9 +670,9 @@ Use Sequelize#query if you wish to use replacements.`);
       options.fieldMap = options.model?.fieldAttributeMap;
     }
 
-    options = _.defaults(options, {
-      logging: Object.prototype.hasOwnProperty.call(this.options, 'logging') ? this.options.logging : console.debug,
-      searchPath: Object.prototype.hasOwnProperty.call(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT',
+    options = defaults(options, {
+      logging: Object.hasOwn(this.options, 'logging') ? this.options.logging : console.debug,
+      searchPath: Object.hasOwn(this.options, 'searchPath') ? this.options.searchPath : 'DEFAULT',
     });
 
     if (!options.type) {
@@ -712,7 +712,7 @@ Use Sequelize#query if you wish to use replacements.`);
     return await retry(async () => {
       checkTransaction();
 
-      const connection = options.transaction ? options.transaction.connection
+      const connection = options.transaction ? options.transaction.getConnection()
         : options.connection ? options.connection
         : await this.connectionManager.getConnection({
           useMaster: options.useMaster,
@@ -770,86 +770,9 @@ Use Sequelize#query if you wish to use replacements.`);
     // Generate SQL Query
     const query
       = `SET ${
-        _.map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
+        map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
 
     return await this.query(query, options);
-  }
-
-  /**
-   * Escape value.
-   *
-   * @param {string} value string value to escape
-   *
-   * @returns {string}
-   */
-  escape(value) {
-    return this.dialect.queryGenerator.escape(value);
-  }
-
-  /**
-   * Create a new database schema.
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this command will do nothing.
-   *
-   * @see
-   * {@link Model.schema}
-   *
-   * @param {string} schema Name of the schema
-   * @param {object} [options={}] CreateSchemaQueryOptions
-   * @param {string} [options.collate=null]
-   * @param {string} [options.charset=null]
-    *
-   * @returns {Promise}
-   */
-  async createSchema(schema, options) {
-    return await this.getQueryInterface().createSchema(schema, options);
-  }
-
-  /**
-   * Show all defined schemas
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this will show all tables.
-   *
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async showAllSchemas(options) {
-    return await this.getQueryInterface().showAllSchemas(options);
-  }
-
-  /**
-   * Drop a single schema
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this drop a table matching the schema name
-   *
-   * @param {string} schema Name of the schema
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async dropSchema(schema, options) {
-    return await this.getQueryInterface().dropSchema(schema, options);
-  }
-
-  /**
-   * Drop all schemas.
-   *
-   * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-   * not a database table. In mysql and sqlite, this is the equivalent of drop all tables.
-   *
-   * @param {object} [options={}] query options
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   *
-   * @returns {Promise}
-   */
-  async dropAllSchemas(options) {
-    return await this.getQueryInterface().dropAllSchemas(options);
   }
 
   /**
@@ -884,7 +807,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.force) {
-      await this.drop(options);
+      await this.drop({ ...options, cascade: this.dialect.supports.dropTable.cascade || undefined });
     }
 
     // no models defined, just authenticate
@@ -943,50 +866,8 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   /**
-   * Truncate all tables defined through the sequelize models.
-   * This is done by calling `Model.truncate()` on each model.
-   *
-   * @param {object} [options] The options passed to Model.destroy in addition to truncate
-   * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
-   * @returns {Promise}
-   *
-   * @see
-   * {@link Model.truncate} for more information
-   */
-  async truncate(options) {
-    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
-    const models = sortedModels || this.modelManager.models;
-    const hasCyclicDependencies = sortedModels == null;
-
-    // we have cyclic dependencies, cascade must be enabled.
-    if (hasCyclicDependencies && (!options || !options.cascade)) {
-      throw new Error('Sequelize#truncate: Some of your models have cyclic references (foreign keys). You need to use the "cascade" option to be able to delete rows from models that have cyclic references.');
-    }
-
-    // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
-    if (hasCyclicDependencies && this.dialect.name === 'sqlite') {
-      // Workaround: SQLite does not support options.cascade, but we can disable its foreign key constraints while we
-      // truncate all tables.
-      return withSqliteForeignKeysOff(this, options, async () => {
-        await Promise.all(models.map(model => model.truncate(options)));
-      });
-    }
-
-    if (options && options.cascade) {
-      for (const model of models) {
-        await model.truncate(options);
-      }
-    } else {
-      await Promise.all(models.map(model => model.truncate(options)));
-    }
-  }
-
-  /**
    * Drop all tables defined through this sequelize instance.
-   * This is done by calling Model.drop on each model.
-   *
-   * @see
-   * {@link Model.drop} for options
+   * This is done by calling {@link Model.drop} on each model.
    *
    * @param {object} [options] The options passed to each call to Model.drop
    * @param {boolean|Function} [options.logging] A function that logs sql queries, or false for no logging
@@ -1023,11 +904,10 @@ Use Sequelize#query if you wish to use replacements.`);
 
     // has cyclic dependency: we first remove each foreign key, then delete each model.
     for (const model of this.modelManager.models) {
-      const tableName = model.getTableName();
-      const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable(tableName, options);
+      const foreignKeys = await this.queryInterface.showConstraints(model, { ...options, constraintType: 'FOREIGN KEY' });
 
       await Promise.all(foreignKeys.map(foreignKey => {
-        return this.queryInterface.removeConstraint(tableName, foreignKey.constraintName, options);
+        return this.queryInterface.removeConstraint(model, foreignKey.constraintName, options);
       }));
     }
 
@@ -1056,32 +936,6 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   /**
-   * Fetches the version of the database
-   *
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise<string>} current version of the dialect
-   */
-  async fetchDatabaseVersion(options) {
-    return await this.getQueryInterface().databaseVersion(options);
-  }
-
-  /**
-   * Throws if the database version hasn't been loaded yet. It is automatically loaded the first time Sequelize connects to your database.
-   *
-   * You can use {@link Sequelize#authenticate} to cause a first connection.
-   *
-   * @returns {string} current version of the dialect that is internally loaded
-   */
-  getDatabaseVersion() {
-    if (this.options.databaseVersion == null) {
-      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
-    }
-
-    return this.options.databaseVersion;
-  }
-
-  /**
    * Get the fn for random based on the dialect
    *
    * @returns {Fn}
@@ -1094,6 +948,7 @@ Use Sequelize#query if you wish to use replacements.`);
     return fn('RAND');
   }
 
+  // Global exports
   static Fn = Fn;
   static Col = Col;
   static Cast = Cast;
@@ -1126,12 +981,17 @@ Use Sequelize#query if you wish to use replacements.`);
 
   static importModels = importModels;
 
+  static TransactionNestMode = TransactionNestMode;
+  static TransactionType = TransactionType;
+  static Lock = Lock;
+  static IsolationLevel = IsolationLevel;
+
   log(...args) {
     let options;
 
-    const last = _.last(args);
+    const last = args.at(-1);
 
-    if (last && _.isPlainObject(last) && Object.prototype.hasOwnProperty.call(last, 'logging')) {
+    if (last && isPlainObject(last) && Object.hasOwn(last, 'logging')) {
       options = last;
 
       // remove options from set of logged arguments if options.logging is equal to console.log or console.debug
@@ -1175,7 +1035,7 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   normalizeAttribute(attribute) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = { type: attribute };
     } else {
       attribute = { ...attribute };
@@ -1312,10 +1172,17 @@ for (const dataTypeName in DataTypes) {
 /**
  * A reference to the deferrable collection. Use this to access the different deferrable options.
  *
+ * @see {@link QueryInterface#addConstraint}
+ */
+Sequelize.Deferrable = Deferrable;
+
+/**
+ * A reference to the deferrable collection. Use this to access the different deferrable options.
+ *
  * @see {@link Transaction.Deferrable}
  * @see {@link Sequelize#transaction}
  */
-Sequelize.Deferrable = Deferrable;
+Sequelize.ConstraintChecking = ConstraintChecking;
 
 /**
  * A reference to the sequelize association class.

@@ -1,5 +1,7 @@
 'use strict';
 
+const range = require('lodash/range');
+
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -9,7 +11,6 @@ const dayjs = require('dayjs');
 const sinon = require('sinon');
 
 const current = Support.sequelize;
-const _ = require('lodash');
 const assert = require('node:assert');
 
 const dialect = Support.getTestDialect();
@@ -456,7 +457,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks[0].title).to.equal('b');
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
           await this.sequelize.dropSchema('work');
-          const schemas = await this.sequelize.showAllSchemas();
+          const schemas = await this.sequelize.queryInterface.listSchemas();
           if (['postgres', 'mssql'].includes(dialect) || schemas === 'mariadb') {
             expect(schemas).to.be.empty;
           }
@@ -504,7 +505,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       if (current.dialect.supports.transactions) {
         it('supports transactions', async function () {
-          const sequelize = await Support.prepareTransactionTest(this.sequelize);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
 
@@ -609,7 +610,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       if (current.dialect.supports.transactions) {
         it('supports transactions', async function () {
-          const sequelize = await Support.prepareTransactionTest(this.sequelize);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
 
@@ -697,81 +698,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
     });
 
-    describe('setAssociations', () => {
-      if (current.dialect.supports.transactions) {
-        it('supports transactions', async function () {
-          const sequelize = await Support.prepareTransactionTest(this.sequelize);
-          const Article = sequelize.define('Article', { title: DataTypes.STRING });
-          const Label = sequelize.define('Label', { text: DataTypes.STRING });
-
-          Article.hasMany(Label);
-
-          await sequelize.sync({ force: true });
-
-          const [article, label, t] = await Promise.all([
-            Article.create({ title: 'foo' }),
-            Label.create({ text: 'bar' }),
-            sequelize.startUnmanagedTransaction(),
-          ]);
-
-          await article.setLabels([label], { transaction: t });
-          const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
-          expect(labels0.length).to.equal(0);
-
-          const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
-          expect(labels.length).to.equal(1);
-          await t.rollback();
-        });
-      }
-
-      it('clears associations when passing null to the set-method', async function () {
-        const User = this.sequelize.define('User', { username: DataTypes.STRING });
-        const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
-
-        Task.hasMany(User);
-
-        await this.sequelize.sync({ force: true });
-
-        const [user, task] = await Promise.all([
-          User.create({ username: 'foo' }),
-          Task.create({ title: 'task' }),
-        ]);
-
-        await task.setUsers([user]);
-        const users0 = await task.getUsers();
-        expect(users0).to.have.length(1);
-
-        await task.setUsers(null);
-        const users = await task.getUsers();
-        expect(users).to.have.length(0);
-      });
-
-      it('supports passing the primary key instead of an object', async function () {
-        const Article = this.sequelize.define('Article', { title: DataTypes.STRING });
-        const Label = this.sequelize.define('Label', { text: DataTypes.STRING });
-
-        Article.hasMany(Label);
-
-        await this.sequelize.sync({ force: true });
-
-        const [article, label1, label2] = await Promise.all([
-          Article.create({}),
-          Label.create({ text: 'label one' }),
-          Label.create({ text: 'label two' }),
-        ]);
-
-        await article.addLabel(label1.id);
-        await article.setLabels([label2.id]);
-        const labels = await article.getLabels();
-        expect(labels).to.have.length(1);
-        expect(labels[0].text).to.equal('label two');
-      });
-    });
-
     describe('addAssociations', () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', async function () {
-          const sequelize = await Support.prepareTransactionTest(this.sequelize);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
           Article.hasMany(Label);
@@ -843,7 +773,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         Task.hasMany(User);
 
         await this.sequelize.sync({ force: true });
-        const users0 = _.range(1000).map(i => ({ username: `user${i}`, num: i, status: 'live' }));
+        const users0 = range(1000).map(i => ({ username: `user${i}`, num: i, status: 'live' }));
         await User.bulkCreate(users0);
         await Task.create({ title: 'task' });
         const users = await User.findAll();
@@ -909,7 +839,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       if (current.dialect.supports.transactions) {
         it('supports transactions', async function () {
-          const sequelize = await Support.prepareTransactionTest(this.sequelize);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
 
@@ -1169,7 +1099,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           // `WHERE` clause
 
           const tableName = User.getTableName();
-          await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+          await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           const tasks = await Task.findAll();
           expect(tasks).to.have.length(1);
           expect(tasks[0].UserId).to.equal(999);
@@ -1230,7 +1160,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const tableName = User.getTableName();
 
           try {
-            tasks = await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+            tasks = await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           } catch (error) {
             if (!(error instanceof Sequelize.ForeignKeyConstraintError)) {
               throw error;
@@ -1472,14 +1402,14 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       expect(user0).to.have.property('tasks');
       expect(user0.tasks).to.be.an('array');
       expect(user0.tasks).to.lengthOf(1);
-      expect(user0.tasks[0].title).to.be.equal(values.tasks[0].title, 'task title is correct');
+      expect(user0.tasks[0].title).to.equal(values.tasks[0].title, 'task title is correct');
 
       const user = await User.findOne({ where: { email: values.email } });
       const tasks = await user.getTasks();
       // Make sure tasks relationship is successful
       expect(tasks).to.be.an('array');
       expect(tasks).to.lengthOf(1);
-      expect(tasks[0].title).to.be.equal(values.tasks[0].title, 'task title is correct');
+      expect(tasks[0].title).to.equal(values.tasks[0].title, 'task title is correct');
     });
 
     it('should create nested associations with symmetric getters/setters on FK', async function () {
@@ -1536,15 +1466,15 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       await this.sequelize.sync({ force: true });
       const father = await Parent.create(values, { include: { model: Child, as: 'children' } });
       // Make sure tasks are defined for created user
-      expect(father.id).to.be.equal('sJn369d8Em');
-      expect(father.get('id', { raw: true })).to.be.equal('FORMAT-sJn369d8Em');
+      expect(father.id).to.equal('sJn369d8Em');
+      expect(father.get('id', { raw: true })).to.equal('FORMAT-sJn369d8Em');
 
       expect(father).to.have.property('children');
       expect(father.children).to.be.an('array');
       expect(father.children).to.lengthOf(1);
 
-      expect(father.children[0].parent).to.be.equal('sJn369d8Em');
-      expect(father.children[0].get('parent', { raw: true })).to.be.equal('FORMAT-sJn369d8Em');
+      expect(father.children[0].parent).to.equal('sJn369d8Em');
+      expect(father.children[0].get('parent', { raw: true })).to.equal('FORMAT-sJn369d8Em');
     });
   });
 

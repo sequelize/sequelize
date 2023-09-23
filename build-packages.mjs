@@ -31,8 +31,8 @@ const libDir = path.join(packageDir, 'lib');
 const typesDir = path.join(packageDir, 'types');
 
 const [sourceFiles] = await Promise.all([
-  // Find all .js and .ts files from /src
-  glob(`${sourceDir}/**/*.{mjs,cjs,js,mts,cts,ts}`, { onlyFiles: true, absolute: false }),
+  // Find all .js and .ts files from /src.
+  glob(`${glob.convertPathToPattern(sourceDir)}/**/*.{mjs,cjs,js,mts,cts,ts}`, { onlyFiles: true, absolute: false }),
   // Delete /lib for a full rebuild.
   rmDir(libDir),
   // Delete /types for a full rebuild.
@@ -65,8 +65,8 @@ await Promise.all([
   build({
     // Adds source mapping
     sourcemap: true,
-    // The compiled code should be usable in node v14.17
-    target: 'node14.17',
+    // The compiled code should be usable in node v18
+    target: 'node18',
     // The source code's format is commonjs.
     format: 'cjs',
 

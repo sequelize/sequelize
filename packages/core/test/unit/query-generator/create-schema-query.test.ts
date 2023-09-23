@@ -6,14 +6,14 @@ const dialectName = getTestDialect();
 const notSupportedError = new Error(`Schemas are not supported in ${dialectName}.`);
 
 describe('QueryGenerator#createSchemaQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a CREATE SCHEMA query in supported dialects', () => {
     expectsql(() => queryGenerator.createSchemaQuery('myDatabase'), {
       default: 'CREATE SCHEMA IF NOT EXISTS [myDatabase];',
       db2: 'CREATE SCHEMA "myDatabase";',
       ibmi: 'CREATE SCHEMA "myDatabase"',
-      mssql: `IF NOT EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'myDatabase') BEGIN EXEC sp_executesql N'CREATE SCHEMA [myDatabase] ;' END;`,
+      mssql: `IF NOT EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = N'myDatabase') BEGIN EXEC sp_executesql N'CREATE SCHEMA [myDatabase] ;' END;`,
       sqlite: notSupportedError,
     });
   });

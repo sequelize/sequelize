@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   describe('getAssociation', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const user = await task.getUserXYZ();
         expect(user).to.be.ok;
         await this.sequelize.dropSchema('archive');
-        const schemas = await this.sequelize.showAllSchemas();
+        const schemas = await this.sequelize.queryInterface.listSchemas();
         if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
           expect(schemas).to.not.have.property('archive');
         }
@@ -172,7 +172,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
@@ -349,7 +349,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.prepareTransactionTest(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
@@ -609,7 +609,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const tableName = User.getTableName();
 
         await expect(
-          user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id }),
+          user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id }),
         ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
 
         // Should fail due to FK restriction
@@ -637,7 +637,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         // `WHERE` clause
 
         const tableName = User.getTableName();
-        await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+        await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
         const tasks = await Task.findAll();
         expect(tasks).to.have.length(1);
         expect(tasks[0].UserId).to.equal(999);
@@ -680,11 +680,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundTask = await Task.findOne({ where: { title: 'some task' } });
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
-      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'username',
+      const foreignKeysDescriptions = await this.sequelize.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedColumnNames: ['username'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        columnNames: ['user_name'],
       });
     });
 
@@ -709,11 +709,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundTask = await Task.findOne({ where: { title: 'some task' } });
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
-      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'user_name',
+      const foreignKeysDescriptions = await this.sequelize.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedColumnNames: ['user_name'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        columnNames: ['user_name'],
       });
     });
 
@@ -737,11 +737,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundTask = await Task.findOne({ where: { title: 'some task' } });
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
-      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'the_user_name_field',
+      const foreignKeysDescriptions = await this.sequelize.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedColumnNames: ['the_user_name_field'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        columnNames: ['user_name'],
       });
     });
 
@@ -774,11 +774,11 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       const foundTask = await Task.findOne({ where: { title: 'some task' } });
       const foundUser = await foundTask.getUser();
       await expect(foundUser.username).to.equal('bob');
-      const foreignKeysDescriptions = await this.sequelize.getQueryInterface().getForeignKeyReferencesForTable('Tasks');
-      expect(foreignKeysDescriptions[0]).to.includes({
-        referencedColumnName: 'the_user_name_field',
+      const foreignKeysDescriptions = await this.sequelize.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
+      expect(foreignKeysDescriptions[0]).to.deep.include({
+        referencedColumnNames: ['the_user_name_field'],
         referencedTableName: 'Users',
-        columnName: 'user_name',
+        columnNames: ['user_name'],
       });
     });
   });

@@ -28,8 +28,9 @@ export class SqliteDialect extends AbstractDialect {
       type: true,
     },
     constraints: {
-      addConstraint: false,
-      dropConstraint: false,
+      foreignKeyChecksDisableable: true,
+      add: false,
+      remove: false,
     },
     groupedLimit: false,
     dataTypes: {
@@ -42,11 +43,14 @@ export class SqliteDialect extends AbstractDialect {
     // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)
     //  be careful: json_extract, ->, and ->> don't have the exact same meanings as mysql & mariadb
     jsonOperations: false,
+    jsonExtraction: {
+      unquoted: false,
+      quoted: false,
+    },
   });
 
   readonly defaultVersion = '3.8.0';
   readonly Query = SqliteQuery;
-  readonly TICK_CHAR = '`';
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';
   readonly connectionManager: SqliteConnectionManager;

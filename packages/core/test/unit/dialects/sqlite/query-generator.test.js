@@ -1,13 +1,13 @@
 'use strict';
 
+const each = require('lodash/each');
+
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../../support');
-const { Op } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
-const _ = require('lodash');
 const dayjs = require('dayjs');
 const { SqliteQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/sqlite/query-generator.js');
 const { createSequelizeInstance } = require('../../../support');
@@ -351,37 +351,6 @@ if (dialect === 'sqlite') {
           needsSequelize: true,
         },
       ],
-      renameColumnQuery: [
-        {
-          title: 'Properly quotes column names',
-          arguments: ['myTable', 'foo', 'commit', { commit: 'VARCHAR(255)', bar: 'VARCHAR(255)' }],
-          expectation:
-            'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable_backup` SELECT `foo` AS `commit`, `bar` FROM `myTable`;'
-            + 'DROP TABLE `myTable`;'
-            + 'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;'
-            + 'DROP TABLE `myTable_backup`;',
-        },
-      ],
-      removeColumnQuery: [
-        {
-          title: 'Properly quotes column names',
-          arguments: ['myTable', { commit: 'VARCHAR(255)', bar: 'VARCHAR(255)' }],
-          expectation:
-            'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable_backup` SELECT `commit`, `bar` FROM `myTable`;'
-            + 'DROP TABLE `myTable`;'
-            + 'ALTER TABLE `myTable_backup` RENAME TO `myTable`;',
-        },
-      ],
-      getForeignKeysQuery: [
-        {
-          title: 'Property quotes table names',
-          arguments: ['myTable'],
-          expectation: 'PRAGMA foreign_key_list(`myTable`)',
-        },
-      ],
       foreignKeyCheckQuery: [
         {
           title: 'Properly quotes table names',
@@ -396,7 +365,7 @@ if (dialect === 'sqlite') {
       ],
     };
 
-    _.each(suites, (tests, suiteTitle) => {
+    each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
         for (const test of tests) {
           const query = test.expectation.query || test.expectation;

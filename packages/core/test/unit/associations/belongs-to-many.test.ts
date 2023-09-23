@@ -3,14 +3,15 @@ import each from 'lodash/each';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type {
+  BelongsToMany,
   BelongsToManySetAssociationsMixin,
   CreationOptional,
   InferAttributes,
   InferCreationAttributes,
-  BelongsToMany, ModelStatic,
+  ModelStatic,
 } from '@sequelize/core';
 import { AssociationError, BelongsTo, DataTypes, HasMany, HasOne, Model } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser, resetSequelizeInstance, createSequelizeInstance } from '../../support';
+import { createSequelizeInstance, getTestDialectTeaser, resetSequelizeInstance, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('belongsToMany'), () => {
   beforeEach(() => {
@@ -100,6 +101,26 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     });
   });
 
+  it('allows customizing the inverse association name (long form)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.belongsToMany(Task, { through: 'UserTask', as: 'tasks', inverse: { as: 'users' } });
+
+    expect(Task.associations.users).to.be.ok;
+    expect(User.associations.tasks).to.be.ok;
+  });
+
+  it('allows customizing the inverse association name (shorthand)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.belongsToMany(Task, { through: 'UserTask', as: 'tasks', inverse: 'users' });
+
+    expect(Task.associations.users).to.be.ok;
+    expect(User.associations.tasks).to.be.ok;
+  });
+
   it('allows defining two associations with the same through, but with a different scope on the through table', () => {
     const User = sequelize.define('User');
     const Post = sequelize.define('Post', { editing: DataTypes.BOOLEAN });
@@ -140,6 +161,30 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     // This means Association1.pairedWith.pairedWith is not always Association1
     // This may be an issue
     expect(Association1.pairedWith).to.eq(Association2.pairedWith);
+  });
+
+  it('lets you customize the name of the intermediate associations', () => {
+    const User = sequelize.define('User');
+    const Group = sequelize.define('Group');
+    const GroupUser = sequelize.define('GroupUser');
+
+    User.belongsToMany(Group, {
+      through: GroupUser,
+      as: 'groups',
+      throughAssociations: {
+        toSource: 'toSource',
+        toTarget: 'toTarget',
+        fromSource: 'fromSources',
+        fromTarget: 'fromTargets',
+      },
+      inverse: {
+        as: 'members',
+      },
+    });
+
+    expect(Object.keys(User.associations).sort()).to.deep.eq(['fromSource', 'fromSources', 'groups']);
+    expect(Object.keys(Group.associations).sort()).to.deep.eq(['fromTarget', 'fromTargets', 'members']);
+    expect(Object.keys(GroupUser.associations).sort()).to.deep.eq(['toSource', 'toTarget']);
   });
 
   it('errors when trying to define similar associations with incompatible inverse associations', () => {

@@ -17,7 +17,7 @@ import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAsso
 import type { ThroughOptions } from './belongs-to-many.js';
 
 export function checkNamingCollision(source: ModelStatic<any>, associationName: string): void {
-  if (Object.prototype.hasOwnProperty.call(source.getAttributes(), associationName)) {
+  if (Object.hasOwn(source.getAttributes(), associationName)) {
     throw new Error(
       `Naming collision between attribute '${associationName}'`
       + ` and association '${associationName}' on model ${source.name}`
@@ -47,7 +47,7 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
     const targetMethodName = association.accessors[method];
 
     // don't override custom methods
-    if (Object.prototype.hasOwnProperty.call(mixinTargetPrototype, targetMethodName)) {
+    if (Object.hasOwn(mixinTargetPrototype, targetMethodName)) {
       continue;
     }
 
@@ -242,6 +242,16 @@ export type NormalizeBaseAssociationOptions<T> = Omit<T, 'as' | 'hooks' | 'forei
   hooks: boolean,
   foreignKey: ForeignKeyOptions<any>,
 };
+
+export function normalizeInverseAssociation<T extends { as?: unknown }>(
+  inverse: T | string | undefined,
+): T | undefined {
+  if (typeof inverse === 'string') {
+    return { as: inverse } as T;
+  }
+
+  return inverse;
+}
 
 export function normalizeBaseAssociationOptions<T extends AssociationOptions<any>>(
   associationType: AssociationStatic<any>,

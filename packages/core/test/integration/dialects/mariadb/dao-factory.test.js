@@ -16,7 +16,7 @@ if (dialect === 'mariadb') {
           username: { type: DataTypes.STRING, unique: true },
         }, { timestamps: false });
 
-        expect(this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(User.getAttributes())).to.deep.equal({
+        expect(this.sequelize.queryGenerator.attributesToSQL(User.getAttributes())).to.deep.equal({
           // note: UNIQUE is not specified here because it is only specified if the option passed to attributesToSQL is
           //  'unique: true'.
           // Model.init normalizes the 'unique' to ensure a consistent index, and createTableQuery handles adding
@@ -31,7 +31,7 @@ if (dialect === 'mariadb') {
           username: { type: DataTypes.STRING, defaultValue: 'foo' },
         }, { timestamps: false });
         expect(
-          this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
+          this.sequelize.queryGenerator.attributesToSQL(
             User.getAttributes(),
           ),
         ).to.deep.equal({
@@ -45,7 +45,7 @@ if (dialect === 'mariadb') {
           username: { type: DataTypes.STRING, allowNull: false },
         }, { timestamps: false });
         expect(
-          this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
+          this.sequelize.queryGenerator.attributesToSQL(
             User.getAttributes(),
           ),
         ).to.deep.equal({
@@ -59,7 +59,7 @@ if (dialect === 'mariadb') {
           username: { type: DataTypes.STRING, primaryKey: true },
         }, { timestamps: false });
         expect(
-          this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
+          this.sequelize.queryGenerator.attributesToSQL(
             User.getAttributes(),
           ),
         ).to.deep.equal(
@@ -73,7 +73,7 @@ if (dialect === 'mariadb') {
           { timestamps: true });
 
         expect(
-          this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
+          this.sequelize.queryGenerator.attributesToSQL(
             User1.getAttributes(),
           ),
         ).to.deep.equal({
@@ -82,7 +82,7 @@ if (dialect === 'mariadb') {
           createdAt: 'DATETIME(6) NOT NULL',
         });
         expect(
-          this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
+          this.sequelize.queryGenerator.attributesToSQL(
             User2.getAttributes(),
           ),
         ).to.deep.equal({
@@ -96,7 +96,7 @@ if (dialect === 'mariadb') {
         const User = this.sequelize.define(`User${Support.rand()}`, {},
           { paranoid: true });
         expect(
-          this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
+          this.sequelize.queryGenerator.attributesToSQL(
             User.getAttributes(),
           ),
         ).to.deep.equal({
@@ -111,7 +111,7 @@ if (dialect === 'mariadb') {
         const User = this.sequelize.define(`User${Support.rand()}`, {},
           { paranoid: true, underscored: true });
         expect(
-          this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
+          this.sequelize.queryGenerator.attributesToSQL(
             User.getAttributes(),
           ),
         ).to.deep.equal({
@@ -144,7 +144,7 @@ if (dialect === 'mariadb') {
           bar: DataTypes.STRING,
         });
         expect(
-          this.sequelize.getQueryInterface().queryGenerator.attributesToSQL(
+          this.sequelize.queryGenerator.attributesToSQL(
             User.primaryKeys,
           ),
         ).to.deep.equal(

@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
     };
 
     await A.findOne(options);
-    expect(options.include[0].required).to.be.equal(false);
+    expect(options.include[0].required).to.equal(false);
   });
 
   it('test if required is marked as true', async function () {
@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
     };
 
     await A.findOne(options);
-    expect(options.include[0].required).to.be.equal(true);
+    expect(options.include[0].required).to.equal(true);
   });
 
   it('should not load paranoid, destroyed instances, with a non-paranoid parent', async function () {

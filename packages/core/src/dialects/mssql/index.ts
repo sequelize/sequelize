@@ -27,6 +27,7 @@ export class MssqlDialect extends AbstractDialect {
     constraints: {
       restrict: false,
       default: true,
+      removeOptions: { ifExists: true },
     },
     index: {
       collate: false,
@@ -43,8 +44,15 @@ export class MssqlDialect extends AbstractDialect {
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geometry/spatial-types-geometry-transact-sql?view=sql-server-ver16
       GEOMETRY: false,
     },
-    // TODO: add support for JSON queries https://learn.microsoft.com/en-us/sql/relational-databases/json/json-data-sql-server?view=sql-server-ver16
-    jsonOperations: false,
+    jsonOperations: true,
+    jsonExtraction: {
+      unquoted: true,
+      quoted: false,
+    },
+    tableHints: true,
+    removeColumn: {
+      ifExists: true,
+    },
   });
 
   readonly connectionManager: MsSqlConnectionManager;
@@ -61,7 +69,6 @@ export class MssqlDialect extends AbstractDialect {
   //   .github/workflows/ci.yml
   // minimum supported version
   readonly defaultVersion = '14.0.1000';
-  readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '[';
   readonly TICK_CHAR_RIGHT = ']';
 
@@ -93,7 +100,7 @@ export class MssqlDialect extends AbstractDialect {
   escapeString(value: string): string {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
-    value = value.replace(/'/g, '\'\'');
+    value = value.replaceAll('\'', '\'\'');
 
     return `N'${value}'`;
   }

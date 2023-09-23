@@ -1,5 +1,7 @@
 'use strict';
 
+const uniq = require('lodash/uniq');
+
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -7,13 +9,12 @@ const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
 const { DataTypes } = require('@sequelize/core');
-const _ = require('lodash');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryInterface', () => {
     beforeEach(function () {
       this.sequelize.options.quoteIdenifiers = true;
-      this.queryInterface = this.sequelize.getQueryInterface();
+      this.queryInterface = this.sequelize.queryInterface;
     });
 
     describe('createSchema', () => {
@@ -32,7 +33,7 @@ if (dialect.startsWith('postgres')) {
           `, { type: this.sequelize.QueryTypes.SELECT });
 
         expect(res, 'query results').to.not.be.empty;
-        expect(res[0].schema_name).to.be.equal('testschema');
+        expect(res[0].schema_name).to.equal('testschema');
       });
 
       it('works even when schema exists', async function () {
@@ -46,14 +47,14 @@ if (dialect.startsWith('postgres')) {
           `, { type: this.sequelize.QueryTypes.SELECT });
 
         expect(res, 'query results').to.not.be.empty;
-        expect(res[0].schema_name).to.be.equal('testschema');
+        expect(res[0].schema_name).to.equal('testschema');
       });
     });
 
-    describe('databaseVersion', () => {
+    describe('fetchDatabaseVersion', () => {
       it('reports version', async function () {
-        const res = await this.queryInterface.databaseVersion();
-        // check that result matches expected version number format. example 9.5.4
+        const res = await this.queryInterface.fetchDatabaseVersion();
+        // check that result matches the expected version number format. example 9.5.4
         expect(res).to.match(/\d\.\d/);
       });
     });
@@ -254,7 +255,7 @@ if (dialect.startsWith('postgres')) {
           )`)], { name: 'group_username_case' });
 
         const indexes = await this.queryInterface.showIndex('Group');
-        const indexColumns = _.uniq(indexes.map(index => index.name));
+        const indexColumns = uniq(indexes.map(index => index.name));
 
         expect(indexColumns).to.include('group_username_case');
       });
@@ -265,12 +266,12 @@ if (dialect.startsWith('postgres')) {
         });
 
         const indexes0 = await this.queryInterface.showIndex('Group');
-        const indexColumns0 = _.uniq(indexes0.map(index => index.name));
+        const indexColumns0 = uniq(indexes0.map(index => index.name));
 
         expect(indexColumns0).to.include('group_username_lower');
         await this.queryInterface.removeIndex('Group', 'group_username_lower');
         const indexes = await this.queryInterface.showIndex('Group');
-        const indexColumns = _.uniq(indexes.map(index => index.name));
+        const indexColumns = uniq(indexes.map(index => index.name));
         expect(indexColumns).to.be.empty;
       });
     });

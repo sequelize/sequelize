@@ -1,12 +1,13 @@
 'use strict';
 
+const noop = require('lodash/noop');
+
 const chai = require('chai');
 const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
-const _ = require('lodash');
 
 const sequelize = Support.sequelize;
 
@@ -16,7 +17,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   it('does not expose non-model hooks', function () {
-    for (const badHook of ['beforeDefine', 'afterDefine', 'beforeConnect', 'afterConnect', 'beforeDisconnect', 'afterDisconnect', 'beforeInit', 'afterInit']) {
+    for (const badHook of ['beforeDefine', 'afterDefine', 'beforeConnect', 'afterConnect', 'beforePoolAcquire', 'afterPoolAcquire', 'beforeDisconnect', 'afterDisconnect', 'beforeInit', 'afterInit']) {
       expect(this.Model).to.not.have.property(badHook);
     }
   });
@@ -240,7 +241,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       const Model = sequelize.define('M', {}, {
         hooks: {
-          beforeUpdate: _.noop, // Just to make sure we can define other hooks without overwriting the global one
+          beforeUpdate: noop, // Just to make sure we can define other hooks without overwriting the global one
           beforeCreate: localHook,
         },
       });

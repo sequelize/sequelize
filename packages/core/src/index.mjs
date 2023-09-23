@@ -31,6 +31,10 @@ export const Model = Pkg.Model;
 
 // export * from './lib/transaction';
 export const Transaction = Pkg.Transaction;
+export const TransactionNestMode = Pkg.TransactionNestMode;
+export const TransactionType = Pkg.TransactionType;
+export const Lock = Pkg.Lock;
+export const IsolationLevel = Pkg.IsolationLevel;
 
 // export * from './lib/associations/index';
 export const Association = Pkg.Association;
@@ -75,7 +79,7 @@ export const UniqueConstraintError = Pkg.UniqueConstraintError;
 // export { useInflection } from './lib/utils';
 export const useInflection = Pkg.useInflection;
 
-// export { QueryTypes, Op, TableHints, IndexHints, DataTypes, Deferrable };
+// export { QueryTypes, Op, TableHints, IndexHints, DataTypes, Deferrable, ConstraintChecking };
 export const QueryTypes = Pkg.QueryTypes;
 export const Op = Pkg.Op;
 export const TableHints = Pkg.TableHints;
@@ -83,6 +87,7 @@ export const IndexHints = Pkg.IndexHints;
 export const DataTypes = Pkg.DataTypes;
 export const GeoJsonType = Pkg.GeoJsonType;
 export const Deferrable = Pkg.Deferrable;
+export const ConstraintChecking = Pkg.ConstraintChecking;
 
 // export { Validator as validator } from './lib/utils/validator-extras';
 export const Validator = Pkg.Validator;

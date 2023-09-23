@@ -16,7 +16,7 @@ describe('QueryInterface#bulkDelete', () => {
   it('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().bulkDelete(
+    await sequelize.queryInterface.bulkDelete(
       User.table,
       { firstName: ':id' },
       {

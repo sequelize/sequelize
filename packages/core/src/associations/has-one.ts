@@ -1,26 +1,25 @@
+import isObject from 'lodash/isObject';
 import upperFirst from 'lodash/upperFirst';
 import { AssociationError } from '../errors/index.js';
 import { Model } from '../model';
 import type {
+  AttributeNames,
+  Attributes,
   CreateOptions,
   CreationAttributes,
   FindOptions,
-  SaveOptions,
+  InstanceDestroyOptions,
+  InstanceUpdateOptions,
   ModelStatic,
-  AttributeNames,
-  Attributes,
 } from '../model';
 import { Op } from '../operators';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
-import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
+import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { BelongsTo } from './belongs-to.js';
-import type { NormalizeBaseAssociationOptions } from './helpers';
-import {
-  defineAssociation,
-  mixinMethods, normalizeBaseAssociationOptions,
-} from './helpers';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions, normalizeInverseAssociation } from './helpers';
+import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-one association.
@@ -145,11 +144,17 @@ export class HasOne<
       HasOne<S, T, SourceKey, TargetKey>,
       HasOneOptions<SourceKey, TargetKey>,
       NormalizedHasOneOptions<SourceKey, TargetKey>
-    >(HasOne, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+    >(HasOne, source, target, options, parent, normalizeHasOneOptions, normalizedOptions => {
       // self-associations must always set their 'as' parameter
-      if (isSameInitialModel(source, target)
-        // use 'options' because this will always be set in 'newOptions'
-        && (!options.as || !options.inverse?.as || options.as === options.inverse.as)) {
+      if (
+        isSameInitialModel(source, target)
+        && (
+          // use 'options' because this will always be set in 'normalizedOptions'
+          !options.as
+          || !normalizedOptions.inverse?.as
+          || options.as === normalizedOptions.inverse.as
+        )
+      ) {
         throw new AssociationError(`Both options "as" and "inverse.as" must be defined for hasOne self-associations, and their value must be different.
 This is because hasOne associations automatically create the corresponding belongsTo association, but they cannot share the same name.
 
@@ -180,14 +185,14 @@ If having two associations does not make sense (for instance a "spouse" associat
     let Target = this.target;
     if (options.scope != null) {
       if (!options.scope) {
-        Target = Target.unscoped();
+        Target = Target.withoutScope();
       } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
-        Target = Target.scope(options.scope);
+        Target = Target.withScope(options.scope);
       }
     }
 
     if (options.schema != null) {
-      Target = Target.schema(options.schema, options.schemaDelimiter);
+      Target = Target.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
     }
 
     let isManyMode = true;
@@ -251,7 +256,9 @@ If having two associations does not make sense (for instance a "spouse" associat
     // @ts-expect-error -- .save isn't listed in the options because it's not supported, but we'll still warn users if they use it.
     if (options.save === false) {
       throw new Error(`The "save: false" option cannot be honoured in ${this.source.name}#${this.accessors.set}
-because, as this is a hasOne association, the foreign key we need to update is located on the model ${this.target.name}.`);
+because, as this is a hasOne association, the foreign key we need to update is located on the model ${this.target.name}.
+
+This option is only available in BelongsTo associations.`);
     }
 
     // calls the 'get' mixin
@@ -271,14 +278,23 @@ because, as this is a hasOne association, the foreign key we need to update is l
     }
 
     if (oldInstance) {
-      // TODO: if foreign key cannot be null, delete instead (maybe behind flag) - https://github.com/sequelize/sequelize/issues/14048
-      oldInstance.set(this.foreignKey, null);
+      const foreignKeyIsNullable = this.target.modelDefinition.attributes.get(this.foreignKey)?.allowNull ?? true;
 
-      await oldInstance.save({
-        ...options,
-        fields: [this.foreignKey],
-        association: true,
-      });
+      if (options.destroyPrevious || !foreignKeyIsNullable) {
+        await oldInstance.destroy({
+          ...(isObject(options.destroyPrevious) ? options.destroyPrevious : undefined),
+          logging: options.logging,
+          benchmark: options.benchmark,
+          transaction: options.transaction,
+        });
+      } else {
+        await oldInstance.update({
+          [this.foreignKey]: null,
+        }, {
+          ...options,
+          association: true,
+        });
+      }
     }
 
     if (associatedInstanceOrPk) {
@@ -348,7 +364,9 @@ Object.defineProperty(HasOne, 'name', {
 });
 
 export type NormalizedHasOneOptions<SourceKey extends string, TargetKey extends string> =
-  NormalizeBaseAssociationOptions<HasOneOptions<SourceKey, TargetKey>>;
+  NormalizeBaseAssociationOptions<Omit<HasOneOptions<SourceKey, TargetKey>, 'inverse'>> & {
+  inverse?: Exclude<HasOneOptions<SourceKey, TargetKey>['inverse'], string>,
+};
 
 /**
  * Options provided when associating models with hasOne relationship
@@ -363,10 +381,25 @@ export interface HasOneOptions<SourceKey extends string, TargetKey extends strin
    */
   sourceKey?: SourceKey;
 
-  inverse?: {
+  /**
+   * The name of the inverse association, or an object for further association setup.
+   */
+  inverse?: string | undefined | {
     as?: AssociationOptions<any>['as'],
     scope?: AssociationOptions<any>['scope'],
   };
+}
+
+function normalizeHasOneOptions<SourceKey extends string, TargetKey extends string>(
+  type: AssociationStatic<any>,
+  options: HasOneOptions<SourceKey, TargetKey>,
+  source: ModelStatic<Model>,
+  target: ModelStatic<Model>,
+): NormalizedHasOneOptions<SourceKey, TargetKey> {
+  return normalizeBaseAssociationOptions(type, {
+    ...options,
+    inverse: normalizeInverseAssociation(options.inverse),
+  }, source, target);
 }
 
 /**
@@ -413,7 +446,15 @@ export type HasOneGetAssociationMixin<
  * @see HasOneSetAssociationMixin
  */
 export interface HasOneSetAssociationMixinOptions<T extends Model>
-  extends HasOneGetAssociationMixinOptions<T>, SaveOptions<Attributes<T>> {
+  extends HasOneGetAssociationMixinOptions<T>, InstanceUpdateOptions<Attributes<T>> {
+
+  /**
+   * Delete the previous associated model. Default to false.
+   *
+   * Only applies if the foreign key is nullable. If the foreign key is not nullable,
+   * the previous associated model is always deleted.
+   */
+  destroyPrevious?: boolean | Omit<InstanceDestroyOptions, 'transaction' | 'logging' | 'benchmark'>;
 }
 
 /**

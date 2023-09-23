@@ -1,11 +1,11 @@
-import { cast, fn, Op, json, where } from '@sequelize/core';
+import { Op, cast, fn, json, where } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 const queryGenerator = sequelize.queryGenerator;
 
 describe('json', () => {
-  if (!dialect.supports.jsonOperations) {
+  if (!dialect.supports.jsonOperations || !dialect.supports.jsonExtraction.quoted) {
     return;
   }
 
@@ -19,7 +19,7 @@ describe('json', () => {
     };
 
     expectsql(() => queryGenerator.escape(json(conditions)), {
-      postgres: `("metadata"->'language' = '"icelandic"' AND "metadata"#>ARRAY['pg_rating','dk'] = '"G"') AND "another_json_field"->'x' = '1'`,
+      postgres: `("metadata"->'language' = '"icelandic"' AND "metadata"#>ARRAY['pg_rating','dk']::VARCHAR(255)[] = '"G"') AND "another_json_field"->'x' = '1'`,
       sqlite: `(json_extract(\`metadata\`,'$.language') = '"icelandic"' AND json_extract(\`metadata\`,'$.pg_rating.dk') = '"G"') AND json_extract(\`another_json_field\`,'$.x') = '1'`,
       mariadb: `(json_compact(json_extract(\`metadata\`,'$.language')) = '"icelandic"' AND json_compact(json_extract(\`metadata\`,'$.pg_rating.dk')) = '"G"') AND json_compact(json_extract(\`another_json_field\`,'$.x')) = '1'`,
       mysql: `(json_extract(\`metadata\`,'$.language') = CAST('"icelandic"' AS JSON) AND json_extract(\`metadata\`,'$.pg_rating.dk') = CAST('"G"' AS JSON)) AND json_extract(\`another_json_field\`,'$.x') = CAST('1' AS JSON)`,
@@ -30,15 +30,15 @@ describe('json', () => {
     const path = 'metadata.pg_rating.dk';
 
     expectsql(() => queryGenerator.escape(json(path)), {
-      postgres: `"metadata"#>ARRAY['pg_rating','dk']`,
+      postgres: `"metadata"#>ARRAY['pg_rating','dk']::VARCHAR(255)[]`,
       mariadb: `json_compact(json_extract(\`metadata\`,'$.pg_rating.dk'))`,
       'sqlite mysql': `json_extract(\`metadata\`,'$.pg_rating.dk')`,
     });
   });
 
   it('supports numbers in the dot notation', () => {
-    expectsql(queryGenerator.escape(json('profile.id.0.1')), {
-      postgres: `"profile"#>ARRAY['id','0','1']`,
+    expectsql(() => queryGenerator.escape(json('profile.id.0.1')), {
+      postgres: `"profile"#>ARRAY['id','0','1']::VARCHAR(255)[]`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id."0"."1"'))`,
       'sqlite mysql': `json_extract(\`profile\`,'$.id."0"."1"')`,
     });
@@ -49,7 +49,7 @@ describe('json', () => {
     const value = 'U';
 
     expectsql(() => queryGenerator.escape(json(path, value)), {
-      postgres: `"metadata"#>ARRAY['pg_rating','is'] = '"U"'`,
+      postgres: `"metadata"#>ARRAY['pg_rating','is']::VARCHAR(255)[] = '"U"'`,
       sqlite: `json_extract(\`metadata\`,'$.pg_rating.is') = '"U"'`,
       mariadb: `json_compact(json_extract(\`metadata\`,'$.pg_rating.is')) = '"U"'`,
       mysql: `json_extract(\`metadata\`,'$.pg_rating.is') = CAST('"U"' AS JSON)`,
@@ -70,7 +70,7 @@ describe('json', () => {
   // });
 
   it('accepts a nested condition object', () => {
-    expectsql(queryGenerator.escape(json({ profile: { id: 1 } })), {
+    expectsql(() => queryGenerator.escape(json({ profile: { id: 1 } })), {
       postgres: `"profile"->'id' = '1'`,
       sqlite: `json_extract(\`profile\`,'$.id') = '1'`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id')) = '1'`,
@@ -79,7 +79,7 @@ describe('json', () => {
   });
 
   it('accepts multiple condition object', () => {
-    expectsql(queryGenerator.escape(json({ property: { value: 1 }, another: { value: 'string' } })), {
+    expectsql(() => queryGenerator.escape(json({ property: { value: 1 }, another: { value: 'string' } })), {
       postgres: `"property"->'value' = '1' AND "another"->'value' = '"string"'`,
       sqlite: `json_extract(\`property\`,'$.value') = '1' AND json_extract(\`another\`,'$.value') = '"string"'`,
       mariadb: `json_compact(json_extract(\`property\`,'$.value')) = '1' AND json_compact(json_extract(\`another\`,'$.value')) = '"string"'`,
@@ -88,7 +88,7 @@ describe('json', () => {
   });
 
   it('can be used inside of where', () => {
-    expectsql(queryGenerator.escape(where(json('profile.id'), '1')), {
+    expectsql(() => queryGenerator.escape(where(json('profile.id'), '1')), {
       postgres: `"profile"->'id' = '"1"'`,
       sqlite: `json_extract(\`profile\`,'$.id') = '"1"'`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id')) = '"1"'`,
@@ -147,6 +147,7 @@ describe('fn', () => {
 
     expectsql(out, {
       default: `concat(ARRAY['abc'])`,
+      postgres: `concat(ARRAY['abc']::VARCHAR(255)[])`,
     });
   });
 });

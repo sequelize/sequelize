@@ -24,12 +24,18 @@ export class Db2Dialect extends AbstractDialect {
       where: true,
       include: true,
     },
+    constraints: {
+      onUpdate: false,
+    },
     tmpTableTrigger: true,
     dataTypes: {
       COLLATE_BINARY: true,
       TIME: {
         precision: false,
       },
+    },
+    removeColumn: {
+      cascade: true,
     },
   });
 
@@ -40,8 +46,6 @@ export class Db2Dialect extends AbstractDialect {
   readonly queryInterface: Db2QueryInterface;
   readonly Query = Db2Query;
 
-  /** @deprecated */
-  readonly TICK_CHAR = '"';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
 
@@ -73,8 +77,7 @@ export class Db2Dialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    // TODO: what is the default schema in DB2?
-    return '';
+    return this.sequelize.config.username.toUpperCase();
   }
 
   static getDefaultPort() {

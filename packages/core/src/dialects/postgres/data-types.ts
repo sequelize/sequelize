@@ -3,12 +3,7 @@ import wkx from 'wkx';
 import type { Rangable } from '../../model.js';
 import { isBigInt, isNumber, isString } from '../../utils/check.js';
 import * as BaseTypes from '../abstract/data-types';
-import type {
-  AcceptableTypeOf,
-  BindParamOptions,
-  AcceptedDate,
-  AbstractDataType,
-} from '../abstract/data-types';
+import type { AbstractDataType, AcceptableTypeOf, AcceptedDate, BindParamOptions } from '../abstract/data-types';
 import { attributeTypeToSql } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
 import * as Hstore from './hstore';
@@ -358,8 +353,7 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
     const mappedValues = isString(type) ? values : values.map(value => type.escape(value));
 
     // Types that don't need to specify their cast
-    const unambiguousType = type instanceof BaseTypes.STRING
-      || type instanceof BaseTypes.TEXT
+    const unambiguousType = type instanceof BaseTypes.TEXT
       || type instanceof BaseTypes.INTEGER;
 
     const cast = mappedValues.length === 0 || !unambiguousType ? `::${attributeTypeToSql(type)}[]` : '';

@@ -4,7 +4,7 @@ import each from 'lodash/each';
 import sinon from 'sinon';
 import type { ModelStatic } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('hasOne'), () => {
   it('throws when invalid model is passed', () => {
@@ -38,6 +38,26 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     // this would make more sense as a belongsTo(User, { as: 'mother', inverse: { type: 'many', as: 'children' } })
     User.hasOne(User, { as: 'mother', inverse: { as: 'child' } });
+  });
+
+  it('allows customizing the inverse association name (long form)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.hasMany(Task, { as: 'task', inverse: { as: 'user' } });
+
+    expect(Task.associations.user).to.be.ok;
+    expect(User.associations.task).to.be.ok;
+  });
+
+  it('allows customizing the inverse association name (shorthand)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.hasMany(Task, { as: 'task', inverse: 'user' });
+
+    expect(Task.associations.user).to.be.ok;
+    expect(User.associations.task).to.be.ok;
   });
 
   it('does not use `as` option to generate foreign key name', () => {

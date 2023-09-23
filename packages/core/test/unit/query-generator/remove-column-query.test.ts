@@ -1,63 +1,77 @@
-import { DataTypes } from '@sequelize/core';
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '../../support';
 
+const dialect = sequelize.dialect;
 const dialectName = getTestDialect();
+const notSupportedError = new Error(`removeColumnQuery is not supported in ${dialectName}.`);
 
 describe('QueryGenerator#removeColumnQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-    age: DataTypes.INTEGER,
-  }, { timestamps: false });
-
-  it('generates a DROP COLUMN query in supported dialects', () => {
-    expectsql(() => queryGenerator.removeColumnQuery(User.table, 'age'), {
-      default: `ALTER TABLE [Users] DROP COLUMN [age];`,
-      postgres: `ALTER TABLE "Users" DROP COLUMN "age";`,
-      snowflake: `ALTER TABLE "Users" DROP "age";`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `Users_backup` (`0` a, `1` g, `2` e);INSERT INTO `Users_backup` SELECT `0`, `1`, `2` FROM `Users`;DROP TABLE `Users`;ALTER TABLE `Users_backup` RENAME TO `Users`;',
-      'mariadb mysql': 'ALTER TABLE `Users` DROP `age`;',
+  it('generates a query that drops a column', () => {
+    expectsql(() => queryGenerator.removeColumnQuery('myTable', 'myColumn'), {
+      default: 'ALTER TABLE [myTable] DROP COLUMN [myColumn]',
+      sqlite: notSupportedError,
     });
   });
 
-  it('generates a DROP COLUMN IF EXISTS query in supported dialects', () => {
-    expectsql(() => queryGenerator.removeColumnQuery(User.table, 'age', { ifExists: true }), {
+  it('generates a query that drops a column with cascade', () => {
+    expectsql(() => queryGenerator.removeColumnQuery('myTable', 'myColumn', { cascade: true }), {
+      default: buildInvalidOptionReceivedError('removeColumnQuery', dialectName, ['cascade']),
+      'db2 ibmi postgres': 'ALTER TABLE [myTable] DROP COLUMN [myColumn] CASCADE',
+      sqlite: notSupportedError,
+    });
+  });
+
+  it('generates a query that drops a column with ifExists', () => {
+    expectsql(() => queryGenerator.removeColumnQuery('myTable', 'myColumn', { ifExists: true }), {
       default: buildInvalidOptionReceivedError('removeColumnQuery', dialectName, ['ifExists']),
-      mariadb: 'ALTER TABLE `Users` DROP IF EXISTS `age`;',
-      mssql: 'ALTER TABLE [Users] DROP COLUMN IF EXISTS [age];',
-      postgres: `ALTER TABLE "Users" DROP COLUMN IF EXISTS "age";`,
+      'mariadb mssql postgres': 'ALTER TABLE [myTable] DROP COLUMN IF EXISTS [myColumn]',
+      sqlite: notSupportedError,
     });
   });
 
-  if (sequelize.dialect.supports.schemas) {
-    it('supports schemas', () => {
-      expectsql(queryGenerator.removeColumnQuery({
-        schema: 'archive',
-        tableName: 'user',
-      }, 'email'), {
-        default: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
-        'mariadb mysql': 'ALTER TABLE `archive`.`user` DROP `email`;',
-        snowflake: 'ALTER TABLE "archive"."user" DROP "email";',
-      });
-    });
+  it('generates a query that drops a column from a model', () => {
+    const MyModel = sequelize.define('MyModel', {});
 
-    it('defaults the schema to the one set in the Sequelize options', () => {
-      const customSequelize = createSequelizeInstance({
-        schema: 'custom',
-      });
-      const customSql = customSequelize.dialect.queryGenerator;
-
-      expectsql(customSql.removeColumnQuery({
-        tableName: 'user',
-      }, 'email'), {
-        ibmi: 'ALTER TABLE "custom"."user" DROP COLUMN "email"',
-        mssql: 'ALTER TABLE [custom].[user] DROP COLUMN [email];',
-        'db2 postgres': 'ALTER TABLE "custom"."user" DROP COLUMN "email";',
-        'mariadb mysql': 'ALTER TABLE `custom`.`user` DROP `email`;',
-        snowflake: 'ALTER TABLE "custom"."user" DROP "email";',
-      });
+    expectsql(() => queryGenerator.removeColumnQuery(MyModel, 'myColumn'), {
+      default: 'ALTER TABLE [MyModels] DROP COLUMN [myColumn]',
+      sqlite: notSupportedError,
     });
-  }
+  });
+
+  it('generates a query that drops a column with schema', () => {
+    expectsql(() => queryGenerator.removeColumnQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myColumn'), {
+      default: 'ALTER TABLE [mySchema].[myTable] DROP COLUMN [myColumn]',
+      sqlite: notSupportedError,
+    });
+  });
+
+  it('generates a query that drops a column with default schema', () => {
+    expectsql(() => queryGenerator.removeColumnQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }, 'myColumn'), {
+      default: 'ALTER TABLE [myTable] DROP COLUMN [myColumn]',
+      sqlite: notSupportedError,
+    });
+  });
+
+  it('generates a query that drops a column from a table and globally set schema', () => {
+    const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
+
+    expectsql(() => queryGeneratorSchema.removeColumnQuery('myTable', 'myColumn'), {
+      default: 'ALTER TABLE [mySchema].[myTable] DROP COLUMN [myColumn]',
+      sqlite: notSupportedError,
+    });
+  });
+
+  it('generates a query that drops a column with schema and custom delimiter argument', () => {
+    // This test is only relevant for dialects that do not support schemas
+    if (dialect.supports.schemas) {
+      return;
+    }
+
+    expectsql(() => queryGenerator.removeColumnQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }, 'myColumn'), {
+      sqlite: notSupportedError,
+    });
+  });
 });

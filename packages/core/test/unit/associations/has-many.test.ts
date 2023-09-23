@@ -4,7 +4,7 @@ import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type { ForeignKey, HasManySetAssociationsMixin, InferAttributes } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
-import { sequelize, getTestDialectTeaser } from '../../support';
+import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('hasMany'), () => {
   it('throws when invalid model is passed', () => {
@@ -28,6 +28,26 @@ describe(getTestDialectTeaser('hasMany'), () => {
     const Category = sequelize.define('Category');
 
     Category.hasMany(Category, { as: 'childCategories', inverse: { as: 'parentCategory' } });
+  });
+
+  it('allows customizing the inverse association name (long form)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.hasMany(Task, { as: 'tasks', inverse: { as: 'user' } });
+
+    expect(Task.associations.user).to.be.ok;
+    expect(User.associations.tasks).to.be.ok;
+  });
+
+  it('allows customizing the inverse association name (shorthand)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.hasMany(Task, { as: 'tasks', inverse: 'user' });
+
+    expect(Task.associations.user).to.be.ok;
+    expect(User.associations.tasks).to.be.ok;
   });
 
   describe('optimizations using bulk create, destroy and update', () => {

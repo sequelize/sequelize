@@ -3,7 +3,7 @@ import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 const dialect = sequelize.dialect;
 
 describe('QueryGenerator#describeTableQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a query to describe a table', () => {
     expectsql(() => queryGenerator.describeTableQuery('myTable'), {
@@ -57,13 +57,11 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite: 'PRAGMA TABLE_INFO(`myTable`);',
-      db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
-        TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
-        NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
-        IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
-        FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = 'myTable' AND TBCREATOR = USER;`,
+      sqlite: 'PRAGMA TABLE_INFO(`myTable`)',
+      db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
+        TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
+        DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
+        REMARKS AS "Comment" FROM SYSCAT.COLUMNS WHERE TABNAME = 'myTable' AND TABSCHEMA = 'DB2INST1'`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -81,10 +79,10 @@ describe('QueryGenerator#describeTableQuery', () => {
   });
 
   it('produces a query to describe a table from a model', () => {
-    const MyModel = sequelize.define('myModel', {});
+    const MyModel = sequelize.define('MyModel', {});
 
     expectsql(() => queryGenerator.describeTableQuery(MyModel), {
-      default: 'SHOW FULL COLUMNS FROM [myModels];',
+      default: 'SHOW FULL COLUMNS FROM [MyModels];',
       postgres: `SELECT
         pk.constraint_type as "Constraint",
         c.column_name as "Field",
@@ -104,7 +102,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON pk.table_schema=c.table_schema
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
-        WHERE c.table_name = 'myModels' AND c.table_schema = 'public'`,
+        WHERE c.table_name = 'MyModels' AND c.table_schema = 'public'`,
       mssql: `SELECT
         c.COLUMN_NAME AS 'Name',
         c.DATA_TYPE AS 'Type',
@@ -133,14 +131,12 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
-        WHERE t.TABLE_NAME = N'myModels' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite: 'PRAGMA TABLE_INFO(`myModels`);',
-      db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
-        TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
-        NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
-        IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
-        FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = 'myModels' AND TBCREATOR = USER;`,
+        WHERE t.TABLE_NAME = N'MyModels' AND t.TABLE_SCHEMA = N'dbo'`,
+      sqlite: 'PRAGMA TABLE_INFO(`MyModels`)',
+      db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
+        TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
+        DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
+        REMARKS AS "Comment" FROM SYSCAT.COLUMNS WHERE TABNAME = 'MyModels' AND TABSCHEMA = 'DB2INST1'`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -153,7 +149,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT JOIN QSYS2.SYSCST
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
-        AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myModels'`,
+        AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'MyModels'`,
     });
   });
 
@@ -207,13 +203,11 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
-      sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`);',
-      db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
-        TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
-        NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
-        IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
-        FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = 'myTable' AND TBCREATOR = 'mySchema';`,
+      sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
+      db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
+        TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
+        DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
+        REMARKS AS "Comment" FROM SYSCAT.COLUMNS WHERE TABNAME = 'myTable' AND TABSCHEMA = 'mySchema'`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -281,13 +275,11 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite: 'PRAGMA TABLE_INFO(`myTable`);',
-      db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
-        TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
-        NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
-        IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
-        FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = 'myTable' AND TBCREATOR = USER;`,
+      sqlite: 'PRAGMA TABLE_INFO(`myTable`)',
+      db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
+        TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
+        DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
+        REMARKS AS "Comment" FROM SYSCAT.COLUMNS WHERE TABNAME = 'myTable' AND TABSCHEMA = 'DB2INST1'`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -306,7 +298,7 @@ describe('QueryGenerator#describeTableQuery', () => {
 
   it('produces a query to describe a table from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectsql(() => queryGeneratorSchema.describeTableQuery('myTable'), {
       default: 'SHOW FULL COLUMNS FROM [mySchema].[myTable];',
@@ -359,13 +351,11 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
-      sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`);',
-      db2: `SELECT NAME AS "Name", TBNAME AS "Table", TBCREATOR AS "Schema",
-        TRIM(COLTYPE) AS "Type", LENGTH AS "Length", SCALE AS "Scale",
-        NULLS AS "IsNull", DEFAULT AS "Default", COLNO AS "Colno",
-        IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq", REMARKS AS "Comment"
-        FROM SYSIBM.SYSCOLUMNS
-        WHERE TBNAME = 'myTable' AND TBCREATOR = 'mySchema';`,
+      sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
+      db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
+        TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
+        DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
+        REMARKS AS "Comment" FROM SYSCAT.COLUMNS WHERE TABNAME = 'myTable' AND TABSCHEMA = 'mySchema'`,
       ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
@@ -382,14 +372,14 @@ describe('QueryGenerator#describeTableQuery', () => {
     });
   });
 
-  it('produces a query to describe a table with schema and custom schemaDelimiter argument', () => {
+  it('produces a query to describe a table with schema and custom delimiter argument', () => {
     // This test is only relevant for dialects that do not support schemas
     if (dialect.supports.schemas) {
       return;
     }
 
     expectsql(() => queryGenerator.describeTableQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }), {
-      sqlite: 'PRAGMA TABLE_INFO(`mySchemacustommyTable`);',
+      sqlite: 'PRAGMA TABLE_INFO(`mySchemacustommyTable`)',
     });
   });
 });
