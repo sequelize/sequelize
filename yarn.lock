@@ -1596,7 +1596,7 @@ __metadata:
     fast-glob: ^3.2.12
     fs-jetpack: 5.1.0
     ibm_db: 3.2.1
-    inflection: ^2.0.0
+    inflection: ^3.0.0
     lcov-result-merger: 4.1.0
     lodash: ^4.17.21
     mariadb: 3.2.1
@@ -6381,10 +6381,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"inflection@npm:^2.0.0":
-  version: 2.0.1
-  resolution: "inflection@npm:2.0.1"
-  checksum: bb095b495e10a77afc043cc349ae0f7c8c53e4d1fbcd7781111c18d17bde87ce31ea08bd883774bcbb2ff50c301dd4835b5448c80eb50b5e4e080165b6030f3b
+"inflection@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "inflection@npm:3.0.0"
+  checksum: 6a3b21cb011a9bca1c045ef92d199c927cfd8c4b97809152fabc9c325d36789a7499397b50d46157d080efd19843807ac73e38a2fe79d8f2cf291323998fb5b5
   languageName: node
   linkType: hard
 
