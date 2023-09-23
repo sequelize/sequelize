@@ -18,7 +18,7 @@ import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions } from './query-generator.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
-import type { QiDropAllSchemasOptions } from './query-interface.types.js';
+import type { ColumnsDescription, QiDropAllSchemasOptions } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 interface Replaceable {
@@ -121,7 +121,7 @@ export interface IndexOptions {
   /**
    * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
    */
-  type?: IndexType;
+  type?: IndexType | undefined;
 
   /**
    * Should the index by unique? Can also be triggered by setting type to `UNIQUE`
@@ -309,13 +309,13 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Adds a new index to a table
    */
   addIndex(
-    tableName: TableName,
+    tableName: TableNameOrModel,
     attributes: string[],
     options?: QueryInterfaceIndexOptions,
     rawTablename?: string
   ): Promise<void>;
   addIndex(
-    tableName: TableName,
+    tableName: TableNameOrModel,
     options: SetRequired<QueryInterfaceIndexOptions, 'fields'>,
     rawTablename?: string
   ): Promise<void>;
@@ -546,4 +546,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Rollback (revert) a transaction that hasn't been committed
    */
   rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
+
+  // TODO: rename to "describeColumn"
+  assertTableHasColumn(
+    tableName: TableNameOrModel,
+    columnName: string,
+    options?: QueryRawOptions
+  ): Promise<ColumnsDescription>;
 }
