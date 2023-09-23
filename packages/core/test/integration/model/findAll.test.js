@@ -1348,6 +1348,12 @@ The following associations are defined on "Worker": "ToDos"`);
         expect(users[0].id).to.equal(3);
       });
 
+      it('returns no results when limit is zero', async function () {
+        await this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]);
+        const users = await this.User.findAll({ limit: 0, offset: 0 });
+        expect(users.length).to.equal(0);
+      });
+
       it('should allow us to find IDs using capital letters', async function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {
           ID: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
