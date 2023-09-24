@@ -1,5 +1,7 @@
 import type { Deferrable } from '../../deferrable';
+import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import type { QueryRawOptions } from '../../sequelize';
+import type { Nullish } from '../../utils/types';
 import type {
   AddConstraintQueryOptions,
   CreateDatabaseQueryOptions,
@@ -15,6 +17,12 @@ import type {
   ShowConstraintsQueryOptions,
   TruncateTableQueryOptions,
 } from './query-generator.types';
+import type { WhereOptions } from './where-sql-builder-types';
+
+export interface Replacements {
+  // only named replacements are allowed
+  replacements?: Record<string, unknown>;
+}
 
 export interface DatabaseDescription {
   name: string;
@@ -138,3 +146,9 @@ export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, Q
 
 /** Options accepted by {@link AbstractQueryInterface#showConstraints} */
 export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#bulkDelete} */
+export interface BulkDeleteOptions<TAttributes = any> extends QueryRawOptions, Replacements {
+  limit?: Nullish<number | BaseSqlExpression>;
+  where: WhereOptions<TAttributes>;
+}

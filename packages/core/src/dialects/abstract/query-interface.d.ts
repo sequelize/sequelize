@@ -394,16 +394,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   ): Promise<object>;
 
   /**
-   * Deletes multiple rows at once
-   */
-  bulkDelete(
-    tableName: TableName,
-    identifier: WhereOptions<any>,
-    options?: QiOptionsWithReplacements,
-    model?: ModelStatic
-  ): Promise<object>;
-
-  /**
    * Returns selected rows
    */
   select(model: ModelStatic | null, tableName: TableName, options?: QiSelectOptions): Promise<object[]>;

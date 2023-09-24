@@ -2541,7 +2541,7 @@ ${associationOwner._getAssociationDebugList()}`);
       attrValueHash[deletedAtColumnName] = new Date();
       result = await this.queryInterface.bulkUpdate(this.getTableName(options), attrValueHash, Object.assign(where, options.where), options, getObjectFromMap(modelDefinition.attributes));
     } else {
-      result = await this.queryInterface.bulkDelete(this.getTableName(options), options.where, options, this);
+      result = await this.queryInterface.bulkDelete(this, options);
     }
 
     // Run afterDestroy hook on each record individually

@@ -590,45 +590,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return await this.sequelize.queryRaw(sql, options);
   }
 
-  /**
-   * Delete multiple records from a table
-   *
-   * @param {string}  tableName            table name from where to delete records
-   * @param {object}  where                where conditions to find records to delete
-   * @param {object}  [options]            options
-   * @param {boolean} [options.truncate]   Use truncate table command
-   * @param {boolean} [options.cascade=false]         Only used in conjunction with TRUNCATE. Truncates  all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE.
-   * @param {boolean} [options.restartIdentity=false] Only used in conjunction with TRUNCATE. Automatically restart sequences owned by columns of the truncated table.
-   * @param {Model}   [model]              Model
-   *
-   * @returns {Promise}
-   */
-  async bulkDelete(tableName, where, options, model) {
-    options = cloneDeep(options) ?? {};
-    options = defaults(options, { limit: null });
-
-    if (options.truncate === true) {
-      return this.sequelize.queryRaw(
-        this.queryGenerator.truncateTableQuery(tableName, options),
-        options,
-      );
-    }
-
-    if (typeof identifier === 'object') {
-      where = cloneDeep(where) ?? {};
-    }
-
-    const sql = this.queryGenerator.deleteQuery(tableName, where, options, model);
-
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete options.replacements;
-
-    return await this.sequelize.queryRaw(
-      sql,
-      options,
-    );
-  }
-
   async select(model, tableName, optionsArg) {
     const minifyAliases = optionsArg.minifyAliases ?? this.sequelize.options.minifyAliases;
     const options = { ...optionsArg, type: QueryTypes.SELECT, model, minifyAliases };

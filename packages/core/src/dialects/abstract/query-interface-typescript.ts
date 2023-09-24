@@ -12,6 +12,8 @@ import {
   showAllToListSchemas,
   showAllToListTables,
 } from '../../utils/deprecations';
+import { isModelStatic } from '../../utils/model-utils';
+import { EMPTY_OBJECT } from '../../utils/object';
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
@@ -19,6 +21,7 @@ import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
+  BulkDeleteOptions,
   ColumnsDescription,
   ConstraintDescription,
   CreateDatabaseOptions,
@@ -702,5 +705,26 @@ export class AbstractQueryInterfaceTypeScript {
     options?: QueryRawOptions,
   ): Promise<void> {
     await this.sequelize.queryRaw(this.queryGenerator.getToggleForeignKeyChecksQuery(enable), options);
+  }
+
+  /**
+   * Delete multiple records from a table
+   *
+   * @param tableName
+   * @param options
+   */
+  async bulkDelete(tableName: TableNameOrModel, options?: BulkDeleteOptions) {
+    let sql: string;
+    const { where, ...deleteOptions } = options ?? EMPTY_OBJECT;
+    if (isModelStatic(tableName)) {
+      sql = this.queryGenerator.deleteQuery(tableName.table, where, { limit: null, ...deleteOptions }, tableName);
+    } else {
+      sql = this.queryGenerator.deleteQuery(tableName, where, { limit: null, ...deleteOptions });
+    }
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete deleteOptions.replacements;
+
+    return this.sequelize.queryRaw(sql, { ...deleteOptions, raw: true, type: QueryTypes.BULKDELETE });
   }
 }

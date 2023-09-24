@@ -17,15 +17,14 @@ describe('QueryInterface#bulkDelete', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.bulkDelete(
-      User.table,
-      { firstName: ':id' },
+      User,
       {
+        where: { firstName: ':id' },
         replacements: {
           limit: 1,
           id: '123',
         },
       },
-      User,
     );
 
     expect(stub.callCount).to.eq(1);
