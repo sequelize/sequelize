@@ -31,29 +31,10 @@ describe('destroy', () => {
       return { User, ParanoidUser };
     });
 
-    context('deprecated `truncate` option', () => {
-      it('should clear the table', async () => {
-        const { User } = vars;
-
-        await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
-        await User.destroy({ truncate: true });
-        expect(await User.findAll()).to.have.lengthOf(0);
-      });
-
-      it('returns a number', async () => {
-        const { User } = vars;
-
-        await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
-        const affectedRows = await User.destroy({ truncate: true });
-        expect(await User.findAll()).to.have.lengthOf(0);
-        expect(affectedRows).to.be.a('number');
-      });
-    });
-
     it('throws an error if no where clause is given', async () => {
       const { User } = vars;
 
-      await expect(User.destroy()).to.be.rejectedWith(Error, 'Missing where or truncate attribute in the options parameter of model.destroy.');
+      await expect(User.destroy()).to.be.rejectedWith(Error, 'Missing where attribute in the options parameter of model.destroy.');
     });
 
     it('deletes all instances when given an empty where object', async () => {

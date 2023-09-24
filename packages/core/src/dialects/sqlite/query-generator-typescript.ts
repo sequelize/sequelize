@@ -6,6 +6,7 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
   LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
@@ -13,11 +14,13 @@ import type {
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { SqliteColumnsDescription } from './query-interface.types';
 
 const LIST_TABLES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListTablesQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
+const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>(['restartIdentity']);
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -43,6 +46,25 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return 'SELECT name AS `tableName` FROM sqlite_master WHERE type=\'table\' AND name != \'sqlite_sequence\'';
+  }
+
+  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'truncateTableQuery',
+        this.dialect.name,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    const sql = [`DELETE FROM ${this.quoteTable(tableName)}`];
+    if (options?.restartIdentity) {
+      sql.push(`DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${this.escapeTable(tableName)}`);
+    }
+
+    return sql;
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions) {

@@ -13,6 +13,7 @@ import type {
   RemoveConstraintQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from './query-generator.types';
 
 export interface DatabaseDescription {
@@ -117,6 +118,9 @@ export interface QiDropAllTablesOptions extends ListTablesQueryOptions, QiDropTa
 
 /** Options accepted by {@link AbstractQueryInterface#renameTable} */
 export interface RenameTableOptions extends RenameTableQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#truncate} */
+export interface QiTruncateTableOptions extends TruncateTableQueryOptions, QueryRawOptions { }
 
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}
 

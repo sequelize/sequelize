@@ -1170,13 +1170,25 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
  */
 export interface TruncateOptions extends Logging, Transactionable, Hookable {
   /**
-   * Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the
+   * Truncates all tables that have foreign-key references to the
    * named table, or to any tables added to the group due to CASCADE.
    *
    * @default false
    */
   cascade?: boolean;
 
+  /**
+   * Automatically restart sequences owned by columns of the truncated table
+   *
+   * @default false
+   */
+  restartIdentity?: boolean;
+}
+
+/**
+ * Options accepted by {@link Model.destroy}.
+ */
+export interface DestroyOptions<TAttributes = any> extends TruncateOptions, Filterable<TAttributes> {
   /**
    * If set to true, destroy will SELECT all records matching the where parameter and will execute before /
    * after destroy hooks on each row
@@ -1196,29 +1208,6 @@ export interface TruncateOptions extends Logging, Transactionable, Hookable {
    * @default false
    */
   force?: boolean;
-
-  /**
-   * Only used in conjunction with `truncate`.
-   * Automatically restart sequences owned by columns of the truncated table
-   *
-   * @default false
-   */
-  restartIdentity?: boolean;
-}
-
-/**
- * Options accepted by {@link Model.destroy}.
- */
-export interface DestroyOptions<TAttributes = any> extends TruncateOptions, Filterable<TAttributes> {
-  /**
-   * If set to true, dialects that support it will use TRUNCATE instead of DELETE FROM. If a table is
-   * truncated the where and limit options are ignored.
-   *
-   * __Danger__: This will completely empty your table!
-   *
-   * @deprecated use {@link Model.truncate}.
-   */
-  truncate?: boolean;
 }
 
 /**
@@ -2656,8 +2645,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): Promise<M[]>;
 
   /**
-   * Destroys all instances of the model.
-   * This is a convenient method for `MyModel.destroy({ truncate: true })`.
+   * Truncates the table associated with the model.
    *
    * __Danger__: This will completely empty your table!
    */

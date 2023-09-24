@@ -79,6 +79,7 @@ export class PostgresDialect extends AbstractDialect {
     },
     truncate: {
       cascade: true,
+      restartIdentity: true,
     },
     removeColumn: {
       cascade: true,

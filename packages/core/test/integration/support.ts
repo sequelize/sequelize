@@ -181,11 +181,11 @@ afterEach('database reset', async () => {
         break;
 
       case 'truncate':
-        await sequelizeInstance.truncate({ restartIdentity: true });
+        await sequelizeInstance.truncate(sequelizeInstance.dialect.supports.truncate);
         break;
 
       case 'destroy':
-        await sequelizeInstance.destroyAll({ cascade: true, force: true });
+        await sequelizeInstance.destroyAll({ force: true });
         break;
 
       default:

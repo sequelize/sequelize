@@ -468,10 +468,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return query;
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
-  }
-
   deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
     let query = `DELETE FROM ${table}`;

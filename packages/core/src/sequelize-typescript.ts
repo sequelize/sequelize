@@ -479,8 +479,6 @@ export abstract class SequelizeTypeScript {
       throw new Error('sequelize.destroyAll does not support the limit option.');
     }
 
-    // We will eventually remove the "truncate" option from Model.destroy, in favor of using Model.truncate,
-    // so we don't support it in new methods.
     if (options && 'truncate' in options) {
       throw new Error('sequelize.destroyAll does not support the truncate option. Use sequelize.truncate instead.');
     }

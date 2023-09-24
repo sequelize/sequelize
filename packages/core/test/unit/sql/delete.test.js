@@ -17,65 +17,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       schema: 'public',
     });
 
-    describe('truncate #4306', () => {
-      const options = {
-        table: User.getTableName(),
-        where: {},
-        truncate: true,
-        cascade: true,
-        limit: 10,
-        type: QueryTypes.BULKDELETE,
-      };
-
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
-          sql.truncateTableQuery(
-            options.table,
-            options,
-          ), {
-            ibmi: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
-            postgres: 'TRUNCATE "test_users" CASCADE',
-            mssql: 'TRUNCATE TABLE [public].[test_users]',
-            mariadb: 'TRUNCATE `public`.`test_users`',
-            mysql: 'TRUNCATE `public`.`test_users`',
-            db2: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
-            sqlite: 'DELETE FROM `public.test_users`',
-            snowflake: 'TRUNCATE "public"."test_users"',
-          },
-        );
-      });
-    });
-
-    describe('truncate with cascade and restartIdentity', () => {
-      const options = {
-        table: User.getTableName(),
-        where: {},
-        truncate: true,
-        cascade: true,
-        restartIdentity: true,
-        limit: 10,
-        type: QueryTypes.BULKDELETE,
-      };
-
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
-          sql.truncateTableQuery(
-            options.table,
-            options,
-          ), {
-            ibmi: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
-            postgres: 'TRUNCATE "test_users" RESTART IDENTITY CASCADE',
-            mssql: 'TRUNCATE TABLE [public].[test_users]',
-            mariadb: 'TRUNCATE `public`.`test_users`',
-            mysql: 'TRUNCATE `public`.`test_users`',
-            db2: 'TRUNCATE TABLE "public"."test_users" IMMEDIATE',
-            sqlite: 'DELETE FROM `public.test_users`; DELETE FROM `sqlite_sequence` WHERE `name` = `public.test_users`;',
-            snowflake: 'TRUNCATE "public"."test_users"',
-          },
-        );
-      });
-    });
-
     describe('delete without limit', () => {
       const options = {
         table: User.getTableName(),

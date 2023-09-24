@@ -338,10 +338,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return query;
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
-  }
-
   deleteQuery(tableName, where, options = {}, model) {
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 

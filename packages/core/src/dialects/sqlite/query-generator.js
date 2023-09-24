@@ -170,13 +170,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
-  truncateTableQuery(tableName, options = {}) {
-    return [
-      `DELETE FROM ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${this.quoteTable(tableName)};` : '',
-    ].join('');
-  }
-
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     defaults(options, this.options);
 

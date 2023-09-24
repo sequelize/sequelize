@@ -189,14 +189,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `CREATE OR REPLACE FUNCTION pg_temp.${fnName}(${parameters}) ${returns} AS $func$ BEGIN ${body} END; $func$ LANGUAGE ${language}; SELECT * FROM pg_temp.${fnName}();`;
   }
 
-  truncateTableQuery(tableName, options = {}) {
-    return [
-      `TRUNCATE ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? ' RESTART IDENTITY' : '',
-      options.cascade ? ' CASCADE' : '',
-    ].join('');
-  }
-
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     const table = this.quoteTable(tableName);
 

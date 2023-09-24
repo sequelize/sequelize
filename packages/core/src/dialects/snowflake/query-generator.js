@@ -204,13 +204,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  truncateTableQuery(tableName) {
-    return joinSQLFragments([
-      'TRUNCATE',
-      this.quoteTable(tableName),
-    ]);
-  }
-
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     const escapeOptions = { ...options, model };
 

@@ -232,6 +232,7 @@ export type DialectSupports = {
   },
   truncate: {
     cascade: boolean,
+    restartIdentity: boolean,
   },
   removeColumn: {
     cascade: boolean,
@@ -391,6 +392,7 @@ export abstract class AbstractDialect {
     },
     truncate: {
       cascade: false,
+      restartIdentity: false,
     },
     removeColumn: {
       cascade: false,

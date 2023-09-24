@@ -157,10 +157,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     ]);
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE ${this.quoteTable(tableName)}`;
-  }
-
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 

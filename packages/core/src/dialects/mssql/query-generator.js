@@ -423,10 +423,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return query;
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
-  }
-
   deleteQuery(tableName, where, options = {}, model) {
     const table = this.quoteTable(tableName);
 

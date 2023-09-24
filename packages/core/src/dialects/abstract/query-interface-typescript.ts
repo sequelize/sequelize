@@ -34,6 +34,7 @@ import type {
   QiDropTableOptions,
   QiListSchemasOptions,
   QiListTablesOptions,
+  QiTruncateTableOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
   RenameTableOptions,
@@ -369,6 +370,22 @@ export class AbstractQueryInterfaceTypeScript {
       }
 
       throw error;
+    }
+  }
+
+  /**
+   * Truncates a table
+   *
+   * @param tableName
+   * @param options
+   */
+  async truncate(tableName: TableNameOrModel, options?: QiTruncateTableOptions): Promise<void> {
+    const sql = this.queryGenerator.truncateTableQuery(tableName, options);
+    const queryOptions = { ...options, raw: true, type: QueryTypes.RAW };
+    if (Array.isArray(sql)) {
+      await this.#internalQueryInterface.executeQueriesSequentially(sql, queryOptions);
+    } else {
+      await this.sequelize.queryRaw(sql, queryOptions);
     }
   }
 

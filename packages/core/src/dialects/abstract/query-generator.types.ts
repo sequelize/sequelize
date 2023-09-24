@@ -64,6 +64,12 @@ export interface RenameTableQueryOptions {
   changeSchema?: boolean;
 }
 
+// Keep TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface TruncateTableQueryOptions {
+  cascade?: boolean;
+  restartIdentity?: boolean;
+}
+
 // keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveColumnQueryOptions {
   cascade?: boolean;
