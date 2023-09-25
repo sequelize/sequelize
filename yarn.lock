@@ -1531,7 +1531,7 @@ __metadata:
     pg-connection-string: ^2.5.0
     pg-hstore: ^2.3.4
     retry-as-promised: ^7.0.3
-    rimraf: 5.0.2
+    rimraf: 5.0.4
     semver: ^7.3.7
     sequelize-pool: ^8.0.0
     sinon: 16.0.0
@@ -10414,14 +10414,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rimraf@npm:5.0.2":
-  version: 5.0.2
-  resolution: "rimraf@npm:5.0.2"
+"rimraf@npm:5.0.4":
+  version: 5.0.4
+  resolution: "rimraf@npm:5.0.4"
   dependencies:
     glob: ^10.3.7
   bin:
     rimraf: dist/esm/bin.mjs
-  checksum: 82c3876635f635769ee69e1d143e425f27eda9b5391d2f0945b59deda836b4b946b0953d0df990e907209046a510a023e060371756a78749ec0f6e86149d1767
+  checksum: 44230119678153dc46f8e634947123e2a516689818cb1ca4b03c470cb8eece0f6a29135b9c8f785d30e50c34175a58927b8033a9eef0e154a9fab81b80712112
   languageName: node
   linkType: hard
 
