@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { isModelStatic } from '../../utils/model-utils';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
@@ -11,6 +12,7 @@ import {
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   AddLimitOffsetOptions,
+  DeleteQueryOptions,
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   ShowConstraintsQueryOptions,
@@ -217,5 +219,25 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return fragment;
+  }
+
+  deleteQuery(tableName: TableNameOrModel, options: DeleteQueryOptions) {
+    const table = this.quoteTable(tableName);
+    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+
+    if (options.limit) {
+      return joinSQLFragments([
+        `DELETE FROM ${table} WHERE rowid IN (`,
+        `SELECT rowid FROM ${table}`,
+        options.where ? this.whereQuery(options.where, whereOptions) : '',
+        this._addLimitAndOffset(options),
+        ')',
+      ]);
+    }
+
+    return joinSQLFragments([
+      `DELETE FROM ${table}`,
+      options.where ? this.whereQuery(options.where, whereOptions) : '',
+    ]);
   }
 }

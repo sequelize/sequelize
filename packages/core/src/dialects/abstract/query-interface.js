@@ -543,53 +543,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return await this.sequelize.queryRaw(query, options);
   }
 
-  async delete(instance, tableName, identifier, options) {
-    const cascades = [];
-
-    const sql = this.queryGenerator.deleteQuery(tableName, identifier, {}, instance.constructor);
-
-    options = { ...options };
-
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete options.replacements;
-
-    // Check for a restrict field
-    if (Boolean(instance.constructor) && Boolean(instance.constructor.associations)) {
-      const keys = Object.keys(instance.constructor.associations);
-      const length = keys.length;
-      let association;
-
-      for (let i = 0; i < length; i++) {
-        association = instance.constructor.associations[keys[i]];
-        if (association.options && association.options.onDelete
-          && association.options.onDelete.toLowerCase() === 'cascade'
-          && association.options.hooks === true) {
-          cascades.push(association.accessors.get);
-        }
-      }
-    }
-
-    for (const cascade of cascades) {
-      let instances = await instance[cascade](options);
-      // Check for hasOne relationship with non-existing associate ("has zero")
-      if (!instances) {
-        continue;
-      }
-
-      if (!Array.isArray(instances)) {
-        instances = [instances];
-      }
-
-      for (const _instance of instances) {
-        await _instance.destroy(options);
-      }
-    }
-
-    options.instance = instance;
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
   async select(model, tableName, optionsArg) {
     const minifyAliases = optionsArg.minifyAliases ?? this.sequelize.options.minifyAliases;
     const options = { ...optionsArg, type: QueryTypes.SELECT, model, minifyAliases };

@@ -468,20 +468,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return query;
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
-    const table = this.quoteTable(tableName);
-    let query = `DELETE FROM ${table}`;
-
-    const whereSql = this.whereQuery(where, { ...options, model });
-    if (whereSql) {
-      query += ` ${whereSql}`;
-    }
-
-    query += this._addLimitAndOffset(options);
-
-    return query;
-  }
-
   addIndexQuery(tableName, attributes, options, rawTablename) {
     if ('include' in attributes && !attributes.unique) {
       throw new Error('DB2 does not support non-unique indexes with INCLUDE syntax.');

@@ -2,6 +2,7 @@ import semver from 'semver';
 import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { isModelStatic } from '../../utils/model-utils.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
@@ -9,6 +10,7 @@ import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-gen
 import type {
   AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
+  DeleteQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -272,5 +274,31 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return fragment;
+  }
+
+  deleteQuery(tableName: TableNameOrModel, options: DeleteQueryOptions) {
+    const table = this.quoteTable(tableName);
+    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+    if (options.limit) {
+      if (!isModelStatic(tableName)) {
+        throw new Error('Cannot use LIMIT with deleteQuery without a model.');
+      }
+
+      const pks = Object.values(tableName.primaryKeys).map(key => this.quoteIdentifier(key.columnName)).join(', ');
+      const primaryKeys = Object.values(tableName.primaryKeys).length > 1 ? `(${pks})` : pks;
+
+      return joinSQLFragments([
+        `DELETE FROM ${table} WHERE ${primaryKeys} IN (`,
+        `SELECT ${pks} FROM ${table}`,
+        options.where ? this.whereQuery(options.where, whereOptions) : '',
+        this._addLimitAndOffset(options),
+        ')',
+      ]);
+    }
+
+    return joinSQLFragments([
+      `DELETE FROM ${table}`,
+      options.where ? this.whereQuery(options.where, whereOptions) : '',
+    ]);
   }
 }

@@ -1,5 +1,6 @@
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { isModelStatic } from '../../utils/model-utils';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
@@ -11,6 +12,7 @@ import {
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   AddLimitOffsetOptions,
+  DeleteQueryOptions,
   DropSchemaQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -244,5 +246,15 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return fragment;
+  }
+
+  deleteQuery(tableName: TableNameOrModel, options: DeleteQueryOptions) {
+    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+
+    return joinSQLFragments([
+      `DELETE FROM ${this.quoteTable(tableName)}`,
+      options.where ? this.whereQuery(options.where, whereOptions) : '',
+      this._addLimitAndOffset(options),
+    ]);
   }
 }

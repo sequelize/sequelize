@@ -4001,7 +4001,7 @@ Instead of specifying a Model, either:
 
       result = await this.save({ ...options, hooks: false });
     } else {
-      result = await this.constructor.queryInterface.delete(this, this.constructor.getTableName(options), where, { type: QueryTypes.DELETE, limit: null, ...options });
+      result = await this.constructor.queryInterface.delete(this.constructor, { type: QueryTypes.DELETE, limit: null, ...options, where });
     }
 
     // Run after hook

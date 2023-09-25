@@ -2,6 +2,7 @@ import type { Expression } from '../../sequelize';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json';
+import { isModelStatic } from '../../utils/model-utils';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
@@ -13,6 +14,7 @@ import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '.
 import type {
   AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
+  DeleteQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -329,5 +331,33 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     }
 
     return fragment;
+  }
+
+  deleteQuery(tableName: TableNameOrModel, options: DeleteQueryOptions) {
+    const table = this.quoteTable(tableName);
+    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+    if (options.limit) {
+      if (!isModelStatic(tableName)) {
+        throw new Error('Cannot use LIMIT with deleteQuery without a model.');
+      }
+
+      const pks = Object.values(tableName.primaryKeys).map(key => this.quoteIdentifier(key.columnName)).join(', ');
+      const primaryKeys = Object.values(tableName.primaryKeys).length > 1 ? `(${pks})` : pks;
+
+      return joinSQLFragments([
+        `DELETE FROM ${table} WHERE ${primaryKeys} IN (`,
+        `SELECT ${pks} FROM ${table}`,
+        options.where ? this.whereQuery(options.where, whereOptions) : '',
+        `ORDER BY ${pks}`,
+        this._addLimitAndOffset(options),
+        '); SELECT @@ROWCOUNT AS AFFECTEDROWS;',
+      ]);
+    }
+
+    return joinSQLFragments([
+      `DELETE FROM ${table}`,
+      options.where ? this.whereQuery(options.where, whereOptions) : '',
+      '; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
+    ]);
   }
 }

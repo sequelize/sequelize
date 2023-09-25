@@ -170,21 +170,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    defaults(options, this.options);
-
-    let whereClause = this.whereQuery(where, { ...options, model });
-    if (whereClause) {
-      whereClause = ` ${whereClause}`;
-    }
-
-    if (options.limit) {
-      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit, options)})`;
-    }
-
-    return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`.trim();
-  }
-
   attributesToSQL(attributes, options) {
     const result = {};
     for (const name in attributes) {

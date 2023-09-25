@@ -239,7 +239,7 @@ async function test() {
     },
   });
 
-  await queryInterface.delete(null, 'Person', {
+  await queryInterface.delete('Person', {
     where: {
       a: 1,
     },

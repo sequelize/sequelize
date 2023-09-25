@@ -37,6 +37,7 @@ import type {
   AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
+  DeleteQueryOptions,
   DropSchemaQueryOptions,
   DropTableQueryOptions,
   GetConstraintSnippetQueryOptions,
@@ -1085,5 +1086,9 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
    */
   protected _addLimitAndOffset(_options: AddLimitOffsetOptions): string {
     throw new Error(`_addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
+  }
+
+  deleteQuery(_tableName: TableNameOrModel, _options: DeleteQueryOptions): string {
+    throw new Error(`deleteQuery has not been implemented in ${this.dialect.name}.`);
   }
 }

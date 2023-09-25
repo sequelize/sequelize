@@ -180,3 +180,9 @@ export interface AddLimitOffsetOptions {
   offset?: Nullish<number | Literal>;
   replacements?: BindOrReplacements;
 }
+
+export interface DeleteQueryOptions {
+  limit?: Nullish<number | Literal>;
+  replacements?: BindOrReplacements;
+  where: WhereOptions<any>;
+}

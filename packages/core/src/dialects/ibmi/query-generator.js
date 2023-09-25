@@ -338,21 +338,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return query;
   }
 
-  deleteQuery(tableName, where, options = {}, model) {
-    let query = `DELETE FROM ${this.quoteTable(tableName)}`;
-
-    const whereSql = this.whereQuery(where, { ...options, model });
-    if (whereSql) {
-      query += ` ${whereSql}`;
-    }
-
-    if (options.offset || options.limit) {
-      query += this._addLimitAndOffset(options, model);
-    }
-
-    return query;
-  }
-
   // bindParam(bind) {
   //   return value => {
   //     bind.push(value);
