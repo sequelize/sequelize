@@ -1215,10 +1215,53 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       const orders = this.getQueryOrders(options, model, subQuery);
       if (orders.mainQueryOrder.length > 0) {
         mainQueryItems.push(` ORDER BY ${orders.mainQueryOrder.join(', ')}`);
+      } else if (!subQuery && (options.limit != null || options.offset != null)) {
+        if (!isModelStatic(model)) {
+          throw new Error('Cannot use offset or limit without a model or order being set');
+        }
+
+        // Always order by primary key if order is not specified and limit/offset is not null
+        const pks = [];
+        for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+          const attribute = mainModelAttributes.get(pkAttrName);
+          pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+        }
+
+        mainQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
       }
 
       if (orders.subQueryOrder.length > 0) {
         subQueryItems.push(` ORDER BY ${orders.subQueryOrder.join(', ')}`);
+      } else if (subQuery && (options.limit != null || options.offset != null)) {
+        if (!isModelStatic(model)) {
+          throw new Error('Cannot use offset or limit without a model or order being set');
+        }
+
+        // Always order by primary key if order is not specified and limit/offset is not null
+        const pks = [];
+        for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+          const attribute = mainModelAttributes.get(pkAttrName);
+          pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+        }
+
+        subQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
+      }
+    } else if (options.limit != null || options.offset != null) {
+      if (!isModelStatic(model)) {
+        throw new Error('Cannot use offset or limit without a model or order being set');
+      }
+
+      // Always order by primary key if order is not specified and limit/offset is not null
+      const pks = [];
+      for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+        const attribute = mainModelAttributes.get(pkAttrName);
+        pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+      }
+
+      if (subQuery) {
+        subQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
+      } else {
+        mainQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
       }
     }
 

@@ -6,6 +6,7 @@ import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use
 import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const { attribute, col, cast, where, fn, literal } = sqlTag;
+const dialectName = getTestDialect();
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -58,14 +59,75 @@ describe('QueryGenerator#selectQuery', () => {
     }, User);
 
     expectsql(sql, {
-      postgres: `SELECT "id" FROM "Users" AS "User" OFFSET 1;`,
-      mysql: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
-      mariadb: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
-      sqlite: 'SELECT `id` FROM `Users` AS `User` LIMIT -1 OFFSET 1;',
-      snowflake: 'SELECT "id" FROM "Users" AS "User" LIMIT NULL OFFSET 1;',
-      db2: `SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS;`,
-      ibmi: 'SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS',
       mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
+      sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT -1 OFFSET 1;',
+      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1 ROWS;`,
+      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 18446744073709551615 OFFSET 1;',
+      'postgres snowflake': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT NULL OFFSET 1;',
+    });
+  });
+
+  it('support limit without offset', () => {
+    const sql = queryGenerator.selectQuery(User.table, {
+      model: User,
+      attributes: ['id'],
+      limit: 10,
+    }, User);
+
+    expectsql(sql, {
+      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
+      sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10;',
+      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 10 ROWS ONLY;`,
+      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10;',
+      'postgres snowflake': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT 10;',
+    });
+  });
+
+  it('supports offset and limit', () => {
+    const sql = queryGenerator.selectQuery(User.table, {
+      model: User,
+      attributes: ['id'],
+      offset: 1,
+      limit: 10,
+    }, User);
+
+    expectsql(sql, {
+      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS FETCH NEXT 10 ROWS ONLY;`,
+      sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10 OFFSET 1;',
+      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1 ROWS FETCH NEXT 10 ROWS ONLY;`,
+      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10 OFFSET 1;',
+      'postgres snowflake': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT 10 OFFSET 1;',
+    });
+  });
+
+  it('ignores 0 as offset', () => {
+    const sql = queryGenerator.selectQuery(User.table, {
+      model: User,
+      attributes: ['id'],
+      offset: 0,
+      limit: 10,
+    }, User);
+
+    expectsql(sql, {
+      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
+      sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10;',
+      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 10 ROWS ONLY;`,
+      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10;',
+      'postgres snowflake': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT 10;',
+    });
+  });
+
+  it('support 0 as limit', () => {
+    expectsql(() => queryGenerator.selectQuery(User.table, {
+      model: User,
+      attributes: ['id'],
+      limit: 0,
+    }, User), {
+      mssql: new Error(`LIMIT 0 is not supported by ${dialectName} dialect.`),
+      sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 0;',
+      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 0 ROWS ONLY;`,
+      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 0;',
+      'postgres snowflake': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT 0;',
     });
   });
 
@@ -675,8 +737,6 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   });
 
   describe('optimizer hints', () => {
-    const dialectName = getTestDialect();
-
     it('max execution time hint', () => {
       const notSupportedError = new Error(`The maxExecutionTimeMs option is not supported by ${dialectName}`);
 

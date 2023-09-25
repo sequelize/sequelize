@@ -182,29 +182,6 @@ if (dialect === 'mysql') {
           expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator,
         }, {
-          arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 10;',
-          context: QueryGenerator,
-        }, {
-          arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 10 OFFSET 2;',
-          context: QueryGenerator,
-        }, {
-          title: 'uses default limit if only offset is specified',
-          arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 18446744073709551615 OFFSET 2;',
-          context: QueryGenerator,
-        }, {
-          title: 'uses limit 0',
-          arguments: ['myTable', { limit: 0 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 0;',
-          context: QueryGenerator,
-        }, {
-          title: 'uses offset 0',
-          arguments: ['myTable', { offset: 0 }],
-          expectation: 'SELECT * FROM `myTable`;',
-          context: QueryGenerator,
-        }, {
           title: 'Empty having',
           arguments: ['myTable', function () {
             return {
