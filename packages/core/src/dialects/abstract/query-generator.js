@@ -1223,7 +1223,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Add LIMIT, OFFSET to sub or main query
-    const limitOrder = this.addLimitAndOffset(options, mainTable.model);
+    const limitOrder = this._addLimitAndOffset(options);
     if (limitOrder && !options.groupedLimit) {
       if (subQuery) {
         subQueryItems.push(limitOrder);
@@ -2019,30 +2019,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (options.groupedLimit) {
       fragment += ` AS ${mainTableAs}`;
-    }
-
-    return fragment;
-  }
-
-  /**
-   * Returns an SQL fragment for adding result constraints.
-   *
-   * @param  {object} options An object with selectQuery options.
-   * @param {ModelStatic} model
-   * @returns {string}         The generated sql query.
-   * @private
-   */
-  addLimitAndOffset(options, model) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      // limit must be specified if offset is specified.
-      fragment += ` LIMIT 18446744073709551615`;
-    }
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
     }
 
     return fragment;

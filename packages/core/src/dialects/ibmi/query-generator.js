@@ -383,31 +383,10 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     if (options.offset || options.limit) {
-      query += this.addLimitAndOffset(options, model);
+      query += this._addLimitAndOffset(options, model);
     }
 
     return query;
-  }
-
-  /**
-   * Returns an SQL fragment for adding result constraints.
-   *
-   * @param  {object} options An object with selectQuery options.
-   * @returns {string}         The generated sql query.
-   * @private
-   */
-  addLimitAndOffset(options) {
-    let fragment = '';
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)} ROWS`;
-    }
-
-    if (options.limit) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
-    }
-
-    return fragment;
   }
 
   // bindParam(bind) {

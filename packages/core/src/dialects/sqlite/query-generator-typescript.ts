@@ -9,6 +9,7 @@ import {
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
+  AddLimitOffsetOptions,
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   ShowConstraintsQueryOptions,
@@ -186,5 +187,21 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
    */
   foreignKeyCheckQuery(tableName: TableNameOrModel) {
     return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
+    } else if (options.offset) {
+      // limit must be specified if offset is specified.
+      fragment += ` LIMIT -1`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
+    }
+
+    return fragment;
   }
 }
