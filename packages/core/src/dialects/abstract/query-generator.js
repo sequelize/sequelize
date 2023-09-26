@@ -1215,7 +1215,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       const orders = this.getQueryOrders(options, model, subQuery);
       if (orders.mainQueryOrder.length > 0) {
         mainQueryItems.push(` ORDER BY ${orders.mainQueryOrder.join(', ')}`);
-      } else if (!subQuery && (options.limit != null || options.offset != null)) {
+      } else if (!subQuery && (options.limit != null || options.offset)) {
         if (!isModelStatic(model)) {
           throw new Error('Cannot use offset or limit without a model or order being set');
         }
@@ -1232,7 +1232,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       if (orders.subQueryOrder.length > 0) {
         subQueryItems.push(` ORDER BY ${orders.subQueryOrder.join(', ')}`);
-      } else if (subQuery && (options.limit != null || options.offset != null)) {
+      } else if (subQuery && (options.limit != null || options.offset)) {
         if (!isModelStatic(model)) {
           throw new Error('Cannot use offset or limit without a model or order being set');
         }
@@ -1246,7 +1246,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         subQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
       }
-    } else if (options.limit != null || options.offset != null) {
+    } else if (options.limit != null || options.offset) {
       if (!isModelStatic(model)) {
         throw new Error('Cannot use offset or limit without a model or order being set');
       }
