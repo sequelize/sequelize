@@ -136,6 +136,39 @@ describe('QueryGenerator#selectQuery', () => {
         'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 0 ROWS ONLY;`,
       });
     });
+
+    it('escapes limit', () => {
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        // @ts-expect-error -- testing invalid limit
+        limit: `';DELETE FROM user`,
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT ''';DELETE FROM user';`,
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY;`,
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT ''';DELETE FROM user' ROWS ONLY;`,
+        'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT \'\\\';DELETE FROM user\';',
+      });
+    });
+
+    it('escapes offset', () => {
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        limit: 10,
+        // @ts-expect-error -- testing invalid offset
+        offset: `';DELETE FROM user`,
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10 OFFSET ''';DELETE FROM user';`,
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY;`,
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET ''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY;`,
+        'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10 OFFSET \'\\\';DELETE FROM user\';',
+      });
+    });
   });
 
   it('supports querying for bigint values', () => {
