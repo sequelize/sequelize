@@ -51,83 +51,90 @@ describe('QueryGenerator#selectQuery', () => {
     as: 'contributors',
   });
 
-  it('supports offset without limit', () => {
-    const sql = queryGenerator.selectQuery(User.table, {
-      model: User,
-      attributes: ['id'],
-      offset: 1,
-    }, User);
+  describe('limit/offset', () => {
+    it('supports offset without limit', () => {
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        offset: 1,
+      }, User);
 
-    expectsql(sql, {
-      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
-      sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT -1 OFFSET 1;',
-      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1 ROWS;`,
-      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 18446744073709551615 OFFSET 1;',
-      'postgres snowflake': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT NULL OFFSET 1;',
+      expectsql(sql, {
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
+        sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT -1 OFFSET 1;',
+        postgres: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1;',
+        snowflake: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT NULL OFFSET 1;',
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1 ROWS;`,
+        'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 18446744073709551615 OFFSET 1;',
+      });
     });
-  });
 
-  it('support limit without offset', () => {
-    const sql = queryGenerator.selectQuery(User.table, {
-      model: User,
-      attributes: ['id'],
-      limit: 10,
-    }, User);
+    it('support limit without offset', () => {
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        limit: 10,
+      }, User);
 
-    expectsql(sql, {
-      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
-      sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10;',
-      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 10 ROWS ONLY;`,
-      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10;',
-      'postgres snowflake': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT 10;',
+      expectsql(sql, {
+        default: 'SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10;',
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 10 ROWS ONLY;`,
+      });
     });
-  });
 
-  it('supports offset and limit', () => {
-    const sql = queryGenerator.selectQuery(User.table, {
-      model: User,
-      attributes: ['id'],
-      offset: 1,
-      limit: 10,
-    }, User);
+    it('supports offset and limit', () => {
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        offset: 1,
+        limit: 10,
+      }, User);
 
-    expectsql(sql, {
-      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS FETCH NEXT 10 ROWS ONLY;`,
-      sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10 OFFSET 1;',
-      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1 ROWS FETCH NEXT 10 ROWS ONLY;`,
-      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10 OFFSET 1;',
-      'postgres snowflake': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT 10 OFFSET 1;',
+      expectsql(sql, {
+        default: 'SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10 OFFSET 1;',
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS FETCH NEXT 10 ROWS ONLY;`,
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1 ROWS FETCH NEXT 10 ROWS ONLY;`,
+      });
     });
-  });
 
-  it('ignores 0 as offset', () => {
-    const sql = queryGenerator.selectQuery(User.table, {
-      model: User,
-      attributes: ['id'],
-      offset: 0,
-      limit: 10,
-    }, User);
+    it('ignores 0 as offset with a limit', () => {
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        offset: 0,
+        limit: 10,
+      }, User);
 
-    expectsql(sql, {
-      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
-      sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10;',
-      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 10 ROWS ONLY;`,
-      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10;',
-      'postgres snowflake': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT 10;',
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10;`,
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 10 ROWS ONLY;`,
+      });
     });
-  });
 
-  it('support 0 as limit', () => {
-    expectsql(() => queryGenerator.selectQuery(User.table, {
-      model: User,
-      attributes: ['id'],
-      limit: 0,
-    }, User), {
-      mssql: new Error(`LIMIT 0 is not supported by ${dialectName} dialect.`),
-      sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 0;',
-      'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 0 ROWS ONLY;`,
-      'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 0;',
-      'postgres snowflake': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT 0;',
+    it('ignores 0 as offset without a limit', () => {
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        offset: 0,
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Users] AS [User];`,
+      });
+    });
+
+    it('support 0 as limit', () => {
+      expectsql(() => queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        limit: 0,
+      }, User), {
+        default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 0;`,
+        mssql: new Error(`LIMIT 0 is not supported by ${dialectName} dialect.`),
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 0 ROWS ONLY;`,
+      });
     });
   });
 
@@ -141,14 +148,7 @@ describe('QueryGenerator#selectQuery', () => {
     }, Project);
 
     expectsql(sql, {
-      postgres: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
-      mysql: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
-      mariadb: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
-      sqlite: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
-      snowflake: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
-      db2: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
-      ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993`,
-      mssql: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
+      default: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
     });
   });
 
