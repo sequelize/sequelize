@@ -1580,7 +1580,7 @@ __metadata:
     "@types/semver": 7.5.3
     "@types/sinon": 10.0.17
     "@types/sinon-chai": 3.2.10
-    "@types/snowflake-sdk": 1.6.13
+    "@types/snowflake-sdk": 1.6.14
     "@types/tedious": 4.0.12
     "@types/uuid": 9.0.4
     "@types/validator": ^13.7.5
@@ -2049,13 +2049,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/snowflake-sdk@npm:1.6.13":
-  version: 1.6.13
-  resolution: "@types/snowflake-sdk@npm:1.6.13"
+"@types/snowflake-sdk@npm:1.6.14":
+  version: 1.6.14
+  resolution: "@types/snowflake-sdk@npm:1.6.14"
   dependencies:
     "@types/node": "*"
     generic-pool: ^3.9.0
-  checksum: 1addf912bc932edbbad5cd61b76c8d4faa922d66062b0b27381a7ef0a4bf54cc8417b8d8b7139b62b9fd72ab862d2f8d1da4948bd274e117a6ff87d7db633a29
+  checksum: 51fb3f2453cbfb6627386c44d9fa02cd1885a6d8a3f3a398e94d34765bd62755a2c04bd17be522a8ec9fe7b381d954aa0849afa556a99e5044e679357f715287
   languageName: node
   linkType: hard
 
