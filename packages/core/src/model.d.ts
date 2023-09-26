@@ -1188,7 +1188,7 @@ export interface TruncateOptions extends Logging, Transactionable, Hookable {
 /**
  * Options accepted by {@link Model.destroy}.
  */
-export interface DestroyOptions<TAttributes = any> extends TruncateOptions, Filterable<TAttributes> {
+export interface DestroyOptions<TAttributes = any> extends Logging, Transactionable, Hookable, Filterable<TAttributes> {
   /**
    * If set to true, destroy will SELECT all records matching the where parameter and will execute before /
    * after destroy hooks on each row
