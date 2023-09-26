@@ -215,8 +215,6 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     let fragment = '';
     if (options.limit != null) {
       fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      fragment += ` LIMIT NULL`;
     }
 
     if (options.offset) {
