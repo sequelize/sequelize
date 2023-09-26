@@ -13,7 +13,7 @@ import type {
 } from '../../model';
 import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
 import type { IsolationLevel, Transaction } from '../../transaction';
-import type { AllowLowercase } from '../../utils/types.js';
+import type { AllowLowercase, Nullish } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions } from './query-generator.js';
@@ -43,7 +43,7 @@ export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
 }
 
 export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
-  limit?: number | Literal | null | undefined;
+  limit?: Nullish<number | Literal>;
 }
 
 export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {

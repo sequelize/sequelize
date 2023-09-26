@@ -1,5 +1,6 @@
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
+import type { Literal } from '../../expression-builders/literal';
 import type { IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
@@ -148,7 +149,7 @@ export interface QuoteTableOptions extends IndexHintable {
 }
 
 export interface AddLimitOffsetOptions {
-  limit?: Nullish<number | BaseSqlExpression>;
-  offset?: Nullish<number | BaseSqlExpression>;
+  limit?: Nullish<number | Literal>;
+  offset?: Nullish<number | Literal>;
   replacements?: BindOrReplacements;
 }
