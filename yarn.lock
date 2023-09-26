@@ -1578,7 +1578,7 @@ __metadata:
     "@types/mocha": 10.0.1
     "@types/pg": 8.10.3
     "@types/semver": 7.5.3
-    "@types/sinon": 10.0.16
+    "@types/sinon": 10.0.17
     "@types/sinon-chai": 3.2.10
     "@types/snowflake-sdk": 1.6.13
     "@types/tedious": 4.0.12
@@ -2024,12 +2024,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sinon@npm:*, @types/sinon@npm:10.0.16":
+"@types/sinon@npm:*":
   version: 10.0.16
   resolution: "@types/sinon@npm:10.0.16"
   dependencies:
     "@types/sinonjs__fake-timers": "*"
   checksum: 1216aac584500d6bf845ca76f57e82f8459cf9de4ed80a55e50aa4438360fc418789a42181e211c5d279e97f86a3a994e3c81e43971d540737caca0193242bbf
+  languageName: node
+  linkType: hard
+
+"@types/sinon@npm:10.0.17":
+  version: 10.0.17
+  resolution: "@types/sinon@npm:10.0.17"
+  dependencies:
+    "@types/sinonjs__fake-timers": "*"
+  checksum: 329055c022810d058f90fabb3fe0dd730331885e757666789ef252feeccc67d4c5cbd87e71857e2df11d094d67e32e3e304cfd9b12b9327fd2cf486d635c36e2
   languageName: node
   linkType: hard
 
