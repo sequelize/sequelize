@@ -17,6 +17,7 @@ import type { AllowLowercase, Nullish } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions } from './query-generator.js';
+import type { AddLimitOffsetOptions } from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { ColumnsDescription, QiDropAllSchemasOptions } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -34,7 +35,7 @@ export interface QiInsertOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
 }
 
-export interface QiSelectOptions extends QueryRawOptions, Replaceable, Filterable<any> {
+export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLimitOffsetOptions {
   minifyAliases?: boolean;
 }
 
