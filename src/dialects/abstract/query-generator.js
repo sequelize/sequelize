@@ -444,7 +444,7 @@ class QueryGenerator {
 
     const values = [];
     const bind = [];
-    result.attrTypes = attrTypes;
+    const attrTypes = [];
     const modelAttributeMap = {};
     let outputFragment = '';
     let tmpTable = ''; // tmpTable declaration for trigger
