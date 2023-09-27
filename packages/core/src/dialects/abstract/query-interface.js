@@ -136,22 +136,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Rename a table
-   *
-   * @param {string} before    Current name of table
-   * @param {string} after     New name from table
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async renameTable(before, after, options) {
-    options = options || {};
-    const sql = this.queryGenerator.renameTableQuery(before, after);
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
    * Add a new column to a table
    *
    * ```js
