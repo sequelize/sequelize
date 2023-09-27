@@ -64,7 +64,6 @@ module.exports = {
       'no-shadow': 'off',
       'default-param-last': 'off',
       'unicorn/error-message': 'off',
-      'no-implicit-coercion': 'off',
       'no-fallthrough': 'off',
       'no-invalid-this': 'off',
       'prefer-rest-params': 'off',
