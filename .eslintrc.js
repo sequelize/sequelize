@@ -69,9 +69,6 @@ module.exports = {
       'prefer-rest-params': 'off',
       'no-loss-of-precision': 'off',
 
-      // fromEntries is available in node 12. Restricted to v7.
-      'unicorn/prefer-object-from-entries': 'off',
-
       // optimisation
       'unicorn/consistent-function-scoping': 'off',
 
