@@ -58,7 +58,6 @@ module.exports = {
       // code smells that should be resolved
       'no-restricted-syntax': 'off',
       'no-await-in-loop': 'off',
-      'unicorn/no-new-array': 'off',
       'no-restricted-globals': 'off',
       'default-case': 'off',
       'no-loop-func': 'off',

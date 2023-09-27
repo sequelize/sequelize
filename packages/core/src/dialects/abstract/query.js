@@ -458,7 +458,7 @@ export class AbstractQuery {
     let itemHash;
     let parentHash;
     let topHash;
-    const results = checkExisting ? [] : new Array(rowsLength);
+    const results = checkExisting ? [] : Array.from({ length: rowsLength });
     const resultMap = {};
     const includeMap = {};
     // Result variables for the respective functions
