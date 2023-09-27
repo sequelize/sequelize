@@ -8,7 +8,7 @@ const expect = chai.expect;
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const { Op, sql } = require('@sequelize/core');
+const { Op } = require('@sequelize/core');
 const { Db2QueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/db2/query-generator.js');
 const { createSequelizeInstance } = require('../../../support');
 

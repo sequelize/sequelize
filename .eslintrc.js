@@ -63,7 +63,6 @@ module.exports = {
       'default-case': 'off',
       'no-loop-func': 'off',
       'no-shadow': 'off',
-      'no-unused-vars': 'off',
       'default-param-last': 'off',
       'unicorn/error-message': 'off',
       'no-implicit-coercion': 'off',

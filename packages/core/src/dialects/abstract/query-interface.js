@@ -8,7 +8,6 @@ import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 import defaults from 'lodash/defaults';
 import find from 'lodash/find';
-import identity from 'lodash/identity';
 import intersection from 'lodash/intersection';
 import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';

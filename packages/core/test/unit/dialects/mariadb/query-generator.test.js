@@ -8,7 +8,7 @@ const expect = chai.expect;
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const { Op, IndexHints } = require('@sequelize/core');
+const { Op } = require('@sequelize/core');
 const { MariaDbQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mariadb/query-generator.js');
 const { createSequelizeInstance } = require('../../../support');
 

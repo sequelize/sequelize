@@ -1,12 +1,10 @@
 'use strict';
 
 const Support = require('../../support');
-const { DataTypes, Model, Op } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 const util = require('node:util');
-const chai = require('chai');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
-const expect = chai.expect;
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;

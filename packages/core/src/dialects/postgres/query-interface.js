@@ -1,7 +1,5 @@
 'use strict';
 
-import { Deferrable } from '../../deferrable';
-import { camelizeObjectKeys } from '../../utils/object';
 import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.js';
 
 const DataTypes = require('../../data-types');
