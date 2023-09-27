@@ -8,6 +8,7 @@ import type {
   AddLimitOffsetOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
@@ -67,6 +68,21 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
         : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY TABSCHEMA, TABNAME',
     ]);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    _options?: RenameTableQueryOptions,
+  ): string {
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      throw new Error(`Moving tables between schemas is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
   private _getConstraintType(type: ConstraintType): string {

@@ -15,6 +15,7 @@ import type {
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
@@ -136,6 +137,29 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
         : `AND s.name NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY s.name, t.name',
     ]);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      if (!options?.changeSchema) {
+        throw new Error('To move a table between schemas, you must set `options.changeSchema` to true.');
+      }
+
+      if (beforeTable.tableName !== afterTable.tableName) {
+        throw new Error(`Renaming a table and moving it to a different schema is not supported by ${this.dialect.name}.`);
+      }
+
+      return `ALTER SCHEMA ${this.quoteIdentifier(afterTable.schema!)} TRANSFER ${this.quoteTable(beforeTableName)}`;
+    }
+
+    return `EXEC sp_rename '${this.quoteTable(beforeTableName)}', ${this.escape(afterTable.tableName)}`;
   }
 
   private _getConstraintType(type: ConstraintType): string {

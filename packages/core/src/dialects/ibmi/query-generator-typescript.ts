@@ -8,6 +8,7 @@ import type {
   AddLimitOffsetOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
 
@@ -59,6 +60,21 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
         : `AND TABLE_SCHEMA NOT LIKE 'Q%' AND TABLE_SCHEMA NOT LIKE 'SYS%'`,
       'ORDER BY TABLE_SCHEMA, TABLE_NAME',
     ]);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    _options?: RenameTableQueryOptions,
+  ): string {
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      throw new Error(`Moving tables between schemas is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {

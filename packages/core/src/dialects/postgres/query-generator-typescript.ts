@@ -11,6 +11,7 @@ import type {
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
 
@@ -110,6 +111,29 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
         : `AND table_schema !~ E'^pg_' AND table_schema NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY table_schema, table_name',
     ]);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      if (!options?.changeSchema) {
+        throw new Error('To move a table between schemas, you must set `options.changeSchema` to true.');
+      }
+
+      if (beforeTable.tableName !== afterTable.tableName) {
+        throw new Error(`Renaming a table and moving it to a different schema is not supported by ${this.dialect.name}.`);
+      }
+
+      return `ALTER TABLE ${this.quoteTable(beforeTableName)} SET SCHEMA ${this.quoteIdentifier(afterTable.schema!)}`;
+    }
+
+    return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {

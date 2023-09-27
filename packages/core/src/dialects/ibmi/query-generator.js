@@ -187,10 +187,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return `ALTER TABLE ${this.quoteTable(tableName)} ${finalQuery}`;
   }
 
-  renameTableQuery(before, after) {
-    return `RENAME TABLE ${this.quoteTable(before)} TO ${this.quoteTable(after)}`;
-  }
-
   renameColumnQuery(tableName, attrBefore, attributes) {
     const attrString = [];
 
