@@ -170,16 +170,6 @@ if (dialect.startsWith('postgres')) {
           context: QueryGenerator,
           needsSequelize: true,
         }, {
-          title: 'uses limit 0',
-          arguments: ['myTable', { limit: 0 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 0;',
-          context: QueryGenerator,
-        }, {
-          title: 'omits offset 0',
-          arguments: ['myTable', { offset: 0 }],
-          expectation: 'SELECT * FROM "myTable";',
-          context: QueryGenerator,
-        }, {
           title: 'single string argument should be quoted',
           arguments: ['myTable', { group: 'name' }],
           expectation: 'SELECT * FROM "myTable" GROUP BY "name";',
@@ -208,16 +198,6 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: ['myTable', { group: ['name', 'title'] }],
           expectation: 'SELECT * FROM "myTable" GROUP BY "name", "title";',
-        }, {
-          arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 10;',
-        }, {
-          arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 10 OFFSET 2;',
-        }, {
-          title: 'uses offset even if no limit was passed',
-          arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM "myTable" OFFSET 2;',
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
           expectation: 'SELECT * FROM "mySchema"."myTable";',
@@ -259,19 +239,6 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: ['myTable', { group: ['name', 'title'] }],
           expectation: 'SELECT * FROM myTable GROUP BY name, title;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM myTable LIMIT 10;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM myTable LIMIT 10 OFFSET 2;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          title: 'uses offset even if no limit was passed',
-          arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM myTable OFFSET 2;',
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }],

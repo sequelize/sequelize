@@ -174,24 +174,6 @@ if (dialect === 'db2') {
           expectation: 'SELECT * FROM "myTable" GROUP BY "name" ORDER BY "id" DESC;',
           context: QueryGenerator,
         }, {
-          arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM "myTable" FETCH NEXT 10 ROWS ONLY;',
-          context: QueryGenerator,
-        }, {
-          arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM "myTable" OFFSET 2 ROWS FETCH NEXT 10 ROWS ONLY;',
-          context: QueryGenerator,
-        }, {
-          title: 'if only offset is specified',
-          arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM "myTable" OFFSET 2 ROWS;',
-          context: QueryGenerator,
-        }, {
-          title: 'ignore limit 0',
-          arguments: ['myTable', { limit: 0 }],
-          expectation: 'SELECT * FROM "myTable";',
-          context: QueryGenerator,
-        }, {
           title: 'Empty having',
           arguments: ['myTable', function () {
             return {

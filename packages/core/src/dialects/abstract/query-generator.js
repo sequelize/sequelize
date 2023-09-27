@@ -1215,15 +1215,58 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       const orders = this.getQueryOrders(options, model, subQuery);
       if (orders.mainQueryOrder.length > 0) {
         mainQueryItems.push(` ORDER BY ${orders.mainQueryOrder.join(', ')}`);
+      } else if (!subQuery && (options.limit != null || options.offset)) {
+        if (!isModelStatic(model)) {
+          throw new Error('Cannot use offset or limit without a model or order being set');
+        }
+
+        // Always order by primary key if order is not specified and limit/offset is not null
+        const pks = [];
+        for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+          const attribute = mainModelAttributes.get(pkAttrName);
+          pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+        }
+
+        mainQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
       }
 
       if (orders.subQueryOrder.length > 0) {
         subQueryItems.push(` ORDER BY ${orders.subQueryOrder.join(', ')}`);
+      } else if (subQuery && (options.limit != null || options.offset)) {
+        if (!isModelStatic(model)) {
+          throw new Error('Cannot use offset or limit without a model or order being set');
+        }
+
+        // Always order by primary key if order is not specified and limit/offset is not null
+        const pks = [];
+        for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+          const attribute = mainModelAttributes.get(pkAttrName);
+          pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+        }
+
+        subQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
+      }
+    } else if (options.limit != null || options.offset) {
+      if (!isModelStatic(model)) {
+        throw new Error('Cannot use offset or limit without a model or order being set');
+      }
+
+      // Always order by primary key if order is not specified and limit/offset is not null
+      const pks = [];
+      for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+        const attribute = mainModelAttributes.get(pkAttrName);
+        pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+      }
+
+      if (subQuery) {
+        subQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
+      } else {
+        mainQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
       }
     }
 
     // Add LIMIT, OFFSET to sub or main query
-    const limitOrder = this.addLimitAndOffset(options, mainTable.model);
+    const limitOrder = this._addLimitAndOffset(options);
     if (limitOrder && !options.groupedLimit) {
       if (subQuery) {
         subQueryItems.push(limitOrder);
@@ -2019,30 +2062,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (options.groupedLimit) {
       fragment += ` AS ${mainTableAs}`;
-    }
-
-    return fragment;
-  }
-
-  /**
-   * Returns an SQL fragment for adding result constraints.
-   *
-   * @param  {object} options An object with selectQuery options.
-   * @param {ModelStatic} model
-   * @returns {string}         The generated sql query.
-   * @private
-   */
-  addLimitAndOffset(options, model) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      // limit must be specified if offset is specified.
-      fragment += ` LIMIT 18446744073709551615`;
-    }
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
     }
 
     return fragment;

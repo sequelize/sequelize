@@ -34,6 +34,7 @@ import type { BindParamOptions, DataType } from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
+  AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
   DropTableQueryOptions,
   GetConstraintSnippetQueryOptions,
@@ -941,5 +942,14 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     const table = this.extractTableDetails(tableName);
 
     return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = ${this.escape(table.schema)}`;
+  }
+
+  /**
+   * Returns an SQL fragment for adding result constraints.
+   *
+   * @param _options
+   */
+  protected _addLimitAndOffset(_options: AddLimitOffsetOptions): string {
+    throw new Error(`_addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
   }
 }

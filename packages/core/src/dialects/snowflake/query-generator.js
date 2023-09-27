@@ -388,18 +388,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     return dataType;
   }
 
-  addLimitAndOffset(options) {
-    if (options.offset) {
-      return ` LIMIT ${this.escape(options.limit ?? null, options)} OFFSET ${this.escape(options.offset, options)}`;
-    }
-
-    if (options.limit != null) {
-      return ` LIMIT ${this.escape(options.limit, options)}`;
-    }
-
-    return '';
-  }
-
   /**
    * Quote identifier in sql clause
    *
