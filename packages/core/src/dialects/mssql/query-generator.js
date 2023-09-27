@@ -9,10 +9,8 @@ import { generateIndexName } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 import each from 'lodash/each';
@@ -30,48 +28,11 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['collate']);
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
-const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
-  createDatabaseQuery(databaseName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createDatabaseQuery',
-        this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    const collation = options?.collate ? `COLLATE ${this.escape(options.collate)}` : '';
-
-    return [
-      'IF NOT EXISTS (SELECT * FROM sys.databases WHERE name =', this.escape(databaseName), ')',
-      'BEGIN',
-      'CREATE DATABASE', this.quoteIdentifier(databaseName),
-      `${collation};`,
-      'END;',
-    ].join(' ');
-  }
-
-  dropDatabaseQuery(databaseName) {
-    return [
-      'IF EXISTS (SELECT * FROM sys.databases WHERE name =', this.escape(databaseName), ')',
-      'BEGIN',
-      'DROP DATABASE', this.quoteIdentifier(databaseName), ';',
-      'END;',
-    ].join(' ');
-  }
-
-  listDatabasesQuery() {
-    return `SELECT name FROM sys.databases;`;
-  }
-
   createSchemaQuery(schema, options) {
     if (options) {
       rejectInvalidOptions(
@@ -128,20 +89,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       'END',
       'EXEC sp_executesql N\'DROP SCHEMA', this.quoteIdentifier(schema), ';\'',
       'END;',
-    ].join(' ');
-  }
-
-  listSchemasQuery(options) {
-    const schemasToSkip = ['INFORMATION_SCHEMA', 'dbo', 'guest', 'sys', 'archive'];
-    if (options?.skip) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return [
-      'SELECT "name" as "schema_name" FROM sys.schemas as s',
-      'WHERE "s"."name" NOT IN (',
-      schemasToSkip.map(schema => this.escape(schema)).join(', '),
-      `) AND "s"."name" NOT LIKE 'db_%'`,
     ].join(' ');
   }
 
@@ -237,31 +184,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return `EXEC sp_rename ${this.quoteTable(before)}, ${this.quoteTable(after)};`;
   }
 
-  showTablesQuery() {
-    return 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';';
-  }
-
-  dropTableQuery(tableName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    const quoteTbl = this.quoteTable(tableName);
-
-    return joinSQLFragments([
-      `IF OBJECT_ID('${quoteTbl}', 'U') IS NOT NULL`,
-      'DROP TABLE',
-      quoteTbl,
-      ';',
-    ]);
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(
@@ -303,24 +225,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   commentTemplate(comment, table, column) {
-    return ' EXEC sp_addextendedproperty '
-        + `@name = N'MS_Description', @value = ${this.escape(comment)}, `
-        + '@level0type = N\'Schema\', @level0name = \'dbo\', '
-        + `@level1type = N'Table', @level1name = ${this.quoteTable(table)}, `
-        + `@level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
-  }
+    const tableDetails = this.extractTableDetails(table);
+    const tableName = tableDetails.tableName;
+    const tableSchema = tableDetails.schema;
 
-  removeColumnQuery(tableName, attributeName, options = {}) {
-    const ifExists = options.ifExists ? 'IF EXISTS' : '';
-
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP COLUMN',
-      ifExists,
-      this.quoteIdentifier(attributeName),
-      ';',
-    ]);
+    return ` EXEC sp_addextendedproperty @name = N'MS_Description', @value = ${this.escape(comment)}, @level0type = N'Schema', @level0name = ${this.escape(tableSchema)}, @level1type = N'Table', @level1name = ${this.quoteIdentifier(tableName)}, @level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
   changeColumnQuery(tableName, attributes) {
@@ -738,47 +647,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   renameFunction() {
     throwMethodUndefined('renameFunction');
-  }
-
-  getPrimaryKeyConstraintQuery(table, attributeName) {
-    const tableName = this.escape(table.tableName || table);
-
-    return joinSQLFragments([
-      'SELECT K.TABLE_NAME AS tableName,',
-      'K.COLUMN_NAME AS columnName,',
-      'K.CONSTRAINT_NAME AS constraintName',
-      'FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C',
-      'JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K',
-      'ON C.TABLE_NAME = K.TABLE_NAME',
-      'AND C.CONSTRAINT_CATALOG = K.CONSTRAINT_CATALOG',
-      'AND C.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA',
-      'AND C.CONSTRAINT_NAME = K.CONSTRAINT_NAME',
-      'WHERE C.CONSTRAINT_TYPE = \'PRIMARY KEY\'',
-      `AND K.COLUMN_NAME = ${this.escape(attributeName)}`,
-      `AND K.TABLE_NAME = ${tableName}`,
-      ';',
-    ]);
-  }
-
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP',
-      this.quoteIdentifier(foreignKey),
-    ]);
-  }
-
-  getDefaultConstraintQuery(tableName, attributeName) {
-    const quotedTable = this.quoteTable(tableName);
-
-    return joinSQLFragments([
-      'SELECT name FROM sys.default_constraints',
-      `WHERE PARENT_OBJECT_ID = OBJECT_ID('${quotedTable}', 'U')`,
-      `AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('${attributeName}')`,
-      `AND object_id = OBJECT_ID('${quotedTable}', 'U'))`,
-      ';',
-    ]);
   }
 
   setIsolationLevelQuery() {}

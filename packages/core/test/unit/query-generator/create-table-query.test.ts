@@ -9,7 +9,7 @@ const dialectName = getTestDialect();
 // TODO: see if some logic in handling columns can be moved to attributeToSQL which could make some tests here redundant
 
 describe('QueryGenerator#createTableQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a query to create a table', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }), {
@@ -52,7 +52,7 @@ describe('QueryGenerator#createTableQuery', () => {
 
   it('produces a query to create a table from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectsql(queryGeneratorSchema.createTableQuery('myTable', { myColumn: 'DATE' }), {
       default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([myColumn] DATE);',
@@ -133,7 +133,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, FOREIGN KEY (`myColumn`) REFERENCES "Bar" ("id") COMMENT Foo) ENGINE=InnoDB;',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE REFERENCES "Bar" ("id")); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));
-        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = 'dbo',
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = N'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
       snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id") COMMENT Foo);',
       db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")); -- 'Foo', TableName = "myTable", ColumnName = "myColumn";`,
@@ -150,15 +150,29 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
+  it('produces a query to create a table with schema in tableName object and a comment', () => {
+    expectsql(queryGenerator.createTableQuery({ tableName: 'myTable', schema: 'mySchema' }, { myColumn: 'DATE COMMENT Foo' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([myColumn] DATE COMMENT Foo);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`myColumn` DATE COMMENT Foo) ENGINE=InnoDB;',
+      postgres: `CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("myColumn" DATE); COMMENT ON COLUMN "mySchema"."myTable"."myColumn" IS 'Foo';`,
+      mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = N'mySchema',
+        @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
+      sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE COMMENT Foo);',
+      db2: `CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("myColumn" DATE); -- 'Foo', TableName = "mySchema"."myTable", ColumnName = "myColumn";`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE COMMENT Foo); END`,
+    });
+  });
+
   it('produces a query to create a table with multiple columns with comments', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo', secondColumn: 'DATE COMMENT Foo Bar' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE COMMENT Foo, [secondColumn] DATE COMMENT Foo Bar);',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo, `secondColumn` DATE COMMENT Foo Bar) ENGINE=InnoDB;',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo'; COMMENT ON COLUMN "myTable"."secondColumn" IS 'Foo Bar';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] DATE);
-        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = 'dbo',
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = N'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];
-        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar', @level0type = N'Schema', @level0name = 'dbo',
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo Bar', @level0type = N'Schema', @level0name = N'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [secondColumn];`,
       db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" DATE); -- 'Foo', TableName = "myTable", ColumnName = "myColumn"; -- 'Foo Bar', TableName = "myTable", ColumnName = "secondColumn";`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, "secondColumn" DATE COMMENT Foo Bar); END`,
@@ -172,7 +186,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo COMMENT Bar) ENGINE=InnoDB;',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo COMMENT Bar';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE COMMENT Foo);
-        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Bar', @level0type = N'Schema', @level0name = 'dbo',
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Bar', @level0type = N'Schema', @level0name = N'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
       db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo); -- 'Bar', TableName = "myTable", ColumnName = "myColumn";`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo COMMENT Bar); END`,
@@ -185,7 +199,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
       postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo PRIMARY KEY';`,
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);
-        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo PRIMARY KEY', @level0type = N'Schema', @level0name = 'dbo',
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo PRIMARY KEY', @level0type = N'Schema', @level0name = N'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo PRIMARY KEY);',
       db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); -- 'Foo PRIMARY KEY', TableName = "myTable", ColumnName = "myColumn";`,

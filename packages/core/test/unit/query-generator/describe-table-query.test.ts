@@ -3,7 +3,7 @@ import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 const dialect = sequelize.dialect;
 
 describe('QueryGenerator#describeTableQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a query to describe a table', () => {
     expectsql(() => queryGenerator.describeTableQuery('myTable'), {
@@ -298,7 +298,7 @@ describe('QueryGenerator#describeTableQuery', () => {
 
   it('produces a query to describe a table from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectsql(() => queryGeneratorSchema.describeTableQuery('myTable'), {
       default: 'SHOW FULL COLUMNS FROM [mySchema].[myTable];',

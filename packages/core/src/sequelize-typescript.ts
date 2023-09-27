@@ -27,6 +27,7 @@ import {
   assertTransactionIsCompatibleWithOptions,
   normalizeTransactionOptions,
 } from './transaction.js';
+import { showAllToListSchemas } from './utils/deprecations.js';
 import type { PartialBy } from './utils/types.js';
 import type {
   CreateSchemaOptions,
@@ -34,8 +35,8 @@ import type {
   ModelAttributes,
   ModelOptions,
   ModelStatic,
+  QiListSchemasOptions,
   QueryOptions,
-  ShowAllSchemasOptions,
   SyncOptions,
   TruncateOptions,
 } from '.';
@@ -572,10 +573,13 @@ export abstract class SequelizeTypeScript {
   /**
    * Alias of {@link AbstractQueryInterface#showAllSchemas}
    *
+   * @deprecated Use {@link AbstractQueryInterface#listSchemas} instead
    * @param options
    */
-  async showAllSchemas(options?: ShowAllSchemasOptions) {
-    return this.queryInterface.showAllSchemas(options);
+  async showAllSchemas(options?: QiListSchemasOptions) {
+    showAllToListSchemas();
+
+    return this.queryInterface.listSchemas(options);
   }
 
   /**

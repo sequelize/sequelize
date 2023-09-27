@@ -13,15 +13,15 @@ describe('QueryInterface#dropTable', () => {
     if (sequelize.dialect.supports.dropTable.cascade) {
       const stub = sinon.stub(sequelize, 'queryRaw');
 
-      await sequelize.getQueryInterface().dropTable('myTable', { cascade: true });
+      await sequelize.queryInterface.dropTable('myTable', { cascade: true });
 
       expect(stub.callCount).to.eq(1);
       const firstCall = stub.getCall(0);
       expectsql(firstCall.args[0] as string, {
-        default: 'DROP TABLE IF EXISTS [myTable] CASCADE;',
+        default: 'DROP TABLE IF EXISTS [myTable] CASCADE',
       });
     } else {
-      await expect(sequelize.getQueryInterface().dropTable('myTable', { cascade: true })).to.be.rejectedWith(`The following options are not supported by dropTableQuery in ${dialectName}: cascade`);
+      await expect(sequelize.queryInterface.dropTable('myTable', { cascade: true })).to.be.rejectedWith(`The following options are not supported by dropTableQuery in ${dialectName}: cascade`);
     }
   });
 });

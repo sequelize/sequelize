@@ -14,11 +14,11 @@ name: Semgrep
 jobs:
   semgrep:
     name: Scan
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
     container:
       image: returntocorp/semgrep
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
     - run: semgrep ci

@@ -136,10 +136,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return this.replaceBooleanDefaults(sql);
   }
 
-  showTablesQuery() {
-    return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
-  }
-
   updateQuery(tableName, attrValueHash, where, options, attributes) {
     options = options || {};
     defaults(options, this.options);
@@ -274,35 +270,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
-  renameColumnQuery(tableName, attrNameBefore, attrNameAfter, attributes) {
-
-    let backupTableName;
-
-    attributes = this.attributesToSQL(attributes);
-
-    if (typeof tableName === 'object') {
-      backupTableName = {
-        tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
-      };
-    } else {
-      backupTableName = `${tableName}_backup`;
-    }
-
-    const quotedTableName = this.quoteTable(tableName);
-    const quotedBackupTableName = this.quoteTable(backupTableName);
-    const attributeNamesImport = Object.keys(attributes).map(attr => (attrNameAfter === attr ? `${this.quoteIdentifier(attrNameBefore)} AS ${this.quoteIdentifier(attr)}` : this.quoteIdentifier(attr))).join(', ');
-    const attributeNamesExport = Object.keys(attributes).map(attr => this.quoteIdentifier(attr)).join(', ');
-
-    // Temporary tables don't support foreign keys, so creating a temporary table will not allow foreign keys to be preserved
-    return `${this.createTableQuery(backupTableName, attributes)
-    }INSERT INTO ${quotedBackupTableName} SELECT ${attributeNamesImport} FROM ${quotedTableName};`
-      + `DROP TABLE ${quotedTableName};${
-        this.createTableQuery(tableName, attributes)
-      }INSERT INTO ${quotedTableName} SELECT ${attributeNamesExport} FROM ${quotedBackupTableName};`
-      + `DROP TABLE ${quotedBackupTableName};`;
-  }
-
   startTransactionQuery(transaction) {
     if (transaction.parent) {
       return `SAVEPOINT ${this.quoteIdentifier(transaction.name)};`;
@@ -328,14 +295,5 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
   replaceBooleanDefaults(sql) {
     return sql.replaceAll(/DEFAULT '?false'?/g, 'DEFAULT 0').replaceAll(/DEFAULT '?true'?/g, 'DEFAULT 1');
-  }
-
-  /**
-   * Generates an SQL query to check if there are any foreign key violations in the db schema
-   *
-   * @param {string} tableName  The name of the table
-   */
-  foreignKeyCheckQuery(tableName) {
-    return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
   }
 }

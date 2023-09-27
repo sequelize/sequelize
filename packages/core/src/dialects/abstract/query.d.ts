@@ -137,16 +137,6 @@ export class AbstractQuery {
   handleInsertQuery(results?: unknown[], metaData?: unknown): void;
 
   /**
-   * Checks if the query type is SHOWTABLES
-   */
-  isShowTablesQuery(): boolean;
-
-  /**
-   * Flattens and plucks values from results.
-   */
-  handleShowTablesQuery(results: unknown[]): unknown[];
-
-  /**
    * Checks if the query type is SHOWINDEXES
    */
   isShowIndexesQuery(): boolean;
@@ -175,11 +165,6 @@ export class AbstractQuery {
    * Checks if the query type is BULKDELETE
    */
   isBulkDeleteQuery(): boolean;
-
-  /**
-   * Checks if the query type is FOREIGNKEYS
-   */
-  isForeignKeysQuery(): boolean;
 
   /**
    * Checks if the query type is UPDATE
