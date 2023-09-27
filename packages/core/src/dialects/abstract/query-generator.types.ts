@@ -1,8 +1,10 @@
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
+import type { Literal } from '../../expression-builders/literal';
 import type { IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
+import type { Nullish } from '../../utils/types';
 import type { TableNameOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
@@ -144,4 +146,10 @@ export interface AttributeToSqlOptions {
 export interface QuoteTableOptions extends IndexHintable {
   alias: boolean | string;
   tableHints?: TableHints[];
+}
+
+export interface AddLimitOffsetOptions {
+  limit?: Nullish<number | Literal>;
+  offset?: Nullish<number | Literal>;
+  replacements?: BindOrReplacements;
 }

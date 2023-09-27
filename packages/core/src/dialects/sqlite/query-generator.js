@@ -99,22 +99,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return this.replaceBooleanDefaults(sql);
   }
 
-  addLimitAndOffset(options, model) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      // limit must be specified if offset is specified.
-      fragment += ` LIMIT -1`;
-    }
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
-    }
-
-    return fragment;
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(

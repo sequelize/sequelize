@@ -8,6 +8,7 @@ import {
   SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type {
+  AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
@@ -134,5 +135,20 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   versionQuery() {
     return 'SELECT CURRENT_VERSION() AS "version"';
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
+    } else if (options.offset) {
+      fragment += ` LIMIT NULL`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
+    }
+
+    return fragment;
   }
 }

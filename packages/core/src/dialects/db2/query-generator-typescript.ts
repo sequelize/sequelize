@@ -5,6 +5,7 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
+  AddLimitOffsetOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
@@ -166,5 +167,18 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)} ROWS`;
+    }
+
+    if (options.limit != null) {
+      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
+    }
+
+    return fragment;
   }
 }

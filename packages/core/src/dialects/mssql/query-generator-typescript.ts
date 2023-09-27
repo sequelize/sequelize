@@ -10,6 +10,7 @@ import {
 } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
+  AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
@@ -268,5 +269,22 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `DECLARE @ms_ver NVARCHAR(20);
 SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion')));
 SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.offset || options.limit) {
+      fragment += ` OFFSET ${this.escape(options.offset || 0, options)} ROWS`;
+    }
+
+    if (options.limit != null) {
+      if (options.limit === 0) {
+        throw new Error(`LIMIT 0 is not supported by ${this.dialect.name} dialect.`);
+      }
+
+      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
+    }
+
+    return fragment;
   }
 }

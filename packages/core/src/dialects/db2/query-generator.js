@@ -532,7 +532,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       query += ` ${whereSql}`;
     }
 
-    query += this.addLimitAndOffset(options);
+    query += this._addLimitAndOffset(options);
 
     return query;
   }
@@ -726,21 +726,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     return 'ROLLBACK TRANSACTION;';
-  }
-
-  addLimitAndOffset(options) {
-    const offset = options.offset || 0;
-    let fragment = '';
-
-    if (offset) {
-      fragment += ` OFFSET ${this.escape(offset, { replacements: options.replacements })} ROWS`;
-    }
-
-    if (options.limit) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, { replacements: options.replacements })} ROWS ONLY`;
-    }
-
-    return fragment;
   }
 
   addUniqueFields(dataValues, rawAttributes, uniqno) {
