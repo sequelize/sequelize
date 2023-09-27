@@ -64,7 +64,6 @@ module.exports = {
       'default-param-last': 'off',
       'unicorn/error-message': 'off',
       'no-fallthrough': 'off',
-      'no-invalid-this': 'off',
       'prefer-rest-params': 'off',
       'no-loss-of-precision': 'off',
 
