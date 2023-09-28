@@ -2226,7 +2226,7 @@ __metadata:
     "@types/uuid": 9.0.4
     "@types/validator": ^13.7.5
     bnf-parser: 3.1.6
-    chai: 4.3.9
+    chai: 4.3.10
     chai-as-promised: 7.1.1
     chai-datetime: 1.8.0
     dayjs: ^1.11.5
@@ -2294,7 +2294,7 @@ __metadata:
     "@ephys/eslint-config-typescript": 19.0.2
     "@rushstack/eslint-patch": 1.5.0
     "@types/node": 20.7.1
-    chai: 4.3.9
+    chai: 4.3.10
     concurrently: 8.2.1
     cross-env: 7.0.3
     esbuild: 0.17.19
@@ -2327,7 +2327,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@types/chai": 4.3.6
     "@types/chai-as-promised": 7.1.6
-    chai: 4.3.9
+    chai: 4.3.10
     chai-as-promised: 7.1.1
     lodash: ^4.17.21
     mocha: 10.2.0
@@ -4365,18 +4365,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:4.3.9":
-  version: 4.3.9
-  resolution: "chai@npm:4.3.9"
+"chai@npm:4.3.10":
+  version: 4.3.10
+  resolution: "chai@npm:4.3.10"
   dependencies:
     assertion-error: ^1.1.0
     check-error: ^1.0.3
-    deep-eql: ^4.1.2
-    get-func-name: ^2.0.0
-    loupe: ^2.3.1
+    deep-eql: ^4.1.3
+    get-func-name: ^2.0.2
+    loupe: ^2.3.6
     pathval: ^1.1.1
-    type-detect: ^4.0.5
-  checksum: 0bcc79b8829bf9e567375be4427d8efe148fca4f5d29c82b05fcd8502f3a151fc80d3a9531e519c053d4c11d7dca68d7f81555073bbdea9dedf0fae2e6a80e42
+    type-detect: ^4.0.8
+  checksum: 536668c60a0d985a0fbd94418028e388d243a925d7c5e858c7443e334753511614a3b6a124bac9ca077dfc4c37acc367d62f8c294960f440749536dc181dfc6d
   languageName: node
   linkType: hard
 
@@ -5058,7 +5058,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"deep-eql@npm:^4.1.2":
+"deep-eql@npm:^4.1.2, deep-eql@npm:^4.1.3":
   version: 4.1.3
   resolution: "deep-eql@npm:4.1.3"
   dependencies:
@@ -8848,7 +8848,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loupe@npm:^2.3.1":
+"loupe@npm:^2.3.1, loupe@npm:^2.3.6":
   version: 2.3.6
   resolution: "loupe@npm:2.3.6"
   dependencies:
