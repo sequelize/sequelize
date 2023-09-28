@@ -2496,8 +2496,6 @@ ${associationOwner._getAssociationDebugList()}`);
       force: false,
     });
 
-    options.type = QueryTypes.BULKDELETE;
-
     mapOptionFieldNames(options, this);
     options.model = this;
 
@@ -4001,7 +3999,7 @@ Instead of specifying a Model, either:
 
       result = await this.save({ ...options, hooks: false });
     } else {
-      result = await this.constructor.queryInterface.delete(this.constructor, { type: QueryTypes.DELETE, limit: null, ...options, where });
+      result = await this.constructor.queryInterface.delete(this.constructor, { limit: null, ...options, where });
     }
 
     // Run after hook

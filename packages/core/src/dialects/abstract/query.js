@@ -197,8 +197,8 @@ export class AbstractQuery {
     return this.options.type === QueryTypes.BULKUPDATE;
   }
 
-  isBulkDeleteQuery() {
-    return this.options.type === QueryTypes.BULKDELETE;
+  isDeleteQuery() {
+    return this.options.type === QueryTypes.DELETE;
   }
 
   isUpdateQuery() {

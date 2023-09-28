@@ -707,28 +707,26 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
+   * Delete records from a table
+   *
+   * @param tableName
+   * @param options
+   */
+  async delete(tableName: TableNameOrModel, options: QiDeleteOptions): Promise<number> {
+    const sql = this.queryGenerator.deleteQuery(tableName, options);
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+
+    return this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.DELETE });
+  }
+
+  /**
    * Delete multiple records from a table
    *
    * @param tableName
    * @param options
    */
-  async bulkDelete(tableName: TableNameOrModel, options: QiDeleteOptions = EMPTY_OBJECT) {
-    const sql = this.queryGenerator.deleteQuery(tableName, options);
-    const deleteOptions = { ...options, raw: true, type: QueryTypes.BULKDELETE };
-
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete deleteOptions.replacements;
-
-    return this.sequelize.queryRaw(sql, deleteOptions);
-  }
-
-  async delete(tableName: TableNameOrModel, options: QiDeleteOptions) {
-    const sql = this.queryGenerator.deleteQuery(tableName, options);
-    const deleteOptions = { ...options, raw: true, type: QueryTypes.DELETE };
-
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete deleteOptions.replacements;
-
-    return this.sequelize.queryRaw(sql, deleteOptions);
+  async bulkDelete(tableName: TableNameOrModel, options: QiDeleteOptions = EMPTY_OBJECT): Promise<number> {
+    return this.delete(tableName, options);
   }
 }

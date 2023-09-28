@@ -272,7 +272,7 @@ export class Db2Query extends AbstractQuery {
       result = data;
     } else if (this.isBulkUpdateQuery()) {
       result = data.length;
-    } else if (this.isBulkDeleteQuery()) {
+    } else if (this.isDeleteQuery()) {
       result = rowCount;
     } else if (this.isInsertQuery() || this.isUpdateQuery()) {
       result = [result, rowCount];

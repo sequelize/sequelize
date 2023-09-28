@@ -237,7 +237,7 @@ export class MsSqlQuery extends AbstractQuery {
       return rowCount;
     }
 
-    if (this.isBulkDeleteQuery()) {
+    if (this.isDeleteQuery()) {
       return data[0] ? data[0].AFFECTEDROWS : 0;
     }
 

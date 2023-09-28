@@ -45,7 +45,9 @@ describe('QueryInterface#delete', () => {
       const beforeDelete = await vars.Level.findAll({ raw: true, where: { name: 'level1' } });
       expect(beforeDelete.map(({ name, value }) => ({ name, value }))).to.deep.equal([{ name: 'level1', value: 5 }]);
 
-      await queryInterface.delete(vars.Level, { where: { name: 'level1' } });
+      const count = await queryInterface.delete(vars.Level, { where: { name: 'level1' } });
+      expect(count).to.equal(1);
+
       const afterDelete = await vars.Level.findAll({ raw: true, where: { name: 'level1' } });
       expect(afterDelete).to.deep.equal([]);
     });
@@ -58,7 +60,9 @@ describe('QueryInterface#delete', () => {
         { name: 'level3', value: 10 },
       ]);
 
-      await queryInterface.delete(vars.Level, { where: { value: 10 } });
+      const count = await queryInterface.delete(vars.Level, { where: { value: 10 } });
+      expect(count).to.equal(2);
+
       const afterDelete = await vars.Level.findAll({ raw: true });
       expect(afterDelete.map(({ name, value }) => ({ name, value }))).to.deep.equal([{ name: 'level1', value: 5 }]);
     });
@@ -71,7 +75,9 @@ describe('QueryInterface#delete', () => {
         { name: 'level3', value: 10 },
       ]);
 
-      await queryInterface.delete(vars.Level, { where: {} });
+      const count = await queryInterface.delete(vars.Level, { where: {} });
+      expect(count).to.equal(3);
+
       const afterDelete = await vars.Level.findAll({ raw: true });
       expect(afterDelete).to.deep.equal([]);
     });
@@ -84,12 +90,39 @@ describe('QueryInterface#delete', () => {
         { name: 'level3', value: 10 },
       ]);
 
-      await queryInterface.delete(vars.Level, { where: {}, limit: 1 });
+      const count = await queryInterface.delete(vars.Level, { where: {}, limit: 1 });
+      expect(count).to.equal(1);
+
       const afterDelete = await vars.Level.findAll({ raw: true });
       expect(afterDelete.map(({ name, value }) => ({ name, value }))).to.deep.equal([
         { name: 'level2', value: 10 },
         { name: 'level3', value: 10 },
       ]);
+    });
+  });
+
+  describe('Bulk Delete', () => {
+    beforeEach(async () => {
+      await vars.Level.bulkCreate([
+        { name: 'level1', value: 5 },
+        { name: 'level2', value: 10 },
+        { name: 'level3', value: 10 },
+      ]);
+    });
+
+    it('should bulk delete rows', async () => {
+      const beforeDelete = await vars.Level.findAll({ raw: true });
+      expect(beforeDelete.map(({ name, value }) => ({ name, value }))).to.deep.equal([
+        { name: 'level1', value: 5 },
+        { name: 'level2', value: 10 },
+        { name: 'level3', value: 10 },
+      ]);
+
+      const count = await queryInterface.bulkDelete(vars.Level);
+      expect(count).to.equal(3);
+
+      const afterDelete = await vars.Level.findAll({ raw: true });
+      expect(afterDelete).to.deep.equal([]);
     });
   });
 });
