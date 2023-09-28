@@ -2632,6 +2632,7 @@ class Model {
    * @param  {boolean}        [options.individualHooks=false]  Run before / after create hooks for each individual Instance? BulkCreate hooks will still be run if options.hooks is true.
    * @param  {boolean}        [options.ignoreDuplicates=false] Ignore duplicate values for primary keys? (not supported by MSSQL or Postgres < 9.5)
    * @param  {Array}          [options.updateOnDuplicate]      Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL, MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5).
+   * @param  {Array}          [options.conflictAttributes]     Optional override for the conflict fields in the ON CONFLICT part of the query. Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    * @param  {Transaction}    [options.transaction]            Transaction to run query under
    * @param  {Function}       [options.logging=false]          A function that gets executed while running the query to log the sql.
    * @param  {boolean}        [options.benchmark=false]        Pass query execution time in milliseconds as second argument to logging function (options.logging).
