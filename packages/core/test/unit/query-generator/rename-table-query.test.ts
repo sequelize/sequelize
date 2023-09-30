@@ -1,3 +1,4 @@
+import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
@@ -30,16 +31,15 @@ describe('QueryGenerator#renameTableQuery', () => {
   it('throws an error if `options.changeSchema` is not set when moving table to another schema', () => {
     expectsql(() => queryGenerator.renameTableQuery({ tableName: 'oldTable', schema: 'oldSchema' }, { tableName: 'newTable', schema: 'newSchema' }), {
       default: changeSchemaNotSetError,
-      mssql: changeSchemaNotSetError,
       'db2 ibmi': moveSchemaNotSupportedError,
     });
   });
 
-  it('produces a query that renames the table with schema', () => {
+  it('produces a query that moves a table to a different schema', () => {
     expectsql(() => queryGenerator.renameTableQuery({ tableName: 'oldTable', schema: 'oldSchema' }, { tableName: 'newTable', schema: 'newSchema' }, { changeSchema: true }), {
       default: 'ALTER TABLE [oldSchema].[oldTable] RENAME TO [newSchema].[newTable]',
       sqlite: 'ALTER TABLE `oldSchema.oldTable` RENAME TO `newSchema.newTable`',
-      'db2 ibmi': moveSchemaNotSupportedError,
+      'db2 ibmi': buildInvalidOptionReceivedError('renameTableQuery', dialect.name, ['changeSchema']),
       'mssql postgres': moveSchemaWithRenameNotSupportedError,
     });
   });

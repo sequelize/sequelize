@@ -233,6 +233,10 @@ export type DialectSupports = {
     cascade: boolean,
     ifExists: boolean,
   },
+  renameTable: {
+    changeSchema: boolean,
+    changeSchemaAndTable: boolean,
+  },
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -373,6 +377,10 @@ export abstract class AbstractDialect {
     removeColumn: {
       cascade: false,
       ifExists: false,
+    },
+    renameTable: {
+      changeSchema: true,
+      changeSchemaAndTable: true,
     },
   };
 

@@ -69,6 +69,7 @@ export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(
 export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveColumnQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
+export const RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RenameTableQueryOptions>(['changeSchema']);
 export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
 
 export interface QueryGeneratorOptions {

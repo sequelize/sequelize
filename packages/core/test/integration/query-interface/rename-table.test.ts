@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
+import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { sequelize } from '../support';
 
 const dialect = sequelize.dialect;
@@ -48,10 +49,10 @@ describe('QueryInterface#renameTable', () => {
           { tableName: 'my_test_table', schema: dialect.getDefaultSchema() },
         );
 
-        if (['db2', 'ibmi'].includes(dialect.name)) {
-          await expect(promise).to.be.rejectedWith(`Moving tables between schemas is not supported by ${dialect.name} dialect.`);
-        } else {
+        if (dialect.supports.renameTable.changeSchema) {
           await expect(promise).to.be.rejectedWith('To move a table between schemas, you must set `options.changeSchema` to true.');
+        } else {
+          await expect(promise).to.be.rejectedWith(`Moving tables between schemas is not supported by ${dialect.name} dialect.`);
         }
 
       });
@@ -63,9 +64,7 @@ describe('QueryInterface#renameTable', () => {
           { changeSchema: true },
         );
 
-        if (['db2', 'ibmi'].includes(dialect.name)) {
-          await expect(promise).to.be.rejectedWith(`Moving tables between schemas is not supported by ${dialect.name} dialect.`);
-        } else {
+        if (dialect.supports.renameTable.changeSchema) {
           await promise;
           const previousSchemaResult = await queryInterface.listTables({ schema });
           const previousSchemaTableNames = previousSchemaResult.map(v => v.tableName);
@@ -74,6 +73,8 @@ describe('QueryInterface#renameTable', () => {
           const defaultSchemaResult = await queryInterface.listTables({ schema: dialect.getDefaultSchema() });
           const defaultSchemaTableNames = defaultSchemaResult.map(v => v.tableName);
           expect(defaultSchemaTableNames).to.contain('my_test_table');
+        } else {
+          await expect(promise).to.be.rejectedWith(buildInvalidOptionReceivedError('renameTableQuery', dialect.name, ['changeSchema']).message);
         }
       });
 
@@ -84,19 +85,21 @@ describe('QueryInterface#renameTable', () => {
           { changeSchema: true },
         );
 
-        if (['db2', 'ibmi'].includes(dialect.name)) {
-          await expect(promise).to.be.rejectedWith(`Moving tables between schemas is not supported by ${dialect.name} dialect.`);
-        } else if (['mssql', 'postgres'].includes(dialect.name)) {
-          await expect(promise).to.be.rejectedWith(`Renaming a table and moving it to a different schema is not supported by ${dialect.name}.`);
-        } else {
-          await promise;
-          const previousSchemaResult = await queryInterface.listTables({ schema });
-          const previousSchemaTableNames = previousSchemaResult.map(v => v.tableName);
-          expect(previousSchemaTableNames).to.not.contain('my_test_table');
+        if (dialect.supports.renameTable.changeSchema) {
+          if (dialect.supports.renameTable.changeSchemaAndTable) {
+            await promise;
+            const previousSchemaResult = await queryInterface.listTables({ schema });
+            const previousSchemaTableNames = previousSchemaResult.map(v => v.tableName);
+            expect(previousSchemaTableNames).to.not.contain('my_test_table');
 
-          const defaultSchemaResult = await queryInterface.listTables({ schema: dialect.getDefaultSchema() });
-          const defaultSchemaTableNames = defaultSchemaResult.map(v => v.tableName);
-          expect(defaultSchemaTableNames).to.contain('my_test_table_new');
+            const defaultSchemaResult = await queryInterface.listTables({ schema: dialect.getDefaultSchema() });
+            const defaultSchemaTableNames = defaultSchemaResult.map(v => v.tableName);
+            expect(defaultSchemaTableNames).to.contain('my_test_table_new');
+          } else {
+            await expect(promise).to.be.rejectedWith(`Renaming a table and moving it to a different schema is not supported by ${dialect.name}.`);
+          }
+        } else {
+          await expect(promise).to.be.rejectedWith(buildInvalidOptionReceivedError('renameTableQuery', dialect.name, ['changeSchema']).message);
         }
       });
     });
