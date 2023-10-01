@@ -36,6 +36,16 @@ describe('QueryGenerator#renameTableQuery', () => {
   });
 
   it('produces a query that moves a table to a different schema', () => {
+    expectsql(() => queryGenerator.renameTableQuery({ tableName: 'oldTable', schema: 'oldSchema' }, { tableName: 'oldTable', schema: 'newSchema' }, { changeSchema: true }), {
+      default: 'ALTER TABLE [oldSchema].[oldTable] RENAME TO [newSchema].[oldTable]',
+      mssql: `ALTER SCHEMA [newSchema] TRANSFER [oldSchema].[oldTable]`,
+      sqlite: 'ALTER TABLE `oldSchema.oldTable` RENAME TO `newSchema.oldTable`',
+      postgres: `ALTER TABLE "oldSchema"."oldTable" SET SCHEMA "newSchema"`,
+      'db2 ibmi': buildInvalidOptionReceivedError('renameTableQuery', dialect.name, ['changeSchema']),
+    });
+  });
+
+  it('produces a query that moves a table to a different schema with a different name', () => {
     expectsql(() => queryGenerator.renameTableQuery({ tableName: 'oldTable', schema: 'oldSchema' }, { tableName: 'newTable', schema: 'newSchema' }, { changeSchema: true }), {
       default: 'ALTER TABLE [oldSchema].[oldTable] RENAME TO [newSchema].[newTable]',
       sqlite: 'ALTER TABLE `oldSchema.oldTable` RENAME TO `newSchema.newTable`',
