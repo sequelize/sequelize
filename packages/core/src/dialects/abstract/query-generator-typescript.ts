@@ -44,6 +44,7 @@ import type {
   QuoteTableOptions,
   RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
@@ -68,6 +69,7 @@ export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(
 export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveColumnQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
+export const RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RenameTableQueryOptions>(['changeSchema']);
 export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
 
 export interface QueryGeneratorOptions {
@@ -219,6 +221,21 @@ export class AbstractQueryGeneratorTypeScript {
 
   listTablesQuery(_options?: ListTablesQueryOptions): string {
     throw new Error(`listTablesQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema && !options?.changeSchema) {
+      throw new Error('To move a table between schemas, you must set `options.changeSchema` to true.');
+    }
+
+    return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteTable(afterTableName)}`;
   }
 
   removeColumnQuery(tableName: TableNameOrModel, columnName: string, options?: RemoveColumnQueryOptions): string {

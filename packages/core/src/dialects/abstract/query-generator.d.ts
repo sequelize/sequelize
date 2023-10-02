@@ -148,7 +148,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions
   ): string;
-  renameTableQuery(before: TableNameOrModel, after: TableNameOrModel): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;

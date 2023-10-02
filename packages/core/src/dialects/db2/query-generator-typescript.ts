@@ -2,17 +2,22 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import {
+  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   AddLimitOffsetOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
+const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -67,6 +72,31 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
         : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY TABSCHEMA, TABNAME',
     ]);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    if (options) {
+      rejectInvalidOptions(
+        'renameTableQuery',
+        this.dialect.name,
+        RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        RENAME_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      throw new Error(`Moving tables between schemas is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
   private _getConstraintType(type: ConstraintType): string {

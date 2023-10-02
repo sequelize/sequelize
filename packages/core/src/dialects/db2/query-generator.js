@@ -185,15 +185,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return `${template(query, this._templateSettings)(values).trim()};${commentStr}`;
   }
 
-  renameTableQuery(before, after) {
-    const query = 'RENAME TABLE <%= before %> TO <%= after %>;';
-
-    return template(query, this._templateSettings)({
-      before: this.quoteTable(before),
-      after: this.quoteTable(after),
-    });
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(

@@ -41,20 +41,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
   }
 
-  describe('renameTable', () => {
-    it('should rename table', async function () {
-      await this.queryInterface.createTable('my_test_table', {
-        name: DataTypes.STRING,
-      });
-      await this.queryInterface.renameTable('my_test_table', 'my_test_table_new');
-      const result = await this.queryInterface.listTables();
-      const tableNames = result.map(v => v.tableName);
-
-      expect(tableNames).to.contain('my_test_table_new');
-      expect(tableNames).to.not.contain('my_test_table');
-    });
-  });
-
   describe('dropAllTables', () => {
     it('should drop all tables', async function () {
       await this.queryInterface.dropAllTables();

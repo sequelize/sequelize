@@ -43,6 +43,11 @@ export interface ListTablesQueryOptions {
   schema?: string;
 }
 
+// keep RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface RenameTableQueryOptions {
+  changeSchema?: boolean;
+}
+
 // keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveColumnQueryOptions {
   cascade?: boolean;

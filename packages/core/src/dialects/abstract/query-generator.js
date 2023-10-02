@@ -64,10 +64,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
-  renameTableQuery(before, after) {
-    return `ALTER TABLE ${this.quoteTable(before)} RENAME TO ${this.quoteTable(after)};`;
-  }
-
   /**
    * Returns an insert into command
    *

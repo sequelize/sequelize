@@ -180,10 +180,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ]);
   }
 
-  renameTableQuery(before, after) {
-    return `EXEC sp_rename ${this.quoteTable(before)}, ${this.quoteTable(after)};`;
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(
