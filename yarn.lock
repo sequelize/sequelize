@@ -2233,7 +2233,7 @@ __metadata:
     debug: ^4.3.4
     delay: 5.0.0
     dottie: ^2.0.2
-    expect-type: 0.13.0
+    expect-type: 0.17.2
     fast-glob: ^3.2.12
     fs-jetpack: 5.1.0
     ibm_db: 3.2.2
@@ -6227,10 +6227,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expect-type@npm:0.13.0":
-  version: 0.13.0
-  resolution: "expect-type@npm:0.13.0"
-  checksum: 484f58fa8b256ee7316c3667874011e100307792d4494cc67b0781a501101af2e3fa6e05310320a6fb678ca5d4f5987751fefc4e5d8733836044edae3695c4dd
+"expect-type@npm:0.17.2":
+  version: 0.17.2
+  resolution: "expect-type@npm:0.17.2"
+  checksum: 9efa59af7230c90151645404fd3e4576b905cb4a4b2a994ecc65018011fc29f5b562e87afad80575f7020edfd7f450510d6f1de7e5099dba185cb43dc910bf5a
   languageName: node
   linkType: hard
 
