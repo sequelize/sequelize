@@ -109,7 +109,7 @@ export class MariaDbQuery extends AbstractQuery {
           // ONLY TRUE IF @auto_increment_increment is set to 1 !!
           // Doesn't work with GALERA => each node will reserve increment (x for first server, x+1 for next node...)
           const startId = data[this.getInsertIdField()];
-          result = new Array(data.affectedRows);
+          result = Array.from({ length: data.affectedRows });
           const pkColumnName = modelDefinition.attributes.get(this.model.primaryKeyAttribute).columnName;
           for (let i = 0n; i < data.affectedRows; i++) {
             result[i] = { [pkColumnName]: startId + i };

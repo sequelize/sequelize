@@ -458,13 +458,11 @@ export class AbstractQuery {
     let itemHash;
     let parentHash;
     let topHash;
-    const results = checkExisting ? [] : new Array(rowsLength);
+    const results = checkExisting ? [] : Array.from({ length: rowsLength });
     const resultMap = {};
     const includeMap = {};
     // Result variables for the respective functions
     let $keyPrefix;
-    let $keyPrefixString;
-    let $prevKeyPrefixString;
     let $prevKeyPrefix;
     let $lastKeyPrefix;
     let $current;
@@ -586,7 +584,6 @@ export class AbstractQuery {
         // The string prefix isn't actualy needed
         // We use it so keyPrefix for different keys will resolve to the same array if they have the same prefix
         // TODO: Find a better way?
-        $keyPrefixString = keyPrefixString(key, keyPrefixStringMemo);
         $keyPrefix = keyPrefix(key);
 
         // On the first row we compute the includeMap
@@ -689,7 +686,6 @@ export class AbstractQuery {
         values[removeKeyPrefix(key)] = row[key];
         prevKey = key;
         $prevKeyPrefix = $keyPrefix;
-        $prevKeyPrefixString = $keyPrefixString;
       }
 
       if (checkExisting) {

@@ -1,7 +1,5 @@
 'use strict';
 
-import { Col } from '../../expression-builders/col.js';
-import { Literal } from '../../expression-builders/literal.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
