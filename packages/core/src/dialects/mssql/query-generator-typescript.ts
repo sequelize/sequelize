@@ -4,16 +4,93 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type {
+  AddLimitOffsetOptions,
+  CreateDatabaseQueryOptions,
+  ListDatabasesQueryOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  RenameTableQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
+import type { ConstraintType } from '../abstract/query-interface.types';
 
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate']);
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalDatabaseNames() {
+    return ['master', 'model', 'msdb', 'tempdb'];
+  }
+
+  protected _getTechnicalSchemaNames() {
+    return [
+      'db_accessadmin',
+      'db_backupoperator',
+      'db_datareader',
+      'db_datawriter',
+      'db_ddladmin',
+      'db_denydatareader',
+      'db_denydatawriter',
+      'db_owner',
+      'db_securityadmin',
+      'INFORMATION_SCHEMA',
+      'sys',
+    ];
+  }
+
+  createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect.name,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = ${this.escape(database)})`,
+      `CREATE DATABASE ${this.quoteIdentifier(database)}`,
+      options?.collate ? `COLLATE ${this.escape(options.collate)}` : '',
+    ]);
+  }
+
+  listDatabasesQuery(options?: ListDatabasesQueryOptions) {
+    const databasesToSkip = this._getTechnicalDatabaseNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      databasesToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT [name] FROM sys.databases',
+      `WHERE [name] NOT IN (${databasesToSkip.map(database => this.escape(database)).join(', ')})`,
+    ]);
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = ['dbo', 'guest', ...this._getTechnicalSchemaNames()];
+
+    if (options?.skip) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT [name] AS [schema] FROM sys.schemas',
+      `WHERE [name] NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -51,6 +128,57 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT t.name AS [tableName], s.name AS [schema]',
+      `FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
+      options?.schema
+        ? `AND s.name = ${this.escape(options.schema)}`
+        : `AND s.name NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY s.name, t.name',
+    ]);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      if (!options?.changeSchema) {
+        throw new Error('To move a table between schemas, you must set `options.changeSchema` to true.');
+      }
+
+      if (beforeTable.tableName !== afterTable.tableName) {
+        throw new Error(`Renaming a table and moving it to a different schema is not supported by ${this.dialect.name}.`);
+      }
+
+      return `ALTER SCHEMA ${this.quoteIdentifier(afterTable.schema!)} TRANSFER ${this.quoteTable(beforeTableName)}`;
+    }
+
+    return `EXEC sp_rename '${this.quoteTable(beforeTableName)}', ${this.escape(afterTable.tableName)}`;
+  }
+
+  private _getConstraintType(type: ConstraintType): string {
+    switch (type) {
+      case 'CHECK':
+        return 'CHECK_CONSTRAINT';
+      case 'DEFAULT':
+        return 'DEFAULT_CONSTRAINT';
+      case 'FOREIGN KEY':
+        return 'FOREIGN_KEY_CONSTRAINT';
+      case 'PRIMARY KEY':
+        return 'PRIMARY_KEY_CONSTRAINT';
+      case 'UNIQUE':
+        return 'UNIQUE_CONSTRAINT';
+      default:
+        throw new Error(`Constraint type ${type} is not supported`);
+    }
+  }
+
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
@@ -63,6 +191,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       's.[name] AS tableSchema,',
       't.[name] AS tableName,',
       'c.columnNames,',
+      'c.referencedTableSchema,',
       'c.referencedTableName,',
       'c.referencedColumnNames,',
       'c.deleteAction,',
@@ -70,20 +199,26 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'c.definition',
       'FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id',
       'INNER JOIN (',
-      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null AS referencedTableName',
-      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, null AS definition FROM sys.key_constraints UNION ALL',
-      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null AS referencedTableName',
+      'SELECT kc.[name] AS constraintName, kc.[type_desc] AS constraintType, kc.[parent_object_id] AS constraintTableId, c.[name] AS columnNames, null as referencedTableSchema, null AS referencedTableName',
+      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, null AS definition',
+      'FROM sys.key_constraints kc LEFT JOIN sys.indexes i ON kc.name = i.name',
+      'LEFT JOIN sys.index_columns ic ON ic.index_id = i.index_id AND ic.object_id = kc.parent_object_id',
+      'LEFT JOIN sys.columns c ON c.column_id = ic.column_id AND c.object_id = kc.parent_object_id UNION ALL',
+      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null as referencedTableSchema, null AS referencedTableName',
       ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.check_constraints c UNION ALL',
-      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null AS referencedTableName',
-      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.default_constraints UNION ALL',
-      'SELECT k.[name] AS constraintName, k.[type_desc] AS constraintType, k.[parent_object_id] AS constraintTableId, fcol.[name] AS columnNames',
+      'SELECT dc.[name] AS constraintName, dc.[type_desc] AS constraintType, dc.[parent_object_id] AS constraintTableId, c.[name] AS columnNames, null as referencedTableSchema, null AS referencedTableName',
+      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.default_constraints dc',
+      'INNER JOIN sys.columns c ON dc.parent_column_id = c.column_id AND dc.parent_object_id = c.object_id UNION ALL',
+      'SELECT k.[name] AS constraintName, k.[type_desc] AS constraintType, k.[parent_object_id] AS constraintTableId, fcol.[name] AS columnNames, OBJECT_SCHEMA_NAME(k.[referenced_object_id]) as referencedTableSchema',
       ', OBJECT_NAME(k.[referenced_object_id]) AS referencedTableName, rcol.[name] AS referencedColumnNames, k.[delete_referential_action_desc] AS deleteAction',
       ', k.[update_referential_action_desc] AS updateAction, null AS definition FROM sys.foreign_keys k INNER JOIN sys.foreign_key_columns c ON k.[object_id] = c.constraint_object_id',
       'INNER JOIN sys.columns fcol ON c.parent_column_id = fcol.column_id AND c.parent_object_id = fcol.object_id',
       'INNER JOIN sys.columns rcol ON c.referenced_column_id = rcol.column_id AND c.referenced_object_id = rcol.object_id',
       ') c ON t.object_id = c.constraintTableId',
       `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
+      options?.columnName ? `AND c.columnNames = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.constraintName = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.constraintType = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
       'ORDER BY c.constraintName',
     ]);
   }
@@ -141,37 +276,6 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    // TODO: get the database from the provided tableName (see #12449)
-    const catalogName = this.sequelize.config.database;
-    const escapedCatalogName = this.escape(catalogName);
-
-    return joinSQLFragments([
-      `SELECT OBJ.NAME AS 'constraintName',`,
-      `${escapedCatalogName} AS 'constraintCatalog',`,
-      `SCHEMA_NAME(OBJ.SCHEMA_ID) AS 'constraintSchema',`,
-      `TB.NAME AS 'tableName',`,
-      `SCHEMA_NAME(TB.SCHEMA_ID) AS 'tableSchema',`,
-      `${escapedCatalogName} AS 'tableCatalog',`,
-      `COL.NAME AS 'columnName',`,
-      `SCHEMA_NAME(RTB.SCHEMA_ID) AS 'referencedTableSchema',`,
-      `${escapedCatalogName} AS 'referencedTableCatalog',`,
-      `RTB.NAME AS 'referencedTableName',`,
-      `RCOL.NAME AS 'referencedColumnName'`,
-      'FROM sys.foreign_key_columns FKC',
-      'INNER JOIN sys.objects OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID',
-      'INNER JOIN sys.tables TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID',
-      'INNER JOIN sys.columns COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID',
-      'INNER JOIN sys.tables RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID',
-      'INNER JOIN sys.columns RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID',
-      `WHERE TB.NAME = ${this.escape(table.tableName)}`,
-      columnName && `AND COL.NAME = ${this.escape(columnName)}`,
-      `AND SCHEMA_NAME(TB.SCHEMA_ID) = ${this.escape(table.schema!)}`,
-    ]);
-  }
-
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
     if (!unquote) {
       throw new Error(`JSON Paths are not supported in ${this.dialect.name} without unquoting the JSON value.`);
@@ -189,5 +293,22 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `DECLARE @ms_ver NVARCHAR(20);
 SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion')));
 SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.offset || options.limit) {
+      fragment += ` OFFSET ${this.escape(options.offset || 0, options)} ROWS`;
+    }
+
+    if (options.limit != null) {
+      if (options.limit === 0) {
+        throw new Error(`LIMIT 0 is not supported by ${this.dialect.name} dialect.`);
+      }
+
+      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
+    }
+
+    return fragment;
   }
 }

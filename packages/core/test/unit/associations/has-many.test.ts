@@ -30,6 +30,26 @@ describe(getTestDialectTeaser('hasMany'), () => {
     Category.hasMany(Category, { as: 'childCategories', inverse: { as: 'parentCategory' } });
   });
 
+  it('allows customizing the inverse association name (long form)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.hasMany(Task, { as: 'tasks', inverse: { as: 'user' } });
+
+    expect(Task.associations.user).to.be.ok;
+    expect(User.associations.tasks).to.be.ok;
+  });
+
+  it('allows customizing the inverse association name (shorthand)', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.hasMany(Task, { as: 'tasks', inverse: 'user' });
+
+    expect(Task.associations.user).to.be.ok;
+    expect(User.associations.tasks).to.be.ok;
+  });
+
   describe('optimizations using bulk create, destroy and update', () => {
     class User extends Model<InferAttributes<User>> {
       declare setTasks: HasManySetAssociationsMixin<Task, number>;

@@ -31,6 +31,13 @@ export class IBMiDialect extends AbstractDialect {
       dataTypes: {
         COLLATE_BINARY: true,
       },
+      removeColumn: {
+        cascade: true,
+      },
+      renameTable: {
+        changeSchema: false,
+        changeSchemaAndTable: false,
+      },
     },
   );
 

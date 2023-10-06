@@ -175,6 +175,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {object}   [options.sync={}] Default options for sequelize.sync
    * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
    * @param {boolean}  [options.keepDefaultTimezone=false] A flag that defines if the default timezone is used to convert dates from the database.
+   * @param {number|null} [options.defaultTimestampPrecision] The precision for the `createdAt`/`updatedAt`/`deletedAt` DATETIME columns that Sequelize adds to models. Can be a number between 0 and 6, or null to use the default precision of the database. Defaults to 6.
    * @param {string|boolean} [options.clientMinMessages='warning'] (Deprecated) The PostgreSQL `client_min_messages` session parameter. Set to `false` to not override the database's default.
    * @param {boolean}  [options.standardConformingStrings=true] The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option. WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    * @param {Function} [options.logging=console.log] A function that gets executed every time Sequelize would log something. Function may receive multiple parameters but only first one is printed by `console.log`. To print all values use `(...msg) => console.log(msg)`
@@ -273,6 +274,7 @@ export class Sequelize extends SequelizeTypeScript {
       logQueryParameters: false,
       disableClsTransactions: false,
       defaultTransactionNestMode: TransactionNestMode.reuse,
+      defaultTimestampPrecision: 6,
       ...options,
       pool: defaults(options.pool || {}, {
         max: 5,
@@ -618,7 +620,6 @@ Use Sequelize#query if you wish to use replacements.`);
     options = { ...this.options.query, ...options, bindParameterOrder: null };
 
     let bindParameters;
-    let bindParameterOrder;
     if (options.bind != null) {
       const isBindArray = Array.isArray(options.bind);
       if (!isPlainObject(options.bind) && !isBindArray) {
@@ -805,7 +806,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.force) {
-      await this.drop(options);
+      await this.drop({ ...options, cascade: this.dialect.supports.dropTable.cascade || undefined });
     }
 
     // no models defined, just authenticate
@@ -902,11 +903,10 @@ Use Sequelize#query if you wish to use replacements.`);
 
     // has cyclic dependency: we first remove each foreign key, then delete each model.
     for (const model of this.modelManager.models) {
-      const tableName = model.getTableName();
-      const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable(tableName, options);
+      const foreignKeys = await this.queryInterface.showConstraints(model, { ...options, constraintType: 'FOREIGN KEY' });
 
       await Promise.all(foreignKeys.map(foreignKey => {
-        return this.queryInterface.removeConstraint(tableName, foreignKey.constraintName, options);
+        return this.queryInterface.removeConstraint(model, foreignKey.constraintName, options);
       }));
     }
 

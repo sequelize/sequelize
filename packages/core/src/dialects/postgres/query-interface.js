@@ -1,7 +1,5 @@
 'use strict';
 
-import { Deferrable } from '../../deferrable';
-import { camelizeObjectKeys } from '../../utils/object';
 import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.js';
 
 const DataTypes = require('../../data-types');
@@ -112,7 +110,7 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
             const promisesLength = promises.length;
             // we go in reverse order so we could stop when we meet old value
             for (let reverseIdx = newValuesBefore.length - 1; reverseIdx >= 0; reverseIdx--) {
-              if (~enumVals.indexOf(newValuesBefore[reverseIdx])) {
+              if (enumVals.includes(newValuesBefore[reverseIdx])) {
                 break;
               }
 
@@ -146,32 +144,6 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
     }
 
     return result;
-  }
-
-  /**
-   * @override
-   */
-  async getForeignKeyReferencesForTable(table, options) {
-    const queryOptions = {
-      ...options,
-      type: QueryTypes.FOREIGNKEYS,
-    };
-
-    // postgres needs some special treatment as those field names returned are all lowercase
-    // in order to keep same result with other dialects.
-    const query = this.queryGenerator.getForeignKeyReferencesQuery(table.tableName || table, this.sequelize.config.database);
-    const result = await this.sequelize.queryRaw(query, queryOptions);
-
-    return result.map(fkMeta => {
-      const { initiallyDeferred, isDeferrable, ...remaining } = camelizeObjectKeys(fkMeta);
-
-      return {
-        ...remaining,
-        deferrable: isDeferrable === 'NO' ? Deferrable.NOT
-          : initiallyDeferred === 'NO' ? Deferrable.INITIALLY_IMMEDIATE
-          : Deferrable.INITIALLY_DEFERRED,
-      };
-    });
   }
 
   /**

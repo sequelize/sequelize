@@ -58,22 +58,13 @@ module.exports = {
       // code smells that should be resolved
       'no-restricted-syntax': 'off',
       'no-await-in-loop': 'off',
-      'unicorn/no-new-array': 'off',
-      'no-restricted-globals': 'off',
       'default-case': 'off',
       'no-loop-func': 'off',
       'no-shadow': 'off',
-      'no-unused-vars': 'off',
       'default-param-last': 'off',
-      'unicorn/error-message': 'off',
-      'no-implicit-coercion': 'off',
       'no-fallthrough': 'off',
-      'no-invalid-this': 'off',
       'prefer-rest-params': 'off',
       'no-loss-of-precision': 'off',
-
-      // fromEntries is available in node 12. Restricted to v7.
-      'unicorn/prefer-object-from-entries': 'off',
 
       // optimisation
       'unicorn/consistent-function-scoping': 'off',
@@ -85,8 +76,6 @@ module.exports = {
       'unicorn/prefer-spread': 'off',
 
       // makes code clearer
-      'consistent-this': 'off',
-      'unicorn/no-this-assignment': 'off',
       'unicorn/prefer-default-parameters': 'off',
       'max-statements-per-line': 'off',
 
@@ -122,12 +111,15 @@ module.exports = {
       'func-names': 'off',
       'import/order': 'off',
 
+      'consistent-this': 'off',
       'no-invalid-this': 'off',
+      'unicorn/no-this-assignment': 'off',
       'no-unused-expressions': 'off',
       camelcase: 'off',
       'no-console': 'off',
       'no-prototype-builtins': 'off',
       'no-multi-spaces': 'off',
+      'unicorn/error-message': 'off',
     },
   }, {
     // Disable slow rules that are not important in tests (perf)

@@ -6,7 +6,7 @@ const dialectName = getTestDialect();
 const notSupportedError = new Error(`Schemas are not supported in ${dialectName}.`);
 
 describe('QueryGenerator#createSchemaQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a CREATE SCHEMA query in supported dialects', () => {
     expectsql(() => queryGenerator.createSchemaQuery('myDatabase'), {

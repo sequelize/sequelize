@@ -5,7 +5,7 @@ const dialectName = getTestDialect();
 const notSupportedError = new Error(`Schemas are not supported in ${dialectName}.`);
 
 describe('QueryGenerator#dropSchemaQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a DROP SCHEMA query in supported dialects', () => {
     const testFn = () => {

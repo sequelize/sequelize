@@ -6,7 +6,6 @@ import { Col } from '../../expression-builders/col.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
-import { rejectInvalidOptions } from '../../utils/check';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
@@ -37,21 +36,11 @@ const { BelongsToMany } = require('../../associations/belongs-to-many');
 const { HasMany } = require('../../associations/has-many');
 const { Op } = require('../../operators');
 const sequelizeError = require('../../errors');
-const { IndexHints } = require('../../index-hints');
 const { _validateIncludedElements } = require('../../model-internals');
 
-/**
- * List of possible options listed in {@link CreateDatabaseQueryOptions}.
- * It is used to validate the options passed to {@link AbstractQueryGenerator#createDatabaseQuery},
- * as not all of them are supported by all dialects.
- */
-export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
 export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
-export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS = new Set(['skip']);
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'engine', 'rowFormat', 'comment', 'initialAutoIncrement', 'uniqueKeys']);
-export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['cascade']);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
-export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
 
 /**
  * Abstract Query Generator
@@ -59,30 +48,6 @@ export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
  * @private
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
-  createDatabaseQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but createDatabaseQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
-  dropDatabaseQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but dropDatabaseQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
-  listDatabasesQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but listDatabasesQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
   createSchemaQuery() {
     if (this.dialect.supports.schemas) {
       throw new Error(`${this.dialect.name} declares supporting schema but createSchemaQuery is not implemented.`);
@@ -97,34 +62,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  listSchemasQuery() {
-    if (this.dialect.supports.schemas) {
-      throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);
-    }
-
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  dropTableQuery(tableName, options) {
-    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
-
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)};`;
-  }
-
-  renameTableQuery(before, after) {
-    return `ALTER TABLE ${this.quoteTable(before)} RENAME TO ${this.quoteTable(after)};`;
   }
 
   /**
@@ -1274,15 +1211,58 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       const orders = this.getQueryOrders(options, model, subQuery);
       if (orders.mainQueryOrder.length > 0) {
         mainQueryItems.push(` ORDER BY ${orders.mainQueryOrder.join(', ')}`);
+      } else if (!subQuery && (options.limit != null || options.offset)) {
+        if (!isModelStatic(model)) {
+          throw new Error('Cannot use offset or limit without a model or order being set');
+        }
+
+        // Always order by primary key if order is not specified and limit/offset is not null
+        const pks = [];
+        for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+          const attribute = mainModelAttributes.get(pkAttrName);
+          pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+        }
+
+        mainQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
       }
 
       if (orders.subQueryOrder.length > 0) {
         subQueryItems.push(` ORDER BY ${orders.subQueryOrder.join(', ')}`);
+      } else if (subQuery && (options.limit != null || options.offset)) {
+        if (!isModelStatic(model)) {
+          throw new Error('Cannot use offset or limit without a model or order being set');
+        }
+
+        // Always order by primary key if order is not specified and limit/offset is not null
+        const pks = [];
+        for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+          const attribute = mainModelAttributes.get(pkAttrName);
+          pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+        }
+
+        subQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
+      }
+    } else if (options.limit != null || options.offset) {
+      if (!isModelStatic(model)) {
+        throw new Error('Cannot use offset or limit without a model or order being set');
+      }
+
+      // Always order by primary key if order is not specified and limit/offset is not null
+      const pks = [];
+      for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+        const attribute = mainModelAttributes.get(pkAttrName);
+        pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+      }
+
+      if (subQuery) {
+        subQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
+      } else {
+        mainQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
       }
     }
 
     // Add LIMIT, OFFSET to sub or main query
-    const limitOrder = this.addLimitAndOffset(options, mainTable.model);
+    const limitOrder = this._addLimitAndOffset(options);
     if (limitOrder && !options.groupedLimit) {
       if (subQuery) {
         subQueryItems.push(limitOrder);
@@ -2078,30 +2058,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (options.groupedLimit) {
       fragment += ` AS ${mainTableAs}`;
-    }
-
-    return fragment;
-  }
-
-  /**
-   * Returns an SQL fragment for adding result constraints.
-   *
-   * @param  {object} options An object with selectQuery options.
-   * @param {ModelStatic} model
-   * @returns {string}         The generated sql query.
-   * @private
-   */
-  addLimitAndOffset(options, model) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      // limit must be specified if offset is specified.
-      fragment += ` LIMIT 18446744073709551615`;
-    }
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
     }
 
     return fragment;

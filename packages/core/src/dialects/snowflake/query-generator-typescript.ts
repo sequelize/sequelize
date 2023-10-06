@@ -1,17 +1,106 @@
+import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
+  SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator-typescript';
+import type {
+  AddLimitOffsetOptions,
+  CreateDatabaseQueryOptions,
+  ListDatabasesQueryOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
+
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['charset', 'collate']);
+const LIST_DATABASES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListDatabasesQueryOptions>([]);
+const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['constraintName', 'constraintType']);
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalSchemaNames() {
+    return ['INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys'];
+  }
+
+  createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect.name,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      `CREATE DATABASE IF NOT EXISTS ${this.quoteIdentifier(database)}`,
+      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
+      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
+    ]);
+  }
+
+  listDatabasesQuery(options?: ListDatabasesQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'listDatabasesQuery',
+        this.dialect.name,
+        LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
+        LIST_DATABASES_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `SHOW DATABASES`;
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = this._getTechnicalSchemaNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT SCHEMA_NAME AS "schema"',
+      'FROM INFORMATION_SCHEMA.SCHEMATA',
+      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT TABLE_NAME AS "tableName",',
+      'TABLE_SCHEMA AS "schema"',
+      `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`,
+      options?.schema
+        ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
+        : `AND TABLE_SCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY TABLE_SCHEMA, TABLE_NAME',
+    ]);
+  }
+
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'showConstraintsQuery',
+        this.dialect.name,
+        SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
+        SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -34,6 +123,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
       options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
       'ORDER BY c.CONSTRAINT_NAME',
     ]);
   }
@@ -45,5 +135,20 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   versionQuery() {
     return 'SELECT CURRENT_VERSION() AS "version"';
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
+    } else if (options.offset) {
+      fragment += ` LIMIT NULL`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
+    }
+
+    return fragment;
   }
 }

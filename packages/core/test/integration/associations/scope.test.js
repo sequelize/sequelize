@@ -6,8 +6,6 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
 
-const current = Support.sequelize;
-const semver = require('semver');
 const upperFirst = require('lodash/upperFirst');
 
 describe(Support.getTestDialectTeaser('associations'), () => {

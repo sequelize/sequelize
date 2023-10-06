@@ -27,7 +27,7 @@ describe(`@Table legacy decorator`, () => {
 
     sequelize.addModels([User]);
 
-    expect(User.tableName).to.equal('custom_users');
+    expect(User.table.tableName).to.equal('custom_users');
   });
 
   // different decorators can modify the model's options
@@ -39,7 +39,7 @@ describe(`@Table legacy decorator`, () => {
 
     sequelize.addModels([User]);
 
-    expect(User.tableName).to.equal('custom_users');
+    expect(User.table.tableName).to.equal('custom_users');
     expect(User.options.timestamps).to.equal(false);
   });
 
@@ -82,6 +82,21 @@ describe(`@Table legacy decorator`, () => {
         name: 'users_id_unique',
       },
     ]);
+  });
+
+  it('does not crash when inheriting options', () => {
+    @Table.Abstract({})
+    class ParentModel extends Model {}
+
+    @Table({
+      indexes: [{
+        fields: ['id'],
+        unique: true,
+      }],
+    })
+    class User extends ParentModel {}
+
+    sequelize.addModels([User]);
   });
 
   it('merges scopes', () => {
