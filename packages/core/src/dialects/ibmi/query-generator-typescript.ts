@@ -120,7 +120,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       options?.columnName ? `AND k.COLUMN_NAME = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
       options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
-      'ORDER BY c.CONSTRAINT_NAME, k.ORDINAL_POSITION',
+      'ORDER BY c.CONSTRAINT_NAME, k.ORDINAL_POSITION, fk.ORDINAL_POSITION',
     ]);
   }
 
