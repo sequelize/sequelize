@@ -113,11 +113,40 @@ Clone the repository (if you haven't already) via `git clone https://github.com/
 
 ### 2. Install the Node.js dependencies
 
-Run `yarn install` within the cloned repository folder.
+Run `yarn install` within the cloned repository folder to install the dependencies.
+
+Once installed, run the `yarn build` command to build the project.
 
 #### 2.1 Adding and updating dependencies
 
 [Yarn v3](https://yarnpkg.com//) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn.
+
+#### 2.2 Running commands
+
+Sequelize is a monorepo and uses `lerna` to run scripts in each of the packages. The syntax for the commands is: `yarn lerna run` followed by the script name. For example:
+
+```
+yarn lerna run test-unit
+```
+
+By default, the `yarn lerna run` command will run the script in all packages which have a matching script. By appending `--scope=package_name` to the command (where `package_name` is the name of the package you want to run the script on) you can select a specific package to run the script on. For example:
+
+```
+yarn lerna run test-unit --scope=@sequelize/core
+```
+
+Lerna caching is enabled and the following commands:
+- `yarn build`
+- `yarn test-typings`
+- `yarn test-unit`
+
+Currently the caching is configured to watch the `src` folder and `package.json` and `tsconfig.json` files in each package for production changes and all files in each package for default changes.
+
+This means that running the `yarn build` command and not making changes to the production files (see above), the output of the commands loaded from cache rather than the command executing. When running `yarn test-typings` or `yarn test-unit`, any changes in the package folder will cause command to run rather than the results loaded from cache.
+
+If you run into any issues with the cache, running the command `yarn dlx nx reset` will reset the cache.
+
+For more information about using `lerna` commands, use the [Lerna Documentation](https://lerna.js.org/docs/api-reference/commands).
 
 ### 3. Prepare local databases to run tests
 
@@ -155,20 +184,6 @@ You will have to manually install and configure each of database engines you wan
 
 ### 4. Running tests
 
-Sequelize is a monorepo and uses `lerna` to run scripts in each of the packages. The syntax for the commands is: `yarn lerna run` followed by the script name. For example:
-
-```
-yarn lerna run test-unit
-```
-
-By default, the `yarn lerna run` command will run the script in all packages which have a matching script. By appending `--scope=package_name` to the command (where `package_name` is the name of the package you want to run the script on) you can select a specific package to run the script on. For example:
-
-```
-yarn lerna run test-unit --scope=@sequelize/core
-```
-
-For more information about using `lerna` commands, use the [Lerna Documentation](https://lerna.js.org/docs/api-reference/commands).
-
 Before starting any work, try to run the tests locally in order to be sure your setup is fine. Start by running the SQLite tests:
 
 ```
@@ -184,6 +199,8 @@ Then, if you want to run tests for another dialect, assuming you've set it up as
 - `yarn lerna run test-db2`
 
 There are also the `test-unit-*` and `test-integration-*` sets of scripts (for example, `test-integration-postgres`).
+
+_Note:_ when running these test, you will need to run `yarn build` after you have made changes to the source code for these changes to affect the tests. The `yarn lerna run test-{dialect}` command does this for you.
 
 #### 4.1. Running only some tests
 
