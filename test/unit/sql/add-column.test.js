@@ -69,6 +69,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
+    it('DEFAULT VALUE FOR BOOLEAN', () => {
+      return expectsql(sql.addColumnQuery(User.getTableName(), 'bool_col', current.normalizeAttribute({
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+      })), {
+        oracle: 'ALTER TABLE "Users" ADD "bool_col" CHAR(1) DEFAULT 1 NOT NULL CHECK ("bool_col" IN(\'1\', \'0\'))'
+      });
+    });
+
+    it('DEFAULT VALUE FOR ENUM', () => {
+      return expectsql(sql.addColumnQuery(User.getTableName(), 'enum_col', current.normalizeAttribute({
+        type: DataTypes.ENUM('happy', 'sad'),
+        allowNull: false,
+        defaultValue: 'happy'
+      })), {
+        oracle: 'ALTER TABLE "Users" ADD "enum_col" VARCHAR2(512) DEFAULT \'happy\' NOT NULL CHECK ("enum_col" IN(\'happy\', \'sad\'))'
+      });
+    });
+
     it('defaults the schema to the one set in the Sequelize options', () => {
       return expectsql(customSql.addColumnQuery(User.getTableName(), 'level_id', customSequelize.normalizeAttribute({
         type: DataTypes.FLOAT,
