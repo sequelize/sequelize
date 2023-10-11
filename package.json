@@ -107,6 +107,7 @@
     "mocha": "^7.2.0",
     "module-alias": "^2.2.2",
     "mysql2": "^2.3.3",
+    "node-gyp": "^9.4.0",
     "node-hook": "^1.0.0",
     "nyc": "^15.1.0",
     "oracledb": "^5.5.0",
