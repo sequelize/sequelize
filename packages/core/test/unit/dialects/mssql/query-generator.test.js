@@ -4,7 +4,7 @@ const Support = require('../../../support');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const { DataTypes, Op, TableHints } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 const { MsSqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mssql/query-generator.js');
 
 if (current.dialect.name === 'mssql') {
@@ -66,12 +66,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('getDefaultConstraintQuery', function () {
-      expectsql(this.queryGenerator.getDefaultConstraintQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myColumn'), {
-        mssql: `SELECT name FROM sys.default_constraints WHERE PARENT_OBJECT_ID = OBJECT_ID('[mySchema].[myTable]', 'U') AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('myColumn') AND object_id = OBJECT_ID('[mySchema].[myTable]', 'U'));`,
-      });
-    });
-
     it('bulkInsertQuery', function () {
       // normal cases
       expectsql(this.queryGenerator.bulkInsertQuery('myTable', [{ name: 'foo' }, { name: 'bar' }]), {
@@ -93,18 +87,6 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    it('getPrimaryKeyConstraintQuery', function () {
-      expectsql(this.queryGenerator.getPrimaryKeyConstraintQuery('myTable', 'myColumnName'), {
-        mssql: 'SELECT K.TABLE_NAME AS tableName, K.COLUMN_NAME AS columnName, K.CONSTRAINT_NAME AS constraintName FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON C.TABLE_NAME = K.TABLE_NAME AND C.CONSTRAINT_CATALOG = K.CONSTRAINT_CATALOG AND C.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA AND C.CONSTRAINT_NAME = K.CONSTRAINT_NAME WHERE C.CONSTRAINT_TYPE = \'PRIMARY KEY\' AND K.COLUMN_NAME = N\'myColumnName\' AND K.TABLE_NAME = N\'myTable\';',
-      });
-    });
-
-    it('showTablesQuery', function () {
-      expectsql(this.queryGenerator.showTablesQuery(), {
-        mssql: 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\';',
-      });
-    });
-
     it('addColumnQuery', function () {
       expectsql(this.queryGenerator.addColumnQuery('myTable', 'myColumn', { type: 'VARCHAR(255)' }), {
         mssql: 'ALTER TABLE [myTable] ADD [myColumn] VARCHAR(255) NULL;',
@@ -115,7 +97,7 @@ if (current.dialect.name === 'mssql') {
       expectsql(this.queryGenerator.addColumnQuery('myTable', 'myColumn', { type: 'VARCHAR(255)', comment: 'This is a comment' }), {
         mssql: 'ALTER TABLE [myTable] ADD [myColumn] VARCHAR(255) NULL; EXEC sp_addextendedproperty '
           + '@name = N\'MS_Description\', @value = N\'This is a comment\', '
-          + '@level0type = N\'Schema\', @level0name = \'dbo\', '
+          + '@level0type = N\'Schema\', @level0name = N\'dbo\', '
           + '@level1type = N\'Table\', @level1name = [myTable], '
           + '@level2type = N\'Column\', @level2name = [myColumn];',
       });

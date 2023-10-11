@@ -3,7 +3,7 @@ import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 const dialect = sequelize.dialect;
 
 describe('QueryGenerator#showIndexesQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   it('produces a SHOW INDEX query from a table', () => {
     expectsql(() => queryGenerator.showIndexesQuery('myTable'), {
@@ -117,7 +117,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
 
   it('produces a SHOW INDEX query from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectsql(() => queryGeneratorSchema.showIndexesQuery('myTable'), {
       default: `SHOW INDEX FROM [mySchema].[myTable]`,

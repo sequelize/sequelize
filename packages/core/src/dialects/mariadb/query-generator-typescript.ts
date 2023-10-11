@@ -12,7 +12,12 @@ import type {
   RemoveIndexQueryOptions,
   TableNameOrModel,
 } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types.js';
+import type {
+  AddLimitOffsetOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -27,8 +32,38 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
   }
 
+  protected _getTechnicalSchemaNames() {
+    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys'];
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = this._getTechnicalSchemaNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT SCHEMA_NAME AS `schema`',
+      'FROM INFORMATION_SCHEMA.SCHEMATA',
+      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
+  }
+
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT TABLE_NAME AS `tableName`,',
+      'TABLE_SCHEMA AS `schema`',
+      `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`,
+      options?.schema
+        ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
+        : `AND TABLE_SCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY TABLE_SCHEMA, TABLE_NAME',
+    ]);
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
@@ -103,27 +138,6 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `SET FOREIGN_KEY_CHECKS=${enable ? '1' : '0'}`;
   }
 
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      'SELECT CONSTRAINT_NAME as constraintName,',
-      'CONSTRAINT_SCHEMA as constraintSchema,',
-      'TABLE_NAME as tableName,',
-      'TABLE_SCHEMA as tableSchema,',
-      'COLUMN_NAME as columnName,',
-      'REFERENCED_TABLE_SCHEMA as referencedTableSchema,',
-      'REFERENCED_TABLE_NAME as referencedTableName,',
-      'REFERENCED_COLUMN_NAME as referencedColumnName',
-      'FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE',
-      'WHERE',
-      `TABLE_NAME = ${this.escape(table.tableName)}`,
-      `AND TABLE_SCHEMA = ${this.escape(table.schema!)}`,
-      columnName && `AND COLUMN_NAME = ${this.escape(columnName)}`,
-      'AND REFERENCED_TABLE_NAME IS NOT NULL',
-    ]);
-  }
-
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
     const extractQuery = `json_extract(${sqlExpression},${this.escape(buildJsonPath(path))})`;
 
@@ -131,9 +145,9 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
       return `json_unquote(${extractQuery})`;
     }
 
-    // MariaDB has a very annoying behavior with json_extract: It returns the JSON value as a proper JSON string (e.g. "true" or "null" instead true or null)
+    // MariaDB has a very annoying behavior with json_extract: It returns the JSON value as a proper JSON string (e.g. `true` or `null` instead true or null)
     // Except if the value is going to be used in a comparison, in which case it unquotes it automatically (even if we did not call JSON_UNQUOTE).
-    // This is a problem because it makes it impossible to distinguish between a JSON text "true" and a JSON boolean true.
+    // This is a problem because it makes it impossible to distinguish between a JSON text `true` and a JSON boolean true.
     // This useless function call is here to make mariadb not think the value will be used in a comparison, and thus not unquote it.
     // We could replace it with a custom function that does nothing, but this would require a custom function to be created on the database ahead of time.
     return `json_compact(${extractQuery})`;
@@ -145,5 +159,21 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   versionQuery() {
     return 'SELECT VERSION() as `version`';
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
+    } else if (options.offset) {
+      // limit must be specified if offset is specified.
+      fragment += ` LIMIT 18446744073709551615`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
+    }
+
+    return fragment;
   }
 }

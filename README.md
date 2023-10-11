@@ -46,8 +46,6 @@ Please find upgrade information to major versions here:
 ### :wrench: Tools
 
 - [CLI](https://github.com/sequelize/cli)
-- [With TypeScript](https://sequelize.org/docs/v7/other-topics/typescript)
-- [Enhanced TypeScript with decorators](https://github.com/RobinBuschmann/sequelize-typescript)
 - [For GraphQL](https://github.com/mickhansen/graphql-sequelize)
 - [For CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
 - [Awesome Sequelize](https://sequelize.org/docs/v7/other-topics/resources/)

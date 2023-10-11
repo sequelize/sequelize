@@ -1,6 +1,6 @@
-import { expect } from 'chai';
+import { assert, expect } from 'chai';
 import { lt } from 'semver';
-import { DataTypes, Op } from '@sequelize/core';
+import { AggregateError, DataTypes, Op, UnknownConstraintError } from '@sequelize/core';
 import { sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;
@@ -52,6 +52,37 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           allowNull: false,
         },
       });
+    });
+
+    it('should throw an error if constraint type is missing', async () => {
+      await expect(
+        // @ts-expect-error -- intentionally missing type
+        queryInterface.addConstraint('levels', {
+          fields: ['roles'],
+          where: { roles: ['user', 'admin', 'guest', 'moderator'] },
+          name: 'check_user_roles',
+        }),
+      ).to.be.rejectedWith(Error, 'Constraint type must be specified through options.type');
+    });
+
+    it('should throw non existent constraints as UnknownConstraintError', async () => {
+      try {
+        await queryInterface.removeConstraint('levels', 'unknown__constraint__name', { type: 'unique' });
+        expect.fail('Expected to throw an error');
+      } catch (error) {
+        let err = error;
+        if (dialect === 'mssql') {
+          assert(error instanceof AggregateError, 'Expected error to be an instance of AggregateError');
+          err = error.errors.at(-1);
+        } else {
+          assert(err instanceof UnknownConstraintError, 'Expected error to be an instance of UnknownConstraintError');
+          if (dialect !== 'ibmi') {
+            expect(err.table).to.equal('levels');
+          }
+
+          expect(err.constraint).to.equal('unknown__constraint__name');
+        }
+      }
     });
 
     it('should add, show and delete a UNIQUE constraint', async () => {

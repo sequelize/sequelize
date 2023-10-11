@@ -1,3 +1,4 @@
+import { pathToFileURL } from 'node:url';
 import glob from 'fast-glob';
 import uniq from 'lodash/uniq';
 import type { ModelStatic } from './model.js';
@@ -25,14 +26,15 @@ export async function importModels(globPaths: string | string[], modelMatch?: Mo
 
   const promises: Array<Promise<ModelStatic[]>> = [];
   for (const path of await glob(globPaths)) {
-    promises.push(importModelNoGlob(path, modelMatch));
+    const url = pathToFileURL(path).href;
+    promises.push(importModelNoGlob(url, modelMatch));
   }
 
   return uniq((await Promise.all(promises)).flat(1));
 }
 
-async function importModelNoGlob(path: string, modelMatch?: ModelMatch): Promise<ModelStatic[]> {
-  const module = await import(path);
+async function importModelNoGlob(url: string, modelMatch?: ModelMatch): Promise<ModelStatic[]> {
+  const module = await import(url);
 
   return Object.keys(module)
     .filter(exportName => {
@@ -41,7 +43,7 @@ async function importModelNoGlob(path: string, modelMatch?: ModelMatch): Promise
       }
 
       if (modelMatch) {
-        return modelMatch(path, exportName, module[exportName]);
+        return modelMatch(url, exportName, module[exportName]);
       }
 
       return true;

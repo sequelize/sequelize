@@ -109,7 +109,7 @@ export class MariaDbQuery extends AbstractQuery {
           // ONLY TRUE IF @auto_increment_increment is set to 1 !!
           // Doesn't work with GALERA => each node will reserve increment (x for first server, x+1 for next node...)
           const startId = data[this.getInsertIdField()];
-          result = new Array(data.affectedRows);
+          result = Array.from({ length: data.affectedRows });
           const pkColumnName = modelDefinition.attributes.get(this.model.primaryKeyAttribute).columnName;
           for (let i = 0n; i < data.affectedRows; i++) {
             result[i] = { [pkColumnName]: startId + i };
@@ -146,16 +146,8 @@ export class MariaDbQuery extends AbstractQuery {
       return this.handleShowIndexesQuery(data);
     }
 
-    if (this.isForeignKeysQuery()) {
-      return data;
-    }
-
     if (this.isShowConstraintsQuery()) {
       return data;
-    }
-
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
     }
 
     if (this.isDescribeQuery()) {
@@ -287,13 +279,6 @@ export class MariaDbQuery extends AbstractQuery {
       default:
         return new sequelizeErrors.DatabaseError(err);
     }
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => ({
-      tableName: resultSet.TABLE_NAME,
-      schema: resultSet.TABLE_SCHEMA,
-    }));
   }
 
   handleShowIndexesQuery(data) {

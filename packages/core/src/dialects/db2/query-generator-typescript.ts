@@ -2,17 +2,44 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import {
+  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type {
+  AddLimitOffsetOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  RenameTableQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
+const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalSchemaNames() {
+    return ['ERRORSCHEMA', 'NULLID', 'SQLJ'];
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = this._getTechnicalSchemaNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT SCHEMANAME AS "schema" FROM SYSCAT.SCHEMATA',
+      `WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -33,6 +60,43 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE TABNAME = ${this.escape(table.tableName)}`,
       `AND TABSCHEMA = ${this.escape(table.schema)}`,
     ]);
+  }
+
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT TABNAME AS "tableName",',
+      'TRIM(TABSCHEMA) AS "schema"',
+      `FROM SYSCAT.TABLES WHERE TYPE = 'T'`,
+      options?.schema
+        ? `AND TABSCHEMA = ${this.escape(options.schema)}`
+        : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY TABSCHEMA, TABNAME',
+    ]);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    if (options) {
+      rejectInvalidOptions(
+        'renameTableQuery',
+        this.dialect.name,
+        RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        RENAME_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      throw new Error(`Moving tables between schemas is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
   private _getConstraintType(type: ConstraintType): string {
@@ -76,7 +140,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       options?.columnName ? `AND k.COLNAME = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.CONSTNAME = ${this.escape(options.constraintName)}` : '',
       options?.constraintType ? `AND c.TYPE = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
-      'ORDER BY c.CONSTNAME, k.COLSEQ',
+      'ORDER BY c.CONSTNAME, k.COLSEQ, fk.COLSEQ',
     ]);
   }
 
@@ -125,29 +189,6 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `DROP INDEX ${this.quoteIdentifier(indexName)}`;
   }
 
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      'SELECT R.CONSTNAME AS "constraintName",',
-      'TRIM(R.TABSCHEMA) AS "constraintSchema",',
-      'R.TABNAME AS "tableName",',
-      `TRIM(R.TABSCHEMA) AS "tableSchema", LISTAGG(C.COLNAME,', ')`,
-      'WITHIN GROUP (ORDER BY C.COLNAME) AS "columnName",',
-      'TRIM(R.REFTABSCHEMA) AS "referencedTableSchema",',
-      'R.REFTABNAME AS "referencedTableName",',
-      'TRIM(R.PK_COLNAMES) AS "referencedColumnName"',
-      'FROM SYSCAT.REFERENCES R, SYSCAT.KEYCOLUSE C',
-      'WHERE R.CONSTNAME = C.CONSTNAME AND R.TABSCHEMA = C.TABSCHEMA',
-      'AND R.TABNAME = C.TABNAME',
-      `AND R.TABNAME = ${this.escape(table.tableName)}`,
-      `AND R.TABSCHEMA = ${this.escape(table.schema)}`,
-      columnName && `AND C.COLNAME = ${this.escape(columnName)}`,
-      'GROUP BY R.REFTABSCHEMA,',
-      'R.REFTABNAME, R.TABSCHEMA, R.TABNAME, R.CONSTNAME, R.PK_COLNAMES',
-    ]);
-  }
-
   versionQuery() {
     return 'select service_level as "version" from TABLE (sysproc.env_get_inst_info()) as A';
   }
@@ -156,5 +197,18 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)} ROWS`;
+    }
+
+    if (options.limit != null) {
+      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
+    }
+
+    return fragment;
   }
 }

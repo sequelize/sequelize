@@ -9,7 +9,6 @@ import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
 
@@ -29,7 +28,6 @@ const { Op } = require('../../operators');
 
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
 /* istanbul ignore next */
@@ -80,15 +78,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
         sequelize_errorTable: { ParamType: 'INOUT', Data: `ERRORTABLE${this._errorTableCount++}` },
       },
     };
-  }
-
-  listSchemasQuery(options) {
-    const schemasToSkip = ['NULLID', 'SQLJ', 'ERRORSCHEMA'];
-    if (options?.skip) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return `SELECT SCHEMANAME AS "schema_name" FROM SYSCAT.SCHEMATA WHERE (SCHEMANAME NOT LIKE 'SYS%') AND SCHEMANAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')});`;
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -194,19 +183,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return `${template(query, this._templateSettings)(values).trim()};${commentStr}`;
   }
 
-  renameTableQuery(before, after) {
-    const query = 'RENAME TABLE <%= before %> TO <%= after %>;';
-
-    return template(query, this._templateSettings)({
-      before: this.quoteTable(before),
-      after: this.quoteTable(after),
-    });
-  }
-
-  showTablesQuery() {
-    return `SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "tableSchema" FROM SYSCAT.TABLES WHERE TABSCHEMA = ${this.escape(this.dialect.getDefaultSchema())} AND TYPE = 'T' ORDER BY TABSCHEMA, TABNAME`;
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(
@@ -237,25 +213,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return template(query, this._templateSettings)({
       table: this.quoteTable(table),
       attribute,
-    });
-  }
-
-  removeColumnQuery(tableName, attributeName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    const query = 'ALTER TABLE <%= tableName %> DROP COLUMN <%= attributeName %>;';
-
-    return template(query, this._templateSettings)({
-      tableName: this.quoteTable(tableName),
-      attributeName: this.quoteIdentifier(attributeName),
     });
   }
 
@@ -564,7 +521,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       query += ` ${whereSql}`;
     }
 
-    query += this.addLimitAndOffset(options);
+    query += this._addLimitAndOffset(options);
 
     return query;
   }
@@ -726,13 +683,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     throwMethodUndefined('renameFunction');
   }
 
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return template('ALTER TABLE <%= table %> DROP FOREIGN KEY <%= key %>;', this._templateSettings)({
-      table: this.quoteTable(tableName),
-      key: this.quoteIdentifier(foreignKey),
-    });
-  }
-
   setAutocommitQuery() {
     return '';
   }
@@ -765,21 +715,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     return 'ROLLBACK TRANSACTION;';
-  }
-
-  addLimitAndOffset(options) {
-    const offset = options.offset || 0;
-    let fragment = '';
-
-    if (offset) {
-      fragment += ` OFFSET ${this.escape(offset, { replacements: options.replacements })} ROWS`;
-    }
-
-    if (options.limit) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, { replacements: options.replacements })} ROWS ONLY`;
-    }
-
-    return fragment;
   }
 
   addUniqueFields(dataValues, rawAttributes, uniqno) {

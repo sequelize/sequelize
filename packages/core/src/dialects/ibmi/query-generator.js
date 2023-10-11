@@ -10,8 +10,6 @@ import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 import each from 'lodash/each';
@@ -25,9 +23,7 @@ const typeWithoutDefault = new Set(['BLOB']);
 
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
-const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   // Schema queries
@@ -47,17 +43,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
   dropSchemaQuery(schema) {
     return `BEGIN IF EXISTS (SELECT * FROM SYSIBM.SQLSCHEMAS WHERE TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}) THEN SET TRANSACTION ISOLATION LEVEL NO COMMIT; DROP SCHEMA "${schema ? `${schema}` : 'CURRENT SCHEMA'}"; COMMIT; END IF; END`;
-  }
-
-  listSchemasQuery(options) {
-    let skippedSchemas = '';
-    if (options?.skip) {
-      for (let i = 0; i < options.skip.length; i++) {
-        skippedSchemas += ` AND SCHEMA_NAME != ${this.escape(options.skip[i])}`;
-      }
-    }
-
-    return `SELECT DISTINCT SCHEMA_NAME AS "schema_name" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER${skippedSchemas}`;
   }
 
   // Table queries
@@ -141,24 +126,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       END`;
   }
 
-  dropTableQuery(tableName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)}`;
-  }
-
-  showTablesQuery(schema) {
-    return `SELECT TABLE_NAME FROM SYSIBM.SQLTABLES WHERE TABLE_TYPE = 'TABLE' AND TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}`;
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(
@@ -185,20 +152,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     });
 
     return `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition}`;
-  }
-
-  removeColumnQuery(tableName, attributeName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `ALTER TABLE ${this.quoteTable(tableName)} DROP COLUMN ${this.quoteIdentifier(attributeName)}`;
   }
 
   changeColumnQuery(tableName, attributes) {
@@ -228,10 +181,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     return `ALTER TABLE ${this.quoteTable(tableName)} ${finalQuery}`;
-  }
-
-  renameTableQuery(before, after) {
-    return `RENAME TABLE ${this.quoteTable(before)} TO ${this.quoteTable(after)}`;
   }
 
   renameColumnQuery(tableName, attrBefore, attributes) {
@@ -426,31 +375,10 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     if (options.offset || options.limit) {
-      query += this.addLimitAndOffset(options, model);
+      query += this._addLimitAndOffset(options, model);
     }
 
     return query;
-  }
-
-  /**
-   * Returns an SQL fragment for adding result constraints.
-   *
-   * @param  {object} options An object with selectQuery options.
-   * @returns {string}         The generated sql query.
-   * @private
-   */
-  addLimitAndOffset(options) {
-    let fragment = '';
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)} ROWS`;
-    }
-
-    if (options.limit) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
-    }
-
-    return fragment;
   }
 
   // bindParam(bind) {
@@ -571,18 +499,5 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     return result;
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return `ALTER TABLE ${this.quoteTable(tableName)}
-      DROP FOREIGN KEY ${this.quoteIdentifier(foreignKey)}`;
   }
 }

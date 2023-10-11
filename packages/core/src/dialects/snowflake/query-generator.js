@@ -7,11 +7,8 @@ import { quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
 import each from 'lodash/each';
@@ -31,10 +28,7 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
-const LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS = new Set();
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['collate', 'charset', 'rowFormat', 'comment', 'uniqueKeys']);
 
 export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
@@ -43,34 +37,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
     this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
     this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
-  }
-
-  createDatabaseQuery(databaseName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createDatabaseQuery',
-        this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return joinSQLFragments([
-      'CREATE DATABASE IF NOT EXISTS',
-      this.quoteIdentifier(databaseName),
-      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
-      ';',
-    ]);
-  }
-
-  dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
-  }
-
-  listDatabasesQuery() {
-    return `SHOW DATABASES;`;
   }
 
   createSchemaQuery(schema, options) {
@@ -89,20 +55,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
   dropSchemaQuery(schema) {
     return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
-  }
-
-  listSchemasQuery(options) {
-    if (options) {
-      rejectInvalidOptions(
-        'listSchemasQuery',
-        this.dialect.name,
-        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
-        LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `SHOW SCHEMAS;`;
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -189,14 +141,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  showTablesQuery(database) {
-    return joinSQLFragments([
-      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
-      ';',
-    ]);
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(
@@ -218,26 +162,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         tableName: table,
         foreignKey: key,
       }),
-      ';',
-    ]);
-  }
-
-  removeColumnQuery(tableName, attributeName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP',
-      this.quoteIdentifier(attributeName),
       ';',
     ]);
   }
@@ -462,36 +386,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     return dataType;
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP FOREIGN KEY',
-      this.quoteIdentifier(foreignKey),
-      ';',
-    ]);
-  }
-
-  addLimitAndOffset(options) {
-    if (options.offset) {
-      return ` LIMIT ${this.escape(options.limit ?? null, options)} OFFSET ${this.escape(options.offset, options)}`;
-    }
-
-    if (options.limit != null) {
-      return ` LIMIT ${this.escape(options.limit, options)}`;
-    }
-
-    return '';
   }
 
   /**

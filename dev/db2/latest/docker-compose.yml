@@ -8,6 +8,8 @@ services:
       DBNAME: testdb
     ports:
       - 50000:50000
+    volumes:
+      - db2-latest:/database
     healthcheck:
       test: su - db2inst1 -c "db2 connect to testdb; db2 select 1 from sysibm.sysdummy1" || exit 1
       start_period: 15s
@@ -18,3 +20,7 @@ services:
 networks:
   default:
     name: sequelize-db2-latest-network
+
+volumes:
+  db2-latest:
+    name: sequelize-db2-latest-volume

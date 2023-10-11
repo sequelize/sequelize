@@ -6,7 +6,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findOne', () => {

@@ -1,6 +1,5 @@
 'use strict';
 
-const { expect } = require('chai');
 const Support = require('../../support');
 const { Op, literal } = require('@sequelize/core');
 

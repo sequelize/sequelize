@@ -1,14 +1,79 @@
 import type { Expression } from '../../sequelize.js';
+import { rejectInvalidOptions } from '../../utils/check.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import type {
+  AddLimitOffsetOptions,
+  CreateDatabaseQueryOptions,
+  ListDatabasesQueryOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  RenameTableQueryOptions,
+  ShowConstraintsQueryOptions,
+} from '../abstract/query-generator.types';
+
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate', 'ctype', 'encoding', 'template']);
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  protected _getTechnicalDatabaseNames() {
+    return ['postgres'];
+  }
+
+  protected _getTechnicalSchemaNames() {
+    return ['information_schema', 'tiger', 'tiger_data', 'topology'];
+  }
+
+  listDatabasesQuery(options?: ListDatabasesQueryOptions) {
+    const databasesToSkip = this._getTechnicalDatabaseNames();
+
+    if (options && Array.isArray(options?.skip)) {
+      databasesToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      'SELECT datname AS "name" FROM pg_database',
+      `WHERE datistemplate = false AND datname NOT IN (${databasesToSkip.map(database => this.escape(database)).join(', ')})`,
+    ]);
+  }
+
+  createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect.name,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      `CREATE DATABASE ${this.quoteIdentifier(database)}`,
+      options?.encoding ? `ENCODING = ${this.escape(options.encoding)}` : '',
+      options?.collate ? `LC_COLLATE = ${this.escape(options.collate)}` : '',
+      options?.ctype ? `LC_CTYPE = ${this.escape(options.ctype)}` : '',
+      options?.template ? `TEMPLATE = ${this.escape(options.template)}` : '',
+    ]);
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    const schemasToSkip = ['public', ...this._getTechnicalSchemaNames()];
+
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
+
+    return joinSQLFragments([
+      `SELECT schema_name AS "schema" FROM information_schema.schemata`,
+      `WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`]);
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     const table = this.extractTableDetails(tableName);
 
@@ -35,6 +100,40 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
       `AND c.table_schema = ${this.escape(table.schema!)}`,
     ]);
+  }
+
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT table_name AS "tableName", table_schema AS "schema"',
+      `FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys'`,
+      options?.schema
+        ? `AND table_schema = ${this.escape(options.schema)}`
+        : `AND table_schema !~ E'^pg_' AND table_schema NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY table_schema, table_name',
+    ]);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      if (!options?.changeSchema) {
+        throw new Error('To move a table between schemas, you must set `options.changeSchema` to true.');
+      }
+
+      if (beforeTable.tableName !== afterTable.tableName) {
+        throw new Error(`Renaming a table and moving it to a different schema is not supported by ${this.dialect.name}.`);
+      }
+
+      return `ALTER TABLE ${this.quoteTable(beforeTableName)} SET SCHEMA ${this.quoteIdentifier(afterTable.schema!)}`;
+    }
+
+    return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
@@ -113,48 +212,6 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  getForeignKeyQuery(tableName: TableNameOrModel, columnName?: string) {
-    const table = this.extractTableDetails(tableName);
-
-    return joinSQLFragments([
-      // conkey and confkey are arrays for composite foreign keys.
-      // This splits them as matching separate rows
-      'WITH unnested_pg_constraint AS (',
-      'SELECT conname, confrelid, connamespace, conrelid, contype, oid,',
-      'unnest(conkey) AS conkey, unnest(confkey) AS confkey',
-      'FROM pg_constraint)',
-      'SELECT "constraint".conname as "constraintName",',
-      'constraint_schema.nspname as "constraintSchema",',
-      'current_database() as "constraintCatalog",',
-      '"table".relname as "tableName",',
-      'table_schema.nspname as "tableSchema",',
-      'current_database() as "tableCatalog",',
-      '"column".attname as "columnName",',
-      'referenced_table.relname as "referencedTableName",',
-      'referenced_schema.nspname as "referencedTableSchema",',
-      'current_database() as "referencedTableCatalog",',
-      '"referenced_column".attname as "referencedColumnName"',
-      'FROM unnested_pg_constraint "constraint"',
-      'INNER JOIN pg_catalog.pg_class referenced_table ON',
-      'referenced_table.oid = "constraint".confrelid',
-      'INNER JOIN pg_catalog.pg_namespace referenced_schema ON',
-      'referenced_schema.oid = referenced_table.relnamespace',
-      'INNER JOIN pg_catalog.pg_namespace constraint_schema ON',
-      '"constraint".connamespace = constraint_schema.oid',
-      'INNER JOIN pg_catalog.pg_class "table" ON "constraint".conrelid = "table".oid',
-      'INNER JOIN pg_catalog.pg_namespace table_schema ON "table".relnamespace = table_schema.oid',
-      'INNER JOIN pg_catalog.pg_attribute "column" ON',
-      '"column".attnum = "constraint".conkey AND "column".attrelid = "constraint".conrelid',
-      'INNER JOIN pg_catalog.pg_attribute "referenced_column" ON',
-      '"referenced_column".attnum = "constraint".confkey AND',
-      '"referenced_column".attrelid = "constraint".confrelid',
-      `WHERE "constraint".contype = 'f'`,
-      `AND "table".relname = ${this.escape(table.tableName)}`,
-      `AND table_schema.nspname = ${this.escape(table.schema!)}`,
-      columnName && `AND "column".attname = ${this.escape(columnName)};`,
-    ]);
-  }
-
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
     const operator = path.length === 1
       ? (unquote ? '->>' : '->')
@@ -176,5 +233,18 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   versionQuery() {
     return 'SHOW SERVER_VERSION';
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
+    }
+
+    return fragment;
   }
 }

@@ -292,6 +292,14 @@ export interface Options extends Logging {
   keepDefaultTimezone?: boolean;
 
   /**
+   * The precision for the `createdAt`/`updatedAt`/`deletedAt` DATETIME columns that Sequelize adds to models.
+   * Can be a number between 0 and 6, or null to use the default precision of the database. Defaults to 6.
+   *
+   * @default 6
+   */
+  defaultTimestampPrecision?: number | null;
+
+  /**
    * A flag that defines if null values should be passed to SQL queries or not.
    *
    * @default false
@@ -462,6 +470,7 @@ export interface NormalizedOptions extends RequiredBy<Options,
   | 'timezone'
   | 'disableClsTransactions'
   | 'defaultTransactionNestMode'
+  | 'defaultTimestampPrecision'
 > {
   readonly replication: NormalizedReplicationOptions;
 }
@@ -936,7 +945,6 @@ export class Sequelize extends SequelizeTypeScript {
   query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
   query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<void>;
   query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
-  query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
   query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
   query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
   query<M extends Model>(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithModel<M> & { plain: true }): Promise<M | null>;
@@ -958,7 +966,6 @@ export class Sequelize extends SequelizeTypeScript {
   queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
   queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.DELETE>): Promise<void>;
   queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SHOWTABLES>): Promise<string[]>;
   queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
   queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
   queryRaw<M extends Model>(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithModel<M> & { plain: true }): Promise<M | null>;

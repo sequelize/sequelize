@@ -20,7 +20,7 @@ export class PostgresQuery extends AbstractQuery {
     const { connection } = this;
 
     if (!isEmpty(this.options.searchPath)) {
-      sql = this.sequelize.getQueryInterface().queryGenerator.setSearchPath(this.options.searchPath) + sql;
+      sql = this.sequelize.queryGenerator.setSearchPath(this.options.searchPath) + sql;
     }
 
     if (options?.minifyAliases && this.options.includeAliases) {
@@ -132,7 +132,7 @@ export class PostgresQuery extends AbstractQuery {
         // Map column index in table to column name
         const columns = zipObject(
           row.column_indexes,
-          this.sequelize.getQueryInterface().queryGenerator.fromArray(row.column_names),
+          this.sequelize.queryGenerator.fromArray(row.column_names),
         );
         delete row.column_indexes;
         delete row.column_names;
@@ -176,29 +176,6 @@ export class PostgresQuery extends AbstractQuery {
       return rows;
     }
 
-    if (this.isForeignKeysQuery()) {
-      const result = [];
-      for (const row of rows) {
-        let defParts;
-        if (row.condef !== undefined && (defParts = row.condef.match(/FOREIGN KEY \((.+)\) REFERENCES (.+)\((.+)\)( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?/))) {
-          row.id = row.constraintName;
-          row.table = defParts[2];
-          row.from = defParts[1];
-          row.to = defParts[3];
-          let i;
-          for (i = 5; i <= 8; i += 3) {
-            if (/(UPDATE|DELETE)/.test(defParts[i])) {
-              row[`on_${defParts[i].toLowerCase()}`] = defParts[i + 1];
-            }
-          }
-        }
-
-        result.push(row);
-      }
-
-      return result;
-    }
-
     if (this.isSelectQuery()) {
       let result = rows;
       // Postgres will treat tables as case-insensitive, so fix the case
@@ -235,7 +212,7 @@ export class PostgresQuery extends AbstractQuery {
           allowNull: row.Null === 'YES',
           defaultValue: row.Default,
           comment: row.Comment,
-          special: row.special ? this.sequelize.getQueryInterface().queryGenerator.fromArray(row.special) : [],
+          special: row.special ? this.sequelize.queryGenerator.fromArray(row.special) : [],
           primaryKey: row.Constraint === 'PRIMARY KEY',
         };
 
@@ -427,10 +404,6 @@ export class PostgresQuery extends AbstractQuery {
       default:
         return new sequelizeErrors.DatabaseError(err);
     }
-  }
-
-  isForeignKeysQuery() {
-    return /SELECT conname as constraintName, pg_catalog\.pg_get_constraintdef\(r\.oid, true\) as condef FROM pg_catalog\.pg_constraint r WHERE r\.conrelid = \(SELECT oid FROM pg_class WHERE relname = '.*' LIMIT 1\) AND r\.contype = 'f' ORDER BY 1;/.test(this.sql);
   }
 
   getInsertIdField() {
