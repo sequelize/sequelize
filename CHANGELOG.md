@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.33](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.32...v7.0.0-alpha.33) (2023-10-11)
+
+
+### Bug Fixes
+
+* **db2:** change SSL related keyword and value in connection-manager.ts ([#16588](https://github.com/sequelize/sequelize/issues/16588)) ([0c4482b](https://github.com/sequelize/sequelize/commit/0c4482b5260f38a437305913a849b8cbc8a84da8))
+* **ibmi:** reconnect when connection drops because of 08S01 error ([#16259](https://github.com/sequelize/sequelize/issues/16259)) ([3e993f3](https://github.com/sequelize/sequelize/commit/3e993f33b17a03d5958bee14d0064679c276f148))
+* **mssql:** add ability to specify schema in comments ([#15729](https://github.com/sequelize/sequelize/issues/15729)) ([6398334](https://github.com/sequelize/sequelize/commit/639833489e134666bbbc96ca9912620f024ebdb9))
+* updated constraint column order ([#16614](https://github.com/sequelize/sequelize/issues/16614)) ([dd2aa18](https://github.com/sequelize/sequelize/commit/dd2aa1832fdaf5151977f9dacda01500cd97f277))
+
+
+### Features
+
+* always add ORDER BY with LIMIT or OFFSET ([#16547](https://github.com/sequelize/sequelize/issues/16547)) ([09b46c0](https://github.com/sequelize/sequelize/commit/09b46c08c35a63ab7c339eb757c8fc98265a1802))
+* migrate renameTable to typescript ([#16577](https://github.com/sequelize/sequelize/issues/16577)) ([655bf01](https://github.com/sequelize/sequelize/commit/655bf01e553893e26a583270a48aae435abb6db5))
+* **sqlite:** migrate query-interface to typescript ([#16224](https://github.com/sequelize/sequelize/issues/16224)) ([eebc3df](https://github.com/sequelize/sequelize/commit/eebc3dfb43aa83b3906afc42bab77e5c2729f296))
+
+
+
+
+
 # [7.0.0-alpha.32](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.31...v7.0.0-alpha.32) (2023-09-22)
 
 
