@@ -53,6 +53,9 @@ export class MssqlDialect extends AbstractDialect {
     removeColumn: {
       ifExists: true,
     },
+    renameTable: {
+      changeSchemaAndTable: false,
+    },
   });
 
   readonly connectionManager: MsSqlConnectionManager;

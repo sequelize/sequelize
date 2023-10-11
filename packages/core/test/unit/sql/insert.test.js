@@ -7,7 +7,6 @@ const { expect } = require('chai');
 const expectsql = Support.expectsql;
 const current   = Support.sequelize;
 const sql       = current.dialect.queryGenerator;
-const dialectName   = Support.getTestDialect();
 const dialect = current.dialect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation

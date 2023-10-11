@@ -37,6 +37,10 @@ export class Db2Dialect extends AbstractDialect {
     removeColumn: {
       cascade: true,
     },
+    renameTable: {
+      changeSchema: false,
+      changeSchemaAndTable: false,
+    },
   });
 
   readonly defaultVersion = '1.0.0';

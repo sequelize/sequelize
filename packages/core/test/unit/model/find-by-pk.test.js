@@ -1,8 +1,5 @@
 'use strict';
 
-const chai = require('chai');
-
-const expect = chai.expect;
 const Support = require('../../support');
 
 const current = Support.sequelize;
