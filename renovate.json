@@ -14,5 +14,6 @@
       "matchUpdateTypes": ["minor", "patch", "pin", "digest", "lockFileMaintenance"],
       "automerge": true
     }
-  ]
+  ],
+  "postUpdateOptions": ["yarnDedupeHighest"]
 }
