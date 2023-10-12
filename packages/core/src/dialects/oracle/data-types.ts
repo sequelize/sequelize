@@ -1,14 +1,13 @@
-import { Falsy } from 'src/generic/falsy.js';
-import { BaseError } from '../../errors/index.js';
+import type { Falsy } from '../../generic/falsy';
 import * as Basetypes from '../abstract/data-types.js';
-import type { AbstractDialect } from '../abstract/index.js';
 import type { AcceptedDate } from '../abstract/data-types.js';
-import type { Lib } from './connection-manager.js'
+import type { AbstractDialect } from '../abstract/index.js';
+import type { Lib } from './connection-manager.js';
 
 export class STRING extends Basetypes.STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-     // @ts-ignore: Object is possibly 'null'.
+    // @ts-expect-error -- Object is possibly 'null'.
     if (this.options.length > 4000 || this.options.binary && this.options.length > 2000) {
       dialect.warnDataTypeIssue(`Oracle supports length up to 32764 bytes or characters; Be sure that your administrator has extended the MAX_STRING_SIZE parameter. Check https://docs.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7B72E154-677A-4342-A1EA-C74C1EA928E6`);
     }
@@ -18,6 +17,7 @@ export class STRING extends Basetypes.STRING {
     if (!this.options.binary) {
       return `NVARCHAR2(${this.options.length})`;
     }
+
     return `RAW${this.options.length}`;
   }
 
@@ -25,6 +25,7 @@ export class STRING extends Basetypes.STRING {
     if (this.options.binary) {
       return { type: oracledb.DB_TYPE_RAW, maxSize: this.options.length };
     }
+
     return { type: oracledb.DB_TYPE_VARCHAR, maxSize: this.options.length };
   }
 }
@@ -95,6 +96,7 @@ export class CHAR extends Basetypes.CHAR {
     if (this.options.binary) {
       return `RAW(${this.options.length})`;
     }
+
     return super.toSql();
   }
 
@@ -102,6 +104,7 @@ export class CHAR extends Basetypes.CHAR {
     if (this.options.binary) {
       return { type: oracledb.DB_TYPE_RAW, maxSize: this.options.length };
     }
+
     return { type: oracledb.DB_TYPE_CHAR, maxSize: this.options.length };
   }
 }
@@ -132,13 +135,16 @@ export class DECIMAL extends Basetypes.DECIMAL {
     let result: string = 'NUMBER';
     if (!this.options.precision) {
       return result;
-    } else {
-      result += `(${this.options.precision}`;
     }
+
+    result += `(${this.options.precision}`;
+
     if (this.options.scale) {
       result += `,${this.options.scale}`;
     }
+
     result += ')';
+
     return result;
   }
 
@@ -162,6 +168,7 @@ export class SMALLINT extends Basetypes.SMALLINT {
     if (this.options.length) {
       return `NUMBER(${this.options.length},0)`;
     }
+
     return 'SMALLINT';
   }
 
@@ -185,6 +192,7 @@ export class INTEGER extends Basetypes.INTEGER {
     if (this.options.length) {
       return `NUMBER(${this.options.length},0)`;
     }
+
     return 'INTEGER';
   }
 
@@ -215,13 +223,14 @@ export class BIGINT extends Basetypes.BIGINT { // TODO:check for constructor
     if (typeof value === 'bigint' || typeof value === 'number') {
       return value.toString();
     }
+
     return value;
   }
 }
 
 export class FLOAT extends Basetypes.FLOAT {
   toSql() {
-    return 'BINARY_FLOAT'
+    return 'BINARY_FLOAT';
   }
 
   _getBindDef(oracledb: Lib) {
@@ -249,7 +258,7 @@ export class JSON extends Basetypes.JSON {
     return { type: oracledb.DB_TYPE_BLOB };
   }
 
-  //TODO: _bindParam and stringify alternate
+  // TODO: _bindParam and stringify alternate
 }
 
 export class DOUBLE extends Basetypes.DOUBLE {
@@ -271,12 +280,14 @@ export class DOUBLE extends Basetypes.DOUBLE {
 }
 
 export class DATEONLY extends Basetypes.DATEONLY {
-  //parse()
+  // parse()
   toBindableValue(date: AcceptedDate) {
     if (date) {
       const format = 'YYYY/MM/DD';
+
       return this.escape(`TO_DATE('${date}','${format}')`);
     }
+
     return this.escape(date);
   }
 
@@ -284,6 +295,6 @@ export class DATEONLY extends Basetypes.DATEONLY {
     return { type: oracledb.DB_TYPE_DATE };
   }
 
-  //_bindParam() for escape....
+  // _bindParam() for escape....
 }
 

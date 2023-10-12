@@ -94,6 +94,7 @@
     "mysql2": "3.6.1",
     "nyc": "15.1.0",
     "odbc": "2.4.8",
+    "oracledb": "6.0",
     "p-map": "4.0.0",
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
@@ -117,6 +118,9 @@
       "optional": true
     },
     "odbc": {
+      "optional": true
+    },
+    "oracledb": {
       "optional": true
     },
     "pg": {
@@ -179,6 +183,7 @@
     "test-unit-db2": "cross-env DIALECT=db2 yarn _test-unit",
     "test-unit-ibmi": "cross-env DIALECT=ibmi yarn _test-unit",
     "test-unit-snowflake": "cross-env DIALECT=snowflake yarn _test-unit",
+    "test-unit-oracle": "cross-env DIALECT=oracle yarn _test-unit",
     "test-unit-all": "yarn test-unit-mariadb && yarn test-unit-mysql && yarn test-unit-postgres && yarn test-unit-mssql && yarn test-unit-sqlite && yarn test-unit-snowflake && yarn test-unit-db2 && yarn test-unit-ibmi",
     "test-unit": "yarn test-unit-all",
     "----------------------------------------- integration tests ---------------------------------------------": "",

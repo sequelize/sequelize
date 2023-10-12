@@ -1,10 +1,9 @@
-import { AbstractQueryGenerator } from "../abstract/query-generator";
-import { rejectInvalidOptions } from "src/utils/check";
-import { generateIndexName } from "src/utils/string";
-import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from "../abstract/query-generator-typescript";
-import type { TableNameWithSchema } from "../abstract/query-interface";
-import type { RemoveIndexQueryOptions, TableNameOrModel } from "../abstract/query-generator-typescript";
-
+import { rejectInvalidOptions } from '../../utils/check';
+import { generateIndexName } from '../../utils/string';
+import { AbstractQueryGenerator } from '../abstract/query-generator';
+import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { TableNameWithSchema } from '../abstract/query-interface';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -13,6 +12,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
     const currTableName = this.getCatalogName(table.tableName);
     const schema = this.getCatalogName(table.schema);
+
     // name, type, datalength (except number / nvarchar), datalength varchar, datalength number, nullable, default value, primary ?
     return [
       'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type ',
@@ -24,14 +24,14 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         ? `WHERE (atc.OWNER = ${this.escape(schema)}) `
         : 'WHERE atc.OWNER = USER ',
       `AND (atc.TABLE_NAME = ${this.escape(currTableName)})`,
-      'ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC'
+      'ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC',
     ].join('');
   }
 
   removeIndexQuery(
     tableName: TableNameOrModel,
     indexNameOrAttributes: string | string[],
-    options: RemoveIndexQueryOptions
+    options: RemoveIndexQueryOptions,
   ) {
     if (options) {
       rejectInvalidOptions(
@@ -39,9 +39,10 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         this.dialect.name,
         REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
-        options
+        options,
       );
     }
+
     let indexName: string;
     if (Array.isArray(indexNameOrAttributes)) {
       const table = this.extractTableDetails(tableName);
@@ -56,17 +57,16 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   /**
    * Returns the value as it is stored in the Oracle DB
    *
-   * @param {string} value
+   * @param value
    */
   getCatalogName(value: string | undefined) {
-    if (value) {
-      if (this.options.quoteIdentifiers === false) {
-        const quotedValue = this.quoteIdentifier(value);
-        if (quotedValue === value) {
-          value = value.toUpperCase();
-        }
+    if (value && this.options.quoteIdentifiers === false) {
+      const quotedValue = this.quoteIdentifier(value);
+      if (quotedValue === value) {
+        value = value.toUpperCase();
       }
     }
+
     return value;
   }
 
@@ -82,7 +82,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE i.table_name = ${this.escape(tableName)}`,
       ' AND u.table_owner = ',
       owner ? this.escape(owner) : 'USER',
-      ' ORDER BY index_name, column_position'
+      ' ORDER BY index_name, column_position',
     ];
 
     return sql.join('');
@@ -91,12 +91,13 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   /**
    * Returns the tableName and schemaName as it is stored the Oracle DB
    *
-   * @param {object|string} table
+   * @param table
    */
   getSchemaNameAndTableName(table: any) {
     table = this.extractTableDetails(table);
     const tableName = this.getCatalogName(table.tableName || table);
     const schemaName = this.getCatalogName(table.schema);
+
     return [tableName, schemaName];
   }
 }

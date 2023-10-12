@@ -1,15 +1,16 @@
 import type { Sequelize } from '../../sequelize';
-import { AbstractDialect, BindCollector, SupportableNumericOptions } from '../abstract';
+import { createNamedParamBindCollector } from '../../utils/sql';
+import type { SupportableNumericOptions } from '../abstract';
+import { AbstractDialect } from '../abstract';
+import { OracleConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
-import { OracleConnectionManager } from './connection-manager'
+import { OracleQuery } from './query';
 import { OracleQueryGenerator } from './query-generator';
 import { OracleQueryInterface } from './query-interface';
-import { OracleQuery } from './query';
-import { createNamedParamBindCollector } from 'src/utils/sql';
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: false,
-  unsigned: true
+  unsigned: true,
 };
 
 export class OracleDialect extends AbstractDialect {
@@ -23,16 +24,16 @@ export class OracleDialect extends AbstractDialect {
       length: false,
       parser: false,
       type: false,
-      using: false
+      using: false,
     },
     constraints: {
-      restrict: false
+      restrict: false,
     },
     returnValues: false,
     'ORDER NULLS': true,
     schemas: true,
     inserts: {
-      //returnIntoValues: true,
+      // returnIntoValues: true,
       updateOnDuplicate: false,
     },
     indexViaAlter: false,
@@ -44,7 +45,7 @@ export class OracleDialect extends AbstractDialect {
     },
     upserts: true,
     bulkDefault: true,
-    //topLevelOrderByRequired: true,
+    // topLevelOrderByRequired: true,
   });
 
   readonly connectionManager: OracleConnectionManager;
@@ -62,14 +63,15 @@ export class OracleDialect extends AbstractDialect {
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'oracle');
     this.connectionManager = new OracleConnectionManager(this, sequelize);
-    //this.connectionManager.initPools();
+    // this.connectionManager.initPools();
     this.queryGenerator = new OracleQueryGenerator({
       dialect: this,
       sequelize,
     });
     this.queryInterface = new OracleQueryInterface(
       sequelize,
-      this.queryGenerator);
+      this.queryGenerator,
+    );
   }
 
   getDefaultSchema(): string {
