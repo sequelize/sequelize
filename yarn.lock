@@ -2254,7 +2254,7 @@ __metadata:
     nyc: 15.1.0
     odbc: 2.4.8
     p-map: 4.0.0
-    p-props: 4.0.0
+    p-props: 6.0.0
     p-settle: 4.1.1
     p-timeout: 4.1.0
     pg: 8.11.3
@@ -10511,6 +10511,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"p-map@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "p-map@npm:6.0.0"
+  checksum: 41e20c30a08da664610ff1ed198519d8cb93567491392c819ce502f523dde1187afab23e75e4c0fe74310d424a6f74ceaebe73ad5496c9e27d91183184fedd37
+  languageName: node
+  linkType: hard
+
 "p-pipe@npm:3.1.0":
   version: 3.1.0
   resolution: "p-pipe@npm:3.1.0"
@@ -10518,12 +10525,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-props@npm:4.0.0":
-  version: 4.0.0
-  resolution: "p-props@npm:4.0.0"
+"p-props@npm:6.0.0":
+  version: 6.0.0
+  resolution: "p-props@npm:6.0.0"
   dependencies:
-    p-map: ^4.0.0
-  checksum: 4356b3eb4e03a31141979caf8f42d1ec8eafcacb0032f1f33f2455492a1efe3299b5f335b42a2fc3233f95bd6f59c19a6d881847cc763834ec14a4bf0f52a216
+    p-map: ^6.0.0
+  checksum: 469bd47d0752c2f071762e473ca433e5ac5747d47873977b3b0788aad53b80d60a235639effbcc4e6e13bd6db23258e7a9c42efb4f9a06a3a85bb43c4d35dede
   languageName: node
   linkType: hard
 
