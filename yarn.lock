@@ -2158,7 +2158,7 @@ __metadata:
     inflection: ^3.0.0
     lcov-result-merger: 4.1.0
     lodash: ^4.17.21
-    mariadb: 3.2.1
+    mariadb: 3.2.2
     mocha: 10.2.0
     moment: 2.29.4
     mysql2: 3.6.2
@@ -8890,16 +8890,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mariadb@npm:3.2.1":
-  version: 3.2.1
-  resolution: "mariadb@npm:3.2.1"
+"mariadb@npm:3.2.2":
+  version: 3.2.2
+  resolution: "mariadb@npm:3.2.2"
   dependencies:
     "@types/geojson": ^7946.0.10
     "@types/node": ^17.0.45
     denque: ^2.1.0
     iconv-lite: ^0.6.3
     lru-cache: ^10.0.1
-  checksum: 6f167790ad498f842364c9f4f9d2d604f0405336ee922b6077376df2510ce65193b3a1f1815514c9b96b79d76d9999b3806030254463887bc60961ab21b93ccb
+  checksum: 87719e4092c1941b595b60e288f4a7a41d14d03d0fec24eabcf1e98715e9976986db5236861ef69c18de192ac53c47a658d754a1b55deb9ada7e3d0879b207a7
   languageName: node
   linkType: hard
 
