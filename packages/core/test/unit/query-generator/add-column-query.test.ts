@@ -5,7 +5,7 @@ import { expectsql, getTestDialect, sequelize } from '../../support';
 const dialectName = getTestDialect();
 
 describe('QueryGenerator#addColumnQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   const User = sequelize.define('User', {
     firstName: DataTypes.STRING,

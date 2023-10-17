@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('attributes', () => {
     describe('field', () => {
       beforeEach(async function () {
-        const queryInterface = this.sequelize.getQueryInterface();
+        const queryInterface = this.sequelize.queryInterface;
 
         this.User = this.sequelize.define('user', {
           id: {

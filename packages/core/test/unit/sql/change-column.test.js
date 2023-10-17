@@ -35,7 +35,7 @@ if (current.dialect.name !== 'sqlite') {
       });
 
       it('properly generate alter queries', () => {
-        return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
+        return current.queryInterface.changeColumn(Model.getTableName(), 'level_id', {
           type: DataTypes.FLOAT,
           allowNull: false,
         }).then(sql => {
@@ -52,7 +52,7 @@ if (current.dialect.name !== 'sqlite') {
       });
 
       it('properly generate alter queries for foreign keys', () => {
-        return current.getQueryInterface().changeColumn(Model.getTableName(), 'level_id', {
+        return current.queryInterface.changeColumn(Model.getTableName(), 'level_id', {
           type: DataTypes.INTEGER,
           references: {
             table: 'level',

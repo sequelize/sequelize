@@ -41,7 +41,7 @@ export class ModelTypeScript {
   }
 
   static get queryGenerator(): AbstractQueryGenerator {
-    return this.queryInterface.queryGenerator;
+    return this.sequelize.queryGenerator;
   }
 
   /**
@@ -384,7 +384,7 @@ export class ModelTypeScript {
     // TODO no deprecation warning is issued here, as this is still used internally.
     //  Start emitting a warning once we have removed all internal usages.
 
-    const queryGenerator = this.sequelize.queryInterface.queryGenerator;
+    const queryGenerator = this.sequelize.queryGenerator;
 
     return {
       ...this.table,

@@ -174,7 +174,7 @@ export type DialectSupports = {
      */
     JSON: boolean,
     JSONB: boolean,
-    ARRAY: boolean | { ARRAY: boolean },
+    ARRAY: boolean,
     RANGE: boolean,
     GEOMETRY: boolean,
     GEOGRAPHY: boolean,
@@ -228,6 +228,10 @@ export type DialectSupports = {
   },
   truncate: {
     cascade: boolean,
+  },
+  removeColumn: {
+    cascade: boolean,
+    ifExists: boolean,
   },
 };
 
@@ -365,6 +369,10 @@ export abstract class AbstractDialect {
     },
     truncate: {
       cascade: false,
+    },
+    removeColumn: {
+      cascade: false,
+      ifExists: false,
     },
   };
 

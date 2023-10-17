@@ -325,5 +325,47 @@ describe('Model', () => {
         }
       });
     });
+
+    describe('with defaultTimestampPrecision', () => {
+      describe('not specified', () => {
+        it('should add the automatic timestamp columns with the default precision of 6', async () => {
+          const newSequelize = createSequelizeInstance();
+          const MyModel = newSequelize.define('MyModel', {}, { paranoid: true });
+
+          const { physicalAttributes } = MyModel.modelDefinition;
+          expect(physicalAttributes.get('createdAt')).to.have.nested.property('type.options.precision', 6);
+          expect(physicalAttributes.get('updatedAt')).to.have.nested.property('type.options.precision', 6);
+          expect(physicalAttributes.get('deletedAt')).to.have.nested.property('type.options.precision', 6);
+        });
+      });
+
+      describe('set to a number', () => {
+        it('should add the automatic timestamp columns with the specified precision', async () => {
+          const newSequelize = createSequelizeInstance({
+            defaultTimestampPrecision: 4,
+          });
+          const MyModel = newSequelize.define('MyModel', {}, { paranoid: true });
+
+          const { physicalAttributes } = MyModel.modelDefinition;
+          expect(physicalAttributes.get('createdAt')).to.have.nested.property('type.options.precision', 4);
+          expect(physicalAttributes.get('updatedAt')).to.have.nested.property('type.options.precision', 4);
+          expect(physicalAttributes.get('deletedAt')).to.have.nested.property('type.options.precision', 4);
+        });
+      });
+
+      describe('set to null', () => {
+        it('should add the automatic timestamp columns with no specified precision', async () => {
+          const newSequelize = createSequelizeInstance({
+            defaultTimestampPrecision: null,
+          });
+          const MyModel = newSequelize.define('MyModel', {}, { paranoid: true });
+
+          const { physicalAttributes } = MyModel.modelDefinition;
+          expect(physicalAttributes.get('createdAt')).to.have.nested.property('type.options.precision', undefined);
+          expect(physicalAttributes.get('updatedAt')).to.have.nested.property('type.options.precision', undefined);
+          expect(physicalAttributes.get('deletedAt')).to.have.nested.property('type.options.precision', undefined);
+        });
+      });
+    });
   });
 });

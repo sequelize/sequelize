@@ -18,7 +18,7 @@ describe('QueryInterface#upsert', () => {
   it('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().upsert(
+    await sequelize.queryInterface.upsert(
       User.tableName,
       { firstName: ':name' },
       { firstName: ':name' },
@@ -76,7 +76,7 @@ describe('QueryInterface#upsert', () => {
   it('throws if a bind parameter name starts with the reserved "sequelize_" prefix', async () => {
     sinon.stub(sequelize, 'queryRaw');
 
-    await expect(sequelize.getQueryInterface().upsert(
+    await expect(sequelize.queryInterface.upsert(
       User.tableName,
       { firstName: literal('$sequelize_test') },
       { firstName: ':name' },
@@ -93,7 +93,7 @@ describe('QueryInterface#upsert', () => {
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().upsert(
+    await sequelize.queryInterface.upsert(
       User.tableName,
       {
         firstName: literal('$firstName'),
@@ -152,7 +152,7 @@ describe('QueryInterface#upsert', () => {
   it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().upsert(
+    await sequelize.queryInterface.upsert(
       User.tableName,
       {
         firstName: literal('$1'),
@@ -208,7 +208,7 @@ describe('QueryInterface#upsert', () => {
   it('binds parameters if they are literals', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().upsert(
+    await sequelize.queryInterface.upsert(
       User.tableName,
       {
         firstName: 'Jonh',

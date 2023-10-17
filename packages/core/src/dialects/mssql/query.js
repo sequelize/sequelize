@@ -186,10 +186,6 @@ export class MsSqlQuery extends AbstractQuery {
       return [this.instance || data, rowCount];
     }
 
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
-    }
-
     if (this.isDescribeQuery()) {
       const result = {};
       for (const _result of data) {
@@ -245,10 +241,6 @@ export class MsSqlQuery extends AbstractQuery {
       return data[0] ? data[0].AFFECTEDROWS : 0;
     }
 
-    if (this.isForeignKeysQuery()) {
-      return data;
-    }
-
     if (this.isUpsertQuery()) {
       // if this was an upsert and no data came back, that means the record exists, but the update was a noop.
       // return the current instance and mark it as an "not an insert".
@@ -274,15 +266,6 @@ export class MsSqlQuery extends AbstractQuery {
     }
 
     return data;
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => {
-      return {
-        tableName: resultSet.TABLE_NAME,
-        schema: resultSet.TABLE_SCHEMA,
-      };
-    });
   }
 
   formatError(err) {

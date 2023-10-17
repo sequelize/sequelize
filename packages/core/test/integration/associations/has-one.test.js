@@ -332,7 +332,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         // `WHERE` clause
 
         const tableName = User.getTableName();
-        await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+        await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
         const tasks = await Task.findAll();
         expect(tasks).to.have.length(1);
         expect(tasks[0].UserId).to.equal(999);
@@ -376,7 +376,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const tableName = User.getTableName();
 
         await expect(
-          user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id }),
+          user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id }),
         ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
 
         // Should fail due to FK restriction

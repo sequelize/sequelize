@@ -146,16 +146,8 @@ export class MariaDbQuery extends AbstractQuery {
       return this.handleShowIndexesQuery(data);
     }
 
-    if (this.isForeignKeysQuery()) {
-      return data;
-    }
-
     if (this.isShowConstraintsQuery()) {
       return data;
-    }
-
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
     }
 
     if (this.isDescribeQuery()) {
@@ -287,13 +279,6 @@ export class MariaDbQuery extends AbstractQuery {
       default:
         return new sequelizeErrors.DatabaseError(err);
     }
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => ({
-      tableName: resultSet.TABLE_NAME,
-      schema: resultSet.TABLE_SCHEMA,
-    }));
   }
 
   handleShowIndexesQuery(data) {

@@ -1,8 +1,7 @@
 import type { TruncateOptions } from 'src/model';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import type { ListSchemasQueryOptions } from '../abstract/query-generator';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { QueryWithBindParams } from '../abstract/query-generator.types';
+import type { ListSchemasQueryOptions, QueryWithBindParams } from '../abstract/query-generator.types';
 import { ENUM } from '../postgres/data-types';
 import { PostgresQueryGenerator } from '../postgres/query-generator';
 

@@ -37,7 +37,7 @@ export class CockroachDbDialect extends AbstractDialect {
       onConflictWhere: true,
     },
     dataTypes: {
-      ARRAY: { ARRAY: false },
+      ARRAY: true,
       GEOMETRY: true,
       GEOGRAPHY: true,
       JSON: true,

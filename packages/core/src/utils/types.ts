@@ -71,6 +71,8 @@ export type NonUndefinedKeys<T, K extends keyof T> = {
 
 export type AllowArray<T> = T | T[];
 
+export type AllowIterable<T> = T | Iterable<T>;
+
 export type AllowLowercase<T extends string> = T | Lowercase<T>;
 
 export type AllowReadonlyArray<T> = T | readonly T[];

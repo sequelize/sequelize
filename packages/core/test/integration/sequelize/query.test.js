@@ -7,7 +7,7 @@ const { Sequelize, DataTypes, DatabaseError, UniqueConstraintError, ForeignKeyCo
 
 const dialectName = Support.getTestDialect();
 const sequelize = Support.sequelize;
-const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+const queryGenerator = sequelize.queryGenerator;
 const sinon = require('sinon');
 const dayjs = require('dayjs');
 

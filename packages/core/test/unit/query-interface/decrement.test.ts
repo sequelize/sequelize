@@ -16,7 +16,7 @@ describe('QueryInterface#decrement', () => {
   it('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().decrement(
+    await sequelize.queryInterface.decrement(
       User,
       User.table,
       // where

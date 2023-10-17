@@ -65,8 +65,8 @@ await Promise.all([
   build({
     // Adds source mapping
     sourcemap: true,
-    // The compiled code should be usable in node v16
-    target: 'node16',
+    // The compiled code should be usable in node v18
+    target: 'node18',
     // The source code's format is commonjs.
     format: 'cjs',
 

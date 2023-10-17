@@ -41,6 +41,9 @@ export class SnowflakeDialect extends AbstractDialect {
     },
     REGEXP: true,
     globalTimeZoneConfig: true,
+    dropTable: {
+      cascade: true,
+    },
   });
 
   readonly dataTypesDocumentationUrl = 'https://docs.snowflake.com/en/sql-reference/data-types.html';

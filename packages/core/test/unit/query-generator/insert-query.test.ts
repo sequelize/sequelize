@@ -3,7 +3,7 @@ import { DataTypes, literal } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#insertQuery', () => {
-  const queryGenerator = sequelize.getQueryInterface().queryGenerator;
+  const queryGenerator = sequelize.queryGenerator;
 
   const User = sequelize.define('User', {
     firstName: DataTypes.STRING,

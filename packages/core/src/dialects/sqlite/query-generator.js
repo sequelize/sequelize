@@ -136,10 +136,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return this.replaceBooleanDefaults(sql);
   }
 
-  showTablesQuery() {
-    return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
-  }
-
   updateQuery(tableName, attrValueHash, where, options, attributes) {
     options = options || {};
     defaults(options, this.options);

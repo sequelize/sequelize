@@ -1104,7 +1104,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           // `WHERE` clause
 
           const tableName = User.getTableName();
-          await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+          await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           const tasks = await Task.findAll();
           expect(tasks).to.have.length(1);
           expect(tasks[0].UserId).to.equal(999);
@@ -1165,7 +1165,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const tableName = User.getTableName();
 
           try {
-            tasks = await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+            tasks = await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           } catch (error) {
             if (!(error instanceof Sequelize.ForeignKeyConstraintError)) {
               throw error;
