@@ -2179,7 +2179,7 @@ __metadata:
     sinon-chai: 3.7.0
     snowflake-sdk: 1.9.0
     sqlite3: 5.1.6
-    tedious: 16.4.1
+    tedious: 16.5.0
     toposort-class: ^1.0.1
     type-fest: ^3.0.0
     uuid: ^9.0.0
@@ -12394,9 +12394,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:16.4.1":
-  version: 16.4.1
-  resolution: "tedious@npm:16.4.1"
+"tedious@npm:16.5.0":
+  version: 16.5.0
+  resolution: "tedious@npm:16.5.0"
   dependencies:
     "@azure/identity": ^2.0.4
     "@azure/keyvault-keys": ^4.4.0
@@ -12410,7 +12410,7 @@ __metadata:
     node-abort-controller: ^3.1.1
     punycode: ^2.3.0
     sprintf-js: ^1.1.2
-  checksum: 694d8e7893dd2960cf5b3392c8a53994b0a00a4f979c8010900d2954085f7d346a30cf7a8a2b0f6b253853b34e86736d04f2c6ce8a732bee36145a58ed121766
+  checksum: b545b3eb2d381f91a8c04f8b14962166d88731b1534522cd4b80bb9dce99cad857f7b44cdd8438c87e6981dc62179c60f4b779e442a45f651bc9ed168e68b22c
   languageName: node
   linkType: hard
 
