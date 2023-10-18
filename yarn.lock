@@ -2138,7 +2138,7 @@ __metadata:
     "@types/pg": 8.10.6
     "@types/semver": 7.5.3
     "@types/sinon": 10.0.20
-    "@types/sinon-chai": 3.2.10
+    "@types/sinon-chai": 3.2.11
     "@types/snowflake-sdk": 1.6.14
     "@types/tedious": 4.0.12
     "@types/uuid": 9.0.5
@@ -3111,13 +3111,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sinon-chai@npm:3.2.10":
-  version: 3.2.10
-  resolution: "@types/sinon-chai@npm:3.2.10"
+"@types/sinon-chai@npm:3.2.11":
+  version: 3.2.11
+  resolution: "@types/sinon-chai@npm:3.2.11"
   dependencies:
     "@types/chai": "*"
     "@types/sinon": "*"
-  checksum: 72e1f4e4622fba57d59f482ce421a7493e26baeea7bdc57a13e4ec93af62122188f9ea14c7b16e33d0e5a198c7d5df4651401c763071f114aebdc1893e03179e
+  checksum: 269c6e08c9a4c122a6ba25ecfa62ad0630edab0c432a2f752e21204fa4236029c40401f7eece2f409edd5613ce4d9fc22a79f33ef35789fe533e87c586bb4f60
   languageName: node
   linkType: hard
 
