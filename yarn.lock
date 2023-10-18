@@ -2135,7 +2135,7 @@ __metadata:
     "@types/ibm_db": 2.0.15
     "@types/lodash": 4.14.200
     "@types/mocha": 10.0.3
-    "@types/pg": 8.10.6
+    "@types/pg": 8.10.7
     "@types/semver": 7.5.3
     "@types/sinon": 10.0.20
     "@types/sinon-chai": 3.2.11
@@ -3093,14 +3093,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pg@npm:8.10.6":
-  version: 8.10.6
-  resolution: "@types/pg@npm:8.10.6"
+"@types/pg@npm:8.10.7":
+  version: 8.10.7
+  resolution: "@types/pg@npm:8.10.7"
   dependencies:
     "@types/node": "*"
     pg-protocol: "*"
     pg-types: ^4.0.1
-  checksum: 5eccb9d74251be219c6a66bc31467e1d12a612353b86bf18899f9e13671178baa83ff695aa7cce3469f851dd898747cd499b8b464c1ca7efd40bec17553f6eb3
+  checksum: 90a616360844b6f877be21a24839af2115f5eb9c8e3eeaf577fa0f036c6c56ad140113fdd8268e63cf215bd0953d89caa1af05191dd89cb2e6d96eb6db6074d2
   languageName: node
   linkType: hard
 
