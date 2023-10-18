@@ -67,7 +67,7 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.8",
+    "@types/chai": "4.3.9",
     "@types/chai-as-promised": "7.1.7",
     "@types/chai-datetime": "0.0.37",
     "@types/ibm_db": "2.0.14",
