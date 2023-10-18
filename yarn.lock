@@ -2128,7 +2128,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
-    "@types/chai": 4.3.8
+    "@types/chai": 4.3.9
     "@types/chai-as-promised": 7.1.7
     "@types/chai-datetime": 0.0.37
     "@types/debug": ^4.1.7
@@ -2243,7 +2243,7 @@ __metadata:
   resolution: "@sequelize/validator.js@workspace:packages/validator-js"
   dependencies:
     "@sequelize/core": "workspace:*"
-    "@types/chai": 4.3.8
+    "@types/chai": 4.3.9
     "@types/chai-as-promised": 7.1.7
     chai: 4.3.10
     chai-as-promised: 7.1.1
@@ -2965,10 +2965,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:*, @types/chai@npm:4.3.8":
+"@types/chai@npm:*":
   version: 4.3.8
   resolution: "@types/chai@npm:4.3.8"
   checksum: 21431e46fa4a5602641726a24c7631bbf7ba8a41b1a290d0c73dcef6b3521c1d973ee605236b83a978cc918e55470fd04a3109d51aa30dcdf93a8b122e6c3e2c
+  languageName: node
+  linkType: hard
+
+"@types/chai@npm:4.3.9":
+  version: 4.3.9
+  resolution: "@types/chai@npm:4.3.9"
+  checksum: 2300a2c7abd4cb590349927a759b3d0172211a69f363db06e585faf7874a47f125ef3b364cce4f6190e3668147587fc11164c791c9560cf9bce8478fb7019610
   languageName: node
   linkType: hard
 
