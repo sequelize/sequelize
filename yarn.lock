@@ -2132,7 +2132,7 @@ __metadata:
     "@types/chai-as-promised": 7.1.7
     "@types/chai-datetime": 0.0.38
     "@types/debug": ^4.1.7
-    "@types/ibm_db": 2.0.14
+    "@types/ibm_db": 2.0.15
     "@types/lodash": 4.14.199
     "@types/mocha": 10.0.2
     "@types/pg": 8.10.5
@@ -2995,10 +2995,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ibm_db@npm:2.0.14":
-  version: 2.0.14
-  resolution: "@types/ibm_db@npm:2.0.14"
-  checksum: 47f92a5893b8d1c6a072e7ce8648beea92e221d1e5dcc395cc71658952af06f623ab7b503b6e503d99fd4821bc4baa9a9174446fed44d2b8e53cba3cc2375a75
+"@types/ibm_db@npm:2.0.15":
+  version: 2.0.15
+  resolution: "@types/ibm_db@npm:2.0.15"
+  checksum: 1d8c4957f4c9435fef0dcefae6849f5034564424488baaa5ebbe8447547e42732fe7bac36f042098fa93165f219909bbbb21d47c9dad5934f84201191a738a8c
   languageName: node
   linkType: hard
 
