@@ -892,7 +892,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             beforeEach(() => Memberships.sync({ force: true }));
 
             it('should insert items with conflictWhere', async () => {
-              const memberships = new Array(10).fill().map((_, i) => ({
+              const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                 user_id: i + 1,
                 foreign_id: i + 20,
                 time_deleted: null,
@@ -911,7 +911,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
 
             it('should not conflict with soft deleted memberships', async () => {
-              const memberships = new Array(10).fill().map((_, i) => ({
+              const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                 user_id: i + 1,
                 foreign_id: i + 20,
                 time_deleted: new Date(),
@@ -945,7 +945,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
 
             it('should upsert existing memberships', async () => {
-              const memberships = new Array(10).fill().map((_, i) => ({
+              const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                 user_id: i + 1,
                 foreign_id: i + 20,
                 time_deleted: i % 2 ? new Date() : null,
@@ -1031,7 +1031,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               beforeEach(() => Memberships.sync({ force: true }));
 
               it('should insert items with conflictWhere', async () => {
-                const memberships = new Array(10).fill().map((_, i) => ({
+                const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                   user_id: i + 1,
                   foreign_id: i + 20,
                   time_deleted: null,
@@ -1050,7 +1050,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               });
 
               it('should not conflict with soft deleted memberships', async () => {
-                const memberships = new Array(10).fill().map((_, i) => ({
+                const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                   user_id: i + 1,
                   foreign_id: i + 20,
                   time_deleted: new Date(),
@@ -1084,7 +1084,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               });
 
               it('should upsert existing memberships', async () => {
-                const memberships = new Array(10).fill().map((_, i) => ({
+                const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                   user_id: i + 1,
                   foreign_id: i + 20,
                   time_deleted: i % 2 ? new Date() : null,

@@ -8,7 +8,7 @@ const expect = chai.expect;
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const { Op, IndexHints } = require('@sequelize/core');
+const { Op } = require('@sequelize/core');
 const { SnowflakeQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/snowflake/query-generator.js');
 const { createSequelizeInstance } = require('../../../support');
 
@@ -209,29 +209,6 @@ if (dialect === 'snowflake') {
           expectation: 'SELECT * FROM "myTable" GROUP BY "name" ORDER BY "id" DESC;',
           context: QueryGenerator,
         }, {
-          arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 10;',
-          context: QueryGenerator,
-        }, {
-          arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 10 OFFSET 2;',
-          context: QueryGenerator,
-        }, {
-          title: 'uses default limit if only offset is specified',
-          arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT NULL OFFSET 2;',
-          context: QueryGenerator,
-        }, {
-          title: 'uses limit 0',
-          arguments: ['myTable', { limit: 0 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 0;',
-          context: QueryGenerator,
-        }, {
-          title: 'uses offset 0',
-          arguments: ['myTable', { offset: 0 }],
-          expectation: 'SELECT * FROM "myTable";',
-          context: QueryGenerator,
-        }, {
           title: 'Empty having',
           arguments: ['myTable', function () {
             return {
@@ -334,29 +311,6 @@ if (dialect === 'snowflake') {
         }, {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM myTable GROUP BY name ORDER BY id DESC;',
-          context: { options: { quoteIdentifiers: false } },
-        },  {
-          arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM myTable LIMIT 10;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM myTable LIMIT 10 OFFSET 2;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          title: 'uses default limit if only offset is specified',
-          arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM myTable LIMIT NULL OFFSET 2;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          title: 'uses limit 0',
-          arguments: ['myTable', { limit: 0 }],
-          expectation: 'SELECT * FROM myTable LIMIT 0;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          title: 'uses offset 0',
-          arguments: ['myTable', { offset: 0 }],
-          expectation: 'SELECT * FROM myTable;',
           context: { options: { quoteIdentifiers: false } },
         }, {
           title: 'Empty having',

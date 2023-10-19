@@ -623,7 +623,6 @@ Use Sequelize#query if you wish to use replacements.`);
     options = { ...this.options.query, ...options, bindParameterOrder: null };
 
     let bindParameters;
-    let bindParameterOrder;
     if (options.bind != null) {
       const isBindArray = Array.isArray(options.bind);
       if (!isPlainObject(options.bind) && !isBindArray) {

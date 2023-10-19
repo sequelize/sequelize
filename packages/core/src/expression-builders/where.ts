@@ -60,9 +60,8 @@ export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends
       this.where = PojoWhere.create(args[0], args[1]);
     } else {
       if (typeof args[1] === 'string') {
-        // TODO: link to actual page
         throw new TypeError(`where(left, operator, right) does not accept a string as the operator. Use one of the operators available in the Op object.
-If you wish to use custom operators not provided by Sequelize, you can use the "sql" template literal tag. Refer to the documentation on custom operators on https://sequelize.org/ for more details.`);
+If you wish to use custom operators not provided by Sequelize, you can use the "sql" template literal tag. Refer to the documentation on custom operators on https://sequelize.org/docs/v7/querying/operators/#custom-operators for more details.`);
       }
 
       // normalize where(col, op, val)

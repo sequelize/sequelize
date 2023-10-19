@@ -7,7 +7,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 const promiseProps = require('p-props');
 
 const sortById = function (a, b) {

@@ -147,7 +147,7 @@ describe('fn', () => {
 
     expectsql(out, {
       default: `concat(ARRAY['abc'])`,
-      postgres: `concat(ARRAY['abc']::VARCHAR(255)[])`,
+      'postgres cockroachdb': `concat(ARRAY['abc']::VARCHAR(255)[])`,
     });
   });
 });

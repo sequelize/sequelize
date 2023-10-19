@@ -73,6 +73,14 @@ export class CockroachDbDialect extends AbstractDialect {
       removeOptions: { cascade: true, ifExists: true },
     },
     transactions: false,
+    removeColumn: {
+      ifExists: true,
+      cascade: true,
+      primaryKeyColumn: false,
+    },
+    renameTable: {
+      changeSchemaAndTable: false,
+    },
   });
 
   readonly connectionManager: CockroachdbConnectionManager;

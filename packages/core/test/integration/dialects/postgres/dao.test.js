@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes, Op, json } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
 describe('[POSTGRES Specific] DAO', () => {
   if (dialect !== 'postgres') {

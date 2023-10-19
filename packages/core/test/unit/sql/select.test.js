@@ -1,12 +1,10 @@
 'use strict';
 
 const Support = require('../../support');
-const { DataTypes, Model, Op } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 const util = require('node:util');
-const chai = require('chai');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
-const expect = chai.expect;
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
@@ -76,8 +74,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: `SELECT [User].* FROM (${
         [
-          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
-          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
+          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC LIMIT 3) AS sub`,
+          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC LIMIT 3) AS sub`,
+        ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+      }) AS [User];`,
+      'db2 ibmi': `SELECT [User].* FROM (${
+        [
+          `SELECT * FROM (SELECT "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "User" WHERE "User"."companyId" = 1 ORDER BY "last_name" ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+          `SELECT * FROM (SELECT "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "User" WHERE "User"."companyId" = 5 ORDER BY "last_name" ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+        ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+      }) AS [User];`,
+      mssql: `SELECT [User].* FROM (${
+        [
+          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
+          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
         ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
       }) AS [User];`,
     });
@@ -135,7 +145,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 1
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC LIMIT 3
             ) AS sub`,
             `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
@@ -143,7 +153,47 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 5
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC LIMIT 3
+            ) AS sub`,
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        'db2 ibmi': `SELECT [user].* FROM (${
+          [
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 1
+              ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+              ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        mssql: `SELECT [user].* FROM (${
+          [
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 1
+              ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+              ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
             ) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] ORDER BY [subquery_order_0] ASC;`,
@@ -181,7 +231,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 ON [user].[id_user] = [project_user].[user_id]
                 AND ([project_user].[project_id] = 1
                 AND [project_user].[status] = 1)
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC LIMIT 3
             ) AS sub`,
             `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
@@ -190,7 +240,51 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 ON [user].[id_user] = [project_user].[user_id]
                 AND ([project_user].[project_id] = 5
                 AND [project_user].[status] = 1)
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC LIMIT 3
+            ) AS sub`,
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        'db2 ibmi': `SELECT [user].* FROM (${
+          [
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND ([project_user].[project_id] = 1
+                AND [project_user].[status] = 1)
+              ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND ([project_user].[project_id] = 5
+                AND [project_user].[status] = 1)
+              ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        mssql: `SELECT [user].* FROM (${
+          [
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND ([project_user].[project_id] = 1
+                AND [project_user].[status] = 1)
+              ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND ([project_user].[project_id] = 5
+                AND [project_user].[status] = 1)
+              ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
             ) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] ORDER BY [subquery_order_0] ASC;`,
@@ -228,7 +322,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                  ON [user].[id_user] = [project_user].[user_id]
                  AND [project_user].[project_id] = 1
                WHERE [user].[age] >= 21
-               ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+               ORDER BY [subquery_order_0] ASC LIMIT 3
             ) AS sub`,
             `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
@@ -237,7 +331,51 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 5
               WHERE [user].[age] >= 21
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC LIMIT 3
+            ) AS sub`,
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        'db2 ibmi': `SELECT [user].* FROM (${
+          [
+            `SELECT * FROM (
+               SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+               FROM [users] AS [user]
+               INNER JOIN [project_users] AS [project_user]
+                 ON [user].[id_user] = [project_user].[user_id]
+                 AND [project_user].[project_id] = 1
+               WHERE [user].[age] >= 21
+               ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+              WHERE [user].[age] >= 21
+              ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        mssql: `SELECT [user].* FROM (${
+          [
+            `SELECT * FROM (
+               SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+               FROM [users] AS [user]
+               INNER JOIN [project_users] AS [project_user]
+                 ON [user].[id_user] = [project_user].[user_id]
+                 AND [project_user].[project_id] = 1
+               WHERE [user].[age] >= 21
+               ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+              WHERE [user].[age] >= 21
+              ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
             ) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] ORDER BY [subquery_order_0] ASC;`,
@@ -323,8 +461,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (${
           [
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: [['last_name', 'ASC']] })}) AS sub`,
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: [['last_name', 'ASC']] })}) AS sub`,
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC LIMIT 3) AS sub`,
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC LIMIT 3) AS sub`,
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];`,
+        'db2 ibmi': `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (${
+          [
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];`,
+        mssql: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (${
+          [
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];`,
       });
@@ -347,16 +497,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         hasMultiAssociation: true, // must be set only for mssql dialect here
         subQuery: true,
       }, {
-        default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC${
-          sql.addLimitAndOffset({
-            limit: 30,
-            offset: 10,
-            order: [['`user`.`last_name`', 'ASC']],
-          })
-        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC;`,
-        ibmi: `${`SELECT "user".*, "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title" FROM (SELECT "user"."id_user" AS "id", "user"."email", "user"."first_name" AS "firstName", "user"."last_name" AS "lastName" FROM "users" AS "user" ORDER BY "user"."""last_name""" ASC`}${
-          sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['`user`.`last_name`', 'ASC']] })
-        }) AS "user" LEFT OUTER JOIN "post" AS "POSTS" ON "user"."id_user" = "POSTS"."user_id" ORDER BY "user"."""last_name""" ASC`,
+        default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC LIMIT 30 OFFSET 10) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC;`,
+        'db2 ibmi mssql': `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC OFFSET 10 ROWS FETCH NEXT 30 ROWS ONLY) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC;`,
       });
 
       // By default, SELECT with include of a multi association & limit will be ran as a subQuery
@@ -382,9 +524,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: Support.minifySql(`SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
           FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
           ON [user].[id_user] = [POSTS].[user_id]
-          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC
-          ${sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['last_name', 'ASC']], include }, User)};
-        `),
+          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC LIMIT 30 OFFSET 10;`),
+        'db2 ibmi mssql': Support.minifySql(`SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
+          FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
+          ON [user].[id_user] = [POSTS].[user_id]
+          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC OFFSET 10 ROWS FETCH NEXT 30 ROWS ONLY;`),
       });
 
       const nestedInclude = _validateIncludedElements({
@@ -423,8 +567,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title], [POSTS->COMMENTS].[id] AS [POSTS.COMMENTS.id], [POSTS->COMMENTS].[title] AS [POSTS.COMMENTS.title] FROM (${
           [
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC LIMIT 3) AS sub`,
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC LIMIT 3) AS sub`,
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`,
+        'db2 ibmi': `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title], [POSTS->COMMENTS].[id] AS [POSTS.COMMENTS.id], [POSTS->COMMENTS].[title] AS [POSTS.COMMENTS.title] FROM (${
+          [
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`,
+        mssql: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title], [POSTS->COMMENTS].[id] AS [POSTS.COMMENTS.id], [POSTS->COMMENTS].[title] AS [POSTS.COMMENTS.title] FROM (${
+          [
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
+            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
           ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
         }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`,
       });
@@ -596,7 +752,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'SELECT [User].* FROM '
             + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
             + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
-            + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
+            + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] LIMIT 1) IS NOT NULL) AS [User];`,
+          'db2 ibmi': 'SELECT [User].* FROM '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
+            + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] FETCH NEXT 1 ROWS ONLY) IS NOT NULL) AS [User];`,
+          mssql: 'SELECT [User].* FROM '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
+            + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY) IS NOT NULL) AS [User];`,
         });
       });
 
@@ -621,7 +785,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'SELECT [User].* FROM '
             + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
             + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
-            + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
+            + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] LIMIT 1) IS NOT NULL) AS [User];`,
+          'db2 ibmi': 'SELECT [User].* FROM '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
+            + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] FETCH NEXT 1 ROWS ONLY) IS NOT NULL) AS [User];`,
+          mssql: 'SELECT [User].* FROM '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
+            + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY) IS NOT NULL) AS [User];`,
         });
       });
     });
@@ -671,14 +843,32 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         subQuery: true,
       }, Company), {
         default: 'SELECT [Company].* FROM ('
-        + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
-        + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
-        + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
-        + `WHERE ([Company].[scopeId] IN (42) AND [Users->Profession].[name] = ${sql.escape('test')}) AND ( `
-        + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
-        + 'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] '
-        + `WHERE [Users].[companyId] = [Company].[id]${sql.addLimitAndOffset({ limit: 1, tableAs: 'Users' }, User)} `
-        + `) IS NOT NULL${sql.addLimitAndOffset({ limit: 5, offset: 0, tableAs: 'Company' }, Company)}) AS [Company];`,
+          + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
+          + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
+          + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
+          + `WHERE ([Company].[scopeId] IN (42) AND [Users->Profession].[name] = ${sql.escape('test')}) AND ( `
+          + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
+          + 'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] '
+          + `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Users].[id] LIMIT 1`
+          + `) IS NOT NULL ORDER BY [Company].[id] LIMIT 5) AS [Company];`,
+        'db2 ibmi': 'SELECT [Company].* FROM ('
+          + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
+          + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
+          + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
+          + `WHERE ([Company].[scopeId] IN (42) AND [Users->Profession].[name] = ${sql.escape('test')}) AND ( `
+          + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
+          + 'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] '
+          + `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Users].[id] FETCH NEXT 1 ROWS ONLY`
+          + `) IS NOT NULL ORDER BY [Company].[id] FETCH NEXT 5 ROWS ONLY) AS [Company];`,
+        mssql: 'SELECT [Company].* FROM ('
+          + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
+          + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
+          + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
+          + `WHERE ([Company].[scopeId] IN (42) AND [Users->Profession].[name] = ${sql.escape('test')}) AND ( `
+          + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
+          + 'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] '
+          + `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Users].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY`
+          + `) IS NOT NULL ORDER BY [Company].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY) AS [Company];`,
       });
     });
 

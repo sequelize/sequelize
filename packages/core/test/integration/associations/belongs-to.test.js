@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const user = await task.getUserXYZ();
         expect(user).to.be.ok;
         await this.sequelize.dropSchema('archive');
-        const schemas = await this.sequelize.showAllSchemas();
+        const schemas = await this.sequelize.queryInterface.listSchemas();
         if (['postgres', 'mssql', 'mariadb', 'cockroachdb'].includes(dialect)) {
           expect(schemas).to.not.have.property('archive');
         }

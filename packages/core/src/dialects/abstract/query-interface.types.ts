@@ -10,6 +10,7 @@ import type {
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
 } from './query-generator.types';
 
@@ -76,8 +77,8 @@ export interface ListDatabasesOptions extends ListDatabasesQueryOptions, QueryRa
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
 
-/** Options accepted by {@link AbstractQueryInterface#showAllSchemas} */
-export interface ShowAllSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
+/** Options accepted by {@link AbstractQueryInterface#listSchemas} */
+export interface QiListSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllSchemas} */
 export interface QiDropAllSchemasOptions extends QueryRawOptions {
@@ -87,8 +88,8 @@ export interface QiDropAllSchemasOptions extends QueryRawOptions {
   skip?: string[];
 }
 
-/** Options accepted by {@link AbstractQueryInterface#showAllTables} */
-export interface QiShowAllTablesOptions extends ListTablesQueryOptions, QueryRawOptions { }
+/** Options accepted by {@link AbstractQueryInterface#listTables} */
+export interface QiListTablesOptions extends ListTablesQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#describeTable} */
 export interface DescribeTableOptions extends QueryRawOptions {
@@ -109,6 +110,9 @@ export interface QiDropTableOptions extends DropTableQueryOptions, QueryRawOptio
 export interface QiDropAllTablesOptions extends QiDropTableOptions {
   skip?: string[];
 }
+
+/** Options accepted by {@link AbstractQueryInterface#renameTable} */
+export interface RenameTableOptions extends RenameTableQueryOptions, QueryRawOptions { }
 
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}
 

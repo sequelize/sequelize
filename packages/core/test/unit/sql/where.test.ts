@@ -247,7 +247,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       for (const [arrayOperator, arraySqlOperator] of arrayOperators) {
         testSql({ [attributeName]: { [operator]: { [arrayOperator]: testWithValues } } }, {
           default: `[${attributeName}] ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}])`,
-          postgres: `"${attributeName}" ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}]${attributeName === 'stringAttr' ? '::VARCHAR(255)[]' : ''})`,
+          'postgres cockroachdb': `"${attributeName}" ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}]${attributeName === 'stringAttr' ? '::VARCHAR(255)[]' : ''})`,
         });
 
         testSql({ [attributeName]: { [operator]: { [arrayOperator]: literal('literal') } } }, {

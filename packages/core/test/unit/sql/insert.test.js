@@ -5,8 +5,8 @@ const { DataTypes } = require('@sequelize/core');
 const { expect } = require('chai');
 
 const expectsql = Support.expectsql;
-const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
+const current   = Support.sequelize;
+const sql       = current.dialect.queryGenerator;
 const dialect = current.dialect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation

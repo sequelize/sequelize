@@ -1,5 +1,4 @@
 import { QueryTypes } from '../../query-types';
-import { PostgresQuery } from '../postgres/query';
 import { AbstractQuery } from '../abstract/query';
 import * as sequelizeErrors from '../../errors';
 import { logger } from '../../utils/logger';
@@ -176,29 +175,6 @@ export class CockroachDbQuery extends AbstractQuery {
       }
 
       return rows;
-    }
-
-    if (this.isForeignKeysQuery()) {
-      const result = [];
-      for (const row of rows) {
-        let defParts;
-        if (row.condef !== undefined && (defParts = row.condef.match(/FOREIGN KEY \((.+)\) REFERENCES (.+)\((.+)\)( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?( ON (UPDATE|DELETE) (CASCADE|RESTRICT))?/))) {
-          row.id = row.constraintName;
-          row.table = defParts[2];
-          row.from = defParts[1];
-          row.to = defParts[3];
-          let i;
-          for (i = 5; i <= 8; i += 3) {
-            if (/(UPDATE|DELETE)/.test(defParts[i])) {
-              row[`on_${defParts[i].toLowerCase()}`] = defParts[i + 1];
-            }
-          }
-        }
-
-        result.push(row);
-      }
-
-      return result;
     }
 
     if (this.isSelectQuery()) {

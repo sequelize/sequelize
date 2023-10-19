@@ -7,7 +7,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize, Op, AggregateError, col } = require('@sequelize/core');
+const { DataTypes, Sequelize, Op, AggregateError } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -938,7 +938,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to list schemas', async function () {
-        const schemas = await this.sequelize.showAllSchemas();
+        const schemas = await this.sequelize.queryInterface.listSchemas();
 
         const expectedSchemas = {
           // "sequelize_test" is the default schema, which some dialects will not delete

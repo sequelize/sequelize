@@ -160,19 +160,6 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator,
-        }, {
-          arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 10;',
-          context: QueryGenerator,
-        }, {
-          arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT 10 OFFSET 2;',
-          context: QueryGenerator,
-        }, {
-          title: 'uses default limit if only offset is specified',
-          arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM `myTable` LIMIT -1 OFFSET 2;',
-          context: QueryGenerator,
         },
       ],
 
@@ -349,19 +336,6 @@ if (dialect === 'sqlite') {
             bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
-        },
-      ],
-      renameColumnQuery: [
-        {
-          title: 'Properly quotes column names',
-          arguments: ['myTable', 'foo', 'commit', { commit: 'VARCHAR(255)', bar: 'VARCHAR(255)' }],
-          expectation:
-            'CREATE TABLE IF NOT EXISTS `myTable_backup` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable_backup` SELECT `foo` AS `commit`, `bar` FROM `myTable`;'
-            + 'DROP TABLE `myTable`;'
-            + 'CREATE TABLE IF NOT EXISTS `myTable` (`commit` VARCHAR(255), `bar` VARCHAR(255));'
-            + 'INSERT INTO `myTable` SELECT `commit`, `bar` FROM `myTable_backup`;'
-            + 'DROP TABLE `myTable_backup`;',
         },
       ],
       foreignKeyCheckQuery: [

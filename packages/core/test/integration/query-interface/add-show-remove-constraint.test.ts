@@ -96,11 +96,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       const constraints = constraintType.filter(constraint => constraint.constraintName === 'custom_constraint_name');
       expect(constraints).to.have.length(1);
       expect(constraints[0]).to.deep.equal({
-        ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
         constraintSchema: defaultSchema,
         constraintName: 'custom_constraint_name',
         constraintType: 'UNIQUE',
-        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
         tableSchema: defaultSchema,
         tableName: 'actors',
         columnNames: ['name', 'age'],
@@ -133,11 +133,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       const foreignKeys = await queryInterface.showConstraints('actors', { columnName: 'level_id', constraintType: 'FOREIGN KEY' });
       expect(foreignKeys).to.have.length(1);
       expect(foreignKeys[0]).to.deep.equal({
-        ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
         constraintSchema: defaultSchema,
         constraintName: 'custom_constraint_name',
         constraintType: 'FOREIGN KEY',
-        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
         tableSchema: defaultSchema,
         tableName: 'actors',
         columnNames: ['level_id'],
@@ -163,20 +163,23 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       const primaryKeys = await queryInterface.showConstraints('levels', { columnName: 'id', constraintType: 'PRIMARY KEY' });
       expect(primaryKeys).to.have.length(1);
       expect(primaryKeys[0]).to.deep.equal({
-        ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
         constraintSchema: defaultSchema,
         constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
         constraintType: 'PRIMARY KEY',
-        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
         tableSchema: defaultSchema,
         tableName: 'levels',
         columnNames: ['id'],
         ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
       });
 
-      await queryInterface.removeConstraint('levels', ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels');
-      const pkAfterRemove = await queryInterface.showConstraints('levels', { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' });
-      expect(pkAfterRemove).to.have.length(0);
+      // Cockroachdb does not allow dropping primary key constraint without subsequent addition of one in the same transaction
+      if (dialect !== 'cockroachdb') {
+        await queryInterface.removeConstraint('levels', ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels');
+        const pkAfterRemove = await queryInterface.showConstraints('levels', { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' });
+        expect(pkAfterRemove).to.have.length(0);
+      }
     });
 
     it('should add, show and delete a composite PRIMARY & FOREIGN KEY constraint', async () => {
@@ -200,11 +203,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       const foreignKeys = await queryInterface.showConstraints('actors', { constraintType: 'FOREIGN KEY' });
       expect(foreignKeys).to.have.length(1);
       expect(foreignKeys[0]).to.deep.equal({
-        ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
         constraintSchema: defaultSchema,
         constraintName: 'custom_constraint_name',
         constraintType: 'FOREIGN KEY',
-        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
         tableSchema: defaultSchema,
         tableName: 'actors',
         columnNames: ['level_id', 'manager_id'],
@@ -230,20 +233,22 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       const primaryKeys = await queryInterface.showConstraints('levels', { constraintType: 'PRIMARY KEY' });
       expect(primaryKeys).to.have.length(1);
       expect(primaryKeys[0]).to.deep.equal({
-        ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
         constraintSchema: defaultSchema,
         constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
         constraintType: 'PRIMARY KEY',
-        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
         tableSchema: defaultSchema,
         tableName: 'levels',
         columnNames: ['id', 'manager_id'],
         ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
       });
 
-      await queryInterface.removeConstraint('levels', ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels');
-      const pkAfterRemove = await queryInterface.showConstraints('levels', { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' });
-      expect(pkAfterRemove).to.have.length(0);
+      if (dialect !== 'cockroachdb') {
+        await queryInterface.removeConstraint('levels', ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels');
+        const pkAfterRemove = await queryInterface.showConstraints('levels', { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' });
+        expect(pkAfterRemove).to.have.length(0);
+      }
     });
 
     if (sequelize.dialect.supports.constraints.onUpdate) {
@@ -270,11 +275,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         const constraints = constraintType.filter(constraint => constraint.constraintName === 'custom_constraint_name');
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({
-          ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+          ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
           constraintSchema: defaultSchema,
           constraintName: 'custom_constraint_name',
           constraintType: 'FOREIGN KEY',
-          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+          ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
           tableSchema: defaultSchema,
           tableName: 'actors',
           columnNames: ['level_id'],
@@ -306,6 +311,9 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           // Postgres adds a CHECK constraint for each column with not null
           expect(constraintType).to.have.length(6);
           expect(constraintType[5].constraintType).to.equal('CHECK');
+        } else if (dialect === 'cockroachdb') {
+          expect(constraintType).to.have.length(7);
+          expect(constraintType[5].constraintType).to.equal('CHECK');
         } else {
           expect(constraintType).to.have.length(1);
           expect(constraintType[0].constraintType).to.equal('CHECK');
@@ -314,11 +322,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         const constraints = constraintType.filter(constraint => constraint.constraintName === 'custom_constraint_name');
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({
-          ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+          ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
           constraintSchema: defaultSchema,
           constraintName: 'custom_constraint_name',
           constraintType: 'CHECK',
-          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+          ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
           tableSchema: defaultSchema,
           tableName: 'actors',
           definition: dialect === 'mssql'
@@ -329,6 +337,8 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             ? '((age > 10))'
             : dialect === 'sqlite'
             ? '(`age` > 10)'
+            : dialect === 'cockroachdb'
+            ? '((age > 10:::INT8))'
             : '`age` > 10',
           ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
         });
@@ -352,11 +362,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         const constraints = constraintType.filter(constraint => constraint.constraintName === 'custom_constraint_name');
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({
-          ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+          ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
           constraintSchema: defaultSchema,
           constraintName: 'custom_constraint_name',
           constraintType: 'DEFAULT',
-          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+          ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
           tableSchema: defaultSchema,
           tableName: 'actors',
           columnNames: ['status'],
@@ -462,11 +472,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         const foreignKeys = await queryInterface.showConstraints({ tableName: 'actors', schema }, { columnName: 'level_id', constraintType: 'FOREIGN KEY' });
         expect(foreignKeys).to.have.length(1);
         expect(foreignKeys[0]).to.deep.equal({
-          ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+          ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
           constraintSchema: schema,
           constraintName: 'custom_constraint_name',
           constraintType: 'FOREIGN KEY',
-          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+          ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
           tableSchema: schema,
           tableName: 'actors',
           columnNames: ['level_id'],
@@ -492,11 +502,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         const primaryKeys = await queryInterface.showConstraints({ tableName: 'levels', schema }, { columnName: 'id', constraintType: 'PRIMARY KEY' });
         expect(primaryKeys).to.have.length(1);
         expect(primaryKeys[0]).to.deep.equal({
-          ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+          ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
           constraintSchema: schema,
           constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
           constraintType: 'PRIMARY KEY',
-          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+          ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
           tableSchema: schema,
           tableName: 'levels',
           columnNames: ['id'],
@@ -505,15 +515,15 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
 
         if (dialect === 'cockroachdb') {
           const t = await sequelize.startUnmanagedTransaction();
-          await queryInterface.removeConstraint({ tableName: 'actors', schema: 'archive' }, 'custom_constraint_name', { transaction: t });
-          await queryInterface.addConstraint({ tableName: 'actors', schema: 'archive' }, {
+          await queryInterface.removeConstraint({ tableName: 'levels', schema }, 'pk_levels', { transaction: t });
+          await queryInterface.addConstraint({ tableName: 'levels', schema }, {
             name: 'custom_constraint_name_2',
             type: 'PRIMARY KEY',
-            fields: ['name'],
+            fields: ['id'],
             transaction: t,
           });
           await t.commit();
-          const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'actors', schema: 'archive' }, { constraintName: 'custom_constraint_name' });
+          const constraintsAfterRemove = await queryInterface.showConstraints({ tableName: 'levels', schema }, { constraintName: 'custom_constraint_name' });
           expect(constraintsAfterRemove).to.have.length(0);
         } else {
           await queryInterface.removeConstraint({ tableName: 'levels', schema }, ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels');

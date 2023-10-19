@@ -1,11 +1,19 @@
 import type { TruncateOptions } from 'src/model';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ListSchemasQueryOptions, QueryWithBindParams } from '../abstract/query-generator.types';
+import type { QueryWithBindParams } from '../abstract/query-generator.types';
 import { ENUM } from '../postgres/data-types';
 import { PostgresQueryGenerator } from '../postgres/query-generator';
 
 export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
+
+  protected _getTechnicalDatabaseNames(): string[] {
+    return ['defaultdb', 'system'];
+  }
+
+  protected _getTechnicalSchemaNames() {
+    return ['crdb_internal', 'information_schema'];
+  }
 
   describeTableQuery(tableName: TableNameOrModel): string {
     const table = this.extractTableDetails(tableName);
@@ -67,16 +75,6 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
     }
 
     return super.dropSchemaQuery(schema);
-  }
-
-  listSchemasQuery(options: ListSchemasQueryOptions): string {
-    const schemasToSkip = ['crdb_internal'];
-
-    if (options?.skip) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return super.listSchemasQuery({ skip: schemasToSkip });
   }
 
   showIndexesQuery(tableName: TableNameOrModel): string {
