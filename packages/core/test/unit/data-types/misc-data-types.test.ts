@@ -167,7 +167,7 @@ describe('DataTypes.RANGE', () => {
 
 describe('DataTypes.JSON', () => {
   testDataTypeSql('JSON', DataTypes.JSON, {
-    default: new Error(`${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+    default: new Error(`${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
 
     // All dialects must support DataTypes.JSON. If your dialect does not have a native JSON type, use an as-big-as-possible text type instead.
     'mariadb mysql postgres': 'JSON',
@@ -235,7 +235,7 @@ describe('DataTypes.JSON', () => {
 
 describe('DataTypes.JSONB', () => {
   testDataTypeSql('JSONB', DataTypes.JSONB, {
-    default: new Error(`${dialectName} does not support the JSONB data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+    default: new Error(`${dialectName} does not support the JSONB data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
     postgres: 'JSONB',
   });
 });
@@ -243,7 +243,7 @@ describe('DataTypes.JSONB', () => {
 describe('DataTypes.HSTORE', () => {
   describe('toSql', () => {
     testDataTypeSql('HSTORE', DataTypes.HSTORE, {
-      default: new Error(`${dialectName} does not support the HSTORE data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+      default: new Error(`${dialectName} does not support the HSTORE data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       postgres: 'HSTORE',
     });
   });
