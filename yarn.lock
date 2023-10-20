@@ -2175,7 +2175,7 @@ __metadata:
     rimraf: 5.0.5
     semver: ^7.3.7
     sequelize-pool: ^8.0.0
-    sinon: 16.1.3
+    sinon: 17.0.0
     sinon-chai: 3.7.0
     snowflake-sdk: 1.9.0
     sqlite3: 5.1.6
@@ -2314,12 +2314,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sinonjs/fake-timers@npm:^10.0.2, @sinonjs/fake-timers@npm:^10.3.0":
+"@sinonjs/fake-timers@npm:^10.0.2":
   version: 10.3.0
   resolution: "@sinonjs/fake-timers@npm:10.3.0"
   dependencies:
     "@sinonjs/commons": ^3.0.0
   checksum: 614d30cb4d5201550c940945d44c9e0b6d64a888ff2cd5b357f95ad6721070d6b8839cd10e15b76bf5e14af0bcc1d8f9ec00d49a46318f1f669a4bec1d7f3148
+  languageName: node
+  linkType: hard
+
+"@sinonjs/fake-timers@npm:^11.2.2":
+  version: 11.2.2
+  resolution: "@sinonjs/fake-timers@npm:11.2.2"
+  dependencies:
+    "@sinonjs/commons": ^3.0.0
+  checksum: 68c29b0e1856fdc280df03ddbf57c726420b78e9f943a241b471edc018fb14ff36fdc1daafd6026cba08c3c7f50c976fb7ae11b88ff44cd7f609692ca7d25158
   languageName: node
   linkType: hard
 
@@ -9456,16 +9465,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nise@npm:^5.1.4":
-  version: 5.1.4
-  resolution: "nise@npm:5.1.4"
+"nise@npm:^5.1.5":
+  version: 5.1.5
+  resolution: "nise@npm:5.1.5"
   dependencies:
     "@sinonjs/commons": ^2.0.0
     "@sinonjs/fake-timers": ^10.0.2
     "@sinonjs/text-encoding": ^0.7.1
     just-extend: ^4.0.2
     path-to-regexp: ^1.7.0
-  checksum: bc57c10eaec28a6a7ddfb2e1e9b21d5e1fe22710e514f8858ae477cf9c7e9c891475674d5241519193403db43d16c3675f4207bc094a7a27b7e4f56584a78c1b
+  checksum: c763dc62c5796cafa5c9268e14a5b34db6e6fa2f1dbc57a891fe5d7ea632a87868e22b5bb34965006f984630793ea11368351e94971163228d9e20b2e88edce8
   languageName: node
   linkType: hard
 
@@ -11723,17 +11732,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sinon@npm:16.1.3":
-  version: 16.1.3
-  resolution: "sinon@npm:16.1.3"
+"sinon@npm:17.0.0":
+  version: 17.0.0
+  resolution: "sinon@npm:17.0.0"
   dependencies:
     "@sinonjs/commons": ^3.0.0
-    "@sinonjs/fake-timers": ^10.3.0
+    "@sinonjs/fake-timers": ^11.2.2
     "@sinonjs/samsam": ^8.0.0
     diff: ^5.1.0
-    nise: ^5.1.4
+    nise: ^5.1.5
     supports-color: ^7.2.0
-  checksum: 83e5ccd724efdb5d1471e41b2cfaf4a46d9fe2cc76c15a23dedfbd741f7d448e6aec3d34a8253a79bdf8ddcc5bd889c5277ae71879e4709c621cb41094fbcdab
+  checksum: f7b5dee7676222d42c00ec30087d92780cee526ed3266cdddffce845a4d3775ba9e871a77aaee7a1c46b1f2b307aaa2fb6a1f99dde84a4f12ee4e80459f5a9dc
   languageName: node
   linkType: hard
 
