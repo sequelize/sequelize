@@ -58,7 +58,7 @@
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
     "esbuild": "0.17.19",
-    "eslint": "8.51.0",
+    "eslint": "8.52.0",
     "eslint-plugin-jsdoc": "46.8.2",
     "eslint-plugin-mocha": "10.2.0",
     "fast-glob": "3.3.1",
