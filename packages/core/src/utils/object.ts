@@ -97,7 +97,6 @@ export function cloneDeep<T>(obj: T, onlyPlain?: boolean): T {
     }
   });
 }
-/* eslint-enable consistent-return */
 
 /**
  * Receives a tree-like object and returns a plain object which depth is 1.
