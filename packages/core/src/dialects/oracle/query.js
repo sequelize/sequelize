@@ -418,9 +418,7 @@ export class OracleQuery extends AbstractQuery {
       this.handleInsertQuery(insertData);
       return [result, data.rowsAffected];
     }
-    if (this.isShowTablesQuery()) {
-      result = this.handleShowTablesQuery(data.rows);
-    } else if (this.isDescribeQuery()) {
+    if (this.isDescribeQuery()) {
       result = {};
       // Getting the table name on which we are doing describe query
       const table = Object.keys(this.sequelize.models);
@@ -464,16 +462,16 @@ export class OracleQuery extends AbstractQuery {
       result = data.rowsAffected;
     } else if (this.isBulkDeleteQuery()) {
       result = data.rowsAffected;
-    } else if (this.isVersionQuery()) {
-      const version = data.rows[0].VERSION_FULL;
-      if (version) {
-        const versions = version.split('.');
-        result = `${versions[0]}.${versions[1]}.${versions[2]}`;
-      } else {
-        result = '0.0.0';
-      }
-    } else if (this.isForeignKeysQuery()) {
-      result = data.rows;
+    // } else if (this.isVersionQuery()) {
+    //   const version = data.rows[0].VERSION_FULL;
+    //   if (version) {
+    //     const versions = version.split('.');
+    //     result = `${versions[0]}.${versions[1]}.${versions[2]}`;
+    //   } else {
+    //     result = '0.0.0';
+    //   }
+    // } else if (this.isForeignKeysQuery()) {
+    //   result = data.rows;
     } else if (this.isUpsertQuery()) {
       // Upsert Query, will return nothing
       data = data.outBinds;
@@ -511,15 +509,6 @@ export class OracleQuery extends AbstractQuery {
         constraint[camelCase(key)] = result[key].toLowerCase();
       }
       return constraint;
-    });
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => {
-      return {
-        tableName: resultSet.TABLE_NAME,
-        schema: resultSet.TABLE_SCHEMA
-      };
     });
   }
 

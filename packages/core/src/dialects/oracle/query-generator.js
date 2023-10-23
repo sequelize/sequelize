@@ -10,8 +10,6 @@ import { EMPTY_OBJECT } from '../../utils/object';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils'; //TODO: MIGHT NOT be needed.
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
-const Utils = require('../../utils');
-
 const DataTypes = require('../../data-types');
 const _ = require('lodash');
 import { OracleQueryGeneratorTypeScript } from './query-generator-typescript';
@@ -322,11 +320,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   showConstraintsQuery(table) {
-    const tableName = this.getCatalogName(table.tableName || table);
+    const tableName = this.getCatalogName(table.tableName || table).TABLE_NAME;
     return `SELECT CONSTRAINT_NAME constraint_name FROM user_cons_columns WHERE table_name = ${this.escape(tableName)}`;
   }
 
-  showTablesQuery() {
+  listTablesQuery() {
     return 'SELECT owner as table_schema, table_name, 0 as lvl FROM all_tables where OWNER IN(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = \'N\')';
   }
 
@@ -1042,49 +1040,49 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     return 'ROLLBACK TRANSACTION';
   }
 
-  handleSequelizeMethod(smth, tableName, factory, options, prepend) {
-    let str;
-    if (smth instanceof Utils.Json) {
-      // Parse nested object
-      if (smth.conditions) {
-        const conditions = this.parseConditionObject(smth.conditions).map(condition =>
-          `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`
-        );
+  // handleSequelizeMethod(smth, tableName, factory, options, prepend) {
+  //   let str;
+  //   if (smth instanceof Utils.Json) {
+  //     // Parse nested object
+  //     if (smth.conditions) {
+  //       const conditions = this.parseConditionObject(smth.conditions).map(condition =>
+  //         `${this.jsonPathExtractionQuery(condition.path[0], _.tail(condition.path))} = '${condition.value}'`
+  //       );
 
-        return conditions.join(' AND ');
-      }
-      if (smth.path) {
+  //       return conditions.join(' AND ');
+  //     }
+  //     if (smth.path) {
 
-        // Allow specifying conditions using the sqlite json functions
-        if (this._checkValidJsonStatement(smth.path)) {
-          str = smth.path;
-        } else {
-          // Also support json property accessors
-          const paths = _.toPath(smth.path);
-          const column = paths.shift();
-          str = this.jsonPathExtractionQuery(column, paths);
-        }
-        if (smth.value) {
-          str += util.format(' = %s', this.escape(smth.value));
-        }
+  //       // Allow specifying conditions using the sqlite json functions
+  //       if (this._checkValidJsonStatement(smth.path)) {
+  //         str = smth.path;
+  //       } else {
+  //         // Also support json property accessors
+  //         const paths = _.toPath(smth.path);
+  //         const column = paths.shift();
+  //         str = this.jsonPathExtractionQuery(column, paths);
+  //       }
+  //       if (smth.value) {
+  //         str += util.format(' = %s', this.escape(smth.value));
+  //       }
 
-        return str;
-      }
-    }
-    if (smth instanceof Utils.Cast) {
-      if (smth.val instanceof Utils.SequelizeMethod) {
-        str = this.handleSequelizeMethod(smth.val, tableName, factory, options, prepend);
-        if (smth.type === 'boolean') {
-          str = `(CASE WHEN ${str}='true' THEN 1 ELSE 0 END)`;
-          return `CAST(${str} AS NUMBER)`;
-        } if (smth.type === 'timestamptz' && /json_value\(/.test(str)) {
-          str = str.slice(0, -1);
-          return `${str} RETURNING TIMESTAMP WITH TIME ZONE)`;
-        }
-      }
-    }
-    return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
-  }
+  //       return str;
+  //     }
+  //   }
+  //   if (smth instanceof Utils.Cast) {
+  //     if (smth.val instanceof Utils.SequelizeMethod) {
+  //       str = this.handleSequelizeMethod(smth.val, tableName, factory, options, prepend);
+  //       if (smth.type === 'boolean') {
+  //         str = `(CASE WHEN ${str}='true' THEN 1 ELSE 0 END)`;
+  //         return `CAST(${str} AS NUMBER)`;
+  //       } if (smth.type === 'timestamptz' && /json_value\(/.test(str)) {
+  //         str = str.slice(0, -1);
+  //         return `${str} RETURNING TIMESTAMP WITH TIME ZONE)`;
+  //       }
+  //     }
+  //   }
+  //   return super.handleSequelizeMethod(smth, tableName, factory, options, prepend);
+  // }
 
   _checkValidJsonStatement(stmt) {
     if (typeof stmt !== 'string') {

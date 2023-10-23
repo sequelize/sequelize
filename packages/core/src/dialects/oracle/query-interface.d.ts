@@ -1,8 +1,8 @@
 import type { Sequelize } from '../../sequelize.js';
-import { AbstractQueryInterface } from '../abstract/query-interface.js';
 import type { OracleQueryGenerator } from './query-generator.js';
+import { OracleQueryInterfaceTypescript } from './query-interface-typescript.js';
 
-export class OracleQueryInterface extends AbstractQueryInterface {
+export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
   queryGenerator: OracleQueryGenerator;
 
   constructor(sequelize: Sequelize, queryGenerator: OracleQueryGenerator);

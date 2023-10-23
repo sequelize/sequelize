@@ -1,8 +1,8 @@
 const _ = require('lodash');
-const { AbstractQueryInterface } = require('../abstract/query-interface');
+const { OracleQueryInterfaceTypescript } = require('./query-interface-typescript')
 const { QueryTypes } = require('../../query-types');
 
-export class OracleQueryInterface extends AbstractQueryInterface {
+export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
 
   async upsert(tableName, insertValues, updateValues, where, options) {
     options = { ...options };
