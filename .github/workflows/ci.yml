@@ -44,6 +44,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
+      - run: dirname `which node`
       - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
       - run: yarn test-typings
