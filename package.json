@@ -67,7 +67,7 @@
     "lint-staged": "15.0.2",
     "markdownlint-cli": "0.37.0",
     "mocha": "10.2.0",
-    "node-gyp": "9.4.0",
+    "node-gyp": "9.4.1",
     "node-hook": "1.0.0",
     "nx": "16.10.0",
     "source-map-support": "0.5.21",
