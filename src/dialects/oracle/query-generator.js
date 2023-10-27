@@ -401,7 +401,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
     const constraintSnippet = this.getConstraintSnippet(tableName, options);
 
     // 'ON DELETE NO ACTION' is the default option in Oracle, but it is not supported if defined
-    const cleanedConstraintSnippet = constraintSnippet.replace('ON DELETE NO ACTION', '');
+    const cleanedConstraintSnippet = constraintSnippet.replace(' ON DELETE NO ACTION', '');
 
     tableName = this.quoteTable(tableName);
     return `ALTER TABLE ${tableName} ADD ${cleanedConstraintSnippet};`;
