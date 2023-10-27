@@ -393,8 +393,10 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
   addConstraintQuery(tableName, options) {
     options = options || {};
 
-    // 'ON UPDATE XXX' clause is not supported by Oracle
-    options.onUpdate = null;
+    if (options.onUpdate) {
+      // Oracle does not support ON UPDATE, remove it.
+      delete options.onUpdate;
+    }
 
     const constraintSnippet = this.getConstraintSnippet(tableName, options);
 
