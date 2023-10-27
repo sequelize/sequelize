@@ -19,6 +19,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn lint
       - run: yarn lint-docs
@@ -30,6 +31,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn docs
   test-typings:
@@ -44,6 +46,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
       - run: yarn test-typings
@@ -69,6 +72,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - if: matrix.oracle-version == '18'
         name: Install Local Oracle DB 18
@@ -99,6 +103,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Install Local DB2 Copy
         run: yarn start-db2
@@ -122,6 +127,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
@@ -157,6 +163,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - run: yarn add pg-native --ignore-engines
         if: matrix.native
@@ -224,6 +231,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
@@ -262,6 +270,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
@@ -281,6 +290,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - name: Unit Tests
         run: yarn test-unit
@@ -308,6 +318,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
+      - run: yarn global add node-gyp
       - run: yarn install --frozen-lockfile --ignore-engines
       - run: npx semantic-release
       - id: sequelize
