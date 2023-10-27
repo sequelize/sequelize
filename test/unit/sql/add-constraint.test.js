@@ -156,8 +156,7 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
 
-        // The Oracle dialect doesn't support onUpdate cascade
-        (current.dialect.name !== 'oracle' ? it : it.skip)('supports composite keys', () => {
+        it('supports composite keys', () => {
           expectsql(
             sql.addConstraintQuery('myTable', {
               type: 'foreign key',
@@ -171,13 +170,14 @@ if (current.dialect.supports.constraints.addConstraint) {
             }),
             {
               db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_anotherColumn_myOtherTable_fk" FOREIGN KEY ("myColumn", "anotherColumn") REFERENCES "myOtherTable" ("id1", "id2") ON DELETE CASCADE;',
+              oracle: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_anotherColumn_myOtherTable_fk" FOREIGN KEY ("myColumn", "anotherColumn") REFERENCES "myOtherTable" ("id1", "id2") ON DELETE CASCADE;',
               default:
                 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_anotherColumn_myOtherTable_fk] FOREIGN KEY ([myColumn], [anotherColumn]) REFERENCES [myOtherTable] ([id1], [id2]) ON UPDATE CASCADE ON DELETE CASCADE;'
             }
           );
         });
-        // The Oracle dialect doesn't support onUpdate cascade
-        (current.dialect.name !== 'oracle' ? it : it.skip)('uses onDelete, onUpdate', () => {
+
+        it('uses onDelete, onUpdate', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'foreign key',
             fields: ['myColumn'],
@@ -189,6 +189,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             onDelete: 'cascade'
           }), {
             db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE;',
+            oracle: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE;',
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;'
           });
         });
