@@ -398,13 +398,15 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
       delete options.onUpdate;
     }
 
+    if (options.onDelete && options.onDelete.toUpperCase() === 'NO ACTION') {
+      // 'ON DELETE NO ACTION' is the default option in Oracle, but it is not supported if defined
+      delete options.onDelete;
+    }
+
     const constraintSnippet = this.getConstraintSnippet(tableName, options);
 
-    // 'ON DELETE NO ACTION' is the default option in Oracle, but it is not supported if defined
-    const cleanedConstraintSnippet = constraintSnippet.replace(' ON DELETE NO ACTION', '');
-
     tableName = this.quoteTable(tableName);
-    return `ALTER TABLE ${tableName} ADD ${cleanedConstraintSnippet};`;
+    return `ALTER TABLE ${tableName} ADD ${constraintSnippet};`;
   }
 
   addColumnQuery(table, key, dataType) {
