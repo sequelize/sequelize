@@ -262,6 +262,10 @@ export class JSON extends Basetypes.JSON {
 }
 
 export class DOUBLE extends Basetypes.DOUBLE {
+  protected getNumberSqlTypeName(): string {
+    return 'DOUBLE PRECISION';
+  }
+
   protected _checkOptionSupport(dialect: AbstractDialect): void {
     super._checkOptionSupport(dialect);
 

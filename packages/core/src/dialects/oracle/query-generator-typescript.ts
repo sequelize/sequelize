@@ -1,9 +1,11 @@
 import { rejectInvalidOptions } from '../../utils/check';
 import { generateIndexName } from '../../utils/string';
+import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { TableNameWithSchema } from '../abstract/query-interface';
+import type { RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -99,5 +101,20 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const schemaName = this.getCatalogName(table.schema);
 
     return [tableName, schemaName];
+  }
+
+  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
+    if (constraintName.startsWith('sys')) {
+      return joinSQLFragments([
+        'ALTER TABLE',
+        this.quoteTable(tableName),
+        'DROP CONSTRAINT',
+        options?.ifExists ? 'IF EXISTS' : '',
+        constraintName,
+        options?.cascade ? 'CASCADE' : '',
+      ]);
+    } else {
+      return super.removeConstraintQuery(tableName, constraintName, options);
+    }
   }
 }
