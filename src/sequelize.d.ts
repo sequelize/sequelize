@@ -1228,17 +1228,15 @@ export class Sequelize extends Hooks {
    * Fetch a Model which is already defined
    *
    * @param modelName The name of a model defined with Sequelize.define
-   * @param {object} [options] Options for searching
    */
-  public model(modelName: string, options?: { caseSensitive?: boolean }): ModelCtor<Model>;
+  public model(modelName: string): ModelCtor<Model>;
 
   /**
    * Checks whether a model with the given name is defined
    *
    * @param modelName The name of a model defined with Sequelize.define
-   * @param {object} [options] Options for searching
    */
-  public isDefined(modelName: string, options?: { caseSensitive?: boolean }): boolean;
+  public isDefined(modelName: string): boolean;
 
   /**
    * Execute a query on the DB, optionally bypassing all the Sequelize goodness.
