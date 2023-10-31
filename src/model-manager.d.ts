@@ -9,7 +9,7 @@ export class ModelManager {
   constructor(sequelize: Sequelize);
   public addModel<T extends ModelType>(model: T): T;
   public removeModel(model: ModelType): void;
-  public getModel(against: unknown, options?: { attribute?: string, caseSensitive?: boolean }): typeof Model;
+  public getModel(against: unknown, options?: { attribute?: string }): typeof Model;
   public findModel(callback: (model: typeof Model) => boolean): typeof Model | undefined
 
   /**
