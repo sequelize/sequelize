@@ -474,27 +474,41 @@ class Sequelize {
    * Fetch a Model which is already defined
    *
    * @param {string} modelName The name of a model defined with Sequelize.define
+   * @param {object} [options] Options for searching
    *
    * @throws Will throw an error if the model is not defined (that is, if sequelize#isDefined returns false)
    * @returns {Model} Specified model
    */
-  model(modelName) {
-    if (!this.isDefined(modelName)) {
+  model(modelName, options) {
+    options = _.defaults(options || {}, {
+      caseSensitive: true
+    });
+
+    if (!this.isDefined(modelName, options)) {
       throw new Error(`${modelName} has not been defined`);
     }
 
-    return this.modelManager.getModel(modelName);
+    return this.modelManager.getModel(modelName, options);
   }
 
   /**
    * Checks whether a model with the given name is defined
    *
    * @param {string} modelName The name of a model defined with Sequelize.define
+   * @param {object} [options] Options for searching
    *
    * @returns {boolean} Returns true if model is already defined, otherwise false
    */
-  isDefined(modelName) {
-    return !!this.modelManager.models.find(model => model.name === modelName);
+  isDefined(modelName, options) {
+    options = _.defaults(options || {}, {
+      caseSensitive: true
+    });
+
+    if (options.caseSensitive) {
+      return !!this.modelManager.models.find(model => model.name === modelName);
+    }
+
+    return !!this.modelManager.models.find(model => model.name.toLowerCase() === modelName.toLowerCase());
   }
 
   /**

@@ -24,10 +24,15 @@ class ModelManager {
 
   getModel(against, options) {
     options = _.defaults(options || {}, {
-      attribute: 'name'
+      attribute: 'name',
+      caseSensitive: true
     });
 
-    return this.models.find(model => model[options.attribute] === against);
+    if (options.caseSensitive) {
+      return this.models.find(model => model[options.attribute] === against);
+    }
+
+    return this.models.find(model => model[options.attribute].toLowerCase() === against.toLowerCase());
   }
 
   get all() {
