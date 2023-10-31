@@ -527,7 +527,7 @@ export class Sequelize extends SequelizeTypeScript {
    */
   model(modelName, options) {
     options = defaults(options, {
-      caseSensitive: true
+      caseSensitive: true,
     });
 
     if (!this.isDefined(modelName, options)) {
@@ -547,7 +547,7 @@ export class Sequelize extends SequelizeTypeScript {
    */
   isDefined(modelName, options) {
     options = defaults(options, {
-      caseSensitive: true
+      caseSensitive: true,
     });
 
     if (options.caseSensitive) {

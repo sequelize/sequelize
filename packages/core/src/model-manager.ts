@@ -32,7 +32,7 @@ export class ModelManager {
 
   getModel(modelName: string, options?: { caseSensitive?: boolean }): ModelStatic | undefined {
     options = defaults(options, {
-      caseSensitive: true
+      caseSensitive: true,
     });
 
     if (options.caseSensitive) {

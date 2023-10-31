@@ -211,13 +211,13 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(this.sequelize.isDefined('Project')).to.be.true;
     });
 
-    it('returns false if the dao was defined before but case does not match', function() {
+    it('returns false if the dao was defined before but case does not match', function () {
       expect(this.sequelize.isDefined('PrOjEct')).to.be.false;
     });
 
-    it('returns true if the dao was defined before, the case does not match but search is case insensitive', function() {
+    it('returns true if the dao was defined before, the case does not match but search is case insensitive', function () {
       this.sequelize.define('Project', {
-        name: DataTypes.STRING
+        name: DataTypes.STRING,
       });
       expect(this.sequelize.isDefined('PrOjEct', { caseSensitive: false })).to.be.true;
     });
@@ -238,9 +238,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(this.sequelize.model('Project')).to.equal(project);
     });
 
-    it('throws an error if the dao being accessed does not match exactly', function() {
+    it('throws an error if the dao being accessed does not match exactly', function () {
       const project = this.sequelize.define('Project', {
-        name: DataTypes.STRING
+        name: DataTypes.STRING,
       });
 
       expect(() => {
@@ -250,9 +250,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(this.sequelize.model('Project')).to.equal(project);
     });
 
-    it('returns the dao factory defined by daoName (Case insensitive)', function() {
+    it('returns the dao factory defined by daoName (Case insensitive)', function () {
       const project = this.sequelize.define('Project', {
-        name: DataTypes.STRING
+        name: DataTypes.STRING,
       });
 
       expect(this.sequelize.model('PrOjEct', { caseSensitive: false })).to.equal(project);
