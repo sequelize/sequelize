@@ -30,8 +30,16 @@ export class ModelManager {
     delete this.#sequelize.models[modelToRemove.name];
   }
 
-  getModel(modelName: string): ModelStatic | undefined {
-    return this.models.find(model => model.name === modelName);
+  getModel(modelName: string, options?: { caseSensitive?: boolean }): ModelStatic | undefined {
+    options = defaults(options, {
+      caseSensitive: true
+    });
+
+    if (options.caseSensitive) {
+      return this.models.find(model => model.name === modelName);
+    }
+
+    return this.models.find(model => model.name.toLowerCase() === modelName.toLowerCase());
   }
 
   findModel(

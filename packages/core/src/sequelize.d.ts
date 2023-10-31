@@ -910,15 +910,17 @@ export class Sequelize extends SequelizeTypeScript {
    * Fetch a Model which is already defined
    *
    * @param modelName The name of a model defined with Sequelize.define
+   * @param {object} options Options for searching
    */
-  model<M extends Model = Model>(modelName: string): ModelStatic<M>;
+  model<M extends Model = Model>(modelName: string, options?: { caseSensitive?: boolean }): ModelStatic<M>;
 
   /**
    * Checks whether a model with the given name is defined
    *
    * @param modelName The name of a model defined with Sequelize.define
+   * @param {object} options Options for searching
    */
-  isDefined(modelName: string): boolean;
+  isDefined(modelName: string, options?: { caseSensitive?: boolean }): boolean;
 
   /**
    * Execute a query on the DB, optionally bypassing all the Sequelize goodness.
