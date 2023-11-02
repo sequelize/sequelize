@@ -2276,7 +2276,7 @@ __metadata:
     lint-staged: "npm:15.0.2"
     markdownlint-cli: "npm:0.37.0"
     mocha: "npm:10.2.0"
-    node-gyp: "npm:10.0.0"
+    node-gyp: "npm:10.0.1"
     node-hook: "npm:1.0.0"
     nx: "npm:16.10.0"
     source-map-support: "npm:0.5.21"
@@ -9784,9 +9784,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp@npm:10.0.0, node-gyp@npm:latest":
-  version: 10.0.0
-  resolution: "node-gyp@npm:10.0.0"
+"node-gyp@npm:10.0.1":
+  version: 10.0.1
+  resolution: "node-gyp@npm:10.0.1"
   dependencies:
     env-paths: "npm:^2.2.0"
     exponential-backoff: "npm:^3.1.1"
@@ -9800,7 +9800,7 @@ __metadata:
     which: "npm:^4.0.0"
   bin:
     node-gyp: bin/node-gyp.js
-  checksum: 6d18c65cae4f8cc87c8ff53bfa2626f43adfda5d5fbccbfe1c94c4e115f978f6c09072546ece2cffa36aa05ef30c261976cdcaa2c8beea069771f582b2989e93
+  checksum: abddfff7d873312e4ed4a5fb75ce893a5c4fb69e7fcb1dfa71c28a6b92a7f1ef6b62790dffb39181b5a82728ba8f2f32d229cf8cbe66769fe02cea7db4a555aa
   languageName: node
   linkType: hard
 
@@ -9842,6 +9842,26 @@ __metadata:
   bin:
     node-gyp: bin/node-gyp.js
   checksum: f7d676cfa79f27d35edf17fe9c80064123670362352d19729e5dc9393d7e99f1397491c3107eddc0c0e8941442a6244a7ba6c860cfbe4b433b4cae248a55fe10
+  languageName: node
+  linkType: hard
+
+"node-gyp@npm:latest":
+  version: 10.0.0
+  resolution: "node-gyp@npm:10.0.0"
+  dependencies:
+    env-paths: "npm:^2.2.0"
+    exponential-backoff: "npm:^3.1.1"
+    glob: "npm:^10.3.10"
+    graceful-fs: "npm:^4.2.6"
+    make-fetch-happen: "npm:^13.0.0"
+    nopt: "npm:^7.0.0"
+    proc-log: "npm:^3.0.0"
+    semver: "npm:^7.3.5"
+    tar: "npm:^6.1.2"
+    which: "npm:^4.0.0"
+  bin:
+    node-gyp: bin/node-gyp.js
+  checksum: 6d18c65cae4f8cc87c8ff53bfa2626f43adfda5d5fbccbfe1c94c4e115f978f6c09072546ece2cffa36aa05ef30c261976cdcaa2c8beea069771f582b2989e93
   languageName: node
   linkType: hard
 
