@@ -2226,7 +2226,7 @@ __metadata:
     rimraf: "npm:5.0.5"
     semver: "npm:^7.3.7"
     sequelize-pool: "npm:^8.0.0"
-    sinon: "npm:17.0.0"
+    sinon: "npm:17.0.1"
     sinon-chai: "npm:3.7.0"
     snowflake-sdk: "npm:1.9.0"
     sqlite3: "npm:5.1.6"
@@ -11998,9 +11998,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sinon@npm:17.0.0":
-  version: 17.0.0
-  resolution: "sinon@npm:17.0.0"
+"sinon@npm:17.0.1":
+  version: 17.0.1
+  resolution: "sinon@npm:17.0.1"
   dependencies:
     "@sinonjs/commons": "npm:^3.0.0"
     "@sinonjs/fake-timers": "npm:^11.2.2"
@@ -12008,7 +12008,7 @@ __metadata:
     diff: "npm:^5.1.0"
     nise: "npm:^5.1.5"
     supports-color: "npm:^7.2.0"
-  checksum: fee44ab48452415bf88e93d6109d6f052de21658cd2207a38634660226338e19f4325c9c595a1d1184a563534458c50b11cf7681f039756731f87840e53fa9e1
+  checksum: 63e678bd58a959ebf69ddadb5410e9c31bd161b848b9dbec5f34f7e1485a8681810cd27d37bde072b68915b41b498f30bb5fb890c73e7a51dc281d1b1d573cfb
   languageName: node
   linkType: hard
 
