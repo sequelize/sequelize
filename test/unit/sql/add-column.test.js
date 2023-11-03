@@ -69,6 +69,40 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
+    it('DEFAULT VALUE FOR BOOLEAN', () => {
+      return expectsql(sql.addColumnQuery(User.getTableName(), 'bool_col', current.normalizeAttribute({
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+      })), {
+        oracle: 'ALTER TABLE "Users" ADD "bool_col" CHAR(1) DEFAULT 1 NOT NULL CHECK ("bool_col" IN(\'1\', \'0\'))',
+        mysql: 'ALTER TABLE `Users` ADD `bool_col` TINYINT(1) NOT NULL DEFAULT true;',
+        mariadb: 'ALTER TABLE `Users` ADD `bool_col` TINYINT(1) NOT NULL DEFAULT true;',
+        mssql: 'ALTER TABLE [Users] ADD [bool_col] BIT NOT NULL DEFAULT 1;',
+        postgres: 'ALTER TABLE "public"."Users" ADD COLUMN "bool_col" BOOLEAN NOT NULL DEFAULT true;',
+        db2: 'ALTER TABLE "Users" ADD "bool_col" BOOLEAN NOT NULL DEFAULT true;',
+        snowflake: 'ALTER TABLE "Users" ADD "bool_col" BOOLEAN NOT NULL DEFAULT true;',
+        sqlite: 'ALTER TABLE `Users` ADD `bool_col` TINYINT(1) NOT NULL DEFAULT 1;'
+      });
+    });
+
+    it('DEFAULT VALUE FOR ENUM', () => {
+      return expectsql(sql.addColumnQuery(User.getTableName(), 'enum_col', current.normalizeAttribute({
+        type: DataTypes.ENUM('happy', 'sad'),
+        allowNull: false,
+        defaultValue: 'happy'
+      })), {
+        oracle: 'ALTER TABLE "Users" ADD "enum_col" VARCHAR2(512) DEFAULT \'happy\' NOT NULL CHECK ("enum_col" IN(\'happy\', \'sad\'))',
+        mysql: 'ALTER TABLE `Users` ADD `enum_col` ENUM(\'happy\', \'sad\') NOT NULL DEFAULT \'happy\';',
+        mariadb: 'ALTER TABLE `Users` ADD `enum_col` ENUM(\'happy\', \'sad\') NOT NULL DEFAULT \'happy\';',
+        mssql: 'ALTER TABLE [Users] ADD [enum_col] VARCHAR(255) CHECK ([enum_col] IN(N\'happy\', N\'sad\'));',
+        postgres: 'DO \'BEGIN CREATE TYPE "public"."enum_Users_enum_col" AS ENUM(\'\'happy\'\', \'\'sad\'\'); EXCEPTION WHEN duplicate_object THEN null; END\';ALTER TABLE "public"."Users" ADD COLUMN "enum_col" "public"."enum_Users_enum_col" NOT NULL DEFAULT \'happy\';',
+        db2: 'ALTER TABLE "Users" ADD "enum_col" VARCHAR(255) CHECK ("enum_col" IN(\'happy\', \'sad\')) NOT NULL DEFAULT \'happy\';',
+        snowflake: 'ALTER TABLE "Users" ADD "enum_col" ENUM NOT NULL DEFAULT \'happy\';',
+        sqlite: 'ALTER TABLE `Users` ADD `enum_col` TEXT NOT NULL DEFAULT \'happy\';'
+      });
+    });
+
     it('defaults the schema to the one set in the Sequelize options', () => {
       return expectsql(customSql.addColumnQuery(User.getTableName(), 'level_id', customSequelize.normalizeAttribute({
         type: DataTypes.FLOAT,
