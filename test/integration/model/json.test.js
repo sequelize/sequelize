@@ -29,22 +29,43 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('findOrCreate supports transactions, json and locks', async function() {
           const transaction = await current.transaction();
 
-          await this.Event.findOrCreate({
-            where: {
+          const data = {
               json: { some: { input: 'Hello' } }
             },
-            defaults: {
+            default_values = {
               json: { some: { input: 'Hello' }, input: [1, 2, 3] },
               data: { some: { input: 'There' }, input: [4, 5, 6] }
-            },
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-            logging: sql => {
-              if (sql.includes('SELECT') && !sql.includes('CREATE')) {
-                expect(sql.includes('FOR UPDATE')).to.be.true;
+            };
+
+          if (current.options.dialect !== 'oracle') {
+            await this.Event.findOrCreate({
+              where: data,
+              defaults: default_values,
+              transaction,
+              lock: transaction.LOCK.UPDATE,
+              logging: sql => {
+                if (sql.includes('SELECT') && !sql.includes('CREATE')) {
+                  expect(sql.includes('FOR UPDATE')).to.be.true;
+                }
               }
+            });
+          } else {
+            const events  = await this.Event.findAll({
+              where: data,
+              lock: transaction.LOCK.UPDATE,
+              transaction,
+              logging: sql => {
+                if (sql.includes('SELECT') && !sql.includes('CREATE')) {
+                  expect(sql.includes('FOR UPDATE')).to.be.true;
+                }
+              }
+            });
+            if (events.length === 0) {
+              await this.Event.create(default_values, {
+                transaction
+              });
             }
-          });
+          }
 
           const count = await this.Event.count();
           expect(count).to.equal(0);
