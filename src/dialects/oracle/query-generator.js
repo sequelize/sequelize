@@ -393,6 +393,16 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
   addConstraintQuery(tableName, options) {
     options = options || {};
 
+    if (options.onUpdate) {
+      // Oracle does not support ON UPDATE, remove it.
+      delete options.onUpdate;
+    }
+
+    if (options.onDelete && options.onDelete.toUpperCase() === 'NO ACTION') {
+      // 'ON DELETE NO ACTION' is the default option in Oracle, but it is not supported if defined
+      delete options.onDelete;
+    }
+
     const constraintSnippet = this.getConstraintSnippet(tableName, options);
 
     tableName = this.quoteTable(tableName);
