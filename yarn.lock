@@ -2273,7 +2273,7 @@ __metadata:
     "@types/sinon": "npm:17.0.1"
     "@types/sinon-chai": "npm:3.2.12"
     "@types/snowflake-sdk": "npm:1.6.16"
-    "@types/tedious": "npm:4.0.13"
+    "@types/tedious": "npm:4.0.14"
     "@types/uuid": "npm:9.0.6"
     "@types/validator": "npm:^13.7.5"
     bnf-parser: "npm:3.1.6"
@@ -3284,12 +3284,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/tedious@npm:4.0.13":
-  version: 4.0.13
-  resolution: "@types/tedious@npm:4.0.13"
+"@types/tedious@npm:4.0.14":
+  version: 4.0.14
+  resolution: "@types/tedious@npm:4.0.14"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 808d99f5767ed70a8074848aa4bc4059e4948c4178d8be95f22b41065fb88b3c64d66dc54c072d5f9d3dd6c08ccc8f31212a15b5951b883bd7f1a4be7d8f5b71
+  checksum: d2914f8e9b5b998e4275ec5f0130cba1c2fb47e75616b5c125a65ef6c1db2f1dc3f978c7900693856a15d72bbb4f4e94f805537a4ecb6dc126c64415d31c0590
   languageName: node
   linkType: hard
 
