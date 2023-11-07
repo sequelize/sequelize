@@ -2269,7 +2269,7 @@ __metadata:
     "@types/lodash": "npm:4.14.201"
     "@types/mocha": "npm:10.0.4"
     "@types/pg": "npm:8.10.9"
-    "@types/semver": "npm:7.5.4"
+    "@types/semver": "npm:7.5.5"
     "@types/sinon": "npm:17.0.1"
     "@types/sinon-chai": "npm:3.2.11"
     "@types/snowflake-sdk": "npm:1.6.16"
@@ -3241,10 +3241,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/semver@npm:7.5.4, @types/semver@npm:^7.3.12":
-  version: 7.5.4
-  resolution: "@types/semver@npm:7.5.4"
-  checksum: dee66a71d9f089c118be74b5937d4fef42864d68d9472a3f4f5399b9e3ad74d56a8e155020c846667b9ecf9de78fdb9ea55a53fff5067af28e06779b282b6c40
+"@types/semver@npm:7.5.5, @types/semver@npm:^7.3.12":
+  version: 7.5.5
+  resolution: "@types/semver@npm:7.5.5"
+  checksum: bb1b525221d93c9e7b45914af5ed1729a5bfdfa80927d6b02bcb4550ff7015f8c713152c32cb679ffcc79e77c0dda66d1f972ff5ee8d2205336729c51198bb18
   languageName: node
   linkType: hard
 

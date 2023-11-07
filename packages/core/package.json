@@ -74,7 +74,7 @@
     "@types/lodash": "4.14.201",
     "@types/mocha": "10.0.4",
     "@types/pg": "8.10.9",
-    "@types/semver": "7.5.4",
+    "@types/semver": "7.5.5",
     "@types/sinon": "17.0.1",
     "@types/sinon-chai": "3.2.11",
     "@types/snowflake-sdk": "1.6.16",
