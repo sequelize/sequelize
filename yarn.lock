@@ -2180,7 +2180,7 @@ __metadata:
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
     "@types/chai": "npm:4.3.9"
-    "@types/chai-as-promised": "npm:7.1.7"
+    "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
     "@types/debug": "npm:^4.1.7"
     "@types/ibm_db": "npm:2.0.15"
@@ -2295,7 +2295,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@types/chai": "npm:4.3.9"
-    "@types/chai-as-promised": "npm:7.1.7"
+    "@types/chai-as-promised": "npm:7.1.8"
     chai: "npm:4.3.10"
     chai-as-promised: "npm:7.1.1"
     lodash: "npm:^4.17.21"
@@ -3018,12 +3018,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai-as-promised@npm:7.1.7":
-  version: 7.1.7
-  resolution: "@types/chai-as-promised@npm:7.1.7"
+"@types/chai-as-promised@npm:7.1.8":
+  version: 7.1.8
+  resolution: "@types/chai-as-promised@npm:7.1.8"
   dependencies:
     "@types/chai": "npm:*"
-  checksum: 5e80c6fffc2303b3cee23388e5989bd98b9359e29f95eb919d743b9a42139b884d033aa79d417d5c1bd9786499b566b403d4ef850fa09b91336eb2984ec1292b
+  checksum: c0a19cffe8d3f406b2cb9ba17f5f0efe318b14f27896d807b3199cc2231c16a4b5b6c464fdf2a939214de481de58cffd46c240539d3d4ece18659277d71ccc23
   languageName: node
   linkType: hard
 
