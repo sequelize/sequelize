@@ -547,7 +547,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   populateInsertQueryReturnIntoBinds(returningModelAttributes, returnTypes, inbindLength, returnAttributes, options) {
     const oracledb = this.sequelize.connectionManager.lib;
     const outBindAttributes = Object.create(null);
-    const outbind = [];
+    const outbind = {};
     const outbindParam = this.bindParam(outbind, inbindLength);
     returningModelAttributes.forEach((element, index) => {
       // generateReturnValues function quotes identifier based on the quoteIdentifier option
@@ -556,7 +556,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         element = element.substring(1, element.length - 1);
       }
       outBindAttributes[element] = Object.assign(returnTypes[index]._getBindDef(oracledb), { dir: oracledb.BIND_OUT });
-      const returnAttribute = `${this.format(undefined, undefined, { context: 'INSERT' }, outbindParam)}`;
+      const returnAttribute = `${outbindParam(undefined)}`;
       returnAttributes.push(returnAttribute);
     });
     options.outBindAttributes = outBindAttributes;
@@ -1013,10 +1013,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
   }
 
-  getAliasToken() {
-    return '';
-  }
-
   startTransactionQuery(transaction) {
     if (transaction.parent) {
       return `SAVEPOINT ${this.quoteIdentifier(transaction.name)}`;
@@ -1152,35 +1148,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     return `json_value(${quotedColumn},${pathStr})`;
   }
 
-  addLimitAndOffset(options, model) {
-    let fragment = '';
-    const offset = options.offset || 0,
-      isSubQuery = options.hasIncludeWhere || options.hasIncludeRequired || options.hasMultiAssociation;
-
-    let orders = {};
-    if (options.order) {
-      orders = this.getQueryOrders(options, model, isSubQuery);
-    }
-
-    if (options.limit || options.offset) {
-      // Add needed order by clause only when it is not provided
-      if (!orders.mainQueryOrder || !orders.mainQueryOrder.length || isSubQuery && (!orders.subQueryOrder || !orders.subQueryOrder.length)) {
-        const tablePkFragment = `${this.quoteTable(options.tableAs || model.name)}.${this.quoteIdentifier(model.primaryKeyField)}`;
-        fragment += ` ORDER BY ${tablePkFragment}`;
-      }
-
-      if (options.offset || options.limit) {
-        fragment += ` OFFSET ${this.escape(offset)} ROWS`;
-      }
-
-      if (options.limit) {
-        fragment += ` FETCH NEXT ${this.escape(options.limit)} ROWS ONLY`;
-      }
-    }
-
-    return fragment;
-  }
-
   booleanValue(value) {
     return value ? 1 : 0;
   }
@@ -1215,9 +1182,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   * @param {number} posOffset
   */
   bindParam(bind, posOffset = 0) {
+    let i = 0;
     return value => {
-      bind.push(value);
-      return `:${bind.length + posOffset}`;
+      const bindName = `sequelize_${++i}`;
+      bind[bindName] = value;
+      return `:${Object.keys(bind).length + posOffset}`;
     };
   }
 

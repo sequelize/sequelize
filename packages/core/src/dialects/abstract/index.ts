@@ -67,6 +67,9 @@ export type DialectSupports = {
   /* does the dialect support returning values for inserted/updated fields */
   returnValues: false | 'output' | 'returning',
 
+  /* does the dialect support returning values for inserted/updated fields in outBinds */
+  returnIntoValues: boolean,
+
   /* features specific to autoIncrement values */
   autoIncrement: {
     /* does the dialect require modification of insert queries when inserting auto increment fields */
@@ -266,6 +269,7 @@ export abstract class AbstractDialect {
     skipLocked: false,
     finalTable: false,
     returnValues: false,
+    returnIntoValues: false,
     autoIncrement: {
       identityInsert: false,
       defaultValue: true,

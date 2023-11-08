@@ -82,9 +82,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const bind = Object.create(null);
     const fields = [];
     const returningModelAttributes = [];
+    const returnTypes = [];
     const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
     let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    const returnAttributes = [];
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -108,10 +110,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       emptyQuery += ' VALUES ()';
     }
 
-    if (this.dialect.supports.returnValues && options.returning) {
+    if ((this.dialect.supports.returnValues || this.dialect.supports.returnIntoValues) && options.returning) {
       const returnValues = this.generateReturnValues(modelAttributes, options);
 
       returningModelAttributes.push(...returnValues.returnFields);
+      // Storing the returnTypes for dialects that need to have returning into bind information for outbinds
+      if (this.dialect.supports.returnIntoValues) {
+        returnTypes.push(...returnValues.returnTypes);
+      }
       returningFragment = returnValues.returningFragment;
       tmpTable = returnValues.tmpTable || '';
       outputFragment = returnValues.outputFragment || '';
@@ -247,7 +253,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       emptyQuery += returningFragment;
     }
 
-    query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}`.trim()};`;
+    if (this.dialect.supports.returnIntoValues && options.returning) {
+      // Populating the returnAttributes array and performing operations needed for output binds of insertQuery
+      this.populateInsertQueryReturnIntoBinds(returningModelAttributes, returnTypes, Object.keys(bind).length, returnAttributes, options);
+    }
+
+    query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}${returnAttributes.join(',')}`.trim()};`;
     if (this.dialect.supports.finalTable) {
       query = `SELECT * FROM FINAL TABLE (${replacements.attributes.length > 0 ? valueQuery : emptyQuery});`;
     }
@@ -1123,7 +1134,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             model,
           },
           model,
-        ).replace(/;$/, '')}) AS sub`; // Every derived table must have its own alias
+        ).replace(/;$/, '')}) ${this.getAliasToken()} sub`; // Every derived table must have its own alias
         const splicePos = baseQuery.indexOf(placeholder);
 
         mainQueryItems.push(this.selectFromTableFragment(options, mainTable.model, attributes.main, `(${
@@ -1273,7 +1284,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (subQuery) {
       this._throwOnEmptyAttributes(attributes.main, { modelName: model && model.name, as: mainTable.quotedAs });
-      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${mainTable.quotedAs}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) ${this.getAliasToken()} ${mainTable.quotedAs}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
     } else {
       query = mainQueryItems.join('');
     }
@@ -1707,6 +1718,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (returnValuesType === 'returning') {
       returningFragment = ` RETURNING ${returnFields.join(', ')}`;
+    } else if (this.dialect.supports.returnIntoValues) {
+      returningFragment = ` RETURNING ${returnFields.join(', ')} INTO `;
     } else if (returnValuesType === 'output') {
       outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(', ')}`;
 
@@ -1722,7 +1735,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    return { outputFragment, returnFields, returningFragment, tmpTable };
+    return { outputFragment, returnFields, returnTypes, returningFragment, tmpTable };
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
@@ -2057,7 +2070,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
     if (options.groupedLimit) {
-      fragment += ` AS ${mainTableAs}`;
+      fragment += ` ${this.getAliasToken()} ${mainTableAs}`;
     }
 
     return fragment;

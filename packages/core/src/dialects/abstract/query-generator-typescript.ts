@@ -563,6 +563,10 @@ export class AbstractQueryGeneratorTypeScript {
     };
   }
 
+  getAliasToken() {
+    return 'AS';
+  }
+
   /**
    * Quote table name with optional alias and schema attribution
    *
@@ -612,7 +616,7 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     if (options?.alias) {
-      sql += ` AS ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
+      sql += ` ${this.getAliasToken()} ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
     }
 
     if (options?.indexHints) {

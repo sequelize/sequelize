@@ -30,10 +30,10 @@ export class OracleDialect extends AbstractDialect {
       restrict: false,
     },
     returnValues: false,
+    returnIntoValues: true,
     'ORDER NULLS': true,
     schemas: true,
     inserts: {
-      // returnIntoValues: true,
       updateOnDuplicate: false,
     },
     indexViaAlter: false,

@@ -1,8 +1,8 @@
 import type { Falsy } from '../../generic/falsy';
 import * as Basetypes from '../abstract/data-types.js';
-import type { AcceptedDate } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 import type { Lib } from './connection-manager.js';
+import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
 
 export class STRING extends Basetypes.STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -127,7 +127,15 @@ export class DATE extends Basetypes.DATE {
     return `TO_TIMESTAMP_TZ(${formatedDate}, ${format})`;
   }
 
-  // TODO: parse() and bindParam() probably override _applyTimeZone()
+  /**
+     * avoids appending TO_TIMESTAMP_TZ in toBindableValue()
+     *
+     * @override
+     */
+  getBindParamSql(value: AcceptedDate, options: BindParamOptions): string {
+    return options.bindParam(value);
+  }
+  // TODO: parse() and override _applyTimeZone()
 }
 
 export class DECIMAL extends Basetypes.DECIMAL {

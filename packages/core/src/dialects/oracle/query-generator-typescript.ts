@@ -5,7 +5,7 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { TableNameWithSchema } from '../abstract/query-interface';
-import type { RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
+import type { AddLimitOffsetOptions, RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 
@@ -116,5 +116,24 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     } else {
       return super.removeConstraintQuery(tableName, constraintName, options);
     }
+  }
+
+  _addLimitAndOffset(options : AddLimitOffsetOptions) {
+    let fragment = '';
+    const offset = options.offset || 0;
+
+    if (options.offset || options.limit) {
+      fragment += ` OFFSET ${this.escape(offset, options)} ROWS`;
+    }
+
+    if (options.limit) {
+      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
+    }
+
+    return fragment;
+  }
+
+  getAliasToken(): string {
+    return '';
   }
 }
