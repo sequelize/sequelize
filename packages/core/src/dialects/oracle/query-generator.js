@@ -633,6 +633,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const allColumns = {};
     const inBindBindDefMap = {};
     const outBindBindDefMap = {};
+    const bindMap = {};
     const oracledb = this.sequelize.connectionManager.lib;
 
     // Generating the allColumns map
@@ -656,11 +657,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     for (const fieldValueHash of fieldValueHashes) {
       // Has each column for a row after coverting it to appropriate format using this.format function
       // like ['Mick', 'Broadstone', 2022-02-16T05:24:18.949Z, 2022-02-16T05:24:18.949Z],
-      const tuple = [];
+      let tuple = [];
       // A function expression for this.bindParam/options.bindparam function
       // This function is passed to this.format function which inserts column values to the tuple list
       // using _bindParam/_stringify function in data-type.js file
-      const inbindParam = options.bindParam === undefined ? this.bindParam(tuple) : options.bindParam;
+      const inbindParam = options.bindParam === undefined ? this.bindParam(bindMap) : options.bindParam;
       // We are iterating over each col
       // and pushing the given values to tuple list using this.format function
       // and also simultaneously generating the bindPosition
@@ -678,9 +679,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         }
         // Sanitizes the values given by the user and pushes it to the tuple list using inBindParam function and
         // also generates the inbind position for the sql string for example (:1, :2, :3.....) which is a by product of the push
-        return this.format(fieldValueHash[key], fieldMappedAttributes[key], { context: 'INSERT' }, inbindParam);
+        return inbindParam(fieldValueHash[key]);
       });
 
+      tuple = Object.values(bindMap);
       // Even though the bind variable positions are calculated for each row we only retain the values for the first row 
       // since the values will be identical
       if (!inBindPosition) {
@@ -756,10 +758,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
 
     // Binding the bind variable to result
-    const result = { query };
+    const result = query;
     // Binding the bindParam to result
     // Tuple has each row for the insert query
-    result.bind = tuples;
+    options.bind = tuples;
     // Setting options.inbindAttribute
     options.inbindAttributes = inBindBindDefMap;
     return result;
@@ -773,6 +775,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const table = tableName;
 
     let whereClause = this.whereQuery(where, { ...options, model });
+    whereClause = whereClause.replace('WHERE', '');
     let queryTmpl;
     // delete with limit <l> and optional condition <e> on Oracle: DELETE FROM <t> WHERE rowid in (SELECT rowid FROM <t> WHERE <e> AND rownum <= <l>)
     // Note that the condition <e> has to be in the subquery; otherwise, the subquery would select <l> arbitrary rows.
@@ -782,7 +785,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${this.escape(options.limit)}${whereTmpl
         })`;
     } else {
-      const whereTmpl = whereClause ? ` WHERE ${whereClause}` : '';
+      const whereTmpl = whereClause ? ` WHERE${whereClause}` : '';
       queryTmpl = `DELETE FROM ${this.quoteTable(table)}${whereTmpl}`;
     }
     return queryTmpl;

@@ -15,7 +15,7 @@ export class STRING extends Basetypes.STRING {
 
   toSql() {
     if (!this.options.binary) {
-      return `NVARCHAR2(${this.options.length})`;
+      return `NVARCHAR2(${this.options.length ?? 255})`;
     }
 
     return `RAW${this.options.length}`;

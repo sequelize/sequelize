@@ -346,20 +346,21 @@ export class OracleQuery extends AbstractQuery {
 
     // We parse the value received from the DB based on its datatype
     if (this.model) {
+      const modelDefinition = this.model.modelDefinition;
       result = result.map(row => {
         return mapValues(row, (value, key) => {
-          if (this.model.rawAttributes[key] && this.model.rawAttributes[key].type) {
-            let typeid = this.model.rawAttributes[key].type.toLocaleString();
-            if (this.model.rawAttributes[key].type.key === 'JSON') {
+          if (modelDefinition.rawAttributes[key] && modelDefinition.rawAttributes[key].type) {
+            let typeid = modelDefinition.rawAttributes[key].type.toLocaleString();
+            if (modelDefinition.rawAttributes[key].type.getDataTypeId() === 'JSON') {
               value = JSON.parse(value);
             }
             // For some types, the "name" of the type is returned with the length, we remove it
             // For Boolean we skip this because BOOLEAN is mapped to CHAR(1) and we dont' want to
             // remove the (1) for BOOLEAN
-            if (typeid.indexOf('(') > -1 && this.model.rawAttributes[key].type.key !== 'BOOLEAN') {
+            if (typeid.indexOf('(') > -1 && modelDefinition.rawAttributes[key].type.getDataTypeId() !== 'BOOLEAN') {
               typeid = typeid.substr(0, typeid.indexOf('('));
             }
-            const parser = dialect.getParserForDatabaseDataType(typeid);  //TODO: PROBABLY OWN PARSER LIKE OTHERS
+            const parser = this.sequelize.dialect.getParserForDatabaseDataType(typeid);  //TODO: PROBABLY OWN PARSER LIKE OTHERS
             if (value !== null & parser) {
               value = parser(value);
             }
