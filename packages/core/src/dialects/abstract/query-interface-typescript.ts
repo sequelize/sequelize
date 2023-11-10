@@ -1,8 +1,10 @@
 import assert from 'node:assert';
 import isEmpty from 'lodash/isEmpty';
+import type { Association } from '../../associations';
 import { Deferrable } from '../../deferrable';
 import type { ConstraintChecking } from '../../deferrable';
 import { BaseError } from '../../errors';
+import type { Model, ModelStatic } from '../../model';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
@@ -17,7 +19,7 @@ import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
 import type { QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
-import type { TableNameWithSchema } from './query-interface.js';
+import type { QiDeleteOptions, TableName, TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
   ColumnsDescription,
@@ -38,10 +40,7 @@ import type {
   RenameTableOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
-import { Model, ModelStatic } from '../../model';
-import { QiDeleteOptions, TableName } from './query-interface.js';
-import { WhereOptions } from './where-sql-builder-types';
-import { Association } from '../../associations';
+import type { WhereOptions } from './where-sql-builder-types';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
 
@@ -672,11 +671,21 @@ export class AbstractQueryInterfaceTypeScript {
 
   /**
    * Deletes a row
+   *
+   * @param instance
+   * @param tableName
+   * @param identifier
+   * @param options
    */
-  async delete(instance: Model | null, tableName: TableName, identifier: WhereOptions<any>, options?: QiDeleteOptions): Promise<object> {
+  async delete(
+    instance: Model | null,
+    tableName: TableName,
+    identifier: WhereOptions<any>,
+    options?: QiDeleteOptions,
+  ): Promise<object> {
     const cascades: string[] = [];
 
-    let model = instance?.constructor as ModelStatic | undefined
+    const model = instance?.constructor as ModelStatic | undefined;
 
     const sql = this.queryGenerator.deleteQuery(tableName, identifier, {}, model);
 
@@ -693,9 +702,9 @@ export class AbstractQueryInterfaceTypeScript {
 
       for (let i = 0; i < length; i++) {
         association = model.associations[keys[i]];
-        if (['HasMany', 'HasOne'].includes(association.associationType) &&
-          association.options.foreignKey.onDelete === 'CASCADE' &&
-          association.options.hooks) {
+        if (['HasMany', 'HasOne'].includes(association.associationType)
+          && association.options.foreignKey.onDelete === 'CASCADE'
+          && association.options.hooks) {
           cascades.push(association.accessors.get);
         }
       }
@@ -703,6 +712,7 @@ export class AbstractQueryInterfaceTypeScript {
 
     for (const cascade of cascades) {
       // @ts-expect-error -- implicit any
+      // eslint-disable-next-line no-await-in-loop
       let instances = await instance[cascade](options);
       // Check for hasOne relationship with non-existing associate ("has zero")
       if (!instances) {
@@ -714,14 +724,15 @@ export class AbstractQueryInterfaceTypeScript {
       }
 
       for (const _instance of instances) {
+        // eslint-disable-next-line no-await-in-loop
         await _instance.destroy(options);
       }
     }
 
-    if(instance) {
+    if (instance) {
       options.instance = instance;
     }
 
-    return await this.sequelize.queryRaw(sql, options);
+    return this.sequelize.queryRaw(sql, options);
   }
 }
