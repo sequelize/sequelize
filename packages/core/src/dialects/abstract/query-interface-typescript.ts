@@ -38,6 +38,10 @@ import type {
   RenameTableOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
+import { Model, ModelStatic } from '../../model';
+import { QiDeleteOptions, TableName } from './query-interface.js';
+import { WhereOptions } from './where-sql-builder-types';
+import { Association } from '../../associations';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
 
@@ -664,5 +668,60 @@ export class AbstractQueryInterfaceTypeScript {
     options?: QueryRawOptions,
   ): Promise<void> {
     await this.sequelize.queryRaw(this.queryGenerator.getToggleForeignKeyChecksQuery(enable), options);
+  }
+
+  /**
+   * Deletes a row
+   */
+  async delete(instance: Model | null, tableName: TableName, identifier: WhereOptions<any>, options?: QiDeleteOptions): Promise<object> {
+    const cascades: string[] = [];
+
+    let model = instance?.constructor as ModelStatic | undefined
+
+    const sql = this.queryGenerator.deleteQuery(tableName, identifier, {}, model);
+
+    options = { ...options };
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+
+    // Check for a restrict field
+    if (model && Boolean(model.associations)) {
+      const keys = Object.keys(model.associations);
+      const length = keys.length;
+      let association: Association;
+
+      for (let i = 0; i < length; i++) {
+        association = model.associations[keys[i]];
+        if (['HasMany', 'HasOne'].includes(association.associationType) &&
+          association.options.foreignKey.onDelete?.toLowerCase() === 'cascade' &&
+          association.options.hooks) {
+          cascades.push(association.accessors.get);
+        }
+      }
+    }
+
+    for (const cascade of cascades) {
+      // @ts-expect-error -- implicit any
+      let instances = await instance[cascade](options);
+      // Check for hasOne relationship with non-existing associate ("has zero")
+      if (!instances) {
+        continue;
+      }
+
+      if (!Array.isArray(instances)) {
+        instances = [instances];
+      }
+
+      for (const _instance of instances) {
+        await _instance.destroy(options);
+      }
+    }
+
+    if(instance) {
+      options.instance = instance;
+    }
+
+    return await this.sequelize.queryRaw(sql, options);
   }
 }

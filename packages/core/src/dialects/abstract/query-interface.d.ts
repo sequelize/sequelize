@@ -389,16 +389,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   ): Promise<object>;
 
   /**
-   * Deletes a row
-   */
-  delete(
-    instance: Model | null,
-    tableName: TableName,
-    identifier: WhereOptions<any>,
-    options?: QiDeleteOptions,
-  ): Promise<object>;
-
-  /**
    * Deletes multiple rows at once
    */
   bulkDelete(
