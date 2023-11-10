@@ -694,7 +694,7 @@ export class AbstractQueryInterfaceTypeScript {
       for (let i = 0; i < length; i++) {
         association = model.associations[keys[i]];
         if (['HasMany', 'HasOne'].includes(association.associationType) &&
-          association.options.foreignKey.onDelete?.toLowerCase() === 'cascade' &&
+          association.options.foreignKey.onDelete === 'CASCADE' &&
           association.options.hooks) {
           cascades.push(association.accessors.get);
         }
