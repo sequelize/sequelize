@@ -680,7 +680,7 @@ export class AbstractQueryInterfaceTypeScript {
   async delete(
     instance: Model | null,
     tableName: TableName,
-    identifier: WhereOptions<any>,
+    identifier: WhereOptions,
     options?: QiDeleteOptions,
   ): Promise<object> {
     const cascades: string[] = [];
