@@ -230,6 +230,17 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
   });
 
+  describe('modelManager', () => {
+    it('allows to find a model using a callback', function() {
+      const project = this.sequelize.define('Project', {
+        name: DataTypes.STRING
+      });
+
+      const model = this.sequelize.modelManager.findModel(m => m.name.toLowerCase() === 'project');
+      expect(model).to.equal(project);
+    });
+  });
+
   describe('set', () => {
     it('should be configurable with global functions', function() {
       const defaultSetterMethod = sinon.spy(),
