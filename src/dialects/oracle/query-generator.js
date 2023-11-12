@@ -393,6 +393,16 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
   addConstraintQuery(tableName, options) {
     options = options || {};
 
+    if (options.onUpdate) {
+      // Oracle does not support ON UPDATE, remove it.
+      delete options.onUpdate;
+    }
+
+    if (options.onDelete && options.onDelete.toUpperCase() === 'NO ACTION') {
+      // 'ON DELETE NO ACTION' is the default option in Oracle, but it is not supported if defined
+      delete options.onDelete;
+    }
+
     const constraintSnippet = this.getConstraintSnippet(tableName, options);
 
     tableName = this.quoteTable(tableName);
@@ -854,11 +864,20 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
 
     let template;
 
+    template = attribute.type.toSql ? attribute.type.toSql() : '';
+    if (attribute.type instanceof DataTypes.JSON) {
+      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IS JSON)`;
+      return template;
+    }
+    if (Utils.defaultValueSchemable(attribute.defaultValue)) {
+      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+    }
+    if (attribute.allowNull === false) {
+      template += ' NOT NULL';
+    }
     if (attribute.type instanceof DataTypes.ENUM) {
       if (attribute.type.values && !attribute.values) attribute.values = attribute.type.values;
-
       // enums are a special case
-      template = attribute.type.toSql();
       template +=
         ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${ 
           _.map(attribute.values, value => {
@@ -867,13 +886,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
         }))`;
       return template;
     } 
-    if (attribute.type instanceof DataTypes.JSON) {
-      template = attribute.type.toSql();
-      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IS JSON)`;
-      return template;
-    } 
     if (attribute.type instanceof DataTypes.BOOLEAN) {
-      template = attribute.type.toSql();
       template +=
         ` CHECK (${this.quoteIdentifier(options.attributeName)} IN('1', '0'))`;
       return template;
