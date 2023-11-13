@@ -1905,15 +1905,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nrwl/tao@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nrwl/tao@npm:17.1.1"
+"@nrwl/tao@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nrwl/tao@npm:17.1.2"
   dependencies:
-    nx: "npm:17.1.1"
+    nx: "npm:17.1.2"
     tslib: "npm:^2.3.0"
   bin:
     tao: index.js
-  checksum: 08ebd4e4e869718cae9324e77fde617c4f8d779e09d9bcc20e1d507a818258cad6a5a014986f8e369a757423d9a032bec827a564909f9e88e3ba598c388244b0
+  checksum: 4c6c98d4296e5d16e56c13ab79ce96ec68848a48b6241301cd0834861c63e28d155d79ce629154210c1904da98fc2c60b9bf2c183b6c1f9e9bf23541a19bcdf0
   languageName: node
   linkType: hard
 
@@ -1941,9 +1941,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-arm64@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nx/nx-darwin-arm64@npm:17.1.1"
+"@nx/nx-darwin-arm64@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nx/nx-darwin-arm64@npm:17.1.2"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
@@ -1955,9 +1955,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-x64@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nx/nx-darwin-x64@npm:17.1.1"
+"@nx/nx-darwin-x64@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nx/nx-darwin-x64@npm:17.1.2"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
@@ -1969,9 +1969,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-freebsd-x64@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nx/nx-freebsd-x64@npm:17.1.1"
+"@nx/nx-freebsd-x64@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nx/nx-freebsd-x64@npm:17.1.2"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
@@ -1983,9 +1983,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm-gnueabihf@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nx/nx-linux-arm-gnueabihf@npm:17.1.1"
+"@nx/nx-linux-arm-gnueabihf@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nx/nx-linux-arm-gnueabihf@npm:17.1.2"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
@@ -1997,9 +1997,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-gnu@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nx/nx-linux-arm64-gnu@npm:17.1.1"
+"@nx/nx-linux-arm64-gnu@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nx/nx-linux-arm64-gnu@npm:17.1.2"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
@@ -2011,9 +2011,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-musl@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nx/nx-linux-arm64-musl@npm:17.1.1"
+"@nx/nx-linux-arm64-musl@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nx/nx-linux-arm64-musl@npm:17.1.2"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
@@ -2025,9 +2025,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-gnu@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nx/nx-linux-x64-gnu@npm:17.1.1"
+"@nx/nx-linux-x64-gnu@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nx/nx-linux-x64-gnu@npm:17.1.2"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -2039,9 +2039,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-musl@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nx/nx-linux-x64-musl@npm:17.1.1"
+"@nx/nx-linux-x64-musl@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nx/nx-linux-x64-musl@npm:17.1.2"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
@@ -2053,9 +2053,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-arm64-msvc@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nx/nx-win32-arm64-msvc@npm:17.1.1"
+"@nx/nx-win32-arm64-msvc@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nx/nx-win32-arm64-msvc@npm:17.1.2"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
@@ -2067,9 +2067,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-x64-msvc@npm:17.1.1":
-  version: 17.1.1
-  resolution: "@nx/nx-win32-x64-msvc@npm:17.1.1"
+"@nx/nx-win32-x64-msvc@npm:17.1.2":
+  version: 17.1.2
+  resolution: "@nx/nx-win32-x64-msvc@npm:17.1.2"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -2361,7 +2361,7 @@ __metadata:
     mocha: "npm:10.2.0"
     node-gyp: "npm:10.0.1"
     node-hook: "npm:1.0.0"
-    nx: "npm:17.1.1"
+    nx: "npm:17.1.2"
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.1"
     typedoc: "npm:0.25.2"
@@ -10261,21 +10261,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nx@npm:17.1.1":
-  version: 17.1.1
-  resolution: "nx@npm:17.1.1"
+"nx@npm:17.1.2":
+  version: 17.1.2
+  resolution: "nx@npm:17.1.2"
   dependencies:
-    "@nrwl/tao": "npm:17.1.1"
-    "@nx/nx-darwin-arm64": "npm:17.1.1"
-    "@nx/nx-darwin-x64": "npm:17.1.1"
-    "@nx/nx-freebsd-x64": "npm:17.1.1"
-    "@nx/nx-linux-arm-gnueabihf": "npm:17.1.1"
-    "@nx/nx-linux-arm64-gnu": "npm:17.1.1"
-    "@nx/nx-linux-arm64-musl": "npm:17.1.1"
-    "@nx/nx-linux-x64-gnu": "npm:17.1.1"
-    "@nx/nx-linux-x64-musl": "npm:17.1.1"
-    "@nx/nx-win32-arm64-msvc": "npm:17.1.1"
-    "@nx/nx-win32-x64-msvc": "npm:17.1.1"
+    "@nrwl/tao": "npm:17.1.2"
+    "@nx/nx-darwin-arm64": "npm:17.1.2"
+    "@nx/nx-darwin-x64": "npm:17.1.2"
+    "@nx/nx-freebsd-x64": "npm:17.1.2"
+    "@nx/nx-linux-arm-gnueabihf": "npm:17.1.2"
+    "@nx/nx-linux-arm64-gnu": "npm:17.1.2"
+    "@nx/nx-linux-arm64-musl": "npm:17.1.2"
+    "@nx/nx-linux-x64-gnu": "npm:17.1.2"
+    "@nx/nx-linux-x64-musl": "npm:17.1.2"
+    "@nx/nx-win32-arm64-msvc": "npm:17.1.2"
+    "@nx/nx-win32-x64-msvc": "npm:17.1.2"
     "@yarnpkg/lockfile": "npm:^1.1.0"
     "@yarnpkg/parsers": "npm:3.0.0-rc.46"
     "@zkochan/js-yaml": "npm:0.0.6"
@@ -10342,7 +10342,7 @@ __metadata:
   bin:
     nx: bin/nx.js
     nx-cloud: bin/nx-cloud.js
-  checksum: 3eed6b61788ae8a7d507aaa45c848c992226dd3b10161692c8c07889ff610611a31669e58a4fc7d2be171af208237c6842b9545d9f2da66d58c44ef78282052d
+  checksum: 45f0424213bfe82e548a6e5b09304039851a393dc2fc25109a596045c719261e6c9edf8582ea1c4a9a928db8132a17d2cca97ae8316aa7c2ed4dcaf5f4628270
   languageName: node
   linkType: hard
 
