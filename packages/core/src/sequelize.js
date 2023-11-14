@@ -933,7 +933,14 @@ Use Sequelize#query if you wish to use replacements.`);
       ...options,
     };
 
-    await this.query(`SELECT 1+1 AS result${this.options.dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, options);
+    let sql = `SELECT 1+1 AS result`;
+    if (this.options.dialect === 'oracle') {
+      sql += ' FROM DUAL';
+    } else if (this.options.dialect === 'ibmi') {
+      sql += ' FROM SYSIBM.SYSDUMMY1';
+    }
+
+    await this.query(sql, options);
 
   }
 

@@ -46,6 +46,13 @@ export class BOOLEAN extends Basetypes.BOOLEAN {
   toBindableValue(value: boolean | Falsy): unknown {
     return value ? '1' : '0';
   }
+
+  parseDatabaseValue(value: unknown): boolean {
+    if (value === '1' || 'true') {
+      return true;
+    }
+    return false;
+  }
 }
 
 export class UUID extends Basetypes.UUID {

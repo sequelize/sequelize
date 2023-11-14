@@ -83,7 +83,6 @@ export class OracleQuery extends AbstractQuery {
 
   async run(sql, parameters) {
     // We set the oracledb
-    console.log(sql);
     const oracledb = this.sequelize.connectionManager.lib;
     const complete = this._logQuery(sql, debug, parameters);
     const outParameters = [];
@@ -638,48 +637,17 @@ export class OracleQuery extends AbstractQuery {
         results[0][this.model.primaryKeyAttribute] = results[0].pkReturnVal;
         delete results[0].pkReturnVal;
       }
-          // map column names to attribute names
-      results = results.map(row => {
-        const attributes = Object.create(null);
 
-        for (const columnName of Object.keys(row)) {
-          const attributeName = getAttributeName(this.model, columnName) ?? columnName;
-
-          attributes[attributeName] = row[columnName];
-        }
-
-        return attributes;
-      });
-
-      results = this._parseDataArrayByType(results, this.model, this.options.includeMap);
-
-      const autoIncrementAttributeName = this.model.autoIncrementAttribute;
+      // add the inserted row id to the instance
+      const modelDefinition = this.model.modelDefinition;
+      const autoIncrementField = modelDefinition.autoIncrementAttributeName;
       let id = null;
 
       id = id || results && results[0][this.getInsertIdField()];
       id = id || metaData && metaData[this.getInsertIdField()];
-      id = id || results && results[0][autoIncrementAttributeName];
+      id = id || results && results[0][autoIncrementField];
 
-      // assign values to existing instance
-      this.instance[autoIncrementAttributeName] = id;
-      // // add the inserted row id to the instance
-      // const autoIncrementField = this.model.autoIncrementAttribute;
-      // const modelDefinition = this.model.modelDefinition;
-      // let autoIncrementFieldAlias = null,
-      //   id = null;
-
-      // if (
-      //   Object.prototype.hasOwnProperty.call(modelDefinition.rawAttributes, autoIncrementField) &&
-      //   this.model.rawAttributes[autoIncrementField].field !== undefined
-      // )
-      //   autoIncrementFieldAlias = modelDefinition.rawAttributes[autoIncrementField].field;
-
-      // id = id || results && results[0][this.getInsertIdField()];
-      // id = id || metaData && metaData[this.getInsertIdField()];
-      // id = id || results && results[0][autoIncrementField];
-      // id = id || autoIncrementFieldAlias && results && results[0][autoIncrementFieldAlias];
-
-      // this.instance[autoIncrementField] = id;
+      this.instance[autoIncrementField] = id;
     }
   }
 
