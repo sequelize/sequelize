@@ -2311,7 +2311,7 @@ __metadata:
     sequelize-pool: "npm:^8.0.0"
     sinon: "npm:17.0.1"
     sinon-chai: "npm:3.7.0"
-    snowflake-sdk: "npm:1.9.0"
+    snowflake-sdk: "npm:1.9.1"
     sqlite3: "npm:5.1.6"
     tedious: "npm:16.6.0"
     toposort-class: "npm:^1.0.1"
@@ -3029,16 +3029,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@techteamer/ocsp@npm:1.0.0":
-  version: 1.0.0
-  resolution: "@techteamer/ocsp@npm:1.0.0"
+"@techteamer/ocsp@npm:1.0.1":
+  version: 1.0.1
+  resolution: "@techteamer/ocsp@npm:1.0.1"
   dependencies:
     asn1.js: "npm:^5.4.1"
     asn1.js-rfc2560: "npm:^5.0.1"
     asn1.js-rfc5280: "npm:^3.0.0"
-    async: "npm:^3.2.1"
+    async: "npm:^3.2.4"
     simple-lru-cache: "npm:^0.0.2"
-  checksum: 37fa5c6e3dcec978c915e6b87db83eba0084be70c93f58ae11d5bebd69d44b90914192f7f31a3803dd16d82b27b439a4851335ab0eea2b09222f28be1afa136f
+  checksum: cbc744c4ce8247f0cf06b79e77bebf2f5bf2d9901b1b1c29540edc2525868e154f51e982f8b7338d010c6186257cb041cefd50f7095d10c86d45e56ac7e33578
   languageName: node
   linkType: hard
 
@@ -3981,7 +3981,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"async@npm:^3.0.1, async@npm:^3.2.1, async@npm:^3.2.3":
+"async@npm:^3.0.1, async@npm:^3.2.3, async@npm:^3.2.4":
   version: 3.2.5
   resolution: "async@npm:3.2.5"
   checksum: 1408287b26c6db67d45cb346e34892cee555b8b59e6c68e6f8c3e495cad5ca13b4f218180e871f3c2ca30df4ab52693b66f2f6ff43644760cab0b2198bda79c1
@@ -4018,14 +4018,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.0.0, axios@npm:^1.5.0, axios@npm:^1.5.1":
-  version: 1.6.1
-  resolution: "axios@npm:1.6.1"
+"axios@npm:^1.0.0, axios@npm:^1.5.0, axios@npm:^1.5.1, axios@npm:^1.6.0":
+  version: 1.6.2
+  resolution: "axios@npm:1.6.2"
   dependencies:
     follow-redirects: "npm:^1.15.0"
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
-  checksum: ca2c6f56659a7f19e4a99082f549fe151952f6fd8aa72ed148559ab2d6a32ce37cd5dc72ce6d4d3cd91f0c1e2617c7c95c20077e5e244a79f319a6c0ce41204f
+  checksum: 9b77e030e85e4f9cbcba7bb52fbff67d6ce906c92d213e0bd932346a50140faf83733bf786f55bd58301bd92f9973885c7b87d6348023e10f7eaf286d0791a1d
   languageName: node
   linkType: hard
 
@@ -4066,14 +4066,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bignumber.js@npm:^2.4.0":
-  version: 2.4.0
-  resolution: "bignumber.js@npm:2.4.0"
-  checksum: 254648de38df34ca2dbeb6eb8a61d19b74c59afec4918455fc2e3de7e5327d9018ccfaa1825c27d0df12daa1c98e12b6fa679dfcf7acd0287016c4586a04a68a
-  languageName: node
-  linkType: hard
-
-"bignumber.js@npm:^9.0.0":
+"bignumber.js@npm:^9.0.0, bignumber.js@npm:^9.1.2":
   version: 9.1.2
   resolution: "bignumber.js@npm:9.1.2"
   checksum: e17786545433f3110b868725c449fa9625366a6e675cd70eb39b60938d6adbd0158cb4b3ad4f306ce817165d37e63f4aa3098ba4110db1d9a3b9f66abfbaf10d
@@ -6435,6 +6428,13 @@ __metadata:
   bin:
     fxparser: src/cli/cli.js
   checksum: 7c1611349384656ec4faa9802fbc8cf8c01206a1b79193d5cd54586307801562509007f6cf16e5da7d43da4fa4639770f38959a285b9466aa98dab0a9b8ca171
+  languageName: node
+  linkType: hard
+
+"fastest-levenshtein@npm:^1.0.16":
+  version: 1.0.16
+  resolution: "fastest-levenshtein@npm:1.0.16"
+  checksum: 7e3d8ae812a7f4fdf8cad18e9cde436a39addf266a5986f653ea0d81e0de0900f50c0f27c6d5aff3f686bcb48acbd45be115ae2216f36a6a13a7dbbf5cad878b
   languageName: node
   linkType: hard
 
@@ -12201,20 +12201,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snowflake-sdk@npm:1.9.0":
-  version: 1.9.0
-  resolution: "snowflake-sdk@npm:1.9.0"
+"snowflake-sdk@npm:1.9.1":
+  version: 1.9.1
+  resolution: "snowflake-sdk@npm:1.9.1"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.388.0"
     "@azure/storage-blob": "npm:^12.11.0"
     "@google-cloud/storage": "npm:^6.9.3"
-    "@techteamer/ocsp": "npm:1.0.0"
+    "@techteamer/ocsp": "npm:1.0.1"
     agent-base: "npm:^6.0.2"
     asn1.js-rfc2560: "npm:^5.0.0"
     asn1.js-rfc5280: "npm:^3.0.0"
-    axios: "npm:^1.5.0"
+    axios: "npm:^1.6.0"
     big-integer: "npm:^1.6.43"
-    bignumber.js: "npm:^2.4.0"
+    bignumber.js: "npm:^9.1.2"
     binascii: "npm:0.0.2"
     bn.js: "npm:^5.2.1"
     browser-request: "npm:^0.3.3"
@@ -12222,6 +12222,7 @@ __metadata:
     expand-tilde: "npm:^2.0.2"
     extend: "npm:^3.0.2"
     fast-xml-parser: "npm:^4.2.5"
+    fastest-levenshtein: "npm:^1.0.16"
     generic-pool: "npm:^3.8.2"
     glob: "npm:^7.1.6"
     https-proxy-agent: "npm:^5.0.1"
@@ -12233,11 +12234,12 @@ __metadata:
     open: "npm:^7.3.1"
     python-struct: "npm:^1.1.3"
     simple-lru-cache: "npm:^0.0.2"
-    string-similarity: "npm:^4.0.4"
     tmp: "npm:^0.2.1"
     uuid: "npm:^8.3.2"
     winston: "npm:^3.1.0"
-  checksum: c1c0d6540bad340f0614352879517811cfee3f18c3343ec49f42a231af4b2cde718dce25d5c08d63cbdc0f7359adc71bca351d1013c1ac9f52e7cae35093909a
+  peerDependencies:
+    asn1.js: ^5.4.1
+  checksum: 5aab5ca3b2ad7ea8412844108472c6fdb99e13c8b420a89805c757733d94737ec32217782142cd70a16e86932d1e4716308215ee0364c3dfcc32d85f84817543
   languageName: node
   linkType: hard
 
@@ -12492,13 +12494,6 @@ __metadata:
   version: 0.3.2
   resolution: "string-argv@npm:0.3.2"
   checksum: 75c02a83759ad1722e040b86823909d9a2fc75d15dd71ec4b537c3560746e33b5f5a07f7332d1e3f88319909f82190843aa2f0a0d8c8d591ec08e93d5b8dec82
-  languageName: node
-  linkType: hard
-
-"string-similarity@npm:^4.0.4":
-  version: 4.0.4
-  resolution: "string-similarity@npm:4.0.4"
-  checksum: fce331b818efafa701f692ddc2e170bd3ceaf6e7ca56a445b36b139981effe0884d8edc794a65005e54304da55ba054edfcff16a339bd301c9b94983fbc62047
   languageName: node
   linkType: hard
 
