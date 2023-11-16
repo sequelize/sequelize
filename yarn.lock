@@ -2288,7 +2288,7 @@ __metadata:
     expect-type: "npm:0.13.0"
     fast-glob: "npm:^3.2.12"
     fs-jetpack: "npm:5.1.0"
-    ibm_db: "npm:3.2.2"
+    ibm_db: "npm:3.2.3"
     inflection: "npm:^3.0.0"
     lcov-result-merger: "npm:4.1.0"
     lodash: "npm:^4.17.21"
@@ -4018,7 +4018,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.0.0, axios@npm:^1.5.0, axios@npm:^1.5.1, axios@npm:^1.6.0":
+"axios@npm:^1.0.0, axios@npm:^1.5.1, axios@npm:^1.6.0, axios@npm:^1.6.2":
   version: 1.6.2
   resolution: "axios@npm:1.6.2"
   dependencies:
@@ -7465,12 +7465,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:3.2.2":
-  version: 3.2.2
-  resolution: "ibm_db@npm:3.2.2"
+"ibm_db@npm:3.2.3":
+  version: 3.2.3
+  resolution: "ibm_db@npm:3.2.3"
   dependencies:
     adm-zip: "npm:^0.5.10"
-    axios: "npm:^1.5.0"
+    axios: "npm:^1.6.2"
     big-integer: "npm:^1.6.51"
     bindings: "npm:^1.5.0"
     fs-extra: "npm:^11.1.1"
@@ -7478,7 +7478,7 @@ __metadata:
     nan: "npm:^2.18.0"
     q: "npm:^1.5.1"
     targz: "npm:^1.0.1"
-  checksum: 9efe8e7e81818ecc25a0474b95114326653d9d78378be761a3885c8bebb2bc7812402f29f01ec6202d8018a7289986ee60c50de886bd9b0aad4e0ba8d0d7ed09
+  checksum: a01e6dcfff485d5c3953cce152fcfe75192a41e7cc3ed537167a7ac6564bfd67924150993ba45052ae4015fe4fb36d6b0202444213449da69e772ceb10525097
   languageName: node
   linkType: hard
 
