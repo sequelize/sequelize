@@ -904,18 +904,22 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
    * @param {string} schemaName
    */
   getForeignKeyReferencesQuery(tableName, catalogName, schemaName) {
+    const schema = schemaName || 'public';
+
     return `${this._getForeignKeyReferencesQueryPrefix()
     }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name = '${tableName}'${
       catalogName ? ` AND tc.table_catalog = '${catalogName}'` : ''
-    }${schemaName ? ` AND tc.table_schema = '${schemaName}'` : ''}`;
+    } AND tc.table_schema = '${schema}'`;
   }
 
   getForeignKeyReferenceQuery(table, columnName) {
     const tableName = table.tableName || table;
-    const schema = table.schema;
+    const schema = table.schema || 'public';
     return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='${tableName}' AND  kcu.column_name = '${columnName}'${
-      schema ? ` AND tc.table_schema = '${schema}'` : ''}`;
+    }WHERE constraint_type = 'FOREIGN KEY' 
+      AND tc.table_name='${tableName}' 
+      AND  kcu.column_name = '${columnName}' 
+      AND tc.table_schema = '${schema}'`;
   }
 
   /**

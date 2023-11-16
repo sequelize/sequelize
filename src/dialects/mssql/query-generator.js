@@ -741,9 +741,8 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
     let sql = `${this._getForeignKeysQueryPrefix(catalogName)
     } WHERE TB.NAME =${wrapSingleQuote(tableName)}`;
 
-    if (table.schema) {
-      sql += ` AND SCHEMA_NAME(TB.SCHEMA_ID) =${wrapSingleQuote(table.schema)}`;
-    }
+    sql += ` AND SCHEMA_NAME(TB.SCHEMA_ID) =${wrapSingleQuote(table.schema || 'dbo')}`;
+    
     return sql;
   }
 

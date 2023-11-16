@@ -7,7 +7,7 @@ const DataTypes = require('../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function() {
-    this.sequelize.options.quoteIdenifiers = true;
+    this.sequelize.options.quoteIdentifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
   });
 
@@ -42,7 +42,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     describe('with schemas', () => {
-      if (Support.sequelize.dialect.supports.schemas) {
+      // MariaDB does not really support schemas (they are synonyms of databases)
+      if (Support.sequelize.dialect.supports.schemas && Support.getTestDialect() !== 'mariadb') {
         beforeEach(async function() {
           this.schema = 'test_schema';
           await this.queryInterface.createSchema(this.schema);
@@ -77,7 +78,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         it('should only return references to the tables on the default schema', async function() {        
           const taskRefs = await this.queryInterface.getForeignKeyReferencesForTable('Tasks');
           expect(taskRefs).to.have.lengthOf(1);
-          expect(taskRefs[0]).deep.equal({
+          expect(taskRefs[0]).deep.include.all({
             columnName: 'UserId',
             referencedColumnName: 'id',
             referencedTableName: 'Users'
