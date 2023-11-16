@@ -886,8 +886,12 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       'FROM information_schema.table_constraints AS tc ' +
       'JOIN information_schema.key_column_usage AS kcu ' +
       'ON tc.constraint_name = kcu.constraint_name ' +
+      'AND tc.table_schema = kcu.table_schema ' +
+      'AND tc.table_catalog = kcu.table_catalog ' +
       'JOIN information_schema.constraint_column_usage AS ccu ' +
-      'ON ccu.constraint_name = tc.constraint_name ';
+      'ON ccu.constraint_name = tc.constraint_name ' + 
+      'AND ccu.table_schema = tc.table_schema ' +
+      'AND ccu.table_catalog = tc.table_catalog ';
   }
 
   /**

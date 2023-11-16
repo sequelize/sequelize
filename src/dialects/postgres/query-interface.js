@@ -157,7 +157,7 @@ class PostgresQueryInterface extends QueryInterface {
 
     // postgres needs some special treatment as those field names returned are all lowercase
     // in order to keep same result with other dialects.
-    const query = this.queryGenerator.getForeignKeyReferencesQuery(table.tableName || table, this.sequelize.config.database);
+    const query = this.queryGenerator.getForeignKeyReferencesQuery(table.tableName || table, this.sequelize.config.database, table.schema);
     const result = await this.sequelize.query(query, queryOptions);
 
     return result.map(fkMeta => {
