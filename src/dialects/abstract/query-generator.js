@@ -2104,6 +2104,10 @@ https://github.com/sequelize/sequelize/discussions/15694`);
     topInclude.association = undefined;
 
     if (topInclude.through && Object(topInclude.through.model) === topInclude.through.model) {
+      if (topAssociation.toTarget !== undefined && topParent.model.name === topAssociation.toTarget.as) {
+        topAssociation.toTarget.as = `${topInclude.through.model.name}->${topAssociation.toTarget.as}`;
+      }
+
       query = this.selectQuery(topInclude.through.model.getTableName(), {
         attributes: [topInclude.through.model.primaryKeyField],
         include: Model._validateIncludedElements({
