@@ -182,7 +182,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(metalumni.city.primaryKey).to.eql(false);
     });
 
-    it('should correctly return the columns when the table contains a dot in the name', async function() {
+    it('should correctly return the columns when the table contains a dot in the name', async function () {
       const User = this.sequelize.define('my.user', {
         name: DataTypes.STRING,
       }, { freezeTableName: true });
