@@ -916,10 +916,7 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
     const tableName = table.tableName || table;
     const schema = table.schema || 'public';
     return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' 
-      AND tc.table_name='${tableName}' 
-      AND  kcu.column_name = '${columnName}' 
-      AND tc.table_schema = '${schema}'`;
+    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='${tableName}' AND  kcu.column_name = '${columnName}' AND tc.table_schema = '${schema}'`;
   }
 
   /**
