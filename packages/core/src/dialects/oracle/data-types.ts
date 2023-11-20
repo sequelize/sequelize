@@ -23,10 +23,10 @@ export class STRING extends Basetypes.STRING {
 
   _getBindDef(oracledb: Lib) {
     if (this.options.binary) {
-      return { type: oracledb.DB_TYPE_RAW, maxSize: this.options.length };
+      return { type: oracledb.DB_TYPE_RAW, maxSize: this.options.length || 255};
     }
 
-    return { type: oracledb.DB_TYPE_VARCHAR, maxSize: this.options.length };
+    return { type: oracledb.DB_TYPE_VARCHAR, maxSize: this.options.length || 255 };
   }
 }
 
@@ -44,11 +44,11 @@ export class BOOLEAN extends Basetypes.BOOLEAN {
   }
 
   toBindableValue(value: boolean | Falsy): unknown {
-    return value ? '1' : '0';
+    return value === true ? '1' : value === false ? '0' : value;
   }
 
   parseDatabaseValue(value: unknown): boolean {
-    if (value === '1' || 'true') {
+    if (value === '1' || value === 'true') {
       return true;
     }
     return false;

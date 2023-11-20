@@ -679,15 +679,20 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         }
         // Sanitizes the values given by the user and pushes it to the tuple list using inBindParam function and
         // also generates the inbind position for the sql string for example (:1, :2, :3.....) which is a by product of the push
-        return inbindParam(fieldValueHash[key]);
+        return this.escape(fieldValueHash[key],{
+          model: options.model,
+          type: fieldMappedAttributes[key].type,
+          bindParam: inbindParam
+        });
       });
 
-      tuple = Object.values(bindMap);
       // Even though the bind variable positions are calculated for each row we only retain the values for the first row 
       // since the values will be identical
       if (!inBindPosition) {
         inBindPosition = tempBindPositions;
       }
+
+      tuple = Object.values(bindMap);
       // Adding the row to the array of rows that will be supplied to executeMany()
       tuples.push(tuple);
     }
@@ -1004,10 +1009,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
 
     switch (value) {
-      case Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED:
-      case Transaction.ISOLATION_LEVELS.READ_COMMITTED:
+      case Transaction.IsolationLevel.READ_UNCOMMITTED:
+      case Transaction.IsolationLevel.READ_COMMITTED:
         return 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;';
-      case Transaction.ISOLATION_LEVELS.REPEATABLE_READ:
+      case Transaction.IsolationLevel.REPEATABLE_READ:
         // Serializable mode is equal to Snapshot Isolation (SI) 
         // defined in ANSI std.
         return 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;';
