@@ -72,7 +72,7 @@
     "@types/chai-datetime": "0.0.39",
     "@types/ibm_db": "2.0.16",
     "@types/lodash": "4.14.201",
-    "@types/mocha": "10.0.4",
+    "@types/mocha": "10.0.5",
     "@types/pg": "8.10.9",
     "@types/semver": "7.5.5",
     "@types/sinon": "17.0.1",

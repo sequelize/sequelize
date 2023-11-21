@@ -2268,7 +2268,7 @@ __metadata:
     "@types/debug": "npm:^4.1.7"
     "@types/ibm_db": "npm:2.0.16"
     "@types/lodash": "npm:4.14.201"
-    "@types/mocha": "npm:10.0.4"
+    "@types/mocha": "npm:10.0.5"
     "@types/pg": "npm:8.10.9"
     "@types/semver": "npm:7.5.5"
     "@types/sinon": "npm:17.0.1"
@@ -3184,10 +3184,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mocha@npm:10.0.4":
-  version: 10.0.4
-  resolution: "@types/mocha@npm:10.0.4"
-  checksum: 19efb41146c94a313e50385e449ccc322aa6b04edacd6f11b27aee2c027a2b07525b478e7d243163748c1533e370511fb5d9457e473a23dc0afd22692aecc882
+"@types/mocha@npm:10.0.5":
+  version: 10.0.5
+  resolution: "@types/mocha@npm:10.0.5"
+  checksum: f959c2c673a853bde8e37eee374a2c4d13c5311a216b9de876189eeb54aabc3d11b18e9dc8db671d6619be614a0a8354c2555fcf6e7c533145f7115403fd1faf
   languageName: node
   linkType: hard
 
