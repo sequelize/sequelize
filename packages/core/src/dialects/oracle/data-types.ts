@@ -3,6 +3,7 @@ import * as Basetypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 import type { Lib } from './connection-manager.js';
 import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
+import dayjs from 'dayjs';
 
 export class STRING extends Basetypes.STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -310,10 +311,27 @@ export class DATEONLY extends Basetypes.DATEONLY {
     return this.escape(date);
   }
 
+  parseDatabaseValue(value: any) {
+    if (value) {
+      return dayjs.utc(value).format('YYYY-MM-DD');
+    }
+    return value;
+  }
+
   _getBindDef(oracledb: Lib) {
     return { type: oracledb.DB_TYPE_DATE };
   }
 
-  // _bindParam() for escape....
+  /**
+     * avoids appending TO_DATE in toBindableValue()
+     *
+     * @override
+     */
+  getBindParamSql(value: AcceptedDate, options: BindParamOptions) : string {
+    if (typeof value === 'string') {
+      return options.bindParam(new Date(value));
+    }
+    return options.bindParam(value);
+  }
 }
 
