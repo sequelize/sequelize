@@ -37,9 +37,5 @@ export interface ConnectionManager {
    */
   destroyConnection(conn: Connection): Promise<void>;
 
-  /**
-   * to be more strict, we can add type: {[key: string]: unknown}
-   * should we do it ?
-   */
   pool: object;
 }
