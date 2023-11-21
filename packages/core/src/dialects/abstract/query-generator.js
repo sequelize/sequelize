@@ -79,7 +79,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     defaults(options, this.options);
 
     const modelAttributeMap = {};
-    const bind = Object.create(null);
+    const bind = options.bind || Object.create(null);
     const fields = [];
     const returningModelAttributes = [];
     const returnTypes = [];

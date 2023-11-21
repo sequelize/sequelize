@@ -6,7 +6,7 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { addTicks, quoteIdentifier, removeTicks } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { EMPTY_OBJECT } from '../../utils/object';
+import { EMPTY_OBJECT, getObjectFromMap } from '../../utils/object';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils'; //TODO: MIGHT NOT be needed.
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
@@ -574,7 +574,8 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
    * @param {object} options
    */
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
-    const rawAttributes = model.rawAttributes;
+    const modelDefinition = model.modelDefinition;
+    const rawAttributes = getObjectFromMap(modelDefinition.attributes);
     const updateQuery = this.updateQuery(tableName, updateValues, where, options, rawAttributes);
     // This bind is passed so that the insert query starts appending to this same bind array
     options.bind = updateQuery.bind;
@@ -605,13 +606,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     ];
 
     const query = sql.join('');
-    const result = { query };
+    //const result = { query };
 
     if (options.bindParam !== false) {
-      result.bind = updateQuery.bind || insertQuery.bind;
+      options.bind = updateQuery.bind || insertQuery.bind;
     }
 
-    return result;
+    return query;
   }
 
   /**

@@ -10,7 +10,7 @@ export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
     const model = options.model;
     const primaryKeys = Object.values(model.primaryKeys).map(item => item.field);
     const uniqueKeys = Object.values(model.uniqueKeys).filter(c => c.fields.length > 0).map(c => c.fields);
-    const indexKeys = Object.values(model._indexes).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
+    const indexKeys = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
 
     options.type = QueryTypes.UPSERT;
     options.updateOnDuplicate = Object.keys(updateValues);
@@ -57,6 +57,9 @@ export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
       }, {});
     }
 
+    if (typeof tableName === 'object') {
+      tableName = tableName.tableName;
+    }
     const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
     // we need set this to undefined otherwise sequelize would raise an error
     // Error: Both `sql.bind` and `options.bind` cannot be set at the same time
