@@ -2267,7 +2267,7 @@ __metadata:
     "@types/chai-datetime": "npm:0.0.39"
     "@types/debug": "npm:^4.1.7"
     "@types/ibm_db": "npm:2.0.16"
-    "@types/lodash": "npm:4.14.201"
+    "@types/lodash": "npm:4.14.202"
     "@types/mocha": "npm:10.0.5"
     "@types/pg": "npm:8.10.9"
     "@types/semver": "npm:7.5.5"
@@ -3163,10 +3163,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.14.201":
-  version: 4.14.201
-  resolution: "@types/lodash@npm:4.14.201"
-  checksum: 14dc43787296c429433d7d034ed47c5ac24b92217056f80a0e6c990449120b9c9c1058918188945fb88353c0c8333c5c36dccc40c51edbd39b05d2169ab2e0ad
+"@types/lodash@npm:4.14.202":
+  version: 4.14.202
+  resolution: "@types/lodash@npm:4.14.202"
+  checksum: 6064d43c8f454170841bd67c8266cc9069d9e570a72ca63f06bceb484cb4a3ee60c9c1f305c1b9e3a87826049fd41124b8ef265c4dd08b00f6766609c7fe9973
   languageName: node
   linkType: hard
 
