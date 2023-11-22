@@ -87,7 +87,7 @@
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
     "ibm_db": "3.2.3",
-    "lcov-result-merger": "4.1.0",
+    "lcov-result-merger": "5.0.0",
     "mariadb": "3.2.2",
     "mocha": "10.2.0",
     "moment": "2.29.4",
