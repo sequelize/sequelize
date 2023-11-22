@@ -82,4 +82,8 @@ export class OracleDialect extends AbstractDialect {
   createBindCollector() {
     return createNamedParamBindCollector(':');
   }
+
+  static getDefaultPort() : number {
+    return 1521;
+  }
 }

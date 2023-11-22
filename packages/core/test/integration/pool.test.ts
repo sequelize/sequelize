@@ -32,6 +32,10 @@ function assertSameConnection(newConnection: Connection, oldConnection: Connecti
       expect(newConnection.dummyId).to.equal(oldConnection.dummyId).and.to.be.ok;
       break;
 
+    case 'oracle':
+      expect(oldConnection).to.be.equal(newConnection);
+      break;
+
     default:
       throw new Error('Unsupported dialect');
   }
@@ -64,6 +68,10 @@ function assertNewConnection(newConnection: Connection, oldConnection: Connectio
       expect(newConnection.dummyId).to.not.be.ok;
       // @ts-expect-error -- dummyId not declared yet
       expect(oldConnection.dummyId).to.be.ok;
+      break;
+    
+    case 'oracle':
+      expect(oldConnection).to.not.be.equal(newConnection);
       break;
 
     default:
@@ -133,7 +141,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
     });
 
     it('should obtain new connection when released connection dies inside pool', async () => {
-      function simulateUnexpectedError(connection: Connection) {
+      async function simulateUnexpectedError(connection: Connection) {
         // should never be returned again
         switch (dialect) {
           case 'mssql': {
@@ -153,6 +161,13 @@ describe(getTestDialectTeaser('Pooling'), () => {
           case 'db2': {
             // @ts-expect-error -- closeSync not declared yet
             connection.closeSync();
+
+            break;
+          }
+
+          case 'oracle': {
+            // @ts-expect-error -- close not declared yet
+            await connection.close();
 
             break;
           }
