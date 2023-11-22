@@ -634,7 +634,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const allColumns = {};
     const inBindBindDefMap = {};
     const outBindBindDefMap = {};
-    const bindMap = {};
     const oracledb = this.sequelize.connectionManager.lib;
 
     // Generating the allColumns map
@@ -659,6 +658,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       // Has each column for a row after coverting it to appropriate format using this.format function
       // like ['Mick', 'Broadstone', 2022-02-16T05:24:18.949Z, 2022-02-16T05:24:18.949Z],
       let tuple = [];
+      const bindMap = {};
       // A function expression for this.bindParam/options.bindparam function
       // This function is passed to this.format function which inserts column values to the tuple list
       // using _bindParam/_stringify function in data-type.js file
@@ -823,13 +823,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     let template;
 
     if (attribute.type instanceof DataTypes.ENUM) {
-      if (attribute.type.values && !attribute.values) attribute.values = attribute.type.values;
-
       // enums are a special case
-      template = attribute.type.toSql();
+      template = attribute.type.toSql({ dialect: this.dialect });
       template +=
-        ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${_.map(attribute.values, value => {
-          return this.escape(value);
+        ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${attribute.type.options.values.map(value => {
+          return this.escape(value, undefined, {});
         }).join(', ')
         }))`;
       return template;
@@ -1191,9 +1189,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   * @param {number} posOffset
   */
   bindParam(bind, posOffset = 0) {
-    let i = 0;
+    let i = Object.keys(bind).length;
     return value => {
-      const bindName = `sequelize_${++i}`;
+      const bindName = `$sequelize_${++i}`;
       bind[bindName] = value;
       return `:${Object.keys(bind).length + posOffset}`;
     };

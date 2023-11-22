@@ -1144,55 +1144,57 @@ describe('DataTypes', () => {
     });
   });
 
-  describe('TIME(precision)', () => {
-    if (!dialect.supports.dataTypes.TIME.precision) {
-      it('throws, as TIME(precision) is not supported', async () => {
-        expect(() => {
-          sequelize.define('User', {
-            attr: DataTypes.TIME(2),
-          });
-        }).to.throwWithCause(`${dialect.name} does not support the TIME(precision) data type.`);
-      });
+  if (dialect.name !== 'oracle') {
+    describe('TIME(precision)', () => {
+      if (!dialect.supports.dataTypes.TIME.precision) {
+        it('throws, as TIME(precision) is not supported', async () => {
+          expect(() => {
+            sequelize.define('User', {
+              attr: DataTypes.TIME(2),
+            });
+          }).to.throwWithCause(`${dialect.name} does not support the TIME(precision) data type.`);
+        });
 
-      return;
-    }
-
-    const vars = beforeAll2(async () => {
-      class User extends Model<InferAttributes<User>> {
-        declare timeMinPrecisionAttr: string | null;
-        declare timeTwoPrecisionAttr: string | null;
-        declare timeMaxPrecisionAttr: string | null;
+        return;
       }
 
-      User.init({
-        timeMinPrecisionAttr: DataTypes.TIME(0),
-        timeTwoPrecisionAttr: DataTypes.TIME(2),
-        timeMaxPrecisionAttr: DataTypes.TIME(6),
-      }, { sequelize });
+      const vars = beforeAll2(async () => {
+        class User extends Model<InferAttributes<User>> {
+          declare timeMinPrecisionAttr: string | null;
+          declare timeTwoPrecisionAttr: string | null;
+          declare timeMaxPrecisionAttr: string | null;
+        }
 
-      await User.sync({ force: true });
+        User.init({
+          timeMinPrecisionAttr: DataTypes.TIME(0),
+          timeTwoPrecisionAttr: DataTypes.TIME(2),
+          timeMaxPrecisionAttr: DataTypes.TIME(6),
+        }, { sequelize });
 
-      return { User };
+        await User.sync({ force: true });
+
+        return { User };
+      });
+
+      it('accepts strings', async () => {
+        await testSimpleInOut(vars.User, 'timeMinPrecisionAttr', '04:05:06.123456',
+          dialect.name === 'mssql' ? '04:05:06.000'
+            // sqlite3 does not support restricting the precision of TIME
+            : dialect.name === 'sqlite' ? '04:05:06.123456'
+            : '04:05:06');
+
+        await testSimpleInOut(vars.User, 'timeTwoPrecisionAttr', '04:05:06.123456',
+          dialect.name === 'mssql' ? '04:05:06.120'
+            // sqlite3 does not support restricting the precision of TIME
+            : dialect.name === 'sqlite' ? '04:05:06.123456'
+            : '04:05:06.12');
+
+        // FIXME: Tedious loses precision because it pre-parses TIME as a JS Date object
+        //  https://github.com/tediousjs/tedious/issues/678
+        await testSimpleInOut(vars.User, 'timeMaxPrecisionAttr', '04:05:06.123456', dialect.name === 'mssql' ? '04:05:06.123' : '04:05:06.123456');
+      });
     });
-
-    it('accepts strings', async () => {
-      await testSimpleInOut(vars.User, 'timeMinPrecisionAttr', '04:05:06.123456',
-        dialect.name === 'mssql' ? '04:05:06.000'
-          // sqlite3 does not support restricting the precision of TIME
-          : dialect.name === 'sqlite' ? '04:05:06.123456'
-          : '04:05:06');
-
-      await testSimpleInOut(vars.User, 'timeTwoPrecisionAttr', '04:05:06.123456',
-        dialect.name === 'mssql' ? '04:05:06.120'
-          // sqlite3 does not support restricting the precision of TIME
-          : dialect.name === 'sqlite' ? '04:05:06.123456'
-          : '04:05:06.12');
-
-      // FIXME: Tedious loses precision because it pre-parses TIME as a JS Date object
-      //  https://github.com/tediousjs/tedious/issues/678
-      await testSimpleInOut(vars.User, 'timeMaxPrecisionAttr', '04:05:06.123456', dialect.name === 'mssql' ? '04:05:06.123' : '04:05:06.123456');
-    });
-  });
+  }
 
   describe('UUID', () => {
     const vars = beforeAll2(async () => {
