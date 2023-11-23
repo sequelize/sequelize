@@ -94,6 +94,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         // so we must create a record with the right value for always_false, then reference it in an update
         const now = dialect === 'sqlite' ? this.sequelize.fn('', this.sequelize.fn('datetime', 'now'))
           : dialect === 'mssql' ? this.sequelize.fn('', this.sequelize.fn('getdate'))
+          : dialect === 'oracle' ? this.sequelize.fn('', this.sequelize.literal('SYSDATE'))
           : this.sequelize.fn('NOW');
 
         user.set({

@@ -80,6 +80,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (['postgres', 'postgres-native', 'mssql', 'sqlite', 'db2'].includes(dialect)) {
         expect(table.currency.type).to.equal('REAL');
+      } else if (dialect === 'oracle') {
+        expect(table.currency.type).to.equal('BINARY_FLOAT');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }

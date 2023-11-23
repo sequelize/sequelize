@@ -86,28 +86,28 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleCon
         case 'NJS-516': // NJS-516: No Config Dir
         case 'NJS-517': // NJS-517: TNS Entry not found
         case 'NJS-520': // NJS-520: TNS Names File missing  
-          throw new ConnectionRefusedError(errorCode);
+          throw new ConnectionRefusedError(err);
         case 'ORA-28000': // ORA-28000: Account locked
         case 'ORA-28040': // ORA-28040: No matching authentication protocol
         case 'ORA-01017': // ORA-01017: invalid username/password; logon denied
         case 'NJS-506': // NJS-506: TLS Auth Failure
-          throw new AccessDeniedError(errorCode);
+          throw new AccessDeniedError(err);
         case 'ORA-12541': // ORA-12541: TNS: No listener
         case 'NJS-503': // NJS-503: Connection Incomplete
         case 'NJS-508': // NJS-508: TLS HOST MATCH Failure
         case 'NJS-507': // NJS-507: TLS DN MATCH Failure
-          throw new HostNotReachableError(errorCode);
+          throw new HostNotReachableError(err);
         case 'NJS-512': // NJS-512: Invalid Connect String Parameters
         case 'NJS-515': // NJS-515: Invalid EZCONNECT Syntax
         case 'NJS-518': // NJS-518: Invald ServiceName
         case 'NJS-519': // NJS-519: Invald SID
-          throw new InvalidConnectionError(errorCode);
+          throw new InvalidConnectionError(err);
         case 'ORA-12170': // ORA-12170: TNS: Connect Timeout occurred
         case 'NJS-510': // NJS-510: Connect Timeout occurred
 
-          throw new ConnectionTimedOutError(errorCode);
+          throw new ConnectionTimedOutError(err);
         default:
-          throw new ConnectionError(errorCode);
+          throw new ConnectionError(err);
       }
     }
   }

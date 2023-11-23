@@ -678,7 +678,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         }
       });
 
-      if (dialectName !== 'db2' || dialectName != 'oracle') {
+      if (!['db2', 'oracle'].includes(dialectName)) {
         it('binds named parameters with the passed object using the same key twice', async function () {
           const typeCast = dialectName === 'postgres' ? '::int' : '';
           let logSql;

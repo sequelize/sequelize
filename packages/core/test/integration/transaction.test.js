@@ -13,6 +13,13 @@ const current = Support.sequelize;
 const delay = require('delay');
 const pSettle = require('p-settle');
 
+const fromQuery = () => {
+  if (dialect === 'oracle') {
+    return 'FROM DUAL';
+  }
+  return '';
+}
+
 describe(Support.getTestDialectTeaser('Transaction'), () => {
   if (!current.dialect.supports.transactions) {
     return;
@@ -97,7 +104,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         transaction.afterRollback(afterRollback);
         transaction.afterTransaction(afterTransaction);
 
-        return this.sequelize.query('SELECT 1+1', { transaction, type: QueryTypes.SELECT });
+        return this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction, type: QueryTypes.SELECT });
       });
 
       expect(afterCommit).to.have.been.calledOnce;
@@ -238,24 +245,24 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
   it('does not allow queries after commit', async function () {
     const t = await this.sequelize.startUnmanagedTransaction();
-    await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+    await this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction: t, raw: true });
     await t.commit();
-    await expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+    await expect(this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction: t, raw: true })).to.be.eventually.rejectedWith(
       Error,
       /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/,
-    ).and.have.deep.property('sql').that.equal('SELECT 1+1');
+    ).and.have.deep.property('sql').that.equal(`SELECT 1+1 ${fromQuery()}`);
   });
 
   it('does not allow queries immediately after commit call', async function () {
     await expect((async () => {
       const t = await this.sequelize.startUnmanagedTransaction();
-      await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+      await this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction: t, raw: true });
       await Promise.all([
         expect(t.commit()).to.eventually.be.fulfilled,
-        expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+        expect(this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction: t, raw: true })).to.be.eventually.rejectedWith(
           Error,
           /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/,
-        ).and.have.deep.property('sql').that.equal('SELECT 1+1'),
+        ).and.have.deep.property('sql').that.equal(`SELECT 1+1 ${fromQuery()}`),
       ]);
     })()).to.be.eventually.fulfilled;
   });
@@ -264,10 +271,10 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
     await expect(
       (async () => {
         const t = await this.sequelize.startUnmanagedTransaction();
-        await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+        await this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction: t, raw: true });
         await t.rollback();
 
-        return await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+        return await this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction: t, raw: true });
       })(),
     ).to.eventually.be.rejected;
   });
@@ -287,10 +294,10 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
       this.sequelize.startUnmanagedTransaction().then(async t => {
         await Promise.all([
           expect(t.rollback()).to.eventually.be.fulfilled,
-          expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true })).to.be.eventually.rejectedWith(
+          expect(this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction: t, raw: true })).to.be.eventually.rejectedWith(
             Error,
             /rollback has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/,
-          ).and.have.deep.property('sql').that.equal('SELECT 1+1'),
+          ).and.have.deep.property('sql').that.equal(`SELECT 1+1 ${fromQuery()}`),
         ]);
       }),
     ).to.eventually.be.fulfilled;
@@ -853,7 +860,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
     }
 
     // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-    if (!['sqlite', 'postgres', 'postgres-native', 'db2'].includes(dialect)) {
+    if (!['sqlite', 'postgres', 'postgres-native', 'db2', 'oracle'].includes(dialect)) {
       it('should block updates after reading a row using SERIALIZABLE', async function () {
         const User = this.sequelize.define('user', {
           username: DataTypes.STRING,

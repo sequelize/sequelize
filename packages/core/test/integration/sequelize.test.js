@@ -379,6 +379,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               break;
             }
 
+            case 'oracle': {
+              expect(error.message).to.include('NJS-007');
+
+              break;
+            }
+
             case 'ibmi': {
               expect(error.message).to.equal('[odbc] Error connecting to the database');
               expect(error.original.odbcErrors[0].message).to.include('Data source name not found and no default driver specified');

@@ -4,7 +4,7 @@ import sinon from 'sinon';
 import { DataTypes, Model, QueryTypes } from '@sequelize/core';
 import type { InferAttributes, InferCreationAttributes, ModelStatic } from '@sequelize/core';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
-import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from './support';
+import { beforeAll2, createMultiTransactionalTestSequelizeInstance, getTestDialect, sequelize, setResetMode } from './support';
 
 describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
   if (!sequelize.dialect.supports.transactions) {
@@ -165,7 +165,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
 
   it('promises returned by sequelize.query are correctly patched', async () => {
     await vars.clsSequelize.transaction(async t => {
-      await vars.clsSequelize.query('select 1', { type: QueryTypes.SELECT });
+      await vars.clsSequelize.query(`select 1 ${getTestDialect() === 'oracle' ? 'FROM DUAL' : ''}`, { type: QueryTypes.SELECT });
 
       return expect(vars.clsSequelize.getCurrentClsTransaction()).to.equal(t);
     });
