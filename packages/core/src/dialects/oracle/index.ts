@@ -86,4 +86,12 @@ export class OracleDialect extends AbstractDialect {
   static getDefaultPort() : number {
     return 1521;
   }
+
+  escapeString(val: string): string {
+    if (val.startsWith('TO_TIMESTAMP') || val.startsWith('TO_DATE')) {
+      return val;
+    }
+    val = val.replace(/'/g, "''");
+    return `'${val}'`;
+  }
 }

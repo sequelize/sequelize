@@ -1289,6 +1289,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             break;
           }
 
+          case 'oracle': {
+            expect(error.message).to.match(/ORA-00942: table or view does not exist/);
+
+            break;
+          }
+
           case 'ibmi': {
             expect(error.message).to.match(/[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./);
 

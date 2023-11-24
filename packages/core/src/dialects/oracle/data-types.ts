@@ -132,7 +132,7 @@ export class DATE extends Basetypes.DATE {
 
     const formatedDate = date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
 
-    return `TO_TIMESTAMP_TZ(${formatedDate}, ${format})`;
+    return `TO_TIMESTAMP_TZ('${formatedDate}', '${format}')`;
   }
 
   /**
