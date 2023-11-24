@@ -84,7 +84,7 @@
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
     "delay": "5.0.0",
-    "expect-type": "0.13.0",
+    "expect-type": "0.17.3",
     "fs-jetpack": "5.1.0",
     "ibm_db": "3.2.3",
     "lcov-result-merger": "5.0.0",
