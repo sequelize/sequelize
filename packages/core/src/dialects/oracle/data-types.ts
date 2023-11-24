@@ -40,7 +40,7 @@ export class BOOLEAN extends Basetypes.BOOLEAN {
     return { type: oracledb.DB_TYPE_CHAR, maxSize: 1 };
   }
 
-  escape(value: true | Falsy): string {
+  escape(value: boolean | Falsy): string {
     return value ? '1' : '0';
   }
 

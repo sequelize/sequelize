@@ -13,7 +13,7 @@ const sinon = require('sinon');
 const current = Support.sequelize;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialect)) {
     return `"${str}"`;
   }
 
