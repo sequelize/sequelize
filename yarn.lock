@@ -2168,7 +2168,7 @@ __metadata:
     "@types/semver": "npm:7.5.6"
     "@types/sinon": "npm:17.0.2"
     "@types/sinon-chai": "npm:3.2.12"
-    "@types/snowflake-sdk": "npm:1.6.17"
+    "@types/snowflake-sdk": "npm:1.6.18"
     "@types/tedious": "npm:4.0.14"
     "@types/uuid": "npm:9.0.7"
     "@types/validator": "npm:^13.7.5"
@@ -3170,13 +3170,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/snowflake-sdk@npm:1.6.17":
-  version: 1.6.17
-  resolution: "@types/snowflake-sdk@npm:1.6.17"
+"@types/snowflake-sdk@npm:1.6.18":
+  version: 1.6.18
+  resolution: "@types/snowflake-sdk@npm:1.6.18"
   dependencies:
     "@types/node": "npm:*"
     generic-pool: "npm:^3.9.0"
-  checksum: 08ecd92d7ac34e9e92102aa6b9e01a6f907e3b60afc054ea4a952507492d71bc088e4b8006a41f62bdc6a503fd6cc5bf35b35d688e10f276899e08b5c79a9b25
+  checksum: 9fa9a13833c2524d2ddf76af4ab1321cd77283a2e8b532af7bdf3d2b04ca613044d597341fe87d2d7a55e84976d281addff3655586f21bd31c537a6509fe80de
   languageName: node
   linkType: hard
 
