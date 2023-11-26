@@ -56,7 +56,7 @@ export type DialectSupports = {
   'RIGHT JOIN': boolean,
   EXCEPTION: boolean,
 
-  forShare?: 'LOCK IN SHARE MODE' | 'FOR SHARE' | undefined,
+  forShare?: 'LOCK IN SHARE MODE' | 'FOR SHARE' | 'FOR UPDATE WITH RS' | undefined,
   lock: boolean,
   lockOf: boolean,
   lockKey: boolean,

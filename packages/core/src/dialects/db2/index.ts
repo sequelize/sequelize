@@ -14,6 +14,7 @@ export class Db2Dialect extends AbstractDialect {
     finalTable: true,
     lock: true,
     skipLocked: true,
+    forShare: "FOR UPDATE WITH RS",
     autoIncrement: {
       defaultValue: false,
     },
