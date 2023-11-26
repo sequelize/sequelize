@@ -532,6 +532,9 @@ export class AbstractQuery {
       return lastKeyPrefixMemo[key];
     };
 
+    // sort the array by the level of their depth calculated by dot.
+    const sortByDepth = keys => keys.sort((a, b) => a.split('.').length - b.split('.').length);
+
     const getUniqueKeyAttributes = model => {
       let uniqueKeyAttributes = chain(model.uniqueKeys);
       uniqueKeyAttributes = uniqueKeyAttributes
@@ -552,7 +555,7 @@ export class AbstractQuery {
 
       // Keys are the same for all rows, so only need to compute them on the first row
       if (rowsI === 0) {
-        keys = Object.keys(row);
+        keys = sortByDepth(Object.keys(row));
         keyLength = keys.length;
       }
 
