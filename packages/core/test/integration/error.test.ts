@@ -436,7 +436,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         await expect(User.create({ name: 'jan' })).to.be.rejectedWith(UniqueConstraintError);
 
         // And when the model is not passed at all
-        if (['db2', 'ibmi'].includes(dialect)) {
+        if (['db2', 'ibmi', 'oracle'].includes(dialect)) {
           await expect(sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')')).to.be.rejectedWith(UniqueConstraintError);
         } else {
           await expect(sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(UniqueConstraintError);
@@ -752,6 +752,10 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           assert(error.errors[2] instanceof UnknownConstraintError);
           expect(error.errors[2].constraint).to.equal('unique_constraint');
           expect(error.errors[2].table).to.equal('Users');
+        } else if (dialect === 'oracle') {
+          expect(error).to.be.instanceOf(DatabaseError);
+          assert(error instanceof DatabaseError);
+          expect(error.message).to.equal('ORA-02264: name already used by an existing constraint');
         } else {
           expect(error).to.be.instanceOf(DatabaseError);
           assert(error instanceof DatabaseError);

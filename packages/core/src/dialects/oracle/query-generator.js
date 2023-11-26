@@ -319,10 +319,39 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     ]);
   }
 
-  showConstraintsQuery(tableName) {
+  showConstraintsQuery(tableName, options) {
+    if (options.constraintType === 'FOREIGN KEY') {
+      return this.getForeignKeysQuery(tableName);
+    }
     let table = this.extractTableDetails(tableName);
     table = this.getCatalogName(table.tableName);
-    return `SELECT CONSTRAINT_NAME constraint_name FROM user_cons_columns WHERE table_name = ${this.escape(table)}`;
+    return joinSQLFragments([
+      'SELECT C.CONSTRAINT_NAME "constraintName",',
+      `CASE A.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType",`,
+      'C.TABLE_NAME "tableName",',
+      'C.OWNER "constraintSchema",',
+      'C.COLUMN_NAME "columnNames"',
+      'FROM USER_CONS_COLUMNS C',
+      'INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME',
+      `WHERE C.TABLE_NAME =${this.escape(table)}`,
+      options?.constraintType ? `AND A.CONSTRAINT_TYPE =${this.escape(this._getConstraintType(options.constraintType))}` : '',
+      'ORDER BY C.CONSTRAINT_NAME',
+    ]);
+  }
+
+  _getConstraintType(type) {
+    switch (type) {
+      case 'CHECK':
+        return 'C';
+      case 'FOREIGN KEY':
+        return 'R';
+      case 'PRIMARY KEY':
+        return 'P';
+      case 'UNIQUE':
+        return 'U';
+      default:
+        throw new Error(`Constraint type ${type} is not supported`);
+    }
   }
 
   listTablesQuery() {
@@ -355,14 +384,14 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     return super.addIndexQuery(tableName, attributes, options, rawTablename);
   }
 
-  addConstraintQuery(tableName, options) {
-    options = options || {};
+  // addConstraintQuery(tableName, options) {
+  //   options = options || {};
 
-    const constraintSnippet = this.getConstraintSnippet(tableName, options);
+  //   const constraintSnippet = this.getConstraintSnippet(tableName, options);
 
-    tableName = this.quoteTable(tableName);
-    return `ALTER TABLE ${tableName} ADD ${constraintSnippet};`;
-  }
+  //   tableName = this.quoteTable(tableName);
+  //   return `ALTER TABLE ${tableName} ADD ${constraintSnippet};`;
+  // }
 
   addColumnQuery(table, key, dataType, options) {
     if (options) {
@@ -680,7 +709,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         }
         // Sanitizes the values given by the user and pushes it to the tuple list using inBindParam function and
         // also generates the inbind position for the sql string for example (:1, :2, :3.....) which is a by product of the push
-        return this.escape(fieldValueHash[key],{
+        return this.escape(fieldValueHash[key] ?? null,{
           model: options.model,
           type: fieldMappedAttributes[key].type,
           bindParam: inbindParam
@@ -957,7 +986,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
   getForeignKeysQuery(table) {
     // We don't call quoteTable as we don't want the schema in the table name, Oracle seperates it on another field
-    const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
+    const tableDetails = this.extractTableDetails(table);
+    const tableName = this.getCatalogName(tableDetails.tableName);
+    const schemaName = this.getCatalogName(tableDetails.schema);
     const sql = [
       'SELECT DISTINCT  a.table_name "tableName", a.constraint_name "constraintName", a.owner "owner",  a.column_name "columnName",',
       ' b.table_name "referencedTableName", b.column_name "referencedColumnName"',
@@ -968,7 +999,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       ' AND a.table_name = ',
       this.escape(tableName),
       ' AND a.owner = ',
-      table.schema ? this.escape(schemaName) : 'USER',
+      (tableDetails.schema && schemaName !== '') ? this.escape(schemaName) : 'USER',
       ' ORDER BY a.table_name, a.constraint_name'
     ].join('');
 

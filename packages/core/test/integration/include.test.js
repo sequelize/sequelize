@@ -745,6 +745,15 @@ Instead of specifying a Model, either:
           break;
         }
 
+        case 'oracle': {
+          findAttributes = [
+            Sequelize.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END) AS "PostComments.someProperty"'),
+            [Sequelize.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END)'), 'someProperty2']
+          ];
+
+          break;
+        }
+
         default: {
           findAttributes = [
             Sequelize.literal('EXISTS(SELECT 1) AS "PostComments.someProperty"'),
