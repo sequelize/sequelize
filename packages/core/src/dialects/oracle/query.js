@@ -311,7 +311,8 @@ export class OracleQuery extends AbstractQuery {
       // Building the attribute map by matching the column names received
       // from DB and the one in model.rawAttributes
       if (this.model) {
-        this._getAttributeMap(attrsMap, this.model.rawAttributes);
+        let modelDefinition = this.model.modelDefinition;
+        this._getAttributeMap(attrsMap, modelDefinition.rawAttributes);
       }
 
       // If aliasesmapping exists we update the attribute map
@@ -427,7 +428,7 @@ export class OracleQuery extends AbstractQuery {
       const modelAttributes = {};
       // Get the model raw attributes
       if (this.sequelize.models && table.length > 0) {
-        this._getAttributeMap(modelAttributes, this.sequelize.models[table[0]].rawAttributes);
+        this._getAttributeMap(modelAttributes, this.sequelize.models[table[0]].modelDefinition.rawAttributes);
       }
       data.rows.forEach(_result => {
         if (_result.Default) {
@@ -508,7 +509,7 @@ export class OracleQuery extends AbstractQuery {
     return data.rows.map(result => {
       const constraint = {};
       for (const key in result) {
-        constraint[camelCase(key)] = result[key].toLowerCase();
+        constraint[key] = result[key];
       }
       return constraint;
     });
