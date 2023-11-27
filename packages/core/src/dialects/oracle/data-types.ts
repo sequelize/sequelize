@@ -300,7 +300,6 @@ export class DOUBLE extends Basetypes.DOUBLE {
 }
 
 export class DATEONLY extends Basetypes.DATEONLY {
-  // parse()
   toBindableValue(date: AcceptedDate) {
     if (date) {
       const format = 'YYYY/MM/DD';

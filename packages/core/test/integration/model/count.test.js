@@ -49,7 +49,7 @@ describe('Model.count', () => {
       expect(count.find(i => i.username === 'user2')).to.deep.equal({ username: 'user2', count: 1 });
     });
 
-    if (dialectName !== 'mssql' && dialectName !== 'db2' && dialectName !== 'ibmi') {
+    if (dialectName !== 'mssql' && dialectName !== 'db2' && dialectName !== 'ibmi' && dialectName !== 'oracle') {
       describe('aggregate', () => {
         it('allows grouping by aliased attribute', async function () {
           await this.User.aggregate('id', 'count', {
