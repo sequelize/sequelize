@@ -146,6 +146,13 @@ export class DATE extends Basetypes.DATE {
   // TODO: parse() and override _applyTimeZone()
 }
 
+type AcceptedNumber =
+  | number
+  | bigint
+  | boolean
+  | string
+  | null;
+
 export class DECIMAL extends Basetypes.DECIMAL {
   toSql() {
     let result: string = 'NUMBER';
@@ -166,6 +173,11 @@ export class DECIMAL extends Basetypes.DECIMAL {
 
   _getBindDef(oracledb: Lib) {
     return { type: oracledb.DB_TYPE_NUMBER };
+  }
+
+  // Oracle treats DECIMAL as NUMBER(precision, scale).
+  sanitize(value: AcceptedNumber) : AcceptedNumber {
+    return value;
   }
 }
 

@@ -1,5 +1,5 @@
 import { AbstractQuery } from '../abstract/query';
-import { extend, mapKeys, mapValues, camelCase, isPlainObject, reduce, toPairs } from 'lodash';
+import { extend, mapKeys, mapValues, isPlainObject, reduce, toPairs } from 'lodash';
 import { nameIndex } from '../../utils/string';
 import { logger } from '../../utils/logger';
 import { getAttributeName } from '../../utils/format';
