@@ -2260,7 +2260,7 @@ __metadata:
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.1"
     typedoc: "npm:0.25.2"
-    typedoc-plugin-carbon-ads: "npm:1.5.0"
+    typedoc-plugin-carbon-ads: "npm:1.6.0"
     typedoc-plugin-mdn-links: "npm:3.1.0"
     typedoc-plugin-missing-exports: "npm:2.1.0"
     typescript: "npm:5.2.2"
@@ -13026,14 +13026,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-carbon-ads@npm:1.5.0":
-  version: 1.5.0
-  resolution: "typedoc-plugin-carbon-ads@npm:1.5.0"
+"typedoc-plugin-carbon-ads@npm:1.6.0":
+  version: 1.6.0
+  resolution: "typedoc-plugin-carbon-ads@npm:1.6.0"
   dependencies:
-    typescript: "npm:^5.2.2"
+    typescript: "npm:^5.3.2"
   peerDependencies:
-    typedoc: ^0.25.0
-  checksum: 6d2307344074e79c0f0315737881922366c8a79aab6c5eebd548bfc0bf126ee033633f2253442be3a74fe2f7242a07c6818044d13560f17dd2925a8ce9cc5788
+    typedoc: ^0.25.4
+  checksum: bca169d2fe99ac9424e8414b2fc8bb37b22646dbe1e34aec7a90fb00f605173431f55faa3b7926b3f40f482d6deede7c4b75d3fb5934e9a3583cccd3bde1d25b
   languageName: node
   linkType: hard
 
@@ -13081,7 +13081,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:>=3 < 6, typescript@npm:^5.2.2":
+"typescript@npm:>=3 < 6, typescript@npm:^5.3.2":
   version: 5.3.2
   resolution: "typescript@npm:5.3.2"
   bin:
@@ -13101,7 +13101,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.2.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.3.2#optional!builtin<compat/typescript>":
   version: 5.3.2
   resolution: "typescript@patch:typescript@npm%3A5.3.2#optional!builtin<compat/typescript>::version=5.3.2&hash=e012d7"
   bin:
