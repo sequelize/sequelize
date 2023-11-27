@@ -61,7 +61,7 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
       values = dataType.toString().match(/^ENUM\(.+\)/)?.[0];
     }
 
-    let sql: string = `CREATE TYPE ${enumName} AS ${values};`;
+    let sql: string = `CREATE TYPE IF NOT EXISTS ${enumName} AS ${values};`;
     if (Boolean(options) && options.force === true) {
       sql = this.pgEnumDrop(tableName, attr) + sql;
     }
