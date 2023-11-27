@@ -55,7 +55,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.IS_NULLABLE as 'IsNull',
         COLUMN_DEFAULT AS 'Default',
         pk.CONSTRAINT_TYPE AS 'Constraint',
-        COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA+'.'+c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',
+        COLUMNPROPERTY(OBJECT_ID('[' + c.TABLE_SCHEMA + '].[' + c.TABLE_NAME + ']'), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',
         CAST(prop.value AS NVARCHAR) AS 'Comment'
         FROM
         INFORMATION_SCHEMA.TABLES t
@@ -72,7 +72,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
         INNER JOIN sys.columns AS sc
-        ON sc.object_id = object_id(t.table_schema + '.' + t.table_name) AND sc.name = c.column_name
+        ON sc.object_id = object_id('[' + t.table_schema + '].[' + t.table_name + ']') AND sc.name = c.column_name
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
@@ -131,7 +131,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.IS_NULLABLE as 'IsNull',
         COLUMN_DEFAULT AS 'Default',
         pk.CONSTRAINT_TYPE AS 'Constraint',
-        COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA+'.'+c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',
+        COLUMNPROPERTY(OBJECT_ID('[' + c.TABLE_SCHEMA + '].[' + c.TABLE_NAME + ']'), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',
         CAST(prop.value AS NVARCHAR) AS 'Comment'
         FROM
         INFORMATION_SCHEMA.TABLES t
@@ -148,7 +148,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
         INNER JOIN sys.columns AS sc
-        ON sc.object_id = object_id(t.table_schema + '.' + t.table_name) AND sc.name = c.column_name
+        ON sc.object_id = object_id('[' + t.table_schema + '].[' + t.table_name + ']') AND sc.name = c.column_name
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
@@ -224,7 +224,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.IS_NULLABLE as 'IsNull',
         COLUMN_DEFAULT AS 'Default',
         pk.CONSTRAINT_TYPE AS 'Constraint',
-        COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA+'.'+c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',
+        COLUMNPROPERTY(OBJECT_ID('[' + c.TABLE_SCHEMA + '].[' + c.TABLE_NAME + ']'), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',
         CAST(prop.value AS NVARCHAR) AS 'Comment'
         FROM INFORMATION_SCHEMA.TABLES t
         INNER JOIN INFORMATION_SCHEMA.COLUMNS c ON t.TABLE_NAME = c.TABLE_NAME AND t.TABLE_SCHEMA = c.TABLE_SCHEMA
@@ -239,7 +239,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
         INNER JOIN sys.columns AS sc
-        ON sc.object_id = object_id(t.table_schema + '.' + t.table_name) AND sc.name = c.column_name
+        ON sc.object_id = object_id('[' + t.table_schema + '].[' + t.table_name + ']') AND sc.name = c.column_name
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
@@ -315,7 +315,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.IS_NULLABLE as 'IsNull',
         COLUMN_DEFAULT AS 'Default',
         pk.CONSTRAINT_TYPE AS 'Constraint',
-        COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA+'.'+c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',
+        COLUMNPROPERTY(OBJECT_ID('[' + c.TABLE_SCHEMA + '].[' + c.TABLE_NAME + ']'), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',
         CAST(prop.value AS NVARCHAR) AS 'Comment'
         FROM INFORMATION_SCHEMA.TABLES t
         INNER JOIN
@@ -331,7 +331,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
         INNER JOIN sys.columns AS sc
-        ON sc.object_id = object_id(t.table_schema + '.' + t.table_name) AND sc.name = c.column_name
+        ON sc.object_id = object_id('[' + t.table_schema + '].[' + t.table_name + ']') AND sc.name = c.column_name
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
@@ -410,7 +410,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.IS_NULLABLE as 'IsNull',
         COLUMN_DEFAULT AS 'Default',
         pk.CONSTRAINT_TYPE AS 'Constraint',
-        COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA+'.'+c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',
+        COLUMNPROPERTY(OBJECT_ID('[' + c.TABLE_SCHEMA + '].[' + c.TABLE_NAME + ']'), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',
         CAST(prop.value AS NVARCHAR) AS 'Comment'
         FROM
         INFORMATION_SCHEMA.TABLES t
@@ -427,7 +427,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
         INNER JOIN sys.columns AS sc
-        ON sc.object_id = object_id(t.table_schema + '.' + t.table_name) AND sc.name = c.column_name
+        ON sc.object_id = object_id('[' + t.table_schema + '].[' + t.table_name + ']') AND sc.name = c.column_name
         LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
