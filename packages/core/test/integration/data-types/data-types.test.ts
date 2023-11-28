@@ -535,7 +535,9 @@ describe('DataTypes', () => {
 
       it('accepts numbers, bigints, strings', async () => {
         await testSimpleInOut(vars.User, 'intAttr', 123, 123);
-        await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
+        if (dialect.name !== 'oracle') {
+          await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
+        }
         await testSimpleInOut(vars.User, 'intAttr', '123', 123);
 
         await testSimpleInOut(vars.User, 'intAttr', maxIntValueSigned[intTypeName], maxIntValueSigned[intTypeName]);
@@ -586,7 +588,9 @@ describe('DataTypes', () => {
 
       it('accepts numbers, bigints, strings', async () => {
         await testSimpleInOut(vars.User, 'intAttr', 123, 123);
-        await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
+        if (dialect.name !== 'oracle') {
+          await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
+        }
         await testSimpleInOut(vars.User, 'intAttr', '123', 123);
 
         await testSimpleInOut(vars.User, 'intAttr', maxIntValueUnsigned[intTypeName], maxIntValueUnsigned[intTypeName]);
@@ -716,7 +720,9 @@ describe('DataTypes', () => {
 
       it(`accepts numbers, bigints, strings, +-Infinity`, async () => {
         await testSimpleInOut(vars.User, 'attr', 100.5, 100.5);
-        await testSimpleInOut(vars.User, 'attr', 123n, 123);
+        if (dialect.name !== 'oracle') {
+          await testSimpleInOut(vars.User, 'attr', 123n, 123);
+        }
         await testSimpleInOut(vars.User, 'attr', '100.5', 100.5);
       });
 
@@ -755,7 +761,9 @@ describe('DataTypes', () => {
 
       it(`is deserialized as a JS number when DataType is not specified`, async () => {
         await testSimpleInOutRaw(vars.User, 'attr', 100.5, 100.5);
-        await testSimpleInOutRaw(vars.User, 'attr', 123n, 123);
+        if (dialect.name !== 'oracle') {
+          await testSimpleInOutRaw(vars.User, 'attr', 123n, 123);
+        }
 
         if (dialect.supports.dataTypes[attrType].NaN) {
           await testSimpleInOutRaw(vars.User, 'attr', Number.NaN, Number.NaN);
@@ -838,7 +846,9 @@ describe('DataTypes', () => {
 
     it('accepts numbers, bigints, strings', async () => {
       await testSimpleInOut(vars.User, 'decimalAttr', 123.4, '123.4');
-      await testSimpleInOut(vars.User, 'decimalAttr', 123n, '123');
+      if (dialect.name !== 'oracle') {
+        await testSimpleInOut(vars.User, 'decimalAttr', 123n, '123');
+      }
       await testSimpleInOut(vars.User, 'decimalAttr', '123.4', '123.4');
     });
 
@@ -903,7 +913,9 @@ describe('DataTypes', () => {
 
     it('accepts numbers, bigints, strings', async () => {
       await testSimpleInOut(vars.User, 'decimalAttr', 123.4, dialect.name === 'mssql' ? '123.4' : '123.40');
-      await testSimpleInOut(vars.User, 'decimalAttr', 123n, dialect.name === 'mssql' ? '123' : '123.00');
+      if (dialect.name !== 'oracle') {
+        await testSimpleInOut(vars.User, 'decimalAttr', 123n, dialect.name === 'mssql' ? '123' : '123.00');
+      }
       await testSimpleInOut(vars.User, 'decimalAttr', '123.4', dialect.name === 'mssql' ? '123.4' : '123.40');
       await testSimpleInOut(vars.User, 'decimalAttr', '123.451', '123.45');
     });

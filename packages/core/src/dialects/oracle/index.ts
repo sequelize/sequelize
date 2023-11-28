@@ -45,7 +45,7 @@ export class OracleDialect extends AbstractDialect {
     },
     upserts: true,
     bulkDefault: true,
-    // topLevelOrderByRequired: true,
+    topLevelOrderByRequired: true,
   });
 
   readonly connectionManager: OracleConnectionManager;
@@ -93,5 +93,11 @@ export class OracleDialect extends AbstractDialect {
     }
     val = val.replace(/'/g, "''");
     return `'${val}'`;
+  }
+
+  escapeBuffer(buffer: Buffer): string {
+    const hex = buffer.toString('hex');
+
+    return `'${hex}'`;
   }
 }

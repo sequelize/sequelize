@@ -563,6 +563,11 @@ export class AbstractQueryGeneratorTypeScript {
     };
   }
 
+  /**
+   * Returns the alias token
+   *
+   * @returns {string}
+   */
   getAliasToken() {
     return 'AS';
   }

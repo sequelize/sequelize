@@ -70,6 +70,10 @@ export class NOW extends Basetypes.NOW {
   toSql(): string {
     return 'SYSDATE';
   }
+
+  toBindableValue(value: never): unknown {
+    return 'SYSDATE';
+  }
 }
 
 export class ENUM<Member extends string> extends Basetypes.ENUM<Member> {
@@ -226,6 +230,30 @@ export class INTEGER extends Basetypes.INTEGER {
 
   _getBindDef(oracledb: Lib) {
     return { type: oracledb.DB_TYPE_NUMBER };
+  }
+}
+
+/**
+ * @deprecated use FLOAT.
+ */
+export class REAL extends Basetypes.REAL {
+  toSql() {
+    return 'BINARY_DOUBLE';
+  }
+
+  // https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-0BA2E065-8006-426C-A3CB-1F6B0C8F283C
+  toBindableValue(value : any) {
+    if (value === Number.POSITIVE_INFINITY) {
+      return 'inf';
+    }
+    if (value === Number.NEGATIVE_INFINITY) {
+      return '-inf';
+    }
+    return value;
+  }
+
+  _getBindDef(oracledb: Lib) {
+    return { type: oracledb.DB_TYPE_BINARY_DOUBLE };
   }
 }
 

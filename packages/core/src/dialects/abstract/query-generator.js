@@ -396,6 +396,16 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   /**
+   * Helper method for populating the returning into bind information
+   * that is needed by some dialects (currently Oracle)
+   * 
+   * @private
+   */
+  populateInsertQueryReturnIntoBinds() {
+    // noop by default
+  }
+
+  /**
    * Returns an update query
    *
    * @param {string} tableName
@@ -426,9 +436,21 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
-    if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit && this.dialect.name !== 'mssql' && this.dialect.name !== 'db2') {
+    if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit) {
       // TODO: use bind parameter
-      suffix = ` LIMIT ${this.escape(options.limit, options)} `;
+      if (!['mssql', 'oracle', 'db2'].includes(this.dialect.name)) {
+        suffix = ` LIMIT ${this.escape(options.limit, options)} `;
+      } else if (this.dialect.name === 'oracle') {
+        // This cannot be set in where because rownum will be quoted
+        if (where && (where.length && where.length > 0 || Object.keys(where).length > 0)) {
+          // If we have a where clause, we add AND
+          suffix += ' AND ';
+        } else {
+          // No where clause, we add where
+          suffix += ' WHERE ';
+        }
+        suffix += `rownum <= ${this.escape(options.limit)} `;
+      }
     }
 
     if (this.dialect.supports.returnValues && options.returning) {
@@ -1113,7 +1135,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         } else {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
-          delete options.order;
+          // For the Oracle dialect, the result of a select is a set, not a sequence, and so is the result of UNION.  
+          // So the top level ORDER BY is required
+          if (!this.dialect.supports.topLevelOrderByRequired) {
+            delete options.order;
+          }
           where = and(new Literal(placeholder), where);
         }
 
@@ -1426,6 +1452,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           prefix = `(${this.quoteIdentifier(includeAs.internalAs)}.${attr.replaceAll(/\(|\)/g, '')})`;
         } else if (/json_extract\(/.test(attr)) {
           prefix = attr.replace(/json_extract\(/i, `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`);
+        } else if (/json_value\(/.test(attr)) {
+          prefix = attr.replace(/json_value\(/i, `json_value(${this.quoteIdentifier(includeAs.internalAs)}.`); 
         } else {
           prefix = `${this.quoteIdentifier(includeAs.internalAs)}.${this.quoteIdentifier(attr)}`;
         }
