@@ -31,6 +31,7 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleCon
   constructor(dialect: OracleDialect, sequelize: Sequelize) {
     super(dialect, sequelize);
     this.lib = this._loadDialectModule('oracledb') as Lib;
+    this.extendLib();
   }
 
   buildConnectString(config: ConnectionOptions) {
@@ -46,6 +47,27 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleCon
       connectString += `/${config.database}`;
     }
     return connectString;
+  }
+
+
+  /**
+   * Method for initializing the lib
+   *
+   */
+  extendLib() {
+    if (this.sequelize.config && 'dialectOptions' in this.sequelize.config) {
+      const dialectOptions = this.sequelize.config.dialectOptions;
+      if (dialectOptions && 'maxRows' in dialectOptions) {
+        this.lib.maxRows = this.sequelize.config.dialectOptions.maxRows;
+      }
+      if (dialectOptions && 'fetchAsString' in dialectOptions) {
+        this.lib.fetchAsString = this.sequelize.config.dialectOptions.fetchAsString;
+      } else {
+        this.lib.fetchAsString = [this.lib.CLOB];
+      }
+    }
+    // Retrieve BLOB always as Buffer.
+    this.lib.fetchAsBuffer = [this.lib.BLOB];
   }
 
   async connect(config: ConnectionOptions): Promise<OracleConnection> {

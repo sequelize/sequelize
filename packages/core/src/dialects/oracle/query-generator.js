@@ -1163,7 +1163,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     return hasJsonFunction;
   }
 
-  jsonPathExtractionQuery(column, path) {
+  jsonPathExtractionQuery(column, path, unquote) {
     let paths = _.toPath(path);
     const quotedColumn = this.isIdentifierQuoted(column) ? column : this.quoteIdentifier(column);
 
