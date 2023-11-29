@@ -644,10 +644,19 @@ export class OracleQuery extends AbstractQuery {
       const modelDefinition = this.model.modelDefinition;
       const autoIncrementField = modelDefinition.autoIncrementAttributeName;
       let id = null;
+      let autoIncrementAlias = null;
+
+      if (
+        Object.prototype.hasOwnProperty.call(modelDefinition.rawAttributes, autoIncrementField) &&
+        modelDefinition.rawAttributes[autoIncrementField].field !== undefined
+      ) {
+        autoIncrementAlias = modelDefinition.rawAttributes[autoIncrementField].field;
+      }
 
       id = id || results && results[0][this.getInsertIdField()];
       id = id || metaData && metaData[this.getInsertIdField()];
       id = id || results && results[0][autoIncrementField];
+      id = id || autoIncrementAlias && results && results[0][autoIncrementAlias];
 
       this.instance[autoIncrementField] = id;
     }

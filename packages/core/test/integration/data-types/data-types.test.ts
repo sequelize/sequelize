@@ -1371,6 +1371,9 @@ describe('DataTypes', () => {
             // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
             expect(table.jsonStr.type).to.equal('LONGTEXT');
             break;
+          case 'oracle':
+            expect(table.jsonStr.type).to.equal('BLOB');
+            break;
           default:
             expect(table.jsonStr.type).to.equal(jsonTypeName);
         }
