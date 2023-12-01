@@ -980,7 +980,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const tableName = this.getCatalogName(tableDetails.tableName);
     const schemaName = this.getCatalogName(tableDetails.schema);
     const sql = [
-      'SELECT DISTINCT  a.table_name "tableName", a.constraint_name "constraintName", a.owner "owner",  a.column_name "columnNames",',
+      'SELECT DISTINCT  a.table_name "tableName", a.constraint_name "constraintName", a.column_name "columnNames",',
       ' b.table_name "referencedTableName", b.column_name "referencedColumnNames"',
       ' FROM all_cons_columns a',
       ' JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name',
