@@ -28,6 +28,7 @@ export class OracleDialect extends AbstractDialect {
     },
     constraints: {
       restrict: false,
+      onUpdate: false,
     },
     returnValues: false,
     returnIntoValues: true,
@@ -76,7 +77,7 @@ export class OracleDialect extends AbstractDialect {
 
   getDefaultSchema(): string {
     // TODO: what is the default schema in oracle?
-    return '';
+    return this.sequelize.config.username.toUpperCase();
   }
 
   createBindCollector() {

@@ -527,15 +527,14 @@ export class OracleQuery extends AbstractQuery {
         uniqueKey = null;
 
       if (this.model) {
-        const uniqueKeys = Object.keys(this.model.uniqueKeys);
+        const uniqueKeys = this.model.getIndexes();
 
-        const currKey = uniqueKeys.find(key => {
+        uniqueKey = uniqueKeys.find(key => {
           // We check directly AND with quotes -> "a"" === a || "a" === "a"
-          return key.toUpperCase() === match[1].toUpperCase() || key.toUpperCase() === `"${match[1].toUpperCase()}"`;
+          return key.name.toUpperCase() === match[1].toUpperCase() || key.name.toUpperCase() === `"${match[1].toUpperCase()}"`;
         });
 
-        if (currKey) {
-          uniqueKey = this.model.uniqueKeys[currKey];
+        if (uniqueKey) {
           fields = uniqueKey.fields;
         }
 

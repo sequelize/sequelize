@@ -334,6 +334,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       'FROM USER_CONS_COLUMNS C',
       'INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME',
       `WHERE C.TABLE_NAME =${this.escape(table)}`,
+      options?.constraintName ? `AND C.CONSTRAINT_NAME =${this.escape(options.constraintName)}` : '',
       options?.constraintType ? `AND A.CONSTRAINT_TYPE =${this.escape(this._getConstraintType(options.constraintType))}` : '',
       'ORDER BY C.CONSTRAINT_NAME',
     ]);
@@ -980,7 +981,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const tableName = this.getCatalogName(tableDetails.tableName);
     const schemaName = this.getCatalogName(tableDetails.schema);
     const sql = [
-      'SELECT DISTINCT  a.table_name "tableName", a.constraint_name "constraintName", a.column_name "columnNames",',
+      'SELECT DISTINCT  a.table_name "tableName", a.constraint_name "constraintName", a.owner "constraintSchema", a.column_name "columnNames",',
+      `CASE c.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType",`,
+      ' c.r_owner "referencedTableSchema",',
+      ' c.DELETE_RULE "deleteAction",',
       ' b.table_name "referencedTableName", b.column_name "referencedColumnNames"',
       ' FROM all_cons_columns a',
       ' JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name',
