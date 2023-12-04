@@ -34,6 +34,10 @@ export class IBMiDialect extends AbstractDialect {
       removeColumn: {
         cascade: true,
       },
+      renameTable: {
+        changeSchema: false,
+        changeSchemaAndTable: false,
+      },
     },
   );
 

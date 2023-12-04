@@ -8,7 +8,6 @@ import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 import defaults from 'lodash/defaults';
 import find from 'lodash/find';
-import identity from 'lodash/identity';
 import intersection from 'lodash/intersection';
 import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
@@ -136,22 +135,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Rename a table
-   *
-   * @param {string} before    Current name of table
-   * @param {string} after     New name from table
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async renameTable(before, after, options) {
-    options = options || {};
-    const sql = this.queryGenerator.renameTableQuery(before, after);
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
    * Add a new column to a table
    *
    * ```js
@@ -260,6 +243,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param {object} options
    * @private
    */
+  // TODO: rename to "describeColumn"
   async assertTableHasColumn(tableName, columnName, options) {
     const description = await this.describeTable(tableName, options);
     if (description[columnName]) {

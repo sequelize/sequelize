@@ -35,6 +35,7 @@ import type {
   QiListTablesOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
+  RenameTableOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
 
@@ -251,6 +252,23 @@ export class AbstractQueryInterfaceTypeScript {
     showAllToListTables();
 
     return this.listTables(options);
+  }
+
+  /**
+   * Rename a table
+   *
+   * @param beforeTableName
+   * @param afterTableName
+   * @param options
+   */
+  async renameTable(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableOptions,
+  ): Promise<void> {
+    const sql = this.queryGenerator.renameTableQuery(beforeTableName, afterTableName, options);
+
+    await this.sequelize.queryRaw(sql, options);
   }
 
   /**

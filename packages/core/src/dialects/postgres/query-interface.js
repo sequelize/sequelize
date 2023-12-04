@@ -1,7 +1,5 @@
 'use strict';
 
-import { Deferrable } from '../../deferrable';
-import { camelizeObjectKeys } from '../../utils/object';
 import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.js';
 
 const DataTypes = require('../../data-types');
@@ -112,7 +110,7 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
             const promisesLength = promises.length;
             // we go in reverse order so we could stop when we meet old value
             for (let reverseIdx = newValuesBefore.length - 1; reverseIdx >= 0; reverseIdx--) {
-              if (~enumVals.indexOf(newValuesBefore[reverseIdx])) {
+              if (enumVals.includes(newValuesBefore[reverseIdx])) {
                 break;
               }
 
