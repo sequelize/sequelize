@@ -2188,7 +2188,7 @@ __metadata:
     mysql2: "npm:3.6.5"
     nyc: "npm:15.1.0"
     odbc: "npm:2.4.8"
-    p-map: "npm:4.0.0"
+    p-map: "npm:7.0.0"
     p-props: "npm:4.0.0"
     p-settle: "npm:4.1.1"
     p-timeout: "npm:4.1.0"
@@ -10484,6 +10484,13 @@ __metadata:
   dependencies:
     aggregate-error: "npm:^3.0.0"
   checksum: 592c05bd6262c466ce269ff172bb8de7c6975afca9b50c975135b974e9bdaafbfe80e61aaaf5be6d1200ba08b30ead04b88cfa7e25ff1e3b93ab28c9f62a2c75
+  languageName: node
+  linkType: hard
+
+"p-map@npm:7.0.0":
+  version: 7.0.0
+  resolution: "p-map@npm:7.0.0"
+  checksum: 1f3c546142bdcc711b94176f122be94d4f0ecf00dfd413cf0fc64b61d4f19cd6c5cd036d0bc5e021c022dfffbc3d8caa8c424fb29e823959bd2bced5cc0aa2b3
   languageName: node
   linkType: hard
 
