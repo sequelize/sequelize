@@ -1,11 +1,11 @@
 import type { Falsy } from '../../generic/falsy';
-import * as Basetypes from '../abstract/data-types.js';
+import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 import type { Lib } from './connection-manager.js';
 import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
 import dayjs from 'dayjs';
 
-export class STRING extends Basetypes.STRING {
+export class STRING extends BaseTypes.STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
     // @ts-expect-error -- Object is possibly 'null'.
@@ -19,7 +19,7 @@ export class STRING extends Basetypes.STRING {
       return `NVARCHAR2(${this.options.length ?? 255})`;
     }
 
-    return `RAW${this.options.length}`;
+    return `RAW${this.options.length ?? 255}`;
   }
 
   _getBindDef(oracledb: Lib) {
@@ -31,7 +31,7 @@ export class STRING extends Basetypes.STRING {
   }
 }
 
-export class BOOLEAN extends Basetypes.BOOLEAN {
+export class BOOLEAN extends BaseTypes.BOOLEAN {
   toSql() {
     return 'CHAR(1)';
   }
@@ -56,7 +56,7 @@ export class BOOLEAN extends Basetypes.BOOLEAN {
   }
 }
 
-export class UUID extends Basetypes.UUID {
+export class UUID extends BaseTypes.UUID {
   toSql() {
     return 'VARCHAR2(36)';
   }
@@ -66,7 +66,7 @@ export class UUID extends Basetypes.UUID {
   }
 }
 
-export class NOW extends Basetypes.NOW {
+export class NOW extends BaseTypes.NOW {
   toSql(): string {
     return 'SYSDATE';
   }
@@ -76,7 +76,7 @@ export class NOW extends Basetypes.NOW {
   }
 }
 
-export class ENUM<Member extends string> extends Basetypes.ENUM<Member> {
+export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
   toSql() {
     return 'VARCHAR2(512)';
   }
@@ -86,7 +86,7 @@ export class ENUM<Member extends string> extends Basetypes.ENUM<Member> {
   }
 }
 
-export class TEXT extends Basetypes.TEXT {
+export class TEXT extends BaseTypes.TEXT {
   toSql() {
     return 'CLOB';
   }
@@ -96,7 +96,7 @@ export class TEXT extends Basetypes.TEXT {
   }
 }
 
-export class CHAR extends Basetypes.CHAR {
+export class CHAR extends BaseTypes.CHAR {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
     if (this.options.binary) {
@@ -121,7 +121,7 @@ export class CHAR extends Basetypes.CHAR {
   }
 }
 
-export class DATE extends Basetypes.DATE {
+export class DATE extends BaseTypes.DATE {
   toSql() {
     return 'TIMESTAMP WITH LOCAL TIME ZONE';
   }
@@ -157,7 +157,7 @@ type AcceptedNumber =
   | string
   | null;
 
-export class DECIMAL extends Basetypes.DECIMAL {
+export class DECIMAL extends BaseTypes.DECIMAL {
   toSql() {
     let result: string = 'NUMBER';
     if (!this.options.precision) {
@@ -185,7 +185,7 @@ export class DECIMAL extends Basetypes.DECIMAL {
   }
 }
 
-export class TINYINT extends Basetypes.TINYINT {
+export class TINYINT extends BaseTypes.TINYINT {
   toSql() {
     return 'NUMBER(3)';
   }
@@ -195,7 +195,7 @@ export class TINYINT extends Basetypes.TINYINT {
   }
 }
 
-export class SMALLINT extends Basetypes.SMALLINT {
+export class SMALLINT extends BaseTypes.SMALLINT {
   toSql() {
     if (this.options.length) {
       return `NUMBER(${this.options.length},0)`;
@@ -209,7 +209,7 @@ export class SMALLINT extends Basetypes.SMALLINT {
   }
 }
 
-export class MEDIUMINT extends Basetypes.MEDIUMINT {
+export class MEDIUMINT extends BaseTypes.MEDIUMINT {
   toSql() {
     return 'NUMBER(8)';
   }
@@ -219,7 +219,7 @@ export class MEDIUMINT extends Basetypes.MEDIUMINT {
   }
 }
 
-export class INTEGER extends Basetypes.INTEGER {
+export class INTEGER extends BaseTypes.INTEGER {
   toSql(): string {
     if (this.options.length) {
       return `NUMBER(${this.options.length},0)`;
@@ -236,7 +236,7 @@ export class INTEGER extends Basetypes.INTEGER {
 /**
  * @deprecated use FLOAT.
  */
-export class REAL extends Basetypes.REAL {
+export class REAL extends BaseTypes.REAL {
   toSql() {
     return 'BINARY_DOUBLE';
   }
@@ -257,7 +257,7 @@ export class REAL extends Basetypes.REAL {
   }
 }
 
-export class BIGINT extends Basetypes.BIGINT { // TODO:check for constructor
+export class BIGINT extends BaseTypes.BIGINT { // TODO:check for constructor
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
     if (this.options.length || this.options.zerofill) {
@@ -284,7 +284,7 @@ export class BIGINT extends Basetypes.BIGINT { // TODO:check for constructor
   }
 }
 
-export class FLOAT extends Basetypes.FLOAT {
+export class FLOAT extends BaseTypes.FLOAT {
   toSql() {
     return 'BINARY_FLOAT';
   }
@@ -294,7 +294,7 @@ export class FLOAT extends Basetypes.FLOAT {
   }
 }
 
-export class BLOB extends Basetypes.BLOB {
+export class BLOB extends BaseTypes.BLOB {
   toSql(): string {
     return 'BLOB';
   }
@@ -305,7 +305,7 @@ export class BLOB extends Basetypes.BLOB {
   }
 }
 
-export class JSON extends Basetypes.JSON {
+export class JSON extends BaseTypes.JSON {
   toSql(): string {
     return 'BLOB';
   }
@@ -317,7 +317,7 @@ export class JSON extends Basetypes.JSON {
   // TODO: _bindParam and stringify alternate
 }
 
-export class DOUBLE extends Basetypes.DOUBLE {
+export class DOUBLE extends BaseTypes.DOUBLE {
   protected getNumberSqlTypeName(): string {
     return 'DOUBLE PRECISION';
   }
@@ -339,7 +339,7 @@ export class DOUBLE extends Basetypes.DOUBLE {
   }
 }
 
-export class DATEONLY extends Basetypes.DATEONLY {
+export class DATEONLY extends BaseTypes.DATEONLY {
   toBindableValue(date: AcceptedDate) {
     if (date) {
       const format = 'YYYY/MM/DD';

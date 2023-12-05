@@ -486,7 +486,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ValidationError);
         assert(error instanceof ValidationError);
-        if (dialect === 'db2') {
+        if (dialect === 'db2' || dialect === 'oracle') {
           expect(error.errors).to.have.length(0);
         } else {
           expect(error.errors).to.have.length(1);
@@ -527,6 +527,10 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.errors[0].message).to.equal('username must be unique');
             break;
 
+          case 'oracle':
+            expect(error.cause.message).to.match(/ORA-00001: unique constraint \(.*\) violated/);
+            break;
+
           default:
             expect(error.cause.message).to.contain('Duplicate entry \'foo\' for key \'username\'');
             expect(error.errors[0].path).to.equal('username');
@@ -551,7 +555,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ValidationError);
         assert(error instanceof ValidationError);
-        if (dialect === 'db2') {
+        if (dialect === 'db2' || dialect === 'oracle') {
           expect(error.errors).to.have.length(0);
         } else {
           expect(error.errors).to.have.length(1);
@@ -584,6 +588,10 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
           case 'sqlite':
             expect(error.cause.message).to.equal('SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username');
+            break;
+
+          case 'oracle':
+            expect(error.cause.message).to.match(/ORA-00001: unique constraint \(.*.users_username_unique\) violated/);
             break;
 
           default:
@@ -620,7 +628,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ForeignKeyConstraintError);
         assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite') {
+        if (dialect === 'sqlite' || dialect === 'oracle') {
           expect(error.index).to.be.undefined;
         } else {
           expect(error.index).to.equal('Tasks_userId_Users_fk');
@@ -649,6 +657,12 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
             expect(error.cause.message).to.equal('SQLITE_CONSTRAINT: FOREIGN KEY constraint failed');
+            break;
+
+          case 'oracle':
+            expect(error.table).to.be.undefined;
+            expect(error.fields).to.be.null;
+            expect(error.cause.message).to.match(/ORA-02292: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - child record found/);
             break;
 
           default:
@@ -685,7 +699,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ForeignKeyConstraintError);
         assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite') {
+        if (dialect === 'sqlite' || dialect === 'oracle') {
           expect(error.index).to.be.undefined;
         } else {
           expect(error.index).to.equal('Tasks_userId_Users_fk');
@@ -714,6 +728,12 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
             expect(error.cause.message).to.equal('SQLITE_CONSTRAINT: FOREIGN KEY constraint failed');
+            break;
+          
+          case 'oracle':
+            expect(error.table).to.be.undefined;
+            expect(error.fields).to.be.null;
+            expect(error.cause.message).to.match(/ORA-02291: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - parent key not found/);
             break;
 
           default:

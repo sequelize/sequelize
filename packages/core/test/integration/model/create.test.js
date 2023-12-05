@@ -875,6 +875,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const bindParam = dialectName === 'postgres' ? '$1'
         : dialectName === 'sqlite' ? '$sequelize_1'
         : dialectName === 'mssql' ? '@sequelize_1'
+        : dialectName === 'oracle' ? ':1'
         : '?';
       let match = false;
 

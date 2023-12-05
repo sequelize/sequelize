@@ -258,6 +258,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         case 'db2':
+        case 'oracle':
         case 'mssql': {
           expect(index.fields).to.deep.equal([{ attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }]);
 
@@ -471,6 +472,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(idx2.fields).to.deep.equal([
             { attribute: 'fieldC', length: undefined, order: undefined },
+          ]);
+
+          break;
+        }
+
+        case 'oracle': {
+          primary = args[0];
+          idx1 = args[1];
+          idx2 = args[2];
+          idx3 = args[3];
+
+          expect(idx1.fields).to.deep.equal([
+            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+            { attribute: 'fieldA', length: undefined, order: 'ASC', collate: undefined }
+          ]);
+
+          expect(idx2.fields).to.deep.equal([
+            { attribute: 'fieldC', length: undefined, order: 'ASC', collate: undefined }
+          ]);
+
+          expect(idx3.fields).to.deep.equal([
+            { attribute: 'fieldD', length: undefined, order: 'ASC', collate: undefined }
           ]);
 
           break;

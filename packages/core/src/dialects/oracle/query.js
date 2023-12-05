@@ -557,7 +557,7 @@ export class OracleQuery extends AbstractQuery {
       return new SequelizeErrors.UniqueConstraintError({
         message,
         errors,
-        err,
+        cause: err,
         fields
       });
     }
@@ -626,6 +626,10 @@ export class OracleQuery extends AbstractQuery {
       if (acc[accKey].name.match(/sys_c[0-9]*/)) {
         acc[accKey].name = nameIndex(columns, acc[accKey].tableName).name;
       }
+      acc[accKey].fields.map(field => {
+        field.attribute =field.name;
+        delete field.name;
+      });
       returnIndexes.push(acc[accKey]);
     }
     return returnIndexes;

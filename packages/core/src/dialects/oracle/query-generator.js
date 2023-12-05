@@ -1216,7 +1216,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   bindParam(bind, posOffset = 0) {
     let i = Object.keys(bind).length;
     return value => {
-      const bindName = `$sequelize_${++i}`;
+      const bindName = `sequelize_${++i}`;
       bind[bindName] = value;
       return `:${Object.keys(bind).length + posOffset}`;
     };
