@@ -67,17 +67,17 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.10",
+    "@types/chai": "4.3.11",
     "@types/chai-as-promised": "7.1.8",
     "@types/chai-datetime": "0.0.39",
     "@types/ibm_db": "2.0.16",
-    "@types/lodash": "4.14.201",
-    "@types/mocha": "10.0.4",
+    "@types/lodash": "4.14.202",
+    "@types/mocha": "10.0.6",
     "@types/pg": "8.10.9",
-    "@types/semver": "7.5.5",
-    "@types/sinon": "17.0.1",
+    "@types/semver": "7.5.6",
+    "@types/sinon": "17.0.2",
     "@types/sinon-chai": "3.2.12",
-    "@types/snowflake-sdk": "1.6.17",
+    "@types/snowflake-sdk": "1.6.18",
     "@types/tedious": "4.0.14",
     "@types/uuid": "9.0.7",
     "chai": "4.3.10",
@@ -87,11 +87,11 @@
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
     "ibm_db": "3.2.3",
-    "lcov-result-merger": "4.1.0",
+    "lcov-result-merger": "5.0.0",
     "mariadb": "3.2.2",
     "mocha": "10.2.0",
     "moment": "2.29.4",
-    "mysql2": "3.6.3",
+    "mysql2": "3.6.5",
     "nyc": "15.1.0",
     "odbc": "2.4.8",
     "p-map": "4.0.0",
@@ -104,7 +104,7 @@
     "sinon-chai": "3.7.0",
     "snowflake-sdk": "1.9.1",
     "sqlite3": "5.1.6",
-    "tedious": "16.6.0"
+    "tedious": "16.6.1"
   },
   "peerDependenciesMeta": {
     "ibm_db": {
